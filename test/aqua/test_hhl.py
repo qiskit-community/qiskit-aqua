@@ -90,7 +90,7 @@ class TestHHL(QiskitAquaTestCase):
         # run NumPyLSsolver
         ref_result = NumPyLSsolver(matrix, vector).run()
         ref_solution = ref_result['solution']
-        ref_normed = ref_solution/np.linalg.norm(ref_solution)
+        ref_normed = ref_solution / np.linalg.norm(ref_solution)
 
         # run hhl
         orig_size = len(vector)
@@ -113,7 +113,7 @@ class TestHHL(QiskitAquaTestCase):
                                               seed_transpiler=aqua_globals.random_seed))
 
         hhl_solution = hhl_result['solution']
-        hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
+        hhl_normed = hhl_solution / np.linalg.norm(hhl_solution)
 
         # compare results
         fidelity = state_fidelity(ref_normed, hhl_normed)
@@ -139,7 +139,7 @@ class TestHHL(QiskitAquaTestCase):
         # run NumPyLSsolver
         ref_result = NumPyLSsolver(matrix, vector).run()
         ref_solution = ref_result['solution']
-        ref_normed = ref_solution/np.linalg.norm(ref_solution)
+        ref_normed = ref_solution / np.linalg.norm(ref_solution)
 
         # run hhl
         orig_size = len(vector)
@@ -161,7 +161,7 @@ class TestHHL(QiskitAquaTestCase):
                                               seed_simulator=aqua_globals.random_seed,
                                               seed_transpiler=aqua_globals.random_seed))
         hhl_solution = hhl_result['solution']
-        hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
+        hhl_normed = hhl_solution / np.linalg.norm(hhl_solution)
 
         # compare results
         fidelity = state_fidelity(ref_normed, hhl_normed)
@@ -183,7 +183,7 @@ class TestHHL(QiskitAquaTestCase):
         # run NumPyLSsolver
         ref_result = NumPyLSsolver(matrix, vector).run()
         ref_solution = ref_result['solution']
-        ref_normed = ref_solution/np.linalg.norm(ref_solution)
+        ref_normed = ref_solution / np.linalg.norm(ref_solution)
 
         # run hhl
         orig_size = len(vector)
@@ -205,7 +205,7 @@ class TestHHL(QiskitAquaTestCase):
                                               seed_simulator=aqua_globals.random_seed,
                                               seed_transpiler=aqua_globals.random_seed))
         hhl_solution = hhl_result['solution']
-        hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
+        hhl_normed = hhl_solution / np.linalg.norm(hhl_solution)
 
         # compare results
         fidelity = state_fidelity(ref_normed, hhl_normed)
@@ -227,7 +227,7 @@ class TestHHL(QiskitAquaTestCase):
         # run NumPyLSsolver
         ref_result = NumPyLSsolver(matrix, vector).run()
         ref_solution = ref_result['solution']
-        ref_normed = ref_solution/np.linalg.norm(ref_solution)
+        ref_normed = ref_solution / np.linalg.norm(ref_solution)
 
         # run hhl
         orig_size = len(vector)
@@ -250,7 +250,7 @@ class TestHHL(QiskitAquaTestCase):
                                               seed_simulator=aqua_globals.random_seed,
                                               seed_transpiler=aqua_globals.random_seed))
         hhl_solution = hhl_result['solution']
-        hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
+        hhl_normed = hhl_solution / np.linalg.norm(hhl_solution)
 
         # compare results
         fidelity = state_fidelity(ref_normed, hhl_normed)
@@ -273,7 +273,7 @@ class TestHHL(QiskitAquaTestCase):
         # run NumPyLSsolver
         ref_result = NumPyLSsolver(matrix, vector).run()
         ref_solution = ref_result['solution']
-        ref_normed = ref_solution/np.linalg.norm(ref_solution)
+        ref_normed = ref_solution / np.linalg.norm(ref_solution)
 
         # run hhl
         orig_size = len(vector)
@@ -296,7 +296,7 @@ class TestHHL(QiskitAquaTestCase):
                                               seed_transpiler=aqua_globals.random_seed))
 
         hhl_solution = hhl_result['solution']
-        hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
+        hhl_normed = hhl_solution / np.linalg.norm(hhl_solution)
 
         # compare result
         fidelity = state_fidelity(ref_normed, hhl_normed)
@@ -318,7 +318,7 @@ class TestHHL(QiskitAquaTestCase):
         # run NumPyLSsolver
         ref_result = NumPyLSsolver(matrix, vector).run()
         ref_solution = ref_result['solution']
-        ref_normed = ref_solution/np.linalg.norm(ref_solution)
+        ref_normed = ref_solution / np.linalg.norm(ref_solution)
 
         # run hhl
         orig_size = len(vector)
@@ -340,7 +340,7 @@ class TestHHL(QiskitAquaTestCase):
                                               seed_simulator=aqua_globals.random_seed,
                                               seed_transpiler=aqua_globals.random_seed))
         hhl_solution = hhl_result["solution"]
-        hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
+        hhl_normed = hhl_solution / np.linalg.norm(hhl_solution)
 
         # compare results
         fidelity = state_fidelity(ref_normed, hhl_normed)
@@ -362,7 +362,7 @@ class TestHHL(QiskitAquaTestCase):
         # run NumPyLSsolver
         ref_result = NumPyLSsolver(matrix, vector).run()
         ref_solution = ref_result['solution']
-        ref_normed = ref_solution/np.linalg.norm(ref_solution)
+        ref_normed = ref_solution / np.linalg.norm(ref_solution)
 
         # run hhl
         orig_size = len(vector)
@@ -384,7 +384,7 @@ class TestHHL(QiskitAquaTestCase):
                                               seed_simulator=aqua_globals.random_seed,
                                               seed_transpiler=aqua_globals.random_seed))
         hhl_solution = hhl_result['solution']
-        hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
+        hhl_normed = hhl_solution / np.linalg.norm(hhl_solution)
 
         # compare result
         fidelity = state_fidelity(ref_normed, hhl_normed)
@@ -405,7 +405,7 @@ class TestHHL(QiskitAquaTestCase):
         # run NumPyLSsolver
         ref_result = NumPyLSsolver(matrix, vector).run()
         ref_solution = ref_result['solution']
-        ref_normed = ref_solution/np.linalg.norm(ref_solution)
+        ref_normed = ref_solution / np.linalg.norm(ref_solution)
 
         # run hhl
         orig_size = len(vector)
@@ -427,7 +427,7 @@ class TestHHL(QiskitAquaTestCase):
                                               seed_simulator=aqua_globals.random_seed,
                                               seed_transpiler=aqua_globals.random_seed))
         hhl_solution = hhl_result['solution']
-        hhl_normed = hhl_solution/np.linalg.norm(hhl_solution)
+        hhl_normed = hhl_solution / np.linalg.norm(hhl_solution)
         # compare result
         fidelity = state_fidelity(ref_normed, hhl_normed)
         self.assertGreater(fidelity, 0.8)

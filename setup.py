@@ -41,6 +41,7 @@ requirements = [
     "h5py",
     "networkx>=2.2",
     "pyscf; sys_platform == 'linux' or (python_version < '3.8' and sys_platform != 'win32')",
+    "cplex; python_version >= '3.6' and python_version < '3.8'",
 ]
 
 if not hasattr(setuptools, 'find_namespace_packages') or not inspect.ismethod(setuptools.find_namespace_packages):

@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -26,6 +26,6 @@ class AquaError(Exception):
         super(AquaError, self).__init__(' '.join(message))
         self.message = ' '.join(message)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Return the message."""
         return repr(self.message)

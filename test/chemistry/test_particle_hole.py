@@ -68,7 +68,7 @@ class TestParticleHole(QiskitChemistryTestCase):
 
         # ph_shift should be the electronic part of the hartree fock energy
         self.assertAlmostEqual(-ph_shift,
-                               molecule.hf_energy-molecule.nuclear_repulsion_energy, msg=config)
+                               molecule.hf_energy - molecule.nuclear_repulsion_energy, msg=config)
 
         # Energy in original fer_op should same as ph transformed one added with ph_shift
         jw_op = fer_op.mapping('jordan_wigner')
@@ -78,4 +78,4 @@ class TestParticleHole(QiskitChemistryTestCase):
         ph_result = NumPyMinimumEigensolver(ph_jw_op).run()
 
         self.assertAlmostEqual(result.eigenvalue.real,
-                               ph_result.eigenvalue.real-ph_shift, msg=config)
+                               ph_result.eigenvalue.real - ph_shift, msg=config)

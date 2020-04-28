@@ -14,12 +14,13 @@
 
 """ Test Set Packing """
 
+import unittest
 import json
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 
-from qiskit.optimization.ising import set_packing
-from qiskit.optimization.ising.common import sample_most_likely
+from qiskit.optimization.applications.ising import set_packing
+from qiskit.optimization.applications.ising.common import sample_most_likely
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver, VQE
 from qiskit.aqua.components.optimizers import SPSA
@@ -43,7 +44,7 @@ class TestSetPacking(QiskitOptimizationTestCase):
             return [int(digit) for digit in result]  # [2:] to chop off the "0b" part
 
         subsets = len(self.list_of_subsets)
-        maximum = 2**subsets
+        maximum = 2 ** subsets
         max_v = -np.inf
         for i in range(maximum):
             cur = bitfield(i, subsets)
@@ -84,3 +85,7 @@ class TestSetPacking(QiskitOptimizationTestCase):
         ising_sol = set_packing.get_solution(x)
         oracle = self._brute_force()
         self.assertEqual(np.count_nonzero(ising_sol), oracle)
+
+
+if __name__ == '__main__':
+    unittest.main()

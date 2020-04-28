@@ -115,8 +115,8 @@ class PiecewiseLinearRotation(CircuitFactory):
 
         y = (x >= self.breakpoints[0]) * (x * self.mapped_slopes[0] + self.mapped_offsets[0])
         for i in range(1, len(self.breakpoints)):
-            y = y + (x >= self.breakpoints[i]) * (x * self.mapped_slopes[i] +
-                                                  self.mapped_offsets[i])
+            y = y + (x >= self.breakpoints[i]) * (x * self.mapped_slopes[i]
+                                                  + self.mapped_offsets[i])
 
         return y
 

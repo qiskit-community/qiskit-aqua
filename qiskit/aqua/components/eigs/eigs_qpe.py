@@ -20,7 +20,8 @@ import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 
 from qiskit.aqua.circuits import PhaseEstimationCircuit
-from qiskit.aqua.operators import op_converter, BaseOperator
+from qiskit.aqua.operators import LegacyBaseOperator
+from qiskit.aqua.operators.legacy import op_converter
 from qiskit.aqua.components.iqfts import IQFT
 from qiskit.aqua.utils.validation import validate_min, validate_in_set
 from .eigs import Eigenvalues
@@ -38,7 +39,7 @@ class EigsQPE(Eigenvalues):
     """
 
     def __init__(self,
-                 operator: BaseOperator,
+                 operator: LegacyBaseOperator,
                  iqft: Union[QuantumCircuit, IQFT],
                  num_time_slices: int = 1,
                  num_ancillae: int = 1,
@@ -103,9 +104,9 @@ class EigsQPE(Eigenvalues):
         if self._evo_time is None:
             lmax = sum([abs(p[0]) for p in self._operator.paulis])
             if not self._negative_evals:
-                self._evo_time = (1-2**-self._num_ancillae)*2*np.pi/lmax
+                self._evo_time = (1 - 2 ** -self._num_ancillae) * 2 * np.pi / lmax
             else:
-                self._evo_time = (1/2-2**-self._num_ancillae)*2*np.pi/lmax
+                self._evo_time = (1 / 2 - 2 ** -self._num_ancillae) * 2 * np.pi / lmax
 
         # check for identify paulis to get its coef for applying global
         # phase shift on ancillae later
@@ -184,5 +185,5 @@ class EigsQPE(Eigenvalues):
             qc.cx(sgn, qi)
         apply_ne_qft(self._ne_qfts[0])
         for i, qi in enumerate(reversed(qs)):
-            qc.cu1(2*np.pi/2**(i+1), sgn, qi)
+            qc.cu1(2 * np.pi / 2 ** (i + 1), sgn, qi)
         apply_ne_qft(self._ne_qfts[1])

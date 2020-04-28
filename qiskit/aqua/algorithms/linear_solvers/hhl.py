@@ -316,7 +316,7 @@ class HHL(QuantumAlgorithm):
         # remove added dimensions
         self._ret['probability_result'] = \
             np.real(self._resize_vector(vec).dot(self._resize_vector(vec).conj()))
-        vec = vec/np.linalg.norm(vec)
+        vec = vec / np.linalg.norm(vec)
         self._hhl_results(vec)
 
     def _state_tomography(self):
@@ -346,7 +346,7 @@ class HHL(QuantumAlgorithm):
                     s += v
                 else:
                     f += v
-            probs.append(s/(f+s))
+            probs.append(s / (f + s))
         probs = self._resize_vector(probs)
         self._ret["probability_result"] = np.real(probs)
 
@@ -391,10 +391,10 @@ class HHL(QuantumAlgorithm):
         self._ret["output"] = res_vec
         # Rescaling the output vector to the real solution vector
         tmp_vec = matrix.dot(res_vec)
-        f1 = np.linalg.norm(in_vec)/np.linalg.norm(tmp_vec)
+        f1 = np.linalg.norm(in_vec) / np.linalg.norm(tmp_vec)
         # "-1+1" to fix angle error for -0.-0.j
-        f2 = sum(np.angle(in_vec*tmp_vec.conj()-1+1))/(np.log2(matrix.shape[0]))
-        self._ret["solution"] = f1*res_vec*np.exp(-1j*f2)
+        f2 = sum(np.angle(in_vec * tmp_vec.conj() - 1 + 1)) / (np.log2(matrix.shape[0]))
+        self._ret["solution"] = f1 * res_vec * np.exp(-1j * f2)
 
     def _run(self):
         if self._quantum_instance.is_statevector:

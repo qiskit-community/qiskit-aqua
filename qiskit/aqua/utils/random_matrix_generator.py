@@ -57,8 +57,8 @@ def random_unitary(N):  # pylint: disable=invalid-name
     Returns:
         np.ndarray: a 2-D matrix with np.complex data type.
     """
-    x = (aqua_globals.random.random_sample(size=(N, N))*N + 1j *
-         aqua_globals.random.random_sample(size=(N, N))*N) / np.sqrt(2)
+    x = (aqua_globals.random.random_sample(size=(N, N)) * N + 1j
+         * aqua_globals.random.random_sample(size=(N, N)) * N) / np.sqrt(2)
     q, r = np.linalg.qr(x)
     r = np.diag(np.divide(np.diag(r), abs(np.diag(r))))
     unitary_matrix = np.dot(q, r)
@@ -82,17 +82,17 @@ def random_h2_body(N, M):  # pylint: disable=invalid-name
     if N % 2 == 1:
         raise ValueError("The number of spin orbitals must be even.")
 
-    h_2 = np.zeros((N//2, N//2, N//2, N//2))
+    h_2 = np.zeros((N // 2, N // 2, N // 2, N // 2))
     max_nonzero_elements = 0
 
     if N / 2 != 1:
         if N / 2 >= 2:
-            max_nonzero_elements += 4 * 4 * scipy.special.comb(N//2, 2)
+            max_nonzero_elements += 4 * 4 * scipy.special.comb(N // 2, 2)
         if N / 2 >= 3:
-            max_nonzero_elements += 4 * 3 * 8 * scipy.special.comb(N//2, 3)
+            max_nonzero_elements += 4 * 3 * 8 * scipy.special.comb(N // 2, 3)
         if N / 2 >= 4:
-            max_nonzero_elements += 4 * scipy.special.factorial(N//2) / \
-                scipy.special.factorial(N//2-4)
+            max_nonzero_elements += 4 * scipy.special.factorial(N // 2) / \
+                scipy.special.factorial(N // 2 - 4)
         # print('Max number of non-zero elements for {} '
         # 'spin-orbitals is: {}'.format(N, max_nonzero_elements))
 
@@ -145,16 +145,16 @@ def random_h2_body(N, M):  # pylint: disable=invalid-name
 
     dim = htemp.shape
     h2bodys = np.zeros((N, N, N, N))
-    h2bodys[0:N//2, 0:N//2, 0:N//2, 0:N//2] = h_2
+    h2bodys[0:N // 2, 0:N // 2, 0:N // 2, 0:N // 2] = h_2
     for i in range(dim[0]):
         # recall that in the chemists notation h2bodys(i,j,l,m) refers to
         # a^dag_i a^dag_l a_m a_j
-        h2bodys[htemp[i, 0] + N//2, htemp[i, 1] + N//2, htemp[i, 2] + N//2,
-                htemp[i, 3] + N//2] = val[i]
-        h2bodys[htemp[i, 0] + N//2, htemp[i, 1] + N//2, htemp[i, 2],
+        h2bodys[htemp[i, 0] + N // 2, htemp[i, 1] + N // 2, htemp[i, 2] + N // 2,
+                htemp[i, 3] + N // 2] = val[i]
+        h2bodys[htemp[i, 0] + N // 2, htemp[i, 1] + N // 2, htemp[i, 2],
                 htemp[i, 3]] = val[i]  # shift i and j to their spin symmetrized
-        h2bodys[htemp[i, 0], htemp[i, 1], htemp[i, 2] + N//2, htemp[i, 3] +
-                N//2] = val[i]  # shift l and m to their spin symmetrized
+        h2bodys[htemp[i, 0], htemp[i, 1], htemp[i, 2] + N // 2, htemp[i, 3]
+                + N // 2] = val[i]  # shift l and m to their spin symmetrized
     return h2bodys
 
 
@@ -191,18 +191,18 @@ def random_diag(N, eigs=None, K=None, eigrange=None):  # pylint: disable=invalid
                 elif len(K) == 3:
                     k, lmin, sgn = K
                 eigs = aqua_globals.random.random_sample(N)
-                a = (k-1)*lmin/(max(eigs)-min(eigs))
-                b = lmin*(max(eigs)-k*min(eigs))/(max(eigs)-min(eigs))
-                eigs = a*eigs+b
+                a = (k - 1) * lmin / (max(eigs) - min(eigs))
+                b = lmin * (max(eigs) - k * min(eigs)) / (max(eigs) - min(eigs))
+                eigs = a * eigs + b
                 if sgn == -1:
-                    sgs = aqua_globals.random.random_sample(N)-0.5
+                    sgs = aqua_globals.random.random_sample(N) - 0.5
                     while min(sgs) > 0 or max(sgs) < 0:
-                        sgs = aqua_globals.random.random_sample(N)-0.5
-                    eigs = eigs*(sgs/abs(sgs))
+                        sgs = aqua_globals.random.random_sample(N) - 0.5
+                    eigs = eigs * (sgs / abs(sgs))
             elif isinstance(eigrange, (tuple, list, np.ndarray)) \
                     and len(eigrange) == 2:
-                eigs = aqua_globals.random.random_sample(N) * \
-                       (eigrange[1]-eigrange[0])+eigrange[0]
+                eigs = \
+                    aqua_globals.random.random_sample(N) * (eigrange[1] - eigrange[0]) + eigrange[0]
             else:
                 raise ValueError("Wrong input data: either 'eigs', 'K' or"
                                  "'eigrange' needed to be set correctly.")
@@ -229,14 +229,14 @@ def limit_paulis(mat, n=5, sparsity=None):
     """
     # pylint: disable=import-outside-toplevel
     from qiskit.aqua.operators import MatrixOperator
-    from qiskit.aqua.operators.op_converter import to_weighted_pauli_operator
+    from qiskit.aqua.operators.legacy.op_converter import to_weighted_pauli_operator
     # Bringing matrix into form 2**Nx2**N
     __l = mat.shape[0]
     if np.log2(__l) % 1 != 0:
-        k = int(2**np.ceil(np.log2(__l)))
+        k = int(2 ** np.ceil(np.log2(__l)))
         m = np.zeros([k, k], dtype=np.complex128)
         m[:__l, :__l] = mat
-        m[__l:, __l:] = np.identity(k-__l)
+        m[__l:, __l:] = np.identity(k - __l)
         mat = m
 
     # Getting Pauli matrices
@@ -251,11 +251,11 @@ def limit_paulis(mat, n=5, sparsity=None):
     # Truncation
     if sparsity is None:
         for pa in paulis[:n]:
-            mat += pa[0]*pa[1].to_spmatrix()
+            mat += pa[0] * pa[1].to_spmatrix()
     else:
         idx = 0
-        while mat[:__l, :__l].nnz/__l**2 < sparsity:
-            mat += paulis[idx][0]*paulis[idx][1].to_spmatrix()
+        while mat[:__l, :__l].nnz / __l ** 2 < sparsity:
+            mat += paulis[idx][0] * paulis[idx][1].to_spmatrix()
             idx += 1
         n = idx
     mat = mat.toarray()
@@ -317,7 +317,7 @@ def limit_entries(mat, n=5, sparsity=None):
     entries = list(sorted(zip(ret.row, ret.col, ret.data),
                           key=lambda x: abs(x[2]), reverse=True))
     if sparsity is not None:
-        n = int(sparsity*mat.shape[0]*mat.shape[1])
+        n = int(sparsity * mat.shape[0] * mat.shape[1])
     entries = entries[:n]
     # pylint: disable=unpacking-non-sequence
     row, col, data = np.array(entries).T

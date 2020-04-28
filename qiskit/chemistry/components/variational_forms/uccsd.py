@@ -412,6 +412,13 @@ class UCCSD(VariationalForm):
                                                       parameters[i]))
                     counter += 1
 
+        # TODO to uncomment to update for Operator flow:
+        # from functools import reduce
+        # ops = [(qubit_op.to_opflow().to_matrix_op() * param).exp_i()
+        #        for (qubit_op, param) in list_excitation_operators]
+        # circuit += reduce(lambda x, y: x @ y, reversed(ops)).to_circuit()
+        # return circuit
+
         results = parallel_map(UCCSD._construct_circuit_for_one_excited_operator,
                                list_excitation_operators,
                                task_args=(q, self._num_time_slices),

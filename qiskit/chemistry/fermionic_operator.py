@@ -581,8 +581,8 @@ class FermionicOperator:
                 h2_ijlk = self._h2[__i, __j, __l, __k]
                 if h2_ijlk == 0.0:
                     continue
-                if (__i in mode_set_diff and __j in mode_set_diff and
-                        __l in mode_set_diff and __k in mode_set_diff):
+                if __i in mode_set_diff and __j in mode_set_diff \
+                        and __l in mode_set_diff and __k in mode_set_diff:
                     h2_new[__i - np.where(fermion_mode_array < __i)[0].size,
                            __j - np.where(fermion_mode_array < __j)[0].size,
                            __l - np.where(fermion_mode_array < __l)[0].size,

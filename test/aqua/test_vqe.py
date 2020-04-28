@@ -19,11 +19,12 @@ import warnings
 from test.aqua import QiskitAquaTestCase
 import numpy as np
 from ddt import ddt, unpack, data
-from qiskit import BasicAer, QuantumCircuit
+from qiskit import BasicAer, QuantumCircuit, IBMQ
+from qiskit.circuit import ParameterVector
 from qiskit.circuit.library import RY, RYRZ
 
 from qiskit.aqua import QuantumInstance, aqua_globals, AquaError
-from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator
+from qiskit.aqua.operators import WeightedPauliOperator, PrimitiveOp
 from qiskit.aqua.components.variational_forms import RY as VarRY, RYRZ as VarRYRZ
 from qiskit.aqua.components.optimizers import L_BFGS_B, COBYLA, SPSA, SLSQP
 from qiskit.aqua.algorithms import VQE
@@ -45,7 +46,7 @@ class TestVQE(QiskitAquaTestCase):
                        {"coeff": {"imag": 0.0, "real": 0.18093119978423156}, "label": "XX"}
                        ]
         }
-        self.qubit_op = WeightedPauliOperator.from_dict(pauli_dict)
+        self.qubit_op = WeightedPauliOperator.from_dict(pauli_dict).to_opflow()
 
         num_qubits = self.qubit_op.num_qubits
         warnings.filterwarnings('ignore', category=DeprecationWarning)
@@ -123,11 +124,12 @@ class TestVQE(QiskitAquaTestCase):
         if mode == 'wrapped':
             warnings.filterwarnings('always', category=DeprecationWarning)
 
-        quantum_instance = QuantumInstance(backend, shots=10000,
+        # TODO benchmark this later.
+        quantum_instance = QuantumInstance(backend, shots=1000,
                                            seed_simulator=self.seed,
                                            seed_transpiler=self.seed)
         result = vqe.run(quantum_instance)
-        self.assertAlmostEqual(result.eigenvalue.real, -1.85727503, places=2)
+        self.assertAlmostEqual(result.eigenvalue.real, -1.86823, places=2)
 
     @data('wrapped', 'circuit', 'library')
     def test_vqe_statevector_snapshot_mode(self, mode):
@@ -196,8 +198,7 @@ class TestVQE(QiskitAquaTestCase):
 
         if mode == 'wrapped':
             warnings.filterwarnings('ignore', category=DeprecationWarning)
-        vqe = VQE(self.qubit_op, wavefunction, optimizer, callback=store_intermediate_result,
-                  auto_conversion=False)
+        vqe = VQE(self.qubit_op, wavefunction, optimizer, callback=store_intermediate_result)
         if mode == 'wrapped':
             warnings.filterwarnings('always', category=DeprecationWarning)
 
@@ -234,10 +235,10 @@ class TestVQE(QiskitAquaTestCase):
         result = vqe.run()
         self.assertAlmostEqual(result.eigenvalue.real, -1.85727503, places=5)
 
-        operator = MatrixOperator(np.array([[1, 0, 0, 0],
-                                            [0, -1, 0, 0],
-                                            [0, 0, 2, 0],
-                                            [0, 0, 0, 3]]))
+        operator = PrimitiveOp(np.array([[1, 0, 0, 0],
+                                         [0, -1, 0, 0],
+                                         [0, 0, 2, 0],
+                                         [0, 0, 0, 3]]))
         vqe.operator = operator
         result = vqe.run()
         self.assertAlmostEqual(result.eigenvalue.real, -1.0, places=5)
@@ -248,6 +249,25 @@ class TestVQE(QiskitAquaTestCase):
         vqe.set_backend(BasicAer.get_backend('statevector_simulator'))
         result = vqe.compute_minimum_eigenvalue(self.qubit_op)
         self.assertAlmostEqual(result.eigenvalue.real, -1.85727503, places=5)
+
+    @unittest.skip(reason="IBMQ testing not available in general.")
+    def test_ibmq_vqe(self):
+        """ IBMQ VQE Test """
+        provider = IBMQ.load_account()
+        backend = provider.get_backend('ibmq_qasm_simulator')
+        var_form = RYRZ(self.qubit_op.num_qubits)
+
+        opt = SLSQP(maxiter=1)
+        opt.set_max_evals_grouped(100)
+        vqe = VQE(self.qubit_op, var_form, SLSQP(maxiter=2))
+
+        result = vqe.run(backend)
+        print(result)
+        self.assertAlmostEqual(result.eigenvalue.real, -1.85727503)
+        np.testing.assert_array_almost_equal(result.eigenvalue.real, -1.85727503, 5)
+        self.assertEqual(len(result.optimal_point), 16)
+        self.assertIsNotNone(result.cost_function_evals)
+        self.assertIsNotNone(result.optimizer_time)
 
 
 if __name__ == '__main__':

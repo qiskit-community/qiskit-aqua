@@ -14,11 +14,12 @@
 
 """ Test Knapsack Problem """
 
+import unittest
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 
-from qiskit.optimization.ising import knapsack
-from qiskit.optimization.ising.common import sample_most_likely
+from qiskit.optimization.applications.ising import knapsack
+from qiskit.optimization.applications.ising.common import sample_most_likely
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 
 
@@ -73,3 +74,7 @@ class TestTSP(QiskitOptimizationTestCase):
         np.testing.assert_array_equal(solution, [1, 1, 1, 1])
         np.testing.assert_equal(value, 175)
         np.testing.assert_equal(weight, 30)
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -62,7 +62,8 @@ class WeightedSumOperator(CircuitFactory):
         else:
             self.i_state = i_state
         if i_sum is None:
-            self.i_sum = list(range(max(self.i_state)+1, max(self.i_state)+self.num_sum_qubits+1))
+            self.i_sum = \
+                list(range(max(self.i_state) + 1, max(self.i_state) + self.num_sum_qubits + 1))
         else:
             if len(i_sum) == self.get_required_sum_qubits(weights):
                 self.i_sum = i_sum

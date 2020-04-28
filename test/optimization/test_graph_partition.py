@@ -14,13 +14,14 @@
 
 """ Test Graph Partition """
 
+import unittest
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 from qiskit import BasicAer, QuantumCircuit
 from qiskit.circuit.library import RY
 from qiskit.aqua import aqua_globals, QuantumInstance
-from qiskit.optimization.ising import graph_partition
-from qiskit.optimization.ising.common import random_graph, sample_most_likely
+from qiskit.optimization.applications.ising import graph_partition
+from qiskit.optimization.applications.ising.common import random_graph, sample_most_likely
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver, VQE
 from qiskit.aqua.components.optimizers import SPSA
 
@@ -42,7 +43,7 @@ class TestGraphPartition(QiskitOptimizationTestCase):
             return [int(digit) for digit in result]  # [2:] to chop off the "0b" part
 
         nodes = self.num_nodes
-        maximum = 2**nodes
+        maximum = 2 ** nodes
         minimal_v = np.inf
         for i in range(maximum):
             cur = bitfield(i, nodes)
@@ -63,7 +64,9 @@ class TestGraphPartition(QiskitOptimizationTestCase):
         x = sample_most_likely(result.eigenstate)
         # check against the oracle
         ising_sol = graph_partition.get_graph_solution(x)
-        np.testing.assert_array_equal(ising_sol, [0, 1, 0, 1])
+        # solutions are equivalent
+        self.assertEqual(graph_partition.objective_value(np.array([0, 1, 0, 1]), self.w),
+                         graph_partition.objective_value(ising_sol, self.w))
         oracle = self._brute_force()
         self.assertEqual(graph_partition.objective_value(x, self.w), oracle)
 
@@ -83,6 +86,11 @@ class TestGraphPartition(QiskitOptimizationTestCase):
         x = sample_most_likely(result['eigvecs'][0])
         # check against the oracle
         ising_sol = graph_partition.get_graph_solution(x)
-        np.testing.assert_array_equal(ising_sol, [0, 1, 0, 1])
+        self.assertEqual(graph_partition.objective_value(np.array([0, 1, 0, 1]), self.w),
+                         graph_partition.objective_value(ising_sol, self.w))
         oracle = self._brute_force()
         self.assertEqual(graph_partition.objective_value(x, self.w), oracle)
+
+
+if __name__ == '__main__':
+    unittest.main()
