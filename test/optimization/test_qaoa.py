@@ -102,7 +102,7 @@ class TestQAOA(QiskitOptimizationTestCase):
         qaoa = QAOA(qubit_op, optimizer, P1)
         quantum_instance = QuantumInstance(backend, seed_simulator=seed, seed_transpiler=seed)
         qaoa.run(quantum_instance)
-        qaoa.operator = (X^qubit_op^Z)
+        qaoa.operator = (X ^ qubit_op ^ Z)
         qaoa.run()
 
 
