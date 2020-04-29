@@ -95,7 +95,7 @@ class AbelianGrouper(ConverterBase):
         Raises:
             AquaError: Any of list_op's sub-ops do not have a ``commutes`` method.
         """
-        if any([not hasattr(op, 'commutes') for op in list_op.oplist]):
+        if any(not hasattr(op, 'commutes') for op in list_op.oplist):
             raise AquaError('Cannot determine Abelian groups if an Operator in list_op does not '
                             'contain a `commutes` method'.format())
 
@@ -132,7 +132,7 @@ class AbelianGrouper(ConverterBase):
         Raises:
             AquaError: Any of list_op's sub-ops do not have a ``commutes`` method.
         """
-        if any([not hasattr(op, 'commutes') for op in list_op.oplist]):
+        if any(not hasattr(op, 'commutes') for op in list_op.oplist):
             raise AquaError('Cannot determine Abelian groups if an Operator in list_op does not '
                             'contain a `commutes` method'.format())
 
