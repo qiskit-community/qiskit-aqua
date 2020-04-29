@@ -37,19 +37,17 @@ class TestVQC(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
-        self.seed = 1376
-        aqua_globals.random_seed = self.seed
+        self.seed = 2752
         self.training_data = {'A': np.asarray([[2.95309709, 2.51327412], [3.14159265, 4.08407045]]),
                               'B': np.asarray([[4.08407045, 2.26194671], [4.46106157, 2.38761042]])}
         self.testing_data = {'A': np.asarray([[3.83274304, 2.45044227]]),
                              'B': np.asarray([[3.89557489, 0.31415927]])}
-
-        self.ref_opt_params = np.array([10.03814083, -12.22048954, -7.58026833, -2.42392954,
-                                        12.91555293, 13.44064652, -2.89951454, -10.20639406,
-                                        0.81414546, -1.00551752, -4.7988307, 14.00831419,
-                                        8.26008064, -7.07543736, 11.43368677, -5.74857438])
-        self.ref_train_loss = 0.69366523
-        self.ref_prediction_a_probs = [[0.79882812, 0.20117188]]
+        self.ref_opt_params = np.array([4.70404622, 0.55998411, 5.57435339, -12.2715397,
+                                        -0.14927572, -1.05378479, 0.14397894, 2.31642745,
+                                        4.20709421, -0.96476894, -7.2623941, -2.55275992,
+                                        -3.58191088, -10.80642195, -6.81730643, -4.64199467])
+        self.ref_train_loss = 1.65250807
+        self.ref_prediction_a_probs = [[0.64550781, 0.35449219]]
         self.ref_prediction_a_label = [0]
 
     @data(False, True)
@@ -82,12 +80,10 @@ class TestVQC(QiskitAquaTestCase):
                                            seed_simulator=aqua_globals.random_seed,
                                            seed_transpiler=aqua_globals.random_seed)
         result = vqc.run(quantum_instance)
-
         np.testing.assert_array_almost_equal(result['opt_params'],
                                              self.ref_opt_params, decimal=8)
         np.testing.assert_array_almost_equal(result['training_loss'],
                                              self.ref_train_loss, decimal=8)
-
         self.assertEqual(1.0, result['testing_accuracy'])
 
     @data(False, True)
@@ -125,7 +121,6 @@ class TestVQC(QiskitAquaTestCase):
                                              self.ref_opt_params, decimal=8)
         np.testing.assert_array_almost_equal(result['training_loss'],
                                              self.ref_train_loss, decimal=8)
-
         self.assertEqual(1.0, result['testing_accuracy'])
 
     @data(False, True)
@@ -159,7 +154,7 @@ class TestVQC(QiskitAquaTestCase):
         ref_train_loss = 0.1059404
         np.testing.assert_array_almost_equal(result['training_loss'], ref_train_loss, decimal=4)
 
-        self.assertEqual(result['testing_accuracy'], 0.5)
+        self.assertEqual(result['testing_accuracy'], 0.)
 
     # we use the ad_hoc dataset (see the end of this file) to test the accuracy.
     @data(False, True)
@@ -228,13 +223,14 @@ class TestVQC(QiskitAquaTestCase):
         vqc = VQC(optimizer, feature_map, var_form, training_input, test_input, minibatch_size=2)
 
         # sort parameters for reproducibility
+        vqc_accuracy = 0.25
         if use_circuits:
             vqc._feature_map_params = list(x)
             vqc._var_form_params = list(theta)
+            vqc_accuracy = 0.5
 
         quantum_instance = QuantumInstance(backend, seed_simulator=seed, seed_transpiler=seed)
         result = vqc.run(quantum_instance)
-        vqc_accuracy = 0.5
         self.log.debug(result['testing_accuracy'])
         self.assertAlmostEqual(result['testing_accuracy'], vqc_accuracy, places=3)
 
@@ -354,6 +350,7 @@ class TestVQC(QiskitAquaTestCase):
 
     def test_same_parameter_names_raises(self):
         """Test that the varform and feature map can have parameters with the same name."""
+        aqua_globals.random_seed = self.seed
         var_form = QuantumCircuit(1)
         var_form.ry(Parameter('a'), 0)
         feature_map = QuantumCircuit(1)
@@ -366,6 +363,7 @@ class TestVQC(QiskitAquaTestCase):
 
     def test_feature_map_without_parameters_warns(self):
         """Test that specifying a feature map with 0 parameters raises a warning."""
+        aqua_globals.random_seed = self.seed
         var_form = QuantumCircuit(1)
         var_form.ry(Parameter('a'), 0)
         feature_map = QuantumCircuit(1)
@@ -377,6 +375,7 @@ class TestVQC(QiskitAquaTestCase):
     @data(False, True)
     def test_vqc_on_wine(self, use_circuits):
         """Test VQE on the wine test using circuits as feature map and variational form."""
+        aqua_globals.random_seed = self.seed
         feature_dim = 4  # dimension of each data point
         training_dataset_size = 6
         testing_dataset_size = 3
@@ -385,7 +384,6 @@ class TestVQC(QiskitAquaTestCase):
                                                 test_size=testing_dataset_size,
                                                 n=feature_dim,
                                                 plot_data=False)
-        aqua_globals.random_seed = self.seed
         feature_map = SecondOrderExpansion(feature_dimension=feature_dim)
         var_form = RYRZ(feature_map.num_qubits, depth=1)
 
@@ -417,6 +415,7 @@ class TestVQC(QiskitAquaTestCase):
 
     def test_vqc_with_raw_feature_vector_on_wine(self):
         """ vqc with raw features vector on wine test """
+        aqua_globals.random_seed = self.seed
         feature_dim = 4  # dimension of each data point
         training_dataset_size = 8
         testing_dataset_size = 4
@@ -425,7 +424,6 @@ class TestVQC(QiskitAquaTestCase):
                                                 test_size=testing_dataset_size,
                                                 n=feature_dim,
                                                 plot_data=False)
-        aqua_globals.random_seed = self.seed
         feature_map = RawFeatureVector(feature_dimension=feature_dim)
         vqc = VQC(COBYLA(maxiter=100),
                   feature_map,
