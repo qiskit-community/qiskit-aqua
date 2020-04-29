@@ -28,6 +28,8 @@ class QuadraticProgramToQubo:
     """Convert a given optimization problem to a new problem that is a QUBO.
 
         Examples:
+            >>> from qiskit.optimization.problems import QuadraticProgram
+            >>> from qiskit.optimization.converters import QuadraticProgramToQubo
             >>> problem = QuadraticProgram()
             >>> # define a problem
             >>> conv = QuadraticProgramToQubo()

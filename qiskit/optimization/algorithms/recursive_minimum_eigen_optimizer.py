@@ -39,11 +39,14 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
     The algorithm is introduced in [1].
 
     Examples:
+        >>> from qiskit.aqua.algorithms import QAOA
+        >>> from qiskit.optimization.problems import QuadraticProgram
+        >>> from qiskit.optimization.algorithms import RecursiveMinimumEigenOptimizer
         >>> problem = QuadraticProgram()
         >>> # specify problem here
         >>> # specify minimum eigen solver to be used, e.g., QAOA
         >>> qaoa = QAOA(...)
-        >>> optimizer = RecursiveMinEigenOptimizer(qaoa)
+        >>> optimizer = RecursiveMinimumEigenOptimizer(qaoa)
         >>> result = optimizer.solve(problem)
 
     References:

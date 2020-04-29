@@ -35,6 +35,8 @@ class IntegerToBinary:
     This bounded-coefficient encoding used in this converted is proposed in [1], Eq. (5).
 
     Examples:
+        >>> from qiskit.optimization.problems import QuadraticProgram
+        >>> from qiskit.optimization.converters import IntegerToBinary
         >>> problem = QuadraticProgram()
         >>> problem.integer_var(name='x', lowerbound=0, upperbound=10)
         >>> conv = IntegerToBinary()

@@ -39,6 +39,8 @@ class CplexOptimizer(OptimizationAlgorithm):
     to be used within Qiskit Optimization.
 
     Examples:
+        >>> from qiskit.optimization.problems import QuadraticProgram
+        >>> from qiskit.optimization.algorithms import CplexOptimizer
         >>> problem = QuadraticProgram()
         >>> # specify problem here
         >>> optimizer = CplexOptimizer()

@@ -80,11 +80,14 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
     Hamiltonian to find a good solution for the optimization problem.
 
     Examples:
+        >>> from qiskit.aqua.algorithms import QAOA
+        >>> from qiskit.optimization.problems import QuadraticProgram
+        >>> from qiskit.optimization.algorithms import MinimumEigenOptimizer
         >>> problem = QuadraticProgram()
         >>> # specify problem here
         >>> # specify minimum eigen solver to be used, e.g., QAOA
         >>> qaoa = QAOA(...)
-        >>> optimizer = MinEigenOptimizer(qaoa)
+        >>> optimizer = MinimumEigenOptimizer(qaoa)
         >>> result = optimizer.solve(problem)
     """
 

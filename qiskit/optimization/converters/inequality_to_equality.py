@@ -32,6 +32,8 @@ class InequalityToEquality:
     """Convert inequality constraints into equality constraints by introducing slack variables.
 
     Examples:
+        >>> from qiskit.optimization.problems import QuadraticProgram
+        >>> from qiskit.optimization.converters import InequalityToEquality
         >>> problem = QuadraticProgram()
         >>> # define a problem
         >>> conv = InequalityToEquality()
