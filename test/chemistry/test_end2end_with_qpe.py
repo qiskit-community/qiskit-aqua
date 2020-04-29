@@ -24,7 +24,7 @@ import qiskit
 from qiskit.circuit.library import QFT
 from qiskit.aqua.utils import decimal_to_binary
 from qiskit.aqua import QuantumInstance
-from qiskit.aqua.algorithms import QPEMinimumEigensolver, NumPyMinimumEigensolver
+from qiskit.aqua.algorithms import QPE, NumPyMinimumEigensolver
 from qiskit.aqua.components.iqfts import Standard
 from qiskit.aqua.operators import Z2Symmetries
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
@@ -88,9 +88,9 @@ class TestEnd2EndWithQPE(QiskitChemistryTestCase):
         else:
             iqft = Standard(n_ancillae)
 
-        qpe = QPEMinimumEigensolver(qubit_op, state_in, iqft, num_time_slices, n_ancillae,
-                                    expansion_mode='suzuki',
-                                    expansion_order=2, shallow_circuit_concat=True)
+        qpe = QPE(qubit_op, state_in, iqft, num_time_slices, n_ancillae,
+                  expansion_mode='suzuki',
+                  expansion_order=2, shallow_circuit_concat=True)
         backend = qiskit.BasicAer.get_backend('qasm_simulator')
         quantum_instance = QuantumInstance(backend, shots=100)
         result = qpe.run(quantum_instance)
