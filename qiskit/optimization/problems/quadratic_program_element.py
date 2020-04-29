@@ -25,6 +25,8 @@ class QuadraticProgramElement:
 
         Args:
             quadratic_program: The parent QuadraticProgram.
+        Raises:
+            TypeError: QuadraticProgram instance expected.
         """
         from .quadratic_program import QuadraticProgram
 
@@ -48,7 +50,10 @@ class QuadraticProgramElement:
 
         Args:
             quadratic_program: The parent QuadraticProgram.
+        Raises:
+            TypeError: QuadraticProgram instance expected.
         """
+        # pylint: disable=cyclic-import
         from .quadratic_program import QuadraticProgram
 
         if not isinstance(quadratic_program, QuadraticProgram):

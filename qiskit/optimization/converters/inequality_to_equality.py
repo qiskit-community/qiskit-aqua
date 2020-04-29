@@ -334,7 +334,7 @@ class InequalityToEquality:
             )
         return lhs_lb, lhs_ub
 
-    def decode(self, result: 'OptimizationResult') -> 'OptimizationResult':
+    def decode(self, result: OptimizationResult) -> OptimizationResult:
         """Convert a result of a converted problem into that of the original problem.
 
         Args:

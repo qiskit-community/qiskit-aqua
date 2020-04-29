@@ -19,7 +19,7 @@ import copy
 
 import numpy as np
 
-from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.aqua.operators.legacy import WeightedPauliOperator
 from ..problems.quadratic_program import QuadraticProgram
 from ..exceptions import QiskitOptimizationError
 
