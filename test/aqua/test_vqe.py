@@ -19,7 +19,7 @@ import warnings
 from test.aqua import QiskitAquaTestCase
 import numpy as np
 from ddt import ddt, unpack, data
-from qiskit import BasicAer, QuantumCircuit, IBMQ
+from qiskit import BasicAer, QuantumCircuit
 from qiskit.circuit.library import RY, RYRZ
 
 from qiskit.aqua import QuantumInstance, aqua_globals, AquaError
@@ -252,6 +252,7 @@ class TestVQE(QiskitAquaTestCase):
     @unittest.skip(reason="IBMQ testing not available in general.")
     def test_ibmq_vqe(self):
         """ IBMQ VQE Test """
+        from qiskit import IBMQ
         provider = IBMQ.load_account()
         backend = provider.get_backend('ibmq_qasm_simulator')
         var_form = RYRZ(self.qubit_op.num_qubits)
