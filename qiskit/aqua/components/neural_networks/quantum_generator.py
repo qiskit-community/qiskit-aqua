@@ -21,13 +21,13 @@ from copy import deepcopy
 import numpy as np
 
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
+from qiskit.circuit.library import RY
 from qiskit.aqua import aqua_globals
 from qiskit.aqua.components.optimizers import ADAM
 from qiskit.aqua.components.uncertainty_models import \
     UniformDistribution, MultivariateUniformDistribution
 from qiskit.aqua.components.uncertainty_models import UnivariateVariationalDistribution, \
     MultivariateVariationalDistribution
-from qiskit.aqua.components.variational_forms import RY
 from qiskit.aqua import AquaError
 from qiskit.aqua.components.neural_networks.generative_network import GenerativeNetwork
 from qiskit.aqua.components.initial_states import Custom
@@ -96,9 +96,9 @@ class QuantumGenerator(GenerativeNetwork):
                 init_dist.build(qc, q)
                 init_distribution = Custom(num_qubits=sum(num_qubits), circuit=qc)
                 # Set variational form
-                var_form = RY(sum(num_qubits), depth=1,
-                              initial_state=init_distribution, entangler_map=entangler_map,
-                              entanglement_gate='cz')
+                var_form = RY(sum(num_qubits), reps=1,
+                              initial_state=init_distribution, entanglement=entangler_map,
+                              entanglement_blocks='cz')
                 if init_params is None:
                     init_params = aqua_globals.random.rand(var_form.num_parameters) * 2 * 1e-2
                 # Set generator circuit
@@ -111,9 +111,9 @@ class QuantumGenerator(GenerativeNetwork):
                 qc = QuantumCircuit(q)
                 init_dist.build(qc, q)
                 init_distribution = Custom(num_qubits=sum(num_qubits), circuit=qc)
-                var_form = RY(sum(num_qubits), depth=1, initial_state=init_distribution,
-                              entangler_map=entangler_map,
-                              entanglement_gate='cz')
+                var_form = RY(sum(num_qubits), reps=1, initial_state=init_distribution,
+                              entanglement=entangler_map,
+                              entanglement_blocks='cz')
                 if init_params is None:
                     init_params = aqua_globals.random.rand(var_form.num_parameters) * 2 * 1e-2
                 # Set generator circuit

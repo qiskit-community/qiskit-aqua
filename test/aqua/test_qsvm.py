@@ -15,6 +15,7 @@
 """ Test QSVM """
 
 import os
+import warnings
 from test.aqua import QiskitAquaTestCase
 import numpy as np
 from ddt import ddt, data
@@ -46,10 +47,12 @@ class TestQSVM(QiskitAquaTestCase):
 
         num_qubits = 2
 
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         # data encoding using a FeatureMap type
         feature_map = FeatSecondOrderExpansion(feature_dimension=num_qubits,
                                                depth=2,
                                                entangler_map=[[0, 1]])
+        warnings.filterwarnings('always', category=DeprecationWarning)
 
         # data encoding using a circuit library object
         library_circuit = SecondOrderExpansion(feature_dimension=num_qubits, reps=2)
@@ -58,11 +61,11 @@ class TestQSVM(QiskitAquaTestCase):
         circuit = QuantumCircuit(num_qubits).compose(library_circuit)
         circuit.ordered_parameters = library_circuit.ordered_parameters
 
-        self.data_preparation = {'feature_map': feature_map,
+        self.data_preparation = {'wrapped': feature_map,
                                  'circuit': circuit,
                                  'library': library_circuit}
 
-    @data('feature_map', 'circuit', 'library')
+    @data('wrapped', 'circuit', 'library')
     def test_qsvm_binary(self, data_preparation_type):
         """ QSVM Binary test """
         ref_kernel_training = np.array([[1., 0.85366667, 0.12341667, 0.36408333],
@@ -83,7 +86,11 @@ class TestQSVM(QiskitAquaTestCase):
 
         backend = BasicAer.get_backend('qasm_simulator')
         data_preparation = self.data_preparation[data_preparation_type]
+        if data_preparation_type == 'wrapped':
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
         svm = QSVM(data_preparation, self.training_data, self.testing_data, None)
+        if data_preparation_type == 'wrapped':
+            warnings.filterwarnings('always', category=DeprecationWarning)
         quantum_instance = QuantumInstance(backend,
                                            shots=self.shots,
                                            seed_simulator=self.random_seed,
@@ -107,7 +114,7 @@ class TestQSVM(QiskitAquaTestCase):
         except NameError as ex:
             self.skipTest(str(ex))
 
-    @data('feature_map', 'circuit', 'library')
+    @data('wrapped', 'circuit', 'library')
     def test_qsvm_binary_directly_statevector(self, data_preparation_type):
         """ QSVM Binary Directly Statevector test """
         ref_kernel_testing = np. array([[0.1443953, 0.18170069, 0.47479649, 0.14691763],
@@ -118,7 +125,11 @@ class TestQSVM(QiskitAquaTestCase):
 
         backend = BasicAer.get_backend('statevector_simulator')
         data_preparation = self.data_preparation[data_preparation_type]
+        if data_preparation_type == 'wrapped':
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
         svm = QSVM(data_preparation, self.training_data, self.testing_data, None)
+        if data_preparation_type == 'wrapped':
+            warnings.filterwarnings('always', category=DeprecationWarning)
         quantum_instance = QuantumInstance(backend, seed_transpiler=self.random_seed,
                                            seed_simulator=self.random_seed)
 
@@ -166,7 +177,7 @@ class TestQSVM(QiskitAquaTestCase):
                 except Exception:  # pylint: disable=broad-except
                     pass
 
-    @data('feature_map', 'circuit', 'library')
+    @data('wrapped', 'circuit', 'library')
     def test_qsvm_setup_data(self, data_preparation_type):
         """ QSVM Setup Data test """
         ref_kernel_testing = np. array([[0.1443953, 0.18170069, 0.47479649, 0.14691763],
@@ -179,7 +190,11 @@ class TestQSVM(QiskitAquaTestCase):
 
         data_preparation = self.data_preparation[data_preparation_type]
         try:
+            if data_preparation_type == 'wrapped':
+                warnings.filterwarnings('ignore', category=DeprecationWarning)
             svm = QSVM(data_preparation)
+            if data_preparation_type == 'wrapped':
+                warnings.filterwarnings('always', category=DeprecationWarning)
 
             svm.setup_training_data(self.training_data)
             svm.setup_test_data(self.testing_data)
@@ -198,7 +213,7 @@ class TestQSVM(QiskitAquaTestCase):
         except NameError as ex:
             self.skipTest(str(ex))
 
-    @data('feature_map', 'circuit', 'library')
+    @data('wrapped', 'circuit', 'library')
     def test_qsvm_multiclass_one_against_all(self, data_preparation_type):
         """ QSVM Multiclass One Against All test """
         training_input = {'A': np.asarray([[0.6560706, 0.17605998], [0.25776033, 0.47628296],
@@ -220,8 +235,12 @@ class TestQSVM(QiskitAquaTestCase):
         aqua_globals.random_seed = self.random_seed
         data_preparation = self.data_preparation[data_preparation_type]
         try:
+            if data_preparation_type == 'wrapped':
+                warnings.filterwarnings('ignore', category=DeprecationWarning)
             svm = QSVM(data_preparation, training_input, test_input, total_array,
                        multiclass_extension=OneAgainstRest())
+            if data_preparation_type == 'wrapped':
+                warnings.filterwarnings('always', category=DeprecationWarning)
             quantum_instance = QuantumInstance(BasicAer.get_backend('qasm_simulator'),
                                                shots=self.shots,
                                                seed_simulator=aqua_globals.random_seed,
@@ -234,7 +253,7 @@ class TestQSVM(QiskitAquaTestCase):
         except NameError as ex:
             self.skipTest(str(ex))
 
-    @data('feature_map', 'circuit', 'library')
+    @data('wrapped', 'circuit', 'library')
     def test_qsvm_multiclass_all_pairs(self, data_preparation_type):
         """ QSVM Multiclass All Pairs test """
         training_input = {'A': np.asarray([[0.6560706, 0.17605998], [0.25776033, 0.47628296],
@@ -256,8 +275,12 @@ class TestQSVM(QiskitAquaTestCase):
         aqua_globals.random_seed = self.random_seed
         data_preparation = self.data_preparation[data_preparation_type]
         try:
+            if data_preparation_type == 'wrapped':
+                warnings.filterwarnings('ignore', category=DeprecationWarning)
             svm = QSVM(data_preparation, training_input, test_input, total_array,
                        multiclass_extension=AllPairs())
+            if data_preparation_type == 'wrapped':
+                warnings.filterwarnings('always', category=DeprecationWarning)
 
             quantum_instance = QuantumInstance(BasicAer.get_backend('qasm_simulator'),
                                                shots=self.shots,
@@ -270,7 +293,7 @@ class TestQSVM(QiskitAquaTestCase):
         except NameError as ex:
             self.skipTest(str(ex))
 
-    @data('feature_map', 'circuit', 'library')
+    @data('wrapped', 'circuit', 'library')
     def test_qsvm_multiclass_error_correcting_code(self, data_preparation_type):
         """ QSVM Multiclass error Correcting Code test """
         training_input = {'A': np.asarray([[0.6560706, 0.17605998], [0.25776033, 0.47628296],
@@ -292,8 +315,12 @@ class TestQSVM(QiskitAquaTestCase):
         aqua_globals.random_seed = self.random_seed
         data_preparation = self.data_preparation[data_preparation_type]
         try:
+            if data_preparation_type == 'wrapped':
+                warnings.filterwarnings('ignore', category=DeprecationWarning)
             svm = QSVM(data_preparation, training_input, test_input, total_array,
                        multiclass_extension=ErrorCorrectingCode(code_size=5))
+            if data_preparation_type == 'wrapped':
+                warnings.filterwarnings('always', category=DeprecationWarning)
 
             quantum_instance = QuantumInstance(BasicAer.get_backend('qasm_simulator'),
                                                shots=self.shots,

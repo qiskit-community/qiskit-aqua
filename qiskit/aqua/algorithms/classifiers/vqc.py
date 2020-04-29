@@ -85,12 +85,12 @@ class VQC(VQAlgorithm):
         # VariationalForm is not deprecated on level of the VQAlgorithm yet as UCCSD still
         # derives from there, therefore we're adding a warning here
         if isinstance(var_form, VariationalForm):
-            warnings.warn('The qiskit.aqua.components.variational_form.VariationalForm object as '
-                          'input for the VQC is deprecated as of 0.7.0 and will be removed no '
-                          'earlier than 3 months after the release. You should pass a '
-                          'QuantumCircuit object instead. '
-                          'See also qiskit.circuit.library.n_local for a collection of '
-                          'suitable circuits.',
+            warnings.warn("""
+            The {} object as input for the VQC is deprecated as of 0.7.0 and will
+            be removed no earlier than 3 months after the release.
+            You should pass a QuantumCircuit object instead.
+            See also qiskit.circuit.library.n_local for a collection
+            of suitable circuits.""".format(type(feature_map)),
                           DeprecationWarning, stacklevel=2)
 
         super().__init__(
