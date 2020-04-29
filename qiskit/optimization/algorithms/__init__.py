@@ -13,11 +13,10 @@
 # that they have been altered from the originals.
 
 """
-===================================================================
-Optimization stack for Aqua (:mod:`qiskit.optimization.algorithms`)
-===================================================================
+Optimization algorithms (:mod:`qiskit.optimization.algorithms`)
+===============================================================
 
-Algorithms for optimization algorithms.
+Algorithms for optimization problem.
 
 .. currentmodule:: qiskit.optimization.algorithms
 

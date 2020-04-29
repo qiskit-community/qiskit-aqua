@@ -20,6 +20,7 @@ from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
+from ..algorithms.optimization_algorithm import OptimizationResult
 from ..exceptions import QiskitOptimizationError
 from ..problems.quadratic_objective import QuadraticObjective
 from ..problems.quadratic_program import QuadraticProgram
@@ -202,7 +203,7 @@ class IntegerToBinary:
             self._dst.quadratic_constraint(linear, quadratic, constraint.sense,
                                            constraint.rhs - constant, constraint.name)
 
-    def decode(self, result: "OptimizationResult") -> "OptimizationResult":
+    def decode(self, result: OptimizationResult) -> OptimizationResult:
         """Convert the encoded problem (binary variables) back to the original (integer variables).
 
         Args:

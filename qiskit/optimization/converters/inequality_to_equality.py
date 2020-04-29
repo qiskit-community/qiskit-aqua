@@ -18,6 +18,7 @@ import math
 from typing import List, Tuple, Dict, Optional
 import logging
 
+from ..algorithms.optimization_algorithm import OptimizationResult
 from ..problems.quadratic_program import QuadraticProgram
 from ..problems.quadratic_objective import QuadraticObjective
 from ..problems.constraint import Constraint
@@ -54,10 +55,11 @@ class InequalityToEquality:
             op: The problem to be solved, that may contain inequality constraints.
             name: The name of the converted problem.
             mode: To chose the type of slack variables. There are 3 options for mode.
-                  - 'integer': All slack variables will be integer variables.
-                  - 'continuous': All slack variables will be continuous variables
-                  - 'auto': Try to use integer variables but if it's not possible,
-                    use continuous variables
+
+                - 'integer': All slack variables will be integer variables.
+                - 'continuous': All slack variables will be continuous variables
+                - 'auto': Try to use integer variables but if it's not possible,
+                   use continuous variables
 
         Returns:
             The converted problem, that contain only equality constraints.

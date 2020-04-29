@@ -20,9 +20,11 @@ from typing import Optional
 import numpy as np
 from scipy.optimize import fmin_cobyla
 
-from qiskit.optimization.algorithms import OptimizationAlgorithm, OptimizationResult
-from qiskit.optimization.problems import QuadraticProgram, Constraint
-from qiskit.optimization import QiskitOptimizationError, INFINITY
+from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
+from ..problems.quadratic_program import QuadraticProgram
+from ..problems.constraint import Constraint
+from ..exceptions import QiskitOptimizationError
+from ..infinity import INFINITY
 
 
 class CobylaOptimizer(OptimizationAlgorithm):

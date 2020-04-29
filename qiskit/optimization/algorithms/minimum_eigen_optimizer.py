@@ -26,7 +26,7 @@ from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
 from ..problems.quadratic_program import QuadraticProgram
 from ..converters.quadratic_program_to_operator import QuadraticProgramToOperator
 from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
-from .. import QiskitOptimizationError
+from ..exceptions import QiskitOptimizationError
 
 
 class MinimumEigenOptimizerResult(OptimizationResult):

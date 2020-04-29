@@ -11,3 +11,22 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
+"""
+Optimization applications (:mod:`qiskit.aqua.applications`)
+===========================================================
+
+.. currentmodule:: qiskit.optimization.applications
+
+Applications for Qiskit Optimization. The present set are in the form of
+Ising Hamiltonians.
+
+Submodules
+==========
+
+.. autosummary::
+   :toctree:
+
+   ising
+
+"""

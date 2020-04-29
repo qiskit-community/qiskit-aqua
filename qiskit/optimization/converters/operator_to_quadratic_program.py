@@ -39,11 +39,12 @@ class OperatorToQuadraticProgram:
         """Convert a qubit operator and a shift value into a quadratic program
 
         Args:
-            qubit_op: The qubit operator to be converted into `QuadraticProgram`
+            qubit_op: The qubit operator to be converted into a
+                :class:`~qiskit.optimization.problems.quadratic_program.QuadraticProgram`
             offset: The shift value of the qubit operator
 
         Returns:
-            QuadraticProgram: converted from the input qubit operator and the shift value
+            QuadraticProgram converted from the input qubit operator and the shift value
 
         Raises:
             QiskitOptimizationError: If there are Pauli Xs in any Pauli term
