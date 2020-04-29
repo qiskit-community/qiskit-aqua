@@ -18,12 +18,12 @@ Optimization application stack for Aqua (:mod:`qiskit.optimization`)
 
 .. currentmodule:: qiskit.optimization
 
-Qiskit Optimization covers the whole stack from high-level modelling of optimization
+Qiskit Optimization covers the whole stack from high-level modeling of optimization
 problems, with automatic conversion of problems to different required representations,
 to a suite of easy-to-use quantum optimization algorithms that are ready to run on
 classical simulators, as well as on real quantum devices via Qiskit.
 
-Qiskit Optimization enables easy, efficient modelling of optimization problems using `docplex
+Qiskit Optimization enables easy, efficient modeling of optimization problems using `docplex
 <https://developer.ibm.com/docloud/documentation/optimization-modeling/modeling-for-python/>`_
 A uniform interface as well as automatic conversion between different problem representations
 allows users to solve problems using a large set of algorithms, from variational quantum algorithms,
