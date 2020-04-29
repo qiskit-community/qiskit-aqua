@@ -20,11 +20,13 @@ from test.aqua import QiskitAquaTestCase
 import itertools
 import numpy as np
 
-from qiskit import BasicAer
 from qiskit.aqua.operators import (X, Y, Z, I, CX, H, S,
                                    ListOp, Zero, One, Plus, Minus, StateFn,
                                    PauliExpectation, AbelianGrouper,
                                    CircuitSampler)
+
+from qiskit import BasicAer
+
 
 # pylint: disable=invalid-name
 
