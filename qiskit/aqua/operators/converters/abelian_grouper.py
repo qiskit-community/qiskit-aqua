@@ -151,9 +151,9 @@ class AbelianGrouper(ConverterBase):
             }
             mat1 = np.array([[conv[e] for e in str(op.primitive)] for op in list_op], dtype=np.int8)
             mat2 = mat1[:, None]
-            # i and j are commutable with TPB if c[i, j] is True
+            # i and j are commutable with TPB if mat3[i, j] is True
             mat3 = (((mat1 * mat2) * (mat1 - mat2)) == 0).all(axis=2)
-            # return [(i, j) if c[i, j] is False and i < j]
+            # return [(i, j) if mat3[i, j] is False and i < j]
             return zip(*np.where(np.triu(np.logical_not(mat3), k=1)))
 
         commutation_graph = nx.Graph()
