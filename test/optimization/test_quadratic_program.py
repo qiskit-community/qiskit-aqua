@@ -16,6 +16,7 @@
 
 import unittest
 import tempfile
+from os import path
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 
 from docplex.mp.model import Model, DOcplexException
@@ -481,9 +482,11 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         q_p.quadratic_constraint({'x': 1, 'y': 1}, {('x', 'x'): 1, ('y', 'z'): -1, ('z', 'z'): 2},
                                  '>=', 1, 'quad_geq')
 
+        reference_file_name = path.join('test', 'optimization', 'resources',
+                                        'test_quadratic_program.lp')
         temp_output_file = tempfile.NamedTemporaryFile(mode='w+t', suffix='.lp')
         q_p.write_to_lp_file(temp_output_file.name)
-        with open('test/optimization/resources/test_quadratic_program.lp') as reference:
+        with open(reference_file_name) as reference:
             lines1 = temp_output_file.readlines()
             lines2 = reference.readlines()
             self.assertListEqual(lines1, lines2)
@@ -492,8 +495,8 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
 
         with tempfile.TemporaryDirectory() as temp_problem_dir:
             q_p.write_to_lp_file(temp_problem_dir)
-            with open(temp_problem_dir + '/my_problem.lp') as file1, open(
-                    'test/optimization/resources/test_quadratic_program.lp') as file2:
+            with open(path.join(temp_problem_dir, 'my_problem.lp')) as file1, open(
+                    reference_file_name) as file2:
                 lines1 = file1.readlines()
                 lines2 = file2.readlines()
                 self.assertListEqual(lines1, lines2)
