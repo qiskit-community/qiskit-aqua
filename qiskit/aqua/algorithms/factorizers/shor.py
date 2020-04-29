@@ -92,7 +92,7 @@ class Shor(QuantumAlgorithm):
             logger.info('The input integer is a power: %s=%s^%s.', N, b, p)
             self._ret['factors'].append(b)
 
-        self._qft = QFT(self._n + 1, do_swaps=False)
+        self._qft = QFT(do_swaps=False)
         self._iqft = self._qft.inverse()
 
     def _get_angles(self, a):
@@ -231,6 +231,8 @@ class Shor(QuantumAlgorithm):
 
         # Get n value used in Shor's algorithm, to know how many qubits are used
         self._n = math.ceil(math.log(self._N, 2))
+        self._qft.num_qubits = self._n + 1
+        self._iqft.num_qubits = self._n + 1
 
         # quantum register where the sequential QFT is performed
         self._up_qreg = QuantumRegister(2 * self._n, name='up')
