@@ -18,8 +18,32 @@ Optimization application stack for Aqua (:mod:`qiskit.optimization`)
 
 .. currentmodule:: qiskit.optimization
 
-Qiskit Optimization provides a library of quantum algorithms to build
-optimization applications and leverage quantum computers.
+Qiskit Optimization covers the whole stack from high-level modelling of optimization
+problems, with automatic conversion of problems to different required representations,
+to a suite of easy-to-use quantum optimization algorithms that are ready to run on
+classical simulators, as well as on real quantum devices via Qiskit.
+
+Qiskit Optimization enables easy, efficient modelling of optimization problems using `docplex
+<https://developer.ibm.com/docloud/documentation/optimization-modeling/modeling-for-python/>`_
+A uniform interface as well as automatic conversion between different problem representations
+allows users to solve problems using a large set of algorithms, from variational quantum algorithms,
+such as the Quantum Approximate Optimization Algorithm
+(:class:`~qiskit.aqua.algorithms.QAOA`), to
+`Grover Adaptive Search <https://arxiv.org/abs/quant-ph/9607014>`_
+(:class:`~algorithms.GroverOptimizer`), leveraging
+fundamental :mod:`~qiskit.aqua.algorithms` provided by Qiskit Aqua. Furthermore, the modular design
+of Qiskit Optimization allows it to be easily extended and facilitates rapid development and
+testing of new algorithms. Compatible classical optimizers are also provided for testing,
+validation, and benchmarking.
+
+Qiskit Optimization supports Quadratically Constrained Quadratic Programs – for simplicity we refer
+to them just as Quadratic Programs – with binary, integer, and continuous variables, as well as
+equality and inequality constraints. This class of optimization problems has a vast amount of
+relevant applications, while still being efficiently representable by matrices and vectors.
+This class covers some very interesting sub-classes, from Convex Continuous Quadratic Programs,
+which can be solved efficiently by classical optimization algorithms, to Quadratic Unconstrained
+Binary Optimization QUBO) problems, which cover many NP-complete, i.e., classically intractable,
+problems.
 
 .. autosummary::
    :toctree: ../stubs/

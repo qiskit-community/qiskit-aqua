@@ -18,6 +18,9 @@ Optimization converters (:mod:`qiskit.optimization.converters`)
 
 .. currentmodule:: qiskit.optimization.converters
 
+This is selection of converters having encode, decode functionality to go between different
+forms.
+
 Converters
 ==========
 

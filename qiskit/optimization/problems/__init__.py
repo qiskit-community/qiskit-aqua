@@ -20,7 +20,17 @@ Optimization problems (:mod:`qiskit.optimization.problems`)
 
 Problems
 ========
-Structures for defining an optimization problem and its solution
+Structures for defining an optimization problem and its solution.
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   QuadraticProgram
+
+Note:
+    The following classes are not intended to be instantiated directly.
+    Objects of these types are available within an instantiated :class:`QuadraticProgram`.
 
 .. autosummary::
    :toctree: ../stubs/
@@ -32,12 +42,7 @@ Structures for defining an optimization problem and its solution
    QuadraticExpression
    QuadraticConstraint
    QuadraticObjective
-   QuadraticProgram
    Variable
-
-Note:
-    All classes except :class:`QuadraticProgram` are not to be instantiated directly.
-    Objects of those types are available within an instantiated :class:`QuadraticProgram`.
 
 """
 

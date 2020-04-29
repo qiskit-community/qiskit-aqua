@@ -30,7 +30,8 @@ logger = logging.getLogger(__name__)
 
 
 class IntegerToBinary:
-    """Convert an `QuadraticProgram` into new one by encoding integer with binary variables.
+    """Convert a :class:`~qiskit.optimization.problems.QuadraticProgram` into new one by encoding
+    integer with binary variables.
 
     This bounded-coefficient encoding used in this converted is proposed in [1], Eq. (5).
 

@@ -16,7 +16,7 @@
 Optimization algorithms (:mod:`qiskit.optimization.algorithms`)
 ===============================================================
 
-Algorithms for optimization problem.
+Algorithms for optimization problems.
 
 .. currentmodule:: qiskit.optimization.algorithms
 

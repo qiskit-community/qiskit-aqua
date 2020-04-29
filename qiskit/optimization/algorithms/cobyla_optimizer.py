@@ -28,7 +28,7 @@ from ..infinity import INFINITY
 
 
 class CobylaOptimizer(OptimizationAlgorithm):
-    """The SciPy COBYLA optimizer wrapped as an Qiskit ``OptimizationAlgorithm``.
+    """The SciPy COBYLA optimizer wrapped as an Qiskit :class:`OptimizationAlgorithm`.
 
     This class provides a wrapper for ``scipy.optimize.fmin_cobyla``
     (https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.optimize.fmin_cobyla.html)
