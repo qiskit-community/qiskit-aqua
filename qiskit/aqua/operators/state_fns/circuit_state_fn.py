@@ -18,9 +18,10 @@
 from typing import Union, Set
 import numpy as np
 
-from qiskit import QuantumCircuit, BasicAer, execute
+from qiskit import QuantumCircuit, BasicAer, execute, ClassicalRegister
 from qiskit.circuit import Instruction, ParameterExpression
-from qiskit.extensions import Initialize, IGate
+from qiskit.extensions import Initialize
+from qiskit.circuit.library import IGate
 
 from ..operator_base import OperatorBase
 from ..list_ops.summed_op import SummedOp
@@ -46,7 +47,7 @@ class CircuitStateFn(StateFn):
             is_measurement: Whether the StateFn is a measurement operator.
 
         Raises:
-            TypeError: invalid parameters.
+            TypeError: Unsupported primitive, or primitive has ClassicalRegisters.
         """
         if isinstance(primitive, Instruction):
             qc = QuantumCircuit(primitive.num_qubits)
@@ -56,6 +57,9 @@ class CircuitStateFn(StateFn):
         if not isinstance(primitive, QuantumCircuit):
             raise TypeError('CircuitStateFn can only be instantiated '
                             'with QuantumCircuit, not {}'.format(type(primitive)))
+
+        if len(primitive.clbits) != 0:
+            raise TypeError('CircuitOp does not support QuantumCircuits with ClassicalRegisters.')
 
         super().__init__(primitive, coeff=coeff, is_measurement=is_measurement)
 
@@ -294,10 +298,10 @@ class CircuitStateFn(StateFn):
     def to_circuit(self, meas: bool = False) -> QuantumCircuit:
         """ Return QuantumCircuit representing StateFn """
         if meas:
-            qc = QuantumCircuit(self.num_qubits, self.num_qubits)
-            qc.append(self.to_instruction(), qargs=range(self.primitive.num_qubits))
-            qc.measure(qubit=range(self.num_qubits), cbit=range(self.num_qubits))
-            return qc.decompose()
+            meas_qc = self.primitive.copy()
+            meas_qc.add_register(ClassicalRegister(self.num_qubits))
+            meas_qc.measure(qubit=range(self.num_qubits), cbit=range(self.num_qubits))
+            return meas_qc
         else:
             return self.primitive
 
