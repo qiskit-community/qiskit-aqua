@@ -118,12 +118,13 @@ class AbelianGrouper(ConverterBase):
         return list_op.__class__(group_ops, coeff=list_op.coeff)
 
     @staticmethod
-    def group_subops_fast(list_op: ListOp) -> ListOp:
+    def group_subops_fast(list_op: ListOp, nx_trick=False) -> ListOp:
         """ Given a ListOp, attempt to group into Abelian ListOps of the same type.
         Fast version of `group_subops` implemented using numpy.
 
         Args:
             list_op: The Operator to group into Abelian groups
+            nx_trick: Add edges directly to nx.Graph to reduce the overhead
 
         Returns:
             The grouped Operator.
@@ -153,11 +154,15 @@ class AbelianGrouper(ConverterBase):
             # i and j are commutable with TPB if c[i, j] is True
             mat3 = (((mat1 * mat2) * (mat1 - mat2)) == 0).all(axis=2)
             # return [(i, j) if c[i, j] is False and i < j]
-            return zip(*np.where(np.triu(np.logical_not(mat3))))
+            return zip(*np.where(np.triu(np.logical_not(mat3), k=1)))
 
         commutation_graph = nx.Graph()
         commutation_graph.add_nodes_from(range(len(list_op)))
-        commutation_graph.add_edges_from(_create_edges(list_op))
+        if nx_trick:
+            for i, j in _create_edges(list_op):
+                commutation_graph._adj[i][j] = commutation_graph._adj[j][i] = None
+        else:
+            commutation_graph.add_edges_from(_create_edges(list_op))
 
         # Keys in coloring_dict are nodes, values are colors
         # pylint: disable=no-member
