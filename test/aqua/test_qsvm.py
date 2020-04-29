@@ -58,12 +58,12 @@ class TestQSVM(QiskitAquaTestCase):
         circuit = QuantumCircuit(num_qubits).compose(library_circuit)
         circuit.ordered_parameters = library_circuit.ordered_parameters
 
-        self.data_encoding = {'feature_map': feature_map,
-                              'circuit': circuit,
-                              'library': library_circuit}
+        self.data_preparation = {'feature_map': feature_map,
+                                 'circuit': circuit,
+                                 'library': library_circuit}
 
     @data('feature_map', 'circuit', 'library')
-    def test_qsvm_binary(self, data_encoding_type):
+    def test_qsvm_binary(self, data_preparation_type):
         """ QSVM Binary test """
         ref_kernel_training = np.array([[1., 0.85366667, 0.12341667, 0.36408333],
                                         [0.85366667, 1., 0.11141667, 0.45491667],
@@ -82,8 +82,8 @@ class TestQSVM(QiskitAquaTestCase):
                                         [4.08407045, 2.26194671], [4.46106157, 2.38761042]])
 
         backend = BasicAer.get_backend('qasm_simulator')
-        data_encoding = self.data_encoding[data_encoding_type]
-        svm = QSVM(data_encoding, self.training_data, self.testing_data, None)
+        data_preparation = self.data_preparation[data_preparation_type]
+        svm = QSVM(data_preparation, self.training_data, self.testing_data, None)
         quantum_instance = QuantumInstance(backend,
                                            shots=self.shots,
                                            seed_simulator=self.random_seed,
@@ -108,7 +108,7 @@ class TestQSVM(QiskitAquaTestCase):
             self.skipTest(str(ex))
 
     @data('feature_map', 'circuit', 'library')
-    def test_qsvm_binary_directly_statevector(self, data_encoding_type):
+    def test_qsvm_binary_directly_statevector(self, data_preparation_type):
         """ QSVM Binary Directly Statevector test """
         ref_kernel_testing = np. array([[0.1443953, 0.18170069, 0.47479649, 0.14691763],
                                         [0.33041779, 0.37663733, 0.02115561, 0.16106199]])
@@ -117,8 +117,8 @@ class TestQSVM(QiskitAquaTestCase):
                                         [4.08407045, 2.26194671], [4.46106157, 2.38761042]])
 
         backend = BasicAer.get_backend('statevector_simulator')
-        data_encoding = self.data_encoding[data_encoding_type]
-        svm = QSVM(data_encoding, self.training_data, self.testing_data, None)
+        data_preparation = self.data_preparation[data_preparation_type]
+        svm = QSVM(data_preparation, self.training_data, self.testing_data, None)
         quantum_instance = QuantumInstance(backend, seed_transpiler=self.random_seed,
                                            seed_simulator=self.random_seed)
 
@@ -167,7 +167,7 @@ class TestQSVM(QiskitAquaTestCase):
                     pass
 
     @data('feature_map', 'circuit', 'library')
-    def test_qsvm_setup_data(self, data_encoding_type):
+    def test_qsvm_setup_data(self, data_preparation_type):
         """ QSVM Setup Data test """
         ref_kernel_testing = np. array([[0.1443953, 0.18170069, 0.47479649, 0.14691763],
                                         [0.33041779, 0.37663733, 0.02115561, 0.16106199]])
@@ -177,9 +177,9 @@ class TestQSVM(QiskitAquaTestCase):
 
         backend = BasicAer.get_backend('statevector_simulator')
 
-        data_encoding = self.data_encoding[data_encoding_type]
+        data_preparation = self.data_preparation[data_preparation_type]
         try:
-            svm = QSVM(data_encoding)
+            svm = QSVM(data_preparation)
 
             svm.setup_training_data(self.training_data)
             svm.setup_test_data(self.testing_data)
@@ -199,7 +199,7 @@ class TestQSVM(QiskitAquaTestCase):
             self.skipTest(str(ex))
 
     @data('feature_map', 'circuit', 'library')
-    def test_qsvm_multiclass_one_against_all(self, data_encoding_type):
+    def test_qsvm_multiclass_one_against_all(self, data_preparation_type):
         """ QSVM Multiclass One Against All test """
         training_input = {'A': np.asarray([[0.6560706, 0.17605998], [0.25776033, 0.47628296],
                                            [0.8690704, 0.70847635]]),
@@ -218,9 +218,9 @@ class TestQSVM(QiskitAquaTestCase):
         total_array = np.concatenate((test_input['A'], test_input['B'], test_input['C']))
 
         aqua_globals.random_seed = self.random_seed
-        data_encoding = self.data_encoding[data_encoding_type]
+        data_preparation = self.data_preparation[data_preparation_type]
         try:
-            svm = QSVM(data_encoding, training_input, test_input, total_array,
+            svm = QSVM(data_preparation, training_input, test_input, total_array,
                        multiclass_extension=OneAgainstRest())
             quantum_instance = QuantumInstance(BasicAer.get_backend('qasm_simulator'),
                                                shots=self.shots,
@@ -235,7 +235,7 @@ class TestQSVM(QiskitAquaTestCase):
             self.skipTest(str(ex))
 
     @data('feature_map', 'circuit', 'library')
-    def test_qsvm_multiclass_all_pairs(self, data_encoding_type):
+    def test_qsvm_multiclass_all_pairs(self, data_preparation_type):
         """ QSVM Multiclass All Pairs test """
         training_input = {'A': np.asarray([[0.6560706, 0.17605998], [0.25776033, 0.47628296],
                                            [0.8690704, 0.70847635]]),
@@ -254,9 +254,9 @@ class TestQSVM(QiskitAquaTestCase):
         total_array = np.concatenate((test_input['A'], test_input['B'], test_input['C']))
 
         aqua_globals.random_seed = self.random_seed
-        data_encoding = self.data_encoding[data_encoding_type]
+        data_preparation = self.data_preparation[data_preparation_type]
         try:
-            svm = QSVM(data_encoding, training_input, test_input, total_array,
+            svm = QSVM(data_preparation, training_input, test_input, total_array,
                        multiclass_extension=AllPairs())
 
             quantum_instance = QuantumInstance(BasicAer.get_backend('qasm_simulator'),
@@ -271,7 +271,7 @@ class TestQSVM(QiskitAquaTestCase):
             self.skipTest(str(ex))
 
     @data('feature_map', 'circuit', 'library')
-    def test_qsvm_multiclass_error_correcting_code(self, data_encoding_type):
+    def test_qsvm_multiclass_error_correcting_code(self, data_preparation_type):
         """ QSVM Multiclass error Correcting Code test """
         training_input = {'A': np.asarray([[0.6560706, 0.17605998], [0.25776033, 0.47628296],
                                            [0.8690704, 0.70847635]]),
@@ -290,9 +290,9 @@ class TestQSVM(QiskitAquaTestCase):
         total_array = np.concatenate((test_input['A'], test_input['B'], test_input['C']))
 
         aqua_globals.random_seed = self.random_seed
-        data_encoding = self.data_encoding[data_encoding_type]
+        data_preparation = self.data_preparation[data_preparation_type]
         try:
-            svm = QSVM(data_encoding, training_input, test_input, total_array,
+            svm = QSVM(data_preparation, training_input, test_input, total_array,
                        multiclass_extension=ErrorCorrectingCode(code_size=5))
 
             quantum_instance = QuantumInstance(BasicAer.get_backend('qasm_simulator'),

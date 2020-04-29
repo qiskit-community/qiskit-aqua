@@ -82,9 +82,9 @@ class TestVQC(QiskitAquaTestCase):
         self._sorted_data_params = list(x)
         library_circuit.assign_parameters(x, inplace=True)
 
-        self.data_encoding = {'wrapped': feature_map,
-                              'circuit': circuit,
-                              'library': library_circuit}
+        self.data_preparation = {'wrapped': feature_map,
+                                 'circuit': circuit,
+                                 'library': library_circuit}
 
     @data('wrapped', 'circuit', 'library')
     def test_vqc(self, mode):
@@ -92,14 +92,14 @@ class TestVQC(QiskitAquaTestCase):
         aqua_globals.random_seed = self.seed
         optimizer = SPSA(max_trials=10, save_steps=1,
                          c0=4.0, c1=0.1, c2=0.602, c3=0.101, c4=0.0, skip_calibration=True)
-        data_encoding = self.data_encoding[mode]
+        data_preparation = self.data_preparation[mode]
         wavefunction = self.ryrz_wavefunction[mode]
 
         if mode == 'wrapped':
             warnings.filterwarnings('ignore', category=DeprecationWarning)
 
         # set up algorithm
-        vqc = VQC(optimizer, data_encoding, wavefunction, self.training_data, self.testing_data)
+        vqc = VQC(optimizer, data_preparation, wavefunction, self.training_data, self.testing_data)
 
         if mode in ['circuit', 'library']:
             vqc._feature_map_params = self._sorted_data_params
@@ -126,13 +126,13 @@ class TestVQC(QiskitAquaTestCase):
         aqua_globals.random_seed = self.seed
         optimizer = SPSA(max_trials=10, save_steps=1,
                          c0=4.0, c1=0.1, c2=0.602, c3=0.101, c4=0.0, skip_calibration=True)
-        data_encoding = self.data_encoding[mode]
+        data_preparation = self.data_preparation[mode]
         wavefunction = self.ryrz_wavefunction[mode]
 
         if mode == 'wrapped':
             warnings.filterwarnings('ignore', category=DeprecationWarning)
         # set up algorithm
-        vqc = VQC(optimizer, data_encoding, wavefunction, self.training_data, self.testing_data,
+        vqc = VQC(optimizer, data_preparation, wavefunction, self.training_data, self.testing_data,
                   max_evals_grouped=2)
 
         if mode in ['circuit', 'library']:
@@ -158,13 +158,13 @@ class TestVQC(QiskitAquaTestCase):
         """ vqc statevector test """
         aqua_globals.random_seed = 10598
         optimizer = COBYLA()
-        data_encoding = self.data_encoding[mode]
+        data_preparation = self.data_preparation[mode]
         wavefunction = self.ryrz_wavefunction[mode]
 
         if mode == 'wrapped':
             warnings.filterwarnings('ignore', category=DeprecationWarning)
         # set up algorithm
-        vqc = VQC(optimizer, data_encoding, wavefunction, self.training_data, self.testing_data)
+        vqc = VQC(optimizer, data_preparation, wavefunction, self.training_data, self.testing_data)
 
         if mode in ['circuit', 'library']:
             vqc._feature_map_params = self._sorted_data_params
@@ -195,14 +195,14 @@ class TestVQC(QiskitAquaTestCase):
                                                        plot_data=False)
         backend = BasicAer.get_backend('statevector_simulator')
         optimizer = COBYLA(maxiter=40)
-        data_encoding = self.data_encoding[mode]
+        data_preparation = self.data_preparation[mode]
         wavefunction = self.ryrz_wavefunction[mode]
 
         if mode == 'wrapped':
             warnings.filterwarnings('ignore', category=DeprecationWarning)
 
         # set up algorithm
-        vqc = VQC(optimizer, data_encoding, wavefunction, training_input, test_input,
+        vqc = VQC(optimizer, data_preparation, wavefunction, training_input, test_input,
                   minibatch_size=2)
 
         if mode in ['circuit', 'library']:
@@ -232,7 +232,7 @@ class TestVQC(QiskitAquaTestCase):
         optimizer = L_BFGS_B(maxfun=30)
 
         # set up data encoding circuit
-        data_encoding = self.data_encoding[mode]
+        data_preparation = self.data_preparation[mode]
 
         # set up wavefunction
         if mode == 'wrapped':
@@ -252,7 +252,7 @@ class TestVQC(QiskitAquaTestCase):
             wavefunction = QuantumCircuit(2).compose(wavefunction)
 
         # set up algorithm
-        vqc = VQC(optimizer, data_encoding, wavefunction, training_input, test_input,
+        vqc = VQC(optimizer, data_preparation, wavefunction, training_input, test_input,
                   minibatch_size=2)
 
         if mode in ['circuit', 'library']:
@@ -274,13 +274,13 @@ class TestVQC(QiskitAquaTestCase):
         backend = BasicAer.get_backend('qasm_simulator')
 
         optimizer = SPSA(max_trials=10, save_steps=1, c0=4.0, skip_calibration=True)
-        data_encoding = self.data_encoding[mode]
+        data_preparation = self.data_preparation[mode]
         wavefunction = self.ryrz_wavefunction[mode]
 
         if mode == 'wrapped':
             warnings.filterwarnings('ignore', category=DeprecationWarning)
         # set up algorithm
-        vqc = VQC(optimizer, data_encoding, wavefunction, self.training_data, self.testing_data)
+        vqc = VQC(optimizer, data_preparation, wavefunction, self.training_data, self.testing_data)
 
         if mode in ['circuit', 'library']:
             vqc._feature_map_params = self._sorted_data_params
@@ -304,7 +304,7 @@ class TestVQC(QiskitAquaTestCase):
 
         self.assertTrue(os.path.exists(file_path))
 
-        loaded_vqc = VQC(optimizer, data_encoding, wavefunction, self.training_data, None)
+        loaded_vqc = VQC(optimizer, data_preparation, wavefunction, self.training_data, None)
 
         # sort parameters for reproducibility
         if mode in ['circuit', 'library']:
@@ -351,14 +351,14 @@ class TestVQC(QiskitAquaTestCase):
         backend = BasicAer.get_backend('qasm_simulator')
 
         optimizer = COBYLA(maxiter=3)
-        data_encoding = self.data_encoding[mode]
+        data_preparation = self.data_preparation[mode]
         wavefunction = self.ryrz_wavefunction[mode]
 
         if mode == 'wrapped':
             warnings.filterwarnings('ignore', category=DeprecationWarning)
 
         # set up algorithm
-        vqc = VQC(optimizer, data_encoding, wavefunction, self.training_data, self.testing_data,
+        vqc = VQC(optimizer, data_preparation, wavefunction, self.training_data, self.testing_data,
                   callback=store_intermediate_result)
 
         if mode in ['circuit', 'library']:
@@ -415,11 +415,11 @@ class TestVQC(QiskitAquaTestCase):
         aqua_globals.random_seed = self.seed
         if mode == 'wrapped':
             warnings.filterwarnings('ignore', category=DeprecationWarning)
-            data_encoding = FeatSecondOrderExpansion(feature_dim)
+            data_preparation = FeatSecondOrderExpansion(feature_dim)
             wavefunction = VarRYRZ(feature_dim, depth=1)
         else:
-            data_encoding = SecondOrderExpansion(feature_dim)
-            x = data_encoding.ordered_parameters
+            data_preparation = SecondOrderExpansion(feature_dim)
+            x = data_preparation.ordered_parameters
             wavefunction = RYRZ(feature_dim, reps=1, insert_barriers=True)
             theta = ParameterVector('theta', wavefunction.num_parameters)
             resorted = []
@@ -430,10 +430,10 @@ class TestVQC(QiskitAquaTestCase):
             wavefunction.assign_parameters(dict(zip(resorted, theta)), inplace=True)
 
         if mode == 'circuit':
-            data_encoding = QuantumCircuit(feature_dim).compose(data_encoding)
+            data_preparation = QuantumCircuit(feature_dim).compose(data_preparation)
             wavefunction = QuantumCircuit(feature_dim).compose(wavefunction)
 
-        vqc = VQC(COBYLA(maxiter=100), data_encoding, wavefunction, training_input, test_input)
+        vqc = VQC(COBYLA(maxiter=100), data_preparation, wavefunction, training_input, test_input)
 
         # sort parameters for reproducibility
         if mode in ['circuit', 'library']:
