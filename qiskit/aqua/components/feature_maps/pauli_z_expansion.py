@@ -11,10 +11,10 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""
-The Pauli Z Expansion feature map.
-"""
 
+"""The Pauli Z Expansion feature map."""
+
+import warnings
 from typing import Optional, Callable, List
 import numpy as np
 from qiskit.aqua.utils.validation import validate_min, validate_in_set
@@ -23,8 +23,7 @@ from .data_mapping import self_product
 
 
 class PauliZExpansion(PauliExpansion):
-    """
-    The Pauli Z Expansion feature map.
+    """DEPRECATED. The Pauli Z Expansion feature map.
 
     This is a sub-class of the general :class:`PauliExpansion` but where the pauli string is fixed
     to only contain Z and where *paulis* is now created for the superclass as per the given
@@ -56,6 +55,12 @@ class PauliZExpansion(PauliExpansion):
             data_map_func: A mapping function for data x which can be supplied to override the
                 default mapping from :meth:`self_product`.
         """
+        # extra warning since this class will be removed entirely
+        warnings.warn('The qiskit.aqua.components.feature_maps.PauliZExpansion class is deprecated '
+                      'as of 0.7.0 and will be removed no sooner than 3 months after the release. '
+                      'You should use qiskit.circuit.library.PauliFeatureMap instead.',
+                      DeprecationWarning, stacklevel=2)
+
         validate_min('depth', depth, 1)
         validate_in_set('entanglement', entanglement, {'full', 'linear'})
         validate_min('z_order', z_order, 1)
