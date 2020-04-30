@@ -156,7 +156,7 @@ class VQAlgorithm(QuantumAlgorithm):
 
         nparms = var_form.num_parameters
 
-        if hasattr(var_form, 'parameter_bounds'):
+        if hasattr(var_form, 'parameter_bounds') and var_form.parameter_bounds is not None:
             bounds = var_form.parameter_bounds
         else:
             bounds = [(None, None)] * nparms

@@ -22,13 +22,13 @@ import numpy as np
 from ddt import ddt, data
 from qiskit import BasicAer, QuantumCircuit
 from qiskit.circuit import ParameterVector
-from qiskit.circuit.library import RYRZ
+from qiskit.circuit.library import TwoLocal
 
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.utils import decimal_to_binary
 from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.aqua.components.initial_states import VarFormBased
-from qiskit.aqua.components.variational_forms import RYRZ as VarRYRZ
+from qiskit.aqua.components.variational_forms import RYRZ
 from qiskit.aqua.components.optimizers import SPSA
 from qiskit.aqua.algorithms import VQE
 from qiskit.aqua.algorithms import IQPE
@@ -59,9 +59,9 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         num_qbits = self.qubit_op.num_qubits
         if wavefunction_type == 'wrapped':
             warnings.filterwarnings('ignore', category=DeprecationWarning)
-            wavefunction = VarRYRZ(num_qbits, 3)
+            wavefunction = RYRZ(num_qbits, 3)
         else:
-            wavefunction = RYRZ(num_qbits, reps=3, insert_barriers=True)
+            wavefunction = TwoLocal(num_qbits, ['ry', 'rz'], 'cz', reps=3, insert_barriers=True)
             theta = ParameterVector('theta', wavefunction.num_parameters)
             wavefunction.assign_parameters(theta, inplace=True)
 

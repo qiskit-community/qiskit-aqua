@@ -20,9 +20,9 @@ from test.aqua import QiskitAquaTestCase
 import numpy as np
 from ddt import ddt, data
 from qiskit import BasicAer, QuantumCircuit
-from qiskit.circuit.library import SecondOrderExpansion
+from qiskit.circuit.library import ZZFeatureMap
 from qiskit.aqua import QuantumInstance, aqua_globals
-from qiskit.aqua.components.feature_maps import SecondOrderExpansion as FeatSecondOrderExpansion
+from qiskit.aqua.components.feature_maps import SecondOrderExpansion
 from qiskit.aqua.components.multiclass_extensions import (ErrorCorrectingCode,
                                                           AllPairs,
                                                           OneAgainstRest)
@@ -49,13 +49,13 @@ class TestQSVM(QiskitAquaTestCase):
 
         warnings.filterwarnings('ignore', category=DeprecationWarning)
         # data encoding using a FeatureMap type
-        feature_map = FeatSecondOrderExpansion(feature_dimension=num_qubits,
-                                               depth=2,
-                                               entangler_map=[[0, 1]])
+        feature_map = SecondOrderExpansion(feature_dimension=num_qubits,
+                                           depth=2,
+                                           entangler_map=[[0, 1]])
         warnings.filterwarnings('always', category=DeprecationWarning)
 
         # data encoding using a circuit library object
-        library_circuit = SecondOrderExpansion(feature_dimension=num_qubits, reps=2)
+        library_circuit = ZZFeatureMap(feature_dimension=num_qubits, reps=2)
 
         # data encoding using a plain QuantumCircuit
         circuit = QuantumCircuit(num_qubits).compose(library_circuit)

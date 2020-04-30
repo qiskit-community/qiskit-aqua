@@ -20,12 +20,11 @@ from test.aqua import QiskitAquaTestCase
 import numpy as np
 from ddt import ddt, unpack, data
 from qiskit import BasicAer, QuantumCircuit
-from qiskit.circuit.library import RY, RYRZ
-from qiskit.circuit import ParameterVector
+from qiskit.circuit.library import TwoLocal
 
 from qiskit.aqua import QuantumInstance, aqua_globals, AquaError
 from qiskit.aqua.operators import WeightedPauliOperator, PrimitiveOp
-from qiskit.aqua.components.variational_forms import RY as VarRY, RYRZ as VarRYRZ
+from qiskit.aqua.components.variational_forms import RY, RYRZ
 from qiskit.aqua.components.optimizers import L_BFGS_B, COBYLA, SPSA, SLSQP
 from qiskit.aqua.algorithms import VQE
 
@@ -49,14 +48,16 @@ class TestVQE(QiskitAquaTestCase):
         self.qubit_op = WeightedPauliOperator.from_dict(pauli_dict).to_opflow()
 
         num_qubits = self.qubit_op.num_qubits
+        ansatz = TwoLocal(num_qubits, rotation_blocks=['ry', 'rz'], entanglement_blocks='cz')
         warnings.filterwarnings('ignore', category=DeprecationWarning)
-        self.ryrz_wavefunction = {'wrapped': VarRYRZ(num_qubits),
-                                  'circuit': QuantumCircuit(num_qubits).compose(RYRZ(num_qubits)),
-                                  'library': RYRZ()}
+        self.ryrz_wavefunction = {'wrapped': RYRZ(num_qubits),
+                                  'circuit': QuantumCircuit(num_qubits).compose(ansatz),
+                                  'library': ansatz}
 
-        self.ry_wavefunction = {'wrapped': VarRY(num_qubits),
-                                'circuit': QuantumCircuit(num_qubits).compose(RY(num_qubits)),
-                                'library': RY()}
+        ansatz.rotation_blocks = 'ry'
+        self.ry_wavefunction = {'wrapped': RY(num_qubits),
+                                'circuit': QuantumCircuit(num_qubits).compose(ansatz),
+                                'library': ansatz}
         warnings.filterwarnings('always', category=DeprecationWarning)
 
     @data('wrapped', 'circuit', 'library')
@@ -102,7 +103,7 @@ class TestVQE(QiskitAquaTestCase):
     def test_vqe_optimizers(self, optimizer_cls, places, max_evals_grouped):
         """ VQE Optimizers test """
         result = VQE(self.qubit_op,
-                     RYRZ(),
+                     TwoLocal(rotation_blocks=['ry', 'rz'], entanglement_blocks='cz'),
                      optimizer_cls(),
                      max_evals_grouped=max_evals_grouped).run(
                          QuantumInstance(BasicAer.get_backend('statevector_simulator'), shots=1,
@@ -221,7 +222,7 @@ class TestVQE(QiskitAquaTestCase):
         with self.assertRaises(AquaError):
             _ = vqe.run()
 
-        var_form = RY()
+        var_form = TwoLocal(rotation_blocks=['ry', 'rz'], entanglement_blocks='cz'),
         vqe.var_form = var_form
         with self.assertRaises(AquaError):
             _ = vqe.run()
@@ -245,7 +246,8 @@ class TestVQE(QiskitAquaTestCase):
 
     def test_vqe_mes(self):
         """ Test vqe minimum eigen solver interface """
-        vqe = VQE(var_form=RY(), optimizer=COBYLA())
+        ansatz = TwoLocal(rotation_blocks=['ry', 'rz'], entanglement_blocks='cz')
+        vqe = VQE(var_form=ansatz, optimizer=COBYLA())
         vqe.set_backend(BasicAer.get_backend('statevector_simulator'))
         result = vqe.compute_minimum_eigenvalue(self.qubit_op)
         self.assertAlmostEqual(result.eigenvalue.real, -1.85727503, places=5)
@@ -256,11 +258,11 @@ class TestVQE(QiskitAquaTestCase):
         from qiskit import IBMQ
         provider = IBMQ.load_account()
         backend = provider.get_backend('ibmq_qasm_simulator')
-        var_form = RYRZ(self.qubit_op.num_qubits)
+        ansatz = TwoLocal(rotation_blocks=['ry', 'rz'], entanglement_blocks='cz')
 
         opt = SLSQP(maxiter=1)
         opt.set_max_evals_grouped(100)
-        vqe = VQE(self.qubit_op, var_form, SLSQP(maxiter=2))
+        vqe = VQE(self.qubit_op, ansatz, SLSQP(maxiter=2))
 
         result = vqe.run(backend)
         print(result)

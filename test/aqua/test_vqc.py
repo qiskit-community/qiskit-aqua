@@ -22,14 +22,12 @@ import numpy as np
 from ddt import ddt, data
 from qiskit import BasicAer
 from qiskit.circuit import ParameterVector, QuantumCircuit, Parameter
-from qiskit.circuit.library import RYRZ, SecondOrderExpansion
+from qiskit.circuit.library import TwoLocal, ZZFeatureMap
 from qiskit.aqua import QuantumInstance, aqua_globals, AquaError
 from qiskit.aqua.algorithms import VQC
 from qiskit.aqua.components.optimizers import SPSA, COBYLA
-from qiskit.aqua.components.feature_maps import (
-    SecondOrderExpansion as FeatSecondOrderExpansion, RawFeatureVector
-)
-from qiskit.aqua.components.variational_forms import RYRZ as VarRYRZ
+from qiskit.aqua.components.feature_maps import SecondOrderExpansion, RawFeatureVector
+from qiskit.aqua.components.variational_forms import RYRZ
 from qiskit.aqua.components.optimizers import L_BFGS_B
 from qiskit.ml.datasets import wine, ad_hoc_data
 
@@ -57,11 +55,11 @@ class TestVQC(QiskitAquaTestCase):
 
         # ignore warnings from creating VariationalForm and FeatureMap objects
         warnings.filterwarnings('ignore', category=DeprecationWarning)
-        var_form_ryrz = VarRYRZ(2, depth=3)
-        feature_map = FeatSecondOrderExpansion(2, depth=2)
+        var_form_ryrz = RYRZ(2, depth=3)
+        feature_map = SecondOrderExpansion(2, depth=2)
         warnings.filterwarnings('always', category=DeprecationWarning)
 
-        library_ryrz = RYRZ(2, reps=3, insert_barriers=True)
+        library_ryrz = TwoLocal(2, ['ry', 'rz'], 'cz', reps=3, insert_barriers=True)
         theta = ParameterVector('theta', var_form_ryrz.num_parameters)
         circuit_ryrz = var_form_ryrz.construct_circuit(theta)
         resorted = []
@@ -76,7 +74,7 @@ class TestVQC(QiskitAquaTestCase):
                                   'circuit': circuit_ryrz,
                                   'library': library_ryrz}
 
-        library_circuit = SecondOrderExpansion(2, reps=2)
+        library_circuit = ZZFeatureMap(2, reps=2)
         x = ParameterVector('x', 2)
         circuit = feature_map.construct_circuit(x)
         self._sorted_data_params = list(x)
@@ -237,9 +235,9 @@ class TestVQC(QiskitAquaTestCase):
         # set up wavefunction
         if mode == 'wrapped':
             warnings.filterwarnings('ignore', category=DeprecationWarning)
-            wavefunction = VarRYRZ(2, depth=1)
+            wavefunction = RYRZ(2, depth=1)
         else:
-            wavefunction = RYRZ(2, reps=1, insert_barriers=True)
+            wavefunction = TwoLocal(2, ['ry', 'rz'], 'cz', reps=1, insert_barriers=True)
             theta = ParameterVector('theta', wavefunction.num_parameters)
             resorted = []
             for i in range(4):
@@ -415,12 +413,12 @@ class TestVQC(QiskitAquaTestCase):
         aqua_globals.random_seed = self.seed
         if mode == 'wrapped':
             warnings.filterwarnings('ignore', category=DeprecationWarning)
-            data_preparation = FeatSecondOrderExpansion(feature_dim)
-            wavefunction = VarRYRZ(feature_dim, depth=1)
-        else:
             data_preparation = SecondOrderExpansion(feature_dim)
+            wavefunction = RYRZ(feature_dim, depth=1)
+        else:
+            data_preparation = ZZFeatureMap(feature_dim)
             x = data_preparation.ordered_parameters
-            wavefunction = RYRZ(feature_dim, reps=1, insert_barriers=True)
+            wavefunction = TwoLocal(feature_dim, ['ry', 'rz'], 'cz', reps=1, insert_barriers=True)
             theta = ParameterVector('theta', wavefunction.num_parameters)
             resorted = []
             for i in range(2 * feature_dim):
@@ -464,7 +462,7 @@ class TestVQC(QiskitAquaTestCase):
         feature_map = RawFeatureVector(feature_dimension=feature_dim)
         vqc = VQC(COBYLA(maxiter=100),
                   feature_map,
-                  RYRZ(feature_map.num_qubits, reps=3),
+                  TwoLocal(feature_dim, ['ry', 'rz'], 'cz', reps=3),
                   training_input,
                   test_input)
         result = vqc.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),
