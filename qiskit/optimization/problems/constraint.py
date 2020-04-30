@@ -16,7 +16,7 @@
 
 from abc import abstractmethod
 from enum import Enum
-from typing import Union, List, Dict
+from typing import Union, List, Dict, Any
 
 from numpy import ndarray
 
@@ -63,7 +63,7 @@ class Constraint(QuadraticProgramElement):
 
     Sense = ConstraintSense
 
-    def __init__(self, quadratic_program: 'QuadraticProgram', name: str, sense: ConstraintSense,
+    def __init__(self, quadratic_program: Any, name: str, sense: ConstraintSense,
                  rhs: float) -> None:
         """ Initializes the constraint.
 

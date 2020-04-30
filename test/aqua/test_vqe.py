@@ -21,6 +21,7 @@ import numpy as np
 from ddt import ddt, unpack, data
 from qiskit import BasicAer, QuantumCircuit
 from qiskit.circuit.library import RY, RYRZ
+from qiskit.circuit import ParameterVector
 
 from qiskit.aqua import QuantumInstance, aqua_globals, AquaError
 from qiskit.aqua.operators import WeightedPauliOperator, PrimitiveOp

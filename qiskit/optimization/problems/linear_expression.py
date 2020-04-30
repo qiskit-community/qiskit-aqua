@@ -14,19 +14,19 @@
 
 """Linear expression interface."""
 
-from typing import List, Union, Dict
+from typing import List, Union, Dict, Any
 
 from numpy import ndarray
 from scipy.sparse import spmatrix, dok_matrix
 
-from qiskit.optimization import QiskitOptimizationError
-from qiskit.optimization.problems.quadratic_program_element import QuadraticProgramElement
+from .quadratic_program_element import QuadraticProgramElement
+from ..exceptions import QiskitOptimizationError
 
 
 class LinearExpression(QuadraticProgramElement):
     """ Representation of a linear expression by its coefficients."""
 
-    def __init__(self, quadratic_program: "QuadraticProgram",
+    def __init__(self, quadratic_program: Any,
                  coefficients: Union[ndarray, spmatrix, List[float],
                                      Dict[Union[int, str], float]]) -> None:
         """Creates a new linear expression.
