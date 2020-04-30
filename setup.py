@@ -40,7 +40,7 @@ requirements = [
     "setuptools>=40.1.0",
     "h5py",
     "networkx>=2.2",
-    "pyscf; sys_platform == 'linux' or (python_version < '3.8' and sys_platform != 'win32')",
+    "pyscf; sys_platform != 'win32'",
     "cplex; python_version >= '3.6' and python_version < '3.8'",
 ]
 
