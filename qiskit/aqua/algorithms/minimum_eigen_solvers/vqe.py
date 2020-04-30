@@ -25,13 +25,14 @@ import numpy as np
 
 from qiskit import ClassicalRegister, QuantumCircuit
 from qiskit.circuit import Parameter
+from qiskit.circuit.library import RealAmplitudes
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.operators import (OperatorBase, ExpectationBase, ExpectationFactory, StateFn,
                                    CircuitStateFn, LegacyBaseOperator, ListOp, I, CircuitSampler)
 from qiskit.aqua.components.optimizers import Optimizer, SLSQP
-from qiskit.aqua.components.variational_forms import VariationalForm, RY
+from qiskit.aqua.components.variational_forms import VariationalForm
 from qiskit.aqua.utils.validation import validate_min
 from ..vq_algorithm import VQAlgorithm, VQResult
 from .minimum_eigen_solver import MinimumEigensolver, MinimumEigensolverResult
@@ -117,10 +118,8 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         """
         validate_min('max_evals_grouped', max_evals_grouped, 1)
         if var_form is None:
-            # TODO after ansatz refactor num qubits can be set later so we do not have to have
-            #      an operator to create a default
             if operator is not None:
-                var_form = RY(operator.num_qubits)
+                var_form = RealAmplitudes()
 
         if optimizer is None:
             optimizer = SLSQP()
