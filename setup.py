@@ -22,8 +22,8 @@ long_description = """<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Aqua
  Researchers can experiment with Aqua algorithms, on near-term quantum devices and simulators,
  and can also get involved by contributing new algorithms and algorithm-supporting objects,
  such as optimizers and variational forms.
- Qiskit Aqua also contains application domain support in the form of Qiskit Chemistry,
- Qiskit Finance, Qiskit Machine Learning and Qiskit Optimization to experiment with real-world applications to quantum computing."""
+ Qiskit Aqua also contains application domain support in the form of the chemistry, finance,
+ machine learning and optimization modules to experiment with real-world applications to quantum computing."""
 
 requirements = [
     "qiskit-terra>=0.14.0",

@@ -13,7 +13,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""The CPLEX optimizer wrapped to be used within Qiskit Optimization."""
+"""The CPLEX optimizer wrapped to be used within Qiskit's optimization module."""
 
 from typing import Optional
 import logging
@@ -36,7 +36,7 @@ class CplexOptimizer(OptimizationAlgorithm):
     """The CPLEX optimizer wrapped as an Qiskit :class:`OptimizationAlgorithm`.
 
     This class provides a wrapper for ``cplex.Cplex`` (https://pypi.org/project/cplex/)
-    to be used within Qiskit Optimization.
+    to be used within the optimization module.
 
     Examples:
         >>> from qiskit.optimization.problems import QuadraticProgram

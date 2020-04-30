@@ -376,9 +376,9 @@ as Max-Cut, Traveling Salesman and Vehicle Routing. It also has a has an automat
 generator for a problem model specified by the user as a model in
 [docplex](qiskit/optimization/ising/docplex.py#L16).
 
-### Creating Your First Qiskit Optimization Programming Experiment
+### Creating your first Qiskit optimization programming experiment
 
-Now that Qiskit is installed, it's time to begin working with Optimization.
+Now that Qiskit is installed, it's time to begin working with the optimization.
 Let's try a optimization experiment using QAOA (Quantum Approximate Optimization Algorithm)
 to compute the solution of a [Max-Cut](https://en.wikipedia.org/wiki/Maximum_cut) problem using
 a docplex model to create the Ising Hamiltonian operator for QAOA.
@@ -438,7 +438,7 @@ print('solution objective:', max_cut.max_cut_value(x, w))
 
 ### Further examples
 
-Jupyter notebooks containing further examples, for Qiskit Optimization, may be found in the
+Jupyter notebooks containing further examples, for the optimization module, may be found in the
 following Qiskit GitHub repositories at
 [qiskit-iqx-tutorials/qiskit/advanced/aqua/optimization](https://github.com/Qiskit/qiskit-iqx-tutorials/tree/master/qiskit/advanced/aqua/optimization)
 and

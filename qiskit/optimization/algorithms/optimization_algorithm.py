@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""An abstract class for optimization algorithms in Qiskit Optimization."""
+"""An abstract class for optimization algorithms in Qiskit's optimization module."""
 
 from abc import ABC, abstractmethod
 from enum import Enum
@@ -22,7 +22,7 @@ from ..problems.quadratic_program import QuadraticProgram
 
 
 class OptimizationAlgorithm(ABC):
-    """An abstract class for optimization algorithms in Qiskit Optimization."""
+    """An abstract class for optimization algorithms in Qiskit's optimization module."""
 
     @abstractmethod
     def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
