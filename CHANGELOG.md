@@ -46,11 +46,12 @@ Added
         -   IntegerToBinary: Converts integer variables to binary variables
         -   LinearEqualityToPenalty: Converts linear equality constraints to quadratic penalty terms that are added
             to the objective
-        -   QuadraticProgramToOperator: Converts a QuadraticProgram to an Aqua operator
+        -   QuadraticProgramToIsing: Converts a QuadraticProgram to an Aqua operator
         -   QuadraticProgramToNegativeValueOracle: Converts a QuadraticProgram to a negative-value oracle used for
             Grover Adaptive Search
         -   QuadraticProgramToQubo: Converts a QuadraticProgram to a QUBO problem, a convenience converter wrapping the
             functionality of the IntegerToBinary and LinearEqualityToPenalty converters
+        -   IsingToQuadraticProgram: Converters an Aqua operator to a QuadraticProgram
 -   Operator flow, a set of tools for constructing Physically-intuitive quantum computations using State functions,
     Operators, and Measurements, and relying on Terra's Operator objects as computational primitives (#852)
     -   `OperatorBase`: A base class for Operators, State functions, Measurements, and combinations thereof
