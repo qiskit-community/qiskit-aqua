@@ -31,18 +31,18 @@ Converters
    InequalityToEquality
    IntegerToBinary
    QuadraticProgramToNegativeValueOracle
-   QuadraticProgramToOperator
+   QuadraticProgramToIsing
    QuadraticProgramToQubo
    LinearEqualityToPenalty
-   OperatorToQuadraticProgram
+   IsingToQuadraticProgram
 
 """
 
 # no opt problem dependency
 from .linear_equality_to_penalty import LinearEqualityToPenalty
-from .quadratic_program_to_operator import QuadraticProgramToOperator
+from .quadratic_program_to_ising import QuadraticProgramToIsing
 from .quadratic_program_to_negative_value_oracle import QuadraticProgramToNegativeValueOracle
-from .operator_to_quadratic_program import OperatorToQuadraticProgram
+from .ising_to_quadratic_program import IsingToQuadraticProgram
 
 # opt problem dependency
 from .integer_to_binary import IntegerToBinary
@@ -53,8 +53,8 @@ __all__ = [
     "InequalityToEquality",
     "IntegerToBinary",
     "QuadraticProgramToNegativeValueOracle",
-    "QuadraticProgramToOperator",
+    "QuadraticProgramToIsing",
     "QuadraticProgramToQubo",
     "LinearEqualityToPenalty",
-    "OperatorToQuadraticProgram"
+    "IsingToQuadraticProgram"
 ]
