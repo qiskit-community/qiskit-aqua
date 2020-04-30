@@ -24,7 +24,7 @@ from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator, StateFn
 
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
 from ..problems.quadratic_program import QuadraticProgram
-from ..converters.quadratic_program_to_operator import QuadraticProgramToOperator
+from ..converters.quadratic_program_to_ising import QuadraticProgramToIsing
 from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
 from ..exceptions import QiskitOptimizationError
 
@@ -149,7 +149,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         problem_ = qubo_converter.encode(problem)
 
         # construct operator and offset
-        operator_converter = QuadraticProgramToOperator()
+        operator_converter = QuadraticProgramToIsing()
         operator, offset = operator_converter.encode(problem_)
 
         # approximate ground state of operator using min eigen solver
