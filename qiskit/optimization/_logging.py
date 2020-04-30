@@ -21,8 +21,7 @@ from qiskit.aqua import (QiskitLogDomains,
 
 
 def get_qiskit_optimization_logging() -> int:
-    """
-    Returns the current Qiskit Optimization logging level
+    """Returns the current Qiskit optimization logging level
 
     Returns:
         int: logging level
@@ -31,8 +30,7 @@ def get_qiskit_optimization_logging() -> int:
 
 
 def set_qiskit_optimization_logging(level: int, filepath: Optional[str] = None) -> None:
-    """
-    Updates the Qiskit Optimization logging with the appropriate logging level
+    """Updates the Qiskit optimization logging with the appropriate logging level
 
     Args:
         level: minimum severity of the messages that are displayed.

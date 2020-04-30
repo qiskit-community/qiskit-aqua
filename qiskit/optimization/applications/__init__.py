@@ -18,7 +18,7 @@ Optimization applications (:mod:`qiskit.aqua.applications`)
 
 .. currentmodule:: qiskit.optimization.applications
 
-Applications for Qiskit Optimization. The present set are in the form of
+Applications for Qiskit's optimization module. The present set are in the form of
 Ising Hamiltonians.
 
 Submodules

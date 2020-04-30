@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -30,7 +30,7 @@ class MP2Info:
 
     All the computations are done using the molecule orbitals but the indexes used
     in the excitation information passed in and out are in the block spin orbital
-    numbering as normally used by the chemistry stack.
+    numbering as normally used by the chemistry module.
     """
 
     def __init__(self, qmolecule, threshold=1e-12):
