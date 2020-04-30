@@ -305,7 +305,7 @@ When running the above the estimated value result should be 2.46 and probability
 
 ### Further examples
 
-Jupyter notebooks containing further examples, for Qiskit Finance, may be found in the
+Jupyter notebooks containing further finance examples may be found in the
 following Qiskit GitHub repositories at
 [qiskit-iqx-tutorials/qiskit/advanced/aqua/finance](https://github.com/Qiskit/qiskit-iqx-tutorials/tree/master/qiskit/advanced/aqua/finance)
 and
