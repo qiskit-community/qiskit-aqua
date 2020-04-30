@@ -37,7 +37,7 @@ class HFMethodType(Enum):
 
 class BaseDriver(ABC):
     """
-    Base class for Qiskit Chemistry Drivers.
+    Base class for Qiskit's chemistry drivers.
     """
 
     @abstractmethod

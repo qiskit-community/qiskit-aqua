@@ -21,8 +21,7 @@ from qiskit.aqua import (QiskitLogDomains,
 
 
 def get_qiskit_chemistry_logging() -> int:
-    """
-    Returns the current Qiskit Chemistry logging level
+    """Returns the current Qiskit chemistry logging level
 
     Returns:
         int: logging level
@@ -31,8 +30,7 @@ def get_qiskit_chemistry_logging() -> int:
 
 
 def set_qiskit_chemistry_logging(level: int, filepath: Optional[str] = None) -> None:
-    """
-    Updates the Qiskit Chemistry logging with the appropriate logging level
+    """Updates the Qiskit chemistry logging with the appropriate logging level
 
     Args:
         level: minimum severity of the messages that are displayed.

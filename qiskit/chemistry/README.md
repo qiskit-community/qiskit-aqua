@@ -1,14 +1,15 @@
-# Qiskit Chemistry
+# Chemistry In Qiskit
 
-Qiskit Chemistry is a set of tools, algorithms and software for use with quantum computers
+Qiskit's chemistry module is a set of tools, algorithms and software for use with quantum computers
 to carry out research and investigate how to take advantage of quantum computing power to solve chemistry
 problems.
 
 If you need introductory material see the main [readme](../../README.md) which has
-[installation](../../README.md#installation) instructions and information on how to use Qiskit Chemistry for 
+[installation](../../README.md#installation) instructions and information on how to use the
+chemisty module for
 [running a chemistry experiment](../../README.md#running-a-chemistry-experiment).
 
-This readme contains the following sections: 
+This readme contains the following sections:
 
 * [Developers](#developers)
 * [Additional reading](#additional-reading)
@@ -29,32 +30,32 @@ The dictionary contains the following fields of note:
 * *energies*
 
   An array of energies comprising the ground state energy and any excited states if they were computed
-  
+
 * *nuclear_repulsion_energy*
 
-  The nuclear repulsion energy 
-  
+  The nuclear repulsion energy
+
 * *hf_energy*
 
   The Hartree-Fock ground state energy as computed by the driver
-  
+
 * *nuclear_dipole_moment*, *electronic_dipole_moment*, *dipole_moment*
 
   Nuclear, electronic and combined dipole moments for x, y and z
-  
+
 * *total_dipole_moment*
 
-  Total dipole moment 
- 
-* *algorithm_retvals* 
+  Total dipole moment
 
-  The result dictionary of the algorithm that ran for the above values. See the algorithm for any further information.  
+* *algorithm_retvals*
+
+  The result dictionary of the algorithm that ran for the above values. See the algorithm for any further information.
 
 ### For writers of algorithms and other utilities such as optimizers and variational forms:
 
-Qiskit Aqua is the library of cross-domain algorithms and utilities. Please refer to the documentation 
+Qiskit Aqua is the library of cross-domain algorithms and utilities. Please refer to the documentation
 there for more information on how to write and contribute such objects to Qiskit Aqua. Such objects are then available
-to be used by Qiskit Chemistry.  
+to be used by Qiskit's chemistry module.
 
 ### For unit test writers:
 
