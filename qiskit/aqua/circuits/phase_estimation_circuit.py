@@ -81,7 +81,8 @@ class PhaseEstimationCircuit:
 
         # cannot check for IQFT type due to circular import
         if not isinstance(iqft, QuantumCircuit):
-            warnings.warn('The qiskit.aqua.components.iqfts.IQFT module is deprecated as of 0.7.0 '
+            warnings.warn('Providing a qiskit.aqua.components.iqfts.IQFT module to the '
+                          'PhaseEstimationCircuit is deprecated as of 0.7.0 '
                           'and will be removed no earlier than 3 months after the release. '
                           'You should pass a QuantumCircuit instead, see '
                           'qiskit.circuit.library.QFT and the .inverse() method.',
