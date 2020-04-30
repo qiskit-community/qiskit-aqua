@@ -29,7 +29,7 @@ class ExchangeDataProvider(BaseDataProvider):
     """Exchange data provider.
 
     Please see:
-    https://github.com/Qiskit/qiskit-tutorials/qiskit/finance/data_providers/time_series.ipynb
+    https://github.com/Qiskit/qiskit-tutorials/blob/stable/0.14.x/qiskit/advanced/aqua/finance/data_providers/time_series.ipynb
     for instructions on use, which involve obtaining a Quandl access token.
     """
 
