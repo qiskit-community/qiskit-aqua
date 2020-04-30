@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" data on demand provider """
+""" NASDAQ Data on demand data provider. """
 
 from typing import Optional, Union, List
 import datetime
@@ -22,17 +22,17 @@ import json
 import certifi
 import urllib3
 
-from qiskit.finance.data_providers import (BaseDataProvider,
-                                           StockMarket, QiskitFinanceError)
+from ._base_data_provider import BaseDataProvider, StockMarket
+from ..exceptions import QiskitFinanceError
 
 logger = logging.getLogger(__name__)
 
 
 class DataOnDemandProvider(BaseDataProvider):
-    """
-    Python implementation of an NASDAQ Data on Demand data provider.
+    """NASDAQ Data on Demand data provider.
+
     Please see:
-    https://github.com/Qiskit/qiskit-tutorials/qiskit/finance/data_providers/time_series.ipynb
+    https://github.com/Qiskit/qiskit-tutorials/blob/stable/0.14.x/qiskit/advanced/aqua/finance/data_providers/time_series.ipynb
     for instructions on use, which involve obtaining a NASDAQ DOD access token.
     """
 
