@@ -12,19 +12,19 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 r"""
-==============================================================
-Chemistry application stack for Aqua (:mod:`qiskit.chemistry`)
-==============================================================
+===================================================
+Qiskit's chemistry module (:mod:`qiskit.chemistry`)
+===================================================
 
 .. currentmodule:: qiskit.chemistry
 
-This is the chemistry application stack for Aqua that provides for experimentation with chemistry
+This is Qiskit's chemistry module that provides for experimentation with chemistry
 domain problems such as ground state energy and excited state energies of molecules.
 
 Overview
 ========
 
-This is an overview of the workings of the chemistry stack and how it may be used. There
+This is an overview of the workings of the chemistry module and how it may be used. There
 are different levels of exposure to its functionality, allowing for experimentation at different
 abstractions. The outline below starts with the flow that provides the most control of the
 process.
@@ -78,7 +78,8 @@ it to form this high level application.
 
 Mappings
 ++++++++
-To map the FermionicOperator to a qubit operator Qiskit Chemistry supports the following mappings:
+To map the FermionicOperator to a qubit operator the chemistry module supports the following
+mappings:
 
 Jordan Wigner
     The `Jordan-Wigner transformation <https://rd.springer.com/article/10.1007%2FBF01331938>`__,

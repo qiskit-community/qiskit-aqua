@@ -13,7 +13,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""A wrapper for minimum eigen solvers from Qiskit Aqua to be used within Qiskit Optimization."""
+"""A wrapper for minimum eigen solvers from Aqua to be used within the optimization module."""
 
 from typing import Optional, Any, Union, Tuple, List
 import numpy as np
@@ -69,8 +69,8 @@ class MinimumEigenOptimizerResult(OptimizationResult):
 class MinimumEigenOptimizer(OptimizationAlgorithm):
     """A wrapper for minimum eigen solvers from Qiskit Aqua.
 
-    This class provides a wrapper for minimum eigen solvers from Qiskit Aqua to be used within
-    Qiskit Optimization.
+    This class provides a wrapper for minimum eigen solvers from Qiskit to be used within
+    the optimization module.
     It assumes a problem consisting only of binary or integer variables as well as linear equality
     constraints thereof. It converts such a problem into a Quadratic Unconstrained Binary
     Optimization (QUBO) problem by expanding integer variables into binary variables and by adding

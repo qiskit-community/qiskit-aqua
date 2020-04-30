@@ -13,7 +13,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""The COBYLA optimizer wrapped to be used within Qiskit Optimization."""
+"""The COBYLA optimizer wrapped to be used within Qiskit's optimization module."""
 
 from typing import Optional
 
@@ -32,7 +32,7 @@ class CobylaOptimizer(OptimizationAlgorithm):
 
     This class provides a wrapper for ``scipy.optimize.fmin_cobyla``
     (https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.optimize.fmin_cobyla.html)
-    to be used within Qiskit Optimization.
+    to be used within the optimization module.
     The arguments for ``fmin_cobyla`` are passed via the constructor.
 
     Examples:

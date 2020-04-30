@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""A recursive minimal eigen optimizer in Qiskit Optimization."""
+"""A recursive minimal eigen optimizer in Qiskit's optimization module."""
 
 from copy import deepcopy
 from typing import Optional
