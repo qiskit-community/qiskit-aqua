@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,21 +12,11 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""
-Finance applications (:mod:`qiskit.finance.applications`)
-=========================================================
+""" Finance Exception """
 
-.. currentmodule:: qiskit.finance.applications
+from qiskit.aqua.aqua_error import AquaError
 
-Applications for Qiskit's finance module. The present set are in the form of
-Ising Hamiltonians.
 
-Submodules
-==========
-
-.. autosummary::
-   :toctree:
-
-   ising
-
-"""
+class QiskitFinanceError(AquaError):
+    """Class for errors returned by Qiskit's finance module."""
+    pass

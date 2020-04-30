@@ -12,9 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""
-Python implementation of provider of mock stock-market data, which are generated pseudo-randomly.
-"""
+""" Pseudo-randomly generated mock stock-market data provider """
 
 from typing import Optional, Union, List
 import datetime
@@ -24,17 +22,14 @@ import random
 import numpy as np
 import pandas as pd
 
-from qiskit.finance.data_providers import (BaseDataProvider,
-                                           StockMarket,
-                                           QiskitFinanceError)
+from ._base_data_provider import BaseDataProvider, StockMarket
+from ..exceptions import QiskitFinanceError
 
 logger = logging.getLogger(__name__)
 
 
 class RandomDataProvider(BaseDataProvider):
-    """
-    Python implementation of provider of mock stock-market data,
-    which are generated pseudo-randomly.
+    """Pseudo-randomly generated mock stock-market data provider.
     """
 
     def __init__(self,

@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -23,14 +23,9 @@ from enum import Enum
 
 import numpy as np
 import fastdtw
-from qiskit.aqua import AquaError
+from ..exceptions import QiskitFinanceError
 
 logger = logging.getLogger(__name__)
-
-
-class QiskitFinanceError(AquaError):
-    """ Qiskit Finance Error """
-    pass
 
 
 # Note: Not all DataProviders support all stock markets.

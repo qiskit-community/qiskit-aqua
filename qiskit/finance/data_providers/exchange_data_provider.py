@@ -12,21 +12,22 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" exchange data provider """
+""" Exchange data provider. """
 
 from typing import Union, List
 import datetime
 import importlib
 import logging
 
-from qiskit.finance.data_providers import (BaseDataProvider,
-                                           StockMarket, QiskitFinanceError)
+from ._base_data_provider import BaseDataProvider, StockMarket
+from ..exceptions import QiskitFinanceError
 
 logger = logging.getLogger(__name__)
 
 
 class ExchangeDataProvider(BaseDataProvider):
-    """Python implementation of an Exchange Data provider.
+    """Exchange data provider.
+
     Please see:
     https://github.com/Qiskit/qiskit-tutorials/qiskit/finance/data_providers/time_series.ipynb
     for instructions on use, which involve obtaining a Quandl access token.
