@@ -15,6 +15,7 @@
 """
 Ising Models (:mod:`qiskit.optimization.applications.ising`)
 ============================================================
+
 Ising models for optimization application problems
 
 .. currentmodule:: qiskit.optimization.applications.ising
