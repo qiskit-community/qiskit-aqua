@@ -26,7 +26,7 @@ from qiskit.optimization.applications.ising.common import sample_most_likely
 from qiskit.aqua.components.optimizers import COBYLA
 from qiskit.aqua.algorithms import QAOA
 from qiskit.aqua import QuantumInstance, aqua_globals
-from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.aqua.operators import WeightedPauliOperator, X, Z
 
 W1 = np.array([
     [0, 1, 0, 1],
@@ -89,6 +89,21 @@ class TestQAOA(QiskitOptimizationTestCase):
         self.log.debug('solution:           %s', graph_solution)
         self.log.debug('solution objective: %s', max_cut.max_cut_value(x, w))
         self.assertIn(''.join([str(int(i)) for i in graph_solution]), solutions)
+
+    def test_change_operator_size(self):
+        """ QAOA test """
+        backend = BasicAer.get_backend('statevector_simulator')
+        optimizer = COBYLA(maxiter=2)
+        qubit_op, _ = max_cut.get_operator(W1)
+        qubit_op = qubit_op.to_opflow().to_matrix_op()
+
+        seed = 0
+        aqua_globals.random_seed = seed
+        qaoa = QAOA(qubit_op, optimizer, P1)
+        quantum_instance = QuantumInstance(backend, seed_simulator=seed, seed_transpiler=seed)
+        qaoa.run(quantum_instance)
+        qaoa.operator = (X ^ qubit_op ^ Z)
+        qaoa.run()
 
 
 if __name__ == '__main__':
