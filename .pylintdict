@@ -28,6 +28,7 @@ appfactory
 arcsin
 args
 Armijo
+arxiv
 asmatrix
 assertRaises
 assertEqual
@@ -156,6 +157,7 @@ disp
 distro
 dj
 dnf
+Dobsicek
 docplex
 docplex's
 Docplex

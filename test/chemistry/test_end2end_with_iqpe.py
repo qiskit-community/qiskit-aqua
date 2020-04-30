@@ -21,7 +21,7 @@ from ddt import ddt, idata, unpack
 import qiskit
 from qiskit.aqua.utils import decimal_to_binary
 from qiskit.aqua import QuantumInstance
-from qiskit.aqua.algorithms import IQPEMinimumEigensolver, NumPyMinimumEigensolver
+from qiskit.aqua.algorithms import IQPE, NumPyMinimumEigensolver
 from qiskit.aqua.operators import Z2Symmetries
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry import FermionicOperator, QiskitChemistryError
@@ -70,9 +70,9 @@ class TestIQPE(QiskitChemistryTestCase):
         num_iterations = 6
         state_in = HartreeFock(qubit_op.num_qubits, num_orbitals,
                                num_particles, qubit_mapping, two_qubit_reduction)
-        iqpe = IQPEMinimumEigensolver(qubit_op, state_in, num_time_slices, num_iterations,
-                                      expansion_mode='suzuki', expansion_order=2,
-                                      shallow_circuit_concat=True)
+        iqpe = IQPE(qubit_op, state_in, num_time_slices, num_iterations,
+                    expansion_mode='suzuki', expansion_order=2,
+                    shallow_circuit_concat=True)
         backend = qiskit.BasicAer.get_backend('qasm_simulator')
         quantum_instance = QuantumInstance(backend, shots=100)
 

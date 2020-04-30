@@ -22,13 +22,13 @@ import numpy as np
 from qiskit import QuantumCircuit
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance
-from qiskit.optimization import QiskitOptimizationError
-from qiskit.optimization.algorithms import OptimizationAlgorithm
-from qiskit.optimization.problems import QuadraticProgram
-from qiskit.optimization.converters import (QuadraticProgramToQubo,
-                                            QuadraticProgramToNegativeValueOracle)
-from qiskit.optimization.algorithms.optimization_algorithm import OptimizationResult
 from qiskit.aqua.algorithms.amplitude_amplifiers.grover import Grover
+from ..exceptions import QiskitOptimizationError
+from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
+from ..problems.quadratic_program import QuadraticProgram
+from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
+from ..converters.quadratic_program_to_negative_value_oracle import \
+    QuadraticProgramToNegativeValueOracle
 
 
 logger = logging.getLogger(__name__)

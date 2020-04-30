@@ -20,6 +20,7 @@ from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
+from ..algorithms.optimization_algorithm import OptimizationResult
 from ..exceptions import QiskitOptimizationError
 from ..problems.quadratic_objective import QuadraticObjective
 from ..problems.quadratic_program import QuadraticProgram
@@ -29,13 +30,16 @@ logger = logging.getLogger(__name__)
 
 
 class IntegerToBinary:
-    """Convert an `QuadraticProgram` into new one by encoding integer with binary variables.
+    """Convert a :class:`~qiskit.optimization.problems.QuadraticProgram` into new one by encoding
+    integer with binary variables.
 
     This bounded-coefficient encoding used in this converted is proposed in [1], Eq. (5).
 
     Examples:
+        >>> from qiskit.optimization.problems import QuadraticProgram
+        >>> from qiskit.optimization.converters import IntegerToBinary
         >>> problem = QuadraticProgram()
-        >>> problem.integer_var(name='x', lowerbound=0, upperbound=10)
+        >>> var = problem.integer_var(name='x', lowerbound=0, upperbound=10)
         >>> conv = IntegerToBinary()
         >>> problem2 = conv.encode(problem)
 
@@ -202,7 +206,7 @@ class IntegerToBinary:
             self._dst.quadratic_constraint(linear, quadratic, constraint.sense,
                                            constraint.rhs - constant, constraint.name)
 
-    def decode(self, result: "OptimizationResult") -> "OptimizationResult":
+    def decode(self, result: OptimizationResult) -> OptimizationResult:
         """Convert the encoded problem (binary variables) back to the original (integer variables).
 
         Args:
