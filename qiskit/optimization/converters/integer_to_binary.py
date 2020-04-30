@@ -39,7 +39,7 @@ class IntegerToBinary:
         >>> from qiskit.optimization.problems import QuadraticProgram
         >>> from qiskit.optimization.converters import IntegerToBinary
         >>> problem = QuadraticProgram()
-        >>> problem.integer_var(name='x', lowerbound=0, upperbound=10)
+        >>> var = problem.integer_var(name='x', lowerbound=0, upperbound=10)
         >>> conv = IntegerToBinary()
         >>> problem2 = conv.encode(problem)
 
