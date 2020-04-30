@@ -89,8 +89,8 @@ class EigsQPE(Eigenvalues):
 
         if ne_qfts and any(isinstance(ne_qft, IQFT) for ne_qft in ne_qfts):
             warnings.warn('Providing a qiskit.aqua.components.iqfts.IQFT module in the `ne_qft` '
-                          'argument to HHL is deprecated as of 0.7.0 and will be removed no earlier '
-                          'than 3 months after the release. '
+                          'argument to HHL is deprecated as of 0.7.0 and will be removed no '
+                          'earlier than 3 months after the release. '
                           'You should pass a QuantumCircuit instead, see '
                           'qiskit.circuit.library.QFT and the .inverse() method.',
                           DeprecationWarning, stacklevel=2)
