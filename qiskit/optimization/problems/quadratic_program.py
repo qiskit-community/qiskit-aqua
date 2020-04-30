@@ -29,14 +29,15 @@ from docplex.mp.quad import QuadExpr
 from numpy import ndarray
 from scipy.sparse import spmatrix
 
-from qiskit.optimization import INFINITY, QiskitOptimizationError
-from qiskit.optimization.problems.constraint import Constraint
-from qiskit.optimization.problems.linear_constraint import LinearConstraint
-from qiskit.optimization.problems.linear_expression import LinearExpression
-from qiskit.optimization.problems.quadratic_constraint import QuadraticConstraint
-from qiskit.optimization.problems.quadratic_expression import QuadraticExpression
-from qiskit.optimization.problems.quadratic_objective import QuadraticObjective
-from qiskit.optimization.problems.variable import Variable
+from .constraint import Constraint
+from .linear_constraint import LinearConstraint
+from .linear_expression import LinearExpression
+from .quadratic_constraint import QuadraticConstraint
+from .quadratic_expression import QuadraticExpression
+from .quadratic_objective import QuadraticObjective
+from .variable import Variable
+from ..exceptions import QiskitOptimizationError
+from ..infinity import INFINITY
 
 logger = logging.getLogger(__name__)
 
@@ -48,15 +49,15 @@ class QuadraticProgramStatus(Enum):
 
 
 class QuadraticProgram:
-    """Representation of a Quadratically Constrained Quadratic Program supporting inequality and
-    equality constraints as well as continuous, binary, and integer variables.
-    """
+    """Quadratically Constrained Quadratic Program representation.
 
+    This representation supports inequality and equality constraints,
+    as well as continuous, binary, and integer variables.
+    """
     Status = QuadraticProgramStatus
 
     def __init__(self, name: str = '') -> None:
-        """Constructs a quadratic program.
-
+        """
         Args:
             name: The name of the quadratic program.
         """

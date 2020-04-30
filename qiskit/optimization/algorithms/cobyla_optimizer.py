@@ -20,13 +20,15 @@ from typing import Optional
 import numpy as np
 from scipy.optimize import fmin_cobyla
 
-from qiskit.optimization.algorithms import OptimizationAlgorithm, OptimizationResult
-from qiskit.optimization.problems import QuadraticProgram, Constraint
-from qiskit.optimization import QiskitOptimizationError, INFINITY
+from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
+from ..problems.quadratic_program import QuadraticProgram
+from ..problems.constraint import Constraint
+from ..exceptions import QiskitOptimizationError
+from ..infinity import INFINITY
 
 
 class CobylaOptimizer(OptimizationAlgorithm):
-    """The SciPy COBYLA optimizer wrapped as an Qiskit ``OptimizationAlgorithm``.
+    """The SciPy COBYLA optimizer wrapped as an Qiskit :class:`OptimizationAlgorithm`.
 
     This class provides a wrapper for ``scipy.optimize.fmin_cobyla``
     (https://docs.scipy.org/doc/scipy-0.14.0/reference/generated/scipy.optimize.fmin_cobyla.html)
@@ -34,6 +36,8 @@ class CobylaOptimizer(OptimizationAlgorithm):
     The arguments for ``fmin_cobyla`` are passed via the constructor.
 
     Examples:
+        >>> from qiskit.optimization.problems import QuadraticProgram
+        >>> from qiskit.optimization.algorithms import CobylaOptimizer
         >>> problem = QuadraticProgram()
         >>> # specify problem here
         >>> optimizer = CobylaOptimizer()

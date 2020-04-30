@@ -21,7 +21,7 @@ import numpy as np
 
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
-from qiskit.aqua.algorithms import NumPyMinimumEigensolver, VQE, IQPEMinimumEigensolver
+from qiskit.aqua.algorithms import NumPyMinimumEigensolver, VQE, IQPE
 from qiskit.aqua.components.optimizers import SLSQP
 from qiskit.aqua.components.variational_forms import RY
 from qiskit.chemistry import QiskitChemistryError
@@ -101,9 +101,9 @@ class TestAppMGSE(QiskitChemistryTestCase):
                              qubit_mapping, two_qubit_reduction, z2_symmetries):
             state_in = HartreeFock(2, num_orbitals, num_particles, qubit_mapping,
                                    two_qubit_reduction, z2_symmetries.sq_list)
-            iqpe = IQPEMinimumEigensolver(None, state_in, num_time_slices=1, num_iterations=6,
-                                          expansion_mode='suzuki', expansion_order=2,
-                                          shallow_circuit_concat=True)
+            iqpe = IQPE(None, state_in, num_time_slices=1, num_iterations=6,
+                        expansion_mode='suzuki', expansion_order=2,
+                        shallow_circuit_concat=True)
             iqpe.quantum_instance = QuantumInstance(BasicAer.get_backend('qasm_simulator'),
                                                     shots=100)
             return iqpe

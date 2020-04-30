@@ -17,7 +17,10 @@
 import copy
 from typing import Optional
 
-from ..problems import QuadraticProgram, Variable, Constraint, QuadraticObjective
+from ..problems.quadratic_program import QuadraticProgram
+from ..problems.variable import Variable
+from ..problems.constraint import Constraint
+from ..problems.quadratic_objective import QuadraticObjective
 from ..exceptions import QiskitOptimizationError
 
 

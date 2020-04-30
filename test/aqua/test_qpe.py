@@ -25,7 +25,7 @@ from qiskit.aqua.operators import MatrixOperator, WeightedPauliOperator
 from qiskit.aqua.operators.legacy import op_converter
 from qiskit.aqua.utils import decimal_to_binary
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
-from qiskit.aqua.algorithms import QPEMinimumEigensolver
+from qiskit.aqua.algorithms import QPE
 from qiskit.circuit.library import QFT
 from qiskit.aqua.components.iqfts import Standard
 from qiskit.aqua.components.initial_states import Custom
@@ -105,9 +105,9 @@ class TestQPE(QiskitAquaTestCase):
             warnings.filterwarnings(action="ignore", category=DeprecationWarning)
             iqft = Standard(n_ancillae)
 
-        qpe = QPEMinimumEigensolver(qubit_op, state_in, iqft, num_time_slices, n_ancillae,
-                                    expansion_mode='suzuki', expansion_order=2,
-                                    shallow_circuit_concat=True)
+        qpe = QPE(qubit_op, state_in, iqft, num_time_slices, n_ancillae,
+                  expansion_mode='suzuki', expansion_order=2,
+                  shallow_circuit_concat=True)
 
         backend = BasicAer.get_backend(simulator)
         quantum_instance = QuantumInstance(backend, shots=100)
