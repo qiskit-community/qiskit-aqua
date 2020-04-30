@@ -226,7 +226,6 @@ class VQE(VQAlgorithm, MinimumEigensolver):
                 # try to set the number of qubits on the variational form, if possible
                 try:
                     self.var_form.num_qubits = self.operator.num_qubits
-                    # pylint: disable=attribute-defined-outside-init
                     self._var_form_params = list(self.var_form.parameters)
                 except AttributeError:
                     raise AquaError("The number of qubits of the variational form does not match "

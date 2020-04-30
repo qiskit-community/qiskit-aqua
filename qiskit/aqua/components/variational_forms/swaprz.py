@@ -24,7 +24,7 @@ from .variational_form import VariationalForm
 
 
 class SwapRZ(VariationalForm):
-    r"""The SwapRZ Variational Form.
+    r"""DEPRECATED. The SwapRZ Variational Form.
 
     This trial wave function is layers of swap plus :math:`z` rotations with entanglements.
     It was designed principally to be a particle-preserving variational form for

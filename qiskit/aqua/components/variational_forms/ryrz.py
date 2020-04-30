@@ -24,7 +24,7 @@ from .variational_form import VariationalForm
 
 
 class RYRZ(VariationalForm):
-    r"""The RYRZ Variational Form.
+    r"""DEPRECATED. The RYRZ Variational Form.
 
     The RYRZ trial wave function is layers of :math:`y` plus :math:`z` rotations with entanglements.
     When none of qubits are unentangled to other qubits, the number of optimizer parameters this

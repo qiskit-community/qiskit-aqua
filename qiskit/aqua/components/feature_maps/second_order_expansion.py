@@ -24,7 +24,7 @@ from .data_mapping import self_product
 
 
 class SecondOrderExpansion(PauliZExpansion):
-    """Second Order Expansion feature map.
+    """DEPRECATED. Second Order Expansion feature map.
 
     This is a sub-class of :class:`PauliZExpansion` where *z_order* is fixed at 2.
     """

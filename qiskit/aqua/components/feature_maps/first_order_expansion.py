@@ -23,7 +23,7 @@ from .data_mapping import self_product
 
 
 class FirstOrderExpansion(PauliZExpansion):
-    """First Order Expansion feature map.
+    """DEPRECATED. First Order Expansion feature map.
 
     This is a sub-class of :class:`PauliZExpansion` where *z_order* is fixed at 1.
     As a result the first order expansion will be a feature map without entangling gates.

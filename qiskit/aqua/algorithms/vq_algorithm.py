@@ -73,6 +73,7 @@ class VQAlgorithm(QuantumAlgorithm):
         self._cost_fn = cost_fn
         self._initial_point = initial_point
         self._var_form = var_form
+        self._var_form_params = None
         if var_form is not None:
             self.var_form = var_form
 

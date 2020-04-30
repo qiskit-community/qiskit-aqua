@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 
 
 class PauliExpansion(FeatureMap):
-    r"""The Pauli Expansion feature map.
+    r"""DEPRECATED. The Pauli Expansion feature map.
 
     Refer to https://arxiv.org/abs/1804.11326 for details.
 

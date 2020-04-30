@@ -24,7 +24,7 @@ from .variational_form import VariationalForm
 
 
 class RY(VariationalForm):
-    r"""The RY Variational Form.
+    r"""DEPRECATED. The RY Variational Form.
 
     The RY trial wave function is layers of :math:`y` rotations with entanglements.
     When none of qubits are unentangled to other qubits the number of parameters

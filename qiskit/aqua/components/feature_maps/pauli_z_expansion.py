@@ -23,7 +23,7 @@ from .data_mapping import self_product
 
 
 class PauliZExpansion(PauliExpansion):
-    """The Pauli Z Expansion feature map.
+    """DEPRECATED. The Pauli Z Expansion feature map.
 
     This is a sub-class of the general :class:`PauliExpansion` but where the pauli string is fixed
     to only contain Z and where *paulis* is now created for the superclass as per the given

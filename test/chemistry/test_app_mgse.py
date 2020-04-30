@@ -48,7 +48,7 @@ class TestAppMGSE(QiskitChemistryTestCase):
 
         self.npme = NumPyMinimumEigensolver()
 
-        self.vqe = VQE(var_form=TwoLocal(2, 'ry', 'cz'))
+        self.vqe = VQE(var_form=TwoLocal(rotation_blocks='ry', entanglement_blocks='cz'))
         self.vqe.set_backend(BasicAer.get_backend('statevector_simulator'))
 
         self.reference_energy = -1.137306
