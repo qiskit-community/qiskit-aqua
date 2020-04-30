@@ -17,13 +17,13 @@ Chemistry Drivers (:mod:`qiskit.chemistry.drivers`)
 =========================================================
 .. currentmodule:: qiskit.chemistry.drivers
 
-Qiskit Chemistry requires a computational chemistry program or library, accessed via a chemistry
-*driver*, to be installed on the system for the electronic-structure computation of a given
-molecule. A driver is created with a molecular configuration, passed in the format compatible with
-that particular driver. This allows custom configuration specific to each computational chemistry
-program or library to be passed.
+Qiskit's chemistry module requires a computational chemistry program or library, accessed via a
+chemistry *driver*, to be installed on the system for the electronic-structure computation of a
+given molecule. A driver is created with a molecular configuration, passed in the format compatible
+with that particular driver. This allows custom configuration specific to each computational
+chemistry program or library to be passed.
 
-Qiskit Chemistry thus allows the user to configure a chemistry problem in a way that a chemist
+The chemistry module thus allows the user to configure a chemistry problem in a way that a chemist
 already using the underlying chemistry program or library will be familiar with. The driver is
 used to compute some intermediate data, which later will be used to form the input to an Aqua
 algorithm.  Such intermediate data, is populated into a :class:`~qiskit.chemistry.QMolecule`
@@ -39,8 +39,8 @@ Once extracted, the structure of this intermediate data is independent of the dr
 used to compute it.  However the values and level of accuracy of such data will depend on the
 underlying chemistry program or library used by the specific driver.
 
-Qiskit Chemistry offers the option to serialize the Qmolecule data in a binary format known as
-`Hierarchical Data Format 5 (HDF5) <https://support.hdfgroup.org/HDF5/>`__.
+Qiskit's chemistry module offers the option to serialize the Qmolecule data in a binary format known
+as `Hierarchical Data Format 5 (HDF5) <https://support.hdfgroup.org/HDF5/>`__.
 This is done to allow chemists to reuse the same input data in the future and to enable researchers
 to exchange input data with each other --- which is especially useful to researchers who may not
 have particular computational chemistry drivers installed on their computers.
@@ -68,7 +68,7 @@ Driver Common
 
 Drivers
 =======
-Qiskit Chemistry drivers obtain their information from classical ab-initio programs
+The drivers in the chemistry module obtain their information from classical ab-initio programs
 or libraries. Several drivers, interfacing to common programs and libraries, are
 available. To use the driver its dependent program/library must be installed. See
 the relevant installation instructions below for your program/library that you intend

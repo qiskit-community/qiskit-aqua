@@ -12,9 +12,9 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 r"""
-==============================================================
-Chemistry application stack for Aqua (:mod:`qiskit.chemistry`)
-==============================================================
+===================================================
+Qiskit's chemistry module (:mod:`qiskit.chemistry`)
+===================================================
 
 .. currentmodule:: qiskit.chemistry
 
@@ -78,7 +78,8 @@ it to form this high level application.
 
 Mappings
 ++++++++
-To map the FermionicOperator to a qubit operator Qiskit Chemistry supports the following mappings:
+To map the FermionicOperator to a qubit operator the chemistry module supports the following
+mappings:
 
 Jordan Wigner
     The `Jordan-Wigner transformation <https://rd.springer.com/article/10.1007%2FBF01331938>`__,

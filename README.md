@@ -149,10 +149,10 @@ e.g. by a Jordan Wigner mapping, to a qubit operator in readiness for the quantu
 
 ### Optional Installs
 
-To run chemistry experiments using Qiskit Chemistry, it is recommended that you to install a
-classical computation chemistry software program/library interfaced by Qiskit Chemistry.
+To run chemistry experiments using Qiskit's chemistry module, it is recommended that you to install
+a classical computation chemistry software program/library interfaced by the chemistry module.
 Several, as listed below, are supported, and while logic to interface these programs is supplied by
-Qiskit Chemistry via the above pip installation, the dependent programs/libraries themselves need
+the module via the above pip installation, the dependent programs/libraries themselves need
 to be installed separately.
 
 Note: As `PySCF` can be installed via pip the installation of Qiskit (Aqua) will install PySCF
@@ -166,8 +166,8 @@ whether this might be possible manually.
 
 ### HDF5 Driver
 
-A useful functionality integrated into Qiskit Chemistry is its ability to serialize a file in
-Hierarchical Data Format 5 (HDF5) format representing all the output data from a chemistry driver.
+A useful functionality integrated into Qiskit's chemistry module is its ability to serialize a file
+in ierarchical Data Format 5 (HDF5) format representing all the output data from a chemistry driver.
 
 The [HDF5 driver](qiskit/chemistry/drivers/hdf5d/hdf5driver.py#L25)
 accepts such such HDF5 files as input so molecular experiments can be run, albeit on the fixed data
@@ -182,7 +182,7 @@ repository. This
 [HDF5 Driver tutorial](https://github.com/Qiskit/qiskit-community-tutorials/blob/master/chemistry/hdf5_files_and_driver.ipynb)
 contains further information about creating and using such HDF5 files.
 
-### Creating Your First Chemistry Programming Experiment
+### Creating Your First Chemistry Programming Experiment With Qiskit
 
 Now that Qiskit is installed, it's time to begin working with the chemistry module.
 Let's try a chemistry application experiment using VQE (Variational Quantum Eigensolver) algorithm
@@ -255,7 +255,7 @@ of the circuits. By passing in a backend as is done above it is internally wrapp
 
 ### Further examples
 
-Jupyter notebooks containing further examples, for Qiskit Chemistry, may be found in the
+Jupyter notebooks containing further chemistry examples may be found in the
 following Qiskit GitHub repositories at
 [qiskit-iqx-tutorials/qiskit/advanced/aqua/chemistry](https://github.com/Qiskit/qiskit-iqx-tutorials/tree/master/qiskit/advanced/aqua/chemistry)
 and
@@ -269,7 +269,7 @@ The `qiskit.finance` package contains uncertainty components for stock/securitie
 Ising translators for portfolio optimizations and data providers to source real or random data to
 finance experiments.
 
-### Creating Your First Finance Programming Experiment
+### Creating Your First Finance Programming Experiment With Qiskit
 
 Now that Qiskit is installed, it's time to begin working with the finance module.
 Let's try a experiment using Amplitude Estimation algorithm to
@@ -320,7 +320,7 @@ classification algorithms such as QSVM and VQC (Variational Quantum Classifier),
 can be used for experiments, and there is also QGAN (Quantum Generative Adversarial Network)
 algorithm.
 
-### Creating Your First Machine Learning Programming Experiment
+### Creating Your First Machine Learning Programming Experiment With Qiskit
 
 Now that Qiskit is installed, it's time to begin working with Machine Learning.
 Let's try a experiment using VQC (Variational Quantum Classified) algorithm to
@@ -376,7 +376,7 @@ as Max-Cut, Traveling Salesman and Vehicle Routing. It also has a has an automat
 generator for a problem model specified by the user as a model in
 [docplex](qiskit/optimization/ising/docplex.py#L16).
 
-### Creating Your First Optimization Programming Experiment
+### Creating Your First Optimization Programming Experiment With Qiskit
 
 Now that Qiskit is installed, it's time to begin working with the optimization module.
 Let's try a optimization experiment using QAOA (Quantum Approximate Optimization Algorithm)
