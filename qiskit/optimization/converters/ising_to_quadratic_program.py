@@ -24,7 +24,7 @@ from ..problems.quadratic_program import QuadraticProgram
 from ..exceptions import QiskitOptimizationError
 
 
-class OperatorToQuadraticProgram:
+class IsingToQuadraticProgram:
     """Convert a qubit operator into a quadratic program"""
 
     def __init__(self) -> None:
