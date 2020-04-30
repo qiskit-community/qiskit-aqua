@@ -95,6 +95,10 @@ Changed
     in addition to the existing Operators (#852).
 -   The `BaseOperator` was renamed `LegacyBaseOperator` to avoid confusion with the new
     Operator flow `OperatorBase` (#852).
+-   HartreeFock initial state and UCCSD variational form `num_qubits` parameter removed as it was
+    only value checked against that computed internally from the other parameters. UCCSD `depth`
+    parameter renamed to `reps` and moved in order so it can default to 1. (#939)
+     
 
 Removed
 -------

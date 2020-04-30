@@ -48,10 +48,10 @@ class UCCSD(VariationalForm):
     And for the singlet q-UCCD (full) and pair q-UCCD) see: https://arxiv.org/abs/1911.10864
     """
 
-    def __init__(self, num_qubits: int,
-                 depth: int,
+    def __init__(self,
                  num_orbitals: int,
                  num_particles: Union[List[int], int],
+                 reps: int = 1,
                  active_occupied: Optional[List[int]] = None,
                  active_unoccupied: Optional[List[int]] = None,
                  initial_state: Optional[InitialState] = None,
@@ -68,11 +68,10 @@ class UCCSD(VariationalForm):
         """Constructor.
 
         Args:
-            num_qubits: number of qubits, has a min. value of 1.
-            depth: number of replica of basic module, has a min. value of 1.
             num_orbitals: number of spin orbitals, has a min. value of 1.
             num_particles: number of particles, if it is a list,
                             the first number is alpha and the second number if beta.
+            reps: number of repetitions of basic module, has a min. value of 1.
             active_occupied: list of occupied orbitals to consider as active space.
             active_unoccupied: list of unoccupied orbitals to consider as active space.
             initial_state: An initial state object.
@@ -98,14 +97,13 @@ class UCCSD(VariationalForm):
 
 
          Raises:
-             ValueError: Computed qubits do not match actual value
+             ValueError: Num particles list is not 2 entries
         """
-        validate_min('num_qubits', num_qubits, 1)
-        validate_min('depth', depth, 1)
         validate_min('num_orbitals', num_orbitals, 1)
         if isinstance(num_particles, list) and len(num_particles) != 2:
             raise ValueError('Num particles value {}. Number of values allowed is 2'.format(
                 num_particles))
+        validate_min('reps', reps, 1)
         validate_in_set('qubit_mapping', qubit_mapping,
                         {'jordan_wigner', 'parity', 'bravyi_kitaev'})
         validate_min('num_time_slices', num_time_slices, 1)
@@ -120,10 +118,7 @@ class UCCSD(VariationalForm):
         self._num_qubits = num_orbitals if not two_qubit_reduction else num_orbitals - 2
         self._num_qubits = self._num_qubits if self._z2_symmetries.is_empty() \
             else self._num_qubits - len(self._z2_symmetries.sq_list)
-        if self._num_qubits != num_qubits:
-            raise ValueError('Computed num qubits {} does not match actual {}'
-                             .format(self._num_qubits, num_qubits))
-        self._depth = depth
+        self._reps = reps
         self._num_orbitals = num_orbitals
         if isinstance(num_particles, list):
             self._num_alpha = num_particles[0]
@@ -266,7 +261,7 @@ class UCCSD(VariationalForm):
         self._single_excitations = s_e_list
         self._double_excitations = d_e_list
 
-        num_parameters = len(hopping_ops) * self._depth
+        num_parameters = len(hopping_ops) * self._reps
         return hopping_ops, num_parameters
 
     @staticmethod
@@ -339,14 +334,14 @@ class UCCSD(VariationalForm):
         self._excitation_pool = self._hopping_ops.copy()
 
         # check depth parameter
-        if self._depth != 1:
-            logger.warning('The depth of the variational form was not 1 but %i which does not work \
+        if self._reps != 1:
+            logger.warning('The reps of the variational form was not 1 but %i which does not work \
                     in the adaptive VQE algorithm. Thus, it has been reset to 1.')
-            self._depth = 1
+            self._reps = 1
 
         # reset internal excitation list to be empty
         self._hopping_ops = []
-        self._num_parameters = len(self._hopping_ops) * self._depth
+        self._num_parameters = len(self._hopping_ops) * self._reps
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
     def push_hopping_operator(self, excitation):
@@ -357,7 +352,7 @@ class UCCSD(VariationalForm):
             excitation (WeightedPauliOperator): the new hopping operator to be added
         """
         self._hopping_ops.append(excitation)
-        self._num_parameters = len(self._hopping_ops) * self._depth
+        self._num_parameters = len(self._hopping_ops) * self._reps
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
     def pop_hopping_operator(self):
@@ -365,7 +360,7 @@ class UCCSD(VariationalForm):
         Pops the hopping operator that was added last.
         """
         self._hopping_ops.pop()
-        self._num_parameters = len(self._hopping_ops) * self._depth
+        self._num_parameters = len(self._hopping_ops) * self._reps
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
     def construct_circuit(self, parameters, q=None):
@@ -402,11 +397,11 @@ class UCCSD(VariationalForm):
         if not self.uccd_singlet:
             list_excitation_operators = [
                 (self._hopping_ops[index % num_excitations], parameters[index])
-                for index in range(self._depth * num_excitations)]
+                for index in range(self._reps * num_excitations)]
         else:
             list_excitation_operators = []
             counter = 0
-            for i in range(int(self._depth * self.num_groups)):
+            for i in range(int(self._reps * self.num_groups)):
                 for _ in range(len(self._double_excitations_grouped[i % self.num_groups])):
                     list_excitation_operators.append((self._hopping_ops[counter],
                                                       parameters[i]))

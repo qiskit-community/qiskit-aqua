@@ -68,8 +68,7 @@ class TestIQPE(QiskitChemistryTestCase):
 
         num_time_slices = 1
         num_iterations = 6
-        state_in = HartreeFock(qubit_op.num_qubits, num_orbitals,
-                               num_particles, qubit_mapping, two_qubit_reduction)
+        state_in = HartreeFock(num_orbitals, num_particles, qubit_mapping, two_qubit_reduction)
         iqpe = IQPE(qubit_op, state_in, num_time_slices, num_iterations,
                     expansion_mode='suzuki', expansion_order=2,
                     shallow_circuit_concat=True)

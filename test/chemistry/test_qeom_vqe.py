@@ -71,10 +71,10 @@ class TestEomVQE(QiskitAquaTestCase):
         num_orbitals = core.molecule_info['num_orbitals']
         num_particles = core.molecule_info['num_particles']
 
-        initial_state = HartreeFock(qubit_op.num_qubits, num_orbitals=num_orbitals,
+        initial_state = HartreeFock(num_orbitals=num_orbitals,
                                     num_particles=num_particles, qubit_mapping=qubit_mapping,
                                     two_qubit_reduction=two_qubit_reduction)
-        var_form = UCCSD(num_qubits=qubit_op.num_qubits, depth=1, num_orbitals=num_orbitals,
+        var_form = UCCSD(num_orbitals=num_orbitals,
                          num_particles=num_particles,
                          initial_state=initial_state,
                          qubit_mapping=qubit_mapping, two_qubit_reduction=two_qubit_reduction)
@@ -108,11 +108,11 @@ class TestEomVQE(QiskitAquaTestCase):
         # know the sector
         tapered_op = z2_symmetries.taper(qubit_op)[1]
 
-        initial_state = HartreeFock(tapered_op.num_qubits, num_orbitals=num_orbitals,
+        initial_state = HartreeFock(num_orbitals=num_orbitals,
                                     num_particles=num_particles, qubit_mapping=qubit_mapping,
                                     two_qubit_reduction=two_qubit_reduction,
                                     sq_list=tapered_op.z2_symmetries.sq_list)
-        var_form = UCCSD(num_qubits=tapered_op.num_qubits, depth=1, num_orbitals=num_orbitals,
+        var_form = UCCSD(num_orbitals=num_orbitals,
                          num_particles=num_particles, initial_state=initial_state,
                          qubit_mapping=qubit_mapping, two_qubit_reduction=two_qubit_reduction,
                          z2_symmetries=tapered_op.z2_symmetries)
