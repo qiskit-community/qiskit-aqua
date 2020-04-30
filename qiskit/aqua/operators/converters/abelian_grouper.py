@@ -82,12 +82,14 @@ class AbelianGrouper(ConverterBase):
         else:
             return operator
 
-    @staticmethod
-    def group_subops(list_op: ListOp) -> ListOp:
+    @classmethod
+    def group_subops(cls, list_op: ListOp, fast=True, nx_trick=True) -> ListOp:
         """ Given a ListOp, attempt to group into Abelian ListOps of the same type.
 
         Args:
             list_op: The Operator to group into Abelian groups
+            fast: Enable the fast pass if all operators are Pauli operators
+            nx_trick: Enable a trick of networkx to reduce the overhead
 
         Returns:
             The grouped Operator.
@@ -99,70 +101,10 @@ class AbelianGrouper(ConverterBase):
             raise AquaError('Cannot determine Abelian groups if an Operator in list_op does not '
                             'contain a `commutes` method'.format())
 
-        commutation_graph = nx.Graph()
-        commutation_graph.add_nodes_from(list_op.oplist)
-        commutation_graph.add_edges_from(filter(lambda ops: not ops[0].commutes(ops[1]),
-                                                itertools.combinations(list_op.oplist, 2)))
-
-        # Keys in coloring_dict are nodes, values are colors
-        # pylint: disable=no-member
-        coloring_dict = nx.coloring.greedy_color(commutation_graph, strategy='largest_first')
-
-        groups = {}
-        for operator, color in coloring_dict.items():
-            groups.setdefault(color, []).append(operator)
-
-        group_ops = [list_op.__class__(group, abelian=True) for group in groups.values()]
-        if len(group_ops) == 1:
-            return group_ops[0] * list_op.coeff
-        return list_op.__class__(group_ops, coeff=list_op.coeff)
-
-    @staticmethod
-    def group_subops_fast(list_op: ListOp, nx_trick=False) -> ListOp:
-        """ Given a ListOp, attempt to group into Abelian ListOps of the same type.
-        Fast version of `group_subops` implemented using numpy.
-
-        Args:
-            list_op: The Operator to group into Abelian groups
-            nx_trick: Add edges directly to nx.Graph to reduce the overhead
-
-        Returns:
-            The grouped Operator.
-
-        Raises:
-            AquaError: Any of list_op's sub-ops do not have a ``commutes`` method.
-        """
-        if any(not hasattr(op, 'commutes') for op in list_op.oplist):
-            raise AquaError('Cannot determine Abelian groups if an Operator in list_op does not '
-                            'contain a `commutes` method'.format())
-
-        def _create_edges(list_op: ListOp):
-            """
-            Create edges (i,j) if i and j is not commutable.
-
-            Returns:
-                A list of pairs of indices of the operators that are not commutable
-            """
-            conv = {
-                'I': 0,
-                'X': 1,
-                'Y': 2,
-                'Z': 3
-            }
-            mat1 = np.array([[conv[e] for e in str(op.primitive)] for op in list_op], dtype=np.int8)
-            mat2 = mat1[:, None]
-            # i and j are commutable with TPB if mat3[i, j] is True
-            mat3 = (((mat1 * mat2) * (mat1 - mat2)) == 0).all(axis=2)
-            # return [(i, j) if mat3[i, j] is False and i < j]
-            return zip(*np.where(np.triu(np.logical_not(mat3), k=1)))
-
-        commutation_graph = nx.Graph()
-        commutation_graph.add_nodes_from(range(len(list_op)))
-        if nx_trick:
-            for i, j in _create_edges(list_op):
-                commutation_graph._adj[i][j] = commutation_graph._adj[j][i] = None
+        if fast and all(isinstance(op, PauliOp) for op in list_op.oplist):
+            commutation_graph = cls._commutation_graph_fast(list_op, nx_trick=nx_trick)
         else:
-            commutation_graph.add_edges_from(_create_edges(list_op))
+            commutation_graph = cls._commutation_graph(list_op)
 
         # Keys in coloring_dict are nodes, values are colors
         # pylint: disable=no-member
@@ -176,3 +118,40 @@ class AbelianGrouper(ConverterBase):
         if len(group_ops) == 1:
             return group_ops[0] * list_op.coeff
         return list_op.__class__(group_ops, coeff=list_op.coeff)
+
+    @staticmethod
+    def _commutation_graph(list_op: ListOp) -> nx.Graph:
+        commutation_graph = nx.Graph()
+        indices = range(len(list_op))
+        commutation_graph.add_nodes_from(indices)
+        commutation_graph.add_edges_from((i, j) for i, j in itertools.combinations(indices, 2)
+                                         if not list_op[i].commutes(list_op[j]))
+        return commutation_graph
+
+    @staticmethod
+    def _commutation_graph_fast(list_op: ListOp, nx_trick: bool) -> nx.Graph:
+        commutation_graph = nx.Graph()
+        indices = range(len(list_op))
+        commutation_graph.add_nodes_from(indices)
+
+        def _create_edges(list_op: ListOp):
+            """
+            Create edges (i,j) if i and j is not commutable.
+
+            Returns:
+                A list of pairs of indices of the operators that are not commutable
+            """
+            # convert a Pauli operator into int vector where {I: 0, X: 2, Y: 3, Z: 1}
+            mat1 = np.array([op.primitive.z + 2 * op.primitive.x for op in list_op], dtype=np.int8)
+            mat2 = mat1[:, None]
+            # i and j are commutable with TPB if mat3[i, j] is True
+            mat3 = (((mat1 * mat2) * (mat1 - mat2)) == 0).all(axis=2)
+            # return [(i, j) if mat3[i, j] is False and i < j]
+            return zip(*np.where(np.triu(np.logical_not(mat3), k=1)))
+
+        if nx_trick:
+            for i, j in _create_edges(list_op):
+                commutation_graph._adj[i][j] = commutation_graph._adj[j][i] = None
+        else:
+            commutation_graph.add_edges_from(_create_edges(list_op))
+        return commutation_graph
