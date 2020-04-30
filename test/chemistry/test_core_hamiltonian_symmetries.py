@@ -194,10 +194,9 @@ class TestCoreHamiltonianSymmetries(QiskitChemistryTestCase):
         qubit_mapping = 'jordan_wigner'
         two_qubit_reduction = core.molecule_info[core.INFO_TWO_QUBIT_REDUCTION]
         z2_symmetries = core.molecule_info[core.INFO_Z2SYMMETRIES]
-        initial_state = HartreeFock(qubit_op.num_qubits, num_orbitals, num_particles,
+        initial_state = HartreeFock(num_orbitals, num_particles,
                                     qubit_mapping, two_qubit_reduction, z2_symmetries.sq_list)
-        var_form = UCCSD(qubit_op.num_qubits, depth=1,
-                         num_orbitals=num_orbitals,
+        var_form = UCCSD(num_orbitals=num_orbitals,
                          num_particles=num_particles,
                          initial_state=initial_state,
                          qubit_mapping=qubit_mapping,

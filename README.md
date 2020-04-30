@@ -216,7 +216,7 @@ optimizer = L_BFGS_B()
 
 # setup the initial state for the variational form
 from qiskit.chemistry.components.initial_states import HartreeFock
-init_state = HartreeFock(num_qubits, num_spin_orbitals, num_particles)
+init_state = HartreeFock(num_spin_orbitals, num_particles)
 
 # setup the variational form for VQE
 from qiskit.circuit.library import TwoLocal

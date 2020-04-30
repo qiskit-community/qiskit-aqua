@@ -82,14 +82,12 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         """ paired uccd test """
 
         optimizer = SLSQP(maxiter=100)
-        initial_state = HartreeFock(self.qubit_op.num_qubits,
-                                    self.core.molecule_info['num_orbitals'],
+        initial_state = HartreeFock(self.core.molecule_info['num_orbitals'],
                                     self.core.molecule_info['num_particles'],
                                     qubit_mapping=self.core._qubit_mapping,
                                     two_qubit_reduction=self.core._two_qubit_reduction)
 
-        var_form = UCCSD(num_qubits=self.qubit_op.num_qubits, depth=1,
-                         num_orbitals=self.core._molecule_info['num_orbitals'],
+        var_form = UCCSD(num_orbitals=self.core._molecule_info['num_orbitals'],
                          num_particles=self.core._molecule_info['num_particles'],
                          active_occupied=None, active_unoccupied=None,
                          initial_state=initial_state,
@@ -110,14 +108,12 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         """ singlet uccd test """
 
         optimizer = SLSQP(maxiter=100)
-        initial_state = HartreeFock(self.qubit_op.num_qubits,
-                                    self.core.molecule_info['num_orbitals'],
+        initial_state = HartreeFock(self.core.molecule_info['num_orbitals'],
                                     self.core.molecule_info['num_particles'],
                                     qubit_mapping=self.core._qubit_mapping,
                                     two_qubit_reduction=self.core._two_qubit_reduction)
 
-        var_form = UCCSD(num_qubits=self.qubit_op.num_qubits, depth=1,
-                         num_orbitals=self.core._molecule_info['num_orbitals'],
+        var_form = UCCSD(num_orbitals=self.core._molecule_info['num_orbitals'],
                          num_particles=self.core._molecule_info['num_particles'],
                          active_occupied=None, active_unoccupied=None,
                          initial_state=initial_state,
@@ -139,14 +135,12 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
 
         optimizer = SLSQP(maxiter=100)
 
-        initial_state = HartreeFock(self.qubit_op.num_qubits,
-                                    self.core.molecule_info['num_orbitals'],
+        initial_state = HartreeFock(self.core.molecule_info['num_orbitals'],
                                     self.core.molecule_info['num_particles'],
                                     qubit_mapping=self.core._qubit_mapping,
                                     two_qubit_reduction=self.core._two_qubit_reduction)
 
-        var_form = UCCSD(num_qubits=self.qubit_op.num_qubits, depth=1,
-                         num_orbitals=self.core._molecule_info['num_orbitals'],
+        var_form = UCCSD(num_orbitals=self.core._molecule_info['num_orbitals'],
                          num_particles=self.core._molecule_info['num_particles'],
                          active_occupied=None, active_unoccupied=None,
                          initial_state=initial_state,
@@ -170,15 +164,13 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         optimizer = SLSQP(maxiter=100)
 
         # initial state
-        init_state = HartreeFock(num_qubits=self.the_tapered_op.num_qubits,
-                                 num_orbitals=self.core._molecule_info['num_orbitals'],
+        init_state = HartreeFock(num_orbitals=self.core._molecule_info['num_orbitals'],
                                  qubit_mapping=self.core._qubit_mapping,
                                  two_qubit_reduction=self.core._two_qubit_reduction,
                                  num_particles=self.core._molecule_info['num_particles'],
                                  sq_list=self.the_tapered_op.z2_symmetries.sq_list)
 
-        var_form = UCCSD(num_qubits=self.the_tapered_op.num_qubits, depth=1,
-                         num_orbitals=self.core._molecule_info['num_orbitals'],
+        var_form = UCCSD(num_orbitals=self.core._molecule_info['num_orbitals'],
                          num_particles=self.core._molecule_info['num_particles'],
                          active_occupied=None, active_unoccupied=None,
                          initial_state=init_state,
@@ -201,16 +193,14 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         """ uccsd tapering test using all double excitations """
 
         # initial state
-        init_state = HartreeFock(num_qubits=self.the_tapered_op.num_qubits,
-                                 num_orbitals=self.core._molecule_info['num_orbitals'],
+        init_state = HartreeFock(num_orbitals=self.core._molecule_info['num_orbitals'],
                                  qubit_mapping=self.core._qubit_mapping,
                                  two_qubit_reduction=self.core._two_qubit_reduction,
                                  num_particles=self.core._molecule_info['num_particles'],
                                  sq_list=self.the_tapered_op.z2_symmetries.sq_list)
 
         # check singlet excitations
-        var_form = UCCSD(num_qubits=self.the_tapered_op.num_qubits, depth=1,
-                         num_orbitals=self.core._molecule_info['num_orbitals'],
+        var_form = UCCSD(num_orbitals=self.core._molecule_info['num_orbitals'],
                          num_particles=self.core._molecule_info['num_particles'],
                          active_occupied=None, active_unoccupied=None,
                          initial_state=init_state,
@@ -229,8 +219,7 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         self.assertEqual(res, True)
 
         # check grouped singlet excitations
-        var_form = UCCSD(num_qubits=self.the_tapered_op.num_qubits, depth=1,
-                         num_orbitals=self.core._molecule_info['num_orbitals'],
+        var_form = UCCSD(num_orbitals=self.core._molecule_info['num_orbitals'],
                          num_particles=self.core._molecule_info['num_particles'],
                          active_occupied=None, active_unoccupied=None,
                          initial_state=init_state,
