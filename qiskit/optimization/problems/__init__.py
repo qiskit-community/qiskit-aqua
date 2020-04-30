@@ -13,14 +13,24 @@
 # that they have been altered from the originals.
 
 """
-=================================================================
-Optimization stack for Aqua (:mod:`qiskit.optimization.problems`)
-=================================================================
+Optimization problems (:mod:`qiskit.optimization.problems`)
+===========================================================
 
 .. currentmodule:: qiskit.optimization.problems
 
-Structures for defining an optimization problem and its solution
-================================================================
+Problems
+========
+Structures for defining an optimization problem and its solution.
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   QuadraticProgram
+
+Note:
+    The following classes are not intended to be instantiated directly.
+    Objects of these types are available within an instantiated :class:`QuadraticProgram`.
 
 .. autosummary::
    :toctree: ../stubs/
@@ -32,11 +42,7 @@ Structures for defining an optimization problem and its solution
    QuadraticExpression
    QuadraticConstraint
    QuadraticObjective
-   QuadraticProgram
    Variable
-
-N.B. All classes but `QuadraticProgram` are not to be instantiated directly.
-Objects of those types are available within an instantiated `QuadraticProgram`.
 
 """
 

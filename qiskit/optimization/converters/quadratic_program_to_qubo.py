@@ -16,17 +16,19 @@
 
 from typing import Optional
 
-from qiskit.optimization.problems import QuadraticProgram
-from qiskit.optimization.problems.constraint import Constraint
-from qiskit.optimization.converters.linear_equality_to_penalty import LinearEqualityToPenalty
-from qiskit.optimization.converters.integer_to_binary import IntegerToBinary
-from qiskit.optimization.exceptions import QiskitOptimizationError
+from ..algorithms.optimization_algorithm import OptimizationResult
+from ..problems.quadratic_program import QuadraticProgram
+from ..problems.constraint import Constraint
+from ..converters.linear_equality_to_penalty import LinearEqualityToPenalty
+from ..exceptions import QiskitOptimizationError
 
 
 class QuadraticProgramToQubo:
     """Convert a given optimization problem to a new problem that is a QUBO.
 
         Examples:
+            >>> from qiskit.optimization.problems import QuadraticProgram
+            >>> from qiskit.optimization.converters import QuadraticProgramToQubo
             >>> problem = QuadraticProgram()
             >>> # define a problem
             >>> conv = QuadraticProgramToQubo()
@@ -38,6 +40,7 @@ class QuadraticProgramToQubo:
         Args:
             penalty: Penalty factor to scale equality constraints that are added to objective.
         """
+        from ..converters.integer_to_binary import IntegerToBinary
         self._int_to_bin = IntegerToBinary()
         self._penalize_lin_eq_constraints = LinearEqualityToPenalty()
         self._penalty = penalty
@@ -74,7 +77,7 @@ class QuadraticProgramToQubo:
         # return QUBO
         return problem_
 
-    def decode(self, result: 'OptimizationResult') -> 'OptimizationResult':
+    def decode(self, result: OptimizationResult) -> OptimizationResult:
         """ Convert a result of a converted problem into that of the original problem.
 
             Args:

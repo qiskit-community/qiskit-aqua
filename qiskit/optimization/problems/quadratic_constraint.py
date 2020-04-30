@@ -14,21 +14,24 @@
 
 """Quadratic Constraint."""
 
-from typing import Union, List, Dict, Tuple
+from typing import Union, List, Dict, Tuple, Any
 
 from numpy import ndarray
 from scipy.sparse import spmatrix
 
-from qiskit.optimization.problems.constraint import Constraint
-from qiskit.optimization.problems.linear_expression import LinearExpression
-from qiskit.optimization.problems.quadratic_expression import QuadraticExpression
+from .constraint import Constraint, ConstraintSense
+from .linear_expression import LinearExpression
+from .quadratic_expression import QuadraticExpression
 
 
 class QuadraticConstraint(Constraint):
     """ Representation of a quadratic constraint."""
 
+    # Note: added, duplicating in effect that in Constraint, to avoid issues with Sphinx
+    Sense = ConstraintSense
+
     def __init__(self,
-                 quadratic_program: "QuadraticProgram", name: str,
+                 quadratic_program: Any, name: str,
                  linear: Union[ndarray, spmatrix, List[float], Dict[Union[str, int], float]],
                  quadratic: Union[ndarray, spmatrix, List[List[float]],
                                   Dict[Tuple[Union[int, str], Union[int, str]], float]],

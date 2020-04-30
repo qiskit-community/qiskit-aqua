@@ -14,20 +14,29 @@
 
 """Interface for all objects that have a parent QuadraticProgram."""
 
+from typing import Any
+
 
 class QuadraticProgramElement:
     """Interface class for all objects that have a parent QuadraticProgram."""
 
-    def __init__(self, quadratic_program: "QuadraticProgram") -> None:
+    def __init__(self, quadratic_program: Any) -> None:
         """ Initialize object with parent QuadraticProgram.
 
         Args:
             quadratic_program: The parent QuadraticProgram.
+        Raises:
+            TypeError: QuadraticProgram instance expected.
         """
+        from .quadratic_program import QuadraticProgram
+
+        if not isinstance(quadratic_program, QuadraticProgram):
+            raise TypeError('QuadraticProgram instance expected')
+
         self._quadratic_program = quadratic_program
 
     @property
-    def quadratic_program(self) -> "QuadraticProgram":
+    def quadratic_program(self) -> Any:
         """Returns the parent QuadraticProgram.
 
         Returns:
@@ -36,10 +45,18 @@ class QuadraticProgramElement:
         return self._quadratic_program
 
     @quadratic_program.setter
-    def quadratic_program(self, quadratic_program: "QuadraticProgram") -> None:
+    def quadratic_program(self, quadratic_program: Any) -> None:
         """Sets the parent QuadraticProgram.
 
         Args:
             quadratic_program: The parent QuadraticProgram.
+        Raises:
+            TypeError: QuadraticProgram instance expected.
         """
+        # pylint: disable=cyclic-import
+        from .quadratic_program import QuadraticProgram
+
+        if not isinstance(quadratic_program, QuadraticProgram):
+            raise TypeError('QuadraticProgram instance expected')
+
         self._quadratic_program = quadratic_program

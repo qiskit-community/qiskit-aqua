@@ -18,6 +18,7 @@ import math
 from typing import List, Tuple, Dict, Optional
 import logging
 
+from ..algorithms.optimization_algorithm import OptimizationResult
 from ..problems.quadratic_program import QuadraticProgram
 from ..problems.quadratic_objective import QuadraticObjective
 from ..problems.constraint import Constraint
@@ -31,6 +32,8 @@ class InequalityToEquality:
     """Convert inequality constraints into equality constraints by introducing slack variables.
 
     Examples:
+        >>> from qiskit.optimization.problems import QuadraticProgram
+        >>> from qiskit.optimization.converters import InequalityToEquality
         >>> problem = QuadraticProgram()
         >>> # define a problem
         >>> conv = InequalityToEquality()
@@ -54,10 +57,11 @@ class InequalityToEquality:
             op: The problem to be solved, that may contain inequality constraints.
             name: The name of the converted problem.
             mode: To chose the type of slack variables. There are 3 options for mode.
-                  - 'integer': All slack variables will be integer variables.
-                  - 'continuous': All slack variables will be continuous variables
-                  - 'auto': Try to use integer variables but if it's not possible,
-                    use continuous variables
+
+                - 'integer': All slack variables will be integer variables.
+                - 'continuous': All slack variables will be continuous variables
+                - 'auto': Try to use integer variables but if it's not possible,
+                   use continuous variables
 
         Returns:
             The converted problem, that contain only equality constraints.
@@ -332,7 +336,7 @@ class InequalityToEquality:
             )
         return lhs_lb, lhs_ub
 
-    def decode(self, result: 'OptimizationResult') -> 'OptimizationResult':
+    def decode(self, result: OptimizationResult) -> OptimizationResult:
         """Convert a result of a converted problem into that of the original problem.
 
         Args:
