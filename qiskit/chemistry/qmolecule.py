@@ -383,7 +383,7 @@ class QMolecule:
         except OSError:
             pass
 
-    # Utility functions to convert integrals into the form expected by QiskitChemistry stack
+    # Utility functions to convert integrals into the form expected by Qiskit's chemistry module
 
     @staticmethod
     def oneeints2mo(ints, moc):
