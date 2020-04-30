@@ -22,7 +22,6 @@ import numpy as np
 from ..exceptions import QiskitOptimizationError
 from .cplex_optimizer import CplexOptimizer
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
-from ..converters.integer_to_binary import IntegerToBinary
 from ..problems.quadratic_program import QuadraticProgram
 from ..problems.variable import Variable
 from ..problems.constraint import Constraint
@@ -253,6 +252,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         self._log.debug("Initial problem: %s", problem.export_as_lp_string())
 
         # map integer variables to binary variables
+        from ..converters.integer_to_binary import IntegerToBinary
         int2bin = IntegerToBinary()
         problem = int2bin.encode(problem)
 

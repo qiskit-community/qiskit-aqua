@@ -20,7 +20,6 @@ from ..algorithms.optimization_algorithm import OptimizationResult
 from ..problems.quadratic_program import QuadraticProgram
 from ..problems.constraint import Constraint
 from ..converters.linear_equality_to_penalty import LinearEqualityToPenalty
-from ..converters.integer_to_binary import IntegerToBinary
 from ..exceptions import QiskitOptimizationError
 
 
@@ -41,6 +40,7 @@ class QuadraticProgramToQubo:
         Args:
             penalty: Penalty factor to scale equality constraints that are added to objective.
         """
+        from ..converters.integer_to_binary import IntegerToBinary
         self._int_to_bin = IntegerToBinary()
         self._penalize_lin_eq_constraints = LinearEqualityToPenalty()
         self._penalty = penalty
