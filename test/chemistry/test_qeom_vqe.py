@@ -19,9 +19,9 @@ import unittest
 from test.aqua import QiskitAquaTestCase
 import numpy as np
 from qiskit import BasicAer
+from qiskit.circuit.library import RealAmplitudes
 
 from qiskit.aqua import QuantumInstance, aqua_globals
-from qiskit.aqua.components.variational_forms import RY
 from qiskit.aqua.components.optimizers import COBYLA, SPSA
 from qiskit.aqua.algorithms import NumPyEigensolver
 from qiskit.aqua.operators import Z2Symmetries
@@ -35,6 +35,7 @@ from qiskit.chemistry.components.initial_states import HartreeFock
 
 class TestEomVQE(QiskitAquaTestCase):
     """Test Eom VQE."""
+
     def setUp(self):
         """Setup."""
         super().setUp()
@@ -52,7 +53,7 @@ class TestEomVQE(QiskitAquaTestCase):
             qubit_op, _ = core.run(self.molecule)
             exact_eigensolver = NumPyEigensolver(qubit_op, k=2 ** qubit_op.num_qubits)
             result = exact_eigensolver.run()
-            self.reference = result['eigvals'].real
+            self.reference = result.eigenvalues.real
         except QiskitChemistryError:
             self.skipTest('PYSCF driver does not appear to be installed')
 
@@ -146,7 +147,7 @@ class TestEomVQE(QiskitAquaTestCase):
         # know the sector
         tapered_op = z2_symmetries.taper(qubit_op)[1]
 
-        var_form = RY(tapered_op.num_qubits, depth=1)
+        var_form = RealAmplitudes(tapered_op.num_qubits, reps=1)
         optimizer = SPSA(max_trials=50)
 
         eom_vqe = QEomVQE(tapered_op, var_form, optimizer, num_orbitals=num_orbitals,
