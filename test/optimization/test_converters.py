@@ -27,8 +27,8 @@ from qiskit.optimization.problems import Constraint, Variable
 from qiskit.optimization.algorithms import OptimizationResult
 from qiskit.optimization.converters import (
     InequalityToEquality,
-    QuadraticProgramToOperator,
-    OperatorToQuadraticProgram,
+    QuadraticProgramToIsing,
+    IsingToQuadraticProgram,
     IntegerToBinary,
     LinearEqualityToPenalty,
 )
@@ -68,23 +68,23 @@ class TestConverters(QiskitOptimizationTestCase):
         op = conv.encode(op)
         conv = LinearEqualityToPenalty()
         op = conv.encode(op)
-        conv = QuadraticProgramToOperator()
+        conv = QuadraticProgramToIsing()
         _, shift = conv.encode(op)
         self.assertEqual(shift, 0.0)
 
     def test_valid_variable_type(self):
-        """Validate the types of the variables for QuadraticProgramToOperator."""
+        """Validate the types of the variables for QuadraticProgramToIsing."""
         # Integer variable
         with self.assertRaises(QiskitOptimizationError):
             op = QuadraticProgram()
             op.integer_var(0, 10, "int_var")
-            conv = QuadraticProgramToOperator()
+            conv = QuadraticProgramToIsing()
             _ = conv.encode(op)
         # Continuous variable
         with self.assertRaises(QiskitOptimizationError):
             op = QuadraticProgram()
             op.continuous_var(0, 10, "continuous_var")
-            conv = QuadraticProgramToOperator()
+            conv = QuadraticProgramToIsing()
             _ = conv.encode(op)
 
     def test_inequality_binary(self):
@@ -414,7 +414,7 @@ class TestConverters(QiskitOptimizationTestCase):
         self.assertListEqual(new_result.x, [0, 1, 5])
         self.assertEqual(new_result.fval, 17)
 
-    def test_optimizationproblem_to_operator(self):
+    def test_optimizationproblem_to_ising(self):
         """ Test optimization problem to operators"""
         op = QuadraticProgram()
         for i in range(4):
@@ -428,18 +428,18 @@ class TestConverters(QiskitOptimizationTestCase):
             linear[x.name] = i + 1
         op.linear_constraint(linear, Constraint.Sense.EQ, 3, 'sum1')
         penalize = LinearEqualityToPenalty()
-        op2ope = QuadraticProgramToOperator()
+        op2ope = QuadraticProgramToIsing()
         op2 = penalize.encode(op)
         qubitop, offset = op2ope.encode(op2)
         self.assertListEqual(qubitop.paulis, QUBIT_OP_MAXIMIZE_SAMPLE.paulis)
         self.assertEqual(offset, OFFSET_MAXIMIZE_SAMPLE)
 
-    def test_operator_to_quadraticprogram(self):
+    def test_ising_to_quadraticprogram(self):
         """ Test optimization problem to operators"""
         op = QUBIT_OP_MAXIMIZE_SAMPLE
         offset = OFFSET_MAXIMIZE_SAMPLE
 
-        op2qp = OperatorToQuadraticProgram()
+        op2qp = IsingToQuadraticProgram()
         quadratic = op2qp.encode(op, offset)
 
         self.assertEqual(len(quadratic.variables), 4)
