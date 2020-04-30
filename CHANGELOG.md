@@ -28,7 +28,7 @@ Added
 -   Ising optimization: The 0-1 Knapsack problem (#878)
 -   VQE, VQC and QSVM accept `QuantumCircuit`s as variational forms/feature maps (#905)
 -   New `GSLS` (Gaussian Smoothing Line Search) optimizer for variational algorithms (#877)
--   Qiskit's optimization module: a full toolset n stack for solving quadratic programs (#877)
+-   Qiskit's optimization module: a full toolset for solving quadratic programs (#877)
     -   QuadraticProblem: A class representing quadratic programs with quadratic and linear objective and constraints
     -   OptimizationAlgorithm: A base class for optimization algorithm
     -   OptimizationResult: A base class for optimization results

@@ -150,9 +150,9 @@ e.g. by a Jordan Wigner mapping, to a qubit operator in readiness for the quantu
 ### Optional Installs
 
 To run chemistry experiments using Qiskit's chemistry module, it is recommended that you to install
-a classical computation chemistry software program/library interfaced by the chemistry module.
+a classical computation chemistry software program/library interfaced by Qiskit.
 Several, as listed below, are supported, and while logic to interface these programs is supplied by
-the module via the above pip installation, the dependent programs/libraries themselves need
+the chemistry module via the above pip installation, the dependent programs/libraries themselves need
 to be installed separately.
 
 Note: As `PySCF` can be installed via pip the installation of Qiskit (Aqua) will install PySCF
@@ -167,7 +167,7 @@ whether this might be possible manually.
 ### HDF5 Driver
 
 A useful functionality integrated into Qiskit's chemistry module is its ability to serialize a file
-in ierarchical Data Format 5 (HDF5) format representing all the output data from a chemistry driver.
+in hierarchical Data Format 5 (HDF5) format representing all the output data from a chemistry driver.
 
 The [HDF5 driver](qiskit/chemistry/drivers/hdf5d/hdf5driver.py#L25)
 accepts such such HDF5 files as input so molecular experiments can be run, albeit on the fixed data

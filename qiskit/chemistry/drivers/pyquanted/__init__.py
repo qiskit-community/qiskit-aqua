@@ -19,7 +19,7 @@ PyQuante Installation
 chemistry. Qiskit's chemistry module specifically requires PyQuante V2, also known as PyQuante2.
 In order for Qiskit to interface PyQuante and execute
 PyQuante to extract the electronic structure information PyQuante2 must be installed and
-discoverable on the system where the Qiskit's chemistry module is also installed.
+discoverable on the system where the Qiskit chemistry module is also installed.
 
 Installing PyQuante2 according to the
 `installation instructions <https://github.com/rpmuller/pyquante2/blob/master/README.md>`__ while
