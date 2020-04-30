@@ -17,7 +17,7 @@ Aqua includes domain application support for:
 * [Machine Learning](#machine-learning)
 * [Optimization](#optimization)
 
-_**Note**: the Chemistry application stack was the first domain worked on. At the time of writing
+_**Note**: the chemistry module was the first domain worked on. At the time of writing
 the other domains have some logic in them but are not as fully realised. Future work is expected to
 build out functionality in all application areas._
 
@@ -143,7 +143,7 @@ excited states and dipole moments of molecule, both open and closed-shell.
 The code comprises chemistry drivers, which when provided with a molecular
 configuration will return one and two-body integrals as well as other data that is efficiently
 computed classically. This output data from a driver can then be used as input to the chemistry
-application stack that contains logic which is able to translate this into a form that is suitable
+module that contains logic which is able to translate this into a form that is suitable
 for quantum algorithms. The conversion first creates a FermionicOperator which must then be mapped,
 e.g. by a Jordan Wigner mapping, to a qubit operator in readiness for the quantum computation.
 

@@ -24,7 +24,7 @@ Added
 -   NFT optimizer, part of a project of Qiskit Camp Asia 2019 (#729)
 -   Algorithm interface and result classes (#849)
 -   Chemistry FCIDump file driver (#859)
--   Chemistry stack automatic Z2 symmetry reduction (#870)
+-   Automatic Z2 symmetry reduction in the chemistry module (#870)
 -   Ising optimization: The 0-1 Knapsack problem (#878)
 -   VQE, VQC and QSVM accept `QuantumCircuit`s as variational forms/feature maps (#905)
 -   New `GSLS` (Gaussian Smoothing Line Search) optimizer for variational algorithms (#877)

@@ -30,7 +30,7 @@ class MP2Info:
 
     All the computations are done using the molecule orbitals but the indexes used
     in the excitation information passed in and out are in the block spin orbital
-    numbering as normally used by the chemistry stack.
+    numbering as normally used by the chemistry module.
     """
 
     def __init__(self, qmolecule, threshold=1e-12):

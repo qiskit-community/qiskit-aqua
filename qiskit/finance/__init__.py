@@ -12,9 +12,9 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 """
-==========================================================
-Finance application stack for Aqua (:mod:`qiskit.finance`)
-==========================================================
+===============================================
+Qiskit's finance module (:mod:`qiskit.finance`)
+===============================================
 This is the finance domain logic....
 
 .. currentmodule:: qiskit.finance

@@ -18,13 +18,13 @@ Qiskit's chemistry module (:mod:`qiskit.chemistry`)
 
 .. currentmodule:: qiskit.chemistry
 
-This is the chemistry application stack for Aqua that provides for experimentation with chemistry
+This is Qiskit's chemistry module that provides for experimentation with chemistry
 domain problems such as ground state energy and excited state energies of molecules.
 
 Overview
 ========
 
-This is an overview of the workings of the chemistry stack and how it may be used. There
+This is an overview of the workings of the chemistry module and how it may be used. There
 are different levels of exposure to its functionality, allowing for experimentation at different
 abstractions. The outline below starts with the flow that provides the most control of the
 process.
