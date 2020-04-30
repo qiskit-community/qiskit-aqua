@@ -462,7 +462,7 @@ class TestVQC(QiskitAquaTestCase):
         feature_map = RawFeatureVector(feature_dimension=feature_dim)
         vqc = VQC(COBYLA(maxiter=100),
                   feature_map,
-                  TwoLocal(feature_dim, ['ry', 'rz'], 'cz', reps=3),
+                  TwoLocal(feature_map.num_qubits, ['ry', 'rz'], 'cz', reps=3),
                   training_input,
                   test_input)
         result = vqc.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),

@@ -20,10 +20,10 @@ import warnings
 import unittest
 from ddt import ddt, data
 from qiskit import QuantumCircuit, QuantumRegister
-from qiskit.circuit.library import RY
+from qiskit.circuit.library import RealAmplitudes
 from qiskit.aqua.components.uncertainty_models import (UniformDistribution,
                                                        UnivariateVariationalDistribution)
-from qiskit.aqua.components.variational_forms import RY as VarRY
+from qiskit.aqua.components.variational_forms import RY
 from qiskit.aqua.algorithms import QGAN
 from qiskit.aqua import aqua_globals, QuantumInstance
 from qiskit.aqua.components.initial_states import Custom
@@ -89,18 +89,18 @@ class TestQGAN(QiskitAquaTestCase):
 
         # Set variational form
         warnings.filterwarnings('ignore', category=DeprecationWarning)
-        var_form = VarRY(sum(num_qubits),
-                         depth=1,
-                         initial_state=init_distribution,
-                         entangler_map=entangler_map,
-                         entanglement_gate='cz')
+        var_form = RY(sum(num_qubits),
+                      depth=1,
+                      initial_state=init_distribution,
+                      entangler_map=entangler_map,
+                      entanglement_gate='cx')
         dist_var_form = UnivariateVariationalDistribution(sum(num_qubits), var_form, init_params,
                                                           low=self._bounds[0],
                                                           high=self._bounds[1])
         warnings.filterwarnings('always', category=DeprecationWarning)
 
-        library = RY(sum(num_qubits), reps=1, initial_state=init_distribution,
-                     entanglement=entangler_map, entanglement_blocks='cz')
+        library = RealAmplitudes(sum(num_qubits), reps=1, initial_state=init_distribution,
+                                 entanglement=entangler_map)
         dist_library = UnivariateVariationalDistribution(sum(num_qubits), library, init_params,
                                                          low=self._bounds[0],
                                                          high=self._bounds[1])

@@ -18,11 +18,11 @@ import warnings
 from test.chemistry import QiskitChemistryTestCase
 from ddt import ddt, data
 from qiskit import BasicAer
-from qiskit.circuit.library import SwapRZ
+from qiskit.circuit.library import ExcitationPreserving
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms import VQE
 from qiskit.aqua.components.optimizers import SLSQP
-from qiskit.aqua.components.variational_forms import SwapRZ as VarSwapRZ
+from qiskit.aqua.components.variational_forms import SwapRZ
 from qiskit.chemistry.components.initial_states import HartreeFock
 from qiskit.chemistry.drivers import HDF5Driver
 from qiskit.chemistry.core import Hamiltonian, QubitMappingType
@@ -62,9 +62,9 @@ class TestSwapRZ(QiskitChemistryTestCase):
 
         if mode == 'wrapped':
             warnings.filterwarnings('ignore', category=DeprecationWarning)
-            wavefunction = VarSwapRZ(qubit_op.num_qubits, initial_state=initial_state)
-        else:
             wavefunction = SwapRZ(qubit_op.num_qubits, initial_state=initial_state)
+        else:
+            wavefunction = ExcitationPreserving(qubit_op.num_qubits, initial_state=initial_state)
 
         algo = VQE(qubit_op, wavefunction, optimizer)
 

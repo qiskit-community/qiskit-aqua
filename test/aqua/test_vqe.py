@@ -54,6 +54,7 @@ class TestVQE(QiskitAquaTestCase):
                                   'circuit': QuantumCircuit(num_qubits).compose(ansatz),
                                   'library': ansatz}
 
+        ansatz = ansatz.copy()
         ansatz.rotation_blocks = 'ry'
         self.ry_wavefunction = {'wrapped': RY(num_qubits),
                                 'circuit': QuantumCircuit(num_qubits).compose(ansatz),
@@ -203,7 +204,6 @@ class TestVQE(QiskitAquaTestCase):
         if mode == 'wrapped':
             warnings.filterwarnings('always', category=DeprecationWarning)
 
-        aqua_globals.random_seed = 50
         quantum_instance = QuantumInstance(backend,
                                            seed_transpiler=50,
                                            shots=1024,
@@ -222,7 +222,7 @@ class TestVQE(QiskitAquaTestCase):
         with self.assertRaises(AquaError):
             _ = vqe.run()
 
-        var_form = TwoLocal(rotation_blocks=['ry', 'rz'], entanglement_blocks='cz'),
+        var_form = TwoLocal(rotation_blocks=['ry', 'rz'], entanglement_blocks='cz')
         vqe.var_form = var_form
         with self.assertRaises(AquaError):
             _ = vqe.run()

@@ -18,7 +18,7 @@ import unittest
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 from qiskit import BasicAer
-from qiskit.circuit.library import RY
+from qiskit.circuit.library import RealAmplitudes
 from qiskit.aqua import aqua_globals, QuantumInstance
 from qiskit.optimization.applications.ising import graph_partition
 from qiskit.optimization.applications.ising.common import random_graph, sample_most_likely
@@ -73,8 +73,8 @@ class TestGraphPartition(QiskitOptimizationTestCase):
     def test_graph_partition_vqe(self):
         """ Graph Partition VQE test """
         aqua_globals.random_seed = 10213
-        wavefunction = RY(self.qubit_op.num_qubits, insert_barriers=True,
-                          reps=5, entanglement='linear')
+        wavefunction = RealAmplitudes(self.qubit_op.num_qubits, insert_barriers=True,
+                                      reps=5, entanglement='linear')
         result = VQE(self.qubit_op,
                      wavefunction,
                      SPSA(max_trials=300),

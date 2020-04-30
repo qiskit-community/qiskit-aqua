@@ -20,7 +20,7 @@ from test.chemistry import QiskitChemistryTestCase
 import numpy as np
 
 from qiskit import BasicAer
-from qiskit.circuit.library import RY
+from qiskit.circuit.library import TwoLocal
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver, VQE, IQPE
 from qiskit.aqua.components.optimizers import SLSQP
@@ -48,7 +48,7 @@ class TestAppMGSE(QiskitChemistryTestCase):
 
         self.npme = NumPyMinimumEigensolver()
 
-        self.vqe = VQE(var_form=RY(2))
+        self.vqe = VQE(var_form=TwoLocal(2, 'ry', 'cz'))
         self.vqe.set_backend(BasicAer.get_backend('statevector_simulator'))
 
         self.reference_energy = -1.137306

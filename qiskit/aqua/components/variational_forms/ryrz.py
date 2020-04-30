@@ -64,7 +64,8 @@ class RYRZ(VariationalForm):
         """
         warnings.warn('The qiskit.aqua.components.variational_forms.RYRZ object is deprecated as '
                       'of 0.7.0 and will be removed no sooner than 3 months after the release. You '
-                      'should use the qiskit.circuit.library.RYRZ object instead.',
+                      'should use qiskit.circuit.library.EfficientSU2 (uses CX entangling) or '
+                      'qiskit.circuit.library.TwoLocal instead.',
                       DeprecationWarning, stacklevel=2)
 
         validate_min('num_qubits', num_qubits, 1)

@@ -349,9 +349,11 @@ class QuantumGenerator(GenerativeNetwork):
         self._optimizer._maxiter = 1
         self._optimizer._t = 0
         objective = self._get_objective_function(quantum_instance, self._discriminator)
-        self.generator_circuit.params, loss, _ = self._optimizer.optimize(num_vars=len(self.generator_circuit.params),
-                                                                          objective_function=objective,
-                                                                          initial_point=self.generator_circuit.params)
+        self.generator_circuit.params, loss, _ = self._optimizer.optimize(
+            num_vars=len(self.generator_circuit.params),
+            objective_function=objective,
+            initial_point=self.generator_circuit.params
+            )
 
         self._ret['loss'] = loss
         self._ret['params'] = self.generator_circuit.params

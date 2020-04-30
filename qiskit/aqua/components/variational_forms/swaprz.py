@@ -74,7 +74,7 @@ class SwapRZ(VariationalForm):
         """
         warnings.warn('The qiskit.aqua.components.variational_forms.SwapRZ object is deprecated as '
                       'of 0.7.0 and will be removed no sooner than 3 months after the release. You '
-                      'should use the qiskit.circuit.library.SwapRZ object instead.',
+                      'should use the qiskit.circuit.library.ExcitationPreserving object instead.',
                       DeprecationWarning, stacklevel=2)
 
         validate_min('num_qubits', num_qubits, 1)

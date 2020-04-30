@@ -16,7 +16,7 @@
 
 from test.aqua import QiskitAquaTestCase
 from qiskit import BasicAer
-from qiskit.circuit.library import RY
+from qiskit.circuit.library import RealAmplitudes
 
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.operators import WeightedPauliOperator
@@ -45,7 +45,7 @@ class TestOptimizerNFT(QiskitAquaTestCase):
         """ Test NFT optimizer by using it """
 
         result = VQE(self.qubit_op,
-                     RY(),
+                     RealAmplitudes(),
                      NFT()).run(
                          QuantumInstance(BasicAer.get_backend('statevector_simulator'),
                                          seed_simulator=aqua_globals.random_seed,

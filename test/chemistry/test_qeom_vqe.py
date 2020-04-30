@@ -19,7 +19,7 @@ import unittest
 from test.aqua import QiskitAquaTestCase
 import numpy as np
 from qiskit import BasicAer
-from qiskit.circuit.library import RY
+from qiskit.circuit.library import RealAmplitudes
 
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.components.optimizers import COBYLA, SPSA
@@ -147,8 +147,7 @@ class TestEomVQE(QiskitAquaTestCase):
         # know the sector
         tapered_op = z2_symmetries.taper(qubit_op)[1]
 
-        print(tapered_op.num_qubits)
-        var_form = RY(tapered_op.num_qubits, reps=1)
+        var_form = RealAmplitudes(tapered_op.num_qubits, reps=1)
         optimizer = SPSA(max_trials=50)
 
         eom_vqe = QEomVQE(tapered_op, var_form, optimizer, num_orbitals=num_orbitals,
