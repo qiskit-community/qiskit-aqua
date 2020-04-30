@@ -14,18 +14,19 @@
 
 """ Test AbelianGrouper. """
 
+from test.aqua import QiskitAquaTestCase
 from qiskit.aqua.operators import ListOp, AbelianGrouper
 from qiskit.aqua.operators import PauliOp
 from qiskit.quantum_info.operators import Pauli
-from test.aqua import QiskitAquaTestCase
-
 
 # pylint: disable=invalid-name
+
 
 class TestAbelianGrouper(QiskitAquaTestCase):
     """AbelianGrouper tests."""
 
     def test_grouper1(self):
+        """ test grouper1 """
         listop = ListOp([
             PauliOp(Pauli(label='IX'), coeff=1),
             PauliOp(Pauli(label='XX'), coeff=2),
@@ -49,6 +50,7 @@ class TestAbelianGrouper(QiskitAquaTestCase):
         self.assertEqual(g_1[0].coeff, 3)
 
     def test_grouper2(self):
+        """ test grouper2 """
         listop = ListOp([
             PauliOp(Pauli(label='X'), coeff=1),
             PauliOp(Pauli(label='Y'), coeff=2),

@@ -14,6 +14,7 @@
 
 """ AbelianGrouper Class """
 
+from typing import List
 import itertools
 import logging
 
@@ -83,7 +84,7 @@ class AbelianGrouper(ConverterBase):
             return operator
 
     @classmethod
-    def group_subops(cls, list_op: ListOp, fast=True, nx_trick=True) -> ListOp:
+    def group_subops(cls, list_op: ListOp, fast: bool = True, nx_trick: bool = True) -> ListOp:
         """ Given a ListOp, attempt to group into Abelian ListOps of the same type.
 
         Args:
@@ -134,10 +135,12 @@ class AbelianGrouper(ConverterBase):
         indices = range(len(list_op))
         commutation_graph.add_nodes_from(indices)
 
-        def _create_edges(list_op: ListOp):
+        def _create_edges(list_op: ListOp) -> List:
             """
             Create edges (i,j) if i and j is not commutable.
 
+            Args:
+                list_op: list_op
             Returns:
                 A list of pairs of indices of the operators that are not commutable
             """
