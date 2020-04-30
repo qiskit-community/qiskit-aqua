@@ -18,5 +18,5 @@ from qiskit.aqua.aqua_error import AquaError
 
 
 class QiskitOptimizationError(AquaError):
-    """Class for errors returned by Qiskit Optimization libraries functions."""
+    """Class for errors returned by Qiskit Optimization."""
     pass

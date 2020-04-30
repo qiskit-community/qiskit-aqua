@@ -19,12 +19,13 @@ import time
 from typing import List, Optional, Any
 
 import numpy as np
-from qiskit.optimization import QiskitOptimizationError
-from qiskit.optimization.algorithms.cplex_optimizer import CplexOptimizer
-from qiskit.optimization.algorithms.optimization_algorithm import (OptimizationAlgorithm,
-                                                                   OptimizationResult)
-from qiskit.optimization.converters import IntegerToBinary
-from qiskit.optimization.problems import QuadraticProgram, Variable, Constraint, QuadraticObjective
+from ..exceptions import QiskitOptimizationError
+from .cplex_optimizer import CplexOptimizer
+from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
+from ..problems.quadratic_program import QuadraticProgram
+from ..problems.variable import Variable
+from ..problems.constraint import Constraint
+from ..problems.quadratic_objective import QuadraticObjective
 
 UPDATE_RHO_BY_TEN_PERCENT = 0
 UPDATE_RHO_BY_RESIDUALS = 1
@@ -251,6 +252,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         self._log.debug("Initial problem: %s", problem.export_as_lp_string())
 
         # map integer variables to binary variables
+        from ..converters.integer_to_binary import IntegerToBinary
         int2bin = IntegerToBinary()
         problem = int2bin.encode(problem)
 

@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 # pylint: disable=invalid-name
 
 
-class QPEMinimumEigensolver(QuantumAlgorithm, MinimumEigensolver):
+class QPE(QuantumAlgorithm, MinimumEigensolver):
     """The Quantum Phase Estimation algorithm.
 
     QPE (also sometimes abbreviated as PEA, for Phase Estimation Algorithm), has two quantum
@@ -246,28 +246,6 @@ class QPEMinimumEigensolver(QuantumAlgorithm, MinimumEigensolver):
             result.eigenvalue = self._ret['eigvals'][0]
 
         return result
-
-
-class QPE(QPEMinimumEigensolver):
-    """
-    The deprecated Quantum Phase Estimation algorithm.
-    """
-
-    def __init__(self,
-                 operator: Optional[LegacyBaseOperator] = None,
-                 state_in: Optional[InitialState] = None,
-                 iqft: Optional[IQFT] = None,
-                 num_time_slices: int = 1,
-                 num_ancillae: int = 1,
-                 expansion_mode: str = 'trotter',
-                 expansion_order: int = 1,
-                 shallow_circuit_concat: bool = False) -> None:
-        warnings.warn('Deprecated class {}, use {}.'.format('QPE',
-                                                            'QPEMinimumEigenSolver'),
-                      DeprecationWarning)
-        super().__init__(operator, state_in, iqft,
-                         num_time_slices, num_ancillae, expansion_mode,
-                         expansion_order, shallow_circuit_concat)
 
 
 class QPEResult(MinimumEigensolverResult):

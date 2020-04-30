@@ -21,7 +21,7 @@ from ddt import ddt, idata, unpack
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.utils import decimal_to_binary
-from qiskit.aqua.algorithms import IQPEMinimumEigensolver
+from qiskit.aqua.algorithms import IQPE
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator
 from qiskit.aqua.operators.legacy import op_converter
@@ -87,9 +87,9 @@ class TestIQPE(QiskitAquaTestCase):
         self.log.debug('The corresponding eigenvector: %s', ref_eigenvec)
 
         state_in = Custom(qubit_op.num_qubits, state_vector=ref_eigenvec)
-        iqpe = IQPEMinimumEigensolver(qubit_op, state_in, num_time_slices, num_iterations,
-                                      expansion_mode='suzuki', expansion_order=2,
-                                      shallow_circuit_concat=True)
+        iqpe = IQPE(qubit_op, state_in, num_time_slices, num_iterations,
+                    expansion_mode='suzuki', expansion_order=2,
+                    shallow_circuit_concat=True)
 
         backend = BasicAer.get_backend(simulator)
         quantum_instance = QuantumInstance(backend, shots=100)

@@ -27,7 +27,7 @@ from qiskit.aqua.components.initial_states import VarFormBased
 from qiskit.aqua.components.variational_forms import RYRZ
 from qiskit.aqua.components.optimizers import SPSA
 from qiskit.aqua.algorithms import VQE
-from qiskit.aqua.algorithms import IQPEMinimumEigensolver
+from qiskit.aqua.algorithms import IQPE
 
 
 class TestVQE2IQPE(QiskitAquaTestCase):
@@ -67,9 +67,9 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         num_iterations = 6
 
         state_in = VarFormBased(var_form, result.optimal_point)
-        iqpe = IQPEMinimumEigensolver(self.qubit_op, state_in, num_time_slices, num_iterations,
-                                      expansion_mode='suzuki', expansion_order=2,
-                                      shallow_circuit_concat=True)
+        iqpe = IQPE(self.qubit_op, state_in, num_time_slices, num_iterations,
+                    expansion_mode='suzuki', expansion_order=2,
+                    shallow_circuit_concat=True)
         quantum_instance = QuantumInstance(
             backend, shots=100, seed_transpiler=self.seed, seed_simulator=self.seed
         )
