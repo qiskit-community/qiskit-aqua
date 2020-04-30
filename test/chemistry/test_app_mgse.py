@@ -99,7 +99,7 @@ class TestAppMGSE(QiskitChemistryTestCase):
 
         def cb_create_solver(num_particles, num_orbitals,
                              qubit_mapping, two_qubit_reduction, z2_symmetries):
-            state_in = HartreeFock(2, num_orbitals, num_particles, qubit_mapping,
+            state_in = HartreeFock(num_orbitals, num_particles, qubit_mapping,
                                    two_qubit_reduction, z2_symmetries.sq_list)
             iqpe = IQPE(None, state_in, num_time_slices=1, num_iterations=6,
                         expansion_mode='suzuki', expansion_order=2,
@@ -117,10 +117,9 @@ class TestAppMGSE(QiskitChemistryTestCase):
 
         def cb_create_solver(num_particles, num_orbitals,
                              qubit_mapping, two_qubit_reduction, z2_symmetries):
-            initial_state = HartreeFock(2, num_orbitals, num_particles, qubit_mapping,
+            initial_state = HartreeFock(num_orbitals, num_particles, qubit_mapping,
                                         two_qubit_reduction, z2_symmetries.sq_list)
-            var_form = UCCSD(2, depth=1,
-                             num_orbitals=num_orbitals,
+            var_form = UCCSD(num_orbitals=num_orbitals,
                              num_particles=num_particles,
                              initial_state=initial_state,
                              qubit_mapping=qubit_mapping,
@@ -161,10 +160,9 @@ class TestAppMGSE(QiskitChemistryTestCase):
 
         def cb_create_solver(num_particles, num_orbitals,
                              qubit_mapping, two_qubit_reduction, z2_symmetries):
-            initial_state = HartreeFock(6, num_orbitals, num_particles, qubit_mapping,
+            initial_state = HartreeFock(num_orbitals, num_particles, qubit_mapping,
                                         two_qubit_reduction, z2_symmetries.sq_list)
-            var_form = UCCSD(6, depth=1,
-                             num_orbitals=num_orbitals,
+            var_form = UCCSD(num_orbitals=num_orbitals,
                              num_particles=num_particles,
                              initial_state=initial_state,
                              qubit_mapping=qubit_mapping,

@@ -146,14 +146,12 @@ class MolecularGroundStateEnergy:
         Returns:
             Default solver callback
         """
-        # TODO num_qubits should be removed since they should be updated by VQE when operator is set
         def cb_default_solver(num_particles, num_orbitals,
                               qubit_mapping, two_qubit_reduction, z2_symmetries):
             """ Default solver """
-            initial_state = HartreeFock(2, num_orbitals, num_particles, qubit_mapping,
+            initial_state = HartreeFock(num_orbitals, num_particles, qubit_mapping,
                                         two_qubit_reduction, z2_symmetries.sq_list)
-            var_form = UCCSD(2, depth=1,
-                             num_orbitals=num_orbitals,
+            var_form = UCCSD(num_orbitals=num_orbitals,
                              num_particles=num_particles,
                              initial_state=initial_state,
                              qubit_mapping=qubit_mapping,
