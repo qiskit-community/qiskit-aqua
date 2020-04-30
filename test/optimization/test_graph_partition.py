@@ -18,11 +18,11 @@ import unittest
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 from qiskit import BasicAer
+from qiskit.circuit.library import RealAmplitudes
 from qiskit.aqua import aqua_globals, QuantumInstance
 from qiskit.optimization.applications.ising import graph_partition
 from qiskit.optimization.applications.ising.common import random_graph, sample_most_likely
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver, VQE
-from qiskit.aqua.components.variational_forms import RY
 from qiskit.aqua.components.optimizers import SPSA
 
 
@@ -72,16 +72,18 @@ class TestGraphPartition(QiskitOptimizationTestCase):
 
     def test_graph_partition_vqe(self):
         """ Graph Partition VQE test """
-        aqua_globals.random_seed = 10598
+        aqua_globals.random_seed = 10213
+        wavefunction = RealAmplitudes(self.qubit_op.num_qubits, insert_barriers=True,
+                                      reps=5, entanglement='linear')
         result = VQE(self.qubit_op,
-                     RY(self.qubit_op.num_qubits, depth=5, entanglement='linear'),
+                     wavefunction,
                      SPSA(max_trials=300),
                      max_evals_grouped=2).run(
                          QuantumInstance(BasicAer.get_backend('statevector_simulator'),
                                          seed_simulator=aqua_globals.random_seed,
                                          seed_transpiler=aqua_globals.random_seed))
 
-        x = sample_most_likely(result['eigvecs'][0])
+        x = sample_most_likely(result.eigenstate)
         # check against the oracle
         ising_sol = graph_partition.get_graph_solution(x)
         self.assertEqual(graph_partition.objective_value(np.array([0, 1, 0, 1]), self.w),

@@ -22,9 +22,7 @@ from qiskit.aqua.utils import get_entangler_map, validate_entangler_map
 
 
 class FeatureMap(ABC):
-
-    """
-    Base class for FeatureMap.
+    """Base class for FeatureMap.
 
     This method should initialize the module and
     use an exception if a component of the module is not

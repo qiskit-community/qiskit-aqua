@@ -18,6 +18,7 @@ import logging
 
 from typing import Union, List, Optional, Callable
 import numpy as np
+from qiskit.circuit import QuantumCircuit
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import VQE
@@ -33,7 +34,8 @@ logger = logging.getLogger(__name__)
 class QEomVQE(VQE):
     """ QEomVQE algorithm """
 
-    def __init__(self, operator: LegacyBaseOperator, var_form: VariationalForm,
+    def __init__(self, operator: LegacyBaseOperator,
+                 var_form: Union[QuantumCircuit, VariationalForm],
                  optimizer: Optimizer, num_orbitals: int,
                  num_particles: Union[List[int], int],
                  initial_point: Optional[np.ndarray] = None,
@@ -105,7 +107,7 @@ class QEomVQE(VQE):
         self._quantum_instance.circuit_summary = True
         opt_params = self._ret['opt_params']
         logger.info("opt params:\n%s", opt_params)
-        wave_fn = self._var_form.construct_circuit(opt_params)
+        wave_fn = self.get_optimal_circuit()
         excitation_energies_gap, eom_matrices = self.qeom.calculate_excited_states(
             wave_fn, quantum_instance=self._quantum_instance)
         excitation_energies = excitation_energies_gap + self._ret['energy']

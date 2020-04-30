@@ -105,6 +105,8 @@ Removed
     -   arithmetic circuits in qiskit/aqua/circuits (#895)
     -   boolean logic gates (#896)
     -   quantum Fourier transformation (#909)
+    -   the RY, RYRZ and SwapRZ variational forms (#920)
+    -   the PauliExpansion, First- and SecondOrderExpansion feature maps  (#920)
 
 Fixed
 -----

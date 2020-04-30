@@ -20,9 +20,9 @@ import warnings
 from test.chemistry import QiskitChemistryTestCase
 from ddt import ddt, idata, unpack
 import qiskit
+from qiskit.circuit.library import TwoLocal
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import VQE
-from qiskit.aqua.components.variational_forms import RYRZ
 from qiskit.aqua.components.optimizers import COBYLA, SPSA
 from qiskit.chemistry.drivers import HDF5Driver
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
@@ -62,7 +62,7 @@ class TestEnd2End(QiskitChemistryTestCase):
         elif optimizer == 'SPSA':
             optimizer = SPSA(max_trials=2000)
 
-        ryrz = RYRZ(self.qubit_op.num_qubits, depth=3, entanglement='full')
+        ryrz = TwoLocal(rotation_blocks=['ry', 'rz'], entanglement_blocks='cz')
         vqe = VQE(self.qubit_op, ryrz, optimizer, aux_operators=self.aux_ops)
         quantum_instance = QuantumInstance(backend, shots=shots)
         result = vqe.run(quantum_instance)
@@ -73,7 +73,7 @@ class TestEnd2End(QiskitChemistryTestCase):
         """ Test processing a deprecated dictionary result from algorithm """
         try:
             warnings.filterwarnings("ignore", category=DeprecationWarning)
-            ryrz = RYRZ(self.qubit_op.num_qubits, depth=3, entanglement='full')
+            ryrz = TwoLocal(self.qubit_op.num_qubits, ['ry', 'rz'], 'cz', reps=3)
             vqe = VQE(self.qubit_op, ryrz, COBYLA(), aux_operators=self.aux_ops)
             quantum_instance = QuantumInstance(qiskit.BasicAer.get_backend('statevector_simulator'))
             result = vqe.run(quantum_instance)
