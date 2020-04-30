@@ -21,7 +21,7 @@ import random
 import numpy as np
 from qiskit import QuantumCircuit
 from qiskit.providers import BaseBackend
-from qiskit.aqua import QuantumInstance
+from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms.amplitude_amplifiers.grover import Grover
 from ..exceptions import QiskitOptimizationError
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
@@ -234,7 +234,7 @@ class GroverOptimizer(OptimizationAlgorithm):
 
         # Pick a random outcome.
         freq[len(freq)-1] = (freq[len(freq)-1][0], 1 - sum([x[1] for x in freq[0:len(freq)-1]]))
-        idx = np.random.choice(len(freq), 1, p=[x[1] for x in freq])[0]
+        idx = aqua_globals.random.choice(len(freq), 1, p=[x[1] for x in freq])[0]
         logger.info('Frequencies: %s', freq)
 
         return freq[idx][0]
