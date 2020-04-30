@@ -83,8 +83,7 @@ class PauliExpansion(FeatureMap):
         """
         warnings.warn('The qiskit.aqua.components.feature_maps.PauliExpansion object is '
                       'deprecated as of 0.7.0 and will be removed no sooner than 3 months after '
-                      'the release. You should use the qiskit.circuit.library.PauliExpansion '
-                      'object instead.',
+                      'the release. You should use qiskit.circuit.library.PauliFeatureMap instead.',
                       DeprecationWarning, stacklevel=2)
 
         paulis = paulis if paulis is not None else ['Z', 'ZZ']

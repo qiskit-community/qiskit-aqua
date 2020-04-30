@@ -56,9 +56,9 @@ class PauliZExpansion(PauliExpansion):
                 default mapping from :meth:`self_product`.
         """
         # extra warning since this class will be removed entirely
-        warnings.warn('The PauliZExpansion class is deprecated as of 0.7.0 and will be removed '
-                      'no sooner than 3 months after the release. You should use the '
-                      'PauliExpansion class directly instead.',
+        warnings.warn('The qiskit.aqua.components.feature_maps.PauliZExpansion class is deprecated '
+                      'as of 0.7.0 and will be removed no sooner than 3 months after the release. '
+                      'You should use qiskit.circuit.library.PauliFeatureMap instead.',
                       DeprecationWarning, stacklevel=2)
 
         validate_min('depth', depth, 1)

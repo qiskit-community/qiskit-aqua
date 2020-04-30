@@ -42,8 +42,7 @@ class FirstOrderExpansion(PauliZExpansion):
         """
         warnings.warn('The qiskit.aqua.components.feature_maps.FirstOrderExpansion object is '
                       'deprecated as of 0.7.0 and will be removed no sooner than 3 months after '
-                      'the release. You should use the qiskit.circuit.library.FirstOrderExpansion '
-                      'object instead.',
+                      'the release. You should use qiskit.circuit.library.ZFeatureMap instead.',
                       DeprecationWarning, stacklevel=2)
 
         validate_min('depth', depth, 1)
