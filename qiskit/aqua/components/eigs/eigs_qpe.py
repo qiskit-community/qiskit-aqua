@@ -72,8 +72,9 @@ class EigsQPE(Eigenvalues):
         self._operator = op_converter.to_weighted_pauli_operator(operator)
 
         if isinstance(iqft, IQFT):
-            warnings.warn('The qiskit.aqua.components.iqfts.IQFT module is deprecated as of 0.7.0 '
-                          'and will be removed no earlier than 3 months after the release. '
+            warnings.warn('Providing a qiskit.aqua.components.iqfts.IQFT module as `iqft` argument '
+                          'to HHL is deprecated as of 0.7.0 and will be removed no earlier than '
+                          '3 months after the release. '
                           'You should pass a QuantumCircuit instead, see '
                           'qiskit.circuit.library.QFT and the .inverse() method.',
                           DeprecationWarning, stacklevel=2)
@@ -87,8 +88,9 @@ class EigsQPE(Eigenvalues):
         self._negative_evals = negative_evals
 
         if ne_qfts and any(isinstance(ne_qft, IQFT) for ne_qft in ne_qfts):
-            warnings.warn('The qiskit.aqua.components.iqfts.IQFT module is deprecated as of 0.7.0 '
-                          'and will be removed no earlier than 3 months after the release. '
+            warnings.warn('Providing a qiskit.aqua.components.iqfts.IQFT module in the `ne_qft` '
+                          'argument to HHL is deprecated as of 0.7.0 and will be removed no '
+                          'earlier than 3 months after the release. '
                           'You should pass a QuantumCircuit instead, see '
                           'qiskit.circuit.library.QFT and the .inverse() method.',
                           DeprecationWarning, stacklevel=2)
@@ -125,7 +127,7 @@ class EigsQPE(Eigenvalues):
         return self._evo_time
 
     def construct_circuit(self, mode, register=None):
-        """ Construct the eigenvalues estimation using the PhaseEstimationCircuit
+        """Construct the eigenvalues estimation using the PhaseEstimationCircuit
 
         Args:
             mode (str): construction mode, 'matrix' not supported
