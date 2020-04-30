@@ -182,9 +182,9 @@ repository. This
 [HDF5 Driver tutorial](https://github.com/Qiskit/qiskit-community-tutorials/blob/master/chemistry/hdf5_files_and_driver.ipynb)
 contains further information about creating and using such HDF5 files.
 
-### Creating Your First Qiskit Chemistry Programming Experiment
+### Creating Your First Chemistry Programming Experiment
 
-Now that Qiskit is installed, it's time to begin working with Chemistry.
+Now that Qiskit is installed, it's time to begin working with the chemistry module.
 Let's try a chemistry application experiment using VQE (Variational Quantum Eigensolver) algorithm
 to compute the ground-state (minimum) energy of a molecule.
 
@@ -269,9 +269,9 @@ The `qiskit.finance` package contains uncertainty components for stock/securitie
 Ising translators for portfolio optimizations and data providers to source real or random data to
 finance experiments.
 
-### Creating Your First Qiskit Finance Programming Experiment
+### Creating Your First Finance Programming Experiment
 
-Now that Qiskit is installed, it's time to begin working with Finance.
+Now that Qiskit is installed, it's time to begin working with the finance module.
 Let's try a experiment using Amplitude Estimation algorithm to
 evaluate a fixed income asset with uncertain interest rates.
 
@@ -320,7 +320,7 @@ classification algorithms such as QSVM and VQC (Variational Quantum Classifier),
 can be used for experiments, and there is also QGAN (Quantum Generative Adversarial Network)
 algorithm.
 
-### Creating Your First Qiskit Machine Learning Programming Experiment
+### Creating Your First Machine Learning Programming Experiment
 
 Now that Qiskit is installed, it's time to begin working with Machine Learning.
 Let's try a experiment using VQC (Variational Quantum Classified) algorithm to
@@ -376,9 +376,9 @@ as Max-Cut, Traveling Salesman and Vehicle Routing. It also has a has an automat
 generator for a problem model specified by the user as a model in
 [docplex](qiskit/optimization/ising/docplex.py#L16).
 
-### Creating your first Qiskit optimization programming experiment
+### Creating Your First Optimization Programming Experiment
 
-Now that Qiskit is installed, it's time to begin working with the optimization.
+Now that Qiskit is installed, it's time to begin working with the optimization module.
 Let's try a optimization experiment using QAOA (Quantum Approximate Optimization Algorithm)
 to compute the solution of a [Max-Cut](https://en.wikipedia.org/wiki/Maximum_cut) problem using
 a docplex model to create the Ising Hamiltonian operator for QAOA.
