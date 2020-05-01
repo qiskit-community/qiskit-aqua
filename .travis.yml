@@ -208,12 +208,12 @@ jobs:
             - chemistry.dat
             - chemistry37.dep
       install:
-        - pip install -U numpy
         # install gaussian dependency libgfortran 5
         - sudo apt-get -y update
         - sudo apt-get -y install libgfortran5
         # Installing pyquante2 master branch...
         - pip install https://github.com/rpmuller/pyquante2/archive/master.zip --progress-bar off
+        - pip install -U numpy
       before_script:
         - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
       script:
