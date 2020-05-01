@@ -208,6 +208,7 @@ jobs:
             - chemistry.dat
             - chemistry37.dep
       install:
+        - pip install -U numpy
         # install gaussian dependency libgfortran 5
         - sudo apt-get -y update
         - sudo apt-get -y install libgfortran5
