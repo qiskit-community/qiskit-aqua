@@ -54,6 +54,10 @@ stage_dependencies: &stage_dependencies
       fi
     - pip install -U 'pip<20.0.0'
     - pip install -U setuptools wheel
+    - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+    - sudo apt-get -y update
+    - sudo apt-get -y install g++-7
+    - sudo apt-get -y install libopenblas-dev
     - |
       if [ "$DEPENDENCY_BRANCH" == "master" ]; then
         pip install cython
@@ -63,11 +67,6 @@ stage_dependencies: &stage_dependencies
         pip install https://github.com/Qiskit/qiskit-ignis/archive/master.zip --progress-bar off
         # Installing qiskit-ibmq-provider master branch...
         pip install https://github.com/Qiskit/qiskit-ibmq-provider/archive/master.zip --progress-bar off
-        # install qiskit-aer build dependencies
-        sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-        sudo apt-get -y update
-        sudo apt-get -y install g++-7
-        sudo apt-get -y install libopenblas-dev
         # Clone qiskit-aer
         git clone --recurse-submodules https://github.com/Qiskit/qiskit-aer.git /tmp/qiskit-aer
         cd /tmp/qiskit-aer
