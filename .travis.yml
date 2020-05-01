@@ -33,8 +33,8 @@ git:
 
 env:
   global:
-    - INIT_FILE="$TRAVIS_BUILD_DIR/qiskit/__init__.py"
     - DEPENDENCY_BRANCH=$(if [[ "$TRAVIS_BRANCH" == stable* ]]; then echo "stable"; else echo "master"; fi)
+    - INIT_FILE="$TRAVIS_BUILD_DIR/qiskit/__init__.py"
 
 stage_dependencies: &stage_dependencies
   before_install:

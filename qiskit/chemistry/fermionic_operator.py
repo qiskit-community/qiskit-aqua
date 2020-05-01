@@ -478,7 +478,7 @@ class FermionicOperator:
         """
         # pylint: disable=unsubscriptable-object
         matrix = np.zeros((self._h1.shape), self._h1.dtype)
-        n = matrix.shape[0]  # pylint: disable=unsubscriptable-object
+        n = matrix.shape[0]
         j = np.arange(n // 2)
         matrix[j, 2 * j] = 1.0
         matrix[j + n // 2, 2 * j + 1] = 1.0
@@ -493,7 +493,7 @@ class FermionicOperator:
         """
         # pylint: disable=unsubscriptable-object
         matrix = np.zeros((self._h1.shape), self._h1.dtype)
-        n = matrix.shape[0]  # pylint: disable=unsubscriptable-object
+        n = matrix.shape[0]
         j = np.arange(n // 2)
         matrix[2 * j, j] = 1.0
         matrix[2 * j + 1, n // 2 + j] = 1.0

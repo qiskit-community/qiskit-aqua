@@ -95,12 +95,6 @@ class TestQSVM(QiskitAquaTestCase):
                                            shots=self.shots,
                                            seed_simulator=self.random_seed,
                                            seed_transpiler=self.random_seed)
-        try:
-            result = svm.run(quantum_instance)
-            np.testing.assert_array_almost_equal(
-                result['kernel_matrix_training'], ref_kernel_training, decimal=1)
-            np.testing.assert_array_almost_equal(
-                result['kernel_matrix_testing'], ref_kernel_testing, decimal=1)
 
         try:
             result = svm.run(quantum_instance)
