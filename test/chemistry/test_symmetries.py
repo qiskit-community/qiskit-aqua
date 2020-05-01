@@ -77,15 +77,13 @@ class TestSymmetries(QiskitChemistryTestCase):
 
         optimizer = SLSQP(maxiter=1000)
 
-        init_state = HartreeFock(num_qubits=the_tapered_op.num_qubits,
-                                 num_orbitals=self.core._molecule_info['num_orbitals'],
+        init_state = HartreeFock(num_orbitals=self.core._molecule_info['num_orbitals'],
                                  qubit_mapping=self.core._qubit_mapping,
                                  two_qubit_reduction=self.core._two_qubit_reduction,
                                  num_particles=self.core._molecule_info['num_particles'],
                                  sq_list=the_tapered_op.z2_symmetries.sq_list)
 
-        var_form = UCCSD(num_qubits=the_tapered_op.num_qubits, depth=1,
-                         num_orbitals=self.core._molecule_info['num_orbitals'],
+        var_form = UCCSD(num_orbitals=self.core._molecule_info['num_orbitals'],
                          num_particles=self.core._molecule_info['num_particles'],
                          active_occupied=None, active_unoccupied=None,
                          initial_state=init_state,

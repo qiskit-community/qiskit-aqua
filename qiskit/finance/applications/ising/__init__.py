@@ -14,9 +14,9 @@
 
 
 """
-=======================================================
 Ising Models (:mod:`qiskit.finance.applications.ising`)
 =======================================================
+
 Ising models for finance problems
 
 .. currentmodule:: qiskit.finance.applications.ising

@@ -20,14 +20,9 @@ from enum import Enum
 
 import numpy as np
 import fastdtw
-from qiskit.aqua import AquaError
+from ..exceptions import QiskitFinanceError
 
 logger = logging.getLogger(__name__)
-
-
-class QiskitFinanceError(AquaError):
-    """ Qiskit Finance Error """
-    pass
 
 
 # Note: Not all DataProviders support all stock markets.

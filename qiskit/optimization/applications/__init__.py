@@ -13,8 +13,8 @@
 # that they have been altered from the originals.
 
 """
-Optimization applications (:mod:`qiskit.aqua.applications`)
-===========================================================
+Optimization applications (:mod:`qiskit.optimization.applications`)
+===================================================================
 
 .. currentmodule:: qiskit.optimization.applications
 
