@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,83 +12,40 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""
-The European Call Option Expected Value.
-"""
+"""The European Call Option Expected Value."""
 
+from typing import Optional, Union, List
 import numpy as np
+from qiskit.circuit.library import IntegerComparator
+from qiskit.aqua.components.uncertainty_models import UnivariateDistribution
 from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
-from qiskit.aqua.circuits.fixed_value_comparator import FixedValueComparator
-
-# pylint: disable=invalid-name
 
 
 class EuropeanCallExpectedValue(UncertaintyProblem):
-    """
-    The European Call Option Expected Value.
+    """The European Call Option Expected Value.
 
     Evaluates the expected payoff for a European call option given an uncertainty model.
     The payoff function is f(S, K) = max(0, S - K) for a spot price S and strike price K.
     """
 
-    CONFIGURATION = {
-        'name': 'EuropeanCallExpectedValue',
-        'description': 'European Call Expected Value',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'ECEV_schema',
-            'type': 'object',
-            'properties': {
-                'strike_price': {
-                    'type': 'number',
-                    'default': 0
-                },
-                'c_approx': {
-                    'type': 'number',
-                    'default': 0.5
-                },
-                'i_state': {
-                    'type': ['array', 'null'],
-                    'items': {
-                        'type': 'integer'
-                    },
-                    'default': None
-                },
-                'i_compare': {
-                    'type': ['integer', 'null'],
-                    'default': None
-                },
-                'i_objective': {
-                    'type': ['integer', 'null'],
-                    'default': None
-                }
-            },
-            'additionalProperties': False
-        },
-        'depends': [
-            {
-                'pluggable_type': 'univariate_distribution',
-                'default': {
-                    'name': 'NormalDistribution'
-                }
-            },
-        ],
-    }
-
-    def __init__(self, uncertainty_model, strike_price, c_approx, i_state=None,
-                 i_compare=None, i_objective=None):
+    def __init__(self,
+                 uncertainty_model: UnivariateDistribution,
+                 strike_price: float,
+                 c_approx: float,
+                 i_state: Optional[Union[List[int], np.ndarray]] = None,
+                 i_compare: Optional[int] = None,
+                 i_objective: Optional[int] = None) -> None:
         """
         Constructor.
 
         Args:
-            uncertainty_model (UnivariateDistribution): uncertainty model for spot price
-            strike_price (float): strike price of the European option
-            c_approx (float): approximation factor for linear payoff
-            i_state (Optional(Union(list, numpy.ndarray))): indices of qubits
-                                                            representing the uncertainty
-            i_compare (Optional(int)): index of qubit for comparing spot price to strike price
+            uncertainty_model: uncertainty model for spot price
+            strike_price: strike price of the European option
+            c_approx: approximation factor for linear payoff
+            i_state: indices of qubits representing the uncertainty
+            i_compare: index of qubit for comparing spot price to strike price
                             (enabling payoff or not)
-            i_objective (Optional(int)): index of qubit for objective function
+            i_objective: index of qubit for objective function
         """
         super().__init__(uncertainty_model.num_target_qubits + 2)
 
@@ -106,22 +63,21 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
             i_objective = uncertainty_model.num_target_qubits + 1
         self.i_objective = i_objective
 
-        super().validate(locals())
-
         # map strike price to {0, ..., 2^n-1}
-        lb = uncertainty_model.low
-        ub = uncertainty_model.high
-        self._mapped_strike_price = int(np.round((strike_price - lb) /
-                                                 (ub - lb) * (uncertainty_model.num_values - 1)))
+        lower = uncertainty_model.low
+        upper = uncertainty_model.high
+        self._mapped_strike_price = int(np.round((strike_price - lower) /
+                                                 (upper - lower) *
+                                                 (uncertainty_model.num_values - 1)))
 
         # create comparator
-        self._comparator = FixedValueComparator(uncertainty_model.num_target_qubits,
-                                                self._mapped_strike_price)
+        self._comparator = IntegerComparator(uncertainty_model.num_target_qubits,
+                                             self._mapped_strike_price)
 
         self.offset_angle_zero = np.pi / 4 * (1 - self._c_approx)
         if self._mapped_strike_price < uncertainty_model.num_values - 1:
             self.offset_angle = -1 * np.pi / 2 * self._c_approx * self._mapped_strike_price / \
-                        (uncertainty_model.num_values - self._mapped_strike_price - 1)
+                (uncertainty_model.num_values - self._mapped_strike_price - 1)
             self.slope_angle = np.pi / 2 * self._c_approx / \
                 (uncertainty_model.num_values - self._mapped_strike_price - 1)
         else:
@@ -138,7 +94,7 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
 
     def required_ancillas(self):
         num_uncertainty_ancillas = self._uncertainty_model.required_ancillas()
-        num_comparator_ancillas = self._comparator.required_ancillas()
+        num_comparator_ancillas = self._comparator.num_ancilla_qubits
         num_ancillas = int(np.maximum(num_uncertainty_ancillas, num_comparator_ancillas))
         return num_ancillas
 
@@ -153,10 +109,13 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
         self._uncertainty_model.build(qc, q_state, q_ancillas)
 
         # apply comparator to compare qubit
-        self._comparator.build(qc, q_state + [q_compare], q_ancillas)
+        qubits = q_state[:] + [q_compare]
+        if q_ancillas:
+            qubits += q_ancillas[:self._comparator.num_ancilla_qubits]
+        qc.append(self._comparator.to_instruction(), qubits)
 
         # apply approximate payoff function
         qc.ry(2 * self.offset_angle_zero, q_objective)
         qc.cry(2 * self.offset_angle, q_compare, q_objective)
-        for i, qi in enumerate(q_state):
-            qc.mcry(2 * self.slope_angle * 2 ** i, [q_compare, qi], q_objective, None)
+        for i, q_i in enumerate(q_state):
+            qc.mcry(2 * self.slope_angle * 2 ** i, [q_compare, q_i], q_objective, None)

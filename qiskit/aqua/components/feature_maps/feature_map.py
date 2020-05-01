@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -17,33 +17,23 @@ This module contains the definition of a base class for
 feature map. Several types of commonly used approaches.
 """
 
-from abc import abstractmethod
-from qiskit.aqua import Pluggable
+from abc import ABC, abstractmethod
 from qiskit.aqua.utils import get_entangler_map, validate_entangler_map
 
 
-class FeatureMap(Pluggable):
-
+class FeatureMap(ABC):
     """Base class for FeatureMap.
 
-        This method should initialize the module and its configuration, and
-        use an exception if a component of the module is
-        available.
+    This method should initialize the module and
+    use an exception if a component of the module is not
+    available.
     """
 
     @abstractmethod
-    def __init__(self):
-        super().__init__()
+    def __init__(self) -> None:
         self._num_qubits = 0
         self._feature_dimension = 0
         self._support_parameterized_circuit = False
-
-    @classmethod
-    def init_params(cls, params):
-        """ init params """
-        feat_map__params = params.get(Pluggable.SECTION_KEY_FEATURE_MAP)
-        args = {k: v for k, v in feat_map__params.items() if k != 'name'}
-        return cls(**args)
 
     @abstractmethod
     def construct_circuit(self, x, qr=None, inverse=False):

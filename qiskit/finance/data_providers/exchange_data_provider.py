@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,70 +12,41 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" exchange data provider """
+""" Exchange data provider. """
 
+from typing import Union, List
 import datetime
 import importlib
 import logging
 
-from qiskit.finance.data_providers import (BaseDataProvider, DataType,
-                                           StockMarket, QiskitFinanceError)
+from ._base_data_provider import BaseDataProvider, StockMarket
+from ..exceptions import QiskitFinanceError
 
 logger = logging.getLogger(__name__)
 
 
 class ExchangeDataProvider(BaseDataProvider):
-    """Python implementation of an Exchange Data provider.
+    """Exchange data provider.
+
     Please see:
-    https://github.com/Qiskit/qiskit-tutorials/qiskit/finance/data_providers/time_series.ipynb
+    https://github.com/Qiskit/qiskit-tutorials/blob/stable/0.14.x/qiskit/advanced/aqua/finance/data_providers/time_series.ipynb
     for instructions on use, which involve obtaining a Quandl access token.
     """
 
-    CONFIGURATION = {
-        "name": "EDI",
-        "description": "Exchange Data International Data Provider",
-        "input_schema": {
-            "$schema": "http://json-schema.org/draft-07/schema#",
-            "id": "edi_schema",
-            "type": "object",
-            "properties": {
-                "stockmarket": {
-                    "type":
-                    "string",
-                    "default": StockMarket.LONDON.value,
-                    "enum": [
-                        StockMarket.LONDON.value,
-                        StockMarket.EURONEXT.value,
-                        StockMarket.SINGAPORE.value,
-                    ]
-                },
-                "datatype": {
-                    "type":
-                    "string",
-                    "default": DataType.DAILYADJUSTED.value,
-                    "enum": [
-                        DataType.DAILYADJUSTED.value,
-                        DataType.DAILY.value,
-                    ]
-                },
-            },
-        }
-    }
-
     def __init__(self,
-                 token,
-                 tickers,
-                 stockmarket=StockMarket.LONDON,
-                 start=datetime.datetime(2016, 1, 1),
-                 end=datetime.datetime(2016, 1, 30)):
+                 token: str,
+                 tickers: Union[str, List[str]],
+                 stockmarket: StockMarket = StockMarket.LONDON,
+                 start: datetime = datetime.datetime(2016, 1, 1),
+                 end: datetime = datetime.datetime(2016, 1, 30)) -> None:
         """
         Initializer
         Args:
-            token (str): quandl access token
-            tickers (str or list): tickers
-            stockmarket (StockMarket): LONDON, EURONEXT, or SINGAPORE
-            start (datetime): first data point
-            end (datetime): last data point precedes this date
+            token: quandl access token
+            tickers: tickers
+            stockmarket: LONDON, EURONEXT, or SINGAPORE
+            start: first data point
+            end: last data point precedes this date
         Raises:
             QiskitFinanceError: provider doesn't support stock market
         """
@@ -102,10 +73,8 @@ class ExchangeDataProvider(BaseDataProvider):
         self._start = start
         self._end = end
 
-        # self.validate(locals())
-
     @staticmethod
-    def check_provider_valid():
+    def _check_provider_valid():
         """ check if provider is valid """
         err_msg = 'quandl is not installed.'
         try:
@@ -118,37 +87,12 @@ class ExchangeDataProvider(BaseDataProvider):
 
         raise QiskitFinanceError(err_msg)
 
-    @classmethod
-    def init_from_input(cls, section):
-        """
-        Initialize via section dictionary.
-
-        Args:
-            section (dict): section dictionary
-
-        Returns:
-            DataProvider: provider object
-        Raises:
-            QiskitFinanceError: invalid section
-        """
-        if section is None or not isinstance(section, dict):
-            raise QiskitFinanceError(
-                'Invalid or missing section {}'.format(section))
-
-        # params = section
-        kwargs = {}
-        # for k, v in params.items():
-        #    if k == ExchangeDataProvider. ...: v = UnitsType(v)
-        #    kwargs[k] = v
-        logger.debug('init_from_input: %s', kwargs)
-        return cls(**kwargs)
-
     def run(self):
         """
         Loads data, thus enabling get_similarity_matrix and get_covariance_matrix
         methods in the base class.
         """
-        self.check_provider_valid()
+        self._check_provider_valid()
         import quandl  # pylint: disable=import-outside-toplevel
         self._data = []
         quandl.ApiConfig.api_key = self._token

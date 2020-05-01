@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -14,19 +14,17 @@
 
 """ Test Exact Cover """
 
+import unittest
 import json
-from test.optimization.common import QiskitOptimizationTestCase
-import warnings
+from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 from qiskit import BasicAer
-
-from qiskit.aqua import run_algorithm, aqua_globals, QuantumInstance
-from qiskit.aqua.input import EnergyInput
-from qiskit.optimization.ising import exact_cover
-from qiskit.optimization.ising.common import sample_most_likely
-from qiskit.aqua.algorithms import ExactEigensolver, VQE
+from qiskit.circuit.library import EfficientSU2
+from qiskit.aqua import aqua_globals, QuantumInstance
+from qiskit.optimization.applications.ising import exact_cover
+from qiskit.optimization.applications.ising.common import sample_most_likely
+from qiskit.aqua.algorithms import NumPyMinimumEigensolver, VQE
 from qiskit.aqua.components.optimizers import COBYLA
-from qiskit.aqua.components.variational_forms import RYRZ
 
 
 class TestExactCover(QiskitOptimizationTestCase):
@@ -34,9 +32,7 @@ class TestExactCover(QiskitOptimizationTestCase):
 
     def setUp(self):
         super().setUp()
-        warnings.filterwarnings("ignore", message=aqua_globals.CONFIG_DEPRECATION_MSG,
-                                category=DeprecationWarning)
-        input_file = self._get_resource_path('sample.exactcover')
+        input_file = self.get_resource_path('sample.exactcover')
         with open(input_file) as file:
             self.list_of_subsets = json.load(file)
             self.qubit_op, _ = exact_cover.get_operator(self.list_of_subsets)
@@ -50,7 +46,7 @@ class TestExactCover(QiskitOptimizationTestCase):
             return [int(digit) for digit in result]  # [2:] to chop off the "0b" part
 
         subsets = len(self.list_of_subsets)
-        maximum = 2**subsets
+        maximum = 2 ** subsets
         for i in range(maximum):
             cur = bitfield(i, subsets)
             cur_v = exact_cover.check_solution_satisfiability(cur, self.list_of_subsets)
@@ -61,23 +57,9 @@ class TestExactCover(QiskitOptimizationTestCase):
 
     def test_exact_cover(self):
         """ Exact Cover test """
-        params = {
-            'problem': {'name': 'ising'},
-            'algorithm': {'name': 'ExactEigensolver'}
-        }
-        result = run_algorithm(params, EnergyInput(self.qubit_op))
-        x = sample_most_likely(result['eigvecs'][0])
-        ising_sol = exact_cover.get_solution(x)
-        np.testing.assert_array_equal(ising_sol, [0, 1, 1, 0])
-        oracle = self._brute_force()
-        self.assertEqual(exact_cover.check_solution_satisfiability(ising_sol, self.list_of_subsets),
-                         oracle)
-
-    def test_exact_cover_direct(self):
-        """ Exact Cover Direct test """
-        algo = ExactEigensolver(self.qubit_op, k=1, aux_operators=[])
+        algo = NumPyMinimumEigensolver(self.qubit_op, aux_operators=[])
         result = algo.run()
-        x = sample_most_likely(result['eigvecs'][0])
+        x = sample_most_likely(result.eigenstate)
         ising_sol = exact_cover.get_solution(x)
         np.testing.assert_array_equal(ising_sol, [0, 1, 1, 0])
         oracle = self._brute_force()
@@ -88,14 +70,18 @@ class TestExactCover(QiskitOptimizationTestCase):
         """ Exact Cover VQE test """
         aqua_globals.random_seed = 10598
         result = VQE(self.qubit_op,
-                     RYRZ(self.qubit_op.num_qubits, depth=5),
+                     EfficientSU2(self.qubit_op.num_qubits, reps=5),
                      COBYLA(),
                      max_evals_grouped=2).run(
                          QuantumInstance(BasicAer.get_backend('statevector_simulator'),
                                          seed_simulator=aqua_globals.random_seed,
                                          seed_transpiler=aqua_globals.random_seed))
-        x = sample_most_likely(result['eigvecs'][0])
+        x = sample_most_likely(result.eigenstate)
         ising_sol = exact_cover.get_solution(x)
         oracle = self._brute_force()
         self.assertEqual(exact_cover.check_solution_satisfiability(ising_sol, self.list_of_subsets),
                          oracle)
+
+
+if __name__ == '__main__':
+    unittest.main()

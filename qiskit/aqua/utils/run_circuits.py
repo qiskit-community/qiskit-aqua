@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -26,11 +26,13 @@ from qiskit.providers import BaseBackend, JobStatus, JobError
 from qiskit.providers.jobstatus import JOB_FINAL_STATES
 from qiskit.providers.basicaer import BasicAerJob
 from qiskit.qobj import QasmQobj
+from qiskit.exceptions import QiskitError
 from qiskit.aqua.aqua_error import AquaError
 from qiskit.aqua.utils.backend_utils import (is_aer_provider,
                                              is_basicaer_provider,
                                              is_simulator_backend,
-                                             is_local_backend)
+                                             is_local_backend,
+                                             is_ibmq_provider)
 
 MAX_CIRCUITS_PER_JOB = os.environ.get('QISKIT_AQUA_MAX_CIRCUITS_PER_JOB', None)
 MAX_GATES_PER_JOB = os.environ.get('QISKIT_AQUA_MAX_GATES_PER_JOB', None)
@@ -134,15 +136,24 @@ def _maybe_split_qobj_by_gates(qobjs, qobj):
 def _safe_submit_qobj(qobj, backend, backend_options, noise_config, skip_qobj_validation):
     # assure get job ids
     while True:
-        job = run_on_backend(backend, qobj, backend_options=backend_options,
-                             noise_config=noise_config,
-                             skip_qobj_validation=skip_qobj_validation)
         try:
+            job = run_on_backend(backend, qobj, backend_options=backend_options,
+                                 noise_config=noise_config,
+                                 skip_qobj_validation=skip_qobj_validation)
             job_id = job.job_id()
             break
-        except JobError as ex:
-            logger.warning("FAILURE: Can not get job id, Resubmit the qobj to get job id."
+        except QiskitError as ex:
+            logger.warning("FAILURE: Can not get job id, Resubmit the qobj to get job id. "
                            "Terra job error: %s ", ex)
+            if is_ibmq_provider(backend) and 'Error code: 3458' in str(ex):
+                # TODO Use IBMQBackendJobLimitError when new IBM Q provider is released.
+                oldest_running = backend.jobs(limit=1, descending=False,
+                                              status=['QUEUED', 'VALIDATING', 'RUNNING'])
+                if oldest_running:
+                    oldest_running = oldest_running[0]
+                    logger.warning("Job limit reached, waiting for job %s to finish "
+                                   "before submitting the next one.", oldest_running.job_id())
+                    oldest_running.wait_for_final_state(timeout=300)
         except Exception as ex:  # pylint: disable=broad-except
             logger.warning("FAILURE: Can not get job id, Resubmit the qobj to get job id."
                            "Error: %s ", ex)
@@ -291,6 +302,20 @@ def run_qobj(qobj, backend, qjob_config=None, backend_options=None,
             results.append(job.result(**qjob_config))
 
     result = _combine_result_objects(results) if results else None
+
+    # If result was not successful then raise an exception with either the status msg or
+    # extra information if this was an Aer partial result return
+    if not result.success:
+        msg = result.status
+        if result.status == 'PARTIAL COMPLETED':
+            # Aer can return partial results which Aqua algorithms cannot process and signals
+            # using partial completed status where each returned result has a success and status.
+            # We use the status from the first result that was not successful
+            for res in result.results:
+                if not res.success:
+                    msg += ', ' + res.status
+                    break
+        raise AquaError('Circuit execution failed: {}'.format(msg))
 
     return result
 

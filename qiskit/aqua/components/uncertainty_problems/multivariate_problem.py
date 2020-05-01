@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -16,8 +16,12 @@
 Multivariate Uncertainty Problem.
 """
 
+from typing import Optional, Union, List, Tuple
 import numpy as np
+from qiskit.aqua.utils import CircuitFactory
 from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
+from qiskit.aqua.components.uncertainty_models import MultivariateDistribution
+from .univariate_piecewise_linear_objective import UnivariatePiecewiseLinearObjective
 
 
 class MultivariateProblem(UncertaintyProblem):
@@ -27,20 +31,20 @@ class MultivariateProblem(UncertaintyProblem):
     """
 
     def __init__(self,
-                 uncertainty_model,
-                 aggregation_function,
-                 univariate_objective,
-                 conditions=None):
+                 uncertainty_model: MultivariateDistribution,
+                 aggregation_function: CircuitFactory,
+                 univariate_objective: UnivariatePiecewiseLinearObjective,
+                 conditions:
+                 Optional[Union[List[Tuple[int, CircuitFactory]], np.ndarray]] = None) -> None:
         """
         Constructor.
 
         Args:
-            uncertainty_model (MultivariateDistribution): multivariate uncertainty model
-            aggregation_function (CircuitFactory): aggregation function that maps
-            the multiple dimension to an aggregated value
-            univariate_objective (UnivariatePiecewiseLinearObjective): objective
-            function applied to the aggregated value
-            conditions (Union(list, numpy.ndarray)): list of pairs (int, CircuitFactory) =
+            uncertainty_model: multivariate uncertainty model
+            aggregation_function: aggregation function that maps
+                        the multiple dimension to an aggregated value
+            univariate_objective: objective function applied to the aggregated value
+            conditions: list of pairs (int, CircuitFactory) =
                 target dimension of uncertainty model and condition to be satisfied
                 to apply the aggregation
         """
@@ -71,7 +75,7 @@ class MultivariateProblem(UncertaintyProblem):
         num_condition_target_ancillas = 0
         num_aggregation_ancillas = self._aggregation_function.required_ancillas()
         if self._conditions is not None:
-            num_condition_target_ancillas = len(self._conditions) + 1*(len(self._conditions) > 1)
+            num_condition_target_ancillas = len(self._conditions) + 1 * (len(self._conditions) > 1)
             num_aggregation_ancillas = self._aggregation_function.required_ancillas_controlled()
         if self._conditions is not None:
             for _, condition in self._conditions:
@@ -111,7 +115,7 @@ class MultivariateProblem(UncertaintyProblem):
         # set condition target qubits
         if self._conditions:
             i_cond_start = num_agg_qubits
-            i_cond_end = i_cond_start + len(self._conditions) + 1*(len(self._conditions) > 1)
+            i_cond_end = i_cond_start + len(self._conditions) + 1 * (len(self._conditions) > 1)
             q_cond_target = [q_ancillas[i] for i in range(i_cond_start, i_cond_end)]
 
             # set remaining ancillas

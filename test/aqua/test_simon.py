@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -17,9 +17,9 @@
 import unittest
 import math
 import itertools
-from test.aqua.common import QiskitAquaTestCase
+from test.aqua import QiskitAquaTestCase
 import numpy as np
-from parameterized import parameterized
+from ddt import ddt, idata, unpack
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.components.oracles import TruthTableOracle
 from qiskit.aqua.algorithms import Simon
@@ -35,11 +35,11 @@ OPTIMIZATIONS = [True, False]
 SIMULATORS = ['statevector_simulator', 'qasm_simulator']
 
 
+@ddt
 class TestSimon(QiskitAquaTestCase):
     """ Test Simon """
-    @parameterized.expand(
-        itertools.product(BITMAPS, MCT_MODES, OPTIMIZATIONS, SIMULATORS)
-    )
+    @idata(itertools.product(BITMAPS, MCT_MODES, OPTIMIZATIONS, SIMULATORS))
+    @unpack
     def test_simon(self, simon_input, mct_mode, optimization, simulator):
         """ Simon test """
         # find the two keys that have matching values
