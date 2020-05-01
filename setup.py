@@ -22,17 +22,16 @@ long_description = """<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Aqua
  Researchers can experiment with Aqua algorithms, on near-term quantum devices and simulators,
  and can also get involved by contributing new algorithms and algorithm-supporting objects,
  such as optimizers and variational forms.
- Qiskit Aqua also contains application domain support in the form of Qiskit Chemistry,
- Qiskit Finance, Qiskit Machine Learning and Qiskit Optimization to experiment with real-world applications to quantum computing."""
+ Qiskit Aqua also contains application domain support in the form of the chemistry, finance,
+ machine learning and optimization modules to experiment with real-world applications to quantum computing."""
 
 requirements = [
-    "qiskit-terra>=0.11.0",
+    "qiskit-terra>=0.14.0",
     "qiskit-ignis>=0.2.0",
     "scipy>=1.0",
     "sympy>=1.3",
     "numpy>=1.13",
     "psutil>=5",
-    "jsonschema>=2.6",
     "scikit-learn>=0.20.0",
     "dlx",
     "docplex",
@@ -41,7 +40,8 @@ requirements = [
     "setuptools>=40.1.0",
     "h5py",
     "networkx>=2.2",
-    "pyscf; sys_platform == 'linux' or (python_version < '3.8' and sys_platform != 'win32')",
+    "pyscf; sys_platform != 'win32'",
+    "cplex; python_version >= '3.6' and python_version < '3.8'",
 ]
 
 if not hasattr(setuptools, 'find_namespace_packages') or not inspect.ismethod(setuptools.find_namespace_packages):

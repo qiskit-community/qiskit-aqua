@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -16,7 +16,7 @@
 
 import unittest
 
-from test.chemistry.common import QiskitChemistryTestCase
+from test.chemistry import QiskitChemistryTestCase
 from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
@@ -46,6 +46,8 @@ class TestCoreHamiltonian(QiskitChemistryTestCase):
     def _validate_info(self, core, num_particles=None,
                        num_orbitals=4, actual_two_qubit_reduction=False):
         num_particles = num_particles if num_particles is not None else [1, 1]
+        z2symmetries = core.molecule_info.pop('z2symmetries')
+        self.assertEqual(z2symmetries.is_empty(), True)
         self.assertEqual(core.molecule_info, {'num_particles': num_particles,
                                               'num_orbitals': num_orbitals,
                                               'two_qubit_reduction': actual_two_qubit_reduction})

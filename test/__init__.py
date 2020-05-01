@@ -14,14 +14,6 @@
 
 """ test packages """
 
-import warnings
+from .base_test_case import QiskitBaseTestCase
 
-# disable deprecation warnings that can cause log output overflow
-# pylint: disable=unused-argument
-
-
-def _noop(*args, **kargs):
-    pass
-
-
-# warnings.warn = _noop
+__all__ = ['QiskitBaseTestCase']

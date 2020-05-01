@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -16,10 +16,10 @@
 The Multivariate Log-Normal Distribution.
 """
 
+from typing import Optional, List, Union
 import numpy as np
 from scipy.stats import multivariate_normal
-from qiskit.aqua.components.uncertainty_models.multivariate_distribution \
-    import MultivariateDistribution
+from .multivariate_distribution import MultivariateDistribution
 
 
 class MultivariateLogNormalDistribution(MultivariateDistribution):
@@ -27,64 +27,20 @@ class MultivariateLogNormalDistribution(MultivariateDistribution):
     The Multivariate Log-Normal Distribution.
     """
 
-    CONFIGURATION = {
-        'name': 'MultivariateLogNormalDistribution',
-        'description': 'Multivariate Log-Normal Distribution',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'MultivariateLogNormalDistribution_schema',
-            'type': 'object',
-            'properties': {
-                'num_qubits': {
-                    'type': 'array',
-                    "items": {
-                        "type": "number"
-                    },
-                    'default': [2, 2]
-                },
-                'low': {
-                    'type': ['array', 'null'],
-                    "items": {
-                        "type": "number"
-                    },
-                    'default': None
-                },
-                'high': {
-                    'type': ['array', 'null'],
-                    "items": {
-                        "type": "number"
-                    },
-                    'default': None
-                },
-                'mu': {
-                    'type': ['array', 'null'],
-                    "items": {
-                        "type": "number"
-                    },
-                    'default': None
-                },
-                'cov': {
-                    'type': ['array', 'null'],
-                    'default': None
-                },
-            },
-            'additionalProperties': False
-        }
-    }
-
     # pylint: disable=invalid-name
-    def __init__(self, num_qubits, low=None, high=None, mu=None, cov=None):
+    def __init__(self,
+                 num_qubits: Union[List[int], np.ndarray],
+                 low: Optional[Union[List[float], np.ndarray]] = None,
+                 high: Optional[Union[List[float], np.ndarray]] = None,
+                 mu: Optional[Union[List[float], np.ndarray]] = None,
+                 cov: Optional[Union[List[float], np.ndarray]] = None) -> None:
         """
-        Constructor.
-
-        Circuit Factory to build a circuit that represents a multivariate log-normal distribution.
-
         Args:
-            num_qubits (Union(list, numpy.ndarray)): representing number of qubits per dimension
-            low (Union(list, numpy.ndarray)): representing lower bounds per dimension
-            high (Union(list, numpy.ndarray)): representing upper bounds per dimension
-            mu (Union(list, numpy.ndarray)): representing expected values
-            cov (Union(list, numpy.ndarray)): representing co-variance matrix
+            num_qubits: Number of qubits per dimension
+            low: Lower bounds per dimension
+            high: Upper bounds per dimension
+            mu: Expected values
+            cov: Co-variance matrix
         """
 
         dimension = len(num_qubits)

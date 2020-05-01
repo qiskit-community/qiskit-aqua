@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,18 +12,17 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Text Vertex Cover """
+""" Test Vertex Cover """
 
-from test.optimization.common import QiskitOptimizationTestCase
-import warnings
+import unittest
+from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 from qiskit import BasicAer
 
-from qiskit.aqua import run_algorithm, aqua_globals, QuantumInstance
-from qiskit.aqua.input import EnergyInput
-from qiskit.optimization.ising import vertex_cover
-from qiskit.optimization.ising.common import random_graph, sample_most_likely
-from qiskit.aqua.algorithms import ExactEigensolver, VQE
+from qiskit.aqua import aqua_globals, QuantumInstance
+from qiskit.optimization.applications.ising import vertex_cover
+from qiskit.optimization.applications.ising.common import random_graph, sample_most_likely
+from qiskit.aqua.algorithms import NumPyMinimumEigensolver, VQE
 from qiskit.aqua.components.variational_forms import RYRZ
 from qiskit.aqua.components.optimizers import SPSA
 
@@ -33,8 +32,6 @@ class TestVertexCover(QiskitOptimizationTestCase):
 
     def setUp(self):
         super().setUp()
-        warnings.filterwarnings("ignore", message=aqua_globals.CONFIG_DEPRECATION_MSG,
-                                category=DeprecationWarning)
         self.seed = 100
         aqua_globals.random_seed = self.seed
         self.num_nodes = 3
@@ -48,7 +45,7 @@ class TestVertexCover(QiskitOptimizationTestCase):
             return [int(digit) for digit in result]  # [2:] to chop off the "0b" part
 
         nodes = self.num_nodes
-        maximum = 2**nodes
+        maximum = 2 ** nodes
         minimal_v = np.inf
         for i in range(maximum):
             cur = bitfield(i, nodes)
@@ -62,24 +59,10 @@ class TestVertexCover(QiskitOptimizationTestCase):
         return minimal_v
 
     def test_vertex_cover(self):
-        """ Vertex cover test """
-        params = {
-            'problem': {'name': 'ising'},
-            'algorithm': {'name': 'ExactEigensolver'}
-        }
-        result = run_algorithm(params, EnergyInput(self.qubit_op))
-
-        x = sample_most_likely(result['eigvecs'][0])
-        sol = vertex_cover.get_graph_solution(x)
-        np.testing.assert_array_equal(sol, [0, 1, 1])
-        oracle = self._brute_force()
-        self.assertEqual(np.count_nonzero(sol), oracle)
-
-    def test_vertex_cover_direct(self):
-        """ Vertex Cover Direct test """
-        algo = ExactEigensolver(self.qubit_op, k=1, aux_operators=[])
+        """ Vertex Cover test """
+        algo = NumPyMinimumEigensolver(self.qubit_op, aux_operators=[])
         result = algo.run()
-        x = sample_most_likely(result['eigvecs'][0])
+        x = sample_most_likely(result.eigenstate)
         sol = vertex_cover.get_graph_solution(x)
         np.testing.assert_array_equal(sol, [0, 1, 1])
         oracle = self._brute_force()
@@ -101,3 +84,7 @@ class TestVertexCover(QiskitOptimizationTestCase):
         sol = vertex_cover.get_graph_solution(x)
         oracle = self._brute_force()
         self.assertEqual(np.count_nonzero(sol), oracle)
+
+
+if __name__ == '__main__':
+    unittest.main()

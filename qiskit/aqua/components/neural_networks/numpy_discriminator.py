@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -22,11 +22,11 @@ https://towardsdatascience.com/lets-code-a-neural-network-in-plain-numpy-ae7e744
 import os
 import logging
 import numpy as np
-from qiskit.aqua import Pluggable
 from qiskit.aqua.components.optimizers import ADAM
 from .discriminative_network import DiscriminativeNetwork
 
 logger = logging.getLogger(__name__)
+
 
 # pylint: disable=invalid-name
 
@@ -42,6 +42,7 @@ class DiscriminatorNet():
     def __init__(self, n_features=1, n_out=1):
         """
         Initialize the discriminator network.
+
         Args:
             n_features (int): Dimension of input data samples.
             n_out (int): output dimension
@@ -72,6 +73,7 @@ class DiscriminatorNet():
     def forward(self, x):
         """
         Forward propagation.
+
         Args:
             x (numpy.ndarray): , Discriminator input, i.e. data sample.
 
@@ -124,6 +126,7 @@ class DiscriminatorNet():
     def backward(self, x, y, weights=None):
         """
         Backward propagation.
+
         Args:
            x (numpy.ndarray): sample label (equivalent to discriminator output)
            y (numpy.ndarray): array, target label
@@ -165,12 +168,13 @@ class DiscriminatorNet():
         m = y.shape[1]
         y = y.reshape(np.shape(x))
         if weights is not None:
-            da_prev = - np.multiply(weights,
-                                    np.divide(y, np.maximum(np.ones(np.shape(x))*1e-4, x)) -
-                                    np.divide(1 - y, np.maximum(np.ones(np.shape(x))*1e-4, 1 - x)))
+            da_prev = - np.multiply(
+                weights,
+                np.divide(y, np.maximum(np.ones(np.shape(x)) * 1e-4, x))
+                - np.divide(1 - y, np.maximum(np.ones(np.shape(x)) * 1e-4, 1 - x)))
         else:
-            da_prev = - (np.divide(y, np.maximum(np.ones(np.shape(x))*1e-4, x)) -
-                         np.divide(1 - y, np.maximum(np.ones(np.shape(x))*1e-4, 1 - x))) / m
+            da_prev = - (np.divide(y, np.maximum(np.ones(np.shape(x)) * 1e-4, x))
+                         - np.divide(1 - y, np.maximum(np.ones(np.shape(x)) * 1e-4, 1 - x))) / m
 
         pointer = 0
 
@@ -202,38 +206,16 @@ class DiscriminatorNet():
         return grads_values
 
 
-class NumpyDiscriminator(DiscriminativeNetwork):
+class NumPyDiscriminator(DiscriminativeNetwork):
     """
-        Discriminator
+    Discriminator based on NumPy
     """
-    CONFIGURATION = {
-        'name': 'NumpyDiscriminator',
-        'description': 'qGAN Discriminator Network',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'discriminator_schema',
-            'type': 'object',
-            'properties': {
-                'n_features': {
-                    'type': 'integer',
-                    'default': 1
-                },
-                'n_out': {
-                    'type': 'integer',
-                    'default': 1
-                }
 
-            },
-            'additionalProperties': False
-        }
-    }
-
-    def __init__(self, n_features=1, n_out=1):
+    def __init__(self, n_features: int = 1, n_out: int = 1) -> None:
         """
-        Initialize the discriminator.
         Args:
-            n_features (int): Dimension of input data vector.
-            n_out (int): Dimension of the discriminator's output vector.
+            n_features: Dimension of input data vector.
+            n_out: Dimension of the discriminator's output vector.
         """
         super().__init__()
         self._n_features = n_features
@@ -244,14 +226,6 @@ class NumpyDiscriminator(DiscriminativeNetwork):
                                eps=1e-6, amsgrad=True)
 
         self._ret = {}
-
-    @classmethod
-    def get_section_key_name(cls):
-        return Pluggable.SECTION_KEY_DISCRIMINATIVE_NET
-
-    @staticmethod
-    def check_pluggable_valid():
-        return
 
     def set_seed(self, seed):
         """
@@ -264,6 +238,7 @@ class NumpyDiscriminator(DiscriminativeNetwork):
     def save_model(self, snapshot_dir):
         """
         Save discriminator model
+
         Args:
             snapshot_dir (str): directory path for saving the model
         """
@@ -278,7 +253,8 @@ class NumpyDiscriminator(DiscriminativeNetwork):
 
     def load_model(self, load_dir):
         """
-        Save discriminator model
+        Load discriminator model
+
         Args:
             load_dir (str): file with stored pytorch discriminator model to be loaded
         """
@@ -294,6 +270,7 @@ class NumpyDiscriminator(DiscriminativeNetwork):
     def discriminator_net(self):
         """
         Get discriminator
+
         Returns:
             DiscriminatorNet: discriminator object
         """
@@ -306,54 +283,54 @@ class NumpyDiscriminator(DiscriminativeNetwork):
     def get_label(self, x, detach=False):  # pylint: disable=arguments-differ,unused-argument
         """
         Get data sample labels, i.e. true or fake.
+
         Args:
             x (numpy.ndarray): Discriminator input, i.e. data sample.
             detach (bool): depreciated for numpy network
 
         Returns:
             numpy.ndarray: Discriminator output, i.e. data label
-
         """
 
         return self._discriminator.forward(x)
 
     def loss(self, x, y, weights=None):
         """
-       Loss function
-       Args:
-           x (numpy.ndarray): sample label (equivalent to discriminator output)
-           y (numpy.ndarray): target label
-           weights(numpy.ndarray): customized scaling for each sample (optional)
+        Loss function
+        Args:
+            x (numpy.ndarray): sample label (equivalent to discriminator output)
+            y (numpy.ndarray): target label
+            weights(numpy.ndarray): customized scaling for each sample (optional)
 
-       Returns:
-           float:
-               loss function
+        Returns:
+            float: loss function
        """
         if weights is not None:
             # Use weights as scaling factors for the samples and compute the sum
             return (-1) * np.dot(np.multiply(y,
-                                             np.log(np.maximum(np.ones(np.shape(x)) * 1e-4, x))) +
-                                 np.multiply(np.ones(np.shape(y))-y,
-                                             np.log(np.maximum(np.ones(np.shape(x))*1e-4,
-                                                               np.ones(np.shape(x))-x))), weights)
+                                             np.log(np.maximum(np.ones(np.shape(x)) * 1e-4, x)))
+                                 + np.multiply(np.ones(np.shape(y)) - y,
+                                               np.log(np.maximum(np.ones(np.shape(x)) * 1e-4,
+                                                                 np.ones(np.shape(x)) - x))),
+                                 weights)
         else:
             # Compute the mean
             return (-1) * np.mean(np.multiply(y,
-                                              np.log(np.maximum(np.ones(np.shape(x)) * 1e-4, x))) +
-                                  np.multiply(np.ones(np.shape(y))-y,
-                                              np.log(np.maximum(np.ones(np.shape(x))*1e-4,
-                                                                np.ones(np.shape(x))-x))))
+                                              np.log(np.maximum(np.ones(np.shape(x)) * 1e-4, x)))
+                                  + np.multiply(np.ones(np.shape(y)) - y,
+                                                np.log(np.maximum(np.ones(np.shape(x)) * 1e-4,
+                                                                  np.ones(np.shape(x)) - x))))
 
     def _get_objective_function(self, data, weights):
         """
         Get the objective function
+
         Args:
             data (tuple): training and generated data
             weights (numpy.ndarray): weights corresponding to training resp. generated data
 
         Returns:
             objective_function: objective function for the optimization
-
         """
         real_batch = data[0]
         real_prob = weights[0]
@@ -368,20 +345,20 @@ class NumpyDiscriminator(DiscriminativeNetwork):
             prediction_fake = self.get_label(generated_batch)
             loss_fake = self.loss(prediction_fake,
                                   np.zeros(np.shape(prediction_fake)), generated_prob)
-            return 0.5*(loss_real[0]+loss_fake[0])
+            return 0.5 * (loss_real[0] + loss_fake[0])
 
         return objective_function
 
     def _get_gradient_function(self, data, weights):
         """
         Get the gradient function
+
         Args:
             data (tuple): training and generated data
             weights (numpy.ndarray): weights corresponding to training resp. generated data
 
         Returns:
             gradient_function: Gradient function for the optimization
-
         """
         real_batch = data[0]
         real_prob = weights[0]
@@ -397,11 +374,13 @@ class NumpyDiscriminator(DiscriminativeNetwork):
             grad_generated = self._discriminator.backward(prediction_generated, np.zeros(
                 np.shape(prediction_generated)), generated_prob)
             return np.add(grad_real, grad_generated)
+
         return gradient_function
 
     def train(self, data, weights, penalty=False, quantum_instance=None, shots=None):
         """
         Perform one training step w.r.t to the discriminator's parameters
+
         Args:
             data (tuple(numpy.ndarray, numpy.ndarray)):
                 real_batch: array, Training data batch.
@@ -410,11 +389,10 @@ class NumpyDiscriminator(DiscriminativeNetwork):
             penalty (bool): Depreciated for classical networks.
             quantum_instance (QuantumInstance): Depreciated for classical networks.
             shots (int): Number of shots for hardware or qasm execution.
-                    Depreciated for classical networks.
+                Ignored for classical networks.
 
         Returns:
             dict: with Discriminator loss and updated parameters.
-
         """
 
         # Train on Generated Data

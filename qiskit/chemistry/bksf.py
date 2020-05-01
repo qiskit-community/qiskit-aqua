@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -90,9 +90,9 @@ def _two_body(edge_list, p, q, r, s, h2_pqrs):  # pylint: disable=invalid-name
         a_pq = -a_pq if q < p else a_pq
         a_rs = -a_rs if s < r else a_rs
 
-        qubit_op = (a_pq * a_rs) * (-id_op - b_p * b_q + b_p * b_r +
-                                    b_p * b_s + b_q * b_r + b_q * b_s -
-                                    b_r * b_s - b_p * b_q * b_r * b_s)
+        qubit_op = (a_pq * a_rs) * (-id_op - b_p * b_q + b_p * b_r
+                                    + b_p * b_s + b_q * b_r + b_q * b_s
+                                    - b_r * b_s - b_p * b_q * b_r * b_s)
         final_coeff = 0.125
 
     # Handle case of three unique indices.

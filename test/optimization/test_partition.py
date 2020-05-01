@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -14,15 +14,14 @@
 
 """ Test Partition """
 
-from test.optimization.common import QiskitOptimizationTestCase
-import warnings
+import unittest
+from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 from qiskit import BasicAer
-from qiskit.aqua import run_algorithm, aqua_globals, QuantumInstance
-from qiskit.aqua.input import EnergyInput
-from qiskit.optimization.ising import partition
-from qiskit.optimization.ising.common import read_numbers_from_file, sample_most_likely
-from qiskit.aqua.algorithms import ExactEigensolver, VQE
+from qiskit.aqua import aqua_globals, QuantumInstance
+from qiskit.optimization.applications.ising import partition
+from qiskit.optimization.applications.ising.common import read_numbers_from_file, sample_most_likely
+from qiskit.aqua.algorithms import NumPyMinimumEigensolver, VQE
 from qiskit.aqua.components.optimizers import SPSA
 from qiskit.aqua.components.variational_forms import RY
 
@@ -32,28 +31,17 @@ class TestSetPacking(QiskitOptimizationTestCase):
 
     def setUp(self):
         super().setUp()
-        warnings.filterwarnings("ignore", message=aqua_globals.CONFIG_DEPRECATION_MSG,
-                                category=DeprecationWarning)
-        input_file = self._get_resource_path('sample.partition')
+        input_file = self.get_resource_path('sample.partition')
         number_list = read_numbers_from_file(input_file)
         self.qubit_op, _ = partition.get_operator(number_list)
 
     def test_partition(self):
         """ Partition test """
-        params = {
-            'problem': {'name': 'ising'},
-            'algorithm': {'name': 'ExactEigensolver'}
-        }
-        result = run_algorithm(params, EnergyInput(self.qubit_op))
-
-        x = sample_most_likely(result['eigvecs'][0])
-        np.testing.assert_array_equal(x, [0, 1, 0])
-
-    def test_partition_direct(self):
-        """ Partition Direct test """
-        algo = ExactEigensolver(self.qubit_op, k=1, aux_operators=[])
+        algo = NumPyMinimumEigensolver(self.qubit_op, aux_operators=[])
         result = algo.run()
-        x = sample_most_likely(result['eigvecs'][0])
+        x = sample_most_likely(result.eigenstate)
+        if x[0] != 0:
+            x = np.logical_not(x) * 1
         np.testing.assert_array_equal(x, [0, 1, 0])
 
     def test_partition_vqe(self):
@@ -69,3 +57,7 @@ class TestSetPacking(QiskitOptimizationTestCase):
         x = sample_most_likely(result['eigvecs'][0])
         self.assertNotEqual(x[0], x[1])
         self.assertNotEqual(x[2], x[1])  # hardcoded oracle
+
+
+if __name__ == '__main__':
+    unittest.main()

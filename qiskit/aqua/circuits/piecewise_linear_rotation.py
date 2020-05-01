@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -14,18 +14,21 @@
 
 """Piecewise-linearly-controlled rotation."""
 
+import warnings
 import numpy as np
 
+from qiskit.circuit.library import PiecewiseLinearPauliRotations
 from qiskit.aqua.utils import CircuitFactory
-from qiskit.aqua.circuits.fixed_value_comparator import FixedValueComparator as Comparator
-from qiskit.aqua.circuits.linear_rotation import LinearRotation as LinR
 
 # pylint: disable=invalid-name
 
 
 class PiecewiseLinearRotation(CircuitFactory):
-    """
-    Piecewise-linearly-controlled rotation.
+    """*DEPRECATED.* Piecewise-linearly-controlled rotation.
+
+    .. deprecated:: 0.7.0
+       Use Terra's qiskit.circuit.library.PiecewiseLinearPauliRotations instead.
+
     For a piecewise linear (not necessarily continuous) function f(x).
     The function f(x) is defined through breakpoints, slopes and offsets as follows.
     Suppose the breakpoints { x_0, ..., x_J } are a subset of [0,  2^n-1], where
@@ -42,10 +45,6 @@ class PiecewiseLinearRotation(CircuitFactory):
     def __init__(self, breakpoints, slopes, offsets, num_state_qubits,
                  basis='Y', i_state=None, i_target=None):
         """
-        Constructor.
-
-        Construct piecewise-linearly-controlled Y-rotation.
-
         Args:
             breakpoints (Union(list, numpy.ndarray)): breakpoints to define
                                                         piecewise-linear function
@@ -59,6 +58,11 @@ class PiecewiseLinearRotation(CircuitFactory):
                             the state, set to range(num_state_qubits) if None
             i_target (Optional(int)): index of target qubit, set to num_state_qubits if None
         """
+
+        warnings.warn('The qiskit.aqua.circuits.PiecewiseLinearRotation object is deprecated and '
+                      'will be removed no earlier than 3 months after the 0.7.0 release of Qiskit '
+                      'Aqua. You should use qiskit.circuit.library.PiecewiseLinearPauliRotations '
+                      'instead.', DeprecationWarning, stacklevel=2)
 
         super().__init__(num_state_qubits + 1)
 
@@ -101,8 +105,8 @@ class PiecewiseLinearRotation(CircuitFactory):
             self.i_target = num_state_qubits
 
     def evaluate(self, x):
-        """
-        Classically evaluate the piecewise linear rotation
+        """Classically evaluate the piecewise linear rotation
+
         Args:
             x (float): value to be evaluated at
         Returns:
@@ -111,69 +115,28 @@ class PiecewiseLinearRotation(CircuitFactory):
 
         y = (x >= self.breakpoints[0]) * (x * self.mapped_slopes[0] + self.mapped_offsets[0])
         for i in range(1, len(self.breakpoints)):
-            y = y + (x >= self.breakpoints[i]) * (x * self.mapped_slopes[i] +
-                                                  self.mapped_offsets[i])
+            y = y + (x >= self.breakpoints[i]) * (x * self.mapped_slopes[i]
+                                                  + self.mapped_offsets[i])
 
         return y
 
     def required_ancillas(self):
-
+        """Return the number of required ancillas."""
         num_ancillas = self.num_state_qubits - 1 + len(self.breakpoints)
         if self.contains_zero_breakpoint:
             num_ancillas -= 1
         return num_ancillas
 
     def build(self, qc, q, q_ancillas=None, params=None):
+        """Build the circuit."""
+        pwlr = PiecewiseLinearPauliRotations(num_state_qubits=self.num_state_qubits,
+                                             breakpoints=self.breakpoints,
+                                             slopes=self.slopes,
+                                             offsets=self.offsets,
+                                             basis=self.basis).to_instruction()
 
-        # get parameters
-        i_state = self.i_state
-        i_target = self.i_target
-
-        # apply comparators and controlled linear rotations
-        for i, bp in enumerate(self.breakpoints):
-
-            if i == 0 and self.contains_zero_breakpoint:
-
-                # apply rotation
-                lin_r = LinR(self.mapped_slopes[i], self.mapped_offsets[i],
-                             self.num_state_qubits, basis=self.basis,
-                             i_state=i_state, i_target=i_target)
-                lin_r.build(qc, q)
-
-            elif self.contains_zero_breakpoint:
-
-                # apply comparator
-                comp = Comparator(self.num_state_qubits, bp)
-                q_ = [q[i] for i in range(self.num_state_qubits)]  # map register to list
-                q_ = q_ + [q_ancillas[i - 1]]  # add ancilla as compare qubit
-                # take remaining ancillas as ancilla register (list)
-                q_ancillas_ = [q_ancillas[j] for j in range(i, len(q_ancillas))]
-                comp.build(qc, q_, q_ancillas_)
-
-                # apply controlled rotation
-                lin_r = LinR(self.mapped_slopes[i], self.mapped_offsets[i],
-                             self.num_state_qubits, basis=self.basis,
-                             i_state=i_state, i_target=i_target)
-                lin_r.build_controlled(qc, q, q_ancillas[i - 1], use_basis_gates=False)
-
-                # uncompute comparator
-                comp.build_inverse(qc, q_, q_ancillas_)
-
-            else:
-
-                # apply comparator
-                comp = Comparator(self.num_state_qubits, bp)
-                q_ = [q[i] for i in range(self.num_state_qubits)]  # map register to list
-                q_ = q_ + [q_ancillas[i]]  # add ancilla as compare qubit
-                # take remaining ancillas as ancilla register (list)
-                q_ancillas_ = [q_ancillas[j] for j in range(i + 1, len(q_ancillas))]
-                comp.build(qc, q_, q_ancillas_)
-
-                # apply controlled rotation
-                lin_r = LinR(self.mapped_slopes[i],
-                             self.mapped_offsets[i], self.num_state_qubits, basis=self.basis,
-                             i_state=i_state, i_target=i_target)
-                lin_r.build_controlled(qc, q, q_ancillas[i], use_basis_gates=False)
-
-                # uncompute comparator
-                comp.build_inverse(qc, q_, q_ancillas_)
+        qr = [q[i] for i in self.i_state] + [q[self.i_target]]
+        if q_ancillas:
+            # pylint:disable=unnecessary-comprehension
+            qr += [qi for qi in q_ancillas[:self.required_ancillas()]]
+        qc.append(pwlr, qr)

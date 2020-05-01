@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -14,9 +14,9 @@
 
 """ Test Driver Methods """
 
-from test.chemistry.common import QiskitChemistryTestCase
+from test.chemistry import QiskitChemistryTestCase
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
-from qiskit.aqua.algorithms.classical import ExactEigensolver
+from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 
 
 class TestDriverMethods(QiskitChemistryTestCase):
@@ -49,13 +49,13 @@ class TestDriverMethods(QiskitChemistryTestCase):
 
         qubit_op, aux_ops = core.run(qmolecule)
 
-        exact_eigensolver = ExactEigensolver(qubit_op, aux_operators=aux_ops, k=1)
-        _, result = core.process_algorithm_result(exact_eigensolver.run())
+        npme = NumPyMinimumEigensolver(qubit_op, aux_operators=aux_ops)
+        result = core.process_algorithm_result(npme.compute_minimum_eigenvalue())
         return result
 
     def _assert_energy(self, result, mol):
-        self.assertAlmostEqual(self.ref_energies[mol], result['energy'], places=3)
+        self.assertAlmostEqual(self.ref_energies[mol], result.energy, places=3)
 
     def _assert_energy_and_dipole(self, result, mol):
         self._assert_energy(result, mol)
-        self.assertAlmostEqual(self.ref_dipoles[mol], result['total_dipole_moment'], places=3)
+        self.assertAlmostEqual(self.ref_dipoles[mol], result.total_dipole_moment, places=3)

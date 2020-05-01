@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -13,7 +13,7 @@
 # that they have been altered from the originals.
 
 """
-The multiclass extension based on the all-pairs algorithm.
+The All-Pairs multiclass extension.
 """
 
 import logging
@@ -21,7 +21,7 @@ import logging
 import numpy as np
 from sklearn.utils.multiclass import _ovr_decision_function
 
-from qiskit.aqua.components.multiclass_extensions import MulticlassExtension
+from .multiclass_extension import MulticlassExtension
 
 logger = logging.getLogger(__name__)
 
@@ -30,32 +30,25 @@ logger = logging.getLogger(__name__)
 
 class AllPairs(MulticlassExtension):
     """
-    The multiclass extension based on the all-pairs algorithm.
+    The All-Pairs multiclass extension.
+
+    In the **all-pairs** reduction, one trains :math:`k(k−1)/2` binary classifiers for a
+    :math:`k`-way multiclass problem; each receives the samples of a pair of classes from the
+    original training set, and must learn to distinguish these two classes. At prediction time,
+    a **weighted voting scheme** is used: all :math:`k(k−1)/2` classifiers are applied to an unseen
+    sample, and each class gets assigned the sum of all the scores obtained by the various
+    classifiers. The combined classifier returns as a result the class getting the highest value.
     """
 
-    CONFIGURATION = {
-        'name': 'AllPairs',
-        'description': 'AllPairs extension',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/draft-07/schema#',
-            'id': 'allpairs_schema',
-            'type': 'object',
-            'properties': {
-            },
-            'additionalProperties': False
-        }
-    }
-
-    def __init__(self, estimator_cls, params=None):
+    def __init__(self) -> None:
         super().__init__()
-        self.estimator_cls = estimator_cls
-        self.params = params if params is not None else []
         self.classes_ = None
         self.estimators = None
 
     def train(self, x, y):
         """
-        training multiple estimators each for distinguishing a pair of classes.
+        Training multiple estimators each for distinguishing a pair of classes.
+
         Args:
             x (numpy.ndarray): input points
             y (numpy.ndarray): input labels
@@ -84,7 +77,8 @@ class AllPairs(MulticlassExtension):
 
     def test(self, x, y):
         """
-        testing multiple estimators each for distinguishing a pair of classes.
+        Testing multiple estimators each for distinguishing a pair of classes.
+
         Args:
             x (numpy.ndarray): input points
             y (numpy.ndarray): input labels
@@ -101,7 +95,8 @@ class AllPairs(MulticlassExtension):
 
     def predict(self, x):
         """
-        applying multiple estimators for prediction
+        Applying multiple estimators for prediction.
+
         Args:
             x (numpy.ndarray): NxD array
         Returns:
