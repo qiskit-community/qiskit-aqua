@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -16,10 +16,12 @@
 This module contains the definition of a base class for univariate distributions.
 """
 
+from typing import Optional, Union, List
 from abc import ABC
 import numpy as np
 
-from qiskit.aqua import AquaError, Pluggable
+from qiskit.aqua import AquaError
+from qiskit.aqua.utils.validation import validate_min
 from qiskit.aqua.components.initial_states import Custom
 from .uncertainty_model import UncertaintyModel
 
@@ -30,23 +32,24 @@ class UnivariateDistribution(UncertaintyModel, ABC):
     (Interface for discrete bounded uncertainty models assuming an equidistant grid)
     """
 
-    @classmethod
-    def get_section_key_name(cls):
-        return Pluggable.SECTION_KEY_UNIVARIATE_DIST
-
-    def __init__(self, num_target_qubits, probabilities=None, low=0, high=1):
-        """
-        Abstract univariate distribution class
+    def __init__(self,
+                 num_target_qubits: int,
+                 probabilities: Optional[Union[List[float], np.ndarray]] = None,
+                 low: float = 0,
+                 high: float = 1):
+        r"""
         Args:
-            num_target_qubits (int): number of qubits it acts on
-            probabilities (Union(list, numpy.ndarray)):  probabilities for different states
-            low (float): lower bound, i.e., the value corresponding to |0...0>
-                        (assuming an equidistant grid)
-            high (float): upper bound, i.e., the value corresponding to |1...1>
-                        (assuming an equidistant grid)
+            num_target_qubits: Number of qubits it acts on,
+                has a min. value of 1.
+            probabilities: Probabilities for different states
+            low: Lower bound, i.e., the value corresponding to \|0...0>
+                (assuming an equidistant grid)
+            high: Upper bound, i.e., the value corresponding to \|1...1>
+                (assuming an equidistant grid)
         Raises:
-            AquaError: 'num qubits and length of probabilities vector do not match
+            AquaError: num qubits and length of probabilities vector do not match
         """
+        validate_min('num_target_qubits', num_target_qubits, 1)
         super().__init__(num_target_qubits)
         self._num_values = 2 ** self.num_target_qubits
         self._probabilities = np.array(probabilities)
@@ -92,11 +95,13 @@ class UnivariateDistribution(UncertaintyModel, ABC):
         """
         Takes a probability density function (pdf), and returns a truncated and
         discretized array of probabilities corresponding to it
+
         Args:
             pdf (function): probability density function
             low (float): lower bound of equidistant grid
             high (float): upper bound of equidistant grid
             num_values (int): number of grid points
+
         Returns:
             list: array of probabilities
         """

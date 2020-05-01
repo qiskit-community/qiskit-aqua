@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -1977,7 +1977,7 @@ def particle_hole_transformation(n_qubits, num_particles, h1_old_matrix, h2_old_
     h1_new_sum = np.zeros([n_qubits, n_qubits])
     h2_new_sum = np.zeros([n_qubits, n_qubits, n_qubits, n_qubits])
 
-    h2_old_matrix = -2*h2_old_matrix.copy()
+    h2_old_matrix = -2 * h2_old_matrix.copy()
     h2_old_matrix = np.einsum('IJKL->IKLJ', h2_old_matrix.copy())
 
     h1_old_matrix = h1_old_matrix.copy()
@@ -1985,9 +1985,9 @@ def particle_hole_transformation(n_qubits, num_particles, h1_old_matrix, h2_old_
     # put labels of occupied orbitals in the list in interleaved spin convention
     n_occupied = []
     for a_i in range(num_alpha):
-        n_occupied.append(2*a_i)
+        n_occupied.append(2 * a_i)
     for b in range(num_beta):
-        n_occupied.append(2*b + 1)
+        n_occupied.append(2 * b + 1)
 
     for r in range(n_qubits):
         for s in range(n_qubits):  # pylint: disable=invalid-name

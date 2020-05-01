@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -17,8 +17,6 @@
 import copy
 import logging
 import time
-import os
-import warnings
 
 from qiskit.assembler.run_config import RunConfig
 from qiskit import compiler
@@ -63,55 +61,50 @@ class QuantumInstance:
                  # job
                  timeout=None, wait=5,
                  # others
-                 circuit_caching=False, cache_file=None, skip_qobj_deepcopy=False,
                  skip_qobj_validation=True,
                  measurement_error_mitigation_cls=None, cals_matrix_refresh_period=30,
                  measurement_error_mitigation_shots=None,
                  job_callback=None):
-        """Constructor.
+        """
+        Quantum Instance holds a Qiskit Terra backend as well as configuration for circuit
+        transpilation and execution. When provided to an Aqua algorithm the algorithm will
+        execute the circuits it needs to run using the instance.
 
         Args:
-            backend (BaseBackend): instance of selected backend
-            shots (int, optional): number of repetitions of each circuit, for sampling
-            seed_simulator (int, optional): random seed for simulators
-            max_credits (int, optional): maximum credits to use
-            basis_gates (list[str], optional): list of basis gate names supported by the
-                                               target. Default: ['u1','u2','u3','cx','id']
-            coupling_map (CouplingMap or list[list]): coupling map (perhaps custom) to
+            backend (BaseBackend): Instance of selected backend
+            shots (int, optional): Number of repetitions of each circuit, for sampling
+            seed_simulator (int, optional): Random seed for simulators
+            max_credits (int, optional): Maximum credits to use
+            basis_gates (list[str], optional): List of basis gate names supported by the
+                                               target. Default: ['u1', 'u2', 'u3', 'cx', 'id']
+            coupling_map (CouplingMap or list[list]): Coupling map (perhaps custom) to
                                                       target in mapping
-            initial_layout (Layout or dict or list, optional): initial layout of qubits in mapping
-            pass_manager (PassManager, optional): pass manager to handle how to compile the circuits
-            seed_transpiler (int, optional): the random seed for circuit mapper
+            initial_layout (Layout or dict or list, optional): Initial layout of qubits in mapping
+            pass_manager (PassManager, optional): Pass manager to handle how to compile the circuits
+            seed_transpiler (int, optional): The random seed for circuit mapper
             optimization_level (int, optional): How much optimization to perform on the circuits.
-                                                Higher levels generate more optimized circuits,
-                                                at the expense of longer transpilation time.
-            backend_options (dict, optional): all running options for backend, please refer
-                                              to the provider.
+                Higher levels generate more optimized circuits, at the expense of longer
+                transpilation time.
+            backend_options (dict, optional): All running options for backend, please refer
+                to the provider of the backend for information as to what options it supports.
             noise_model (qiskit.provider.aer.noise.noise_model.NoiseModel, optional): noise model
                                                                                       for simulator
-            timeout (float, optional): seconds to wait for job. If None, wait indefinitely.
-            wait (float, optional): seconds between queries to result
-            circuit_caching (bool, optional): Use CircuitCache when calling compile_and_run_circuits
-            cache_file(str, optional): filename into which to store the cache as a pickle file
-            skip_qobj_deepcopy (bool, optional): Reuses the same Qobj object
-                                                 over and over to avoid deepcopying
-            skip_qobj_validation (bool, optional): Bypass Qobj validation to
-                                                    decrease submission time
-            measurement_error_mitigation_cls (Callable, optional): the approach to mitigate
-                                                                    measurement
-                                                                    error, CompleteMeasFitter or
-                                                                    TensoredMeasFitter
-            cals_matrix_refresh_period (int, optional): how long to refresh the calibration
-                                                        matrix in measurement mitigation,
-                                                        unit in minutes
-            measurement_error_mitigation_shots (int, optional): the shot number for building
-                                                                calibration matrix,
-                                                                if None, use the shot number
-                                                                in quantum instance
-            job_callback (Callable, optional): callback used in querying info of
-                                               the submitted job, and
-                                               providing the following arguments: job_id,
-                                               job_status, queue_position, job
+            timeout (float, optional): Seconds to wait for job. If None, wait indefinitely.
+            wait (float, optional): Seconds between queries for job result
+            skip_qobj_validation (bool, optional): Bypass Qobj validation to decrease circuit
+                processing time during submission to backend.
+            measurement_error_mitigation_cls (Callable, optional): The approach to mitigate
+                measurement errors. Qiskit Ignis provides fitter classes for this functionality
+                and CompleteMeasFitter from qiskit.ignis.mitigation.measurement module can be used
+                here. (TensoredMeasFitter is not supported).
+            cals_matrix_refresh_period (int, optional): How often to refresh the calibration
+                matrix in measurement mitigation. in minutes
+            measurement_error_mitigation_shots (int, optional): The number of shots number for
+                building calibration matrix. If None, the main `shots` parameter value is used.
+            job_callback (Callable, optional): Optional user supplied callback which can be used
+                to monitor job progress as jobs are submitted for processing by an Aqua algorithm.
+                The callback is provided the following arguments: `job_id, job_status,
+                queue_position, job`
 
         Raises:
             AquaError: the shots exceeds the maximum number of shots
@@ -201,25 +194,6 @@ class QuantumInstance:
                         "and re-build it after that.", self._cals_matrix_refresh_period)
 
         # setup others
-        if os.environ.get('QISKIT_AQUA_CIRCUIT_CACHE', False) or circuit_caching:
-            warnings.warn("circuit_caching will be removed at Qiskit Aqua 0.7+, "
-                          "this setting will be ignored. "
-                          "On the other hand, Qiskit Aqua does support "
-                          "parameterized circuits for adaptive algorithms (e.g. VQE and VQC) "
-                          "to avoid for compiling the circuit with the same topology "
-                          "multiple times",
-                          UserWarning)
-        if skip_qobj_deepcopy:
-            warnings.warn("skip_qobj_deepcopy was used along with circuit_caching, and since "
-                          "circuit_cache will be removed at Qiskit Aqua 0.7+, "
-                          "this setting will be ignored, too.",
-                          UserWarning)
-        if cache_file:
-            warnings.warn("cache_file was used along with circuit_caching, and since "
-                          "circuit_cache will be removed at Qiskit Aqua 0.7+, "
-                          "this setting will be ignored, too.",
-                          UserWarning)
-
         if is_ibmq_provider(self._backend):
             if skip_qobj_validation:
                 logger.warning("The skip Qobj validation does not work "
@@ -230,7 +204,7 @@ class QuantumInstance:
         self._job_callback = job_callback
         logger.info(self)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Overload string.
 
         Returns:
@@ -270,6 +244,10 @@ class QuantumInstance:
 
         return transpiled_circuits
 
+    def assemble(self, circuits):
+        """ assemble circuits """
+        return compiler.assemble(circuits, **self._run_config.to_dict())
+
     def execute(self, circuits, had_transpiled=False):
         """
         A wrapper to interface with quantum backend.
@@ -294,10 +272,10 @@ class QuantumInstance:
             circuits = self.transpile(circuits)
 
         # assemble
-        qobj = compiler.assemble(circuits, **self._run_config.to_dict())
+        qobj = self.assemble(circuits)
 
         if self._meas_error_mitigation_cls is not None:
-            qubit_index = get_measured_qubits_from_qobj(qobj)
+            qubit_index, qubit_mappings = get_measured_qubits_from_qobj(qobj)
             qubit_index_str = '_'.join([str(x) for x in qubit_index]) + \
                 "_{}".format(self._meas_error_mitigation_shots or self._run_config.shots)
             meas_error_mitigation_fitter, timestamp = \
@@ -328,8 +306,8 @@ class QuantumInstance:
             if build_cals_matrix:
                 logger.info("Updating qobj with the circuits for measurement error mitigation.")
                 use_different_shots = not (
-                    self._meas_error_mitigation_shots is None or
-                    self._meas_error_mitigation_shots == self._run_config.shots)
+                    self._meas_error_mitigation_shots is None
+                    or self._meas_error_mitigation_shots == self._run_config.shots)
                 temp_run_config = copy.deepcopy(self._run_config)
                 if use_different_shots:
                     temp_run_config.shots = self._meas_error_mitigation_shots
@@ -372,9 +350,24 @@ class QuantumInstance:
 
             if meas_error_mitigation_fitter is not None:
                 logger.info("Performing measurement error mitigation.")
-                result = \
-                    meas_error_mitigation_fitter.filter.apply(result,
-                                                              self._meas_error_mitigation_method)
+                skip_num_circuits = len(result.results) - len(circuits)
+                #  remove the calibration counts from result object to assure the length of
+                #  ExperimentalResult is equal length to input circuits
+                result.results = result.results[skip_num_circuits:]
+                tmp_result = copy.deepcopy(result)
+                for qubit_index_str, c_idx in qubit_mappings.items():
+                    curr_qubit_index = [int(x) for x in qubit_index_str.split("_")]
+                    tmp_result.results = [result.results[i] for i in c_idx]
+                    if curr_qubit_index == qubit_index:
+                        tmp_fitter = meas_error_mitigation_fitter
+                    else:
+                        tmp_fitter = meas_error_mitigation_fitter.subset_fitter(curr_qubit_index)
+                    tmp_result = tmp_fitter.filter.apply(
+                        tmp_result, self._meas_error_mitigation_method
+                    )
+                    for i, n in enumerate(c_idx):
+                        result.results[n] = tmp_result.results[i]
+
         else:
             result = run_qobj(qobj, self._backend, self._qjob_config,
                               self._backend_options, self._noise_config,
