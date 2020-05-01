@@ -79,7 +79,7 @@ enforces the presence and consistency of methods to manipulate these objects con
 
 Operator Globals
 ================
-The :class:`.operator_globals` are set of immutable Operator instances that are convenient building
+The :mod:`operator_globals` is a set of immutable Operator instances that are convenient building
 blocks to reach for while working with the Operator flow.
 
 One qubit Pauli operators:
@@ -95,7 +95,7 @@ Submodules
 ==========
 
 Operators
-++++++++++++++++++++
++++++++++
 
 The Operators submodules include the PrimitiveOp, ListOp, and StateFn class groups which
 represent the primary Operator modules used in Aqua. The :mod:`.legacy` submodule includes older
@@ -111,7 +111,7 @@ some places.
    legacy
 
 Converters
-++++++++++++++++++++
+++++++++++
 
 The Converter submodules include objects which manipulate Operators, usually recursing over an
 Operator structure and changing certain Operators' representation. For example, the
