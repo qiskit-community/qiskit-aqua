@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,9 +12,10 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Pseudo-randomly generated mock stock-market data provider """
+"""
+Python implementation of provider of mock stock-market data, which are generated pseudo-randomly.
+"""
 
-from typing import Optional, Union, List
 import datetime
 import logging
 import random
@@ -22,30 +23,55 @@ import random
 import numpy as np
 import pandas as pd
 
-from ._base_data_provider import BaseDataProvider, StockMarket
-from ..exceptions import QiskitFinanceError
+from qiskit.finance.data_providers import (BaseDataProvider,
+                                           DataType,
+                                           StockMarket,
+                                           QiskitFinanceError)
 
 logger = logging.getLogger(__name__)
 
 
 class RandomDataProvider(BaseDataProvider):
-    """Pseudo-randomly generated mock stock-market data provider.
+    """
+    Python implementation of provider of mock stock-market data,
+    which are generated pseudo-randomly.
     """
 
+    CONFIGURATION = {
+        "name": "RND",
+        "description": "Pseudo-Random Data Provider",
+        "input_schema": {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "id": "rnd_schema",
+            "type": "object",
+            "properties": {
+                "stockmarket": {
+                    "type": "string",
+                    "default": "RANDOM"
+                },
+                "datatype": {
+                    "type": "string",
+                    "default": DataType.DAILYADJUSTED.value,
+                    "enum": [DataType.DAILYADJUSTED.value]
+                },
+            },
+        }
+    }
+
     def __init__(self,
-                 tickers: Optional[Union[str, List[str]]] = None,
-                 stockmarket: StockMarket = StockMarket.RANDOM,
-                 start: datetime = datetime.datetime(2016, 1, 1),
-                 end: datetime = datetime.datetime(2016, 1, 30),
-                 seed: Optional[int] = None) -> None:
+                 tickers=None,
+                 stockmarket=StockMarket.RANDOM,
+                 start=datetime.datetime(2016, 1, 1),
+                 end=datetime.datetime(2016, 1, 30),
+                 seed=None):
         """
         Initializer
         Args:
-            tickers: tickers
-            stockmarket: RANDOM
-            start: first data point
-            end: last data point precedes this date
-            seed: shall a seed be used?
+            tickers (str or list): tickers
+            stockmarket (StockMarket): RANDOM
+            start (datetime): first data point
+            end (datetime): last data point precedes this date
+            seed (None or int): shall a seed be used?
         Raises:
             QiskitFinanceError: provider doesn't support stock market value
         """
@@ -70,11 +96,44 @@ class RandomDataProvider(BaseDataProvider):
         self._end = end
         self._seed = seed
 
+        # self.validate(locals())
+
+    @staticmethod
+    def check_provider_valid():
+        """ check provider valid """
+        return
+
+    @classmethod
+    def init_from_input(cls, section):
+        """
+        Initialize via section dictionary.
+
+        Args:
+            section (dict): section dictionary
+
+        Returns:
+            RandomDataProvider: Driver object
+        Raises:
+            QiskitFinanceError: invalid section
+        """
+        if section is None or not isinstance(section, dict):
+            raise QiskitFinanceError(
+                'Invalid or missing section {}'.format(section))
+
+        # params = section
+        kwargs = {}
+        # for k, v in params.items():
+        #    if k == ExchangeDataDriver. ...: v = UnitsType(v)
+        #    kwargs[k] = v
+        logger.debug('init_from_input: %s', kwargs)
+        return cls(**kwargs)
+
     def run(self):
         """
         Generates data pseudo-randomly, thus enabling get_similarity_matrix
         and get_covariance_matrix methods in the base class.
         """
+        self.check_provider_valid()
 
         length = (self._end - self._start).days
         if self._seed:

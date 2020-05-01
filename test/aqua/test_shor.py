@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -16,28 +16,29 @@
 
 import unittest
 import math
-from test.aqua import QiskitAquaTestCase
-from ddt import ddt, data, idata, unpack
+from test.aqua.common import QiskitAquaTestCase
+from parameterized import parameterized
 from qiskit import BasicAer
-from qiskit.aqua import QuantumInstance
+from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.algorithms import Shor
 
 
-@ddt
 class TestShor(QiskitAquaTestCase):
     """test Shor's algorithm"""
 
-    @idata([
+    @parameterized.expand([
         [15, 'qasm_simulator', [3, 5]],
     ])
-    @unpack
     def test_shor_factoring(self, n_v, backend, factors):
         """ shor factoring test """
         shor = Shor(n_v)
         result_dict = shor.run(QuantumInstance(BasicAer.get_backend(backend), shots=1000))
         self.assertListEqual(result_dict['factors'][0], factors)
 
-    @data(5, 7)
+    @parameterized.expand([
+        [5],
+        [7],
+    ])
     def test_shor_no_factors(self, n_v):
         """ shor no factors test """
         shor = Shor(n_v)
@@ -46,11 +47,10 @@ class TestShor(QiskitAquaTestCase):
         ret = shor.run(quantum_instance)
         self.assertTrue(ret['factors'] == [])
 
-    @idata([
+    @parameterized.expand([
         [3, 5],
         [5, 3],
     ])
-    @unpack
     def test_shor_power(self, base, power):
         """ shor power test """
         n_v = int(math.pow(base, power))
@@ -60,10 +60,17 @@ class TestShor(QiskitAquaTestCase):
         ret = shor.run(quantum_instance)
         self.assertTrue(ret['factors'] == [base])
 
-    @data(-1, 0, 1, 2, 4, 16)
+    @parameterized.expand([
+        [-1],
+        [0],
+        [1],
+        [2],
+        [4],
+        [16],
+    ])
     def test_shor_bad_input(self, n_v):
         """ shor bad input test """
-        with self.assertRaises(ValueError):
+        with self.assertRaises(AquaError):
             Shor(n_v)
 
 

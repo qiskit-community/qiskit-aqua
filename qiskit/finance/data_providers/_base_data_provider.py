@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,17 +12,28 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""This module implements the abstract base class for data_provider modules the finance module."""
+"""
+This module implements the abstract base class for data_provider modules
+within Qiskit Finance.
+"""
 
 from abc import ABC, abstractmethod
 import logging
+import copy
 from enum import Enum
 
 import numpy as np
 import fastdtw
-from ..exceptions import QiskitFinanceError
+
+from qiskit.aqua import AquaError
+from qiskit.aqua.parser import JSONSchema
 
 logger = logging.getLogger(__name__)
+
+
+class QiskitFinanceError(AquaError):
+    """ Qiskit Finance Error """
+    pass
 
 
 # Note: Not all DataProviders support all stock markets.
@@ -48,7 +59,9 @@ class DataType(Enum):
 
 
 class BaseDataProvider(ABC):
-    """The abstract base class for data_provider modules within Qiskit's finance module.
+    """
+    This module implements the abstract base class for data_provider modules
+    within Qiskit Finance.
 
     To create add-on data_provider module subclass the BaseDataProvider class in this module.
     Doing so requires that the required driver interface is implemented.
@@ -58,8 +71,12 @@ class BaseDataProvider(ABC):
 
     """
 
+    CONFIGURATION = None
+
     @abstractmethod
     def __init__(self):
+        self.check_driver_valid()
+        self._configuration = copy.deepcopy(self.CONFIGURATION)
         self._data = None
         self._n = 0  # pylint: disable=invalid-name
         self.period_return_mean = None
@@ -67,6 +84,45 @@ class BaseDataProvider(ABC):
         self.period_return_cov = None
         self.rho = None
         self.mean = None
+
+    @property
+    def configuration(self):
+        """Return driver configuration."""
+        return self._configuration
+
+    @classmethod
+    def init_from_input(cls, section):
+        """
+        Initialize via section dictionary. N.B. Not in use at the moment.
+
+        Args:
+            section (dict): section dictionary
+
+        Returns:
+            BaseDataProvider: Driver object
+        """
+        pass
+
+    @staticmethod
+    def check_driver_valid():
+        """Checks if driver is ready for use. Throws an ex_ception if not"""
+        pass
+
+    def validate(self, args_dict):
+        """ Validates the configuration against the input schema. N.B. Not in use at the moment. """
+
+        schema_dict = self.CONFIGURATION.get('input_schema', None)
+        if schema_dict is None:
+            return
+
+        json_schema = JSONSchema(schema_dict)
+        schema_property_names = json_schema.get_default_section_names()
+        json_dict = {}
+        for property_name in schema_property_names:
+            if property_name in args_dict:
+                json_dict[property_name] = args_dict[property_name]
+
+        json_schema.validate(json_dict)
 
     @abstractmethod
     def run(self):

@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -14,15 +14,16 @@
 
 """ Test Set Packing """
 
-import unittest
 import json
-from test.optimization import QiskitOptimizationTestCase
+from test.optimization.common import QiskitOptimizationTestCase
+import warnings
 import numpy as np
 
-from qiskit.optimization.applications.ising import set_packing
-from qiskit.optimization.applications.ising.common import sample_most_likely
-from qiskit.aqua import QuantumInstance, aqua_globals
-from qiskit.aqua.algorithms import NumPyMinimumEigensolver, VQE
+from qiskit.optimization.ising import set_packing
+from qiskit.optimization.ising.common import sample_most_likely
+from qiskit.aqua import QuantumInstance, run_algorithm, aqua_globals
+from qiskit.aqua.input import EnergyInput
+from qiskit.aqua.algorithms import ExactEigensolver, VQE
 from qiskit.aqua.components.optimizers import SPSA
 from qiskit.aqua.components.variational_forms import RY
 
@@ -32,7 +33,9 @@ class TestSetPacking(QiskitOptimizationTestCase):
 
     def setUp(self):
         super().setUp()
-        input_file = self.get_resource_path('sample.setpacking')
+        warnings.filterwarnings("ignore", message=aqua_globals.CONFIG_DEPRECATION_MSG,
+                                category=DeprecationWarning)
+        input_file = self._get_resource_path('sample.setpacking')
         with open(input_file) as file:
             self.list_of_subsets = json.load(file)
             self.qubit_op, _ = set_packing.get_operator(self.list_of_subsets)
@@ -44,7 +47,7 @@ class TestSetPacking(QiskitOptimizationTestCase):
             return [int(digit) for digit in result]  # [2:] to chop off the "0b" part
 
         subsets = len(self.list_of_subsets)
-        maximum = 2 ** subsets
+        maximum = 2**subsets
         max_v = -np.inf
         for i in range(maximum):
             cur = bitfield(i, subsets)
@@ -56,9 +59,22 @@ class TestSetPacking(QiskitOptimizationTestCase):
 
     def test_set_packing(self):
         """ set packing test """
-        algo = NumPyMinimumEigensolver(self.qubit_op, aux_operators=[])
+        params = {
+            'problem': {'name': 'ising'},
+            'algorithm': {'name': 'ExactEigensolver'}
+        }
+        result = run_algorithm(params, EnergyInput(self.qubit_op))
+        x = sample_most_likely(result['eigvecs'][0])
+        ising_sol = set_packing.get_solution(x)
+        np.testing.assert_array_equal(ising_sol, [0, 1, 1])
+        oracle = self._brute_force()
+        self.assertEqual(np.count_nonzero(ising_sol), oracle)
+
+    def test_set_packing_direct(self):
+        """ set packing direct test """
+        algo = ExactEigensolver(self.qubit_op, k=1, aux_operators=[])
         result = algo.run()
-        x = sample_most_likely(result.eigenstate)
+        x = sample_most_likely(result['eigvecs'][0])
         ising_sol = set_packing.get_solution(x)
         np.testing.assert_array_equal(ising_sol, [0, 1, 1])
         oracle = self._brute_force()
@@ -85,7 +101,3 @@ class TestSetPacking(QiskitOptimizationTestCase):
         ising_sol = set_packing.get_solution(x)
         oracle = self._brute_force()
         self.assertEqual(np.count_nonzero(ising_sol), oracle)
-
-
-if __name__ == '__main__':
-    unittest.main()

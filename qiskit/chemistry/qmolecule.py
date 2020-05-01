@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2019
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -14,7 +14,6 @@
 
 """ QMolecule """
 
-from typing import List
 import os
 import logging
 import tempfile
@@ -28,19 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 class QMolecule:
-    """
-    Molecule data class containing driver result.
-
-    When one of the chemistry :mod:`~qiskit.chemistry.drivers` is run and instance
-    of this class is returned. This contains various properties that are made available in
-    a consistent manner across the various drivers.
-
-    Note that values here, for the same input molecule to each driver, may be vary across
-    the drivers underlying code implementation. Also some drivers may not provide certain fields
-    such as dipole integrals in the case of :class:`~qiskit.chemistry.drivers.PyQuanteDriver`.
-
-    This class provides methods to save it and load it again from an HDF5 file
-    """
+    """Molecule data class with driver information."""
 
     QMOLECULE_VERSION = 2
 
@@ -114,16 +101,16 @@ class QMolecule:
 
     @property
     def one_body_integrals(self):
-        """ Returns one body electron integrals. """
+        """ returns one body integrals """
         return QMolecule.onee_to_spin(self.mo_onee_ints, self.mo_onee_ints_b)
 
     @property
     def two_body_integrals(self):
-        """ Returns two body electron integrals. """
+        """ returns two body integrals """
         return QMolecule.twoe_to_spin(self.mo_eri_ints, self.mo_eri_ints_bb, self.mo_eri_ints_ba)
 
     def has_dipole_integrals(self):
-        """ Check if dipole integrals are present. """
+        """ check if has dipole integrals """
         return self.x_dip_mo_ints is not None and \
             self.y_dip_mo_ints is not None and \
             self.z_dip_mo_ints is not None
@@ -150,14 +137,8 @@ class QMolecule:
         return QMolecule.symbols.index(self.atom_symbol[natom].lower().capitalize())
 
     @property
-    def core_orbitals(self) -> List[int]:
-        """
-        Returns:
-            A list of core orbital indices.
-        """
-        if self.num_atoms is None:
-            logger.warning("Missing molecule information! Returning empty core orbital list.")
-            return []
+    def core_orbitals(self):
+        """ returns core orbitals """
         count = 0
         for i in range(self.num_atoms):
             z = self.Z(i)
@@ -383,7 +364,7 @@ class QMolecule:
         except OSError:
             pass
 
-    # Utility functions to convert integrals into the form expected by Qiskit's chemistry module
+    # Utility functions to convert integrals into the form expected by QiskitChemistry stack
 
     @staticmethod
     def oneeints2mo(ints, moc):
@@ -571,9 +552,8 @@ class QMolecule:
 
             logger.info("Computed Hartree-Fock energy: %s", self.hf_energy)
             logger.info("Nuclear repulsion energy: %s", self.nuclear_repulsion_energy)
-            if None not in (self.hf_energy, self.nuclear_repulsion_energy):
-                logger.info("One and two electron Hartree-Fock energy: %s",
-                            self.hf_energy - self.nuclear_repulsion_energy)
+            logger.info("One and two electron Hartree-Fock energy: %s",
+                        self.hf_energy - self.nuclear_repulsion_energy)
             logger.info("Number of orbitals is %s", self.num_orbitals)
             logger.info("%s alpha and %s beta electrons", self.num_alpha, self.num_beta)
             logger.info("Molecule comprises %s atoms and in xyz format is ::", self.num_atoms)

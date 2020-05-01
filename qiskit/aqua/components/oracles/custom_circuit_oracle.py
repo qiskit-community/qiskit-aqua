@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020
+# (C) Copyright IBM 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -16,45 +16,33 @@
 The Custom Circuit-based Quantum Oracle.
 """
 
-from typing import Optional, Callable, List, Tuple
-from qiskit import QuantumCircuit, QuantumRegister
+from qiskit import QuantumCircuit, QuantumRegister  # pylint: disable=unused-import
 from qiskit.aqua import AquaError
 from .oracle import Oracle
 
 
 class CustomCircuitOracle(Oracle):
     """
-    The Custom Circuit-based Quantum Oracle.
-
-    A helper class to, in essence, 'wrap' a user-supplied quantum circuit such that it becomes
-    of type :class:`Oracle` and hence can be used by algorithms taking an oracle as input.
-
-    This class is provided for easy creation of oracles using custom circuits.
-    It is geared towards programmatically experimenting with oracles, where a user directly
-    provides a `QuantumCircuit` object, corresponding to the intended oracle function,
-    together with the various `QuantumRegister` objects involved.
+    The helper class for creating oracles from user-supplied quantum circuits
     """
 
-    def __init__(self, variable_register: Optional[QuantumRegister] = None,
-                 output_register: Optional[QuantumRegister] = None,
-                 ancillary_register: Optional[QuantumRegister] = None,
-                 circuit: Optional[QuantumCircuit] = None,
-                 evaluate_classically_callback:
-                 Optional[Callable[[str], Tuple[bool, List[int]]]] = None):
+    def __init__(self, variable_register=None, output_register=None,
+                 ancillary_register=None, circuit=None, evaluate_classically_callback=None):
         """
+        Constructor.
+
         Args:
-            variable_register: The register holding variable qubit(s) for
+            variable_register (QuantumRegister): The register holding variable qubit(s) for
                     the oracle function
-            output_register: The register holding output qubit(s)
+            output_register (QuantumRegister): The register holding output qubit(s)
                     for the oracle function
-            ancillary_register: The register holding ancillary qubit(s)
-            circuit: The quantum circuit corresponding to the
+            ancillary_register (QuantumRegister): The register holding ancillary qubit(s)
+            circuit (QuantumCircuit): The quantum circuit corresponding to the
                     intended oracle function
-            evaluate_classically_callback: The classical callback function for
-                    evaluating the oracle, for example, to use with
-                    :class:`~qiskit.aqua.algorithms.Grover`'s search
+            evaluate_classically_callback (function): The classical callback function for
+                    evaluating the oracle, for example, to use with Grover's search
         Raises:
-            AquaError: Invalid input
+            AquaError: invalid input
         """
 
         super().__init__()

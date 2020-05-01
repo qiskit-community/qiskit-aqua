@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -14,13 +14,12 @@
 
 """ Test Data Providers """
 
-import unittest
 import datetime
-from test.finance import QiskitFinanceTestCase
+from test.finance.common import QiskitFinanceTestCase
 import warnings
 import numpy as np
-from qiskit.finance import QiskitFinanceError
 from qiskit.finance.data_providers import (RandomDataProvider,
+                                           QiskitFinanceError,
                                            WikipediaDataProvider,
                                            StockMarket,
                                            DataOnDemandProvider,
@@ -38,7 +37,7 @@ class TestDataProviders(QiskitFinanceTestCase):
 
     def tearDown(self):
         super().tearDown()
-        warnings.filterwarnings(action="always", message="unclosed", category=ResourceWarning)
+        warnings.filterwarnings(action="ignore", message="unclosed", category=ResourceWarning)
 
     def test_wrong_use(self):
         """ wrong use test """
@@ -133,7 +132,3 @@ class TestDataProviders(QiskitFinanceTestCase):
             self.fail("Test of DataOnDemandProvider should have failed due to the lack of a token.")
         except QiskitFinanceError:
             self.skipTest("Test of DataOnDemandProvider skipped due to the lack of a token.")
-
-
-if __name__ == '__main__':
-    unittest.main()

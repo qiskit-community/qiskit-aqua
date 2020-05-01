@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -14,15 +14,14 @@
 
 """ PSI4 Driver """
 
-from typing import Union, List
 import tempfile
 import os
 import subprocess
 import logging
 import sys
 from shutil import which
-from qiskit.chemistry import QMolecule, QiskitChemistryError
 from qiskit.chemistry.drivers import BaseDriver
+from qiskit.chemistry import QMolecule, QiskitChemistryError
 
 logger = logging.getLogger(__name__)
 
@@ -32,23 +31,28 @@ PSI4_APP = which(PSI4)
 
 
 class PSI4Driver(BaseDriver):
-    """
-    Qiskit chemistry driver using the PSI4 program.
+    """Python implementation of a psi4 driver."""
 
-    See http://www.psicode.org/
-    """
+    CONFIGURATION = {
+        "name": "PSI4",
+        "description": "PSI4 Driver",
+        "input_schema": {
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "id": "psi4_schema",
+            "type": "string",
+            "default": "molecule h2 {\n  0 1\n  H  0.0 0.0 0.0\n  H  0.0 0.0 0.735\n}\n\n"
+                       "set {\n  basis sto-3g\n  scf_type pk\n  reference rhf\n}"
+        }
+    }
 
-    def __init__(self,
-                 config: Union[str, List[str]] =
-                 'molecule h2 {\n  0 1\n  H  0.0 0.0 0.0\n  H  0.0 0.0 0.735\n}\n\n'
-                 'set {\n  basis sto-3g\n  scf_type pk\n  reference rhf\n') -> None:
+    def __init__(self, config):
         """
+        Initializer
         Args:
-            config: A molecular configuration conforming to PSI4 format
+            config (str or list): driver configuration
         Raises:
             QiskitChemistryError: Invalid Input
         """
-        self._check_valid()
         if not isinstance(config, list) and not isinstance(config, str):
             raise QiskitChemistryError("Invalid input for PSI4 Driver '{}'".format(config))
 
@@ -59,11 +63,32 @@ class PSI4Driver(BaseDriver):
         self._config = config
 
     @staticmethod
-    def _check_valid():
+    def check_driver_valid():
         if PSI4_APP is None:
             raise QiskitChemistryError("Could not locate {}".format(PSI4))
 
-    def run(self) -> QMolecule:
+    @classmethod
+    def init_from_input(cls, section):
+        """
+        Initialize via section dictionary.
+
+        Args:
+            section (dict): section dictionary
+
+        Returns:
+            PSI4Driver: Driver object
+        Raises:
+            QiskitChemistryError: Invalid or missing section
+        """
+        if not isinstance(section, str):
+            raise QiskitChemistryError('Invalid or missing section {}'.format(section))
+
+        kwargs = {'config': section}
+        logger.debug('init_from_input: %s', kwargs)
+        return cls(**kwargs)
+
+    def run(self):
+        # create input
         psi4d_directory = os.path.dirname(os.path.realpath(__file__))
         template_file = psi4d_directory + '/_template.txt'
         qiskit_chemistry_directory = os.path.abspath(os.path.join(psi4d_directory, '../..'))
@@ -117,7 +142,7 @@ class PSI4Driver(BaseDriver):
         _q_molecule.load()
         # remove internal file
         _q_molecule.remove_file()
-        _q_molecule.origin_driver_name = 'PSI4'
+        _q_molecule.origin_driver_name = self.configuration['name']
         _q_molecule.origin_driver_config = self._config
         return _q_molecule
 

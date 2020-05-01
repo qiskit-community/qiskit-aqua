@@ -15,115 +15,8 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 > -   **Fixed**: for any bug fixes.
 > -   **Security**: in case of vulnerabilities.
 
-[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.7.0...HEAD)
+[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.6.6...HEAD)
 ========================================================================
-
-[0.7.0](https://github.com/Qiskit/qiskit-aqua/compare/0.6.6...0.7.0) - 2020-04-30
-=================================================================================
-
-Added
------
-
--   NFT optimizer, part of a project of Qiskit Camp Asia 2019 (#729)
--   Algorithm interface and result classes (#849)
--   Chemistry FCIDump file driver (#859)
--   Automatic Z2 symmetry reduction in the chemistry module (#870)
--   Ising optimization: The 0-1 Knapsack problem (#878)
--   VQE, VQC and QSVM accept `QuantumCircuit`s as variational forms/feature maps (#905)
--   New `GSLS` (Gaussian Smoothing Line Search) optimizer for variational algorithms (#877)
--   Qiskit's optimization module: a full toolset for solving quadratic programs (#877)
-    -   QuadraticProblem: A class representing quadratic programs with quadratic and linear objective and constraints
-    -   OptimizationAlgorithm: A base class for optimization algorithm
-    -   OptimizationResult: A base class for optimization results
-    -   Summary of the optimization algorithms:
-        -   MinimumEigenOptimizer: An optimization algorithm using a minimum eigen solver, such as VQE (or a classical
-            alternative). See the MinimumEigenSolver algorithms in Aqua.
-        -   GroverOptimizer: The Grover Adaptive Search algorithm (Gilliam et al.)
-        -   ADMMOptimizer: The ADMM-based heuristic (Gambella et al.)
-        -   RecursiveMinimumEigenOptimizer: A meta-algorithm applying recursive optimization on top of a
-            MinimumEigenOptimizer (Bravyi et al.)
-        -   CobylaOptimizer: Wrapping of SciPy’s COBYLA subroutine as optimization algorithm
-        -   CplexOptimizer: Wrapping the CPLEX API as optimization algorithm
-    -   A set of converters to translate different problem representations
-        -   InequalityToEquality: Converts inequality constraints to equality constraints by adding slack variables
-        -   IntegerToBinary: Converts integer variables to binary variables
-        -   LinearEqualityToPenalty: Converts linear equality constraints to quadratic penalty terms that are added
-            to the objective
-        -   QuadraticProgramToIsing: Converts a QuadraticProgram to an Aqua operator
-        -   QuadraticProgramToNegativeValueOracle: Converts a QuadraticProgram to a negative-value oracle used for
-            Grover Adaptive Search
-        -   QuadraticProgramToQubo: Converts a QuadraticProgram to a QUBO problem, a convenience converter wrapping the
-            functionality of the IntegerToBinary and LinearEqualityToPenalty converters
-        -   IsingToQuadraticProgram: Converters an Aqua operator to a QuadraticProgram
--   Operator flow, a set of tools for constructing Physically-intuitive quantum computations using State functions,
-    Operators, and Measurements, and relying on Terra's Operator objects as computational primitives (#852)
-    -   `OperatorBase`: A base class for Operators, State functions, Measurements, and combinations thereof
-    -   `primitive_ops`: Classes for representing basic Operator building blocks, backed by computational
-        primitives in Terra. Includes `PrimitiveOp` (base and factory), `PauliOp`, `MatrixOp`, and `CircuitOp`
-    -   `list_ops`: Classes for representing composite Operators, State functions, and Measurements constructed
-        from others, including `ListOp` (*non-abstract* parent), `SummedOp`, `ComposedOp`, and `TensoredOp`
-    -   `state_fns`: Classes for representing State function and Measurement building blocks, backed by
-        primitives in Terra (other than `DictStateFn`, which is back by a `dict`). Includes
-        `StateFn` (base and factory), `DictStateFn`, `CircuitStateFn`, `VectorStateFn`, and `OperatorStateFn`
-    -   `operator_globals`: A set of convenient immutable building block `OperatorBase` instances, including
-        single-qubit Paulis (`X`, `Y`, `Z`, `I`), basic gates (`H`, `CX`, `T`, `S`, `Swap`, `CZ`), and
-        single-qubit states (`Zero`, `One`, `Plus`, `Minus`)
-    -   `converters`: Classes for manipulating and modifying Operators, including `ConverterBase` (base),
-        `CircuitSampler`, `PauliBasisChange`, `DictToCircuitSum`, and `AbelianGrouper`
-    -   `expectations`: Converters for changing measurements of Observables to be more efficient or tractable,
-        including `ExpectationBase` (base), `ExpectationFactory` (factory), `PauliExpectation`,
-        `MatrixExpectation`, and `AerPauliExpectation`
-    -   `evolutions`: Converters for changing Unitary evolutions of Hamiltonian Operators into
-        `CircuitOps` approximating or equalling the exponentiation e^(-iHt). Includes
-        `EvolutionBase` (base), `EvolutionFactory` (factory), `EvolvedOp` (lazy placeholder
-         Operator for evolution), `PauliTrotterEvolution`, `MatrixEvolution`,
-        `TrotterizationBase` (base), `TrotterizationFactory` (factory), `Trotter`,
-        `Suzuki`, and `QDrift`
--   The QDrift Trotterization algorithm (#852)
--   Operator evolution using Terra's `HamiltonianGate` for improved performance (#852)
-
-Changed
--------
-
--   Logical expression oracle improvements (#821)
--   Refactor Multiclass Extensions to set Estimator internally (#822)
--   Refactor algorithms (#831) (#849)
--   Classical algorithms renamed, former names deprecated (#851)
--   Chemistry process algorithm result returns result object, lines, dict return deprecated (#861)
--   Measurement error mitigation supports different output orders on same qubits (#865)
--   If ibmq-provider is used and job limit is reached, `run_circuit` now waits for a previous job
-    to finish before submitting the next one. (#906)
--   Deprecate using `FeatureMap` and `VariationalForm` in VQC and QSVM (#905)
--   The Eigensolvers and MinimumEigensolvers now accept `OperatorBase` (Operator flow) Observables
-    in addition to the existing Operators (#852).
--   The `BaseOperator` was renamed `LegacyBaseOperator` to avoid confusion with the new
-    Operator flow `OperatorBase` (#852).
--   HartreeFock initial state and UCCSD variational form `num_qubits` parameter removed as it was
-    only value checked against that computed internally from the other parameters. UCCSD `depth`
-    parameter renamed to `reps` and moved in order so it can default to 1. (#939)
-     
-
-Removed
--------
-
--   Declarative api (#758) (#759) (#760) (#762) (#763)
--   Moved to Terra:
-    -   multi-controlled Toffoli, U1 and Pauli rotation gates (including tests) (#833)
-    -   arithmetic circuits in qiskit/aqua/circuits (#895)
-    -   boolean logic gates (#896)
-    -   quantum Fourier transformation (#909)
-    -   the RY, RYRZ and SwapRZ variational forms (#920)
-    -   the PauliExpansion, First- and SecondOrderExpansion feature maps  (#920)
-
-Fixed
------
-
--   Boolean logic circuit construction (#819)
--   Measurement on actual devices for Amplitude Estimation algorithms (#841) (#842)
--   Supported constant values on the left-hand side of constraints and variables on the right-hand
-    side of constraints for the DOcplex translator (#750)
--   WeightedPauliOperator constructor simplification bug (#891)
--   TPBGroupedWeightedPauliOperator multiplication (#915)
 
 [0.6.6](https://github.com/Qiskit/qiskit-aqua/compare/0.6.5...0.6.6) - 2020-04-16
 =================================================================================
@@ -180,11 +73,11 @@ Deprecated
 =================================================================================
 
 Changed
--------
+-----
 
 -   `VQE`, `VQC` and `QSVM` now use parameterized circuits when available to save time
     in transpilation. (#693)
--   Initial stage of ml, finance, and optimization refactor into separate application-specific directories.
+-   Initial stage of ml, finance, and optimization refactor into separate application-specific directories. 
     (#700) Among other changes:
     - qiskit/aqua/translators/data_providers/ moved to qiskit/finance/data_providers/
     - qiskit/aqua/translators/ising/portfolio.py and portfolio_diversification.py moved to qiskit/finance/ising/
@@ -197,12 +90,12 @@ Added
 
 -   Ability to create a `CustomCircuitOracle` object with a callback for `evaluate_classically`,
     which a `Grover` object will now check for, upon initialization, on its provided oracle.  (#681)
--   `VariationalForm` and `FeatureMap` have a new property called `support_parameterized_circuit` which
-    indicates whether or not the circuit can be built with a Terra `Parameter` (or `ParameterVector`) object.
+-   `VariationalForm` and `FeatureMap` have a new property called `support_parameterized_circuit` which 
+    indicates whether or not the circuit can be built with a Terra `Parameter` (or `ParameterVector`) object. 
     Further, the `evolution_instruction` method supports `Parameter` for the time parameter.  (#693)
--   `VQEAdapt`, an adaptive version of VQE for chemistry which dynamically selects the UCCSD excitations to
+-   `VQEAdapt`, an adaptive version of VQE for chemistry which dynamically selects the UCCSD excitations to 
     include in the ansatz. (#685)
--   Optionally split a qobj by max gates per job to better avoid "Payload is too large" errors when
+-   Optionally split a qobj by max gates per job to better avoid "Payload is too large" errors when 
     running on quantum hardware. (#694)
 -   An option in `evolution_instruction` to control whether to add a barrier between every slice. (#708)
 -   Added `VQE` snapshot mode for the Aer QasmSimulator when no noise model is specified and `shots==1`. (#715)
@@ -216,13 +109,11 @@ Fixed
 -   Bug where `UCCSD` might generate an empty operator and try to evolve it. (#680)
 -   Decompose causes DAG failure using feature maps. (#719)
 -   Error when only using a subset of qubits in measurement error mitigation. (#748)
--   The AQGD optimizer if condition in func converged was ignored. That kept breaking the wile loop for training.(#770)
 
 Removed
 -------
 
 -   The `CircuitCache` class is removed, use parameterized circuits as an alternative. (#693)
-
 
 [0.6.1](https://github.com/Qiskit/qiskit-aqua/compare/0.6.0...0.6.1) - 2019-10-16
 =================================================================================
@@ -251,13 +142,13 @@ Added
       shell support
 -   Chemistry: UHF open-shell support
     - Supported for all drivers: Gaussian16, PyQuante, PySCF and PSI4
-    - QMolecule extended to include integrals, coefficients etc for separate beta
+    - QMolecule extended to include integrals, coefficients etc for separate beta   
 -   Chemistry: QMolecule extended with integrals in atomic orbital basis to facilitate common access
     to these for experimentation
     - Supported for all drivers: Gaussian16, PyQuante, PySCF and PSI4
 -   Chemistry: Additional PyQuante and PySCF driver configuration
     - Convergence tolerance and max convergence iteration controls.
-    - For PySCF initial guess choice
+    - For PySCF initial guess choice   
 -   Chemistry: Processing output added to debug log from PyQuante and PySCF computations (Gaussian16
     and PSI4 outputs were already added to debug log)
 -   Chemistry: Merged qiskit-chemistry to this repo. The old chemistry changelog is at
@@ -270,9 +161,9 @@ Added
 -   Amplitude Estimation: added maximum likelihood postprocessing and confidence interval computation.
 -   Maximum Likelihood Amplitude Estimation (MLAE): Implemented new algorithm for amplitude estimation based on
     maximum likelihood estimation, which reduces number of required qubits and circuit depth. (#642)
--   Added (piecewise) linearly and polynomially controlled Pauli-rotation circuits. (#642)
+-   Added (piecewise) linearly and polynomially controlled Pauli-rotation circuits. (#642)  
 -   Add `q_equation_of_motion` to study excited state of a molecule, and add two algorithms to prepare the reference
-    state. (#655)
+    state. (#655)     
 
 Changed
 -------
@@ -499,7 +390,7 @@ Added
 -   Amplitude Estimation algorithm
 -   Qiskit Optimization: New Ising models for optimization problems
     exact cover, set packing, vertex cover, clique, and graph partition
--
+-   
 
     Qiskit AI:
 
@@ -507,7 +398,7 @@ Added
             interface: `PauliExpansion` and `PauliZExpansion`
         -   Training model serialization/deserialization mechanism
 
--
+-   
 
     Qiskit Finance:
 
@@ -555,7 +446,7 @@ Added
 
 -   Updated for 0.6 Terra
 -   Enhanced backend settings
--
+-   
 
     Pluggable multiclass classifier extensions
 
@@ -568,7 +459,7 @@ Added
 -   SPSA calibration and control variables all configurable
 -   Step size configurable for optimizers with numerical approximation
     of the jacobian
--
+-   
 
     Z2 Symmetry tapering
 
@@ -579,7 +470,7 @@ Added
 -   UCCSD performance improvements
 -   Remote device/simulator job auto-recovery
 -   Algorithm concatenation: VQE-\>(I)QPE
--
+-   
 
     Operator improvements
 

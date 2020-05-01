@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -16,8 +16,8 @@
 
 import unittest
 import itertools
-from test.aqua import QiskitAquaTestCase
-from ddt import ddt, idata, unpack
+from test.aqua.common import QiskitAquaTestCase
+from parameterized import parameterized
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.components.oracles import TruthTableOracle
@@ -29,11 +29,11 @@ OPTIMIZATIONS = [True, False]
 SIMULATORS = ['statevector_simulator', 'qasm_simulator']
 
 
-@ddt
 class TestDeutschJozsa(QiskitAquaTestCase):
     """ Test Deutsch Jozsa """
-    @idata(itertools.product(BITMAPS, MCT_MODES, OPTIMIZATIONS, SIMULATORS))
-    @unpack
+    @parameterized.expand(
+        itertools.product(BITMAPS, MCT_MODES, OPTIMIZATIONS, SIMULATORS)
+    )
     def test_deutsch_jozsa(self, dj_input, mct_mode, optimization, simulator):
         """ Deutsch Jozsa test """
         backend = BasicAer.get_backend(simulator)

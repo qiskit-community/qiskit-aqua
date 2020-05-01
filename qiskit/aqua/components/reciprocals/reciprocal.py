@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -16,20 +16,28 @@ This module contains the definition of a base class for computing reciprocals
 into an amplitude.
 """
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
+from qiskit.aqua import Pluggable
 
 
-class Reciprocal(ABC):
+class Reciprocal(Pluggable):
 
     """Base class for reciprocal calculation.
 
-    This method should initialize the module and
-    use an exception if a component of the module is not available.
+    This method should initialize the module and its configuration, and
+    use an exception if a component of the module is available.
     """
 
     @abstractmethod
-    def __init__(self) -> None:
-        pass
+    def __init__(self):
+        super().__init__()
+
+    @classmethod
+    def init_params(cls, params):
+        """ init params """
+        reci_params = params.get(Pluggable.SECTION_KEY_RECIPROCAL)
+        args = {k: v for k, v in reci_params.items() if k != 'name'}
+        return cls(**args)
 
     @abstractmethod
     def sv_to_resvec(self, statevector, num_q):

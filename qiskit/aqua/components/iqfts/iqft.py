@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -11,27 +11,40 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-
-"""DEPRECATED. This module contains the definition of a base class for inverse quantum fourier
-transforms.
+"""
+This module contains the definition of a base class for inverse quantum fourier transforms.
 """
 
-import warnings
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 
 from qiskit import QuantumRegister, QuantumCircuit  # pylint: disable=unused-import
 
-from qiskit.aqua import AquaError
+from qiskit.aqua import Pluggable, AquaError
 
 
-class IQFT(ABC):
-    """DEPRECATED. Base class for IQFT."""
+class IQFT(Pluggable):
 
-    def __init__(self):
-        warnings.warn('The class qiskit.aqua.components.iqfts.IQFT is deprecated and will be '
-                      'removed no earlier than 3 months after the release 0.7.0. You should use the'
-                      ' qiskit.circuit.library.QFT class instead and its .inverse().',
-                      DeprecationWarning, stacklevel=2)
+    """Base class for Inverse QFT.
+
+        This method should initialize the module and its configuration, and
+        use an exception if a component of the module is
+        available.
+
+        Args:
+            args (list): args
+            kwargs (list): kwargs
+    """
+
+    @abstractmethod
+    def __init__(self, *args, **kwargs):
+        super().__init__()
+
+    @classmethod
+    def init_params(cls, params):
+        """ init params """
+        iqft_params = params.get(Pluggable.SECTION_KEY_IQFT)
+        kwargs = {k: v for k, v in iqft_params.items() if k != 'name'}
+        return cls(**kwargs)
 
     @abstractmethod
     def _build_matrix(self):

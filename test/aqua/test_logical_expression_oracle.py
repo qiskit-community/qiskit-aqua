@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -16,8 +16,8 @@
 
 import itertools
 import unittest
-from test.aqua import QiskitAquaTestCase
-from ddt import ddt, idata, unpack
+from test.aqua.common import QiskitAquaTestCase
+from parameterized import parameterized
 from qiskit import execute as q_execute
 from qiskit import QuantumCircuit, ClassicalRegister
 from qiskit import BasicAer
@@ -52,11 +52,6 @@ DIMAC_TESTS = [
     [
         'x ^ y',
         [(True, False), (False, True)]
-    ],
-
-    [
-        '(x & y) | (~x & ~y)',
-        [(True, True), (False, False)]
     ]
 ]
 
@@ -64,13 +59,11 @@ MCT_MODES = ['basic', 'basic-dirty-ancilla', 'advanced', 'noancilla']
 OPTIMIZATIONS = [True, False]
 
 
-@ddt
 class TestLogicalExpressionOracle(QiskitAquaTestCase):
     """ Test Logical Expression Oracle """
-    @idata(
+    @parameterized.expand(
         [x[0] + list(x[1:]) for x in list(itertools.product(DIMAC_TESTS, MCT_MODES, OPTIMIZATIONS))]
     )
-    @unpack
     def test_logic_expr_oracle(self, dimacs_str, sols, mct_mode, optimization):
         """ Logic Expr oracle test """
         num_shots = 1024
@@ -85,7 +78,7 @@ class TestLogicalExpressionOracle(QiskitAquaTestCase):
             qc += leo_circuit
             qc.barrier(leo.output_register)
             qc.measure(leo.output_register, m)
-            # self.log.debug(qc.draw(line_length=10000))
+            # print(qc.draw(line_length=10000))
             counts = q_execute(qc,
                                BasicAer.get_backend('qasm_simulator'),
                                shots=num_shots).result().get_counts(qc)

@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -14,11 +14,11 @@
 
 """ Test of Symmetry UCCSD processing """
 
-from test.chemistry import QiskitChemistryTestCase
+from test.chemistry.common import QiskitChemistryTestCase
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import Z2Symmetries
-from qiskit.aqua.algorithms import VQE
+from qiskit.aqua.algorithms.adaptive import VQE
 from qiskit.aqua.components.optimizers import SLSQP
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
@@ -77,13 +77,15 @@ class TestSymmetries(QiskitChemistryTestCase):
 
         optimizer = SLSQP(maxiter=1000)
 
-        init_state = HartreeFock(num_orbitals=self.core._molecule_info['num_orbitals'],
+        init_state = HartreeFock(num_qubits=the_tapered_op.num_qubits,
+                                 num_orbitals=self.core._molecule_info['num_orbitals'],
                                  qubit_mapping=self.core._qubit_mapping,
                                  two_qubit_reduction=self.core._two_qubit_reduction,
                                  num_particles=self.core._molecule_info['num_particles'],
                                  sq_list=the_tapered_op.z2_symmetries.sq_list)
 
-        var_form = UCCSD(num_orbitals=self.core._molecule_info['num_orbitals'],
+        var_form = UCCSD(num_qubits=the_tapered_op.num_qubits, depth=1,
+                         num_orbitals=self.core._molecule_info['num_orbitals'],
                          num_particles=self.core._molecule_info['num_particles'],
                          active_occupied=None, active_unoccupied=None,
                          initial_state=init_state,
@@ -99,6 +101,6 @@ class TestSymmetries(QiskitChemistryTestCase):
 
         algo_result = algo.run(quantum_instance)
 
-        result = self.core.process_algorithm_result(algo_result)
+        _, result = self.core.process_algorithm_result(algo_result)
 
-        self.assertAlmostEqual(result.energy, self.reference_energy, places=6)
+        self.assertAlmostEqual(result['energy'], self.reference_energy, places=6)

@@ -15,16 +15,18 @@
 This module contains the definition of a base class for Oracle.
 """
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
+
+from qiskit.aqua import Pluggable
 
 
-class Oracle(ABC):
+class Oracle(Pluggable):
 
     """
         Base class for oracles.
 
-        This method should initialize the module and
-        use an exception if a component of the module is not
+        This method should initialize the module and its configuration, and
+        use an exception if a component of the module is
         available.
 
         Args:
@@ -32,12 +34,22 @@ class Oracle(ABC):
             kwargs (dict): kwargs
     """
 
+    CONFIGURATION = {}
+
     @abstractmethod
     def __init__(self, *args, **kwargs):
+        super().__init__()
         self._output_register = None
         self._variable_register = None
         self._ancillary_register = None
         self._circuit = None
+
+    @classmethod
+    def init_params(cls, params):
+        """ init params """
+        oracle_params = params.get(Pluggable.SECTION_KEY_ORACLE)
+        args = {k: v for k, v in oracle_params.items() if k != 'name'}
+        return cls(**args)
 
     @property
     def circuit(self):

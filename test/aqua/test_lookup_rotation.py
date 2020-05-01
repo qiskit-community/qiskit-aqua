@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -15,20 +15,18 @@
 """ Test Lookup Rotation """
 
 import unittest
-from test.aqua import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 import numpy as np
-from ddt import ddt, idata, unpack
+from parameterized import parameterized
 from qiskit import (QuantumRegister, QuantumCircuit, execute, BasicAer)
 from qiskit.aqua.components.reciprocals.lookup_rotation import LookupRotation
-from qiskit.quantum_info import (state_fidelity, Statevector)
+from qiskit.quantum_info import (state_fidelity, basis_state)
 
 
-@ddt
 class TestLookupRotation(QiskitAquaTestCase):
     """Lookup Rotation tests."""
 
-    @idata([[3, 1 / 2], [5, 1 / 4], [7, 1 / 8], [9, 1 / 16], [11, 1 / 32]])
-    @unpack
+    @parameterized.expand([[3, 1/2], [5, 1/4], [7, 1/8], [9, 1/16], [11, 1/32]])
     def test_lookup_rotation(self, reg_size, ref_rot):
         """ lookup rotation test """
         self.log.debug('Testing Lookup Rotation with positive eigenvalues')
@@ -37,9 +35,9 @@ class TestLookupRotation(QiskitAquaTestCase):
         ref_size = reg_size + 3  # add work, msq and anc qubits
         ref_dim = 2**ref_size
         ref_sv = np.zeros(ref_dim, dtype=complex)
-        ref_sv[int(ref_dim / 2) + 1] = ref_sv_ampl + 0j
-        ref_sv[1] = np.sqrt(1 - ref_sv_ampl ** 2) + 0j
-        state = Statevector.from_label('0' * (reg_size - 1) + '1').data
+        ref_sv[int(ref_dim/2)+1] = ref_sv_ampl+0j
+        ref_sv[1] = np.sqrt(1-ref_sv_ampl**2)+0j
+        state = basis_state('1', reg_size)
         q_a = QuantumRegister(reg_size, name='a')
         init_circuit = QuantumCircuit(q_a)
         init_circuit.initialize(state, q_a)
@@ -52,8 +50,7 @@ class TestLookupRotation(QiskitAquaTestCase):
         self.log.debug('Lookup rotation register size: %s', reg_size)
         self.log.debug('Lookup rotation fidelity:      %s', fidelity)
 
-    @idata([[3, 0], [5, 1 / 4], [7, 1 / 8], [9, 1 / 16], [11, 1 / 32]])
-    @unpack
+    @parameterized.expand([[3, 0], [5, 1/4], [7, 1/8], [9, 1/16], [11, 1/32]])
     def test_lookup_rotation_neg(self, reg_size, ref_rot):
         """ lookup rotation neg test """
         self.log.debug('Testing Lookup Rotation with support for negative '
@@ -63,9 +60,9 @@ class TestLookupRotation(QiskitAquaTestCase):
         ref_size = reg_size + 3  # add work, msq and anc qubits
         ref_dim = 2**ref_size
         ref_sv = np.zeros(ref_dim, dtype=complex)
-        ref_sv[int(ref_dim / 2) + 1] = -ref_sv_ampl + 0j
-        ref_sv[1] = -np.sqrt(1 - ref_sv_ampl ** 2) + 0j
-        state = Statevector.from_label('0' * (reg_size - 1) + '1').data
+        ref_sv[int(ref_dim/2)+1] = -ref_sv_ampl+0j
+        ref_sv[1] = -np.sqrt(1-ref_sv_ampl**2)+0j
+        state = basis_state('1', reg_size)
         q_a = QuantumRegister(reg_size, name='a')
         init_circuit = QuantumCircuit(q_a)
         init_circuit.initialize(state, q_a)

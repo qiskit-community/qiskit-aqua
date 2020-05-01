@@ -1,16 +1,13 @@
 qiskit-aer
 discover
-ddt>=1.2.0
+parameterized
 pycodestyle
 pylint>=2.4.3
 pylintfileheader>=0.0.2
 Sphinx>=1.8.3
 sphinx-rtd-theme>=0.4.0
-sphinx-tabs>=1.1.11
-sphinx-autodoc-typehints
-jupyter-sphinx
-reno>=2.11.0
+sphinx-tabs>=1.1.11 
+sphinx-automodapi
 matplotlib>=2.1
 stestr>=2.5.0
-coverage>=4.4.0
 torch; sys_platform == 'linux' or (python_version < '3.8' and sys_platform != 'win32')

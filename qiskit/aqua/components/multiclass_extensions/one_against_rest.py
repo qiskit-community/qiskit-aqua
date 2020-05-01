@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -13,7 +13,7 @@
 # that they have been altered from the originals.
 
 """
-The One Against Rest multiclass extension.
+the multiclass extension based on the one-against-rest algorithm.
 """
 
 import logging
@@ -21,7 +21,8 @@ import logging
 import numpy as np
 from sklearn.utils.validation import _num_samples
 from sklearn.preprocessing import LabelBinarizer
-from .multiclass_extension import MulticlassExtension
+
+from qiskit.aqua.components.multiclass_extensions import MulticlassExtension
 
 logger = logging.getLogger(__name__)
 
@@ -29,26 +30,33 @@ logger = logging.getLogger(__name__)
 
 
 class OneAgainstRest(MulticlassExtension):
-    r"""
-    The One Against Rest multiclass extension.
-
-    For an :math:`n`-class problem, the **one-against-rest** method constructs :math:`n`
-    SVM classifiers, with the :math:`i`-th classifier separating class :math:`i` from all the
-    remaining classes, :math:`\forall i \in \{1, 2, \ldots, n\}`. When the :math:`n` classifiers
-    are combined to make the final decision, the classifier that generates the highest value from
-    its decision function is selected as the winner and the corresponding class label is returned.
     """
+      the multiclass extension based on the one-against-rest algorithm.
+    """
+    CONFIGURATION = {
+        'name': 'OneAgainstRest',
+        'description': 'OneAgainstRest extension',
+        'input_schema': {
+            '$schema': 'http://json-schema.org/draft-07/schema#',
+            'id': 'one_against_rest_schema',
+            'type': 'object',
+            'properties': {
+            },
+            'additionalProperties': False
+        }
+    }
 
-    def __init__(self) -> None:
+    def __init__(self, estimator_cls, params=None):
         super().__init__()
+        self.estimator_cls = estimator_cls
+        self.params = params if params is not None else []
         self.label_binarizer_ = None
         self.classes = None
         self.estimators = None
 
     def train(self, x, y):
         """
-        Training multiple estimators each for distinguishing a pair of classes.
-
+        training multiple estimators each for distinguishing a pair of classes.
         Args:
             x (numpy.ndarray): input points
             y (numpy.ndarray): input labels
@@ -72,8 +80,7 @@ class OneAgainstRest(MulticlassExtension):
 
     def test(self, x, y):
         """
-        Testing multiple estimators each for distinguishing a pair of classes.
-
+        testing multiple estimators each for distinguishing a pair of classes.
         Args:
             x (numpy.ndarray): input points
             y (numpy.ndarray): input labels
@@ -89,8 +96,7 @@ class OneAgainstRest(MulticlassExtension):
 
     def predict(self, x):
         """
-        Applying multiple estimators for prediction.
-
+        applying multiple estimators for prediction
         Args:
             x (numpy.ndarray): NxD array
         Returns:

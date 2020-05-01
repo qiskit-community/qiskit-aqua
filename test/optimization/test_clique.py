@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -14,15 +14,16 @@
 
 """ Test Clique """
 
-import unittest
-from test.optimization import QiskitOptimizationTestCase
+from test.optimization.common import QiskitOptimizationTestCase
+import warnings
 import numpy as np
 from qiskit import BasicAer
 
-from qiskit.aqua import aqua_globals, QuantumInstance
-from qiskit.optimization.applications.ising import clique
-from qiskit.optimization.applications.ising.common import random_graph, sample_most_likely
-from qiskit.aqua.algorithms import NumPyMinimumEigensolver, VQE
+from qiskit.aqua import run_algorithm, aqua_globals, QuantumInstance
+from qiskit.aqua.input import EnergyInput
+from qiskit.optimization.ising import clique
+from qiskit.optimization.ising.common import random_graph, sample_most_likely
+from qiskit.aqua.algorithms import ExactEigensolver, VQE
 from qiskit.aqua.components.optimizers import COBYLA
 from qiskit.aqua.components.variational_forms import RY
 
@@ -32,6 +33,8 @@ class TestClique(QiskitOptimizationTestCase):
 
     def setUp(self):
         super().setUp()
+        warnings.filterwarnings("ignore", message=aqua_globals.CONFIG_DEPRECATION_MSG,
+                                category=DeprecationWarning)
         self.k = 5  # K means the size of the clique
         self.seed = 100
         aqua_globals.random_seed = self.seed
@@ -46,7 +49,7 @@ class TestClique(QiskitOptimizationTestCase):
             return [int(digit) for digit in result]
 
         nodes = self.num_nodes  # length of the bitstring that represents the assignment
-        maximum = 2 ** nodes
+        maximum = 2**nodes
         has_sol = False
         for i in range(maximum):
             cur = bitfield(i, nodes)
@@ -58,9 +61,22 @@ class TestClique(QiskitOptimizationTestCase):
 
     def test_clique(self):
         """ Clique test """
-        algo = NumPyMinimumEigensolver(self.qubit_op, aux_operators=[])
+        params = {
+            'problem': {'name': 'ising'},
+            'algorithm': {'name': 'ExactEigensolver'}
+        }
+        result = run_algorithm(params, EnergyInput(self.qubit_op))
+        x = sample_most_likely(result['eigvecs'][0])
+        ising_sol = clique.get_graph_solution(x)
+        np.testing.assert_array_equal(ising_sol, [1, 1, 1, 1, 1])
+        oracle = self._brute_force()
+        self.assertEqual(clique.satisfy_or_not(ising_sol, self.w, self.k), oracle)
+
+    def test_clique_direct(self):
+        """ Clique Direct test """
+        algo = ExactEigensolver(self.qubit_op, k=1, aux_operators=[])
         result = algo.run()
-        x = sample_most_likely(result.eigenstate)
+        x = sample_most_likely(result['eigvecs'][0])
         ising_sol = clique.get_graph_solution(x)
         np.testing.assert_array_equal(ising_sol, [1, 1, 1, 1, 1])
         oracle = self._brute_force()
@@ -76,12 +92,8 @@ class TestClique(QiskitOptimizationTestCase):
                          QuantumInstance(BasicAer.get_backend('statevector_simulator'),
                                          seed_simulator=aqua_globals.random_seed,
                                          seed_transpiler=aqua_globals.random_seed))
-        x = sample_most_likely(result.eigenstate)
+        x = sample_most_likely(result['eigvecs'][0])
         ising_sol = clique.get_graph_solution(x)
         np.testing.assert_array_equal(ising_sol, [1, 1, 1, 1, 1])
         oracle = self._brute_force()
         self.assertEqual(clique.satisfy_or_not(ising_sol, self.w, self.k), oracle)
-
-
-if __name__ == '__main__':
-    unittest.main()

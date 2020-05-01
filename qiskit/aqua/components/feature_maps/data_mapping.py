@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -21,15 +21,15 @@ import functools
 import numpy as np
 
 
-def self_product(x: np.ndarray) -> float:
+def self_product(x):
     """
     Define a function map from R^n to R.
 
     Args:
-        x: data
+        x (np.ndarray): data
 
     Returns:
-        float: the mapped value
+        double: the mapped value
     """
     coeff = x[0] if len(x) == 1 else \
         functools.reduce(lambda m, n: m * n, np.pi - x)

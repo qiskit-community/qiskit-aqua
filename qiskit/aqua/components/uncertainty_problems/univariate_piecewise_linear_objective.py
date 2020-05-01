@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,56 +12,51 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Univariate Piecewise Linear Objective Function."""
+"""
+Univariate Piecewise Linear Objective Function, applies controlled Y-rotation to target qubit.
+Control qubits represent integer value, and rotation approximates a piecewise
+linear function of the amplitude f:
+    |x>|0> --> |x>( sqrt(1 - f(x))|0> + sqrt(f(x))|1> )
+"""
 
-from typing import Optional, Union, List
 import numpy as np
-from qiskit.circuit.library import PiecewiseLinearPauliRotations
+from qiskit.aqua.circuits.piecewise_linear_rotation import PiecewiseLinearRotation as PwlRot
 from qiskit.aqua.utils import CircuitFactory
+
+# pylint: disable=invalid-name
 
 
 class UnivariatePiecewiseLinearObjective(CircuitFactory):
-    r"""Univariate Piecewise Linear Objective Function.
-
-    This objective function applies controlled Y-rotation to the target qubit, where the
-    control qubits represent integer value, and rotation approximates a piecewise
-    linear function of the amplitude f:
-
-    .. math::
-
-        |x\rangle |0\rangle \mapsto |x\rangle (\sqrt(1 - f(x))|0\rangle + sqrt(f(x))|1\rangle )
 
     """
+    Univariate Piecewise Linear Objective Function, applies controlled Y-rotation to target qubit.
+    Control qubits represent integer value, and rotation approximates a piecewise
+    linear function of the amplitude f:
+        |x>|0> --> |x>( sqrt(1 - f(x))|0> + sqrt(f(x))|1> )
+    """
 
-    def __init__(self,
-                 num_state_qubits: int,
-                 min_state_value: float,
-                 max_state_value: float,
-                 breakpoints: Union[List[float], np.ndarray],
-                 slopes: Union[List[float], np.ndarray],
-                 offsets: Union[List[float], np.ndarray],
-                 f_min: float,
-                 f_max: float,
-                 c_approx: float,
-                 i_state: Optional[int] = None,
-                 i_objective: Optional[int] = None) -> None:
-        r"""
+    def __init__(self, num_state_qubits, min_state_value, max_state_value,
+                 breakpoints, slopes, offsets, f_min, f_max, c_approx,
+                 i_state=None, i_objective=None):
+        """
+        Constructor.
+
         Args:
-            num_state_qubits: number of qubits to represent the state
-            min_state_value : lower bound of values to be represented by state qubits
-            max_state_value: upper bound of values to be represented by state qubits
-            breakpoints: breakpoints of piecewise linear function
-            slopes: slopes of linear segments
-            offsets: offset of linear segments
-            f_min: minimal value of resulting function
-                           (required for normalization of amplitude)
-            f_max: maximal value of resulting function
-                           (required for normalization of amplitude)
-            c_approx: approximating factor (linear segments are approximated by
-                              contracting rotation
-                              around pi/4, where sin\^2() is locally linear)
-            i_state: indices of qubits that represent the state
-            i_objective: index of target qubit to apply the rotation to
+            num_state_qubits (int): number of qubits to represent the state
+            min_state_value (float): lower bound of values to be represented by state qubits
+            max_state_value (float): upper bound of values to be represented by state qubits
+            breakpoints (Union(list, numpy.ndarray)): breakpoints of piecewise linear function
+            slopes (Union(list, numpy.ndarray)): slopes of linear segments
+            offsets (Union(list, numpy.ndarray)): offset of linear segments
+            f_min (float): minimal value of resulting function
+                            (required for normalization of amplitude)
+            f_max (float): maximal value of resulting function
+                            (required for normalization of amplitude)
+            c_approx (float): approximating factor (linear segments are approximated by
+                                             contracting rotation
+                                            around pi/4, where sin^2() is locally linear)
+            i_state (int): indices of qubits that represent the state
+            i_objective (int): index of target qubit to apply the rotation to
         """
         super().__init__(num_state_qubits + 1)
 
@@ -85,8 +80,8 @@ class UnivariatePiecewiseLinearObjective(CircuitFactory):
 
         # make sure the minimal value is included in the breakpoints
         min_value_included = False
-        for point in breakpoints:
-            if np.isclose(point, min_state_value):
+        for bp in breakpoints:
+            if np.isclose(bp, min_state_value):
                 min_value_included = True
                 break
         if not min_value_included:
@@ -116,20 +111,20 @@ class UnivariatePiecewiseLinearObjective(CircuitFactory):
             self.i_objective = num_state_qubits
 
         # map breakpoints, slopes, and offsets such that they fit {0, ..., 2^n-1}
-        lower = min_state_value
-        upper = max_state_value
+        lb = min_state_value
+        ub = max_state_value
         self._mapped_breakpoints = []
         self._mapped_slopes = []
         self._mapped_offsets = []
-        for i, point in enumerate(breakpoints):
-            mapped_breakpoint = (point - lower) / (upper - lower) * (2**num_state_qubits - 1)
+        for i, _ in enumerate(breakpoints):
+            mapped_breakpoint = (breakpoints[i] - lb) / (ub - lb) * (2**num_state_qubits - 1)
             if mapped_breakpoint <= 2**num_state_qubits - 1:
                 self._mapped_breakpoints += [mapped_breakpoint]
 
-                # factor (upper - lower) / (2^n - 1) is for the scaling of x to [l,u]
+                # factor (ub - lb) / (2^n - 1) is for the scaling of x to [l,u]
                 # note that the +l for mapping to [l,u] is already included in
                 # the offsets given as parameters
-                self._mapped_slopes += [slopes[i] * (upper - lower) / (2**num_state_qubits - 1)]
+                self._mapped_slopes += [slopes[i] * (ub - lb) / (2**num_state_qubits - 1)]
                 self._mapped_offsets += [offsets[i]]
         self._mapped_breakpoints = np.array(self._mapped_breakpoints)
         self._mapped_slopes = np.array(self._mapped_slopes)
@@ -150,11 +145,13 @@ class UnivariatePiecewiseLinearObjective(CircuitFactory):
             self._offset_angles = 2 * self._offset_angles
 
             # create piecewise linear Y rotation
-            self._pwl_ry = PiecewiseLinearPauliRotations(
-                num_state_qubits,
+            self._pwl_ry = PwlRot(
                 self._mapped_breakpoints,
                 self._slope_angles,
-                self._offset_angles
+                self._offset_angles,
+                num_state_qubits,
+                i_state=i_state,
+                i_target=i_objective
             )
 
         else:
@@ -178,7 +175,7 @@ class UnivariatePiecewiseLinearObjective(CircuitFactory):
 
     def required_ancillas(self):
         """ requires ancillas """
-        return self._pwl_ry.num_ancilla_qubits
+        return self._pwl_ry.required_ancillas()
 
     def build(self, qc, q, q_ancillas=None, params=None):
         """ build """
@@ -186,8 +183,4 @@ class UnivariatePiecewiseLinearObjective(CircuitFactory):
         q_objective = q[self.i_objective]
 
         # apply piecewise linear rotation
-        qubits = q_state[:] + [q_objective]
-        if q_ancillas:
-            qubits += q_ancillas[:self.required_ancillas()]
-
-        qc.append(self._pwl_ry.to_instruction(), qubits)
+        self._pwl_ry.build(qc, q_state + [q_objective], q_ancillas)

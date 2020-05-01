@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,53 +12,45 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Polynomially controlled Pauli-rotations."""
+"""
+Polynomially controlled Pauli-rotations
+"""
 
-import warnings
 from itertools import product
 from sympy.ntheory.multinomial import multinomial_coefficients
+import numpy as np
 
-from qiskit.circuit.library import PolynomialPauliRotations
 from qiskit.aqua.utils import CircuitFactory
+from qiskit.aqua.circuits.gates import cry, mcrx, mcry, mcrz  # pylint: disable=unused-import
 
 # pylint: disable=invalid-name
 
 
 class PolynomialRotation(CircuitFactory):
-    r"""*DEPRECATED.* Polynomial rotation.
+    """
+    Polynomial rotation.
+    For a polynomial p(x), a basis state |i> and a target qubit |0> this operator acts as:
+        |i>|0> --> |i>( cos(p(i))|0> + sin(p(i))|1> )
 
-    .. deprecated:: 0.7.0
-       Use Terra's qiskit.circuit.library.PolynomialPauliRotations instead.
-
-    | For a polynomial p(x), a basis state \|i> and a target qubit \|0> this operator acts as:
-    |    \|i>\|0> --> \|i>( cos(p(i))\|0> + sin(p(i))\|1> )
-
-    | Let n be the number of qubits representing the state, d the degree of p(x) and q_i the qubits,
-    | where q_0 is the least significant qubit. Then for
-    |     x = sum_{i=0}^{n-1} 2^{i}*q_i,
-    | we can write
-    |     p(x) = sum_{j=0}^{j=d} px[j]*(q_0 + 2*q_1 + ... + 2^{n-1}*q_n-1)^{j}.
-
+    Let n be the number of qubits representing the state, d the degree of p(x) and q_i the qubits,
+    where q_0 is the least significant qubit. Then for
+        x = sum_{i=0}^{n-1} 2^{i}*q_i,
+    we can write
+        p(x) = sum_{j=0}^{j=d} px[j]*(q_0 + 2*q_1 + ... + 2^{n-1}*q_n-1)^{j}.
     The expression above is used to obtain the list of controls and rotation angles for the circuit.
     """
 
     def __init__(self, px, num_state_qubits, basis='Y'):
         """
+        Constructor.
         Prepare an approximation to a state with amplitudes specified by a polynomial.
-
         Args:
             px (list): coefficients of the polynomial, px[i] is the coefficient of x^i
             num_state_qubits (int): number of qubits representing the state
             basis (str): type of Pauli rotation ('X', 'Y', 'Z')
-
         Raises:
             ValueError: invalid input
         """
-        warnings.warn('The qiskit.aqua.circuits.PolynomialRotation object is deprecated and '
-                      'will be removed no earlier than 3 months after the 0.7.0 release of Qiskit '
-                      'Aqua. You should use qiskit.circuit.library.PolynomialPauliRotations '
-                      'instead.', DeprecationWarning, stacklevel=2)
-
         super().__init__(num_state_qubits + 1)
 
         # Store parameters
@@ -126,23 +118,51 @@ class PolynomialRotation(CircuitFactory):
 
     # pylint: disable=arguments-differ
     def build(self, qc, q, q_target, q_ancillas=None, reverse=0):
-        r"""Build the circuit.
-
+        """
         Args:
             qc (QuantumCircuit): quantum circuit
             q (list): list of qubits (has to be same length as self.num_state_qubits)
             q_target (Qubit): qubit to be rotated. The algorithm is successful when
-                this qubit is in the \|1> state
+                    this qubit is in the |1> state
             q_ancillas (list): list of ancilla qubits (or None if none needed)
             reverse (int): if 1, apply with reversed list of qubits
-                           (i.e. q_n as q_0, q_n-1 as q_1, etc).
+                            (i.e. q_n as q_0, q_n-1 as q_1, etc).
         """
-        instr = PolynomialPauliRotations(num_state_qubits=self.num_state_qubits,
-                                         coeffs=self.px,
-                                         basis=self.basis,
-                                         reverse=reverse).to_instruction()
-        # pylint:disable=unnecessary-comprehension
-        qr = [qi for qi in q] + [q_target]
-        if q_ancillas:
-            qr += [qi for qi in q_ancillas[:self.required_ancillas()]]
-        qc.append(instr, qr)
+
+        # Dictionary of controls for the rotation gates as a tuple and their respective angles
+        cdict = self._get_controls()
+        cdict = self._get_thetas(cdict)
+
+        if self.basis == 'X':
+            qc.rx(2 * self.px[0], q_target)
+        elif self.basis == 'Y':
+            qc.ry(2 * self.px[0], q_target)
+        elif self.basis == 'Z':
+            qc.rz(2 * self.px[0], q_target)
+
+        for c in cdict:
+            q_controls = []
+            if reverse == 1:
+                for i in range(0, len(c)):  # pylint: disable=consider-using-enumerate
+                    if c[i] > 0:
+                        q_controls.append(q[q.size - i - 1])
+            else:
+                for i in range(0, len(c)):  # pylint: disable=consider-using-enumerate
+                    if c[i] > 0:
+                        q_controls.append(q[i])
+            # Apply controlled y-rotation
+            if len(q_controls) > 1:
+                if self.basis == 'X':
+                    qc.mcrx(2 * cdict[c], q_controls, q_target, q_ancillas)
+                elif self.basis == 'Y':
+                    qc.mcry(2 * cdict[c], q_controls, q_target, q_ancillas)
+                elif self.basis == 'Z':
+                    qc.mcrz(2 * cdict[c], q_controls, q_target, q_ancillas)
+
+            elif len(q_controls) == 1:
+                if self.basis == 'X':
+                    qc.u3(2 * cdict[c], -np.pi / 2, np.pi / 2, q_controls[0], q_target)
+                elif self.basis == 'Y':
+                    qc.cry(2 * cdict[c], q_controls[0], q_target)
+                elif self.basis == 'Z':
+                    qc.crz(2 * cdict[c], q_controls[0], q_target)

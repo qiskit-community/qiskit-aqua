@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -34,32 +34,25 @@ def get_measured_qubits(transpiled_circuits):
         transpiled_circuits ([QuantumCircuit]): a list of transpiled circuits
 
     Returns:
-        list[int]: the used and sorted qubit index
-        dict: key is qubit index str connected by '_',
-              value is the experiment index. {str: list[int]}
+        list[int]: the qubit mapping to-be-used for measure error mitigation
     Raises:
         AquaError: invalid qubit mapping
     """
-    qubit_index = None
-    qubit_mappings = {}
-    for idx, qc in enumerate(transpiled_circuits):
+
+    qubit_mapping = None
+    for qc in transpiled_circuits:
         measured_qubits = []
         for inst, qargs, _ in qc.data:
             if inst.name != 'measure':
                 continue
             measured_qubits.append(qargs[0][1])
-        measured_qubits_str = '_'.join([str(x) for x in measured_qubits])
-        if measured_qubits_str not in qubit_mappings:
-            qubit_mappings[measured_qubits_str] = []
-        qubit_mappings[measured_qubits_str].append(idx)
-        if qubit_index is None:
-            qubit_index = measured_qubits
-        elif set(qubit_index) != set(measured_qubits):
-            raise AquaError("The used qubit index are different. ({}) vs ({}).\nCurrently, "
-                            "we only support all circuits using the same set of qubits "
-                            "regardless qubit order.".format(qubit_index, measured_qubits))
+        if qubit_mapping is None:
+            qubit_mapping = measured_qubits
+        elif qubit_mapping != measured_qubits:
+            raise AquaError("The qubit mapping of circuits are different."
+                            "Currently, we only support single mapping.")
 
-    return sorted(qubit_index), qubit_mappings
+    return qubit_mapping
 
 
 def get_measured_qubits_from_qobj(qobj):
@@ -70,35 +63,27 @@ def get_measured_qubits_from_qobj(qobj):
         qobj (QasmObj): qobj
 
     Returns:
-        list[int]: the used and sorted qubit index
-        dict: key is qubit index str connected by '_',
-              value is the experiment index. {str: list[int]}
+        list[int]: the qubit mapping to-be-used for measure error mitigation
      Raises:
         AquaError: invalid qubit mapping
     """
 
-    qubit_index = None
-    qubit_mappings = {}
+    qubit_mapping = None
 
-    for idx, exp in enumerate(qobj.experiments):
+    for exp in qobj.experiments:
         measured_qubits = []
         for instr in exp.instructions:
             if instr.name != 'measure':
                 continue
             measured_qubits.append(instr.qubits[0])
-        measured_qubits_str = '_'.join([str(x) for x in measured_qubits])
-        if measured_qubits_str not in qubit_mappings:
-            qubit_mappings[measured_qubits_str] = []
-        qubit_mappings[measured_qubits_str].append(idx)
-        if qubit_index is None:
-            qubit_index = measured_qubits
+        if qubit_mapping is None:
+            qubit_mapping = measured_qubits
         else:
-            if set(qubit_index) != set(measured_qubits):
-                raise AquaError("The used qubit index are different. ({}) vs ({}).\nCurrently, "
-                                "we only support all circuits using the same set of qubits "
-                                "regardless qubit order.".format(qubit_index, measured_qubits))
+            if qubit_mapping != measured_qubits:
+                raise AquaError("The qubit mapping of circuits are different."
+                                "Currently, we only support single mapping.")
 
-    return sorted(qubit_index), qubit_mappings
+    return qubit_mapping
 
 
 # pylint: disable=invalid-name

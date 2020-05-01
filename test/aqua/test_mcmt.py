@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -16,27 +16,24 @@
 
 import unittest
 import itertools
-from test.aqua import QiskitAquaTestCase
+from test.aqua.common import QiskitAquaTestCase
 import numpy as np
-from ddt import ddt, idata, unpack
+from parameterized import parameterized
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit import execute as q_execute
 from qiskit.quantum_info import state_fidelity
 from qiskit import BasicAer
-# pylint:disable=unused-import
-from qiskit.aqua.circuits.gates import multi_control_multi_target_gate
 
 NUM_CONTROLS = [i + 1 for i in range(7)]
 NUM_TARGETS = [i + 1 for i in range(5)]
 SINGLE_QUBIT_GATES = [QuantumCircuit.ch, QuantumCircuit.cz]
 
 
-@ddt
 class TestMCMTGate(QiskitAquaTestCase):
     """ Test MCMT Gate """
-
-    @idata(itertools.product(NUM_CONTROLS, NUM_TARGETS, SINGLE_QUBIT_GATES))
-    @unpack
+    @parameterized.expand(
+        itertools.product(NUM_CONTROLS, NUM_TARGETS, SINGLE_QUBIT_GATES)
+    )
     def test_mcmt(self, num_controls, num_targets,
                   single_control_gate_function):
         """ MCMT test """
@@ -92,7 +89,8 @@ class TestMCMTGate(QiskitAquaTestCase):
                 if single_control_gate_function.__name__ == 'cz':
                     # Z gate flips the last qubit only if it's applied an odd
                     # number of times
-                    if len(subset) == num_controls and (num_controls % 2) == 1:
+                    if (len(subset) == num_controls
+                            and (num_controls % 2) == 1):
                         vec_exp[-1] = -1
                 elif single_control_gate_function.__name__ == 'ch':
                     # if all the control qubits have been activated,
@@ -111,7 +109,8 @@ class TestMCMTGate(QiskitAquaTestCase):
                 # append the remaining part of the state
                 vec_exp = np.concatenate(
                     (vec_exp,
-                     [0] * (2**(num_controls + num_ancillae + num_targets) - vec_exp.size)))
+                     [0] * (2**(num_controls + num_ancillae + num_targets) -
+                            vec_exp.size)))
                 f_i = state_fidelity(vec, vec_exp)
                 self.assertAlmostEqual(f_i, 1)
 

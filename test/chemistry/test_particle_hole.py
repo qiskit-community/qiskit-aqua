@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -14,14 +14,13 @@
 
 """ Test Particle Hole """
 
-from test.chemistry import QiskitChemistryTestCase
-from ddt import ddt, idata, unpack
-from qiskit.aqua.algorithms import NumPyMinimumEigensolver
+from test.chemistry.common import QiskitChemistryTestCase
+from parameterized import parameterized
+from qiskit.aqua.algorithms import ExactEigensolver
 from qiskit.chemistry import FermionicOperator, QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType, HFMethodType
 
 
-@ddt
 class TestParticleHole(QiskitChemistryTestCase):
     """Test ParticleHole transformations of Fermionic Operator"""
 
@@ -31,7 +30,7 @@ class TestParticleHole(QiskitChemistryTestCase):
     O_H = 'O 0 0 0; H 0 0 0.9697'
     CH2 = 'C; H 1 1; H 1 1 2 125.0'
 
-    @idata([
+    @parameterized.expand([
         [H_2, 0, 0, 'sto3g', HFMethodType.RHF],
         [H_2, 0, 0, '6-31g', HFMethodType.RHF],
         [LIH, 0, 0, 'sto3g', HFMethodType.RHF],
@@ -43,7 +42,6 @@ class TestParticleHole(QiskitChemistryTestCase):
         [CH2, 0, 2, 'sto3g', HFMethodType.ROHF],
         [CH2, 0, 2, 'sto3g', HFMethodType.UHF],
     ])
-    @unpack
     def test_particle_hole(self, atom, charge=0, spin=0, basis='sto3g', hf_method=HFMethodType.RHF):
         """ particle hole test """
         try:
@@ -68,14 +66,13 @@ class TestParticleHole(QiskitChemistryTestCase):
 
         # ph_shift should be the electronic part of the hartree fock energy
         self.assertAlmostEqual(-ph_shift,
-                               molecule.hf_energy - molecule.nuclear_repulsion_energy, msg=config)
+                               molecule.hf_energy-molecule.nuclear_repulsion_energy, msg=config)
 
         # Energy in original fer_op should same as ph transformed one added with ph_shift
         jw_op = fer_op.mapping('jordan_wigner')
-        result = NumPyMinimumEigensolver(jw_op).run()
+        result = ExactEigensolver(jw_op).run()
 
         ph_jw_op = ph_fer_op.mapping('jordan_wigner')
-        ph_result = NumPyMinimumEigensolver(ph_jw_op).run()
+        ph_result = ExactEigensolver(ph_jw_op).run()
 
-        self.assertAlmostEqual(result.eigenvalue.real,
-                               ph_result.eigenvalue.real - ph_shift, msg=config)
+        self.assertAlmostEqual(result['energy'], ph_result['energy']-ph_shift, msg=config)
