@@ -407,10 +407,12 @@ class TestVQC(QiskitAquaTestCase):
                                                 test_size=testing_dataset_size,
                                                 n=feature_dim,
                                                 plot_data=False)
+        ref_accuracy = 0.2
         if mode == 'wrapped':
             warnings.filterwarnings('ignore', category=DeprecationWarning)
             data_preparation = SecondOrderExpansion(feature_dim)
             wavefunction = RYRZ(feature_dim, depth=1)
+            ref_accuracy = -1.0
         else:
             data_preparation = ZZFeatureMap(feature_dim)
             x = data_preparation.ordered_parameters
@@ -441,7 +443,7 @@ class TestVQC(QiskitAquaTestCase):
                                          seed_simulator=aqua_globals.random_seed,
                                          seed_transpiler=aqua_globals.random_seed))
         self.log.debug(result['testing_accuracy'])
-        self.assertGreater(result['testing_accuracy'], 0.2)
+        self.assertGreater(result['testing_accuracy'], ref_accuracy)
 
     def test_vqc_with_raw_feature_vector_on_wine(self):
         """ vqc with raw features vector on wine test """
