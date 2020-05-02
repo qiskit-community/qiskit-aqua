@@ -54,8 +54,7 @@ class TestSwapRZ(QiskitChemistryTestCase):
         qubit_op, _ = operator.run(qmolecule)
 
         optimizer = SLSQP(maxiter=100)
-        initial_state = HartreeFock(qubit_op.num_qubits,
-                                    operator.molecule_info['num_orbitals'],
+        initial_state = HartreeFock(operator.molecule_info['num_orbitals'],
                                     operator.molecule_info['num_particles'],
                                     qubit_mapping=operator._qubit_mapping,
                                     two_qubit_reduction=operator._two_qubit_reduction)

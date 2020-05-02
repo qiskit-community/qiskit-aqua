@@ -15,8 +15,11 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 > -   **Fixed**: for any bug fixes.
 > -   **Security**: in case of vulnerabilities.
 
-[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.6.6...HEAD)
+[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.7.0...HEAD)
 ========================================================================
+
+[0.7.0](https://github.com/Qiskit/qiskit-aqua/compare/0.6.6...0.7.0) - 2020-04-30
+=================================================================================
 
 Added
 -----
@@ -95,6 +98,10 @@ Changed
     in addition to the existing Operators (#852).
 -   The `BaseOperator` was renamed `LegacyBaseOperator` to avoid confusion with the new
     Operator flow `OperatorBase` (#852).
+-   HartreeFock initial state and UCCSD variational form `num_qubits` parameter removed as it was
+    only value checked against that computed internally from the other parameters. UCCSD `depth`
+    parameter renamed to `reps` and moved in order so it can default to 1. (#939)
+     
 
 Removed
 -------

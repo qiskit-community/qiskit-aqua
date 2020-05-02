@@ -53,12 +53,12 @@ class TestVQEAdaptUCCSD(QiskitChemistryTestCase):
         self.qubit_op = Z2Symmetries.two_qubit_reduction(to_weighted_pauli_operator(qubit_op),
                                                          self.num_particles)
         self.num_qubits = self.qubit_op.num_qubits
-        self.init_state = HartreeFock(self.num_qubits, self.num_spin_orbitals, self.num_particles)
+        self.init_state = HartreeFock(self.num_spin_orbitals, self.num_particles)
         self.var_form_base = None
 
     def test_uccsd_adapt(self):
         """ UCCSD test for adaptive features """
-        self.var_form_base = UCCSD(self.num_qubits, 1, self.num_spin_orbitals,
+        self.var_form_base = UCCSD(self.num_spin_orbitals,
                                    self.num_particles, initial_state=self.init_state)
         self.var_form_base.manage_hopping_operators()
         # assert that the excitation pool exists
@@ -75,7 +75,7 @@ class TestVQEAdaptUCCSD(QiskitChemistryTestCase):
             self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(ex)))
             return
 
-        self.var_form_base = UCCSD(self.num_qubits, 1, self.num_spin_orbitals,
+        self.var_form_base = UCCSD(self.num_spin_orbitals,
                                    self.num_particles, initial_state=self.init_state)
         backend = Aer.get_backend('statevector_simulator')
         optimizer = L_BFGS_B()

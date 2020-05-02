@@ -54,6 +54,7 @@ stage_dependencies: &stage_dependencies
       fi
     - pip install -U 'pip<20.0.0'
     - pip install -U setuptools wheel
+    - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
     - |
       if [ "$DEPENDENCY_BRANCH" == "master" ]; then
         pip install cython
@@ -64,7 +65,6 @@ stage_dependencies: &stage_dependencies
         # Installing qiskit-ibmq-provider master branch...
         pip install https://github.com/Qiskit/qiskit-ibmq-provider/archive/master.zip --progress-bar off
         # install qiskit-aer build dependencies
-        sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
         sudo apt-get -y update
         sudo apt-get -y install g++-7
         sudo apt-get -y install libopenblas-dev
@@ -214,6 +214,8 @@ jobs:
         - sudo apt-get -y install libgfortran5
         # Installing pyquante2 master branch...
         - pip install https://github.com/rpmuller/pyquante2/archive/master.zip --progress-bar off
+        # make sure it uses latest numpy, this will be removed later
+        - pip install -U numpy
       before_script:
         - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
       script:

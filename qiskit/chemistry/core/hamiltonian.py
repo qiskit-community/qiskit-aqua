@@ -300,8 +300,7 @@ class Hamiltonian(ChemistryOperator):
                     aux_ops[i] = None  # Discard since no meaningful measurement can be done
 
             if self._z2symmetry_reduction == 'auto':
-                hf_state = HartreeFock(num_qubits=qubit_op.num_qubits,
-                                       num_orbitals=self._molecule_info[self.INFO_NUM_ORBITALS],
+                hf_state = HartreeFock(num_orbitals=self._molecule_info[self.INFO_NUM_ORBITALS],
                                        qubit_mapping=self._qubit_mapping,
                                        two_qubit_reduction=self._two_qubit_reduction,
                                        num_particles=self._molecule_info[self.INFO_NUM_PARTICLES])

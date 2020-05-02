@@ -15,17 +15,18 @@
 """
 Chemistry Core (:mod:`qiskit.chemistry.core`)
 =============================================
-The core was designed to be an extensible system that took a :class:`QMolecule`
+
+.. currentmodule:: qiskit.chemistry.core
+
+The core was designed to be an extensible system that took a :class:`~qiskit.chemistry.QMolecule`
 and created output which was ready to be input directly to an Aqua algorithm
 in the form of a qubit operator and list of auxiliary operators such as
 dipole moments, spin, number of particles etc.
 
 The one implementation here, :class:`Hamiltonian`, in essence wraps the
-:class:`FermionicOperator` to provide easier, convenient access to common
-capabilities such that the :class:`FermionicOperator` class need not be
+:class:`~qiskit.chemistry.FermionicOperator` to provide easier, convenient access to common
+capabilities such that the :class:`~qiskit.chemistry.FermionicOperator` class need not be
 used directly.
-
-.. currentmodule:: qiskit.chemistry.core
 
 Core Base Class
 ===============

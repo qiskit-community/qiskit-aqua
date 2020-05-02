@@ -81,8 +81,7 @@ class TestEnd2EndWithQPE(QiskitChemistryTestCase):
         num_time_slices = 1
         n_ancillae = 6
 
-        state_in = HartreeFock(qubit_op.num_qubits, num_orbitals,
-                               num_particles, qubit_mapping, two_qubit_reduction)
+        state_in = HartreeFock(num_orbitals, num_particles, qubit_mapping, two_qubit_reduction)
         if use_circuit_library:
             iqft = QFT(n_ancillae).inverse()
         else:

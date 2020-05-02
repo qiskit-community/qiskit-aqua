@@ -19,8 +19,8 @@ import datetime
 from test.finance import QiskitFinanceTestCase
 import warnings
 import numpy as np
+from qiskit.finance import QiskitFinanceError
 from qiskit.finance.data_providers import (RandomDataProvider,
-                                           QiskitFinanceError,
                                            WikipediaDataProvider,
                                            StockMarket,
                                            DataOnDemandProvider,
