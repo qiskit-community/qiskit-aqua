@@ -407,7 +407,6 @@ class TestVQC(QiskitAquaTestCase):
                                                 test_size=testing_dataset_size,
                                                 n=feature_dim,
                                                 plot_data=False)
-        aqua_globals.random_seed = self.seed
         if mode == 'wrapped':
             warnings.filterwarnings('ignore', category=DeprecationWarning)
             data_preparation = SecondOrderExpansion(feature_dim)
