@@ -15,14 +15,14 @@
 """Quadratic Objective."""
 
 from enum import Enum
-from typing import Union, List, Dict, Tuple
+from typing import Union, List, Dict, Tuple, Any
 
 from numpy import ndarray
 from scipy.sparse import spmatrix
 
-from qiskit.optimization.problems.quadratic_program_element import QuadraticProgramElement
-from qiskit.optimization.problems.linear_constraint import LinearExpression
-from qiskit.optimization.problems.quadratic_expression import QuadraticExpression
+from .linear_constraint import LinearExpression
+from .quadratic_expression import QuadraticExpression
+from .quadratic_program_element import QuadraticProgramElement
 
 
 class ObjSense(Enum):
@@ -38,7 +38,7 @@ class QuadraticObjective(QuadraticProgramElement):
 
     Sense = ObjSense
 
-    def __init__(self, quadratic_program: "QuadraticProgram",
+    def __init__(self, quadratic_program: Any,
                  constant: float = 0.0,
                  linear: Union[ndarray, spmatrix, List[float], Dict[Union[str, int], float]] = None,
                  quadratic: Union[ndarray, spmatrix, List[List[float]],

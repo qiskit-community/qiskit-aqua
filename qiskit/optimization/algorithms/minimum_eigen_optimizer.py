@@ -13,7 +13,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""A wrapper for minimum eigen solvers from Qiskit Aqua to be used within Qiskit Optimization."""
+"""A wrapper for minimum eigen solvers from Aqua to be used within the optimization module."""
 
 from typing import Optional, Any, Union, Tuple, List
 import numpy as np
@@ -24,9 +24,9 @@ from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator, StateFn
 
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
 from ..problems.quadratic_program import QuadraticProgram
-from ..converters.quadratic_program_to_operator import QuadraticProgramToOperator
+from ..converters.quadratic_program_to_ising import QuadraticProgramToIsing
 from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
-from .. import QiskitOptimizationError
+from ..exceptions import QiskitOptimizationError
 
 
 class MinimumEigenOptimizerResult(OptimizationResult):
@@ -67,9 +67,10 @@ class MinimumEigenOptimizerResult(OptimizationResult):
 
 
 class MinimumEigenOptimizer(OptimizationAlgorithm):
-    """A wrapper for minimum eigen solvers from Qiskit Aqua to be used within Qiskit Optimization.
+    """A wrapper for minimum eigen solvers from Qiskit Aqua.
 
-    This class provides a wrapper for minimum eigen solvers from Qiskit Aqua.
+    This class provides a wrapper for minimum eigen solvers from Qiskit to be used within
+    the optimization module.
     It assumes a problem consisting only of binary or integer variables as well as linear equality
     constraints thereof. It converts such a problem into a Quadratic Unconstrained Binary
     Optimization (QUBO) problem by expanding integer variables into binary variables and by adding
@@ -80,12 +81,19 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
     Hamiltonian to find a good solution for the optimization problem.
 
     Examples:
-        >>> problem = QuadraticProgram()
-        >>> # specify problem here
-        >>> # specify minimum eigen solver to be used, e.g., QAOA
-        >>> qaoa = QAOA(...)
-        >>> optimizer = MinEigenOptimizer(qaoa)
-        >>> result = optimizer.solve(problem)
+        Outline of how to use this class:
+
+    .. code-block::
+
+        from qiskit.aqua.algorithms import QAOA
+        from qiskit.optimization.problems import QuadraticProgram
+        from qiskit.optimization.algorithms import MinimumEigenOptimizer
+        problem = QuadraticProgram()
+        # specify problem here
+        # specify minimum eigen solver to be used, e.g., QAOA
+        qaoa = QAOA(...)
+        optimizer = MinimumEigenOptimizer(qaoa)
+        result = optimizer.solve(problem)
     """
 
     def __init__(self, min_eigen_solver: MinimumEigensolver, penalty: Optional[float] = None
@@ -141,7 +149,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         problem_ = qubo_converter.encode(problem)
 
         # construct operator and offset
-        operator_converter = QuadraticProgramToOperator()
+        operator_converter = QuadraticProgramToIsing()
         operator, offset = operator_converter.encode(problem_)
 
         # approximate ground state of operator using min eigen solver

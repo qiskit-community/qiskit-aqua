@@ -11,14 +11,14 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""
-The Iterative Quantum Phase Estimation Algorithm.
+
+"""The Iterative Quantum Phase Estimation Algorithm.
+
 See https://arxiv.org/abs/quant-ph/0610214
 """
 
 from typing import Optional, List, Dict, Union
 import logging
-import warnings
 import numpy as np
 
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
@@ -42,16 +42,18 @@ logger = logging.getLogger(__name__)
 # pylint: disable=invalid-name
 
 
-class IQPEMinimumEigensolver(QuantumAlgorithm, MinimumEigensolver):
-    """
-    The Iterative Quantum Phase Estimation algorithm.
+class IQPE(QuantumAlgorithm, MinimumEigensolver):
+    """The Iterative Quantum Phase Estimation algorithm.
 
     IQPE, as its name suggests, iteratively computes the phase so as to require fewer qubits.
     It takes has the same set of parameters as :class:`QPE`, except for the number of
     ancillary qubits *num_ancillae*, being replaced by *num_iterations* and that
     an Inverse Quantum Fourier Transform (IQFT) is not used for IQPE.
 
-    See also https://arxiv.org/abs/quant-ph/0610214
+    **Reference:**
+
+    [1]: Dobsicek et al. (2006), Arbitrary accuracy iterative phase estimation algorithm as a two
+       qubit benchmark, `arxiv/quant-ph/0610214 <https://arxiv.org/abs/quant-ph/0610214>`_
     """
 
     def __init__(self,
@@ -306,28 +308,6 @@ class IQPEMinimumEigensolver(QuantumAlgorithm, MinimumEigensolver):
             result.phase = self._ret['phase']
 
         return result
-
-
-class IQPE(IQPEMinimumEigensolver):
-    """
-    The deprecated Iterative Quantum Phase Estimation algorithm.
-    """
-
-    def __init__(self,
-                 operator: Optional[LegacyBaseOperator] = None,
-                 state_in: Optional[InitialState] = None,
-                 num_time_slices: int = 1,
-                 num_iterations: int = 1,
-                 expansion_mode: str = 'suzuki',
-                 expansion_order: int = 2,
-                 shallow_circuit_concat: bool = False) -> None:
-        warnings.warn('Deprecated class {}, use {}.'.format('IQPE',
-                                                            'IQPEMinimumEigenSolver'),
-                      DeprecationWarning)
-        super().__init__(operator, state_in,
-                         num_time_slices, num_iterations,
-                         expansion_mode, expansion_order,
-                         shallow_circuit_concat)
 
 
 class IQPEResult(QPEResult):

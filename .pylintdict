@@ -8,6 +8,7 @@ ae
 aer
 Aer's
 aerjob
+Äquivalenzverbot
 aij
 al
 algo
@@ -28,6 +29,7 @@ appfactory
 arcsin
 args
 Armijo
+arxiv
 asmatrix
 assertRaises
 assertEqual
@@ -156,6 +158,7 @@ disp
 distro
 dj
 dnf
+Dobsicek
 docplex
 docplex's
 Docplex
@@ -686,6 +689,7 @@ trotterized
 trotterizing
 trunc
 ub
+Über
 ucc
 uccd
 UCCS
@@ -751,8 +755,6 @@ zmatrix
 zv
 ZZ
 zzz
-äguivalenzverbot
-über
 ucc
 uccd
 UCCS
@@ -761,5 +763,6 @@ versioning
 vir
 Watrous's
 wf
-Ze
 vir
+Ze
+Zoufal

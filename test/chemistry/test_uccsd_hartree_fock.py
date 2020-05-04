@@ -42,13 +42,11 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         qubit_op, _ = core.run(qmolecule)
 
         optimizer = SLSQP(maxiter=100)
-        initial_state = HartreeFock(qubit_op.num_qubits,
-                                    core.molecule_info['num_orbitals'],
+        initial_state = HartreeFock(core.molecule_info['num_orbitals'],
                                     core.molecule_info['num_particles'],
                                     qubit_mapping=core._qubit_mapping,
                                     two_qubit_reduction=core._two_qubit_reduction)
-        var_form = UCCSD(qubit_op.num_qubits, depth=1,
-                         num_orbitals=core.molecule_info['num_orbitals'],
+        var_form = UCCSD(num_orbitals=core.molecule_info['num_orbitals'],
                          num_particles=core.molecule_info['num_particles'],
                          initial_state=initial_state,
                          qubit_mapping=core._qubit_mapping,

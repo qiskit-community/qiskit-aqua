@@ -15,10 +15,11 @@
 """Variable interface"""
 
 from enum import Enum
-from typing import Tuple, Union
+from typing import Tuple, Union, Any
 
-from qiskit.optimization import INFINITY, QiskitOptimizationError
-from qiskit.optimization.problems.quadratic_program_element import QuadraticProgramElement
+from .quadratic_program_element import QuadraticProgramElement
+from ..exceptions import QiskitOptimizationError
+from ..infinity import INFINITY
 
 
 class VarType(Enum):
@@ -33,7 +34,7 @@ class Variable(QuadraticProgramElement):
 
     Type = VarType
 
-    def __init__(self, quadratic_program: 'QuadraticProgram', name: str,
+    def __init__(self, quadratic_program: Any, name: str,
                  lowerbound: Union[float, int] = 0,
                  upperbound: Union[float, int] = INFINITY,
                  vartype: VarType = VarType.CONTINUOUS) -> None:

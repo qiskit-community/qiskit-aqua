@@ -11,3 +11,22 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
+"""
+Finance applications (:mod:`qiskit.finance.applications`)
+=========================================================
+
+.. currentmodule:: qiskit.finance.applications
+
+Applications for Qiskit's finance module. The present set are in the form of
+Ising Hamiltonians.
+
+Submodules
+==========
+
+.. autosummary::
+   :toctree:
+
+   ising
+
+"""

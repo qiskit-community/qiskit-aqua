@@ -17,7 +17,7 @@ Aqua includes domain application support for:
 * [Machine Learning](#machine-learning)
 * [Optimization](#optimization)
 
-_**Note**: the Chemistry application stack was the first domain worked on. At the time of writing
+_**Note**: the chemistry module was the first domain worked on. At the time of writing
 the other domains have some logic in them but are not as fully realised. Future work is expected to
 build out functionality in all application areas._
 
@@ -143,16 +143,16 @@ excited states and dipole moments of molecule, both open and closed-shell.
 The code comprises chemistry drivers, which when provided with a molecular
 configuration will return one and two-body integrals as well as other data that is efficiently
 computed classically. This output data from a driver can then be used as input to the chemistry
-application stack that contains logic which is able to translate this into a form that is suitable
+module that contains logic which is able to translate this into a form that is suitable
 for quantum algorithms. The conversion first creates a FermionicOperator which must then be mapped,
 e.g. by a Jordan Wigner mapping, to a qubit operator in readiness for the quantum computation.
 
 ### Optional Installs
 
-To run chemistry experiments using Qiskit Chemistry, it is recommended that you to install a
-classical computation chemistry software program/library interfaced by Qiskit Chemistry.
+To run chemistry experiments using Qiskit's chemistry module, it is recommended that you to install
+a classical computation chemistry software program/library interfaced by Qiskit.
 Several, as listed below, are supported, and while logic to interface these programs is supplied by
-Qiskit Chemistry via the above pip installation, the dependent programs/libraries themselves need
+the chemistry module via the above pip installation, the dependent programs/libraries themselves need
 to be installed separately.
 
 Note: As `PySCF` can be installed via pip the installation of Qiskit (Aqua) will install PySCF
@@ -166,8 +166,8 @@ whether this might be possible manually.
 
 ### HDF5 Driver
 
-A useful functionality integrated into Qiskit Chemistry is its ability to serialize a file in
-Hierarchical Data Format 5 (HDF5) format representing all the output data from a chemistry driver.
+A useful functionality integrated into Qiskit's chemistry module is its ability to serialize a file
+in hierarchical Data Format 5 (HDF5) format representing all the output data from a chemistry driver.
 
 The [HDF5 driver](qiskit/chemistry/drivers/hdf5d/hdf5driver.py#L25)
 accepts such such HDF5 files as input so molecular experiments can be run, albeit on the fixed data
@@ -182,9 +182,9 @@ repository. This
 [HDF5 Driver tutorial](https://github.com/Qiskit/qiskit-community-tutorials/blob/master/chemistry/hdf5_files_and_driver.ipynb)
 contains further information about creating and using such HDF5 files.
 
-### Creating Your First Qiskit Chemistry Programming Experiment
+### Creating Your First Chemistry Programming Experiment in Qiskit
 
-Now that Qiskit is installed, it's time to begin working with Chemistry.
+Now that Qiskit is installed, it's time to begin working with the chemistry module.
 Let's try a chemistry application experiment using VQE (Variational Quantum Eigensolver) algorithm
 to compute the ground-state (minimum) energy of a molecule.
 
@@ -216,11 +216,11 @@ optimizer = L_BFGS_B()
 
 # setup the initial state for the variational form
 from qiskit.chemistry.components.initial_states import HartreeFock
-init_state = HartreeFock(num_qubits, num_spin_orbitals, num_particles)
+init_state = HartreeFock(num_spin_orbitals, num_particles)
 
 # setup the variational form for VQE
-from qiskit.aqua.components.variational_forms import RYRZ
-var_form = RYRZ(num_qubits, initial_state=init_state)
+from qiskit.circuit.library import TwoLocal
+var_form = TwoLocal(num_qubits, ['ry', 'rz'], 'cz', initial_state=init_state)
 
 # setup and run VQE
 from qiskit.aqua.algorithms import VQE
@@ -255,7 +255,7 @@ of the circuits. By passing in a backend as is done above it is internally wrapp
 
 ### Further examples
 
-Jupyter notebooks containing further examples, for Qiskit Chemistry, may be found in the
+Jupyter notebooks containing further chemistry examples may be found in the
 following Qiskit GitHub repositories at
 [qiskit-iqx-tutorials/qiskit/advanced/aqua/chemistry](https://github.com/Qiskit/qiskit-iqx-tutorials/tree/master/qiskit/advanced/aqua/chemistry)
 and
@@ -269,9 +269,9 @@ The `qiskit.finance` package contains uncertainty components for stock/securitie
 Ising translators for portfolio optimizations and data providers to source real or random data to
 finance experiments.
 
-### Creating Your First Qiskit Finance Programming Experiment
+### Creating Your First Finance Programming Experiment in Qiskit
 
-Now that Qiskit is installed, it's time to begin working with Finance.
+Now that Qiskit is installed, it's time to begin working with the finance module.
 Let's try a experiment using Amplitude Estimation algorithm to
 evaluate a fixed income asset with uncertain interest rates.
 
@@ -305,7 +305,7 @@ When running the above the estimated value result should be 2.46 and probability
 
 ### Further examples
 
-Jupyter notebooks containing further examples, for Qiskit Finance, may be found in the
+Jupyter notebooks containing further finance examples may be found in the
 following Qiskit GitHub repositories at
 [qiskit-iqx-tutorials/qiskit/advanced/aqua/finance](https://github.com/Qiskit/qiskit-iqx-tutorials/tree/master/qiskit/advanced/aqua/finance)
 and
@@ -320,7 +320,7 @@ classification algorithms such as QSVM and VQC (Variational Quantum Classifier),
 can be used for experiments, and there is also QGAN (Quantum Generative Adversarial Network)
 algorithm.
 
-### Creating Your First Qiskit Machine Learning Programming Experiment
+### Creating Your First Machine Learning Programming Experiment in Qiskit
 
 Now that Qiskit is installed, it's time to begin working with Machine Learning.
 Let's try a experiment using VQC (Variational Quantum Classified) algorithm to
@@ -359,7 +359,7 @@ print('Testing accuracy: {:0.2f}'.format(result['testing_accuracy']))
 
 ### Further examples
 
-Jupyter notebooks containing further examples, for Qiskit Machine Learning, may be found in the
+Jupyter notebooks containing further Machine Learning examples may be found in the
 following Qiskit GitHub repositories at
 [qiskit-iqx-tutorials/qiskit/advanced/aqua/machine_learning](https://github.com/Qiskit/qiskit-iqx-tutorials/tree/master/qiskit/advanced/aqua/machine_learning)
 and
@@ -376,9 +376,9 @@ as Max-Cut, Traveling Salesman and Vehicle Routing. It also has a has an automat
 generator for a problem model specified by the user as a model in
 [docplex](qiskit/optimization/ising/docplex.py#L16).
 
-### Creating Your First Qiskit Optimization Programming Experiment
+### Creating Your First Optimization Programming Experiment in Qiskit
 
-Now that Qiskit is installed, it's time to begin working with Optimization.
+Now that Qiskit is installed, it's time to begin working with the optimization module.
 Let's try a optimization experiment using QAOA (Quantum Approximate Optimization Algorithm)
 to compute the solution of a [Max-Cut](https://en.wikipedia.org/wiki/Maximum_cut) problem using
 a docplex model to create the Ising Hamiltonian operator for QAOA.
@@ -438,7 +438,7 @@ print('solution objective:', max_cut.max_cut_value(x, w))
 
 ### Further examples
 
-Jupyter notebooks containing further examples, for Qiskit Optimization, may be found in the
+Jupyter notebooks containing further examples, for the optimization module, may be found in the
 following Qiskit GitHub repositories at
 [qiskit-iqx-tutorials/qiskit/advanced/aqua/optimization](https://github.com/Qiskit/qiskit-iqx-tutorials/tree/master/qiskit/advanced/aqua/optimization)
 and

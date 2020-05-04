@@ -12,10 +12,9 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""
-The Pauli Expansion feature map.
-"""
+"""The Pauli Expansion feature map."""
 
+import warnings
 from typing import Optional, Callable, List
 import itertools
 import logging
@@ -36,8 +35,7 @@ logger = logging.getLogger(__name__)
 
 
 class PauliExpansion(FeatureMap):
-    r"""
-    The Pauli Expansion feature map.
+    r"""DEPRECATED. The Pauli Expansion feature map.
 
     Refer to https://arxiv.org/abs/1804.11326 for details.
 
@@ -83,6 +81,11 @@ class PauliExpansion(FeatureMap):
             data_map_func: A mapping function for data x which can be supplied to override the
                 default mapping from :meth:`self_product`.
         """
+        warnings.warn('The qiskit.aqua.components.feature_maps.PauliExpansion object is '
+                      'deprecated as of 0.7.0 and will be removed no sooner than 3 months after '
+                      'the release. You should use qiskit.circuit.library.PauliFeatureMap instead.',
+                      DeprecationWarning, stacklevel=2)
+
         paulis = paulis if paulis is not None else ['Z', 'ZZ']
         validate_min('depth', depth, 1)
         validate_in_set('entanglement', entanglement, {'full', 'linear'})
@@ -134,8 +137,7 @@ class PauliExpansion(FeatureMap):
         return x[where_non_i]
 
     def construct_circuit(self, x, qr=None, inverse=False):
-        """
-        Construct the second order expansion based on given data.
+        """Construct the second order expansion based on given data.
 
         Args:
             x (Union(numpy.ndarray, list[Parameter], ParameterVector)): 1-D to-be-transformed data.

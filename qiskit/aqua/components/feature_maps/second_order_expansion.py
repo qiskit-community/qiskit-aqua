@@ -15,6 +15,7 @@
 Second Order Expansion feature map.
 """
 
+import warnings
 from typing import Optional, Callable, List
 import numpy as np
 from qiskit.aqua.utils.validation import validate_min, validate_in_set
@@ -23,8 +24,7 @@ from .data_mapping import self_product
 
 
 class SecondOrderExpansion(PauliZExpansion):
-    """
-    Second Order Expansion feature map.
+    """DEPRECATED. Second Order Expansion feature map.
 
     This is a sub-class of :class:`PauliZExpansion` where *z_order* is fixed at 2.
     """
@@ -49,6 +49,10 @@ class SecondOrderExpansion(PauliZExpansion):
             data_map_func: A mapping function for data x which can be supplied to override the
                 default mapping from :meth:`self_product`.
         """
+        warnings.warn('The qiskit.aqua.components.feature_maps.SecondOrderExpansion object is '
+                      'deprecated as of 0.7.0 and will be removed no sooner than 3 months after '
+                      'the release. You should use qiskit.circuit.library.ZZFeatureMap instead.',
+                      DeprecationWarning, stacklevel=2)
         validate_min('depth', depth, 1)
         validate_in_set('entanglement', entanglement, {'full', 'linear'})
         super().__init__(feature_dimension, depth, entangler_map, entanglement,

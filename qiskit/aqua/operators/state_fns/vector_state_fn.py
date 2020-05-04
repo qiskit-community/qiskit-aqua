@@ -66,7 +66,7 @@ class VectorStateFn(StateFn):
         # Right now doesn't make sense to add a StateFn to a Measurement
         if isinstance(other, VectorStateFn) and self.is_measurement == other.is_measurement:
             # Covers MatrixOperator, Statevector and custom.
-            return VectorStateFn((self.coeff * self.primitive).add(other.primitive * other.coeff),
+            return VectorStateFn((self.coeff * self.primitive) + (other.primitive * other.coeff),
                                  is_measurement=self._is_measurement)
         # pylint: disable=cyclic-import,import-outside-toplevel
         from .. import SummedOp
@@ -169,8 +169,8 @@ class VectorStateFn(StateFn):
                shots: int = 1024,
                massive: bool = False,
                reverse_endianness: bool = False) -> dict:
-        deterministic_counts = self.primitive.to_counts()
-        # Don't need to square because to_counts already does.
+        deterministic_counts = self.primitive.probabilities_dict()
+        # Don't need to square because probabilities_dict already does.
         probs = np.array(list(deterministic_counts.values()))
         unique, counts = np.unique(np.random.choice(list(deterministic_counts.keys()),
                                                     size=shots,

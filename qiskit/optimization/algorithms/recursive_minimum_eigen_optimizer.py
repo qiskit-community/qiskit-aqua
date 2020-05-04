@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""A recursive minimal eigen optimizer in Qiskit Optimization."""
+"""A recursive minimal eigen optimizer in Qiskit's optimization module."""
 
 from copy import deepcopy
 from typing import Optional
@@ -39,12 +39,19 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
     The algorithm is introduced in [1].
 
     Examples:
-        >>> problem = QuadraticProgram()
-        >>> # specify problem here
-        >>> # specify minimum eigen solver to be used, e.g., QAOA
-        >>> qaoa = QAOA(...)
-        >>> optimizer = RecursiveMinEigenOptimizer(qaoa)
-        >>> result = optimizer.solve(problem)
+        Outline of how to use this class:
+
+    .. code-block::
+
+        from qiskit.aqua.algorithms import QAOA
+        from qiskit.optimization.problems import QuadraticProgram
+        from qiskit.optimization.algorithms import RecursiveMinimumEigenOptimizer
+        problem = QuadraticProgram()
+        # specify problem here
+        # specify minimum eigen solver to be used, e.g., QAOA
+        qaoa = QAOA(...)
+        optimizer = RecursiveMinimumEigenOptimizer(qaoa)
+        result = optimizer.solve(problem)
 
     References:
         [1]: Bravyi et al. (2019), Obstacles to State Preparation and Variational Optimization

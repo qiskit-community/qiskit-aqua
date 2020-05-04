@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,10 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""
-This module implements the abstract base class for data_provider modules
-within Qiskit Finance.
-"""
+"""This module implements the abstract base class for data_provider modules the finance module."""
 
 from abc import ABC, abstractmethod
 import logging
@@ -23,14 +20,9 @@ from enum import Enum
 
 import numpy as np
 import fastdtw
-from qiskit.aqua import AquaError
+from ..exceptions import QiskitFinanceError
 
 logger = logging.getLogger(__name__)
-
-
-class QiskitFinanceError(AquaError):
-    """ Qiskit Finance Error """
-    pass
 
 
 # Note: Not all DataProviders support all stock markets.
@@ -56,9 +48,7 @@ class DataType(Enum):
 
 
 class BaseDataProvider(ABC):
-    """
-    This module implements the abstract base class for data_provider modules
-    within Qiskit Finance.
+    """The abstract base class for data_provider modules within Qiskit's finance module.
 
     To create add-on data_provider module subclass the BaseDataProvider class in this module.
     Doing so requires that the required driver interface is implemented.

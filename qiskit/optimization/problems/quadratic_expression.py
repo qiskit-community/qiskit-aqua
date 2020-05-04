@@ -14,20 +14,20 @@
 
 """Quadratic expression interface."""
 
-from typing import List, Union, Dict, Tuple
+from typing import List, Union, Dict, Tuple, Any
 
 import numpy as np
 from numpy import ndarray
 from scipy.sparse import spmatrix, dok_matrix, tril, triu
 
-from qiskit.optimization import QiskitOptimizationError
-from qiskit.optimization.problems.quadratic_program_element import QuadraticProgramElement
+from .quadratic_program_element import QuadraticProgramElement
+from ..exceptions import QiskitOptimizationError
 
 
 class QuadraticExpression(QuadraticProgramElement):
     """ Representation of a quadratic expression by its coefficients."""
 
-    def __init__(self, quadratic_program: "QuadraticProgram",
+    def __init__(self, quadratic_program: Any,
                  coefficients: Union[ndarray, spmatrix, List[List[float]],
                                      Dict[Tuple[Union[int, str], Union[int, str]], float]]) -> None:
         """Creates a new quadratic expression.

@@ -23,7 +23,7 @@ from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 from qiskit.circuit.library import QFT
 from qiskit.aqua.components.initial_states import Custom
 from qiskit.aqua.components.oracles import CustomCircuitOracle
-from qiskit.optimization.problems import QuadraticProgram
+from ..problems.quadratic_program import QuadraticProgram
 
 logger = logging.getLogger(__name__)
 
