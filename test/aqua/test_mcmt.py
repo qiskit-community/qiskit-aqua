@@ -24,7 +24,6 @@ from qiskit import execute as q_execute
 from qiskit.quantum_info import state_fidelity
 from qiskit import BasicAer
 # pylint:disable=unused-import
-from qiskit.aqua.circuits.gates import multi_control_multi_target_gate
 
 NUM_CONTROLS = [i + 1 for i in range(7)]
 NUM_TARGETS = [i + 1 for i in range(5)]
