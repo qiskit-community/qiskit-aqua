@@ -47,14 +47,6 @@ Circuits
     PolynomialRotation
     WeightedSumOperator
 
-Submodules
-==========
-
-.. autosummary::
-   :toctree:
-
-   gates
-
 """
 
 from .boolean_logical_circuits import CNF, DNF, ESOP
