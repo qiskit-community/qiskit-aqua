@@ -18,6 +18,11 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 [UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.7.0...HEAD)
 ========================================================================
 
+Removed
+-------
+-   The monkey-patched ``QuantumCircuit.mcmt`` method and tests, has moved to Terra (#950)
+
+
 [0.7.0](https://github.com/Qiskit/qiskit-aqua/compare/0.6.6...0.7.0) - 2020-04-30
 =================================================================================
 
