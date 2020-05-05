@@ -39,12 +39,16 @@ class CplexOptimizer(OptimizationAlgorithm):
     to be used within the optimization module.
 
     Examples:
-        >>> from qiskit.optimization.problems import QuadraticProgram
-        >>> from qiskit.optimization.algorithms import CplexOptimizer
-        >>> problem = QuadraticProgram()
-        >>> # specify problem here
-        >>> optimizer = CplexOptimizer()
-        >>> result = optimizer.solve(problem)
+        >>> try:
+        >>>     from qiskit.optimization.problems import QuadraticProgram
+        >>>     from qiskit.optimization.algorithms import CplexOptimizer
+        >>>     problem = QuadraticProgram()
+        >>>     # specify problem here
+        >>>     optimizer = CplexOptimizer()
+        >>>     result = optimizer.solve(problem)
+        >>> except NameError as ex:
+        >>>     # cplex not installed
+        >>>     msg = str(ex)
     """
 
     def __init__(self, disp: Optional[bool] = False) -> None:
