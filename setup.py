@@ -84,6 +84,7 @@ setuptools.setup(
     python_requires=">=3.5",
     extras_require={
         'torch': ["torch; sys_platform == 'linux' or (python_version < '3.8' and sys_platform != 'win32')"],
+        'cplex': ["cplex; python_version >= '3.6' and python_version < '3.8'"],
     },
     zip_safe=False
 )
