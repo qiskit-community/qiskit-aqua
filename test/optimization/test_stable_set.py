@@ -58,7 +58,7 @@ class TestStableSet(QiskitOptimizationTestCase):
                                          seed_simulator=aqua_globals.random_seed,
                                          seed_transpiler=aqua_globals.random_seed))
         x = sample_most_likely(result.eigenstate)
-        self.assertAlmostEqual(result.eigenvalue, -29.5)
+        self.assertAlmostEqual(result.eigenvalue, -29.5, places=5)
         self.assertAlmostEqual(result.eigenvalue + self.offset, -25.0)
         ising_sol = stable_set.get_graph_solution(x)
         np.testing.assert_array_equal(ising_sol, [0, 0, 1, 1, 1])
