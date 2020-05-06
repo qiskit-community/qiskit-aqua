@@ -794,7 +794,10 @@ class QuadraticProgram:
             filename: The filename of the file to be loaded.
 
         Raises:
-            FileNotFoundError: if the file does not exist.
+            FileNotFoundError: If the file does not exist.
+
+        Note:
+            This method requires CPLEX to be installed and present in ``PYTHONPATH``.
         """
 
         def _parse_problem_name(filename: str) -> str:
