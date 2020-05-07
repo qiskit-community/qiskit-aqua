@@ -15,7 +15,7 @@
 
 import copy
 import math
-from typing import List, Tuple, Dict, Optional
+from typing import List, Optional
 import logging
 
 from ..algorithms.optimization_algorithm import OptimizationResult
@@ -45,7 +45,7 @@ class InequalityToEquality:
     def __init__(self) -> None:
         self._src = None
         self._dst = None
-        self._conv: Dict[str, List[Tuple[str, int]]] = {}
+        self._conv = {}  # Dict[str, List[Tuple[str, int]]]
         # e.g., self._conv = {'c1': [c1@slack_var]}
 
     def encode(
