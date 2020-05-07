@@ -431,7 +431,13 @@ class TestConverters(QiskitOptimizationTestCase):
         op2ope = QuadraticProgramToIsing()
         op2 = penalize.encode(op)
         qubitop, offset = op2ope.encode(op2)
-        self.assertListEqual(qubitop.paulis, QUBIT_OP_MAXIMIZE_SAMPLE.paulis)
+
+        # the encoder uses a dictionary, in which the order of items in Python 3.5 is not
+        # maintained, therefore don't do a list compare but dictionary compare
+        qubit_op_as_dict = dict(qubitop.paulis)
+        for coeff, paulis in QUBIT_OP_MAXIMIZE_SAMPLE.paulis:
+            self.assertEqual(paulis, qubit_op_as_dict[coeff])
+
         self.assertEqual(offset, OFFSET_MAXIMIZE_SAMPLE)
 
     def test_ising_to_quadraticprogram(self):
