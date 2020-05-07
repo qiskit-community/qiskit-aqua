@@ -18,13 +18,13 @@ import unittest
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 from qiskit import BasicAer
+from qiskit.circuit.library import RealAmplitudes
 
 from qiskit.aqua import aqua_globals, QuantumInstance
 from qiskit.optimization.applications.ising import clique
 from qiskit.optimization.applications.ising.common import random_graph, sample_most_likely
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver, VQE
 from qiskit.aqua.components.optimizers import COBYLA
-from qiskit.aqua.components.variational_forms import RY
 
 
 class TestClique(QiskitOptimizationTestCase):
@@ -70,7 +70,7 @@ class TestClique(QiskitOptimizationTestCase):
         """ VQE Clique test """
         aqua_globals.random_seed = 10598
         result = VQE(self.qubit_op,
-                     RY(self.qubit_op.num_qubits, depth=5, entanglement='linear'),
+                     RealAmplitudes(reps=5, entanglement='linear'),
                      COBYLA(),
                      max_evals_grouped=2).run(
                          QuantumInstance(BasicAer.get_backend('statevector_simulator'),
