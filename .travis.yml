@@ -129,6 +129,7 @@ jobs:
         - sudo apt-get -y install python3-enchant
         - sudo apt-get -y install hunspell-en-us
         - pip install pyenchant
+        - pip install cplex
       script:
         - make spell
         - make style
@@ -146,6 +147,7 @@ jobs:
             - aqua1.dat
             - aqua137.dep
       before_script:
+        - pip install cplex
         - pip install cvxopt
         - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
       script:
@@ -176,6 +178,7 @@ jobs:
             - aqua2.dat
             - aqua237.dep
       before_script:
+        - pip install cplex
         - pip install cvxopt
         - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
       script:
@@ -216,6 +219,7 @@ jobs:
         - pip install https://github.com/rpmuller/pyquante2/archive/master.zip --progress-bar off
         # make sure it uses latest numpy, this will be removed later
         - pip install -U numpy
+        - pip install cplex
       before_script:
         - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
       script:
@@ -251,6 +255,7 @@ jobs:
             - finance.dat
             - finance37.dep
       before_script:
+        - pip install cplex
         - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
       script:
         - stestr --test-path test/finance run 2> >(tee /dev/stderr out.txt > /dev/null)
@@ -278,6 +283,7 @@ jobs:
             - ml.dat
             - ml37.dep
       before_script:
+        - pip install cplex
         - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
       script:
         - stestr --test-path test/ml run 2> >(tee /dev/stderr out.txt > /dev/null)
@@ -305,6 +311,7 @@ jobs:
             - optimization.dat
             - optimization37.dep
       before_script:
+        - pip install cplex
         - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
       script:
         - stestr --test-path test/optimization run 2> >(tee /dev/stderr out.txt > /dev/null)
@@ -326,6 +333,7 @@ jobs:
       <<: *stage_dependencies
       if: tag IS blank
       script:
+        - pip install cplex
         - pip install cvxopt
         - pip install https://github.com/rpmuller/pyquante2/archive/master.zip --progress-bar off
         - pip check

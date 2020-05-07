@@ -53,7 +53,7 @@ class IntegerToBinary:
     def __init__(self) -> None:
         self._src = None
         self._dst = None
-        self._conv: Dict[Variable, List[Tuple[str, int]]] = {}
+        self._conv = {}  # Dict[Variable, List[Tuple[str, int]]]
         # e.g., self._conv = {x: [('x@1', 1), ('x@2', 2)]}
 
     def encode(self, op: QuadraticProgram, name: Optional[str] = None) -> QuadraticProgram:

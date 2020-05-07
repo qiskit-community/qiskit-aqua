@@ -21,6 +21,7 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 Removed
 -------
 -   The monkey-patched ``QuantumCircuit.mcmt`` method and tests, has moved to Terra (#950)
+-   CPLEX as install requirement in ``requirements.txt`` (#952)
 
 
 [0.7.0](https://github.com/Qiskit/qiskit-aqua/compare/0.6.6...0.7.0) - 2020-04-30

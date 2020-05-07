@@ -46,7 +46,7 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
             solver = ADMMOptimizer(qubo_optimizer=qubo_optimizer,
                                    continuous_optimizer=continuous_optimizer,
                                    params=admm_params)
-            solution: ADMMOptimizationResult = solver.solve(op)
+            solution = solver.solve(op)
             self.assertIsNotNone(solution)
             self.assertIsInstance(solution, ADMMOptimizationResult)
 
