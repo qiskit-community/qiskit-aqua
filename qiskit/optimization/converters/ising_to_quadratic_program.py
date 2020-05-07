@@ -27,13 +27,14 @@ from ..exceptions import QiskitOptimizationError
 class IsingToQuadraticProgram:
     """Convert a qubit operator into a quadratic program"""
 
-    def __init__(self) -> None:
+    def __init__(self, linear: bool = False) -> None:
         """Initialize the internal data structure."""
         self._qubit_op = None
         self._offset = 0
         self._num_qubits = 0
         self._qubo_matrix = None
         self._qp = None
+        self._linear = linear
 
     def encode(self, qubit_op: WeightedPauliOperator, offset: float = 0.0) -> QuadraticProgram:
         """Convert a qubit operator and a shift value into a quadratic program
@@ -63,8 +64,8 @@ class IsingToQuadraticProgram:
         self._create_qubo_matrix()
 
         # Initialize dicts for linear terms and quadratic terms
-        linear = {}
-        quadratic = {}
+        linear_terms = {}
+        quadratic_terms = {}
 
         # For quadratic pauli terms of operator
         # x_i * x_ j = (1 - Z_i - Z_j + Z_i * Z_j)/4
@@ -77,7 +78,7 @@ class IsingToQuadraticProgram:
                 # The coefficient of the quadratic term in `QuadraticProgram` is
                 # 4 * weight of the pauli
                 coef = weight * 4
-                quadratic[(i, j)] = coef
+                quadratic_terms[(i, j)] = coef
                 # Sub the weight of the quadratic pauli term from the QUBO matrix
                 self._qubo_matrix[i, j] -= weight
                 # Sub the weight of the linear pauli term from the QUBO matrix
@@ -94,12 +95,19 @@ class IsingToQuadraticProgram:
             # The coefficient of the linear term in `QuadraticProgram` is
             # 2 * weight of the pauli
             coef = weight * 2
-            linear[i] = -coef
+            if self._linear:
+                linear_terms[i] = -coef
+            else:
+                quadratic_terms[i, i] = -coef
             # Sub the weight of the linear pauli term from the QUBO matrix
             self._qubo_matrix[i, i] -= weight
             offset += weight
 
-        self._qp.minimize(offset, linear, quadratic)
+        if self._linear:
+            self._qp.minimize(constant=offset, linear=linear_terms, quadratic=quadratic_terms)
+        else:
+            self._qp.minimize(constant=offset, quadratic=quadratic_terms)
+
         offset -= offset
 
         return self._qp
