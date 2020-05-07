@@ -435,7 +435,7 @@ class TestConverters(QiskitOptimizationTestCase):
         self.assertEqual(offset, OFFSET_MAXIMIZE_SAMPLE)
 
     def test_ising_to_quadraticprogram_linear(self):
-        """ Test optimization problem to operators"""
+        """ Test optimization problem to operators with linear=True"""
         op = QUBIT_OP_MAXIMIZE_SAMPLE
         offset = OFFSET_MAXIMIZE_SAMPLE
 
@@ -468,7 +468,7 @@ class TestConverters(QiskitOptimizationTestCase):
                                              quadratic_matrix)
 
     def test_ising_to_quadraticprogram_quadratic(self):
-        """ Test optimization problem to operators"""
+        """ Test optimization problem to operators with linear=False"""
         op = QUBIT_OP_MAXIMIZE_SAMPLE
         offset = OFFSET_MAXIMIZE_SAMPLE
 

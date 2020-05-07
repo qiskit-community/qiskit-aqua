@@ -21,6 +21,7 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 Removed
 -------
 -   The monkey-patched ``QuantumCircuit.mcmt`` method and tests, has moved to Terra (#950)
+-   Added a `linear` option to `IsingToQuadraticProgram` converter
 
 
 [0.7.0](https://github.com/Qiskit/qiskit-aqua/compare/0.6.6...0.7.0) - 2020-04-30
@@ -106,7 +107,7 @@ Changed
 -   HartreeFock initial state and UCCSD variational form `num_qubits` parameter removed as it was
     only value checked against that computed internally from the other parameters. UCCSD `depth`
     parameter renamed to `reps` and moved in order so it can default to 1. (#939)
-     
+
 
 Removed
 -------

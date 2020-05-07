@@ -34,6 +34,8 @@ class IsingToQuadraticProgram:
         self._num_qubits = 0
         self._qubo_matrix = None
         self._qp = None
+        # If linear is True, x^2 is treated as a linear term since x^2 = x for x \in {0,1}.
+        # Else, x^2 is treat as a quadrattic term
         self._linear = linear
 
     def encode(self, qubit_op: WeightedPauliOperator, offset: float = 0.0) -> QuadraticProgram:
@@ -96,8 +98,10 @@ class IsingToQuadraticProgram:
             # 2 * weight of the pauli
             coef = weight * 2
             if self._linear:
+                # If the linear option is True, add it into linear_terms
                 linear_terms[i] = -coef
             else:
+                # Else, add it into quadratic_terms as a diagonal element.
                 quadratic_terms[i, i] = -coef
             # Sub the weight of the linear pauli term from the QUBO matrix
             self._qubo_matrix[i, i] -= weight
