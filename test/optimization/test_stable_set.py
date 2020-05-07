@@ -18,13 +18,13 @@ import unittest
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 from qiskit import BasicAer
+from qiskit.circuit.library import EfficientSU2
 
 from qiskit.aqua import aqua_globals, QuantumInstance
 from qiskit.optimization.applications.ising import stable_set
 from qiskit.optimization.applications.ising.common import random_graph, sample_most_likely
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver, VQE
 from qiskit.aqua.components.optimizers import L_BFGS_B
-from qiskit.aqua.components.variational_forms import RYRZ
 
 
 class TestStableSet(QiskitOptimizationTestCase):
@@ -52,14 +52,14 @@ class TestStableSet(QiskitOptimizationTestCase):
     def test_stable_set_vqe(self):
         """ VQE Stable set  test """
         result = VQE(self.qubit_op,
-                     RYRZ(self.qubit_op.num_qubits, depth=3, entanglement='linear'),
+                     EfficientSU2(reps=3, entanglement='linear'),
                      L_BFGS_B(maxfun=6000)).run(
                          QuantumInstance(BasicAer.get_backend('statevector_simulator'),
                                          seed_simulator=aqua_globals.random_seed,
                                          seed_transpiler=aqua_globals.random_seed))
-        x = sample_most_likely(result['eigvecs'][0])
-        self.assertAlmostEqual(result['energy'], -29.5)
-        self.assertAlmostEqual(result['energy'] + self.offset, -25.0)
+        x = sample_most_likely(result.eigenstate)
+        self.assertAlmostEqual(result.eigenvalue, -29.5, places=5)
+        self.assertAlmostEqual(result.eigenvalue + self.offset, -25.0)
         ising_sol = stable_set.get_graph_solution(x)
         np.testing.assert_array_equal(ising_sol, [0, 0, 1, 1, 1])
         self.assertEqual(stable_set.stable_set_value(x, self.w), (3.0, False))
