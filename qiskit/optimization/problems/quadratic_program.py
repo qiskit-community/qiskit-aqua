@@ -795,10 +795,16 @@ class QuadraticProgram:
 
         Raises:
             FileNotFoundError: If the file does not exist.
+            RuntimeError: If CPLEX is not installed.
 
         Note:
             This method requires CPLEX to be installed and present in ``PYTHONPATH``.
         """
+        try:
+            import cplex  # pylint: disable=unused-import
+        except ImportError:
+            raise RuntimeError('The QuadraticProgram.read_from_lp_file method requires CPLEX to '
+                               'be installed, but CPLEX could not be found.')
 
         def _parse_problem_name(filename: str) -> str:
             # Because docplex model reader uses the base name as model name,
