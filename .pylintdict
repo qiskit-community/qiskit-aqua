@@ -4,6 +4,7 @@ abstractmethod
 adag
 adam
 adjoints
+ADMMState
 ae
 aer
 Aer's
@@ -347,6 +348,7 @@ lhs
 lih
 lijh
 lin
+LinearConstraint
 LinearConstraintInterface
 linearpaulirotations
 ljik
@@ -462,7 +464,6 @@ oplist
 oplist's
 oplus
 optim
-QuadraticProgram
 optimizer's
 optimizers
 opv
@@ -539,7 +540,9 @@ qp
 qpe
 qreg
 qrs
+QuadraticConstraint
 QuadraticConstraintInterface
+QuadraticProgram
 quandl
 quantized
 quantumcircuit
