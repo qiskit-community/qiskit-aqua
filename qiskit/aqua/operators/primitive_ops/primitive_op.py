@@ -266,7 +266,7 @@ class PrimitiveOp(OperatorBase):
         if not sparse_pauli.to_list():
             # pylint: disable=import-outside-toplevel
             from ..operator_globals import I
-            return (I^self.num_qubits) * 0.0
+            return (I ^ self.num_qubits) * 0.0
 
         return sum([PrimitiveOp(Pauli.from_label(label),
                                 coeff.real if coeff == coeff.real else coeff)
