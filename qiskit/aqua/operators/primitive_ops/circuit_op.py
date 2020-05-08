@@ -14,7 +14,7 @@
 
 """ CircuitOp Class """
 
-from typing import Union, Optional, Set
+from typing import Union, Optional, Set, List
 import logging
 import numpy as np
 
@@ -219,3 +219,8 @@ class CircuitOp(PrimitiveOp):
                 if isinstance(gate, IGate):
                     del self.primitive.data[i]
         return self
+
+    def permute(self, permutation: List[int]) -> 'CircuitOp':
+        """ Permute the qubits of the circuit. """
+        new_qc = QuantumCircuit(self.num_qubits).compose(self.primitive, qubits=permutation)
+        return CircuitOp(new_qc, coeff=self.coeff)
