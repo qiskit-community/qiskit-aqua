@@ -28,14 +28,16 @@ class IsingToQuadraticProgram:
     """Convert a qubit operator into a quadratic program"""
 
     def __init__(self, linear: bool = False) -> None:
-        """Initialize the internal data structure."""
+        """Initialize the internal data structure.
+        Args:
+            linear: If linear is True, x^2 is treated as a linear term since x^2 = x for x \in {0,1}.
+                    Else, x^2 is treat as a quadratic term
+        """
         self._qubit_op = None
         self._offset = 0
         self._num_qubits = 0
         self._qubo_matrix = None
         self._qp = None
-        # If linear is True, x^2 is treated as a linear term since x^2 = x for x \in {0,1}.
-        # Else, x^2 is treat as a quadratic term
         self._linear = linear
 
     def encode(self, qubit_op: WeightedPauliOperator, offset: float = 0.0) -> QuadraticProgram:
