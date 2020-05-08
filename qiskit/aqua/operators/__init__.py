@@ -86,7 +86,7 @@ One qubit Pauli operators:
    :attr:`X`, :attr:`Y`, :attr:`Z`, :attr:`I`
 
 Clifford+T, and some other common non-parameterized gates:
-   :attr:`CX`, :attr:`S`, :attr:`H`, :attr:`T`, :attr:`Swap`
+   :attr:`CX`, :attr:`S`, :attr:`H`, :attr:`T`, :attr:`Swap`, :attr:`CZ`
 
 One qubit states:
    :attr:`Zero`, :attr:`One`, :attr:`Plus`, :attr:`Minus`
