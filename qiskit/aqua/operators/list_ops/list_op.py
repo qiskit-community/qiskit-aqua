@@ -279,7 +279,7 @@ class ListOp(OperatorBase):
         return EvolvedOp(self)
 
     def log_i(self, massive: bool = False) -> OperatorBase:
-        """Return a ``MatrixOp`` equivalent to log(-iH) for this operator H. This
+        """Return a ``MatrixOp`` equivalent to log(H)/-i for this operator H. This
         function is the effective inverse of exp_i, equivalent to finding the Hermitian
         Operator which produces self when exponentiated. For proper ListOps, applies ``log_i``
         to all ops in oplist.
