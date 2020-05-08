@@ -109,10 +109,8 @@ class IsingToQuadraticProgram:
             self._qubo_matrix[i, i] -= weight
             offset += weight
 
-        if self._linear:
-            self._qp.minimize(constant=offset, linear=linear_terms, quadratic=quadratic_terms)
-        else:
-            self._qp.minimize(constant=offset, quadratic=quadratic_terms)
+        # Set the objective function
+        self._qp.minimize(constant=offset, linear=linear_terms, quadratic=quadratic_terms)
 
         offset -= offset
 
