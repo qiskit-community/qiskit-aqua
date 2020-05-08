@@ -121,13 +121,13 @@ class ADMMState:
         self.b0 = None
 
         # These are the parameters that are updated in the ADMM iterations.
-        self.u: np.ndarray = np.zeros(len(continuous_indices))
+        self.u = np.zeros(len(continuous_indices))
         binary_size = len(binary_indices)
-        self.x0: np.ndarray = np.zeros(binary_size)
-        self.z: np.ndarray = np.zeros(binary_size)
-        self.z_init: np.ndarray = self.z
-        self.y: np.ndarray = np.zeros(binary_size)
-        self.lambda_mult: np.ndarray = np.zeros(binary_size)
+        self.x0 = np.zeros(binary_size)
+        self.z = np.zeros(binary_size)
+        self.z_init = self.z
+        self.y = np.zeros(binary_size)
+        self.lambda_mult = np.zeros(binary_size)
 
         # The following structures store quantities obtained in each ADMM iteration.
         self.cost_iterates = []
@@ -199,7 +199,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # internal state where we'll keep intermediate solution
         # here, we just declare the class variable, the variable is initialized in kept in
         # the solve method.
-        self._state: Optional[ADMMState] = None
+        self._state = None  # Optional[ADMMState]
 
     def get_compatibility_msg(self, problem: QuadraticProgram) -> Optional[str]:
         """Checks whether a given problem can be solved with the optimizer implementing this method.

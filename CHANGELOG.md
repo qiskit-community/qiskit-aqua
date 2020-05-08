@@ -18,10 +18,16 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 [UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.7.0...HEAD)
 ========================================================================
 
+Added
+-----
+
+-   Added a `linear` option to `IsingToQuadraticProgram` converter (#956)
+
 Removed
 -------
+
 -   The monkey-patched ``QuantumCircuit.mcmt`` method and tests, has moved to Terra (#950)
--   Added a `linear` option to `IsingToQuadraticProgram` converter
+-   CPLEX as install requirement in ``requirements.txt`` (#952)
 
 
 [0.7.0](https://github.com/Qiskit/qiskit-aqua/compare/0.6.6...0.7.0) - 2020-04-30
