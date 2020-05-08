@@ -346,6 +346,15 @@ class CircuitStateFn(StateFn):
         return self
 
     def permute(self, permutation: List[int]) -> 'CircuitStateFn':
-        """ Permute the qubits of the circuit. """
+        r"""
+        Permute the qubits of the circuit.
+
+        Args:
+            permutation: A list defining where each qubit should be permuted. The qubit at index
+                j of the circuit should be permuted to position permutation[j].
+
+        Returns:
+            A new CircuitStateFn containing the permuted circuit.
+        """
         new_qc = QuantumCircuit(self.num_qubits).compose(self.primitive, qubits=permutation)
         return CircuitStateFn(new_qc, coeff=self.coeff, is_measurement=self.is_measurement)
