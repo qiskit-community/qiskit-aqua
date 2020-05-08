@@ -64,14 +64,14 @@ class QuadraticProgram:
         self._name = name
         self._status = QuadraticProgram.Status.VALID
 
-        self._variables: List[Variable] = []
-        self._variables_index: Dict[str, int] = {}
+        self._variables = []  # List[Variable]
+        self._variables_index = {}  # Dict[str, int]
 
-        self._linear_constraints: List[LinearConstraint] = []
-        self._linear_constraints_index: Dict[str, int] = {}
+        self._linear_constraints = []  # List[LinearConstraint]
+        self._linear_constraints_index = {}  # Dict[str, int]
 
-        self._quadratic_constraints: List[QuadraticConstraint] = []
-        self._quadratic_constraints_index: Dict[str, int] = {}
+        self._quadratic_constraints = []  # List[QuadraticConstraint]
+        self._quadratic_constraints_index = {}  # Dict[str, int]
 
         self._objective = QuadraticObjective(self)
 
@@ -794,8 +794,17 @@ class QuadraticProgram:
             filename: The filename of the file to be loaded.
 
         Raises:
-            FileNotFoundError: if the file does not exist.
+            FileNotFoundError: If the file does not exist.
+            RuntimeError: If CPLEX is not installed.
+
+        Note:
+            This method requires CPLEX to be installed and present in ``PYTHONPATH``.
         """
+        try:
+            import cplex  # pylint: disable=unused-import
+        except ImportError:
+            raise RuntimeError('The QuadraticProgram.read_from_lp_file method requires CPLEX to '
+                               'be installed, but CPLEX could not be found.')
 
         def _parse_problem_name(filename: str) -> str:
             # Because docplex model reader uses the base name as model name,
@@ -865,8 +874,8 @@ class SubstituteVariables:
     CONST = '__CONSTANT__'
 
     def __init__(self):
-        self._src: Optional[QuadraticProgram] = None
-        self._dst: Optional[QuadraticProgram] = None
+        self._src = None  # Optional[QuadraticProgram]
+        self._dst = None  # Optional[QuadraticProgram]
         self._subs = {}
 
     def substitute_variables(
@@ -940,7 +949,7 @@ class SubstituteVariables:
 
     def _subs_dict(self, constants, variables):
         # guarantee that there is no overlap between variables to be replaced and combine input
-        subs: Dict[str, Tuple[str, float]] = {}
+        subs = {}  # Dict[str, Tuple[str, float]]
         if constants is not None:
             for i, v in constants.items():
                 # substitute i <- v
