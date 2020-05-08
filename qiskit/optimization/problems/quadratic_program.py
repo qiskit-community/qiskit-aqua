@@ -555,16 +555,14 @@ class QuadraticProgram:
         for x in model.iter_variables():
             if x.get_vartype().one_letter_symbol() == 'C':
                 x_new = self.continuous_var(x.lb, x.ub, x.name)
-                var_names[x] = x_new.name
             elif x.get_vartype().one_letter_symbol() == 'B':
                 x_new = self.binary_var(x.name)
-                var_names[x] = x_new.name
             elif x.get_vartype().one_letter_symbol() == 'I':
                 x_new = self.integer_var(x.lb, x.ub, x.name)
-                var_names[x] = x_new.name
             else:
                 raise QiskitOptimizationError(
                     "Unsupported variable type: {} {}".format(x.name, x.vartype))
+            var_names[x] = x_new.name
 
         # objective sense
         minimize = model.objective_sense.is_minimize()
@@ -620,7 +618,7 @@ class QuadraticProgram:
 
             lhs = {}
             for x in constraint.iter_net_linear_coefs():
-                lhs[x[0].name] = x[1]
+                lhs[var_names[x[0]]] = x[1]
 
             if sense == sense.EQ:
                 self.linear_constraint(lhs, '==', rhs, name)
