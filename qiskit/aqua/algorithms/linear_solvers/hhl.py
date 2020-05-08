@@ -378,9 +378,9 @@ class HHL(QuantumAlgorithm):
                 if reg_bits[0] == '1':
                     new_counts[reg_bits[1]] = old_counts[reg_key]
 
+            data_counts = new_results.results[resultidx].data.counts
             new_results.results[resultidx].data.counts = \
-                new_results.results[resultidx]. \
-                data.counts.from_dict(new_counts)
+                new_counts if isinstance(data_counts, dict) else data_counts.from_dict(new_counts)
 
         return new_results
 
