@@ -215,8 +215,8 @@ class CircuitOp(PrimitiveOp):
     def reduce(self) -> OperatorBase:
         if self.primitive.data is not None:
             # Need to do this from the end because we're deleting items!
-            for i, inst_context in reversed(list(enumerate(self.primitive.data))):
-                [gate, _, _] = inst_context
+            for i in reversed(range(len(self.primitive.data))):
+                [gate, _, _] = self.primitive.data[i]
                 if isinstance(gate, IGate):
                     del self.primitive.data[i]
         return self
