@@ -564,6 +564,33 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
             mod.add(mod.not_equal_constraint(x, y + 1))
             q_p.from_docplex(mod)
 
+        # test from_docplex without explicit variable names
+        mod = Model()
+        x = mod.binary_var()
+        y = mod.continuous_var()
+        z = mod.integer_var()
+        mod.minimize(x+y+z + x*y + y*z + x*z)
+        mod.add_constraint(x+y == z)  # linear EQ
+        mod.add_constraint(x+y >= z)  # linear GE
+        mod.add_constraint(x+y <= z)  # linear LE
+        mod.add_constraint(x*y == z)  # quadratic EQ
+        mod.add_constraint(x*y >= z)  # quadratic GE
+        mod.add_constraint(x*y <= z)  # quadratic LE
+        q_p = QuadraticProgram()
+        q_p.from_docplex(mod)
+        var_names = [v.name for v in q_p.variables]
+        self.assertListEqual(var_names, ['x0', 'x1', 'x2'])
+        senses = [Constraint.Sense.EQ, Constraint.Sense.GE, Constraint.Sense.LE]
+        for i, c in enumerate(q_p.linear_constraints):
+            self.assertDictEqual(c.linear.to_dict(use_name=True), {'x0': 1, 'x1': 1, 'x2': -1})
+            self.assertEqual(c.rhs, 0)
+            self.assertEqual(c.sense, senses[i])
+        for i, c in enumerate(q_p.quadratic_constraints):
+            self.assertEqual(c.rhs, 0)
+            self.assertDictEqual(c.linear.to_dict(use_name=True), {'x2': -1})
+            self.assertDictEqual(c.quadratic.to_dict(use_name=True), {('x0', 'x1'): 1})
+            self.assertEqual(c.sense, senses[i])
+
     def test_substitute_variables(self):
         """test substitute variables"""
         q_p = QuadraticProgram('test')
