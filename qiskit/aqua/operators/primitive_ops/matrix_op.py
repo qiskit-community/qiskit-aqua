@@ -18,6 +18,7 @@ from typing import Union, Optional, Set
 import logging
 import numpy as np
 from scipy.sparse import spmatrix
+import scipy.linalg
 
 from qiskit.quantum_info import Operator
 from qiskit.circuit import ParameterExpression, Instruction
@@ -161,6 +162,15 @@ class MatrixOp(PrimitiveOp):
     def exp_i(self) -> OperatorBase:
         """Return a ``CircuitOp`` equivalent to e^-iH for this operator H"""
         return CircuitOp(HamiltonianGate(self.primitive, time=self.coeff))
+
+    def log_i(self, massive: bool = False) -> 'MatrixOp':
+        """Return a ``MatrixOp`` equivalent to log(-iH) for this operator H. This
+        function is the effective inverse of exp_i, equivalent to finding the Hermitian
+        Operator which produces self when exponentiated."""
+        # pylint: disable=cyclic-import
+        from ..operator_globals import EVAL_SIG_DIGITS
+        return MatrixOp(np.around(scipy.linalg.logm(self.to_matrix(massive=massive)) / -1j,
+                                  decimals=EVAL_SIG_DIGITS))
 
     # Op Conversions
 
