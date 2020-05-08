@@ -182,11 +182,11 @@ class TestStateConstruction(QiskitAquaTestCase):
     def test_circuit_permute(self):
         r""" Test the CircuitStateFn's .permute method """
         perm = range(7)[::-1]
-        c_op = (((CX^3)^X) @
-                (H^7) @
-                (X^Y^Z^I^X^X^X) @
-                (Y^(CX^3)) @
-                (X^Y^Z^I^X^X^X)) @ Zero
+        c_op = (((CX ^ 3) ^ X) @
+                (H ^ 7) @
+                (X ^ Y ^ Z ^ I ^ X ^ X ^ X) @
+                (Y ^ (CX ^ 3)) @
+                (X ^ Y ^ Z ^ I ^ X ^ X ^ X)) @ Zero
         c_op_perm = c_op.permute(perm)
         self.assertNotEqual(c_op, c_op_perm)
         c_op_id = c_op_perm.permute(perm)
