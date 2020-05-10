@@ -27,7 +27,7 @@ from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.utils.arithmetic import is_power
 from qiskit.aqua.utils import get_subsystem_density_matrix
-from qiskit.aqua.algorithms import QuantumAlgorithm
+from qiskit.aqua.algorithms import QuantumAlgorithm, AlgorithmResult
 from qiskit.aqua.utils import summarize_circuits
 from qiskit.aqua.utils.validation import validate_min
 
@@ -84,7 +84,7 @@ class Shor(QuantumAlgorithm):
 
         self._a = a
 
-        self._ret = {'factors': []}
+        self._ret = AlgorithmResult({"factors": [], "results": {}})
 
         # check if the input integer is a power
         tf, b, p = is_power(N, return_decomposition=True)
@@ -377,7 +377,7 @@ class Shor(QuantumAlgorithm):
                     self._ret['factors'].append(factors)
                 return True
 
-    def _run(self):
+    def _run(self) -> AlgorithmResult:
         if not self._ret['factors']:
             logger.debug('Running with N=%s and a=%s.', self._N, self._a)
 
@@ -401,8 +401,6 @@ class Shor(QuantumAlgorithm):
             else:
                 circuit = self.construct_circuit(measurement=True)
                 counts = self._quantum_instance.execute(circuit).get_counts(circuit)
-
-            self._ret['results'] = dict()
 
             # For each simulation result, print proper info to user
             # and try to calculate the factors of N
