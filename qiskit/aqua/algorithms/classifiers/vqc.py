@@ -529,7 +529,7 @@ class VQC(VQAlgorithm):
 
             # store the parameters
             self._num_qubits = feature_map.num_qubits
-            self._feature_map_params = list(feature_map.parameters)
+            self._feature_map_params = sorted(feature_map.parameters, key=lambda p: p.name)
             self._feature_map = feature_map
         elif isinstance(feature_map, FeatureMap):
             # raw feature vector is not yet replaced
@@ -547,7 +547,7 @@ class VQC(VQAlgorithm):
         else:
             raise ValueError('Unsupported type {} of feature_map.'.format(type(feature_map)))
 
-        if self._feature_map and self._feature_map.feature_dimension == 0:
+        if self._feature_map.feature_dimension == 0:
             warnings.warn('The feature map has no parameters that can be optimized to represent '
                           'the data. This will most likely cause the VQC to fail.')
 

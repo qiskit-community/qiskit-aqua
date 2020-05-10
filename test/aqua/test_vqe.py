@@ -23,7 +23,7 @@ from qiskit import BasicAer, QuantumCircuit
 from qiskit.circuit.library import TwoLocal, EfficientSU2, RealAmplitudes
 
 from qiskit.aqua import QuantumInstance, aqua_globals, AquaError
-from qiskit.aqua.operators import WeightedPauliOperator, PrimitiveOp
+from qiskit.aqua.operators import PrimitiveOp, I, Z, X
 from qiskit.aqua.components.variational_forms import RYRZ
 from qiskit.aqua.components.optimizers import L_BFGS_B, COBYLA, SPSA, SLSQP
 from qiskit.aqua.algorithms import VQE
@@ -37,15 +37,14 @@ class TestVQE(QiskitAquaTestCase):
         super().setUp()
         self.seed = 50
         aqua_globals.random_seed = self.seed
-        pauli_dict = {
-            'paulis': [{"coeff": {"imag": 0.0, "real": -1.052373245772859}, "label": "II"},
-                       {"coeff": {"imag": 0.0, "real": 0.39793742484318045}, "label": "IZ"},
-                       {"coeff": {"imag": 0.0, "real": -0.39793742484318045}, "label": "ZI"},
-                       {"coeff": {"imag": 0.0, "real": -0.01128010425623538}, "label": "ZZ"},
-                       {"coeff": {"imag": 0.0, "real": 0.18093119978423156}, "label": "XX"}
-                       ]
+        paulis = {
+            I ^ I: -1.052373245772859,
+            I ^ Z: 0.39793742484318045,
+            Z ^ I: -0.39793742484318045,
+            Z ^ Z: -0.01128010425623538,
+            X ^ X: 0.18093119978423156
         }
-        self.qubit_op = WeightedPauliOperator.from_dict(pauli_dict).to_opflow()
+        self.qubit_op = sum(coeff * paulis for coeff, paulis in paulis.items())
 
     def test_vqe_deprecated_varforms(self):
         """Test the VQE on the deprecated variational forms."""
@@ -60,7 +59,6 @@ class TestVQE(QiskitAquaTestCase):
                                          seed_simulator=aqua_globals.random_seed,
                                          seed_transpiler=aqua_globals.random_seed))
         self.assertAlmostEqual(result.eigenvalue.real, -1.85727503)
-        np.testing.assert_array_almost_equal(result.eigenvalue.real, -1.85727503, 5)
         self.assertEqual(len(result.optimal_point), 16)
         self.assertIsNotNone(result.cost_function_evals)
         self.assertIsNotNone(result.optimizer_time)
@@ -76,7 +74,6 @@ class TestVQE(QiskitAquaTestCase):
                                          seed_simulator=aqua_globals.random_seed,
                                          seed_transpiler=aqua_globals.random_seed))
         self.assertAlmostEqual(result.eigenvalue.real, -1.85727503)
-        np.testing.assert_array_almost_equal(result.eigenvalue.real, -1.85727503, 5)
         self.assertEqual(len(result.optimal_point), 16)
         self.assertIsNotNone(result.cost_function_evals)
         self.assertIsNotNone(result.optimizer_time)
@@ -92,7 +89,6 @@ class TestVQE(QiskitAquaTestCase):
                                          seed_simulator=aqua_globals.random_seed,
                                          seed_transpiler=aqua_globals.random_seed))
         self.assertAlmostEqual(result.eigenvalue.real, -1.85727503)
-        np.testing.assert_array_almost_equal(result.eigenvalue.real, -1.85727503, 5)
         self.assertEqual(len(result.optimal_point), 16)
         self.assertIsNotNone(result.cost_function_evals)
         self.assertIsNotNone(result.optimizer_time)
@@ -126,16 +122,16 @@ class TestVQE(QiskitAquaTestCase):
     def test_vqe_qasm(self):
         """Test VQE on the QASM simulator."""
         backend = BasicAer.get_backend('qasm_simulator')
-        optimizer = SPSA(max_trials=300, last_avg=5)
+        optimizer = SPSA(max_trials=50, last_avg=5)
         wavefunction = RealAmplitudes()
-        vqe = VQE(self.qubit_op, wavefunction, optimizer, max_evals_grouped=1)
+        vqe = VQE(self.qubit_op, wavefunction, optimizer)
 
         # TODO benchmark this later.
         quantum_instance = QuantumInstance(backend, shots=1000,
                                            seed_simulator=self.seed,
                                            seed_transpiler=self.seed)
         result = vqe.run(quantum_instance)
-        self.assertAlmostEqual(result.eigenvalue.real, -1.86823, places=2)
+        self.assertAlmostEqual(result.eigenvalue.real, -1.86659, places=2)
 
     def test_vqe_statevector_snapshot_mode(self):
         """Test VQE in Aer's statevector_simulator snapshot mode."""
@@ -255,7 +251,6 @@ class TestVQE(QiskitAquaTestCase):
         result = vqe.run(backend)
         print(result)
         self.assertAlmostEqual(result.eigenvalue.real, -1.85727503)
-        np.testing.assert_array_almost_equal(result.eigenvalue.real, -1.85727503, 5)
         self.assertEqual(len(result.optimal_point), 16)
         self.assertIsNotNone(result.cost_function_evals)
         self.assertIsNotNone(result.optimizer_time)
