@@ -243,7 +243,7 @@ class Shor(QuantumAlgorithm):
 
         return circuit
 
-    def _get_factors(self, output_desired, t_upper):
+    def _get_factors(self, output_desired: str, t_upper: int) -> bool:
         """Apply the continued fractions to find r and the gcd to find the desired factors."""
         x_value = int(output_desired, 2)
         logger.info('In decimal, x_final value for this result is: %s.', x_value)
