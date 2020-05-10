@@ -19,9 +19,8 @@ import unittest
 import warnings
 from test.aqua import QiskitAquaTestCase
 import numpy as np
-from ddt import ddt, data
 from qiskit import BasicAer
-from qiskit.circuit import ParameterVector, QuantumCircuit, Parameter
+from qiskit.circuit import QuantumCircuit, Parameter
 from qiskit.circuit.library import TwoLocal, ZZFeatureMap, EfficientSU2
 from qiskit.aqua import QuantumInstance, aqua_globals, AquaError
 from qiskit.aqua.algorithms import VQC
@@ -32,7 +31,6 @@ from qiskit.aqua.components.optimizers import L_BFGS_B
 from qiskit.ml.datasets import wine, ad_hoc_data
 
 
-@ddt
 class TestVQC(QiskitAquaTestCase):
     """Test the VQC algorithm."""
 
@@ -55,8 +53,7 @@ class TestVQC(QiskitAquaTestCase):
 
         self.ref_prediction_a_label = [0]
 
-        library_ryrz = EfficientSU2(2)
-        self.ryrz_wavefunction = library_ryrz
+        self.wavefunction = EfficientSU2(2)
 
         library_circuit = ZZFeatureMap(2, reps=2)
         self.data_preparation = library_circuit
@@ -67,7 +64,7 @@ class TestVQC(QiskitAquaTestCase):
         optimizer = SPSA(max_trials=10, save_steps=1, c0=4.0, c1=0.1, c2=0.602, c3=0.101, c4=0.0,
                          skip_calibration=True)
         data_preparation = self.data_preparation
-        wavefunction = self.ryrz_wavefunction
+        wavefunction = self.wavefunction
 
         # set up algorithm
         vqc = VQC(optimizer, data_preparation, wavefunction, self.training_data, self.testing_data)
@@ -90,7 +87,7 @@ class TestVQC(QiskitAquaTestCase):
         optimizer = SPSA(max_trials=10, save_steps=1, c0=4.0, c1=0.1, c2=0.602, c3=0.101, c4=0.0,
                          skip_calibration=True)
         data_preparation = QuantumCircuit(2).compose(self.data_preparation)
-        wavefunction = QuantumCircuit(2).compose(self.ryrz_wavefunction)
+        wavefunction = QuantumCircuit(2).compose(self.wavefunction)
 
         # set up algorithm
         vqc = VQC(optimizer, data_preparation, wavefunction, self.training_data, self.testing_data)
@@ -142,7 +139,7 @@ class TestVQC(QiskitAquaTestCase):
         optimizer = SPSA(max_trials=10, save_steps=1,
                          c0=4.0, c1=0.1, c2=0.602, c3=0.101, c4=0.0, skip_calibration=True)
         data_preparation = self.data_preparation
-        wavefunction = self.ryrz_wavefunction
+        wavefunction = self.wavefunction
 
         # set up algorithm
         vqc = VQC(optimizer, data_preparation, wavefunction, self.training_data, self.testing_data,
@@ -165,7 +162,7 @@ class TestVQC(QiskitAquaTestCase):
         aqua_globals.random_seed = 2
         optimizer = COBYLA(maxiter=500)
         data_preparation = self.data_preparation
-        wavefunction = self.ryrz_wavefunction
+        wavefunction = self.wavefunction
 
         # set up algorithm
         vqc = VQC(optimizer, data_preparation, wavefunction, self.training_data, self.testing_data)
@@ -192,7 +189,7 @@ class TestVQC(QiskitAquaTestCase):
         backend = BasicAer.get_backend('statevector_simulator')
         optimizer = COBYLA(maxiter=40)
         data_preparation = self.data_preparation
-        wavefunction = self.ryrz_wavefunction
+        wavefunction = self.wavefunction
 
         # set up algorithm
         vqc = VQC(optimizer, data_preparation, wavefunction, training_input, test_input,
@@ -240,7 +237,7 @@ class TestVQC(QiskitAquaTestCase):
 
         optimizer = SPSA(max_trials=10, save_steps=1, c0=4.0, skip_calibration=True)
         data_preparation = self.data_preparation
-        wavefunction = self.ryrz_wavefunction
+        wavefunction = self.wavefunction
 
         # set up algorithm
         vqc = VQC(optimizer, data_preparation, wavefunction, self.training_data, self.testing_data)
@@ -303,7 +300,7 @@ class TestVQC(QiskitAquaTestCase):
 
         optimizer = COBYLA(maxiter=3)
         data_preparation = self.data_preparation
-        wavefunction = self.ryrz_wavefunction
+        wavefunction = self.wavefunction
 
         # set up algorithm
         vqc = VQC(optimizer, data_preparation, wavefunction, self.training_data, self.testing_data,
@@ -340,8 +337,7 @@ class TestVQC(QiskitAquaTestCase):
         feature_map = QuantumCircuit(1)
         optimizer = SPSA()
         with self.assertWarns(UserWarning):
-            vqc = VQC(optimizer, feature_map, var_form, self.training_data, self.testing_data)
-            # _ = vqc.run(BasicAer.get_backend('statevector_simulator'))
+            _ = VQC(optimizer, feature_map, var_form, self.training_data, self.testing_data)
 
     def test_vqc_on_wine(self):
         """Test VQE on the wine test using circuits as feature map and variational form."""

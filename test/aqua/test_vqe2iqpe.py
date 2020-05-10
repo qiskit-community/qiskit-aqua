@@ -14,27 +14,22 @@
 
 """ Test VQE to IQPE """
 
-import warnings
 import unittest
 from test.aqua import QiskitAquaTestCase
 
 import numpy as np
-from ddt import ddt, data
-from qiskit import BasicAer, QuantumCircuit
-from qiskit.circuit import ParameterVector
+from qiskit import BasicAer
 from qiskit.circuit.library import TwoLocal
 
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.utils import decimal_to_binary
-from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.aqua.operators import I, X, Z
 from qiskit.aqua.components.initial_states import VarFormBased
-from qiskit.aqua.components.variational_forms import RYRZ
 from qiskit.aqua.components.optimizers import SPSA
 from qiskit.aqua.algorithms import VQE
 from qiskit.aqua.algorithms import IQPE
 
 
-@ddt
 class TestVQE2IQPE(QiskitAquaTestCase):
     """ Test VQE to IQPE """
 
@@ -42,39 +37,23 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         super().setUp()
         self.seed = 8
         aqua_globals.random_seed = self.seed
-        pauli_dict = {
-            'paulis': [{"coeff": {"imag": 0.0, "real": -1.052373245772859}, "label": "II"},
-                       {"coeff": {"imag": 0.0, "real": 0.39793742484318045}, "label": "IZ"},
-                       {"coeff": {"imag": 0.0, "real": -0.39793742484318045}, "label": "ZI"},
-                       {"coeff": {"imag": 0.0, "real": -0.01128010425623538}, "label": "ZZ"},
-                       {"coeff": {"imag": 0.0, "real": 0.18093119978423156}, "label": "XX"}
-                       ]
+        paulis = {
+            I ^ I: -1.052373245772859,
+            I ^ Z: 0.39793742484318045,
+            Z ^ I: -0.39793742484318045,
+            Z ^ Z: -0.01128010425623538,
+            X ^ X: 0.18093119978423156
         }
-        self.qubit_op = WeightedPauliOperator.from_dict(pauli_dict)
+        self.qubit_op = sum(coeff * paulis for coeff, paulis in paulis.items())
 
-    @data('wrapped', 'circuit', 'library')
-    def test_vqe_2_iqpe(self, wavefunction_type):
+    def test_vqe_2_iqpe(self):
         """ vqe to iqpe test """
         backend = BasicAer.get_backend('qasm_simulator')
         num_qbits = self.qubit_op.num_qubits
-        if wavefunction_type == 'wrapped':
-            warnings.filterwarnings('ignore', category=DeprecationWarning)
-            wavefunction = RYRZ(num_qbits, 3)
-        else:
-            wavefunction = TwoLocal(num_qbits, ['ry', 'rz'], 'cz', reps=3, insert_barriers=True)
-            theta = ParameterVector('theta', wavefunction.num_parameters)
-            wavefunction.assign_parameters(theta, inplace=True)
-
-        if wavefunction_type == 'circuit':
-            wavefunction = QuantumCircuit(num_qbits).compose(wavefunction)
+        wavefunction = TwoLocal(num_qbits, ['ry', 'rz'], 'cz', reps=3, insert_barriers=True)
 
         optimizer = SPSA(max_trials=10)
         algo = VQE(self.qubit_op, wavefunction, optimizer)
-        if wavefunction_type == 'wrapped':
-            warnings.filterwarnings('always', category=DeprecationWarning)
-        else:
-            # fix parameter order for reproducibility
-            algo._var_form_params = theta
 
         quantum_instance = QuantumInstance(backend, seed_simulator=self.seed,
                                            seed_transpiler=self.seed)
@@ -87,10 +66,7 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         num_time_slices = 1
         num_iterations = 6
 
-        if wavefunction_type == 'wrapped':
-            param_dict = result.optimal_point
-        else:
-            param_dict = result.optimal_parameters
+        param_dict = result.optimal_parameters
         state_in = VarFormBased(wavefunction, param_dict)
 
         iqpe = IQPE(self.qubit_op, state_in, num_time_slices, num_iterations,

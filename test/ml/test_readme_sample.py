@@ -37,11 +37,11 @@ class TestReadmeSample(QiskitMLTestCase):
         # --- Exact copy of sample code ----------------------------------------
 
         from qiskit import BasicAer
+        from qiskit.circuit.library import EfficientSU2
         from qiskit.aqua import QuantumInstance, aqua_globals
         from qiskit.aqua.algorithms import VQC
         from qiskit.aqua.components.optimizers import COBYLA
         from qiskit.aqua.components.feature_maps import RawFeatureVector
-        from qiskit.aqua.components.variational_forms import RYRZ
         from qiskit.ml.datasets import wine
 
         seed = 1376
@@ -56,7 +56,7 @@ class TestReadmeSample(QiskitMLTestCase):
         feature_map = RawFeatureVector(feature_dimension=feature_dim)
         vqc = VQC(COBYLA(maxiter=100),
                   feature_map,
-                  RYRZ(feature_map.num_qubits, depth=3),
+                  EfficientSU2(feature_map.num_qubits, reps=3),
                   training_input,
                   test_input)
         result = vqc.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),

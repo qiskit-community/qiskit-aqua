@@ -18,8 +18,7 @@ import os
 import warnings
 from test.aqua import QiskitAquaTestCase
 import numpy as np
-from ddt import ddt, data
-from qiskit import BasicAer, QuantumCircuit
+from qiskit import BasicAer
 from qiskit.circuit.library import ZZFeatureMap
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.components.feature_maps import SecondOrderExpansion
@@ -29,7 +28,6 @@ from qiskit.aqua.components.multiclass_extensions import (ErrorCorrectingCode,
 from qiskit.aqua.algorithms import QSVM
 
 
-@ddt
 class TestQSVM(QiskitAquaTestCase):
     """ Test QSVM """
 
