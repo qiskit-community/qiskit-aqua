@@ -14,7 +14,7 @@
 
 """Shor's factoring algorithm."""
 
-from typing import Optional, Union
+from typing import Optional, Union, Tuple
 import math
 import array
 import fractions
@@ -178,11 +178,7 @@ class Shor(QuantumAlgorithm):
                 (2 ** i) * a % self._N)
 
         add_mod_circuit.compose(self._iqft, qubits, inplace=True)
-
-        for i in range(0, self._n):
-            add_mod_circuit.cswap(ctl_up, down[i], aux[i])
-
-        return add_mod_circuit.combine(add_mod_circuit.inverse())
+        return add_mod_circuit
 
     def construct_circuit(self, measurement: bool = False) -> QuantumCircuit:
         """Construct circuit.
@@ -219,15 +215,40 @@ class Shor(QuantumAlgorithm):
         # Initialize down register to 1
         circuit.x(self._down_qreg[0])
 
+        def modinv(a: int, m: int) -> int:
+            def egcd(a: int, b: int) -> Tuple[int, int, int]:
+                if a == 0:
+                    return b, 0, 1
+                else:
+                    g, y, x = egcd(b % a, a)
+                    return g, x - (b // a) * y, y
+
+            g, x, _ = egcd(a, m)
+            if g != 1:
+                raise Exception('modular inverse does not exist')
+            return x % m
+
         # Apply the multiplication gates as showed in
         # the report in order to create the exponentiation
         for i, ctl_up in enumerate(self._up_qreg):
+            a = int(pow(self._a, pow(2, i)))
             circuit = circuit.combine(self._controlled_multiple_mod_N(
                 ctl_up,
                 self._down_qreg,
                 self._aux_qreg,
-                int(pow(self._a, pow(2, i)))
+                a
             ))
+
+            for j in range(self._n):
+                circuit.cswap(ctl_up, self._down_qreg[j], self._aux_qreg[j])
+
+            a_inv = modinv(a, self._N)
+            circuit = circuit.combine(self._controlled_multiple_mod_N(
+                ctl_up,
+                self._down_qreg,
+                self._aux_qreg,
+                a_inv
+            ).inverse())
 
         # Apply inverse QFT
         iqft = QFT(len(self._up_qreg)).inverse()
