@@ -105,7 +105,7 @@ class Shor(QuantumAlgorithm):
         return QuantumCircuit(self._up_qreg, self._down_qreg, self._aux_qreg)
 
     def _get_angles(self, a: int) -> np.ndarray:
-        """Calculate the array of angles to be used in the addition in Fourier Space."""
+        """Calculates the array of angles to be used in the addition in Fourier Space."""
         s = bin(int(a))[2:].zfill(self._n + 1)
         angles = np.zeros([self._n + 1])
         for i in range(0, self._n + 1):
@@ -116,7 +116,7 @@ class Shor(QuantumAlgorithm):
         return angles
 
     def _phi_add_gate(self, size: int, a: int) -> Gate:
-        """Creation of the gate that performs addition by a in Fourier Space."""
+        """Gate that performs addition by a in Fourier Space."""
         p = QuantumRegister(size)
         circuit = QuantumCircuit(p, name="phi_add_{}".format(a))
         angle = self._get_angles(a)
@@ -124,62 +124,37 @@ class Shor(QuantumAlgorithm):
             circuit.u1(angle[i], p[i])
         return circuit.to_gate()
 
-    def _controlled_phi_add(self, circuit, q, ctl, inverse=False):
-        """Single controlled version of the _phi_add circuit."""
-        angles = self._get_angles(self._N)
-        for i in range(0, self._n + 1):
-            angle = (-angles[i] if inverse else angles[i]) / 2
+    def _controlled_controlled_phi_add_mod_N(self,
+                                             circuit: QuantumCircuit,
+                                             aux: QuantumRegister,
+                                             ctl_down: Qubit,
+                                             ctl_up: Qubit,
+                                             ctl_aux: Qubit,
+                                             a: int):
+        """Implements doubly controlled modular addition by a on circuit."""
+        qubits = [aux[i] for i in reversed(range(self._n + 1))]
 
-            circuit.u1(angle, ctl)
-            circuit.cx(ctl, q[i])
-            circuit.u1(-angle, q[i])
-            circuit.cx(ctl, q[i])
-            circuit.u1(angle, q[i])
+        # Store the gate representing addition/subtraction by a in Fourier Space
+        phi_add_a = self._phi_add_gate(aux.size - 1, a)
+        iphi_add_a = phi_add_a.inverse()
 
-    def _controlled_controlled_phi_add(self, circuit, q, ctl1, ctl2, a, inverse=False):
-        """Doubly controlled version of the _phi_add circuit."""
-        angle = self._get_angles(a)
-        for i in range(self._n + 1):
-            # ccphase(circuit, -angle[i] if inverse else angle[i], ctl1, ctl2, q[i])
-            circuit.mcu1(-angle[i] if inverse else angle[i], [ctl1, ctl2], q[i])
-
-    def _controlled_controlled_phi_add_mod_N(self, circuit, q, ctl1, ctl2, aux, a):
-        """Circuit that implements doubly controlled modular addition by a."""
-        qubits = [q[i] for i in reversed(range(self._n + 1))]
-
-        self._controlled_controlled_phi_add(circuit, q, ctl1, ctl2, a)
-        self._phi_add(circuit, q, inverse=True)
-
+        circuit.compose(phi_add_a.control(2), [ctl_up, ctl_down, *qubits], inplace=True)
+        circuit.compose(self._iphi_add_N, [ctl_aux, *qubits], inplace=True)
         circuit.compose(self._iqft, qubits, inplace=True)
-        circuit.cx(q[self._n], aux)
-        circuit.compose(self._qft, qubits, inplace=True)
-        self._controlled_phi_add(circuit, q, aux)
 
-        self._controlled_controlled_phi_add(circuit, q, ctl1, ctl2, a, inverse=True)
-        circuit.compose(self._iqft, qubits, inplace=True)
-        circuit.u3(np.pi, 0, np.pi, q[self._n])
-        circuit.cx(q[self._n], aux)
-        circuit.u3(np.pi, 0, np.pi, q[self._n])
-        circuit.compose(self._qft, qubits, inplace=True)
-        self._controlled_controlled_phi_add(circuit, q, ctl1, ctl2, a)
+        circuit.cx(aux[self._n], ctl_aux)
 
-    def _controlled_controlled_phi_add_mod_N_inv(self, circuit, q, ctl1, ctl2, aux, a):
-        """Circuit that implements the inverse of doubly controlled modular addition by a."""
-        qubits = [q[i] for i in reversed(range(self._n + 1))]
+        circuit.compose(self._qft, qubits, inplace=True)
+        circuit.compose(phi_add_a.control(1), [ctl_aux, *qubits], inplace=True)
+        circuit.compose(iphi_add_a.control(2), [ctl_up, ctl_down, *qubits], inplace=True)
+        circuit.compose(self._iqft, qubits, inplace=True)
 
-        self._controlled_controlled_phi_add(circuit, q, ctl1, ctl2, a, inverse=True)
-        circuit.compose(self._iqft, qubits, inplace=True)
-        circuit.u3(np.pi, 0, np.pi, q[self._n])
-        circuit.cx(q[self._n], aux)
-        circuit.u3(np.pi, 0, np.pi, q[self._n])
+        circuit.x(aux[self._n])
+        circuit.cx(aux[self._n], ctl_aux)
+        circuit.x(aux[self._n])
+
         circuit.compose(self._qft, qubits, inplace=True)
-        self._controlled_controlled_phi_add(circuit, q, ctl1, ctl2, a)
-        self._controlled_phi_add(circuit, q, aux, inverse=True)
-        circuit.compose(self._iqft, qubits, inplace=True)
-        circuit.cx(q[self._n], aux)
-        circuit.compose(self._qft, qubits, inplace=True)
-        self._phi_add(circuit, q)
-        self._controlled_controlled_phi_add(circuit, q, ctl1, ctl2, a, inverse=True)
+        circuit.compose(phi_add_a.control(2), [ctl_up, ctl_down, *qubits], inplace=True)
 
     def _controlled_multiple_mod_N(self, circuit, ctl, q, aux, a):
         """Circuit that implements single controlled modular multiplication by a."""
