@@ -22,7 +22,9 @@ import logging
 import numpy as np
 
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
+from qiskit.circuit import Qubit
 from qiskit.circuit.library import QFT
+from qiskit.circuit.gate import Gate
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.utils.arithmetic import is_power
@@ -95,7 +97,14 @@ class Shor(QuantumAlgorithm):
         self._qft = QFT(do_swaps=False)
         self._iqft = self._qft.inverse()
 
-    def _get_angles(self, a):
+        self._phi_add_N = None
+        self._iphi_add_N = None
+
+    def _init_circuit(self) -> QuantumCircuit:
+        """Create the algorithm's circuit with all registers in 0."""
+        return QuantumCircuit(self._up_qreg, self._down_qreg, self._aux_qreg)
+
+    def _get_angles(self, a: int) -> np.ndarray:
         """Calculate the array of angles to be used in the addition in Fourier Space."""
         s = bin(int(a))[2:].zfill(self._n + 1)
         angles = np.zeros([self._n + 1])
@@ -106,14 +115,14 @@ class Shor(QuantumAlgorithm):
             angles[self._n - i] *= np.pi
         return angles
 
-    def _phi_add(self, circuit, q, inverse=False):
-        """Creation of the circuit that performs addition by a in Fourier Space.
-
-        Can also be used for subtraction by setting the parameter ``inverse=True``.
-        """
-        angle = self._get_angles(self._N)
-        for i in range(0, self._n + 1):
-            circuit.u1(-angle[i] if inverse else angle[i], q[i])
+    def _phi_add_gate(self, size: int, a: int) -> Gate:
+        """Creation of the gate that performs addition by a in Fourier Space."""
+        p = QuantumRegister(size)
+        circuit = QuantumCircuit(p, name="phi_add_{}".format(a))
+        angle = self._get_angles(a)
+        for i in range(self._n + 1):
+            circuit.u1(angle[i], p[i])
+        return circuit.to_gate()
 
     def _controlled_phi_add(self, circuit, q, ctl, inverse=False):
         """Single controlled version of the _phi_add circuit."""
@@ -242,25 +251,30 @@ class Shor(QuantumAlgorithm):
         self._aux_qreg = QuantumRegister(self._n + 2, name='aux')
 
         # Create Quantum Circuit
-        circuit = QuantumCircuit(self._up_qreg, self._down_qreg, self._aux_qreg)
+        circuit = self._init_circuit()
 
-        # Initialize down register to 1 and create maximal superposition in top register
-        circuit.u2(0, np.pi, self._up_qreg)
-        circuit.u3(np.pi, 0, np.pi, self._down_qreg[0])
+        # Create gates to perform addition/subtraction by N in Fourier Space
+        self._phi_add_N = self._phi_add_gate(self._aux_qreg.size, self._N)
+        self._iphi_add_N = self._phi_add_N.inverse()
+
+        # Create maximal superposition in top register
+        circuit.h(self._up_qreg)
+
+        # Initialize down register to 1
+        circuit.x(self._down_qreg[0])
 
         # Apply the multiplication gates as showed in
         # the report in order to create the exponentiation
-        for i in range(0, 2 * self._n):
-            self._controlled_multiple_mod_N(
-                circuit,
-                self._up_qreg[i],
+        for i, ctl_up in enumerate(self._up_qreg):
+            circuit = circuit.combine(self._controlled_multiple_mod_N(
+                ctl_up,
                 self._down_qreg,
                 self._aux_qreg,
                 int(pow(self._a, pow(2, i)))
-            )
+            ))
 
         # Apply inverse QFT
-        iqft = QFT(len(self._up_qreg), inverse=True)
+        iqft = QFT(len(self._up_qreg)).inverse()
         circuit.compose(iqft, qubits=self._up_qreg)
 
         if measurement:
