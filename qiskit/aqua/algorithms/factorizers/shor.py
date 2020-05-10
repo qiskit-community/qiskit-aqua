@@ -22,9 +22,8 @@ import logging
 import numpy as np
 
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
-from qiskit.circuit import Qubit
+from qiskit.circuit import Qubit, Gate
 from qiskit.circuit.library import QFT
-from qiskit.circuit.gate import Gate
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.utils.arithmetic import is_power
