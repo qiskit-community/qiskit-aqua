@@ -99,9 +99,9 @@ class Shor(QuantumAlgorithm):
         self._phi_add_N = None
         self._iphi_add_N = None
 
-    def _init_circuit(self) -> QuantumCircuit:
+    def _init_circuit(self, name: Optional[str] = None) -> QuantumCircuit:
         """Create the algorithm's circuit with all registers in 0."""
-        return QuantumCircuit(self._up_qreg, self._down_qreg, self._aux_qreg)
+        return QuantumCircuit(self._up_qreg, self._down_qreg, self._aux_qreg, name=name)
 
     def _get_angles(self, a: int) -> np.ndarray:
         """Calculates the array of angles to be used in the addition in Fourier Space."""
@@ -163,7 +163,7 @@ class Shor(QuantumAlgorithm):
         """Circuit that implements single controlled modular multiplication by a."""
         qubits = [aux[i] for i in reversed(range(self._n + 1))]
 
-        add_mod_circuit = self._init_circuit()
+        add_mod_circuit = self._init_circuit(name="multiplication_by_{}_mod_{}".format(a, self._N))
         add_mod_circuit.compose(self._qft, qubits, inplace=True)
 
         ctl_aux = aux[-1]
@@ -207,7 +207,7 @@ class Shor(QuantumAlgorithm):
         self._aux_qreg = QuantumRegister(self._n + 2, name='aux')
 
         # Create Quantum Circuit
-        circuit = self._init_circuit()
+        circuit = self._init_circuit(name="shor_N={}".format(self._N))
 
         # Create gates to perform addition/subtraction by N in Fourier Space
         self._phi_add_N = self._phi_add_gate(self._aux_qreg.size, self._N)
