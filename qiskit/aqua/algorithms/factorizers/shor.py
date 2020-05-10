@@ -156,52 +156,34 @@ class Shor(QuantumAlgorithm):
         circuit.compose(self._qft, qubits, inplace=True)
         circuit.compose(phi_add_a.control(2), [ctl_up, ctl_down, *qubits], inplace=True)
 
-    def _controlled_multiple_mod_N(self, circuit, ctl, q, aux, a):
+    def _controlled_multiple_mod_N(self,
+                                   ctl_up: Qubit,
+                                   down: QuantumRegister,
+                                   aux: QuantumRegister,
+                                   a: int) -> QuantumCircuit:
         """Circuit that implements single controlled modular multiplication by a."""
         qubits = [aux[i] for i in reversed(range(self._n + 1))]
-        circuit.compose(self._qft, qubits, inplace=True)
 
-        for i in range(0, self._n):
+        add_mod_circuit = self._init_circuit()
+        add_mod_circuit.compose(self._qft, qubits, inplace=True)
+
+        ctl_aux = aux[-1]
+
+        for i, ctl_down in enumerate(down):
             self._controlled_controlled_phi_add_mod_N(
-                circuit,
+                add_mod_circuit,
                 aux,
-                q[i],
-                ctl,
-                aux[self._n + 1],
-                (2 ** i) * a % self._N
-            )
-        circuit.compose(self._iqft, qubits, inplace=True)
+                ctl_down,
+                ctl_up,
+                ctl_aux,
+                (2 ** i) * a % self._N)
+
+        add_mod_circuit.compose(self._iqft, qubits, inplace=True)
 
         for i in range(0, self._n):
-            circuit.cswap(ctl, q[i], aux[i])
+            add_mod_circuit.cswap(ctl_up, down[i], aux[i])
 
-        def modinv(a, m):
-            def egcd(a, b):
-                if a == 0:
-                    return (b, 0, 1)
-                else:
-                    g, y, x = egcd(b % a, a)
-                    return (g, x - (b // a) * y, y)
-
-            g, x, _ = egcd(a, m)
-            if g != 1:
-                raise Exception('modular inverse does not exist')
-
-            return x % m
-
-        a_inv = modinv(a, self._N)
-        circuit.compose(self._qft, qubits, inplace=True)
-
-        for i in reversed(range(self._n)):
-            self._controlled_controlled_phi_add_mod_N_inv(
-                circuit,
-                aux,
-                q[i],
-                ctl,
-                aux[self._n + 1],
-                math.pow(2, i) * a_inv % self._N
-            )
-        circuit.compose(self._iqft, qubits, inplace=True)
+        return add_mod_circuit.combine(add_mod_circuit.inverse())
 
     def construct_circuit(self, measurement: bool = False) -> QuantumCircuit:
         """Construct circuit.
