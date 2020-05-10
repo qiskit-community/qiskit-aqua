@@ -124,14 +124,14 @@ class Shor(QuantumAlgorithm):
         return circuit.to_gate()
 
     def _controlled_controlled_phi_add_mod_N(self,
-                                             circuit: QuantumCircuit,
                                              aux: QuantumRegister,
                                              ctl_down: Qubit,
                                              ctl_up: Qubit,
                                              ctl_aux: Qubit,
-                                             a: int):
+                                             a: int) -> Gate:
         """Implements doubly controlled modular addition by a on circuit."""
         qubits = [aux[i] for i in reversed(range(self._n + 1))]
+        circuit = self._init_circuit(name="phi_add_{}_mod_{}".format(a, self._N))
 
         # Store the gate representing addition/subtraction by a in Fourier Space
         phi_add_a = self._phi_add_gate(aux.size - 1, a)
@@ -154,31 +154,31 @@ class Shor(QuantumAlgorithm):
 
         circuit.compose(self._qft, qubits, inplace=True)
         circuit.compose(phi_add_a.control(2), [ctl_up, ctl_down, *qubits], inplace=True)
+        return circuit.to_gate()
 
     def _controlled_multiple_mod_N(self,
                                    ctl_up: Qubit,
                                    down: QuantumRegister,
                                    aux: QuantumRegister,
-                                   a: int) -> QuantumCircuit:
+                                   a: int) -> Gate:
         """Circuit that implements single controlled modular multiplication by a."""
         qubits = [aux[i] for i in reversed(range(self._n + 1))]
-
-        add_mod_circuit = self._init_circuit(name="multiplication_by_{}_mod_{}".format(a, self._N))
-        add_mod_circuit.compose(self._qft, qubits, inplace=True)
-
         ctl_aux = aux[-1]
 
-        for i, ctl_down in enumerate(down):
-            self._controlled_controlled_phi_add_mod_N(
-                add_mod_circuit,
-                aux,
-                ctl_down,
-                ctl_up,
-                ctl_aux,
-                (2 ** i) * a % self._N)
+        circuit = self._init_circuit(name="multiplication_by_{}_mod_{}".format(a, self._N))
+        circuit.compose(self._qft, qubits, inplace=True)
 
-        add_mod_circuit.compose(self._iqft, qubits, inplace=True)
-        return add_mod_circuit
+        for i, ctl_down in enumerate(down):
+            circuit.compose(
+                self._controlled_controlled_phi_add_mod_N(
+                    aux,
+                    ctl_down,
+                    ctl_up,
+                    ctl_aux,
+                    (2 ** i) * a % self._N), inplace=True)
+
+        circuit.compose(self._iqft, qubits, inplace=True)
+        return circuit.to_gate()
 
     def construct_circuit(self, measurement: bool = False) -> QuantumCircuit:
         """Construct circuit.
@@ -232,23 +232,23 @@ class Shor(QuantumAlgorithm):
         # the report in order to create the exponentiation
         for i, ctl_up in enumerate(self._up_qreg):
             a = int(pow(self._a, pow(2, i)))
-            circuit = circuit.combine(self._controlled_multiple_mod_N(
-                ctl_up,
-                self._down_qreg,
-                self._aux_qreg,
-                a
-            ))
+            circuit.compose(
+                self._controlled_multiple_mod_N(
+                    ctl_up,
+                    self._down_qreg,
+                    self._aux_qreg,
+                    a), inplace=True)
 
             for j in range(self._n):
                 circuit.cswap(ctl_up, self._down_qreg[j], self._aux_qreg[j])
 
             a_inv = modinv(a, self._N)
-            circuit = circuit.combine(self._controlled_multiple_mod_N(
-                ctl_up,
-                self._down_qreg,
-                self._aux_qreg,
-                a_inv
-            ).inverse())
+            circuit.compose(
+                self._controlled_multiple_mod_N(
+                    ctl_up,
+                    self._down_qreg,
+                    self._aux_qreg,
+                    a_inv).inverse(), inplace=True)
 
         # Apply inverse QFT
         iqft = QFT(len(self._up_qreg)).inverse()
