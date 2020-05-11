@@ -173,14 +173,16 @@ class CircuitOp(PrimitiveOp):
                 return ListOp([self.bind_parameters(param_dict) for param_dict in unrolled_dict])
             if isinstance(self.coeff, ParameterExpression) \
                     and self.coeff.parameters <= set(unrolled_dict.keys()):
-                binds = {param: unrolled_dict[param] for param in self.coeff.parameters}
+                param_instersection = set(unrolled_dict.keys()) & self.coeff.parameters
+                binds = {param: unrolled_dict[param] for param in param_instersection}
                 param_value = float(self.coeff.bind(binds))
             # & is set intersection, check if any parameters in unrolled are present in circuit
             # This is different from bind_parameters in Terra because they check for set equality
             if set(unrolled_dict.keys()) & self.primitive.parameters:
                 # Only bind the params found in the circuit
-                binds = {param: unrolled_dict[param] for param in self.primitive.parameters}
-                qc = self.to_circuit().bind_parameters(binds)
+                param_instersection = set(unrolled_dict.keys()) & self.primitive.parameters
+                binds = {param: unrolled_dict[param] for param in param_instersection}
+                qc = self.to_circuit().assign_parameters(binds)
         return self.__class__(qc, coeff=param_value)
 
     def eval(self,
