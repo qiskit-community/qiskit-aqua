@@ -130,7 +130,7 @@ class Shor(QuantumAlgorithm):
                                              ctl_down: Qubit,
                                              ctl_aux: Qubit,
                                              a: int):
-        """Implements doubly controlled modular addition by a on circuit."""
+        """Implements double-controlled modular addition by a on circuit."""
         qubits = [aux[i] for i in reversed(range(self._n + 1))]
 
         # Store the gate representing addition/subtraction by a in Fourier Space
@@ -160,7 +160,7 @@ class Shor(QuantumAlgorithm):
                                    down: QuantumRegister,
                                    aux: QuantumRegister,
                                    a: int) -> QuantumCircuit:
-        """Circuit that implements single controlled modular multiplication by a."""
+        """Returns a circuit implementing single-controlled modular multiplication by a."""
         qubits = [aux[i] for i in reversed(range(self._n + 1))]
 
         circuit = self._init_circuit(name="multiplication_by_{}_mod_{}".format(a % self._N, self._N))
@@ -203,7 +203,7 @@ class Shor(QuantumAlgorithm):
         self._aux_qreg = QuantumRegister(self._n + 2, name='aux')
 
         # Create Quantum Circuit
-        circuit = self._init_circuit(name="shor_N={}".format(self._N))
+        circuit = self._init_circuit(name="Shor(N={}, a={})".format(self._N, self._a))
 
         # Create gates to perform addition/subtraction by N in Fourier Space
         self._phi_add_N = self._phi_add_gate(self._aux_qreg.size, self._N)
@@ -214,19 +214,6 @@ class Shor(QuantumAlgorithm):
 
         # Initialize down register to 1
         circuit.x(self._down_qreg[0])
-
-        def modinv(a: int, m: int) -> int:
-            def egcd(a: int, b: int) -> Tuple[int, int, int]:
-                if a == 0:
-                    return b, 0, 1
-                else:
-                    g, y, x = egcd(b % a, a)
-                    return g, x - (b // a) * y, y
-
-            g, x, _ = egcd(a, m)
-            if g != 1:
-                raise Exception('modular inverse does not exist')
-            return x % m
 
         # Apply the multiplication gates as showed in
         # the report in order to create the exponentiation
@@ -242,7 +229,7 @@ class Shor(QuantumAlgorithm):
             for j in range(self._n):
                 circuit.cswap(ctl_up, self._down_qreg[j], self._aux_qreg[j])
 
-            a_inv = modinv(a, self._N)
+            a_inv = self.modinv(a, self._N)
             circuit = circuit.combine(self._controlled_multiple_mod_N(
                 ctl_up,
                 self._down_qreg,
@@ -262,6 +249,20 @@ class Shor(QuantumAlgorithm):
         logger.info(summarize_circuits(circuit))
 
         return circuit
+
+    @staticmethod
+    def modinv(a: int, m: int) -> int:
+        def egcd(a: int, b: int) -> Tuple[int, int, int]:
+            if a == 0:
+                return b, 0, 1
+            else:
+                g, y, x = egcd(b % a, a)
+                return g, x - (b // a) * y, y
+
+        g, x, _ = egcd(a, m)
+        if g != 1:
+            raise Exception('modular inverse does not exist')
+        return x % m
 
     def _get_factors(self, output_desired: str, t_upper: int) -> bool:
         """Apply the continued fractions to find r and the gcd to find the desired factors."""
