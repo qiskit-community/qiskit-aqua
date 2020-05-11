@@ -16,8 +16,6 @@
 
 import unittest
 from test.optimization import QiskitOptimizationTestCase
-import random
-import numpy
 from docplex.mp.model import Model
 from qiskit import Aer
 from qiskit.aqua import aqua_globals, QuantumInstance
@@ -31,9 +29,7 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
 
     def setUp(self):
         super().setUp()
-        random.seed = 2
-        numpy.random.seed = 42
-        aqua_globals.seed = 42
+        aqua_globals.random_seed = 1
         self.q_instance = QuantumInstance(Aer.get_backend('statevector_simulator'),
                                           seed_simulator=921, seed_transpiler=200)
 
@@ -72,6 +68,23 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
         x_0 = model.binary_var(name='x0')
         x_1 = model.binary_var(name='x1')
         model.minimize(-x_0+2*x_1)
+        op = QuadraticProgram()
+        op.from_docplex(model)
+
+        # Get the optimum key and value.
+        n_iter = 8
+        gmf = GroverOptimizer(4, num_iterations=n_iter, quantum_instance=self.q_instance)
+        results = gmf.solve(op)
+        self.validate_results(op, results)
+
+    def test_qubo_gas_int_simple_maximize(self):
+        """Test for simple case, but with maximization."""
+
+        # Input.
+        model = Model()
+        x_0 = model.binary_var(name='x0')
+        x_1 = model.binary_var(name='x1')
+        model.maximize(-x_0+2*x_1)
         op = QuadraticProgram()
         op.from_docplex(model)
 

@@ -42,14 +42,14 @@ class QuadraticProgramToNegativeValueOracle:
             arxiv:1912.04088.
     """
 
-    def __init__(self, num_output_qubits: int, measurement: bool = False) -> None:
+    def __init__(self, num_value_qubits: int, measurement: bool = False) -> None:
         """
         Args:
-            num_output_qubits: The number of qubits required to represent the output.
+            num_value_qubits: The number of qubits required to represent the output.
             measurement: Whether the A operator contains measurements.
         """
         self._num_key = 0
-        self._num_value = num_output_qubits
+        self._num_value = num_value_qubits
         self._measurement = measurement
 
     def encode(self, problem: QuadraticProgram) -> \
