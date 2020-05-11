@@ -16,8 +16,6 @@
 
 import unittest
 from test.optimization import QiskitOptimizationTestCase
-import random
-import numpy
 from docplex.mp.model import Model
 from qiskit import Aer
 from qiskit.aqua import aqua_globals, QuantumInstance
@@ -31,9 +29,7 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
 
     def setUp(self):
         super().setUp()
-        random.seed = 2
-        numpy.random.seed = 42
-        aqua_globals.seed = 42
+        aqua_globals.random_seed = 1
         self.q_instance = QuantumInstance(Aer.get_backend('statevector_simulator'),
                                           seed_simulator=921, seed_transpiler=200)
 
