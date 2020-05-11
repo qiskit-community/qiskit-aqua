@@ -47,7 +47,7 @@ class TestVQC(QiskitAquaTestCase):
         ref_opt_params_wrapped = np.array([4.70404622, 0.55998411, 5.57435339, -12.2715397,
                                            -0.14927572, -1.05378479, 0.14397894, 2.31642745,
                                            4.20709421, -0.96476894, -7.2623941, -2.55275992,
-                                          -3.58191088, -10.80642195, -6.81730643, -4.64199467])
+                                           -3.58191088, -10.80642195, -6.81730643, -4.64199467])
         ref_opt_params_circuit = np.array([-4.98223236, 12.59713555, 8.27837792, 13.78104253,
                                            8.7924789, -2.80592658, 4.98696354, 9.12476594,
                                            5.69028881, -12.26803921, 14.88953641, -10.69197235,
@@ -225,11 +225,9 @@ class TestVQC(QiskitAquaTestCase):
 
         # set up wavefunction
         if mode == 'wrapped':
-            vqc_accuracy = 0.5
             warnings.filterwarnings('ignore', category=DeprecationWarning)
             wavefunction = RYRZ(2, depth=1)
         else:
-            vqc_accuracy = 0.75
             wavefunction = TwoLocal(2, ['ry', 'rz'], 'cz', reps=1, insert_barriers=True)
             if mode == 'circuit':
                 wavefunction = QuantumCircuit(2).compose(wavefunction)
