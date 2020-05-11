@@ -17,11 +17,10 @@
 import logging
 from typing import Optional, Dict, Union, Tuple
 import math
-import random
 import numpy as np
 from qiskit import QuantumCircuit
 from qiskit.providers import BaseBackend
-from qiskit.aqua import QuantumInstance
+from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms.amplitude_amplifiers.grover import Grover
 from ..exceptions import QiskitOptimizationError
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
@@ -116,6 +115,16 @@ class GroverOptimizer(OptimizationAlgorithm):
         qubo_converter = QuadraticProgramToQubo()
         problem_ = qubo_converter.encode(problem)
 
+        # convert to minimization problem
+        sense = problem_.objective.sense
+        if sense == problem_.objective.Sense.MAXIMIZE:
+            problem_.objective.sense = problem_.objective.Sense.MINIMIZE
+            problem_.objective.constant = -problem_.objective.constant
+            for i, v in problem_.objective.linear.to_dict().items():
+                problem_.objective.linear[i] = -v
+            for (i, j), v in problem_.objective.quadratic.to_dict().items():
+                problem_.objective.quadratic[i, j] = -v
+
         # Variables for tracking the optimum.
         optimum_found = False
         optimum_key = math.inf
@@ -156,7 +165,7 @@ class GroverOptimizer(OptimizationAlgorithm):
             while not improvement_found:
                 # Determine the number of rotations.
                 loops_with_no_improvement += 1
-                rotation_count = int(np.ceil(random.uniform(0, m-1)))
+                rotation_count = int(np.ceil(aqua_globals.random.uniform(0, m-1)))
                 rotations += rotation_count
 
                 # Apply Grover's Algorithm to find values below the threshold.
@@ -218,7 +227,10 @@ class GroverOptimizer(OptimizationAlgorithm):
 
         # Build the results object.
         grover_results = GroverOptimizationResults(operation_count, n_key, n_value, func_dict)
-        result = OptimizationResult(x=opt_x, fval=solutions[optimum_key],
+        fval = solutions[optimum_key]
+        if sense == problem_.objective.Sense.MAXIMIZE:
+            fval = -fval
+        result = OptimizationResult(x=opt_x, fval=fval,
                                     results={"grover_results": grover_results,
                                              "qubo_converter": qubo_converter})
 
@@ -234,7 +246,7 @@ class GroverOptimizer(OptimizationAlgorithm):
 
         # Pick a random outcome.
         freq[len(freq)-1] = (freq[len(freq)-1][0], 1 - sum([x[1] for x in freq[0:len(freq)-1]]))
-        idx = np.random.choice(len(freq), 1, p=[x[1] for x in freq])[0]
+        idx = aqua_globals.random.choice(len(freq), 1, p=[x[1] for x in freq])[0]
         logger.info('Frequencies: %s', freq)
 
         return freq[idx][0]
