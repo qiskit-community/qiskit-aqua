@@ -81,6 +81,23 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
         results = gmf.solve(op)
         self.validate_results(op, results)
 
+    def test_qubo_gas_int_simple_maximize(self):
+        """Test for simple case, but with maximization."""
+
+        # Input.
+        model = Model()
+        x_0 = model.binary_var(name='x0')
+        x_1 = model.binary_var(name='x1')
+        model.maximize(-x_0+2*x_1)
+        op = QuadraticProgram()
+        op.from_docplex(model)
+
+        # Get the optimum key and value.
+        n_iter = 8
+        gmf = GroverOptimizer(4, num_iterations=n_iter, quantum_instance=self.q_instance)
+        results = gmf.solve(op)
+        self.validate_results(op, results)
+
     def test_qubo_gas_int_paper_example(self):
         """Test the example from https://arxiv.org/abs/1912.04088."""
 
