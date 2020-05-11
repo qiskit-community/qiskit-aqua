@@ -404,9 +404,9 @@ class OperatorBase(ABC):
     # Utility functions for parameter binding
 
     @abstractmethod
-    def bind_parameters(self,
-                        param_dict: Dict[ParameterExpression, Union[Number, List[Number]]]
-                        ) -> 'OperatorBase':
+    def assign_parameters(self,
+                          param_dict: Dict[ParameterExpression, Union[Number, List[Number]]]
+                          ) -> 'OperatorBase':
         """ Binds scalar values to any Terra ``Parameters`` in the coefficients or primitives of
         the Operator. This method differs from Terra's ``bind_parameters`` in that it also
         supports lists of scalar values to bind for a give ``Parameter``, in which case self will be
@@ -424,6 +424,15 @@ class OperatorBase(ABC):
             this ``OperatorBase`` is an ``OpList``.
         """
         raise NotImplementedError
+
+    def bind_parameters(self,
+                        param_dict: Dict[ParameterExpression, Union[Number, List[Number]]]
+                        ) -> 'OperatorBase':
+        r"""
+        Same as assign_parameters, but maintained for consistency with QuantumCircuit in
+        Terra (which has both assign_parameters and bind_parameters).
+        """
+        return self.assign_parameters(param_dict)
 
     # Mostly copied from terra, but with list unrolling added:
     @staticmethod

@@ -162,7 +162,7 @@ class CircuitOp(PrimitiveOp):
         else:
             return "{} * {}".format(self.coeff, prim_str)
 
-    def bind_parameters(self, param_dict: dict) -> OperatorBase:
+    def assign_parameters(self, param_dict: dict) -> OperatorBase:
         param_value = self.coeff
         qc = self.primitive
         if isinstance(self.coeff, ParameterExpression) or self.primitive.parameters:
@@ -170,7 +170,7 @@ class CircuitOp(PrimitiveOp):
             if isinstance(unrolled_dict, list):
                 # pylint: disable=import-outside-toplevel
                 from ..list_ops.list_op import ListOp
-                return ListOp([self.bind_parameters(param_dict) for param_dict in unrolled_dict])
+                return ListOp([self.assign_parameters(param_dict) for param_dict in unrolled_dict])
             if isinstance(self.coeff, ParameterExpression) \
                     and self.coeff.parameters <= set(unrolled_dict.keys()):
                 param_instersection = set(unrolled_dict.keys()) & self.coeff.parameters
