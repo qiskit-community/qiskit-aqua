@@ -41,8 +41,8 @@ class TestHHL(QiskitAquaTestCase):
     """HHL tests."""
 
     def setUp(self):
-        super(TestHHL, self).setUp()
-        aqua_globals.random_seed = None
+        super().setUp()
+        aqua_globals.random_seed = 2752
 
     def tearDown(self):
         super().tearDown()
@@ -315,7 +315,7 @@ class TestHHL(QiskitAquaTestCase):
 
         # compare result
         fidelity = state_fidelity(ref_normed, hhl_normed)
-        np.testing.assert_approx_equal(fidelity, 1, significant=1)
+        np.testing.assert_approx_equal(fidelity, 1.0, significant=1)
 
         self.log.debug('HHL solution vector:       %s', hhl_solution)
         self.log.debug('algebraic solution vector: %s', ref_solution)

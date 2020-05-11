@@ -44,26 +44,28 @@ class TestVQC(QiskitAquaTestCase):
         self.testing_data = {'A': np.asarray([[3.83274304, 2.45044227]]),
                              'B': np.asarray([[3.89557489, 0.31415927]])}
 
-        ref_opt_params_wrapped = np.array([10.03814083, -12.22048954, -7.58026833, -2.42392954,
-                                           12.91555293, 13.44064652, -2.89951454, -10.20639406,
-                                           0.81414546, -1.00551752, -4.7988307, 14.00831419,
-                                           8.26008064, -7.07543736, 11.43368677, -5.74857438])
-        ref_opt_params_circuit = np.array([0.47352206, -3.75934473, 1.72605939, -4.17669389,
-                                           1.28937435, -0.05841719, -0.29853266, -2.04139334,
-                                           1.00271775, -1.48133882, -1.18769138, 1.17885493,
-                                           7.58873883, -5.27078091, 2.5306601, -4.67393152])
+        ref_opt_params_wrapped = np.array([4.70404622, 0.55998411, 5.57435339, -12.2715397,
+                                           -0.14927572, -1.05378479, 0.14397894, 2.31642745,
+                                           4.20709421, -0.96476894, -7.2623941, -2.55275992,
+                                          -3.58191088, -10.80642195, -6.81730643, -4.64199467])
+        ref_opt_params_circuit = np.array([-4.98223236, 12.59713555, 8.27837792, 13.78104253,
+                                           8.7924789, -2.80592658, 4.98696354, 9.12476594,
+                                           5.69028881, -12.26803921, 14.88953641, -10.69197235,
+                                           -4.6263896, -5.74338857, 7.23058376, 14.05726339])
         self.ref_opt_params = {'wrapped': ref_opt_params_wrapped,
                                'circuit': ref_opt_params_circuit,
                                'library': ref_opt_params_circuit}
 
-        self.ref_train_loss = {'wrapped': 0.69366523,
-                               'circuit': 0.67346735,
-                               'library': 0.67346735}
+        self.ref_train_loss = {'wrapped': 1.65250807,
+                               'circuit': 0.68992008,
+                               'library': 0.68992008}
 
-        self.ref_prediction_a_probs = {'wrapped': [[0.79882812, 0.20117188]],
-                                       'circuit': [[0.78613281, 0.21386719]],
-                                       'library': [[0.78613281, 0.21386719]]}
-        self.ref_prediction_a_label = [0]
+        self.ref_prediction_a_probs = {'wrapped': [[0.64550781, 0.35449219]],
+                                       'circuit': [[0.4453125, 0.5546875]],
+                                       'library': [[0.4453125, 0.5546875]]}
+        self.ref_prediction_a_label = {'wrapped': [0],
+                                       'circuit': [1],
+                                       'library': [1]}
 
         # ignore warnings from creating VariationalForm and FeatureMap objects
         warnings.filterwarnings('ignore', category=DeprecationWarning)
@@ -113,7 +115,7 @@ class TestVQC(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(result['training_loss'],
                                              self.ref_train_loss[mode], decimal=8)
 
-        self.assertEqual(1.0, result['testing_accuracy'])
+        self.assertEqual(1.0 if mode == 'wrapped' else 0.0, result['testing_accuracy'])
 
     @data('wrapped', 'circuit', 'library')
     def test_vqc_with_max_evals_grouped(self, mode):
@@ -143,7 +145,7 @@ class TestVQC(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(result['training_loss'],
                                              self.ref_train_loss[mode], decimal=8)
 
-        self.assertEqual(1.0, result['testing_accuracy'])
+        self.assertEqual(1.0 if mode == 'wrapped' else 0.0, result['testing_accuracy'])
 
     @data('wrapped', 'circuit', 'library')
     def test_vqc_statevector(self, mode):
@@ -157,7 +159,7 @@ class TestVQC(QiskitAquaTestCase):
         if mode == 'wrapped':
             warnings.filterwarnings('ignore', category=DeprecationWarning)
 
-            # set up algorithm
+        # set up algorithm
         vqc = VQC(optimizer, data_preparation, wavefunction, self.training_data, self.testing_data)
 
         if mode == 'wrapped':
@@ -168,8 +170,8 @@ class TestVQC(QiskitAquaTestCase):
                                            seed_transpiler=aqua_globals.random_seed)
         result = vqc.run(quantum_instance)
 
-        self.assertLess(result['training_loss'], 0.12)
-        self.assertEqual(result['testing_accuracy'], 0.5)
+        self.assertAlmostEqual(result['training_loss'], 0.11 if mode == 'wrapped' else 0.12, 2)
+        self.assertEqual(result['testing_accuracy'], 0.0 if mode == 'wrapped' else 0.5)
 
     # we use the ad_hoc dataset (see the end of this file) to test the accuracy.
     @data('wrapped', 'circuit', 'library')
@@ -270,7 +272,7 @@ class TestVQC(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(result['training_loss'],
                                              self.ref_train_loss[mode], decimal=8)
 
-        self.assertEqual(1.0, result['testing_accuracy'])
+        self.assertEqual(1.0 if mode == 'wrapped' else 0.0, result['testing_accuracy'])
 
         file_path = self.get_resource_path('vqc_test.npz')
         vqc.save_model(file_path)
@@ -297,7 +299,7 @@ class TestVQC(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(predicted_probs,
                                              self.ref_prediction_a_probs[mode],
                                              decimal=8)
-        np.testing.assert_array_equal(predicted_labels, self.ref_prediction_a_label)
+        np.testing.assert_array_equal(predicted_labels, self.ref_prediction_a_label[mode])
 
         if os.path.exists(file_path):
             try:
