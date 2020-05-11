@@ -21,7 +21,7 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 Added
 -----
 
--   Added a `linear` option to `IsingToQuadraticProgram` converter (#956)
+-   Added a `linear` option to the `IsingToQuadraticProgram` converter (#956)
 
 Removed
 -------
