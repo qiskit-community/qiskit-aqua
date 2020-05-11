@@ -151,7 +151,8 @@ class TestVQC(QiskitAquaTestCase):
     def test_vqc_statevector(self, mode):
         """ vqc statevector test """
         aqua_globals.random_seed = self.seed
-        optimizer = COBYLA()
+        optimizer = SPSA(max_trials=100, save_steps=1,
+                         c0=4.0, c1=0.1, c2=0.602, c3=0.101, c4=0.0, skip_calibration=True)
         data_preparation = self.data_preparation[mode]
         wavefunction = self.ryrz_wavefunction[mode]
 
@@ -169,7 +170,7 @@ class TestVQC(QiskitAquaTestCase):
                                            seed_transpiler=aqua_globals.random_seed)
         result = vqc.run(quantum_instance)
 
-        self.assertLess(result['training_loss'], 0.107)
+        self.assertLess(result['training_loss'], 0.12)
         self.assertEqual(result['testing_accuracy'], 0.5)
 
     # we use the ad_hoc dataset (see the end of this file) to test the accuracy.
