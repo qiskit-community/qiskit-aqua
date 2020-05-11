@@ -74,8 +74,8 @@ class TestSetPacking(QiskitOptimizationTestCase):
             return
 
         wavefunction = TwoLocal(rotation_blocks='ry', entanglement_blocks='cz',
-                                reps=5, entanglement='linear')
-        aqua_globals.random_seed = 50
+                                reps=3, entanglement='linear')
+        aqua_globals.random_seed = 51
         result = VQE(self.qubit_op,
                      wavefunction,
                      SPSA(max_trials=200),
