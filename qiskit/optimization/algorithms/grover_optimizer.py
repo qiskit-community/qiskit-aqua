@@ -17,11 +17,10 @@
 import logging
 from typing import Optional, Dict, Union, Tuple
 import math
-import random
 import numpy as np
 from qiskit import QuantumCircuit
 from qiskit.providers import BaseBackend
-from qiskit.aqua import QuantumInstance
+from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms.amplitude_amplifiers.grover import Grover
 from ..exceptions import QiskitOptimizationError
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
@@ -166,7 +165,7 @@ class GroverOptimizer(OptimizationAlgorithm):
             while not improvement_found:
                 # Determine the number of rotations.
                 loops_with_no_improvement += 1
-                rotation_count = int(np.ceil(random.uniform(0, m-1)))
+                rotation_count = int(np.ceil(aqua_globals.random.uniform(0, m-1)))
                 rotations += rotation_count
 
                 # Apply Grover's Algorithm to find values below the threshold.
@@ -247,7 +246,7 @@ class GroverOptimizer(OptimizationAlgorithm):
 
         # Pick a random outcome.
         freq[len(freq)-1] = (freq[len(freq)-1][0], 1 - sum([x[1] for x in freq[0:len(freq)-1]]))
-        idx = np.random.choice(len(freq), 1, p=[x[1] for x in freq])[0]
+        idx = aqua_globals.random.choice(len(freq), 1, p=[x[1] for x in freq])[0]
         logger.info('Frequencies: %s', freq)
 
         return freq[idx][0]
