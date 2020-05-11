@@ -78,9 +78,11 @@ class VQE(VQAlgorithm, MinimumEigensolver):
 
     .. note::
 
-        The VQE stores the parameters of `var_form` sorted by name to map the values
+        The VQE stores the parameters of ``var_form`` sorted by name to map the values
         provided by the optimizer to the circuit. This is done to ensure reproducible results,
-        such that running the optimization twice with same random seeds yields the same result.
+        for example such that running the optimization twice with same random seeds yields the
+        same result. Also, the ``optimal_point`` of the result object can be used as initial
+        point of another VQE run by passing it as ``initial_point`` to the initializer.
 
     """
 

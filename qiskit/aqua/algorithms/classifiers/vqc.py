@@ -50,8 +50,8 @@ class VQC(VQAlgorithm):
 
         The VQC stores the parameters of `var_form` and `feature_map` sorted by name to map the
         values provided by the optimizer to the circuit. This is done to ensure reproducible
-        results, such that running the optimization twice with same random seeds yields the same
-        result.
+        results, for example such that running the optimization twice with same random seeds yields
+        the same result.
 
     """
 
