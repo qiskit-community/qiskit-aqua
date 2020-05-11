@@ -125,13 +125,13 @@ class Shor(QuantumAlgorithm):
 
     def _controlled_controlled_phi_add_mod_N(self,
                                              aux: QuantumRegister,
-                                             ctl_down: Qubit,
                                              ctl_up: Qubit,
+                                             ctl_down: Qubit,
                                              ctl_aux: Qubit,
                                              a: int) -> Gate:
         """Implements doubly controlled modular addition by a on circuit."""
         qubits = [aux[i] for i in reversed(range(self._n + 1))]
-        circuit = self._init_circuit(name="phi_add_{}_mod_{}".format(a, self._N))
+        circuit = self._init_circuit(name="phi_add_{}_mod_{}".format(a % self._N, self._N))
 
         # Store the gate representing addition/subtraction by a in Fourier Space
         phi_add_a = self._phi_add_gate(aux.size - 1, a)
@@ -165,15 +165,15 @@ class Shor(QuantumAlgorithm):
         qubits = [aux[i] for i in reversed(range(self._n + 1))]
         ctl_aux = aux[-1]
 
-        circuit = self._init_circuit(name="multiplication_by_{}_mod_{}".format(a, self._N))
+        circuit = self._init_circuit(name="multiplication_by_{}_mod_{}".format(a % self._N, self._N))
         circuit.compose(self._qft, qubits, inplace=True)
 
         for i, ctl_down in enumerate(down):
             circuit.compose(
                 self._controlled_controlled_phi_add_mod_N(
                     aux,
-                    ctl_down,
                     ctl_up,
+                    ctl_down,
                     ctl_aux,
                     (2 ** i) * a % self._N), inplace=True)
 
