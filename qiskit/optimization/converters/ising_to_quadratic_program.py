@@ -31,8 +31,8 @@ class IsingToQuadraticProgram:
         """Initialize the internal data structure.
         Args:
             linear: If linear is True, x^2 is treated as a linear term
-                    since x^2 = x for x in {0,1}.
-                    Else, x^2 is treat as a quadratic term
+                since x^2 = x for x in {0,1}.
+                Else, x^2 is treat as a quadratic term
         """
         self._qubit_op = None
         self._offset = 0
@@ -83,7 +83,7 @@ class IsingToQuadraticProgram:
                 # The coefficient of the quadratic term in `QuadraticProgram` is
                 # 4 * weight of the pauli
                 coef = weight * 4
-                quadratic_terms[(i, j)] = coef
+                quadratic_terms[i, j] = coef
                 # Sub the weight of the quadratic pauli term from the QUBO matrix
                 self._qubo_matrix[i, j] -= weight
                 # Sub the weight of the linear pauli term from the QUBO matrix
