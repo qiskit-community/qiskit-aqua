@@ -29,6 +29,7 @@ class IsingToQuadraticProgram:
 
     def __init__(self, linear: bool = False) -> None:
         """Initialize the internal data structure.
+        
         Args:
             linear: If linear is True, x^2 is treated as a linear term
                 since x^2 = x for x in {0,1}.
