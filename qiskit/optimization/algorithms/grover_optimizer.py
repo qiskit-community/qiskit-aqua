@@ -116,6 +116,16 @@ class GroverOptimizer(OptimizationAlgorithm):
         qubo_converter = QuadraticProgramToQubo()
         problem_ = qubo_converter.encode(problem)
 
+        # convert to minimization problem
+        sense = problem_.objective.sense
+        if sense == problem_.objective.Sense.MAXIMIZE:
+            problem_.objective.sense = problem_.objective.Sense.MINIMIZE
+            problem_.objective.constant = -problem_.objective.constant
+            for i, v in problem_.objective.linear.to_dict().items():
+                problem_.objective.linear[i] = -v
+            for (i, j), v in problem_.objective.quadratic.to_dict().items():
+                problem_.objective.quadratic[i, j] = -v
+
         # Variables for tracking the optimum.
         optimum_found = False
         optimum_key = math.inf
@@ -218,7 +228,10 @@ class GroverOptimizer(OptimizationAlgorithm):
 
         # Build the results object.
         grover_results = GroverOptimizationResults(operation_count, n_key, n_value, func_dict)
-        result = OptimizationResult(x=opt_x, fval=solutions[optimum_key],
+        fval = solutions[optimum_key]
+        if sense == problem_.objective.Sense.MAXIMIZE:
+            fval = -fval
+        result = OptimizationResult(x=opt_x, fval=fval,
                                     results={"grover_results": grover_results,
                                              "qubo_converter": qubo_converter})
 
