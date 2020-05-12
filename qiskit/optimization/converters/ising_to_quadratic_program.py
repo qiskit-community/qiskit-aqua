@@ -28,12 +28,13 @@ class IsingToQuadraticProgram:
     """Convert a qubit operator into a quadratic program"""
 
     def __init__(self, linear: bool = False) -> None:
-        """Initialize the internal data structure.
+        r"""
 
         Args:
-            linear: If linear is True, x^2 is treated as a linear term
-                since x^2 = x for x in {0,1}.
-                Else, x^2 is treat as a quadratic term
+            linear: If linear is True, :math:`x^2` is treated as a linear term
+                since :math:`x^2 = x` for :math:`x \in \{0,1\}`.
+                Else, :math:`x^2` is treat as a quadratic term.
+                The default value is False.
         """
         self._qubit_op = None
         self._offset = 0
