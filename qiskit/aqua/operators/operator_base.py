@@ -406,8 +406,9 @@ class OperatorBase(ABC):
     @abstractmethod
     def assign_parameters(self,
                           param_dict: Dict[ParameterExpression,
-                                           Union[Number, ParameterExpression,
-                                                 List[Number, ParameterExpression]]]
+                                           Union[Number,
+                                                 ParameterExpression,
+                                                 List[Union[Number, ParameterExpression]]]]
                           ) -> 'OperatorBase':
         """ Binds scalar values to any Terra ``Parameters`` in the coefficients or primitives of
         the Operator, or substitutes one ``Parameter`` for another. This method differs from
@@ -430,8 +431,9 @@ class OperatorBase(ABC):
 
     def bind_parameters(self,
                         param_dict: Dict[ParameterExpression,
-                                         Union[Number, ParameterExpression,
-                                               List[Number, ParameterExpression]]]
+                                         Union[Number,
+                                               ParameterExpression,
+                                               List[Union[Number, ParameterExpression]]]]
                         ) -> 'OperatorBase':
         r"""
         Same as assign_parameters, but maintained for consistency with QuantumCircuit in
