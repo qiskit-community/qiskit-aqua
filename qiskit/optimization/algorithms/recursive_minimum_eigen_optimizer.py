@@ -142,10 +142,6 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
             correlations = result.get_correlations()
             i, j = self._find_strongest_correlation(correlations)
 
-            if i == j:
-                print(i, j)
-                print(correlations)
-
             x_i = problem_.variables[i].name
             x_j = problem_.variables[j].name
             if correlations[i, j] > 0:
