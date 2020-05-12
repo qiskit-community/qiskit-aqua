@@ -189,7 +189,7 @@ class QuadraticExpression(QuadraticProgramElement):
                     i = self.quadratic_program.variables_index[i]
                 x_aux[i] = v
             x = x_aux
-        if isinstance(x, List):
+        if isinstance(x, list):
             x = np.array(x)
 
         # compute x * Q * x for the quadratic expression
