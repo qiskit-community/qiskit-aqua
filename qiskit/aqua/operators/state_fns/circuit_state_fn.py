@@ -235,7 +235,9 @@ class CircuitStateFn(StateFn):
         statevector = execute(qc,
                               statevector_backend,
                               optimization_level=0).result().get_statevector()
-        return statevector * self.coeff
+        # pylint: disable=cyclic-import
+        from ..operator_globals import EVAL_SIG_DIGITS
+        return np.round(statevector * self.coeff, decimals=EVAL_SIG_DIGITS)
 
     def __str__(self) -> str:
         qc = self.reduce().to_circuit()
