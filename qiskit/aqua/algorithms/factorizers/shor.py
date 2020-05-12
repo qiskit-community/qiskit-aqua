@@ -163,7 +163,7 @@ class Shor(QuantumAlgorithm):
         """Returns a circuit implementing single-controlled modular multiplication by a."""
         qubits = [aux[i] for i in reversed(range(self._n + 1))]
 
-        circuit = self._init_circuit(name="multiplication_by_{}_mod_{}".format(a % self._N, self._N))
+        circuit = self._init_circuit(name="multiply_by_{}_mod_{}".format(a % self._N, self._N))
         circuit.compose(self._qft, qubits, inplace=True)
 
         ctl_aux = aux[-1]
@@ -252,6 +252,7 @@ class Shor(QuantumAlgorithm):
 
     @staticmethod
     def modinv(a: int, m: int) -> int:
+        """Returns the modular multiplicative inverse of a with respect to the modulus m."""
         def egcd(a: int, b: int) -> Tuple[int, int, int]:
             if a == 0:
                 return b, 0, 1

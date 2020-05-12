@@ -107,6 +107,7 @@ Changed
 -   HartreeFock initial state and UCCSD variational form `num_qubits` parameter removed as it was
     only value checked against that computed internally from the other parameters. UCCSD `depth`
     parameter renamed to `reps` and moved in order so it can default to 1. (#939)
+-   Shor's algorithm was refactored to make use of `Gate.control()` and `Gate.inverse()` methods
      
 
 Removed
