@@ -440,12 +440,12 @@ class TestConverters(QiskitOptimizationTestCase):
 
         self.assertEqual(offset, OFFSET_MAXIMIZE_SAMPLE)
 
-    def test_ising_to_quadraticprogram(self):
-        """ Test optimization problem to operators"""
+    def test_ising_to_quadraticprogram_linear(self):
+        """ Test optimization problem to operators with linear=True"""
         op = QUBIT_OP_MAXIMIZE_SAMPLE
         offset = OFFSET_MAXIMIZE_SAMPLE
 
-        op2qp = IsingToQuadraticProgram()
+        op2qp = IsingToQuadraticProgram(linear=True)
         quadratic = op2qp.encode(op, offset)
 
         self.assertEqual(len(quadratic.variables), 4)
@@ -470,6 +470,35 @@ class TestConverters(QiskitOptimizationTestCase):
 
         np.testing.assert_array_almost_equal(quadratic.objective.linear.coefficients.toarray(),
                                              linear_matrix)
+        np.testing.assert_array_almost_equal(quadratic.objective.quadratic.coefficients.toarray(),
+                                             quadratic_matrix)
+
+    def test_ising_to_quadraticprogram_quadratic(self):
+        """ Test optimization problem to operators with linear=False"""
+        op = QUBIT_OP_MAXIMIZE_SAMPLE
+        offset = OFFSET_MAXIMIZE_SAMPLE
+
+        op2qp = IsingToQuadraticProgram(linear=False)
+        quadratic = op2qp.encode(op, offset)
+
+        self.assertEqual(len(quadratic.variables), 4)
+        self.assertEqual(len(quadratic.linear_constraints), 0)
+        self.assertEqual(len(quadratic.quadratic_constraints), 0)
+        self.assertEqual(quadratic.objective.sense, quadratic.objective.Sense.MINIMIZE)
+        self.assertAlmostEqual(quadratic.objective.constant, 900000)
+
+        quadratic_matrix = np.zeros((4, 4))
+        quadratic_matrix[0, 0] = -500001
+        quadratic_matrix[0, 1] = 400000
+        quadratic_matrix[0, 2] = 600000
+        quadratic_matrix[0, 3] = 800000
+        quadratic_matrix[1, 1] = -800001
+        quadratic_matrix[1, 2] = 1200000
+        quadratic_matrix[1, 3] = 1600000
+        quadratic_matrix[2, 2] = -900001
+        quadratic_matrix[2, 3] = 2400000
+        quadratic_matrix[3, 3] = -800001
+
         np.testing.assert_array_almost_equal(quadratic.objective.quadratic.coefficients.toarray(),
                                              quadratic_matrix)
 

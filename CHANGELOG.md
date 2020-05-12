@@ -18,8 +18,14 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 [UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.7.0...HEAD)
 ========================================================================
 
+Added
+-----
+
+-   Added a `linear` option to the `IsingToQuadraticProgram` converter (#956)
+
 Removed
 -------
+
 -   The monkey-patched ``QuantumCircuit.mcmt`` method and tests, has moved to Terra (#950)
 -   CPLEX as install requirement in ``requirements.txt`` (#952)
 
@@ -108,7 +114,6 @@ Changed
     only value checked against that computed internally from the other parameters. UCCSD `depth`
     parameter renamed to `reps` and moved in order so it can default to 1. (#939)
 -   Shor's algorithm was refactored to make use of `Gate.control()` and `Gate.inverse()` methods
-     
 
 Removed
 -------
