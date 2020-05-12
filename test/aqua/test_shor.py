@@ -70,7 +70,7 @@ class TestShor(QiskitAquaTestCase):
     @idata([[2, 15, 8]])
     @unpack
     def test_shor_modinv(self, a_v, m_v, expected):
-        """ shor modinv test """
+        """ shor modular inverse test """
         modinv = Shor.modinv(a_v, m_v)
         self.assertTrue(modinv == expected)
 
