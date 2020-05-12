@@ -15,7 +15,7 @@
 """ CircuitStateFn Class """
 
 
-from typing import Union, Set
+from typing import Union, Set, List
 import numpy as np
 
 from qiskit import QuantumCircuit, BasicAer, execute, ClassicalRegister
@@ -339,8 +339,23 @@ class CircuitStateFn(StateFn):
     # Warning - modifying primitive!!
     def reduce(self) -> OperatorBase:
         if self.primitive.data is not None:
-            for i, inst_context in enumerate(self.primitive.data):
-                [gate, _, _] = inst_context
+            # Need to do this from the end because we're deleting items!
+            for i in reversed(range(len(self.primitive.data))):
+                [gate, _, _] = self.primitive.data[i]
                 if isinstance(gate, IGate):
                     del self.primitive.data[i]
         return self
+
+    def permute(self, permutation: List[int]) -> 'CircuitStateFn':
+        r"""
+        Permute the qubits of the circuit.
+
+        Args:
+            permutation: A list defining where each qubit should be permuted. The qubit at index
+                j of the circuit should be permuted to position permutation[j].
+
+        Returns:
+            A new CircuitStateFn containing the permuted circuit.
+        """
+        new_qc = QuantumCircuit(self.num_qubits).compose(self.primitive, qubits=permutation)
+        return CircuitStateFn(new_qc, coeff=self.coeff, is_measurement=self.is_measurement)

@@ -15,6 +15,9 @@
 r"""
 Operators (:mod:`qiskit.aqua.operators`)
 ========================================
+
+.. currentmodule:: qiskit.aqua.operators
+
 Operators and State functions are the building blocks of Quantum Algorithms.
 
 A library for Quantum Algorithms & Applications is more than a collection of
@@ -62,8 +65,6 @@ For example, a Pauli Z Measurement can be defined by f(Zero) = 0 and f(One) = 1.
 Below, you'll find a base class for all Operators, some convenience immutable global variables
 which simplify Operator construction, and two groups of submodules: Operators and Converters.
 
-.. currentmodule:: qiskit.aqua.operators
-
 Operator Base Class
 ===================
 
@@ -78,14 +79,14 @@ enforces the presence and consistency of methods to manipulate these objects con
 
 Operator Globals
 ================
-The :mod:`.operator_globals` are set of immutable Operator instances that are convenient building
+The :mod:`operator_globals` is a set of immutable Operator instances that are convenient building
 blocks to reach for while working with the Operator flow.
 
 One qubit Pauli operators:
    :attr:`X`, :attr:`Y`, :attr:`Z`, :attr:`I`
 
 Clifford+T, and some other common non-parameterized gates:
-   :attr:`CX`, :attr:`S`, :attr:`H`, :attr:`T`, :attr:`Swap`
+   :attr:`CX`, :attr:`S`, :attr:`H`, :attr:`T`, :attr:`Swap`, :attr:`CZ`
 
 One qubit states:
    :attr:`Zero`, :attr:`One`, :attr:`Plus`, :attr:`Minus`
@@ -94,10 +95,10 @@ Submodules
 ==========
 
 Operators
-++++++++++++++++++++
++++++++++
 
 The Operators submodules include the PrimitiveOp, ListOp, and StateFn class groups which
-represent the primary Operator modules used in Aqua. The :mod:`legacy` submodule includes older
+represent the primary Operator modules used in Aqua. The :mod:`.legacy` submodule includes older
 Operator classes which are currently being migrated out of usage in Aqua, but are still used in
 some places.
 
@@ -110,13 +111,14 @@ some places.
    legacy
 
 Converters
-++++++++++++++++++++
+++++++++++
 
 The Converter submodules include objects which manipulate Operators, usually recursing over an
 Operator structure and changing certain Operators' representation. For example, the
-:class:`PauliTrotterExpectation` traverses an Operator structure, and replaces all of the
-:class:`OperatorStateFn` measurements containing non-diagonal Pauli terms into diagonalizing
-circuits following by :class:`OperatorStateFn` measurement containing only diagonal Paulis.
+:class:`~.expectations.PauliExpectation` traverses an Operator structure, and replaces all of the
+:class:`~.state_fns.OperatorStateFn` measurements containing non-diagonal Pauli terms into
+diagonalizing circuits following by :class:`~.state_fns.OperatorStateFn` measurement containing
+only diagonal Paulis.
 
 .. autosummary::
    :toctree:
@@ -151,7 +153,10 @@ from .evolutions import (EvolutionBase, EvolutionFactory, EvolvedOp, PauliTrotte
                          Suzuki, QDrift)
 
 # Convenience immutable instances
-from .operator_globals import EVAL_SIG_DIGITS, X, Y, Z, I, CX, S, H, T, Swap, Zero, One, Plus, Minus
+from .operator_globals import (EVAL_SIG_DIGITS,
+                               X, Y, Z, I,
+                               CX, S, H, T, Swap, CZ,
+                               Zero, One, Plus, Minus)
 
 __all__ = [
     # Common
@@ -174,5 +179,5 @@ __all__ = [
     'EvolutionBase', 'EvolvedOp', 'EvolutionFactory', 'PauliTrotterEvolution', 'MatrixEvolution',
     'TrotterizationBase', 'TrotterizationFactory', 'Trotter', 'Suzuki', 'QDrift',
     # Convenience immutable instances
-    'X', 'Y', 'Z', 'I', 'CX', 'S', 'H', 'T', 'Swap', 'Zero', 'One', 'Plus', 'Minus'
+    'X', 'Y', 'Z', 'I', 'CX', 'S', 'H', 'T', 'Swap', 'CZ', 'Zero', 'One', 'Plus', 'Minus'
 ]

@@ -14,7 +14,7 @@
 
 """Shor's factoring algorithm."""
 
-from typing import Optional, Union
+from typing import Optional, Union, Tuple
 import math
 import array
 import fractions
@@ -22,12 +22,13 @@ import logging
 import numpy as np
 
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
+from qiskit.circuit import Qubit, Gate
 from qiskit.circuit.library import QFT
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.utils.arithmetic import is_power
 from qiskit.aqua.utils import get_subsystem_density_matrix
-from qiskit.aqua.algorithms import QuantumAlgorithm
+from qiskit.aqua.algorithms import QuantumAlgorithm, AlgorithmResult
 from qiskit.aqua.utils import summarize_circuits
 from qiskit.aqua.utils.validation import validate_min
 
@@ -84,7 +85,7 @@ class Shor(QuantumAlgorithm):
 
         self._a = a
 
-        self._ret = {'factors': []}
+        self._ret = AlgorithmResult({"factors": [], "results": {}})
 
         # check if the input integer is a power
         tf, b, p = is_power(N, return_decomposition=True)
@@ -95,8 +96,15 @@ class Shor(QuantumAlgorithm):
         self._qft = QFT(do_swaps=False)
         self._iqft = self._qft.inverse()
 
-    def _get_angles(self, a):
-        """Calculate the array of angles to be used in the addition in Fourier Space."""
+        self._phi_add_N = None
+        self._iphi_add_N = None
+
+    def _init_circuit(self, name: Optional[str] = None) -> QuantumCircuit:
+        """Create the algorithm's circuit with all registers in 0."""
+        return QuantumCircuit(self._up_qreg, self._down_qreg, self._aux_qreg, name=name)
+
+    def _get_angles(self, a: int) -> np.ndarray:
+        """Calculates the array of angles to be used in the addition in Fourier Space."""
         s = bin(int(a))[2:].zfill(self._n + 1)
         angles = np.zeros([self._n + 1])
         for i in range(0, self._n + 1):
@@ -106,118 +114,71 @@ class Shor(QuantumAlgorithm):
             angles[self._n - i] *= np.pi
         return angles
 
-    def _phi_add(self, circuit, q, inverse=False):
-        """Creation of the circuit that performs addition by a in Fourier Space.
-
-        Can also be used for subtraction by setting the parameter ``inverse=True``.
-        """
-        angle = self._get_angles(self._N)
-        for i in range(0, self._n + 1):
-            circuit.u1(-angle[i] if inverse else angle[i], q[i])
-
-    def _controlled_phi_add(self, circuit, q, ctl, inverse=False):
-        """Single controlled version of the _phi_add circuit."""
-        angles = self._get_angles(self._N)
-        for i in range(0, self._n + 1):
-            angle = (-angles[i] if inverse else angles[i]) / 2
-
-            circuit.u1(angle, ctl)
-            circuit.cx(ctl, q[i])
-            circuit.u1(-angle, q[i])
-            circuit.cx(ctl, q[i])
-            circuit.u1(angle, q[i])
-
-    def _controlled_controlled_phi_add(self, circuit, q, ctl1, ctl2, a, inverse=False):
-        """Doubly controlled version of the _phi_add circuit."""
+    def _phi_add_gate(self, size: int, a: int) -> Gate:
+        """Gate that performs addition by a in Fourier Space."""
+        p = QuantumRegister(size)
+        circuit = QuantumCircuit(p, name="phi_add_{}".format(a))
         angle = self._get_angles(a)
         for i in range(self._n + 1):
-            # ccphase(circuit, -angle[i] if inverse else angle[i], ctl1, ctl2, q[i])
-            circuit.mcu1(-angle[i] if inverse else angle[i], [ctl1, ctl2], q[i])
+            circuit.u1(angle[i], p[i])
+        return circuit.to_gate()
 
-    def _controlled_controlled_phi_add_mod_N(self, circuit, q, ctl1, ctl2, aux, a):
-        """Circuit that implements doubly controlled modular addition by a."""
-        qubits = [q[i] for i in reversed(range(self._n + 1))]
-
-        self._controlled_controlled_phi_add(circuit, q, ctl1, ctl2, a)
-        self._phi_add(circuit, q, inverse=True)
-
-        circuit.compose(self._iqft, qubits, inplace=True)
-        circuit.cx(q[self._n], aux)
-        circuit.compose(self._qft, qubits, inplace=True)
-        self._controlled_phi_add(circuit, q, aux)
-
-        self._controlled_controlled_phi_add(circuit, q, ctl1, ctl2, a, inverse=True)
-        circuit.compose(self._iqft, qubits, inplace=True)
-        circuit.u3(np.pi, 0, np.pi, q[self._n])
-        circuit.cx(q[self._n], aux)
-        circuit.u3(np.pi, 0, np.pi, q[self._n])
-        circuit.compose(self._qft, qubits, inplace=True)
-        self._controlled_controlled_phi_add(circuit, q, ctl1, ctl2, a)
-
-    def _controlled_controlled_phi_add_mod_N_inv(self, circuit, q, ctl1, ctl2, aux, a):
-        """Circuit that implements the inverse of doubly controlled modular addition by a."""
-        qubits = [q[i] for i in reversed(range(self._n + 1))]
-
-        self._controlled_controlled_phi_add(circuit, q, ctl1, ctl2, a, inverse=True)
-        circuit.compose(self._iqft, qubits, inplace=True)
-        circuit.u3(np.pi, 0, np.pi, q[self._n])
-        circuit.cx(q[self._n], aux)
-        circuit.u3(np.pi, 0, np.pi, q[self._n])
-        circuit.compose(self._qft, qubits, inplace=True)
-        self._controlled_controlled_phi_add(circuit, q, ctl1, ctl2, a)
-        self._controlled_phi_add(circuit, q, aux, inverse=True)
-        circuit.compose(self._iqft, qubits, inplace=True)
-        circuit.cx(q[self._n], aux)
-        circuit.compose(self._qft, qubits, inplace=True)
-        self._phi_add(circuit, q)
-        self._controlled_controlled_phi_add(circuit, q, ctl1, ctl2, a, inverse=True)
-
-    def _controlled_multiple_mod_N(self, circuit, ctl, q, aux, a):
-        """Circuit that implements single controlled modular multiplication by a."""
+    def _controlled_controlled_phi_add_mod_N(self,
+                                             circuit: QuantumCircuit,
+                                             aux: QuantumRegister,
+                                             ctl_up: Qubit,
+                                             ctl_down: Qubit,
+                                             ctl_aux: Qubit,
+                                             a: int):
+        """Implements double-controlled modular addition by a on circuit."""
         qubits = [aux[i] for i in reversed(range(self._n + 1))]
+
+        # Store the gate representing addition/subtraction by a in Fourier Space
+        phi_add_a = self._phi_add_gate(aux.size - 1, a)
+        iphi_add_a = phi_add_a.inverse()
+
+        circuit.compose(phi_add_a.control(2), [ctl_up, ctl_down, *qubits], inplace=True)
+        circuit.compose(self._iphi_add_N, [ctl_aux, *qubits], inplace=True)
+        circuit.compose(self._iqft, qubits, inplace=True)
+
+        circuit.cx(aux[self._n], ctl_aux)
+
+        circuit.compose(self._qft, qubits, inplace=True)
+        circuit.compose(phi_add_a.control(1), [ctl_aux, *qubits], inplace=True)
+        circuit.compose(iphi_add_a.control(2), [ctl_up, ctl_down, *qubits], inplace=True)
+        circuit.compose(self._iqft, qubits, inplace=True)
+
+        circuit.x(aux[self._n])
+        circuit.cx(aux[self._n], ctl_aux)
+        circuit.x(aux[self._n])
+
+        circuit.compose(self._qft, qubits, inplace=True)
+        circuit.compose(phi_add_a.control(2), [ctl_up, ctl_down, *qubits], inplace=True)
+
+    def _controlled_multiple_mod_N(self,
+                                   ctl_up: Qubit,
+                                   down: QuantumRegister,
+                                   aux: QuantumRegister,
+                                   a: int) -> QuantumCircuit:
+        """Returns a circuit implementing single-controlled modular multiplication by a."""
+        qubits = [aux[i] for i in reversed(range(self._n + 1))]
+
+        circuit = self._init_circuit(name="multiply_by_{}_mod_{}".format(a % self._N, self._N))
         circuit.compose(self._qft, qubits, inplace=True)
 
-        for i in range(0, self._n):
+        ctl_aux = aux[-1]
+
+        for i, ctl_down in enumerate(down):
             self._controlled_controlled_phi_add_mod_N(
                 circuit,
                 aux,
-                q[i],
-                ctl,
-                aux[self._n + 1],
-                (2 ** i) * a % self._N
-            )
+                ctl_up,
+                ctl_down,
+                ctl_aux,
+                (2 ** i) * a % self._N)
+
         circuit.compose(self._iqft, qubits, inplace=True)
-
-        for i in range(0, self._n):
-            circuit.cswap(ctl, q[i], aux[i])
-
-        def modinv(a, m):
-            def egcd(a, b):
-                if a == 0:
-                    return (b, 0, 1)
-                else:
-                    g, y, x = egcd(b % a, a)
-                    return (g, x - (b // a) * y, y)
-
-            g, x, _ = egcd(a, m)
-            if g != 1:
-                raise Exception('modular inverse does not exist')
-
-            return x % m
-
-        a_inv = modinv(a, self._N)
-        circuit.compose(self._qft, qubits, inplace=True)
-
-        for i in reversed(range(self._n)):
-            self._controlled_controlled_phi_add_mod_N_inv(
-                circuit,
-                aux,
-                q[i],
-                ctl,
-                aux[self._n + 1],
-                math.pow(2, i) * a_inv % self._N
-            )
-        circuit.compose(self._iqft, qubits, inplace=True)
+        return circuit
 
     def construct_circuit(self, measurement: bool = False) -> QuantumCircuit:
         """Construct circuit.
@@ -242,25 +203,42 @@ class Shor(QuantumAlgorithm):
         self._aux_qreg = QuantumRegister(self._n + 2, name='aux')
 
         # Create Quantum Circuit
-        circuit = QuantumCircuit(self._up_qreg, self._down_qreg, self._aux_qreg)
+        circuit = self._init_circuit(name="Shor(N={}, a={})".format(self._N, self._a))
 
-        # Initialize down register to 1 and create maximal superposition in top register
-        circuit.u2(0, np.pi, self._up_qreg)
-        circuit.u3(np.pi, 0, np.pi, self._down_qreg[0])
+        # Create gates to perform addition/subtraction by N in Fourier Space
+        self._phi_add_N = self._phi_add_gate(self._aux_qreg.size, self._N)
+        self._iphi_add_N = self._phi_add_N.inverse()
+
+        # Create maximal superposition in top register
+        circuit.h(self._up_qreg)
+
+        # Initialize down register to 1
+        circuit.x(self._down_qreg[0])
 
         # Apply the multiplication gates as showed in
         # the report in order to create the exponentiation
-        for i in range(0, 2 * self._n):
-            self._controlled_multiple_mod_N(
-                circuit,
-                self._up_qreg[i],
+        for i, ctl_up in enumerate(self._up_qreg):
+            a = int(pow(self._a, pow(2, i)))
+            circuit = circuit.combine(self._controlled_multiple_mod_N(
+                ctl_up,
                 self._down_qreg,
                 self._aux_qreg,
-                int(pow(self._a, pow(2, i)))
-            )
+                a
+            ))
+
+            for j in range(self._n):
+                circuit.cswap(ctl_up, self._down_qreg[j], self._aux_qreg[j])
+
+            a_inv = self.modinv(a, self._N)
+            circuit = circuit.combine(self._controlled_multiple_mod_N(
+                ctl_up,
+                self._down_qreg,
+                self._aux_qreg,
+                a_inv
+            ).inverse())
 
         # Apply inverse QFT
-        iqft = QFT(len(self._up_qreg), inverse=True)
+        iqft = QFT(len(self._up_qreg)).inverse()
         circuit.compose(iqft, qubits=self._up_qreg)
 
         if measurement:
@@ -272,7 +250,22 @@ class Shor(QuantumAlgorithm):
 
         return circuit
 
-    def _get_factors(self, output_desired, t_upper):
+    @staticmethod
+    def modinv(a: int, m: int) -> int:
+        """Returns the modular multiplicative inverse of a with respect to the modulus m."""
+        def egcd(a: int, b: int) -> Tuple[int, int, int]:
+            if a == 0:
+                return b, 0, 1
+            else:
+                g, y, x = egcd(b % a, a)
+                return g, x - (b // a) * y, y
+
+        g, x, _ = egcd(a, m)
+        if g != 1:
+            raise Exception('modular inverse does not exist')
+        return x % m
+
+    def _get_factors(self, output_desired: str, t_upper: int) -> bool:
         """Apply the continued fractions to find r and the gcd to find the desired factors."""
         x_value = int(output_desired, 2)
         logger.info('In decimal, x_final value for this result is: %s.', x_value)
@@ -377,7 +370,7 @@ class Shor(QuantumAlgorithm):
                     self._ret['factors'].append(factors)
                 return True
 
-    def _run(self):
+    def _run(self) -> AlgorithmResult:
         if not self._ret['factors']:
             logger.debug('Running with N=%s and a=%s.', self._N, self._a)
 
@@ -401,8 +394,6 @@ class Shor(QuantumAlgorithm):
             else:
                 circuit = self.construct_circuit(measurement=True)
                 counts = self._quantum_instance.execute(circuit).get_counts(circuit)
-
-            self._ret['results'] = dict()
 
             # For each simulation result, print proper info to user
             # and try to calculate the factors of N
