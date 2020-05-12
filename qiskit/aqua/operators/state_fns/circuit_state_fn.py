@@ -342,7 +342,8 @@ class CircuitStateFn(StateFn):
             # Need to do this from the end because we're deleting items!
             for i in reversed(range(len(self.primitive.data))):
                 [gate, _, _] = self.primitive.data[i]
-                if isinstance(gate, IGate):
+                # Check if Identity or empty instruction
+                if isinstance(gate, IGate) or gate.definition == []:
                     del self.primitive.data[i]
         return self
 
