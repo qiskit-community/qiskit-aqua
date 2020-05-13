@@ -41,7 +41,7 @@ class SummedOp(ListOp):
         Args:
             oplist: The Operators being summed.
             coeff: A coefficient multiplying the operator
-            abelian: Indicates whether the Operators in ``oplist`` are know to mutually commute.
+            abelian: Indicates whether the Operators in ``oplist`` are known to mutually commute.
         """
         super().__init__(oplist,
                          combo_fn=lambda x: np.sum(x, axis=0),

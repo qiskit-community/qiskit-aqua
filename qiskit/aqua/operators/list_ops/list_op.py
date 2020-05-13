@@ -63,7 +63,7 @@ class ListOp(OperatorBase):
             combo_fn (callable): The recombination function to combine classical results of the
                 ``oplist`` Operators' eval functions (e.g. sum).
             coeff: A coefficient multiplying the operator
-            abelian: Indicates whether the Operators in ``oplist`` are know to mutually commute.
+            abelian: Indicates whether the Operators in ``oplist`` are known to mutually commute.
 
             Note that the default "recombination function" lambda above is essentially the
             identity - it accepts the list of values, and returns them in a list.
