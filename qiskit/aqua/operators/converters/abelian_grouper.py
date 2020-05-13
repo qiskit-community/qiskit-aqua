@@ -14,9 +14,10 @@
 
 """ AbelianGrouper Class """
 
-from typing import List
 import itertools
 import logging
+from collections import defaultdict
+from typing import List, Tuple, Dict
 
 import networkx as nx
 import numpy as np
@@ -84,13 +85,12 @@ class AbelianGrouper(ConverterBase):
             return operator
 
     @classmethod
-    def group_subops(cls, list_op: ListOp, fast: bool = True, nx_trick: bool = True) -> ListOp:
+    def group_subops(cls, list_op: ListOp, fast: bool = True, nx: bool = True) -> ListOp:
         """ Given a ListOp, attempt to group into Abelian ListOps of the same type.
 
         Args:
             list_op: The Operator to group into Abelian groups
             fast: Enable the fast pass if all operators are Pauli operators
-            nx_trick: Enable a trick of networkx to reduce the overhead
 
         Returns:
             The grouped Operator.
@@ -103,16 +103,20 @@ class AbelianGrouper(ConverterBase):
                             'contain a `commutes` method'.format())
 
         if fast and all(isinstance(op, PauliOp) for op in list_op.oplist):
-            commutation_graph = cls._commutation_graph_fast(list_op, nx_trick=nx_trick)
+            edges = cls._commutation_graph_fast(list_op)
         else:
-            commutation_graph = cls._commutation_graph(list_op)
+            edges = cls._commutation_graph(list_op)
 
         # Keys in coloring_dict are nodes, values are colors
         # pylint: disable=no-member
-        coloring_dict = nx.coloring.greedy_color(commutation_graph, strategy='largest_first')
+        nodes = range(len(list_op))
+        if nx:
+            coloring_dict = cls._networkx_coloring(nodes, edges)
+        else:
+            coloring_dict = cls._largest_degree_first_coloring(nodes, edges)
 
         groups = {}
-        for idx, color in coloring_dict.items():
+        for idx, color in sorted(coloring_dict.items()):
             groups.setdefault(color, []).append(list_op[idx])
 
         group_ops = [list_op.__class__(group, abelian=True) for group in groups.values()]
@@ -121,40 +125,62 @@ class AbelianGrouper(ConverterBase):
         return list_op.__class__(group_ops, coeff=list_op.coeff)
 
     @staticmethod
-    def _commutation_graph(list_op: ListOp) -> nx.Graph:
-        commutation_graph = nx.Graph()
+    def _commutation_graph(list_op: ListOp) -> List[Tuple[int, int]]:
+        """
+        Create edges (i,j) if i and j is not commutable.
+
+        Args:
+            list_op: list_op
+        Returns:
+            A list of pairs of indices of the operators that are not commutable
+        """
         indices = range(len(list_op))
-        commutation_graph.add_nodes_from(indices)
-        commutation_graph.add_edges_from((i, j) for i, j in itertools.combinations(indices, 2)
-                                         if not list_op[i].commutes(list_op[j]))
-        return commutation_graph
+        return [(i, j) for i, j in itertools.combinations(indices, 2)
+                if not list_op[i].commutes(list_op[j])]
 
     @staticmethod
-    def _commutation_graph_fast(list_op: ListOp, nx_trick: bool) -> nx.Graph:
-        commutation_graph = nx.Graph()
-        indices = range(len(list_op))
-        commutation_graph.add_nodes_from(indices)
+    def _commutation_graph_fast(list_op: ListOp) -> List[Tuple[int, int]]:
+        """
+        Create edges (i,j) if i and j is not commutable.
+        Note that this is applicable to only PauliOps.
 
-        def _create_edges(list_op: ListOp) -> List:
-            """
-            Create edges (i,j) if i and j is not commutable.
+        Args:
+            list_op: list_op
+        Returns:
+            A list of pairs of indices of the operators that are not commutable
+        """
+        # convert a Pauli operator into int vector where {I: 0, X: 2, Y: 3, Z: 1}
+        mat1 = np.array([op.primitive.z + 2 * op.primitive.x for op in list_op], dtype=np.int8)
+        mat2 = mat1[:, None]
+        # i and j are commutable with TPB if mat3[i, j] is True
+        mat3 = (((mat1 * mat2) * (mat1 - mat2)) == 0).all(axis=2)
+        # return [(i, j) if mat3[i, j] is False and i < j]
+        return zip(*np.where(np.triu(np.logical_not(mat3), k=1)))
 
-            Args:
-                list_op: list_op
-            Returns:
-                A list of pairs of indices of the operators that are not commutable
-            """
-            # convert a Pauli operator into int vector where {I: 0, X: 2, Y: 3, Z: 1}
-            mat1 = np.array([op.primitive.z + 2 * op.primitive.x for op in list_op], dtype=np.int8)
-            mat2 = mat1[:, None]
-            # i and j are commutable with TPB if mat3[i, j] is True
-            mat3 = (((mat1 * mat2) * (mat1 - mat2)) == 0).all(axis=2)
-            # return [(i, j) if mat3[i, j] is False and i < j]
-            return zip(*np.where(np.triu(np.logical_not(mat3), k=1)))
+    @staticmethod
+    def _networkx_coloring(nodes: range, edges: List[Tuple[int, int]], strategy='largest_first') \
+            -> Dict[int, List[int]]:
+        graph = nx.Graph()
+        graph.add_nodes_from(nodes)
+        graph.add_edges_from(edges)
+        return nx.coloring.greedy_color(graph, strategy=strategy)
 
-        if nx_trick:
-            for i, j in _create_edges(list_op):
-                commutation_graph._adj[i][j] = commutation_graph._adj[j][i] = None
-        else:
-            commutation_graph.add_edges_from(_create_edges(list_op))
-        return commutation_graph
+    @staticmethod
+    def _largest_degree_first_coloring(nodes: range, edges: List[Tuple[int, int]]) \
+            -> Dict[int, List[int]]:
+        adj = defaultdict(list)
+        for i, j in edges:
+            adj[i].append(j)
+            adj[j].append(i)
+        sorted_nodes = sorted(nodes, key=lambda x: len(adj[x]), reverse=True)
+        color = np.array([-1] * (max(nodes) + 1))
+        all_colors = np.arange(len(nodes))
+        for i in sorted_nodes:
+            neighbors = adj[i]
+            color_neighbors = color[neighbors]
+            color_neighbors = color_neighbors[color_neighbors >= 0]
+            mask = np.ones(len(nodes), dtype=bool)
+            mask[color_neighbors] = False
+            color[i] = np.min(all_colors[mask])
+        assert np.min(color[sorted_nodes]) >= 0, "Uncolored node exists!"
+        return {i: color[i] for i in nodes}
