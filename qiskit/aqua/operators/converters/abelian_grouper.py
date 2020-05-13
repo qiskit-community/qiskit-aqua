@@ -125,10 +125,11 @@ class AbelianGrouper(ConverterBase):
     @staticmethod
     def _commutation_graph(list_op: ListOp) -> List[Tuple[int, int]]:
         """
-        Create edges (i,j) if i and j is not commutable.
+        Create edges (i, j) if i and j is not commutable.
 
         Args:
             list_op: list_op
+
         Returns:
             A list of pairs of indices of the operators that are not commutable
         """
@@ -139,11 +140,12 @@ class AbelianGrouper(ConverterBase):
     @staticmethod
     def _commutation_graph_fast(list_op: ListOp) -> List[Tuple[int, int]]:
         """
-        Create edges (i,j) if i and j is not commutable.
-        Note that this is applicable to only PauliOps.
+        Create edges (i, j) if i and j is not commutable.
+        Note that this method is applicable to only PauliOps.
 
         Args:
             list_op: list_op
+
         Returns:
             A list of pairs of indices of the operators that are not commutable
         """
@@ -171,17 +173,16 @@ class AbelianGrouper(ConverterBase):
         for i, j in edges:
             adj[i].append(j)
             adj[j].append(i)
-        sorted_nodes = sorted(nodes, key=lambda x: len(adj[x]), reverse=True)
         color = np.array([-1] * (max(nodes) + 1))
         all_colors = np.arange(len(nodes))
-        for i in sorted_nodes:
+        for i in sorted(nodes, key=lambda x: len(adj[x]), reverse=True):
             neighbors = adj[i]
             color_neighbors = color[neighbors]
             color_neighbors = color_neighbors[color_neighbors >= 0]
             mask = np.ones(len(nodes), dtype=bool)
             mask[color_neighbors] = False
             color[i] = np.min(all_colors[mask])
-        if np.min(color[sorted_nodes]) == -1:
+        if np.min(color[nodes]) == -1:
             # never reach here if the input graph is valid
             raise AquaError('Uncolored nodes are left')
         return {i: color[i] for i in nodes}
