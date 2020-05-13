@@ -15,7 +15,6 @@
 """ AbelianGrouper Class """
 
 import itertools
-import logging
 from collections import defaultdict
 from typing import List, Tuple, Dict
 
@@ -29,8 +28,6 @@ from ..list_ops.summed_op import SummedOp
 from ..operator_base import OperatorBase
 from ..primitive_ops.pauli_op import PauliOp
 from ..state_fns.operator_state_fn import OperatorStateFn
-
-logger = logging.getLogger(__name__)
 
 
 class AbelianGrouper(ConverterBase):
@@ -85,12 +82,13 @@ class AbelianGrouper(ConverterBase):
             return operator
 
     @classmethod
-    def group_subops(cls, list_op: ListOp, fast: bool = True, nx: bool = True) -> ListOp:
+    def group_subops(cls, list_op: ListOp, fast: bool = True, use_nx: bool = False) -> ListOp:
         """ Given a ListOp, attempt to group into Abelian ListOps of the same type.
 
         Args:
             list_op: The Operator to group into Abelian groups
-            fast: Enable the fast pass if all operators are Pauli operators
+            fast: Enable the fast commutation graph generation if all operators are Pauli operators
+            use_nx: Enable networkx.coloring.greedy_color instead of the numpy-based coloring
 
         Returns:
             The grouped Operator.
@@ -106,16 +104,16 @@ class AbelianGrouper(ConverterBase):
             edges = cls._commutation_graph_fast(list_op)
         else:
             edges = cls._commutation_graph(list_op)
+        nodes = range(len(list_op))
 
         # Keys in coloring_dict are nodes, values are colors
-        # pylint: disable=no-member
-        nodes = range(len(list_op))
-        if nx:
+        if use_nx:
             coloring_dict = cls._networkx_coloring(nodes, edges)
         else:
             coloring_dict = cls._largest_degree_first_coloring(nodes, edges)
 
         groups = {}
+        # sort items so that the output is consistent with all options (fast and use_nx)
         for idx, color in sorted(coloring_dict.items()):
             groups.setdefault(color, []).append(list_op[idx])
 
@@ -163,6 +161,7 @@ class AbelianGrouper(ConverterBase):
         graph = nx.Graph()
         graph.add_nodes_from(nodes)
         graph.add_edges_from(edges)
+        # pylint: disable=no-member
         return nx.coloring.greedy_color(graph, strategy=strategy)
 
     @staticmethod
@@ -182,5 +181,7 @@ class AbelianGrouper(ConverterBase):
             mask = np.ones(len(nodes), dtype=bool)
             mask[color_neighbors] = False
             color[i] = np.min(all_colors[mask])
-        assert np.min(color[sorted_nodes]) >= 0, "Uncolored node exists!"
+        if np.min(color[sorted_nodes]) == -1:
+            # never reach here if the input graph is valid
+            raise AquaError('Uncolored nodes are left')
         return {i: color[i] for i in nodes}

@@ -168,6 +168,34 @@ class TestPauliExpectation(QiskitAquaTestCase):
         grouped_sum = AbelianGrouper().convert(paulis)
         self.assertEqual(len(grouped_sum.oplist), 4)
 
+    def test_abelian_grouper2(self):
+        """ abelian grouper test2 """
+        sumop = (I ^ X) + (2 * X ^ X) + (3 * Z ^ Y)
+        for fast in [True, False]:
+            for use_nx in [True, False]:
+                groups = AbelianGrouper.group_subops(sumop, fast=fast, use_nx=use_nx)
+                self.assertEqual(len(groups), 2)
+                self.assertEqual(len(groups[0]), 2)
+                self.assertEqual(str(groups[0][0].primitive), 'IX')
+                self.assertEqual(groups[0][0].coeff, 1)
+                self.assertEqual(str(groups[0][1].primitive), 'XX')
+                self.assertEqual(groups[0][1].coeff, 2)
+                self.assertEqual(len(groups[1]), 1)
+                self.assertEqual(str(groups[1][0].primitive), 'ZY')
+                self.assertEqual(groups[1][0].coeff, 3)
+
+    def test_abelian_grouper3(self):
+        """ abelian grouper test3 """
+        sumop = X + (2 * Y) + (3 * Z)
+        groups = AbelianGrouper.group_subops(sumop)
+        self.assertEqual(len(groups), 3)
+        self.assertEqual(str(groups[0][0].primitive), 'X')
+        self.assertEqual(groups[0][0].coeff, 1)
+        self.assertEqual(str(groups[1][0].primitive), 'Y')
+        self.assertEqual(groups[1][0].coeff, 2)
+        self.assertEqual(str(groups[2][0].primitive), 'Z')
+        self.assertEqual(groups[2][0].coeff, 3)
+
     def test_grouped_pauli_expectation(self):
         """ grouped pauli expectation test """
         two_qubit_H2 = (-1.052373245772859 * I ^ I) + \
