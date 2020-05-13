@@ -274,6 +274,10 @@ class ListOp(OperatorBase):
 
     def exp_i(self) -> OperatorBase:
         """ Return an ``OperatorBase`` equivalent to an exponentiation of self * -i, e^(-i*op)."""
+        # pylint: disable=unidiomatic-typecheck
+        if type(self) == ListOp:
+            return ListOp([op.exp_i() for op in self.oplist], coeff=self.coeff)
+
         # pylint: disable=import-outside-toplevel
         from qiskit.aqua.operators import EvolvedOp
         return EvolvedOp(self)
