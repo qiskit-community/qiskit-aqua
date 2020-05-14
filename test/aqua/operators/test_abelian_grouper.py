@@ -36,7 +36,7 @@ class TestAbelianGrouper(QiskitAquaTestCase):
         self.assertEqual(len(grouped_sum.oplist), 2)
         for group in grouped_sum:
             for op_1, op_2 in combinations(group, 2):
-                assert op_1.commutes(op_2)
+                self.assertTrue(op_1.commutes(op_2))
 
     def test_abelian_grouper2(self):
         """ abelian grouper test 2 """
@@ -50,7 +50,7 @@ class TestAbelianGrouper(QiskitAquaTestCase):
         self.assertEqual(len(grouped_sum.oplist), 4)
         for group in grouped_sum:
             for op_1, op_2 in combinations(group, 2):
-                assert op_1.commutes(op_2)
+                self.assertTrue(op_1.commutes(op_2))
 
     def test_abelian_grouper3(self):
         """ abelian grouper test 3 """
@@ -96,7 +96,7 @@ class TestAbelianGrouper(QiskitAquaTestCase):
             grouped_sum = AbelianGrouper().convert(sum(paulis))
             for group in grouped_sum:
                 for op_1, op_2 in combinations(group, 2):
-                    assert op_1.commutes(op_2)
+                    self.assertTrue(op_1.commutes(op_2))
 
 
 if __name__ == '__main__':
