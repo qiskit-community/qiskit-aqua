@@ -28,9 +28,9 @@ long_description = """<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Aqua
 requirements = [
     "qiskit-terra>=0.14.0",
     "qiskit-ignis>=0.2.0",
-    "scipy>=1.0",
+    "scipy>=1.4",
     "sympy>=1.3",
-    "numpy>=1.13",
+    "numpy>=1.17",
     "psutil>=5",
     "scikit-learn>=0.20.0",
     "dlx",
@@ -41,7 +41,6 @@ requirements = [
     "h5py",
     "networkx>=2.2",
     "pyscf; sys_platform != 'win32'",
-    "cplex; python_version >= '3.6' and python_version < '3.8'",
 ]
 
 if not hasattr(setuptools, 'find_namespace_packages') or not inspect.ismethod(setuptools.find_namespace_packages):
@@ -85,6 +84,7 @@ setuptools.setup(
     python_requires=">=3.5",
     extras_require={
         'torch': ["torch; sys_platform == 'linux' or (python_version < '3.8' and sys_platform != 'win32')"],
+        'cplex': ["cplex; python_version >= '3.6' and python_version < '3.8'"],
     },
     zip_safe=False
 )

@@ -15,7 +15,7 @@
 """ CircuitStateFn Class """
 
 
-from typing import Union, Set
+from typing import Union, Set, List
 import numpy as np
 
 from qiskit import QuantumCircuit, BasicAer, execute, ClassicalRegister
@@ -235,7 +235,9 @@ class CircuitStateFn(StateFn):
         statevector = execute(qc,
                               statevector_backend,
                               optimization_level=0).result().get_statevector()
-        return statevector * self.coeff
+        # pylint: disable=cyclic-import
+        from ..operator_globals import EVAL_SIG_DIGITS
+        return np.round(statevector * self.coeff, decimals=EVAL_SIG_DIGITS)
 
     def __str__(self) -> str:
         qc = self.reduce().to_circuit()
@@ -249,7 +251,7 @@ class CircuitStateFn(StateFn):
                                             prim_str,
                                             self.coeff)
 
-    def bind_parameters(self, param_dict: dict) -> OperatorBase:
+    def assign_parameters(self, param_dict: dict) -> OperatorBase:
         param_value = self.coeff
         qc = self.primitive
         if isinstance(self.coeff, ParameterExpression) or self.primitive.parameters:
@@ -257,17 +259,19 @@ class CircuitStateFn(StateFn):
             if isinstance(unrolled_dict, list):
                 # pylint: disable=import-outside-toplevel
                 from ..list_ops.list_op import ListOp
-                return ListOp([self.bind_parameters(param_dict) for param_dict in unrolled_dict])
+                return ListOp([self.assign_parameters(param_dict) for param_dict in unrolled_dict])
             if isinstance(self.coeff, ParameterExpression) \
                     and self.coeff.parameters <= set(unrolled_dict.keys()):
-                binds = {param: unrolled_dict[param] for param in self.coeff.parameters}
+                param_instersection = set(unrolled_dict.keys()) & self.coeff.parameters
+                binds = {param: unrolled_dict[param] for param in param_instersection}
                 param_value = float(self.coeff.bind(binds))
             # & is set intersection, check if any parameters in unrolled are present in circuit
             # This is different from bind_parameters in Terra because they check for set equality
             if set(unrolled_dict.keys()) & self.primitive.parameters:
                 # Only bind the params found in the circuit
-                binds = {param: unrolled_dict[param] for param in self.primitive.parameters}
-                qc = self.to_circuit().bind_parameters(binds)
+                param_instersection = set(unrolled_dict.keys()) & self.primitive.parameters
+                binds = {param: unrolled_dict[param] for param in param_instersection}
+                qc = self.to_circuit().assign_parameters(binds)
         return self.__class__(qc, coeff=param_value)
 
     def eval(self,
@@ -339,8 +343,26 @@ class CircuitStateFn(StateFn):
     # Warning - modifying primitive!!
     def reduce(self) -> OperatorBase:
         if self.primitive.data is not None:
-            for i, inst_context in enumerate(self.primitive.data):
-                [gate, _, _] = inst_context
-                if isinstance(gate, IGate):
+            # Need to do this from the end because we're deleting items!
+            for i in reversed(range(len(self.primitive.data))):
+                [gate, _, _] = self.primitive.data[i]
+                # Check if Identity or empty instruction (need to check that type is exactly
+                # Instruction because some gates have lazy gate.definition population)
+                # pylint: disable=unidiomatic-typecheck
+                if isinstance(gate, IGate) or (type(gate) == Instruction and gate.definition == []):
                     del self.primitive.data[i]
         return self
+
+    def permute(self, permutation: List[int]) -> 'CircuitStateFn':
+        r"""
+        Permute the qubits of the circuit.
+
+        Args:
+            permutation: A list defining where each qubit should be permuted. The qubit at index
+                j of the circuit should be permuted to position permutation[j].
+
+        Returns:
+            A new CircuitStateFn containing the permuted circuit.
+        """
+        new_qc = QuantumCircuit(self.num_qubits).compose(self.primitive, qubits=permutation)
+        return CircuitStateFn(new_qc, coeff=self.coeff, is_measurement=self.is_measurement)

@@ -63,7 +63,7 @@ class ListOp(OperatorBase):
             combo_fn (callable): The recombination function to combine classical results of the
                 ``oplist`` Operators' eval functions (e.g. sum).
             coeff: A coefficient multiplying the operator
-            abelian: Indicates whether the Operators in ``oplist`` are know to mutually commute.
+            abelian: Indicates whether the Operators in ``oplist`` are known to mutually commute.
 
             Note that the default "recombination function" lambda above is essentially the
             identity - it accepts the list of values, and returns them in a list.
@@ -213,7 +213,7 @@ class ListOp(OperatorBase):
                 ' Set massive=True if you want to proceed.'.format(2**self.num_qubits))
 
         # Combination function must be able to handle classical values
-        return self.combo_fn([op.to_matrix() for op in self.oplist]) * self.coeff
+        return self.combo_fn([op.to_matrix() * self.coeff for op in self.oplist])
 
     def to_spmatrix(self) -> Union[spmatrix, List[spmatrix]]:
         """ Returns SciPy sparse matrix representation of the Operator.
@@ -274,9 +274,26 @@ class ListOp(OperatorBase):
 
     def exp_i(self) -> OperatorBase:
         """ Return an ``OperatorBase`` equivalent to an exponentiation of self * -i, e^(-i*op)."""
+        # pylint: disable=unidiomatic-typecheck
+        if type(self) == ListOp:
+            return ListOp([op.exp_i() for op in self.oplist], coeff=self.coeff)
+
         # pylint: disable=import-outside-toplevel
         from qiskit.aqua.operators import EvolvedOp
         return EvolvedOp(self)
+
+    def log_i(self, massive: bool = False) -> OperatorBase:
+        """Return a ``MatrixOp`` equivalent to log(H)/-i for this operator H. This
+        function is the effective inverse of exp_i, equivalent to finding the Hermitian
+        Operator which produces self when exponentiated. For proper ListOps, applies ``log_i``
+        to all ops in oplist.
+        """
+        if self.__class__.__name__ == ListOp.__name__:
+            return ListOp([op.log_i(massive=massive) for op in self.oplist],
+                          coeff=self.coeff,
+                          abelian=False)
+
+        return self.to_matrix_op(massive=massive).log_i(massive=massive)
 
     def __str__(self) -> str:
         main_string = "{}(\n[{}])".format(self.__class__.__name__, ',\n'.join(
@@ -293,16 +310,16 @@ class ListOp(OperatorBase):
                                                      self.coeff,
                                                      self.abelian)
 
-    def bind_parameters(self, param_dict: dict) -> OperatorBase:
+    def assign_parameters(self, param_dict: dict) -> OperatorBase:
         param_value = self.coeff
         if isinstance(self.coeff, ParameterExpression):
             unrolled_dict = self._unroll_param_dict(param_dict)
             if isinstance(unrolled_dict, list):
-                return ListOp([self.bind_parameters(param_dict) for param_dict in unrolled_dict])
+                return ListOp([self.assign_parameters(param_dict) for param_dict in unrolled_dict])
             if self.coeff.parameters <= set(unrolled_dict.keys()):
                 binds = {param: unrolled_dict[param] for param in self.coeff.parameters}
                 param_value = float(self.coeff.bind(binds))
-        return self.traverse(lambda x: x.bind_parameters(param_dict), coeff=param_value)
+        return self.traverse(lambda x: x.assign_parameters(param_dict), coeff=param_value)
 
     def reduce(self) -> OperatorBase:
         reduced_ops = [op.reduce() for op in self.oplist]
