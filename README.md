@@ -66,6 +66,8 @@ you will see referenced is under legacy_tutorials pending such re-work._
 The `qiskit.aqua` package contains the core cross-domain algorithms and supporting logic to run
 these on a quantum backend, whether a real device or simulator.
 
+* [API reference](https://qiskit.org/documentation/apidoc/qiskit_aqua.html)
+
 ### Optional Installs
 
 * **IBM CPLEX** may be [installed](https://qiskit.org/documentation/apidoc/qiskit.aqua.algorithms.minimum_eigen_solvers.cplex.html)
@@ -148,6 +150,8 @@ computed classically. This output data from a driver can then be used as input t
 module that contains logic which is able to translate this into a form that is suitable
 for quantum algorithms. The conversion first creates a FermionicOperator which must then be mapped,
 e.g. by a Jordan Wigner mapping, to a qubit operator in readiness for the quantum computation.
+
+* [API reference](https://qiskit.org/documentation/apidoc/qiskit_chemistry.html)
 
 ### Optional Installs
 
@@ -271,6 +275,8 @@ The `qiskit.finance` package contains uncertainty components for stock/securitie
 Ising translators for portfolio optimizations and data providers to source real or random data to
 finance experiments.
 
+* [API reference](https://qiskit.org/documentation/apidoc/qiskit_finance.html)
+
 ### Creating Your First Finance Programming Experiment in Qiskit
 
 Now that Qiskit is installed, it's time to begin working with the finance module.
@@ -321,6 +327,8 @@ The `qiskit.ml` package simply contains sample datasets at present. `qiskit.aqua
 classification algorithms such as QSVM and VQC (Variational Quantum Classifier), where this data
 can be used for experiments, and there is also QGAN (Quantum Generative Adversarial Network)
 algorithm.
+
+* [API reference](https://qiskit.org/documentation/apidoc/qiskit_ml.html)
 
 ### Creating Your First Machine Learning Programming Experiment in Qiskit
 
@@ -373,10 +381,30 @@ and
 
 ## Optimization
 
-The `qiskit.optimization` package contains Ising translators for various optimization problems such
-as Max-Cut, Traveling Salesman and Vehicle Routing. It also has a has an automatic Ising
-generator for a problem model specified by the user as a model in
-[docplex](qiskit/optimization/ising/docplex.py#L16).
+The `qiskit.optimization` package covers the whole range from high-level modeling of optimization
+problems, with automatic conversion of problems to different required representations, to a suite
+of easy-to-use quantum optimization algorithms that are ready to run on classical simulators,
+as well as on real quantum devices via Qiskit.
+
+This optimization module enables easy, efficient modeling of optimization problems using 
+[docplex](https://developer.ibm.com/docloud/documentation/optimization-modeling/modeling-for-python/).
+A uniform interface as well as automatic conversion between different problem representations
+allows users to solve problems using a large set of algorithms, from variational quantum algorithms,
+such as the Quantum Approximate Optimization Algorithm
+[QAOA](https://qiskit.org/documentation/stubs/qiskit.aqua.algorithms.QAOA.html),
+to [Grover Adaptive Search](https://arxiv.org/abs/quant-ph/9607014>) using the 
+[GroverOptimizer](https://qiskit.org/documentation/stubs/qiskit.optimization.algorithms.GroverOptimizer.htm)
+leveraging fundamental algorithms provided by Aqua. Furthermore, the modular design
+of the optimization module allows it to be easily extended and facilitates rapid development and
+testing of new algorithms. Compatible classical optimizers are also provided for testing,
+validation, and benchmarking.
+
+* [API reference](https://qiskit.org/documentation/apidoc/qiskit_optimization.html)
+
+### Optional Installs
+
+* **IBM CPLEX** may be installed using `pip install cplex` to allow use of the `CplexOptimzer` 
+  classical solver algorithm, as well as enabling the reading of `LP` files.
 
 ### Creating Your First Optimization Programming Experiment in Qiskit
 
