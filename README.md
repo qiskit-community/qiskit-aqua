@@ -393,7 +393,7 @@ allows users to solve problems using a large set of algorithms, from variational
 such as the Quantum Approximate Optimization Algorithm
 [QAOA](https://qiskit.org/documentation/stubs/qiskit.aqua.algorithms.QAOA.html),
 to [Grover Adaptive Search](https://arxiv.org/abs/quant-ph/9607014>) using the 
-[GroverOptimizer](https://qiskit.org/documentation/stubs/qiskit.optimization.algorithms.GroverOptimizer.htm)
+[GroverOptimizer](https://qiskit.org/documentation/stubs/qiskit.optimization.algorithms.GroverOptimizer.html)
 leveraging fundamental algorithms provided by Aqua. Furthermore, the modular design
 of the optimization module allows it to be easily extended and facilitates rapid development and
 testing of new algorithms. Compatible classical optimizers are also provided for testing,
