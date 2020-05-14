@@ -22,8 +22,7 @@ import numpy as np
 
 from qiskit.aqua.operators import (X, Y, Z, I, CX, H, S,
                                    ListOp, Zero, One, Plus, Minus, StateFn,
-                                   PauliExpectation, AbelianGrouper,
-                                   CircuitSampler)
+                                   PauliExpectation, CircuitSampler)
 
 from qiskit import BasicAer
 
