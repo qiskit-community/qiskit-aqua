@@ -146,7 +146,6 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
             x_j = problem_.variables[j].name
             if correlations[i, j] > 0:
                 # set x_i = x_j
-                problem_.substitute_variables()
                 problem_ = problem_.substitute_variables(variables={i: (j, 1)})
                 if problem_.status == QuadraticProgram.Status.INFEASIBLE:
                     raise QiskitOptimizationError('Infeasible due to variable substitution')
@@ -158,16 +157,23 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
 
                 # 1a. get additional offset
                 constant = problem_.objective.constant
-                constant += problem_.objective.quadratic[i, i]
                 constant += problem_.objective.linear[i]
+                constant += problem_.objective.quadratic[i, i]
                 problem_.objective.constant = constant
 
                 # 1b. get additional linear part
                 for k in range(problem_.get_num_vars()):
-                    coeff = problem_.objective.quadratic[i, k]
+                    coeff = problem_.objective.linear[k]
+                    if k == i:
+                        coeff += 2*problem_.objective.quadratic[i, k]
+                    else:
+                        coeff += problem_.objective.quadratic[i, k]
+
+                    # set new coefficient if not too small
                     if np.abs(coeff) > 1e-10:
-                        coeff += problem_.objective.linear[k]
                         problem_.objective.linear[k] = coeff
+                    else:
+                        problem_.objective.linear[k] = 0
 
                 # 2. replace x_i by -x_j
                 problem_ = problem_.substitute_variables(variables={i: (j, -1)})
@@ -211,7 +217,16 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         return results
 
     def _find_strongest_correlation(self, correlations):
-        m_max = np.argmax(np.abs(correlations.flatten()))
+
+        # get absolute values and set diagonal to -1 to make sure maximum is always on off-diagonal
+        abs_correlations = np.abs(correlations)
+        for i in range(len(correlations)):
+            abs_correlations[i, i] = -1
+
+        # get index of maximum (by construction on off-diagonal)
+        m_max = np.argmax(abs_correlations.flatten())
+
+        # translate back to indices
         i = int(m_max // len(correlations))
         j = int(m_max - i*len(correlations))
         return (i, j)
