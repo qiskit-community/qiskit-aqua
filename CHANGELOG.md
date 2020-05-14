@@ -15,8 +15,11 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 > -   **Fixed**: for any bug fixes.
 > -   **Security**: in case of vulnerabilities.
 
-[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.7.0...HEAD)
+[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.7.1...HEAD)
 ========================================================================
+
+[0.7.1](https://github.com/Qiskit/qiskit-aqua/compare/0.7.0...0.7.1) - 2020-05-14
+=================================================================================
 
 Added
 -----

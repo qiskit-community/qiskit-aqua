@@ -47,7 +47,7 @@ class UnivariateVariationalDistribution(UnivariateDistribution):
 
         # fix the order of the parameters in the circuit
         if isinstance(self._var_form, QuantumCircuit):
-            self._var_form_params = list(self._var_form.parameters)
+            self._var_form_params = sorted(self._var_form.parameters, key=lambda p: p.name)
         else:
             warnings.warn('The VariationalForm type is deprecated as argument of the '
                           'UnivariateVariationalDistribution as of 0.7.0 and will be removed no '
