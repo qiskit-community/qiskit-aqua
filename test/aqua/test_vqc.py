@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Test VQC """
+"""Test the VQC algorithm."""
 
 import os
 import unittest
@@ -65,23 +65,40 @@ class TestVQC(QiskitAquaTestCase):
                                               seed_simulator=self.seed,
                                               seed_transpiler=self.seed)
 
-    def test_vqc(self):
+        self.spsa = SPSA(max_trials=10, save_steps=1, c0=4.0, c1=0.1, c2=0.602, c3=0.101,
+                         c4=0.0, skip_calibration=True)
+
+    def assertSimpleClassificationIsCorrect(self, vqc, backend=None, ref_opt_params=None,
+                                            ref_train_loss=None, ref_test_accuracy=None):
+        """Assert running the VQC on the simple data in ``setUp`` works."""
+        if backend is None:
+            backend = self.qasm_simulator
+        if ref_opt_params is None:
+            ref_opt_params = self.ref_opt_params
+        if ref_train_loss is None:
+            ref_train_loss = self.ref_train_loss
+        if ref_test_accuracy is None:
+            ref_test_accuracy = 1
+
+        result = vqc.run(backend)
+
+        with self.subTest(msg='test optimal params'):
+            np.testing.assert_array_almost_equal(result['opt_params'], ref_opt_params, decimal=8)
+
+        with self.subTest(msg='test training loss'):
+            self.assertAlmostEqual(result['training_loss'], ref_train_loss)
+
+        with self.subTest(msg='check testing accuracy'):
+            self.assertEqual(result['testing_accuracy'], ref_test_accuracy)
+
+    def test_basic_aer_qasm(self):
         """Run a basic test case on BasicAer's QASM simulator."""
-        aqua_globals.random_seed = self.seed
-        optimizer = SPSA(max_trials=10, save_steps=1,
-                         c0=4.0, c1=0.1, c2=0.602, c3=0.101, c4=0.0, skip_calibration=True)
         data_preparation = self.data_preparation
         wavefunction = self.ryrz_wavefunction
-
-        # set up algorithm
+        optimizer = self.spsa
         vqc = VQC(optimizer, data_preparation, wavefunction, self.training_data, self.testing_data)
 
-        result = vqc.run(self.qasm_simulator)
-
-        np.testing.assert_array_almost_equal(result['opt_params'], self.ref_opt_params, decimal=8)
-        np.testing.assert_array_almost_equal(result['training_loss'], self.ref_train_loss,
-                                             decimal=8)
-        self.assertEqual(1.0, result['testing_accuracy'])
+        self.assertSimpleClassificationIsCorrect(vqc)
 
     def test_deprecated_components(self):
         """Test running the VQC on FeatureMap and VariationalForm objects."""
@@ -91,60 +108,37 @@ class TestVQC(QiskitAquaTestCase):
                                    8.26008064, -7.07543736, 11.43368677, -5.74857438])
         ref_train_loss = 0.69366523
 
-        optimizer = SPSA(max_trials=10, save_steps=1,
-                         c0=4.0, c1=0.1, c2=0.602, c3=0.101, c4=0.0, skip_calibration=True)
-
         # ignore warnings from creating VariationalForm and FeatureMap objects
         warnings.filterwarnings('ignore', category=DeprecationWarning)
         data_preparation = SecondOrderExpansion(2, depth=2)
         wavefunction = RYRZ(2)
-        vqc = VQC(optimizer, data_preparation, wavefunction, self.training_data, self.testing_data)
+        vqc = VQC(self.spsa, data_preparation, wavefunction, self.training_data, self.testing_data)
         warnings.filterwarnings('always', category=DeprecationWarning)
 
-        result = vqc.run(self.qasm_simulator)
-
-        np.testing.assert_array_almost_equal(result['opt_params'], ref_opt_params, decimal=8)
-        np.testing.assert_array_almost_equal(result['training_loss'], ref_train_loss, decimal=8)
-        self.assertEqual(1.0, result['testing_accuracy'])
+        self.assertSimpleClassificationIsCorrect(vqc, ref_opt_params=ref_opt_params,
+                                                 ref_train_loss=ref_train_loss)
 
     def test_plain_circuits(self):
         """Test running the VQC on QuantumCircuit objects."""
-        aqua_globals.random_seed = self.seed
-        optimizer = SPSA(max_trials=10, save_steps=1,
-                         c0=4.0, c1=0.1, c2=0.602, c3=0.101, c4=0.0, skip_calibration=True)
         data_preparation = QuantumCircuit(2).compose(self.data_preparation)
         wavefunction = QuantumCircuit(2).compose(self.ryrz_wavefunction)
+        vqc = VQC(self.spsa, data_preparation, wavefunction, self.training_data, self.testing_data)
 
-        vqc = VQC(optimizer, data_preparation, wavefunction, self.training_data, self.testing_data)
-        result = vqc.run(self.qasm_simulator)
-
-        np.testing.assert_array_almost_equal(result['opt_params'], self.ref_opt_params, decimal=8)
-        np.testing.assert_array_almost_equal(result['training_loss'], self.ref_train_loss,
-                                             decimal=8)
-        self.assertEqual(1.0, result['testing_accuracy'])
+        self.assertSimpleClassificationIsCorrect(vqc)
 
     def test_max_evals_grouped(self):
         """Test the VQC with the max_evals_grouped option."""
-        aqua_globals.random_seed = self.seed
-        optimizer = SPSA(max_trials=10, save_steps=1,
-                         c0=4.0, c1=0.1, c2=0.602, c3=0.101, c4=0.0, skip_calibration=True)
         data_preparation = self.data_preparation
         wavefunction = self.ryrz_wavefunction
 
-        vqc = VQC(optimizer, data_preparation, wavefunction, self.training_data, self.testing_data,
+        vqc = VQC(self.spsa, data_preparation, wavefunction, self.training_data, self.testing_data,
                   max_evals_grouped=2)
 
-        result = vqc.run(self.qasm_simulator)
-
-        np.testing.assert_array_almost_equal(result['opt_params'], self.ref_opt_params, decimal=8)
-        np.testing.assert_array_almost_equal(result['training_loss'], self.ref_train_loss,
-                                             decimal=8)
-        self.assertEqual(1.0, result['testing_accuracy'])
+        self.assertSimpleClassificationIsCorrect(vqc)
 
     def test_statevector(self):
         """Test running the VQC on BasicAer's QASM simulator."""
-        aqua_globals.random_seed = self.seed
-        optimizer = SPSA(max_trials=100, save_steps=1,
+        optimizer = SPSA(max_trials=80, save_steps=1,
                          c0=4.0, c1=0.1, c2=0.602, c3=0.101, c4=0.0, skip_calibration=True)
         data_preparation = self.data_preparation
         wavefunction = self.ryrz_wavefunction
@@ -152,8 +146,11 @@ class TestVQC(QiskitAquaTestCase):
         vqc = VQC(optimizer, data_preparation, wavefunction, self.training_data, self.testing_data)
         result = vqc.run(self.statevector_simulator)
 
-        self.assertLess(result['training_loss'], 0.12)
-        self.assertEqual(result['testing_accuracy'], 0.5)
+        with self.subTest(msg='check training loss'):
+            self.assertLess(result['training_loss'], 0.12)
+
+        with self.subTest(msg='check testing accuracy'):
+            self.assertEqual(result['testing_accuracy'], 0.5)
 
     def test_minibatching_gradient_free(self):
         """Test the minibatching option with a gradient-free optimizer."""
@@ -195,13 +192,10 @@ class TestVQC(QiskitAquaTestCase):
 
     def test_save_and_load_model(self):
         """Test saving and loading a model with the VQC."""
-        optimizer = SPSA(max_trials=10, save_steps=1, c0=4.0, skip_calibration=True)
         data_preparation = self.data_preparation
         wavefunction = self.ryrz_wavefunction
 
-        # set up algorithm
-        vqc = VQC(optimizer, data_preparation, wavefunction, self.training_data, self.testing_data)
-
+        vqc = VQC(self.spsa, data_preparation, wavefunction, self.training_data, self.testing_data)
         result = vqc.run(self.qasm_simulator)
 
         with self.subTest(msg='check optimal params, training loss and testing accuracy'):
@@ -217,7 +211,7 @@ class TestVQC(QiskitAquaTestCase):
         with self.subTest(msg='assert saved file exists'):
             self.assertTrue(os.path.exists(file_path))
 
-        loaded_vqc = VQC(optimizer, data_preparation, wavefunction, self.training_data, None)
+        loaded_vqc = VQC(self.spsa, data_preparation, wavefunction, self.training_data, None)
         loaded_vqc.load_model(file_path)
         loaded_test_acc = loaded_vqc.test(vqc.test_dataset[0],
                                           vqc.test_dataset[1],
@@ -290,7 +284,7 @@ class TestVQC(QiskitAquaTestCase):
             _ = VQC(optimizer, feature_map, var_form, self.training_data, self.testing_data)
 
     def test_wine(self):
-        """Test VQE on the wine test using circuits as feature map and variational form."""
+        """Test VQE on the wine dataset."""
         feature_dim = 4  # dimension of each data point
         training_dataset_size = 6
         testing_dataset_size = 3
@@ -310,7 +304,7 @@ class TestVQC(QiskitAquaTestCase):
         self.assertLess(result['testing_accuracy'], 0.6)
 
     def test_raw_feature_vector_on_wine(self):
-        """ vqc with raw features vector on wine test """
+        """Test VQE on the wine dataset using the ``RawFeatureVector`` as data preparation."""
         feature_dim = 4  # dimension of each data point
         training_dataset_size = 8
         testing_dataset_size = 4
