@@ -42,9 +42,9 @@ class CplexOptimizer(OptimizationAlgorithm):
         >>> from qiskit.optimization.problems import QuadraticProgram
         >>> from qiskit.optimization.algorithms import CplexOptimizer
         >>> problem = QuadraticProgram()
-        >>> # specify problem here
-        >>> optimizer = CplexOptimizer()
-        >>> result = optimizer.solve(problem)
+        >>> # specify problem here, if cplex is installed
+        >>> optimizer = CplexOptimizer() if CplexOptimizer.is_cplex_installed() else None
+        >>> if optimizer: result = optimizer.solve(problem)
     """
 
     def __init__(self, disp: Optional[bool] = False) -> None:
@@ -60,6 +60,11 @@ class CplexOptimizer(OptimizationAlgorithm):
             raise NameError('CPLEX is not installed.')
 
         self._disp = disp
+
+    @staticmethod
+    def is_cplex_installed():
+        """ Returns True if cplex is installed """
+        return _HAS_CPLEX
 
     @property
     def disp(self) -> bool:

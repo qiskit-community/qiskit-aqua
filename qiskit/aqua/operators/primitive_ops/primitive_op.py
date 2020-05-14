@@ -18,6 +18,7 @@ from typing import Optional, Union, Set
 import logging
 import numpy as np
 from scipy.sparse import spmatrix
+import scipy.linalg
 
 from qiskit import QuantumCircuit
 from qiskit.circuit import Instruction, ParameterExpression
@@ -189,6 +190,16 @@ class PrimitiveOp(OperatorBase):
         from qiskit.aqua.operators import EvolvedOp
         return EvolvedOp(self)
 
+    def log_i(self, massive: bool = False) -> OperatorBase:
+        """Return a ``MatrixOp`` equivalent to log(H)/-i for this operator H. This
+        function is the effective inverse of exp_i, equivalent to finding the Hermitian
+        Operator which produces self when exponentiated."""
+        # pylint: disable=cyclic-import
+        from ..operator_globals import EVAL_SIG_DIGITS
+        from .matrix_op import MatrixOp
+        return MatrixOp(np.around(scipy.linalg.logm(self.to_matrix(massive=massive)) / -1j,
+                                  decimals=EVAL_SIG_DIGITS))
+
     def __str__(self) -> str:
         raise NotImplementedError
 
@@ -200,14 +211,14 @@ class PrimitiveOp(OperatorBase):
                           OperatorBase] = None) -> Union[OperatorBase, float, complex]:
         raise NotImplementedError
 
-    def bind_parameters(self, param_dict: dict) -> OperatorBase:
+    def assign_parameters(self, param_dict: dict) -> OperatorBase:
         param_value = self.coeff
         if isinstance(self.coeff, ParameterExpression):
             unrolled_dict = self._unroll_param_dict(param_dict)
             if isinstance(unrolled_dict, list):
                 # pylint: disable=import-outside-toplevel
                 from ..list_ops.list_op import ListOp
-                return ListOp([self.bind_parameters(param_dict) for param_dict in unrolled_dict])
+                return ListOp([self.assign_parameters(param_dict) for param_dict in unrolled_dict])
             if self.coeff.parameters <= set(unrolled_dict.keys()):
                 binds = {param: unrolled_dict[param] for param in self.coeff.parameters}
                 param_value = float(self.coeff.bind(binds))
@@ -252,6 +263,11 @@ class PrimitiveOp(OperatorBase):
         """ Returns a sum of ``PauliOp`` s equivalent to this Operator. """
         mat_op = self.to_matrix_op(massive=massive)
         sparse_pauli = SparsePauliOp.from_operator(mat_op.primitive)
+        if not sparse_pauli.to_list():
+            # pylint: disable=import-outside-toplevel
+            from ..operator_globals import I
+            return (I ^ self.num_qubits) * 0.0
+
         return sum([PrimitiveOp(Pauli.from_label(label),
                                 coeff.real if coeff == coeff.real else coeff)
                     for (label, coeff) in sparse_pauli.to_list()]) * self.coeff

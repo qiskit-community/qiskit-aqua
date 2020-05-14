@@ -65,16 +65,14 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.extlinks',
     'sphinx_tabs.tabs',
-    'jupyter_sphinx.execute',
+    'jupyter_sphinx',
     'sphinx_autodoc_typehints',
     'reno.sphinxext',
     'sphinx.ext.doctest',
 ]
 html_static_path = ['_static']
 templates_path = ['_templates']
-html_css_files = [
-    'style.css',
-]
+html_css_files = ['style.css', 'custom.css']
 
 # -----------------------------------------------------------------------------
 # Autosummary
@@ -89,7 +87,6 @@ autosummary_generate_overwrite = False
 
 autodoc_default_options = {
     'inherited-members': None,
-    'show-inheritance': None,
 }
 
 
@@ -113,7 +110,7 @@ language = None
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = []
+exclude_patterns = ['_build', '**.ipynb_checkpoints']
 
 # The name of the Pygments (syntax highlighting) style to use.
 pygments_style = 'colorful'

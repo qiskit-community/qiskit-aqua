@@ -24,6 +24,21 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 Added
 -----
 
+-   Added a `linear` option to the `IsingToQuadraticProgram` converter (#956)
+
+Removed
+-------
+
+-   The monkey-patched ``QuantumCircuit.mcmt`` method and tests, has moved to Terra (#950)
+-   CPLEX as install requirement in ``requirements.txt`` (#952)
+
+
+[0.7.0](https://github.com/Qiskit/qiskit-aqua/compare/0.6.6...0.7.0) - 2020-04-30
+=================================================================================
+
+Added
+-----
+
 -   NFT optimizer, part of a project of Qiskit Camp Asia 2019 (#729)
 -   Algorithm interface and result classes (#849)
 -   Chemistry FCIDump file driver (#859)
@@ -101,7 +116,7 @@ Changed
 -   HartreeFock initial state and UCCSD variational form `num_qubits` parameter removed as it was
     only value checked against that computed internally from the other parameters. UCCSD `depth`
     parameter renamed to `reps` and moved in order so it can default to 1. (#939)
-     
+
 
 Removed
 -------
