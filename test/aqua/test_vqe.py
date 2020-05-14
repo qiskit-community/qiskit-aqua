@@ -44,8 +44,6 @@ class TestVQE(QiskitAquaTestCase):
             + 0.18093119978423156 * (X ^ X)
         self.h2_energy = -1.85727503
 
-        warnings.filterwarnings('ignore', category=DeprecationWarning)
-        warnings.filterwarnings('always', category=DeprecationWarning)
         self.ryrz_wavefunction = TwoLocal(rotation_blocks=['ry', 'rz'], entanglement_blocks='cz')
         self.ry_wavefunction = TwoLocal(rotation_blocks='ry', entanglement_blocks='cz')
 
@@ -83,15 +81,18 @@ class TestVQE(QiskitAquaTestCase):
 
     def test_deprecated_variational_forms(self):
         """Test running the VQE on a deprecated VariationalForm object."""
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         wavefunction = RYRZ(2)
         vqe = VQE(self.h2_op, wavefunction)
+        warnings.filterwarnings('always', category=DeprecationWarning)
         result = vqe.run(self.statevector_simulator)
         self.assertAlmostEqual(result.eigenvalue.real, self.h2_energy)
 
     def test_circuit_input(self):
         """Test running the VQE on a plain QuantumCircuit object."""
         wavefunction = QuantumCircuit(2).compose(EfficientSU2(2))
-        vqe = VQE(self.h2_op, wavefunction)
+        optimizer = SLSQP(maxiter=50)
+        vqe = VQE(self.h2_op, wavefunction, optimizer=optimizer)
         result = vqe.run(self.statevector_simulator)
         self.assertAlmostEqual(result.eigenvalue.real, self.h2_energy, places=5)
 
@@ -115,6 +116,19 @@ class TestVQE(QiskitAquaTestCase):
         vqe = VQE(self.h2_op, circuit)
         with self.assertRaises(RuntimeError):
             vqe.run(BasicAer.get_backend('statevector_simulator'))
+
+    @data(
+        (SLSQP(maxiter=50), 5, 4),
+        (SPSA(max_trials=50), 3, 2),  # max_evals_grouped=n or =2 if n>2
+    )
+    @unpack
+    def test_max_evals_grouped(self, optimizer, places, max_evals_grouped):
+        """ VQE Optimizers test """
+        vqe = VQE(self.h2_op, self.ryrz_wavefunction, optimizer,
+                  max_evals_grouped=max_evals_grouped,
+                  quantum_instance=self.statevector_simulator)
+        result = vqe.run()
+        self.assertAlmostEqual(result.eigenvalue.real, self.h2_energy, places=places)
 
     def test_basic_aer_qasm(self):
         """Test the VQE on BasicAer's QASM simulator."""
