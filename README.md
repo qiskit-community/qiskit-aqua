@@ -29,11 +29,11 @@ base class for the type. These along with other building blocks provide a means 
 developers alike to have flexibility and facilitate building and experimenting with different
 configurations and capability.
 
-Note: Aqua provides some classical algorithms that take the same input data as quantum algorithms
+_**Note**: Aqua provides some classical algorithms that take the same input data as quantum algorithms
 solving the same problem. For instance a Hamiltonian operator input to VQE can be used as an input
 to the NumPyEigensolver. This may be useful for near-term quantum experiments, for problems
 that can still be solved classically, as their outcome can be easily compared against a classical
-equivalent since the same input data can be used.
+equivalent since the same input data can be used._
 
 ## Installation
 
@@ -52,11 +52,12 @@ their official release or if you want to to contribute to Aqua, then you can ins
 To do this follow the instructions in the
  [documentation](https://qiskit.org/documentation/contributing_to_qiskit.html#installing-from-source).
 
-Note: there some optional packages that can be installed such as IBM CPLEX for Aqua and ab-initio
-chemistry libraries/programs. Refer to Optional Install information in the sections below.
+_**Note**: there some optional packages that can be installed such as IBM CPLEX for Aqua and 
+ab-initio chemistry libraries/programs. Refer to Optional Install information in the sections
+below._
 
-Note: tutorials are undergoing revision and re-organization. Hence you may notice some content is
-linked under legacy_tutorials pending such re-work.
+_**Note**: tutorials are undergoing revision and re-organization. Hence you may notice some content
+you will see referenced is under legacy_tutorials pending such re-work._
 
 ----------------------------------------------------------------------------------------------------
 
