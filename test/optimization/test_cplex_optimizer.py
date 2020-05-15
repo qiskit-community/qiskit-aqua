@@ -15,6 +15,7 @@
 """ Test Cplex Optimizer """
 
 import unittest
+from os import path
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 from ddt import ddt, data
 from qiskit.optimization.algorithms import CplexOptimizer
@@ -28,7 +29,6 @@ class TestCplexOptimizer(QiskitOptimizationTestCase):
     def setUp(self):
         super().setUp()
         try:
-            self.resource_path = './test/optimization/resources/'
             self.cplex_optimizer = CplexOptimizer(disp=False)
         except NameError as ex:
             self.skipTest(str(ex))
@@ -45,7 +45,8 @@ class TestCplexOptimizer(QiskitOptimizationTestCase):
 
         # load optimization problem
         problem = QuadraticProgram()
-        problem.read_from_lp_file(self.resource_path + filename)
+        lp_file = self.get_resource_path(path.join('resources', filename))
+        problem.read_from_lp_file(lp_file)
 
         # solve problem with cplex
         result = self.cplex_optimizer.solve(problem)
