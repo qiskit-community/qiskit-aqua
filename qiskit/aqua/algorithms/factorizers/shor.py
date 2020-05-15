@@ -123,13 +123,13 @@ class Shor(QuantumAlgorithm):
             circuit.u1(angle[i], p[i])
         return circuit.to_gate()
 
-    def _controlled_controlled_phi_add_mod_N(self,
-                                             circuit: QuantumCircuit,
-                                             aux: QuantumRegister,
-                                             ctl_up: Qubit,
-                                             ctl_down: Qubit,
-                                             ctl_aux: Qubit,
-                                             a: int):
+    def _double_controlled_phi_add_mod_N(self,
+                                         circuit: QuantumCircuit,
+                                         aux: QuantumRegister,
+                                         ctl_up: Qubit,
+                                         ctl_down: Qubit,
+                                         ctl_aux: Qubit,
+                                         a: int):
         """Implements double-controlled modular addition by a on circuit."""
         qubits = [aux[i] for i in reversed(range(self._n + 1))]
 
@@ -169,7 +169,7 @@ class Shor(QuantumAlgorithm):
         ctl_aux = aux[-1]
 
         for i, ctl_down in enumerate(down):
-            self._controlled_controlled_phi_add_mod_N(
+            self._double_controlled_phi_add_mod_N(
                 circuit,
                 aux,
                 ctl_up,
