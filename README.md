@@ -2,7 +2,8 @@
 
 [![License](https://img.shields.io/github/license/Qiskit/qiskit-aqua.svg?style=popout-square)](https://opensource.org/licenses/Apache-2.0)[![Build Status](https://img.shields.io/travis/Qiskit/qiskit-aqua/master.svg?style=popout-square)](https://travis-ci.org/Qiskit/qiskit-aqua)[![](https://img.shields.io/github/release/Qiskit/qiskit-aqua.svg?style=popout-square)](https://github.com/Qiskit/qiskit-aqua/releases)[![](https://img.shields.io/pypi/dm/qiskit-aqua.svg?style=popout-square)](https://pypi.org/project/qiskit-aqua/)[![Coverage Status](https://coveralls.io/repos/github/Qiskit/qiskit-aqua/badge.svg?branch=master)](https://coveralls.io/github/Qiskit/qiskit-aqua?branch=master)
 
-**Qiskit** is an open-source framework for working with noisy quantum computers at the level of pulses, circuits, and algorithms.
+**Qiskit** is an open-source framework for working with noisy quantum computers at the level of
+pulses, circuits, and algorithms.
 
 Qiskit is made up elements that work together to enable quantum computing. This element is **Aqua**
 (Algorithms for QUantum computing Applications) providing a library of cross-domain algorithms
@@ -17,8 +18,9 @@ Aqua includes domain application support for:
 * [Machine Learning](#machine-learning)
 * [Optimization](#optimization)
 
-_**Note**: the chemistry module was the first domain worked on. At the time of writing
-the other domains have some logic in them but are not as fully realised. Future work is expected to
+_**Note**: the chemistry module was the first domain worked on. Aqua version 0.7.0 introduced a new
+optimization module for solving quadratic problems. At the time of writing the other domains have
+some logic in them but are not as fully realised. Future work is expected to
 build out functionality in all application areas._
 
 Aqua was designed to be extensible, and uses a framework where algorithms and support objects used
@@ -27,11 +29,11 @@ base class for the type. These along with other building blocks provide a means 
 developers alike to have flexibility and facilitate building and experimenting with different
 configurations and capability.
 
-Note: Aqua provides some classical algorithms that take the same input data as quantum algorithms
+_**Note**: Aqua provides some classical algorithms that take the same input data as quantum algorithms
 solving the same problem. For instance a Hamiltonian operator input to VQE can be used as an input
 to the NumPyEigensolver. This may be useful for near-term quantum experiments, for problems
 that can still be solved classically, as their outcome can be easily compared against a classical
-equivalent since the same input data can be used.
+equivalent since the same input data can be used._
 
 ## Installation
 
@@ -50,13 +52,12 @@ their official release or if you want to to contribute to Aqua, then you can ins
 To do this follow the instructions in the
  [documentation](https://qiskit.org/documentation/contributing_to_qiskit.html#installing-from-source).
 
-Note: there some optional packages that can be installed such as IBM CPLEX for Aqua and ab-initio
-chemistry libraries/programs. Refer to Optional Install information in the sections below.
+_**Note**: there some optional packages that can be installed such as IBM CPLEX for Aqua and
+ab-initio chemistry libraries/programs. Refer to Optional Install information in the sections
+below._
 
-Note: _Optional install links are currently pointing to the source documentation in the code.
-At the time of writing the qiskit.org [API Documentation](https://qiskit.org/documentation)
-is being reworked and these links will be redone to point there once the documentation is
-updated and republished._
+_**Note**: tutorials are undergoing revision and re-organization. Hence you may notice some content
+you will see referenced is under legacy_tutorials pending such re-work._
 
 ----------------------------------------------------------------------------------------------------
 
@@ -65,10 +66,13 @@ updated and republished._
 The `qiskit.aqua` package contains the core cross-domain algorithms and supporting logic to run
 these on a quantum backend, whether a real device or simulator.
 
+* [API reference](https://qiskit.org/documentation/apidoc/qiskit_aqua.html)
+
 ### Optional Installs
 
-* **IBM CPLEX** may be [installed](qiskit/aqua/algorithms/minimum_eigen_solvers/cplex/__init__.py#L16)
-  to allow use of the `ClassicalCPLEX` classical solver algorithm.
+* **IBM CPLEX** may be [installed](https://qiskit.org/documentation/apidoc/qiskit.aqua.algorithms.minimum_eigen_solvers.cplex.html)
+  to allow use of the `ClassicalCPLEX` classical solver algorithm. `pip install cplex` may be used
+  as an alternative.
 * **PyTorch**, may be installed either using command `pip install qiskit-aqua[torch]` to install the
   package or refer to PyTorch [getting started](https://pytorch.org/get-started/locally/). PyTorch
   being installed will enable the neural networks `PyTorchDiscriminator` component to be used with
@@ -129,7 +133,7 @@ satisfies the given CNF.
 
 Jupyter notebooks containing further examples, for Qiskit Aqua, may be found here in the following
 Qiskit GitHub repositories at
-[qiskit-iqx-tutorials/qiskit/advanced/aqua](https://github.com/Qiskit/qiskit-iqx-tutorials/tree/master/qiskit/advanced/aqua)
+[qiskit-tutorials/legacy_tutorials/aqua](https://github.com/Qiskit/qiskit-tutorials/tree/master/legacy_tutorials/aqua)
 and
 [qiskit-community-tutorials/aqua](https://github.com/Qiskit/qiskit-community-tutorials/tree/master/aqua).
 
@@ -147,6 +151,8 @@ module that contains logic which is able to translate this into a form that is s
 for quantum algorithms. The conversion first creates a FermionicOperator which must then be mapped,
 e.g. by a Jordan Wigner mapping, to a qubit operator in readiness for the quantum computation.
 
+* [API reference](https://qiskit.org/documentation/apidoc/qiskit_chemistry.html)
+
 ### Optional Installs
 
 To run chemistry experiments using Qiskit's chemistry module, it is recommended that you to install
@@ -159,17 +165,17 @@ Note: As `PySCF` can be installed via pip the installation of Qiskit (Aqua) will
 where it's supported (MacOS and Linux x86). For other platforms see the PySCF information as to
 whether this might be possible manually.
 
-1. [Gaussian 16&trade;](qiskit/chemistry/drivers/gaussiand/__init__.py#L16), a commercial chemistry program
-2. [PSI4](qiskit/chemistry/drivers/psi4d/__init__.py#L16), a chemistry program that exposes a Python interface allowing for accessing internal objects
-3. [PySCF](qiskit/chemistry/drivers/pyscfd/__init__.py#L16), an open-source Python chemistry program
-4. [PyQuante](qiskit/chemistry/drivers/pyquanted/__init__.py#L16), a pure cross-platform open-source Python chemistry program
+1. [Gaussian 16&trade;](https://qiskit.org/documentation/apidoc/qiskit.chemistry.drivers.gaussiand.html), a commercial chemistry program
+2. [PSI4](https://qiskit.org/documentation/apidoc/qiskit.chemistry.drivers.psi4d.html), a chemistry program that exposes a Python interface allowing for accessing internal objects
+3. [PySCF](https://qiskit.org/documentation/apidoc/qiskit.chemistry.drivers.pyscfd.html), an open-source Python chemistry program
+4. [PyQuante](https://qiskit.org/documentation/apidoc/qiskit.chemistry.drivers.pyquanted.html), a pure cross-platform open-source Python chemistry program
 
 ### HDF5 Driver
 
 A useful functionality integrated into Qiskit's chemistry module is its ability to serialize a file
 in hierarchical Data Format 5 (HDF5) format representing all the output data from a chemistry driver.
 
-The [HDF5 driver](qiskit/chemistry/drivers/hdf5d/hdf5driver.py#L25)
+The [HDF5 driver](https://qiskit.org/documentation/stubs/qiskit.chemistry.drivers.HDF5Driver.html#qiskit.chemistry.drivers.HDF5Driver)
 accepts such such HDF5 files as input so molecular experiments can be run, albeit on the fixed data
 as stored in the file. As such, if you have some pre-created HDF5 files from created from Qiskit
 Chemistry, you can use these with the HDF5 driver even if you do not install one of the classical
@@ -257,7 +263,7 @@ of the circuits. By passing in a backend as is done above it is internally wrapp
 
 Jupyter notebooks containing further chemistry examples may be found in the
 following Qiskit GitHub repositories at
-[qiskit-iqx-tutorials/qiskit/advanced/aqua/chemistry](https://github.com/Qiskit/qiskit-iqx-tutorials/tree/master/qiskit/advanced/aqua/chemistry)
+[qiskit-tutorials/legacy_tutorials/aqua/chemistry](https://github.com/Qiskit/qiskit-tutorials/tree/master/legacy_tutorials/aqua/chemistry)
 and
 [qiskit-community-tutorials/chemistry](https://github.com/Qiskit/qiskit-community-tutorials/tree/master/chemistry).
 
@@ -268,6 +274,8 @@ and
 The `qiskit.finance` package contains uncertainty components for stock/securities problems,
 Ising translators for portfolio optimizations and data providers to source real or random data to
 finance experiments.
+
+* [API reference](https://qiskit.org/documentation/apidoc/qiskit_finance.html)
 
 ### Creating Your First Finance Programming Experiment in Qiskit
 
@@ -307,7 +315,7 @@ When running the above the estimated value result should be 2.46 and probability
 
 Jupyter notebooks containing further finance examples may be found in the
 following Qiskit GitHub repositories at
-[qiskit-iqx-tutorials/qiskit/advanced/aqua/finance](https://github.com/Qiskit/qiskit-iqx-tutorials/tree/master/qiskit/advanced/aqua/finance)
+[qiskit-tutorials/legacy_tutorials/finance](https://github.com/Qiskit/qiskit-tutorials/tree/master/legacy_tutorials/aqua/finance)
 and
 [qiskit-community-tutorials/finance](https://github.com/Qiskit/qiskit-community-tutorials/tree/master/finance).
 
@@ -319,6 +327,8 @@ The `qiskit.ml` package simply contains sample datasets at present. `qiskit.aqua
 classification algorithms such as QSVM and VQC (Variational Quantum Classifier), where this data
 can be used for experiments, and there is also QGAN (Quantum Generative Adversarial Network)
 algorithm.
+
+* [API reference](https://qiskit.org/documentation/apidoc/qiskit_ml.html)
 
 ### Creating Your First Machine Learning Programming Experiment in Qiskit
 
@@ -333,8 +343,8 @@ from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms import VQC
 from qiskit.aqua.components.optimizers import COBYLA
 from qiskit.aqua.components.feature_maps import RawFeatureVector
-from qiskit.aqua.components.variational_forms import RYRZ
 from qiskit.ml.datasets import wine
+from qiskit.circuit.library import TwoLocal
 
 seed = 1376
 aqua_globals.random_seed = seed
@@ -348,7 +358,7 @@ _, training_input, test_input, _ = wine(training_size=12,
 feature_map = RawFeatureVector(feature_dimension=feature_dim)
 vqc = VQC(COBYLA(maxiter=100),
           feature_map,
-          RYRZ(feature_map.num_qubits, depth=3),
+          TwoLocal(feature_map.num_qubits, ['ry', 'rz'], 'cz', reps=3),
           training_input,
           test_input)
 result = vqc.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),
@@ -361,9 +371,9 @@ print('Testing accuracy: {:0.2f}'.format(result['testing_accuracy']))
 
 Jupyter notebooks containing further Machine Learning examples may be found in the
 following Qiskit GitHub repositories at
-[qiskit-iqx-tutorials/qiskit/advanced/aqua/machine_learning](https://github.com/Qiskit/qiskit-iqx-tutorials/tree/master/qiskit/advanced/aqua/machine_learning)
+[qiskit-tutorials/legacy_tutorials/aqua/machine_learning](https://github.com/Qiskit/qiskit-tutorials/tree/master/legacy_tutorials/aqua/machine_learning)
 and
-[qiskit-iqx-tutorials/qiskit/advanced/aqua/finance/machine_learning](https://github.com/Qiskit/qiskit-iqx-tutorials/tree/master/qiskit/advanced/aqua/finance/machine_learning)
+[qiskit-tutorials/legacy_tutorials/aqua/finance/machine_learning](https://github.com/Qiskit/qiskit-tutorials/tree/master/legacy_tutorials/aqua/finance/machine_learning)
 and
 [qiskit-community-tutorials/machine_learning](https://github.com/Qiskit/qiskit-community-tutorials/tree/master/machine_learning).
 
@@ -371,10 +381,30 @@ and
 
 ## Optimization
 
-The `qiskit.optimization` package contains Ising translators for various optimization problems such
-as Max-Cut, Traveling Salesman and Vehicle Routing. It also has a has an automatic Ising
-generator for a problem model specified by the user as a model in
-[docplex](qiskit/optimization/ising/docplex.py#L16).
+The `qiskit.optimization` package covers the whole range from high-level modeling of optimization
+problems, with automatic conversion of problems to different required representations, to a suite
+of easy-to-use quantum optimization algorithms that are ready to run on classical simulators,
+as well as on real quantum devices via Qiskit.
+
+This optimization module enables easy, efficient modeling of optimization problems using
+[docplex](https://developer.ibm.com/docloud/documentation/optimization-modeling/modeling-for-python/).
+A uniform interface as well as automatic conversion between different problem representations
+allows users to solve problems using a large set of algorithms, from variational quantum algorithms,
+such as the Quantum Approximate Optimization Algorithm
+[QAOA](https://qiskit.org/documentation/stubs/qiskit.aqua.algorithms.QAOA.html),
+to [Grover Adaptive Search](https://arxiv.org/abs/quant-ph/9607014>) using the
+[GroverOptimizer](https://qiskit.org/documentation/stubs/qiskit.optimization.algorithms.GroverOptimizer.html)
+leveraging fundamental algorithms provided by Aqua. Furthermore, the modular design
+of the optimization module allows it to be easily extended and facilitates rapid development and
+testing of new algorithms. Compatible classical optimizers are also provided for testing,
+validation, and benchmarking.
+
+* [API reference](https://qiskit.org/documentation/apidoc/qiskit_optimization.html)
+
+### Optional Installs
+
+* **IBM CPLEX** may be installed using `pip install cplex` to allow use of the `CplexOptimzer`
+  classical solver algorithm, as well as enabling the reading of `LP` files.
 
 ### Creating Your First Optimization Programming Experiment in Qiskit
 
@@ -428,11 +458,15 @@ print(result)  # prints solution, x=[1, 0, 1, 0], the cost, fval=4
 
 ### Further examples
 
+Learning path notebooks may be found in the
+[optimization tutorials](https://qiskit.org/documentation/tutorials/optimization/index.html) section
+of the documentation and are a great place to start.
+
 Jupyter notebooks containing further examples, for the optimization module, may be found in the
 following Qiskit GitHub repositories at
-[qiskit-iqx-tutorials/qiskit/advanced/aqua/optimization](https://github.com/Qiskit/qiskit-iqx-tutorials/tree/master/qiskit/advanced/aqua/optimization)
+[qiskit-tutorials/legacy_tutorials/aqua/optimization](https://github.com/Qiskit/qiskit-tutorials/tree/master/legacy_tutorials/aqua/optimization)
 and
-[qiskit-iqx-tutorials/qiskit/advanced/aqua/finance/optimization](https://github.com/Qiskit/qiskit-iqx-tutorials/tree/master/qiskit/advanced/aqua/finance/optimization)
+[qiskit-tutorials/legacy_tutorials/aqua/finance/optimization](https://github.com/Qiskit/qiskit-iqx-tutorials/tree/master/legacy_tutorials/aqua/finance/optimization)
 and
 [qiskit-community-tutorials/optimization](https://github.com/Qiskit/qiskit-community-tutorials/tree/master/optimization).
 
@@ -462,7 +496,7 @@ For questions that are more suited for a forum, we use the **Qiskit** tag in [St
 ## Next Steps
 
 Now you're set up and ready to check out some of the other examples from the
-[Qiskit IQX Tutorials](https://github.com/Qiskit/qiskit-iqx-tutorials)
+[Qiskit Tutorials](https://github.com/Qiskit/qiskit-tutorials)
 repository, that are used for the IBM Quantum Experience, and from the
 [Qiskit Community Tutorials](https://github.com/Qiskit/qiskit-community-tutorials).
 

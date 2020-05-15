@@ -53,7 +53,7 @@ def dump(outpath: str, norb: int, nelec: int, hijs: List[float], hijkls: List[fl
         else:
             assert len(orbsym) == norb
             outfile.write(' ORBSYM=' + ','.join(orbsym) + '\n')
-        outfile.write(' ISYM={:d},\n/&END\n'.format(isym))
+        outfile.write(' ISYM={:d},\n&END\n'.format(isym))
         # append 2e integrals
         _dump_2e_ints(hijkl, mos, outfile)
         if hijkl_ba is not None:
