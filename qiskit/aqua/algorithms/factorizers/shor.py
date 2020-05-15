@@ -132,23 +132,23 @@ class Shor(QuantumAlgorithm):
         phi_add_a = self._phi_add_gate(aux.size - 1, a)
         iphi_add_a = phi_add_a.inverse()
 
-        circuit.compose(phi_add_a.control(2), [ctl_up, ctl_down, *qubits], inplace=True)
-        circuit.compose(self._iphi_add_N, [ctl_aux, *qubits], inplace=True)
-        circuit.compose(self._iqft, qubits, inplace=True)
+        circuit.append(phi_add_a.control(2), [ctl_up, ctl_down, *qubits])
+        circuit.append(self._iphi_add_N, [ctl_aux, *qubits])
+        circuit.append(self._iqft, qubits)
 
         circuit.cx(aux[self._n], ctl_aux)
 
-        circuit.compose(self._qft, qubits, inplace=True)
-        circuit.compose(phi_add_a.control(1), [ctl_aux, *qubits], inplace=True)
-        circuit.compose(iphi_add_a.control(2), [ctl_up, ctl_down, *qubits], inplace=True)
-        circuit.compose(self._iqft, qubits, inplace=True)
+        circuit.append(self._qft, qubits)
+        circuit.append(phi_add_a.control(1), [ctl_aux, *qubits])
+        circuit.append(iphi_add_a.control(2), [ctl_up, ctl_down, *qubits])
+        circuit.append(self._iqft, qubits)
 
         circuit.x(aux[self._n])
         circuit.cx(aux[self._n], ctl_aux)
         circuit.x(aux[self._n])
 
-        circuit.compose(self._qft, qubits, inplace=True)
-        circuit.compose(phi_add_a.control(2), [ctl_up, ctl_down, *qubits], inplace=True)
+        circuit.append(self._qft, qubits)
+        circuit.append(phi_add_a.control(2), [ctl_up, ctl_down, *qubits])
 
     def _controlled_multiple_mod_N(self,
                                    ctl_up: Union[Qubit, int],
@@ -162,7 +162,7 @@ class Shor(QuantumAlgorithm):
                                  self._down_qreg,
                                  self._aux_qreg,
                                  name="multiply_by_{}_mod_{}".format(a % self._N, self._N))
-        circuit.compose(self._qft, qubits, inplace=True)
+        circuit.append(self._qft, qubits)
 
         ctl_aux = aux[-1]
 
@@ -175,7 +175,7 @@ class Shor(QuantumAlgorithm):
                 ctl_aux,
                 (2 ** i) * a % self._N)
 
-        circuit.compose(self._iqft, qubits, inplace=True)
+        circuit.append(self._iqft, qubits)
         return circuit
 
     def construct_circuit(self, measurement: bool = False) -> QuantumCircuit:
