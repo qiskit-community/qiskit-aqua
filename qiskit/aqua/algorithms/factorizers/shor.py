@@ -122,9 +122,9 @@ class Shor(QuantumAlgorithm):
     def _double_controlled_phi_add_mod_N(self,
                                          circuit: QuantumCircuit,
                                          aux: QuantumRegister,
-                                         ctl_up: Qubit,
-                                         ctl_down: Qubit,
-                                         ctl_aux: Qubit,
+                                         ctl_up: Union[Qubit, int],
+                                         ctl_down: Union[Qubit, int],
+                                         ctl_aux: Union[Qubit, int],
                                          a: int):
         """Implements double-controlled modular addition by a on circuit."""
         qubits = [aux[i] for i in reversed(range(self._n + 1))]
@@ -152,7 +152,7 @@ class Shor(QuantumAlgorithm):
         circuit.compose(phi_add_a.control(2), [ctl_up, ctl_down, *qubits], inplace=True)
 
     def _controlled_multiple_mod_N(self,
-                                   ctl_up: Qubit,
+                                   ctl_up: Union[Qubit, int],
                                    down: QuantumRegister,
                                    aux: QuantumRegister,
                                    a: int) -> QuantumCircuit:
