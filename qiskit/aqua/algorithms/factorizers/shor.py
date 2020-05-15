@@ -112,11 +112,10 @@ class Shor(QuantumAlgorithm):
 
     def _phi_add_gate(self, size: int, a: int) -> Gate:
         """Gate that performs addition by a in Fourier Space."""
-        p = QuantumRegister(size)
-        circuit = QuantumCircuit(p, name="phi_add_{}".format(a))
-        angle = self._get_angles(a)
-        for i in range(self._n + 1):
-            circuit.u1(angle[i], p[i])
+        circuit = QuantumCircuit(size, name="phi_add_{}".format(a))
+        angles = self._get_angles(a)
+        for i, angle in enumerate(angles):
+            circuit.u1(angle, i)
         return circuit.to_gate()
 
     def _double_controlled_phi_add_mod_N(self,
