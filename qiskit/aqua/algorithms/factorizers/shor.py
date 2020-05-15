@@ -264,7 +264,8 @@ class Shor(QuantumAlgorithm):
 
         g, x, _ = egcd(a, m)
         if g != 1:
-            raise Exception('modular inverse does not exist')
+            raise ValueError("The greatest common divisor of {} and {} is {}, so the "
+                             "modular inverse does not exist.".format(a, m, g))
         return x % m
 
     def _get_factors(self, output_desired: str, t_upper: int) -> bool:
