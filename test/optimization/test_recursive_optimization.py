@@ -15,6 +15,7 @@
 """Test Recursive Min Eigen Optimizer."""
 
 import unittest
+from os import path
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
@@ -26,10 +27,6 @@ from qiskit.optimization.problems import QuadraticProgram
 
 class TestRecursiveMinEigenOptimizer(QiskitOptimizationTestCase):
     """Recursive Min Eigen Optimizer Tests."""
-
-    def setUp(self):
-        super().setUp()
-        self.resource_path = './test/optimization/resources/'
 
     def test_recursive_min_eigen_optimizer(self):
         """Test the recursive minimum eigen optimizer."""
@@ -45,7 +42,8 @@ class TestRecursiveMinEigenOptimizer(QiskitOptimizationTestCase):
 
             # load optimization problem
             problem = QuadraticProgram()
-            problem.read_from_lp_file(self.resource_path + filename)
+            lp_file = self.get_resource_path(path.join('resources', filename))
+            problem.read_from_lp_file(lp_file)
 
             # solve problem with cplex
             cplex = CplexOptimizer()
