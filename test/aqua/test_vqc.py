@@ -50,7 +50,6 @@ class TestVQC(QiskitAquaTestCase):
 
         self.ref_train_loss = 0.67346735
         self.ref_prediction_a_probs = [[0.78613281, 0.21386719]]
-        # 'wrapped': [[0.79882812, 0.20117188]],
         self.ref_prediction_a_label = [0]
 
         self.ryrz_wavefunction = TwoLocal(2, ['ry', 'rz'], 'cz', reps=3, insert_barriers=True)
