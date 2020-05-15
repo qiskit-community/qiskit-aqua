@@ -2,7 +2,7 @@
 
 [![License](https://img.shields.io/github/license/Qiskit/qiskit-aqua.svg?style=popout-square)](https://opensource.org/licenses/Apache-2.0)[![Build Status](https://img.shields.io/travis/Qiskit/qiskit-aqua/master.svg?style=popout-square)](https://travis-ci.org/Qiskit/qiskit-aqua)[![](https://img.shields.io/github/release/Qiskit/qiskit-aqua.svg?style=popout-square)](https://github.com/Qiskit/qiskit-aqua/releases)[![](https://img.shields.io/pypi/dm/qiskit-aqua.svg?style=popout-square)](https://pypi.org/project/qiskit-aqua/)[![Coverage Status](https://coveralls.io/repos/github/Qiskit/qiskit-aqua/badge.svg?branch=master)](https://coveralls.io/github/Qiskit/qiskit-aqua?branch=master)
 
-**Qiskit** is an open-source framework for working with noisy quantum computers at the level of 
+**Qiskit** is an open-source framework for working with noisy quantum computers at the level of
 pulses, circuits, and algorithms.
 
 Qiskit is made up elements that work together to enable quantum computing. This element is **Aqua**
@@ -52,7 +52,7 @@ their official release or if you want to to contribute to Aqua, then you can ins
 To do this follow the instructions in the
  [documentation](https://qiskit.org/documentation/contributing_to_qiskit.html#installing-from-source).
 
-_**Note**: there some optional packages that can be installed such as IBM CPLEX for Aqua and 
+_**Note**: there some optional packages that can be installed such as IBM CPLEX for Aqua and
 ab-initio chemistry libraries/programs. Refer to Optional Install information in the sections
 below._
 
@@ -386,13 +386,13 @@ problems, with automatic conversion of problems to different required representa
 of easy-to-use quantum optimization algorithms that are ready to run on classical simulators,
 as well as on real quantum devices via Qiskit.
 
-This optimization module enables easy, efficient modeling of optimization problems using 
+This optimization module enables easy, efficient modeling of optimization problems using
 [docplex](https://developer.ibm.com/docloud/documentation/optimization-modeling/modeling-for-python/).
 A uniform interface as well as automatic conversion between different problem representations
 allows users to solve problems using a large set of algorithms, from variational quantum algorithms,
 such as the Quantum Approximate Optimization Algorithm
 [QAOA](https://qiskit.org/documentation/stubs/qiskit.aqua.algorithms.QAOA.html),
-to [Grover Adaptive Search](https://arxiv.org/abs/quant-ph/9607014>) using the 
+to [Grover Adaptive Search](https://arxiv.org/abs/quant-ph/9607014>) using the
 [GroverOptimizer](https://qiskit.org/documentation/stubs/qiskit.optimization.algorithms.GroverOptimizer.html)
 leveraging fundamental algorithms provided by Aqua. Furthermore, the modular design
 of the optimization module allows it to be easily extended and facilitates rapid development and
@@ -403,27 +403,29 @@ validation, and benchmarking.
 
 ### Optional Installs
 
-* **IBM CPLEX** may be installed using `pip install cplex` to allow use of the `CplexOptimzer` 
+* **IBM CPLEX** may be installed using `pip install cplex` to allow use of the `CplexOptimzer`
   classical solver algorithm, as well as enabling the reading of `LP` files.
 
 ### Creating Your First Optimization Programming Experiment in Qiskit
 
 Now that Qiskit is installed, it's time to begin working with the optimization module.
-Let's try a optimization experiment using QAOA (Quantum Approximate Optimization Algorithm)
-to compute the solution of a [Max-Cut](https://en.wikipedia.org/wiki/Maximum_cut) problem using
-a docplex model to create the Ising Hamiltonian operator for QAOA.
+Let's try a optimization experiment to compute the solution of a
+[Max-Cut](https://en.wikipedia.org/wiki/Maximum_cut). The Max-Cut problem can be formulated as
+quadratic program, which can be solved using many several different algorithms in Qiskit.
+In this example, the [MinimumEigenOptimizer](https://qiskit.org/documentation/stubs/qiskit.optimization.algorithms.MinimumEigenOptimizer.html)
+is employed in in combination with the Quantum Approximate Optimization Algorithm (QAOA) as minimum
+eigensolver routine.
 
 ```python
 import networkx as nx
 import numpy as np
-from docplex.mp.model import Model
+
+from qiskit.optimization import QuadraticProgram
+from qiskit.optimization.algorithms import MinimumEigenOptimizer
 
 from qiskit import BasicAer
-from qiskit.aqua import aqua_globals, QuantumInstance
 from qiskit.aqua.algorithms import QAOA
 from qiskit.aqua.components.optimizers import SPSA
-from qiskit.optimization.applications.ising import docplex, max_cut
-from qiskit.optimization.applications.ising.common import sample_most_likely
 
 # Generate a graph of 4 nodes
 n = 4
@@ -431,44 +433,32 @@ graph = nx.Graph()
 graph.add_nodes_from(np.arange(0, n, 1))
 elist = [(0, 1, 1.0), (0, 2, 1.0), (0, 3, 1.0), (1, 2, 1.0), (2, 3, 1.0)]
 graph.add_weighted_edges_from(elist)
-# Compute the weight matrix from the graph
-w = np.zeros([n, n])
-for i in range(n):
-    for j in range(n):
-        temp = graph.get_edge_data(i, j, default=0)
-        if temp != 0:
-            w[i, j] = temp['weight']
 
-# Create an Ising Hamiltonian with docplex.
-mdl = Model(name='max_cut')
-mdl.node_vars = mdl.binary_var_list(list(range(n)), name='node')
-maxcut_func = mdl.sum(w[i, j] * mdl.node_vars[i] * (1 - mdl.node_vars[j])
-                      for i in range(n) for j in range(n))
-mdl.maximize(maxcut_func)
-qubit_op, offset = docplex.get_operator(mdl)
+# Compute the weight matrix from the graph
+w = nx.adjacency_matrix(graph)
+
+# Formulate the problem as quadratic program
+problem = QuadraticProgram()
+_ = [problem.binary_var('x{}'.format(i)) for i in range(n)]  # create n binary variables
+linear = w.dot(np.ones(n))
+quadratic = -w
+problem.maximize(linear=linear, quadratic=quadratic)
+
+# Fix node 0 to be 1 to break the symmetry of the max-cut solution
+problem.linear_constraint([1, 0, 0, 0], '==', 1)
 
 # Run quantum algorithm QAOA on qasm simulator
-seed = 40598
-aqua_globals.random_seed = seed
-
 spsa = SPSA(max_trials=250)
-qaoa = QAOA(qubit_op, spsa, p=5)
 backend = BasicAer.get_backend('qasm_simulator')
-quantum_instance = QuantumInstance(backend, shots=1024, seed_simulator=seed,
-                                   seed_transpiler=seed)
-result = qaoa.run(quantum_instance)
-
-x = sample_most_likely(result.eigenstate)
-print('energy:', result.eigenvalue.real)
-print('time:', result.optimizer_time)
-print('max-cut objective:', result.eigenvalue.real + offset)
-print('solution:', max_cut.get_graph_solution(x))
-print('solution objective:', max_cut.max_cut_value(x, w))
+qaoa = QAOA(optimizer=spsa, p=5, quantum_instance=backend)
+algorithm = MinimumEigenOptimizer(qaoa)
+result = algorithm.solve(problem)
+print(result)  # prints solution, x=[1, 0, 1, 0], the cost, fval=4
 ```
 
 ### Further examples
 
-Learning path notebooks may be found in the 
+Learning path notebooks may be found in the
 [optimization tutorials](https://qiskit.org/documentation/tutorials/optimization/index.html) section
 of the documentation and are a great place to start.
 
