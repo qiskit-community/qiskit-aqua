@@ -14,7 +14,6 @@
 
 """ Test QPE """
 
-import warnings
 import unittest
 from test.aqua import QiskitAquaTestCase
 import numpy as np
@@ -27,7 +26,6 @@ from qiskit.aqua.utils import decimal_to_binary
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.aqua.algorithms import QPE
 from qiskit.circuit.library import QFT
-from qiskit.aqua.components.iqfts import Standard
 from qiskit.aqua.components.initial_states import Custom
 
 # pylint: disable=invalid-name
@@ -72,20 +70,13 @@ class TestQPE(QiskitAquaTestCase):
             'QUBIT_OP_H2_WITH_2_QUBIT_REDUCTION': qubit_op_h2_with_2_qubit_reduction.to_opflow()
         }
 
-    def tearDown(self):
-        super().tearDown()
-        warnings.filterwarnings(action="always", category=DeprecationWarning)
-
     @idata([
-        ['QUBIT_OP_SIMPLE', 'qasm_simulator', 1, 5, False],
-        ['QUBIT_OP_SIMPLE', 'qasm_simulator', 1, 5, True],
-        ['QUBIT_OP_ZZ', 'statevector_simulator', 1, 1, False],
-        ['QUBIT_OP_ZZ', 'statevector_simulator', 1, 1, True],
-        ['QUBIT_OP_H2_WITH_2_QUBIT_REDUCTION', 'statevector_simulator', 1, 6, False],
-        ['QUBIT_OP_H2_WITH_2_QUBIT_REDUCTION', 'statevector_simulator', 1, 6, True],
+        ['QUBIT_OP_SIMPLE', 'qasm_simulator', 1, 5],
+        ['QUBIT_OP_ZZ', 'statevector_simulator', 1, 1],
+        ['QUBIT_OP_H2_WITH_2_QUBIT_REDUCTION', 'statevector_simulator', 1, 6],
     ])
     @unpack
-    def test_qpe(self, qubit_op, simulator, num_time_slices, n_ancillae, use_circuit_library):
+    def test_qpe(self, qubit_op, simulator, num_time_slices, n_ancillae):
         """ QPE test """
         self.log.debug('Testing QPE')
         qubit_op = self._dict[qubit_op]
@@ -98,12 +89,7 @@ class TestQPE(QiskitAquaTestCase):
         self.log.debug('The corresponding eigenvector: %s', ref_eigenvec)
 
         state_in = Custom(qubit_op.num_qubits, state_vector=ref_eigenvec)
-        if use_circuit_library:
-            iqft = QFT(n_ancillae).inverse()
-        else:
-            # ignore deprecation warnings from QFTs
-            warnings.filterwarnings(action="ignore", category=DeprecationWarning)
-            iqft = Standard(n_ancillae)
+        iqft = QFT(n_ancillae).inverse()
 
         qpe = QPE(qubit_op, state_in, iqft, num_time_slices, n_ancillae,
                   expansion_mode='suzuki', expansion_order=2,
@@ -130,10 +116,7 @@ class TestQPE(QiskitAquaTestCase):
             fractional_part_only=True
         ))
 
-        np.testing.assert_approx_equal(result.eigenvalue.real, ref_eigenval.real, significant=2)
-
-        if not use_circuit_library:
-            warnings.filterwarnings(action="always", category=DeprecationWarning)
+        self.assertAlmostEqual(result.eigenvalue.real, ref_eigenval.real, delta=1e-2)
 
 
 if __name__ == '__main__':
