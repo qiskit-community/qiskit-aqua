@@ -239,7 +239,6 @@ class TestBernoulli(QiskitAquaTestCase):
             self.assertAlmostEqual(diff, 0)
 
     @data(True, False)
-    @unpack
     def test_iqae_circuits(self, efficient_circuit):
         """Test circuits resulting from iterative amplitude estimation.
 
