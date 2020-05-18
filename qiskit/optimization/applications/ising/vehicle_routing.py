@@ -42,10 +42,9 @@ def get_vehiclerouting_matrices(instance: np.ndarray,
         K: the number of vehicles available.
 
     Returns:
-        Tuple[np.ndarray, np.ndarray, float]:
-            a matrix defining the interactions between variables.
-            a matrix defining the contribution from the individual variables.
-            the constant offset.
+        a matrix defining the interactions between variables.
+        a matrix defining the contribution from the individual variables.
+        the constant offset.
     """
     # N = (n - 1) * n
     A = np.max(instance) * 100  # A parameter of cost function
@@ -101,7 +100,7 @@ def get_vehiclerouting_cost(instance: np.ndarray, n: int, K: int, x_sol: np.ndar
         x_sol: a solution, i.e., a path, in its binary representation.
 
     Returns:
-        float: objective function value.
+        objective function value.
     """
     (Q, g, c) = get_vehiclerouting_matrices(instance, n, K)
 
@@ -121,7 +120,7 @@ def get_operator(instance: np.ndarray, n: int, K: int) -> WeightedPauliOperator:
         K: the number of vehicles available.
 
     Returns:
-        WeightedPauliOperator: operator for the Hamiltonian.
+        operator for the Hamiltonian.
     """
     N = (n - 1) * n
     (Q, g__, c) = get_vehiclerouting_matrices(instance, n, K)
@@ -171,7 +170,7 @@ def get_vehiclerouting_solution(instance: np.ndarray,
         result: a result obtained by QAOA.run or VQE.run.
 
     Returns:
-        np.ndarray: a solution, i.e., a path, in its binary representation.
+        a solution, i.e., a path, in its binary representation.
 
     #TODO: support statevector simulation, results should be a statevector or counts format, not
            a result from algorithm run

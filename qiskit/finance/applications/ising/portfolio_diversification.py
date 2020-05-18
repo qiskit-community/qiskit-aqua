@@ -32,7 +32,7 @@ def get_operator(rho: np.ndarray, n: int, q: int) -> WeightedPauliOperator:
         q: the number of clusters of assets to output.
 
     Returns:
-        WeightedPauliOperator: operator for the Hamiltonian
+        operator for the Hamiltonian
     """
     # N = (n + 1) * n  # number of qubits
     N = n**2 + n
@@ -130,7 +130,7 @@ def get_operator(rho: np.ndarray, n: int, q: int) -> WeightedPauliOperator:
 def get_portfoliodiversification_solution(rho: np.ndarray,
                                           n: int,
                                           q: int,
-                                          result: MinimumEigensolverResult):
+                                          result: MinimumEigensolverResult) -> np.ndarray:
     """
     Tries to obtain a feasible solution (in vector form) of an instance of
     portfolio diversification from the results dictionary.
@@ -142,7 +142,7 @@ def get_portfoliodiversification_solution(rho: np.ndarray,
         result: a result obtained by QAOA.run or VQE.run containing key 'eigvecs'.
 
     Returns:
-        np.ndarray: a vector describing the solution.
+        a vector describing the solution.
     """
     del rho, q  # unused
     v = result.eigenstate
@@ -184,7 +184,7 @@ def get_portfoliodiversification_value(rho: np.ndarray,
         x_state: a vector describing the solution.
 
     Returns:
-        float: cost of the solution.
+        cost of the solution.
     """
     # pylint: disable=invalid-name
     # N = (n + 1) * n  # number of qubits
