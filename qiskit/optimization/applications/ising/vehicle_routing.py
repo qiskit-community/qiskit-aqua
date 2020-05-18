@@ -18,30 +18,34 @@ and provides some related routines (extracting a solution,
 checking its objective function value).
 """
 
+from typing import Tuple
 import numpy as np
 from qiskit.quantum_info import Pauli
 
+from qiskit.aqua.algorithms import MinimumEigensolverResult
 from qiskit.aqua.operators import WeightedPauliOperator
 
+# pylint: disable=invalid-name
 
-def get_vehiclerouting_matrices(instance, n, K):  # pylint: disable=invalid-name
+
+def get_vehiclerouting_matrices(instance: np.ndarray,
+                                n: int,
+                                K: int) -> Tuple[np.ndarray, np.ndarray, float]:
     """Constructs auxiliary matrices from a vehicle routing instance,
         which represent the encoding into a binary quadratic program.
         This is used in the construction of the qubit ops and computation
         of the solution cost.
 
     Args:
-        instance (numpy.ndarray) : a customers-to-customers distance matrix.
-        n (integer) : the number of customers.
-        K (integer) : the number of vehicles available.
+        instance: a customers-to-customers distance matrix.
+        n: the number of customers.
+        K: the number of vehicles available.
 
     Returns:
-        tuple(numpy.ndarray, numpy.ndarray, float):
-            a matrix defining the interactions between variables.
-            a matrix defining the contribution from the individual variables.
-            the constant offset.
+        a matrix defining the interactions between variables.
+        a matrix defining the contribution from the individual variables.
+        the constant offset.
     """
-    # pylint: disable=invalid-name
     # N = (n - 1) * n
     A = np.max(instance) * 100  # A parameter of cost function
 
@@ -83,22 +87,21 @@ def get_vehiclerouting_matrices(instance, n, K):  # pylint: disable=invalid-name
     # c is the constant offset
     c = 2 * A * (n - 1) + 2 * A * (K ** 2)
 
-    return (Q, g, c)
+    return Q, g, c
 
 
-def get_vehiclerouting_cost(instance, n, K, x_sol):  # pylint: disable=invalid-name
+def get_vehiclerouting_cost(instance: np.ndarray, n: int, K: int, x_sol: np.ndarray) -> float:
     """Computes the cost of a solution to an instance of a vehicle routing problem.
 
     Args:
-        instance (numpy.ndarray) : a customers-to-customers distance matrix.
-        n (integer) : the number of customers.
-        K (integer) : the number of vehicles available.
-        x_sol (numpy.ndarray): a solution, i.e., a path, in its binary representation.
+        instance: a customers-to-customers distance matrix.
+        n: the number of customers.
+        K: the number of vehicles available.
+        x_sol: a solution, i.e., a path, in its binary representation.
 
     Returns:
-        float: objective function value.
+        objective function value.
     """
-    # pylint: disable=invalid-name
     (Q, g, c) = get_vehiclerouting_matrices(instance, n, K)
 
     def fun(x):
@@ -108,18 +111,17 @@ def get_vehiclerouting_cost(instance, n, K, x_sol):  # pylint: disable=invalid-n
     return cost
 
 
-def get_operator(instance, n, K):  # pylint: disable=invalid-name
+def get_operator(instance: np.ndarray, n: int, K: int) -> WeightedPauliOperator:
     """Converts an instance of a vehicle routing problem into a list of Paulis.
 
     Args:
-        instance (numpy.ndarray) : a customers-to-customers distance matrix.
-        n (integer) : the number of customers.
-        K (integer) : the number of vehicles available.
+        instance: a customers-to-customers distance matrix.
+        n: the number of customers.
+        K: the number of vehicles available.
 
     Returns:
-        WeightedPauliOperator: operator for the Hamiltonian.
+        operator for the Hamiltonian.
     """
-    # pylint: disable=invalid-name
     N = (n - 1) * n
     (Q, g__, c) = get_vehiclerouting_matrices(instance, n, K)
 
@@ -154,25 +156,27 @@ def get_operator(instance, n, K):  # pylint: disable=invalid-name
     return WeightedPauliOperator(paulis=pauli_list)
 
 
-def get_vehiclerouting_solution(instance, n, K, result):  # pylint: disable=invalid-name
+def get_vehiclerouting_solution(instance: np.ndarray,
+                                n: int,
+                                K: int,
+                                result: MinimumEigensolverResult) -> np.ndarray:
     """Tries to obtain a feasible solution (in vector form) of an instance
         of vehicle routing from the results dictionary.
 
     Args:
-        instance (numpy.ndarray) : a customers-to-customers distance matrix.
-        n (integer) : the number of customers.
-        K (integer) : the number of vehicles available.
-        result (dictionary) : a dictionary obtained by QAOA.run or VQE.run containing key 'eigvecs'.
+        instance: a customers-to-customers distance matrix.
+        n: the number of customers.
+        K: the number of vehicles available.
+        result: a result obtained by QAOA.run or VQE.run.
 
     Returns:
-        numpy.ndarray: a solution, i.e., a path, in its binary representation.
+        a solution, i.e., a path, in its binary representation.
 
     #TODO: support statevector simulation, results should be a statevector or counts format, not
            a result from algorithm run
     """
-    # pylint: disable=invalid-name
     del instance, K  # unused
-    v = result['eigvecs'][0]
+    v = result.eigenstate
     N = (n - 1) * n
 
     index_value = [x for x in range(len(v)) if v[x] == max(v)][0]
