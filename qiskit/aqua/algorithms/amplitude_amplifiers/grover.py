@@ -100,13 +100,14 @@ class Grover(QuantumAlgorithm):
                  total number of elements in the set from the oracle used) of iterations is
                  reached. The implementation follows Section 4 of Boyer et al.
                  <https://arxiv.org/abs/quant-ph/9605034>
-            lam: For incremental search mode, the maximum number of repetition of amplitude amplification increases by factor lam,
+            lam: For incremental search mode, the maximum number of repetition of amplitude
+                 amplification increases by factor lam,
                  :math: `R_{i+1} = lam \times R_{i}`.
                  Default value lam = 1.34 is proved to be optimal in
                  <https://www.researchgate.net/publication/220133694_Grover%27s_Quantum_Algorithm_Applied_to_Global_Optimization>
             rotation_counts: For incremental mode, if rotation_counts is defined, parameter lam is ignored.
-                rotation_counts is the list of integers that defines the number of repetition of amplitude amplification
-                for each round.
+                rotation_counts is the list of integers that defines the number of repetition of
+                amplitude amplification for each round.
             num_iterations: How many times the marking and reflection phase sub-circuit is
                 repeated to amplify the amplitude(s) of the target(s). Has a minimum value of 1.
             mct_mode: Multi-Control Toffoli mode ('basic' | 'basic-dirty-ancilla' |
@@ -115,7 +116,7 @@ class Grover(QuantumAlgorithm):
 
         Raises:
             AquaError: evaluate_classically() missing from the input oracle
-        """
+        """  # noqa # pylint: disable=line-too-long
         validate_min('num_iterations', num_iterations, 1)
         validate_in_set('mct_mode', mct_mode,
                         {'basic', 'basic-dirty-ancilla',
