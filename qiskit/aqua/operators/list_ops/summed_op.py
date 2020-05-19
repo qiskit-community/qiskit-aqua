@@ -94,12 +94,13 @@ class SummedOp(ListOp):
         for op in self.oplist:
             if isinstance(op, PrimitiveOp):
                 new_op = PrimitiveOp(op.primitive)
+                new_coeff = op.coeff * self.coeff
                 if new_op in oplist:
                     index = oplist.index(new_op)
-                    coeffs[index] += op.coeff * self.coeff
+                    coeffs[index] += new_coeff
                 else:
                     oplist.append(new_op)
-                    coeffs.append(op.coeff * self.coeff)
+                    coeffs.append(new_coeff)
             else:
                 if op in oplist:
                     index = oplist.index(op)
