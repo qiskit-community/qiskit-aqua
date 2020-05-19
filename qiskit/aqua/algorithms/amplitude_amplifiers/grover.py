@@ -105,7 +105,8 @@ class Grover(QuantumAlgorithm):
                  :math: `R_{i+1} = lam \times R_{i}`.
                  Default value lam = 1.34 is proved to be optimal in
                  <https://www.researchgate.net/publication/220133694_Grover%27s_Quantum_Algorithm_Applied_to_Global_Optimization>
-            rotation_counts: For incremental mode, if rotation_counts is defined, parameter lam is ignored.
+            rotation_counts: For incremental mode, if rotation_counts is defined,
+                parameter lam is ignored.
                 rotation_counts is the list of integers that defines the number of repetition of
                 amplitude amplification for each round.
             num_iterations: How many times the marking and reflection phase sub-circuit is
@@ -116,7 +117,7 @@ class Grover(QuantumAlgorithm):
 
         Raises:
             AquaError: evaluate_classically() missing from the input oracle
-        """  # noqa # pylint: disable=line-too-long
+        """
         validate_min('num_iterations', num_iterations, 1)
         validate_in_set('mct_mode', mct_mode,
                         {'basic', 'basic-dirty-ancilla',
