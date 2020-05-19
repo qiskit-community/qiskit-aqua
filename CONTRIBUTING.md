@@ -112,7 +112,7 @@ The current categories for each label are as follows:
 ### Release Notes
 
 When making any end user facing changes in a contribution we have to make sure
-we document that when we release a new version of qiskit-aer. The expectation
+we document that when we release a new version of qiskit-aqua. The expectation
 is that if your code contribution has user facing changes that you will write
 the release documentation for these changes. This documentation must explain
 what was changed, why it was changed, and how users can either use or adapt
@@ -206,7 +206,7 @@ After release notes have been added if you want to see what the full output of
 the release notes. In general the output from reno that we'll get is a rst
 (ReStructuredText) file that can be compiled by
 [sphinx](https://www.sphinx-doc.org/en/master/). To generate the rst file you
-use the ``reno report`` command. If you want to generate the full aer release
+use the ``reno report`` command. If you want to generate the full aqua release
 notes for all releases (since we started using reno during 0.9) you just run::
 
     reno report
@@ -223,21 +223,12 @@ https://github.com/Qiskit/qiskit/blob/master/docs/release_notes.rst)
 
 #### Building release notes locally
 
-Building The release notes are part of the standard qiskit-aer documentation
+Building The release notes are part of the standard qiskit-aqua documentation
 builds. To check what the rendered html output of the release notes will look
 like for the current state of the repo you can run: `tox -edocs` which will
 build all the documentation into `docs/_build/html` and the release notes in
 particular will be located at `docs/_build/html/release_notes.html`
 
-
-### Installing Qiskit Ignis from source
-Please see the [Installing Qiskit Ignis from
-Source](https://qiskit.org/documentation/contributing_to_qiskit.html#installing-ignis-from-source)
-section of the Qiskit documentation.
-
-
-
- 
 ## Installing Qiskit Aqua from source
 
 Please see the [Installing Qiskit Aqua from
