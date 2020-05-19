@@ -54,7 +54,7 @@ class TestGrover(QiskitAquaTestCase):
         """ grover test """
         groundtruth = sol
         oracle = oracle_cls(input_test, optimization=optimization)
-        grover = Grover(oracle, incremental=True, mct_mode=mct_mode)
+        grover = Grover(oracle, incremental=True, rotation_counts=[int(1.34 ** i) for i in range(20)], mct_mode=mct_mode)
         backend = BasicAer.get_backend(simulator)
         quantum_instance = QuantumInstance(backend, shots=1000)
 

@@ -81,6 +81,8 @@ class Grover(QuantumAlgorithm):
                  oracle: Oracle, init_state: Optional[InitialState] = None,
                  incremental: bool = False,
                  num_iterations: int = 1,
+                 lam: float = 1.34,
+                 rotation_counts: Optional[list] = None,
                  mct_mode: str = 'basic',
                  quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
         r"""
@@ -98,6 +100,13 @@ class Grover(QuantumAlgorithm):
                  total number of elements in the set from the oracle used) of iterations is
                  reached. The implementation follows Section 4 of Boyer et al.
                  <https://arxiv.org/abs/quant-ph/9605034>
+            lam: For incremental search mode, the maximum number of repetition of amplitude amplification increases by factor lam,
+                 :math: `R_{i+1} = lam \times R_{i}`.
+                 Default value lam = 1.34 is proved to be optimal in
+                 <https://www.researchgate.net/publication/220133694_Grover%27s_Quantum_Algorithm_Applied_to_Global_Optimization>
+            rotation_counts: For incremental mode, if rotation_counts is defined, parameter lam is ignored.
+                rotation_counts is the list of integers that defines the number of repetition of amplitude amplification
+                for each round.
             num_iterations: How many times the marking and reflection phase sub-circuit is
                 repeated to amplify the amplitude(s) of the target(s). Has a minimum value of 1.
             mct_mode: Multi-Control Toffoli mode ('basic' | 'basic-dirty-ancilla' |
@@ -129,6 +138,8 @@ class Grover(QuantumAlgorithm):
         self._diffusion_circuit = self._construct_diffusion_circuit()
         self._max_num_iterations = np.ceil(2 ** (len(oracle.variable_register) / 2))
         self._incremental = incremental
+        self._lam = lam
+        self._rotation_counts = rotation_counts
         self._num_iterations = num_iterations if not incremental else 1
         if incremental:
             logger.debug('Incremental mode specified, ignoring "num_iterations".')
@@ -248,21 +259,30 @@ class Grover(QuantumAlgorithm):
 
     def _run(self):
         if self._incremental:
-            current_max_num_iterations, lam = 1, 6 / 5
 
-            def _try_current_max_num_iterations():
-                target_num_iterations = self.random.randint(current_max_num_iterations) + 1
+            def _try_target_num_iterations():
                 self._qc_amplitude_amplification = QuantumCircuit()
-                for _ in range(target_num_iterations):
+                for _ in range(int(target_num_iterations)):
                     self._qc_amplitude_amplification += self.qc_amplitude_amplification_iteration
                 return self._run_with_existing_iterations()
 
-            while current_max_num_iterations < self._max_num_iterations:
-                assignment, oracle_evaluation = _try_current_max_num_iterations()
-                if oracle_evaluation:
-                    break
-                current_max_num_iterations = \
-                    min(lam * current_max_num_iterations, self._max_num_iterations)
+            if self._rotation_counts:
+                target_num_iterations = 0
+                while self._rotation_counts and target_num_iterations < self._max_num_iterations:
+                    target_num_iterations = self._rotation_counts.pop(0)
+                    assignment, oracle_evaluation = _try_target_num_iterations()
+                    if oracle_evaluation:
+                        break
+            else:
+                current_max_num_iterations = 1
+                while current_max_num_iterations < self._max_num_iterations:
+                    target_num_iterations = self.random.randint(current_max_num_iterations) + 1
+                    assignment, oracle_evaluation = _try_target_num_iterations()
+                    if oracle_evaluation:
+                        break
+                    current_max_num_iterations = \
+                        min(self._lam * current_max_num_iterations, self._max_num_iterations)
+
         else:
             self._qc_amplitude_amplification = QuantumCircuit()
             for _ in range(self._num_iterations):
