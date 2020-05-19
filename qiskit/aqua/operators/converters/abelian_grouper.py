@@ -125,7 +125,7 @@ class AbelianGrouper(ConverterBase):
     @staticmethod
     def _commutation_graph(list_op: ListOp) -> List[Tuple[int, int]]:
         """
-        Create edges (i, j) if i and j is not commutable.
+        Create edges (i, j) if i and j are not commutable.
 
         Args:
             list_op: list_op
@@ -140,8 +140,10 @@ class AbelianGrouper(ConverterBase):
     @staticmethod
     def _commutation_graph_fast(list_op: ListOp) -> List[Tuple[int, int]]:
         """
-        Create edges (i, j) if i and j is not commutable.
-        Note that this method is applicable to only PauliOps.
+        Create edges (i, j) if i and j are not commutable.
+
+        Note:
+            This method is applicable to only PauliOps.
 
         Args:
             list_op: list_op
@@ -152,7 +154,7 @@ class AbelianGrouper(ConverterBase):
         # convert a Pauli operator into int vector where {I: 0, X: 2, Y: 3, Z: 1}
         mat1 = np.array([op.primitive.z + 2 * op.primitive.x for op in list_op], dtype=np.int8)
         mat2 = mat1[:, None]
-        # i and j are commutable with TPB if mat3[i, j] is True
+        # mat3[i, j] is True if i and j are commutable with TPB
         mat3 = (((mat1 * mat2) * (mat1 - mat2)) == 0).all(axis=2)
         # return [(i, j) if mat3[i, j] is False and i < j]
         return zip(*np.where(np.triu(np.logical_not(mat3), k=1)))
