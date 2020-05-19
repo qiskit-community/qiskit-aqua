@@ -96,7 +96,7 @@ class TestQPE(QiskitAquaTestCase):
                   shallow_circuit_concat=True)
 
         backend = BasicAer.get_backend(simulator)
-        quantum_instance = QuantumInstance(backend, shots=100)
+        quantum_instance = QuantumInstance(backend, shots=100, seed_transpiler=1, seed_simulator=1)
 
         # run qpe
         result = qpe.run(quantum_instance)
@@ -116,7 +116,7 @@ class TestQPE(QiskitAquaTestCase):
             fractional_part_only=True
         ))
 
-        self.assertAlmostEqual(result.eigenvalue.real, ref_eigenval.real, delta=1e-2)
+        self.assertAlmostEqual(result.eigenvalue.real, ref_eigenval.real, delta=2e-2)
 
 
 if __name__ == '__main__':
