@@ -114,13 +114,17 @@ class CobylaOptimizer(OptimizationAlgorithm):
         constraints = []
 
         # add lower/upper bound constraints
-        for variable in problem.variables:
+        for i, variable in enumerate(problem.variables):
             lowerbound = variable.lowerbound
             upperbound = variable.upperbound
             if lowerbound > -INFINITY:
-                constraints += [lambda x, lb=lowerbound: x - lb]
+                def lb_constraint(x, l_b=lowerbound, j=i):
+                    return x[j] - l_b
+                constraints += [lb_constraint]
             if upperbound < INFINITY:
-                constraints += [lambda x, ub=upperbound: ub - x]
+                def ub_constraint(x, u_b=upperbound, j=i):
+                    return u_b - x[j]
+                constraints += [ub_constraint]
 
         # pylint: disable=no-member
         # add linear and quadratic constraints
@@ -140,8 +144,17 @@ class CobylaOptimizer(OptimizationAlgorithm):
             else:
                 raise QiskitOptimizationError('Unsupported constraint type!')
 
-        # TODO: derive x_0 from lower/upper bounds
-        x_0 = np.zeros(len(problem.variables))
+        # define initial state and adjust according to variable bounds
+        x_0 = np.zeros(problem.get_num_vars())
+        for i, variable in enumerate(problem.variables):
+            l_b = variable.lowerbound
+            u_b = variable.upperbound
+            if l_b > -INFINITY and u_b < INFINITY:
+                x_0[i] = (l_b + u_b) / 2.0
+            elif l_b > -INFINITY:
+                x_0[i] = l_b
+            elif u_b < INFINITY:
+                x_0[i] = u_b
 
         # run optimization
         x = fmin_cobyla(objective, x_0, constraints, rhobeg=self._rhobeg, rhoend=self._rhoend,
