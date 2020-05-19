@@ -273,19 +273,19 @@ The development cycle for qiskit-aqua is informed by release plans in the
 
 * `master`:
 
-The master branch is used for development of the next version of qiskit-ignis.
+The master branch is used for development of the next version of qiskit-aqua.
 It will be updated frequently and should not be considered stable. The API
 can and will change on master as we introduce and refine new features.
 
 * `stable/*`:
 The stable branches are used to maintain the most recent released versions of
-qiskit-ignis. It contains the versions of the code corresponding to the minor
+qiskit-aqua. It contains the versions of the code corresponding to the minor
 version release in the branch name release for The API on these branches are
 stable and the only changes merged to it are bugfixes.
 
 ### Release Cycle
 
-From time to time, we will release brand new versions of Qiskit Terra. These
+From time to time, we will release brand new versions of Qiskit Aqua. These
 are well-tested versions of the software.
 
 When the time for a new release has come, we will:
