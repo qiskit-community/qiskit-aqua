@@ -59,8 +59,10 @@ class SummedOp(ListOp):
 
     def add(self, other: OperatorBase) -> OperatorBase:
         """ Return Operator addition of self and other, overloaded by ``+``.
-            Note that this appends other to ``self.oplist`` without checking other is already
-            included or not. If you want to simplify this, please use ``SummedOp.simplify``.
+
+        Note:
+            This appends other to ``self.oplist`` without checking other is already included or not.
+            If you want to simplify this, please use ``SummedOp.simplify``.
 
         Args:
             other: An ``OperatorBase`` with the same number of qubits as self, and in the same
@@ -68,7 +70,7 @@ class SummedOp(ListOp):
                 of underlying function).
 
         Returns:
-            An ``SummedOp`` equivalent to the sum of self and other.
+            A ``SummedOp`` equivalent to the sum of self and other.
         """
         if self == other:
             return self.mul(2.0)
