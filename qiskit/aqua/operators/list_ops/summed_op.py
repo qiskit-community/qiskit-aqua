@@ -84,7 +84,7 @@ class SummedOp(ListOp):
         # We do this recursively in case there are SummedOps of PauliOps in oplist.
         legacy_ops = [op.to_legacy_op(massive=massive) for op in self.oplist]
 
-        if not all([isinstance(op, WeightedPauliOperator) for op in legacy_ops]):
+        if not all(isinstance(op, WeightedPauliOperator) for op in legacy_ops):
             # If any Operators in oplist cannot be represented by Legacy Operators, the error
             # will be raised in the offending matrix-converted result (e.g. StateFn or ListOp)
             return self.to_matrix_op(massive=massive).to_legacy_op(massive=massive)

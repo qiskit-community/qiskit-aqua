@@ -158,7 +158,7 @@ class ListOp(OperatorBase):
         if not isinstance(other, type(self)) or not len(self.oplist) == len(other.oplist):
             return False
         # Note, ordering matters here (i.e. different list orders will return False)
-        return all([op1 == op2 for op1, op2 in zip(self.oplist, other.oplist)])
+        return all(op1 == op2 for op1, op2 in zip(self.oplist, other.oplist))
 
     # We need to do this because otherwise Numpy takes over scalar multiplication and wrecks it if
     # isinstance(scalar, np.number) - this started happening when we added __get_item__().
@@ -265,9 +265,9 @@ class ListOp(OperatorBase):
                                       r'Listops.')
 
         evals = [(self.coeff * op).eval(front) for op in self.oplist]
-        if all([isinstance(op, OperatorBase) for op in evals]):
+        if all(isinstance(op, OperatorBase) for op in evals):
             return self.__class__(evals)
-        elif any([isinstance(op, OperatorBase) for op in evals]):
+        elif any(isinstance(op, OperatorBase) for op in evals):
             raise TypeError('Cannot handle mixed scalar and Operator eval results.')
         else:
             return self.combo_fn(evals)
