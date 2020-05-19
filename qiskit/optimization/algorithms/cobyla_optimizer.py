@@ -114,13 +114,17 @@ class CobylaOptimizer(OptimizationAlgorithm):
         constraints = []
 
         # add lower/upper bound constraints
-        for variable in problem.variables:
+        for i, variable in enumerate(problem.variables):
             lowerbound = variable.lowerbound
             upperbound = variable.upperbound
             if lowerbound > -INFINITY:
-                constraints += [lambda x, lb=lowerbound: x - lb]
+                def lb_constraint(x, l_b=lowerbound, j=i):
+                    return x[j] - l_b
+                constraints += [lb_constraint]
             if upperbound < INFINITY:
-                constraints += [lambda x, ub=upperbound: ub - x]
+                def ub_constraint(x, u_b=upperbound, j=i):
+                    return u_b - x[j]
+                constraints += [ub_constraint]
 
         # pylint: disable=no-member
         # add linear and quadratic constraints
