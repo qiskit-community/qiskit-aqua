@@ -17,21 +17,23 @@
 import numpy as np
 from qiskit.quantum_info import Pauli
 
+from qiskit.aqua.algorithms import MinimumEigensolverResult
 from qiskit.aqua.operators import WeightedPauliOperator, StateFn
 
+# pylint: disable=invalid-name
 
-def get_operator(rho, n, q):
+
+def get_operator(rho: np.ndarray, n: int, q: int) -> WeightedPauliOperator:
     """Converts an instance of portfolio optimization into a list of Paulis.
 
     Args:
-        rho (numpy.ndarray) : an asset-to-asset similarity matrix, such as the covariance matrix.
-        n (integer) : the number of assets.
-        q (integer) : the number of clusters of assets to output.
+        rho: an asset-to-asset similarity matrix, such as the covariance matrix.
+        n: the number of assets.
+        q: the number of clusters of assets to output.
 
     Returns:
-        WeightedPauliOperator: operator for the Hamiltonian
+        operator for the Hamiltonian
     """
-    # pylint: disable=invalid-name
     # N = (n + 1) * n  # number of qubits
     N = n**2 + n
 
@@ -125,23 +127,25 @@ def get_operator(rho, n, q):
     return WeightedPauliOperator(paulis=pauli_list)
 
 
-def get_portfoliodiversification_solution(rho, n, q, result):  # pylint: disable=invalid-name
+def get_portfoliodiversification_solution(rho: np.ndarray,
+                                          n: int,
+                                          q: int,
+                                          result: MinimumEigensolverResult) -> np.ndarray:
     """
     Tries to obtain a feasible solution (in vector form) of an instance of
     portfolio diversification from the results dictionary.
 
     Args:
-        rho (numpy.ndarray) : an asset-to-asset similarity matrix, such as the covariance matrix.
-        n (integer) : the number of assets.
-        q (integer) : the number of clusters of assets to output.
-        result (dictionary) : a dictionary obtained by QAOA.run or VQE.run containing key 'eigvecs'.
+        rho: an asset-to-asset similarity matrix, such as the covariance matrix.
+        n: the number of assets.
+        q: the number of clusters of assets to output.
+        result: a result obtained by QAOA.run or VQE.run containing key 'eigvecs'.
 
     Returns:
-        numpy.ndarray: a vector describing the solution.
+        a vector describing the solution.
     """
-    # pylint: disable=invalid-name
     del rho, q  # unused
-    v = result['eigvecs'][0]
+    v = result.eigenstate
     if isinstance(v, StateFn):
         v = v.to_matrix()
     # N = (n + 1) * n  # number of qubits
@@ -165,19 +169,22 @@ def get_portfoliodiversification_solution(rho, n, q, result):  # pylint: disable
     return x_state
 
 
-def get_portfoliodiversification_value(rho, n, q, x_state):   # pylint: disable=invalid-name
+def get_portfoliodiversification_value(rho: np.ndarray,
+                                       n: int,
+                                       q: int,
+                                       x_state: np.ndarray) -> float:
     """
     Evaluates an objective function of an instance of portfolio diversification and
     its solution (in vector form).
 
     Args:
-        rho (numpy.ndarray) : an asset-to-asset similarity matrix, such as the covariance matrix.
-        n (integer) : the number of assets.
-        q (integer) : the number of clusters of assets to output.
-        x_state (numpy.ndarray) : a vector describing the solution.
+        rho: an asset-to-asset similarity matrix, such as the covariance matrix.
+        n: the number of assets.
+        q: the number of clusters of assets to output.
+        x_state: a vector describing the solution.
 
     Returns:
-        float: cost of the solution.
+        cost of the solution.
     """
     # pylint: disable=invalid-name
     # N = (n + 1) * n  # number of qubits

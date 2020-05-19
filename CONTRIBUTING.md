@@ -66,8 +66,9 @@ please ensure that:
 3. If it makes sense for your change that you have added new tests that
    cover the changes and any new function.
    
-4. Update the CHANGELOG.md to include added, changed, fixed, removed and
-   deprecated entries as appropriate. The PR number should be added too. 
+4. Ensure that if your change has an end user facing impact (new feature,
+   deprecation, removal etc) that you have added a reno release note for
+   that change and that the PR is tagged for the changelog.
 
 5. Ensure all code, including unit tests, has the copyright header. The copyright
    date will be checked by CI build. The format of the date(s) is _year of creation,
@@ -84,7 +85,150 @@ please ensure that:
    If there is just one date and it's a prior year then add the current year as the 2nd date, 
    otherwise simply change the 2nd date to the current year. The _year of creation_ date is
    never changed.
- 
+
+### Changelog generation
+
+The changelog is automatically generated as part of the release process
+automation. This works through a combination of the git log and the pull
+request. When a release is tagged and pushed to github the release automation
+bot looks at all commit messages from the git log for the release. It takes the
+PR numbers from the git log (assuming a squash merge) and checks if that PR had
+a `Changelog:` label on it. If there is a label it will add the git commit
+message summary line from the git log for the release to the changelog.
+
+If there are multiple `Changelog:` tags on a PR the git commit message summary
+line from the git log will be used for each changelog category tagged.
+
+The current categories for each label are as follows:
+
+| PR Label               | Changelog Category |
+| -----------------------|--------------------|
+| Changelog: Deprecation | Deprecated         |
+| Changelog: New Feature | Added              |
+| Changelog: API Change  | Changed            |
+| Changelog: Removal     | Removed            |
+| Changelog: Bugfix      | Fixed              |
+
+### Release Notes
+
+When making any end user facing changes in a contribution we have to make sure
+we document that when we release a new version of qiskit-aqua. The expectation
+is that if your code contribution has user facing changes that you will write
+the release documentation for these changes. This documentation must explain
+what was changed, why it was changed, and how users can either use or adapt
+to the change. The idea behind release documentation is that when a naive
+user with limited internal knowledege of the project is upgrading from the
+previous release to the new one, they should be able to read the release notes,
+understand if they need to update their program which uses qiskit, and how they
+would go about doing that. It ideally should explain why they need to make
+this change too, to provide the necessary context.
+
+To make sure we don't forget a release note or if the details of user facing
+changes over a release cycle we require that all user facing changes include
+documentation at the same time as the code. To accomplish this we use the
+[reno](https://docs.openstack.org/reno/latest/) tool which enables a git based
+workflow for writing and compiling release notes.
+
+#### Adding a new release note
+
+Making a new release note is quite straightforward. Ensure that you have reno
+installed with::
+
+    pip install -U reno
+
+Once you have reno installed you can make a new release note by running in
+your local repository checkout's root::
+
+    reno new short-description-string
+
+where short-description-string is a brief string (with no spaces) that describes
+what's in the release note. This will become the prefix for the release note
+file. Once that is run it will create a new yaml file in releasenotes/notes.
+Then open that yaml file in a text editor and write the release note. The basic
+structure of a release note is restructured text in yaml lists under category
+keys. You add individual items under each category and they will be grouped
+automatically by release when the release notes are compiled. A single file
+can have as many entries in it as needed, but to avoid potential conflicts
+you'll want to create a new file for each pull request that has user facing
+changes. When you open the newly created file it will be a full template of
+the different categories with a description of a category as a single entry
+in each category. You'll want to delete all the sections you aren't using and
+update the contents for those you are. For example, the end result should
+look something like::
+
+```yaml
+features:
+  - |
+    Introduced a new feature foo, that adds support for doing something to
+    ``QuantumCircuit`` objects. It can be used by using the foo function,
+    for example::
+
+      from qiskit import foo
+      from qiskit import QuantumCircuit
+      foo(QuantumCircuit())
+
+  - |
+    The ``qiskit.QuantumCircuit`` module has a new method ``foo()``. This is
+    the equivalent of calling the ``qiskit.foo()`` to do something to your
+    QuantumCircuit. This is the equivalent of running ``qiskit.foo()`` on
+    your circuit, but provides the convenience of running it natively on
+    an object. For example::
+
+      from qiskit import QuantumCircuit
+
+      circ = QuantumCircuit()
+      circ.foo()
+
+deprecations:
+  - |
+    The ``qiskit.bar`` module has been deprecated and will be removed in a
+    future release. Its sole function, ``foobar()`` has been superseded by the
+    ``qiskit.foo()`` function which provides similar functionality but with
+    more accurate results and better performance. You should update your calls
+    ``qiskit.bar.foobar()`` calls to ``qiskit.foo()``.
+```
+
+You can also look at other release notes for other examples.
+
+You can use any restructured text feature in them (code sections, tables,
+enumerated lists, bulleted list, etc) to express what is being changed as
+needed. In general you want the release notes to include as much detail as
+needed so that users will understand what has changed, why it changed, and how
+they'll have to update their code.
+
+After you've finished writing your release notes you'll want to add the note
+file to your commit with `git add` and commit them to your PR branch to make
+sure they're included with the code in your PR.
+
+#### Generating the release notes
+
+After release notes have been added if you want to see what the full output of
+the release notes. In general the output from reno that we'll get is a rst
+(ReStructuredText) file that can be compiled by
+[sphinx](https://www.sphinx-doc.org/en/master/). To generate the rst file you
+use the ``reno report`` command. If you want to generate the full aqua release
+notes for all releases (since we started using reno during 0.9) you just run::
+
+    reno report
+
+but you can also use the ``--version`` argument to view a single release (after
+it has been tagged::
+
+    reno report --version 0.5.0
+
+At release time ``reno report`` is used to generate the release notes for the
+release and the output will be submitted as a pull request to the documentation
+repository's [release notes file](
+https://github.com/Qiskit/qiskit/blob/master/docs/release_notes.rst)
+
+#### Building release notes locally
+
+Building The release notes are part of the standard qiskit-aqua documentation
+builds. To check what the rendered html output of the release notes will look
+like for the current state of the repo you can run: `tox -edocs` which will
+build all the documentation into `docs/_build/html` and the release notes in
+particular will be located at `docs/_build/html/release_notes.html`
+
 ## Installing Qiskit Aqua from source
 
 Please see the [Installing Qiskit Aqua from
@@ -127,35 +271,37 @@ The development cycle for qiskit-aqua is informed by release plans in the
  
 ### Branches
 
-* `master`
+* `master`:
 
 The master branch is used for development of the next version of qiskit-aqua.
 It will be updated frequently and should not be considered stable. The API
 can and will change on master as we introduce and refine new features.
 
-* `stable`
-
-The stable branch is used to maintain released versions of qiskit-aqua.
-It is tagged for each version of the code corresponding to the release of
-that version on PyPI. The only changes that will be merged to stable
-are for bug fixes. For further information please refer to the Qiskit
-[stable branch
- policy](https://qiskit.org/documentation/contributing_to_qiskit.html#stable-branch-policy)
+* `stable/*`:
+The stable branches are used to maintain the most recent released versions of
+qiskit-aqua. It contains the versions of the code corresponding to the minor
+version release in the branch name release for The API on these branches are
+stable and the only changes merged to it are bugfixes.
 
 ### Release Cycle
 
-From time to time, we will release brand new versions of Qiskit Aqua.
-These are well-tested versions of the software.
+From time to time, we will release brand new versions of Qiskit Aqua. These
+are well-tested versions of the software.
 
 When the time for a new release has come, we will:
 
-1.  Merge the `master` branch with the `stable` branch.
-2.  Create a new tag with the version number in the `stable` branch.
-3.  Create and distribute the pip package.
-4.  Change the `master` version to the next release version.
-5.  Announce the new version to the world!
+1.  Create a new tag with the version number and push it to github
+2.  Change the `master` version to the next release version.
 
-The `stable` branch will only receive changes in the form of critical bug
-fixes, so the third number, the patch/maintenance number of the version,
-of its form _major.minor.maintenance_, will increase when a fixed version is
-released from the stable branch.
+The release automation processes will be triggered by the new tag and perform
+the following steps:
+
+1.  Create a stable branch for the new minor version from the release tag
+    on the `master` branch
+2.  Build and upload binary wheels to pypi
+3.  Create a github release page with a generated changelog
+4.  Generate a PR on the meta-repository to bump the terra version and
+    meta-package version.
+
+The `stable/*` branches should only receive changes in the form of bug
+fixes.
