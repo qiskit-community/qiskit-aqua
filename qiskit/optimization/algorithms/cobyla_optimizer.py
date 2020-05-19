@@ -144,8 +144,17 @@ class CobylaOptimizer(OptimizationAlgorithm):
             else:
                 raise QiskitOptimizationError('Unsupported constraint type!')
 
-        # TODO: derive x_0 from lower/upper bounds
-        x_0 = np.zeros(len(problem.variables))
+        # define initial state and adjust according to variable bounds
+        x_0 = np.zeros(problem.get_num_vars())
+        for i, variable in enumerate(problem.variables):
+            l_b = variable.lowerbound
+            u_b = variable.upperbound
+            if l_b > -INFINITY and u_b < INFINITY:
+                x_0[i] = (l_b + u_b) / 2.0
+            elif l_b > -INFINITY:
+                x_0[i] = l_b
+            elif u_b < INFINITY:
+                x_0[i] = u_b
 
         # run optimization
         x = fmin_cobyla(objective, x_0, constraints, rhobeg=self._rhobeg, rhoend=self._rhoend,
