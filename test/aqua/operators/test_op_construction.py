@@ -328,6 +328,28 @@ class TestOpConstruction(QiskitAquaTestCase):
         self.assertEqual(str(sum_op.oplist[1].primitive), 'YY')
         self.assertEqual(sum_op.oplist[1].coeff, 1)
 
+        sum_op = SummedOp([X ^ X * 2, Y ^ Y], 2) + SummedOp([X ^ X * 2, Z ^ Z], 3)
+        self.assertEqual(sum_op.coeff, 1)
+        self.assertEqual(len(sum_op), 4)
+        self.assertEqual(str(sum_op.oplist[0].primitive), 'XX')
+        self.assertEqual(sum_op.oplist[0].coeff, 4)
+        self.assertEqual(str(sum_op.oplist[1].primitive), 'YY')
+        self.assertEqual(sum_op.oplist[1].coeff, 2)
+        self.assertEqual(str(sum_op.oplist[2].primitive), 'XX')
+        self.assertEqual(sum_op.oplist[2].coeff, 6)
+        self.assertEqual(str(sum_op.oplist[3].primitive), 'ZZ')
+        self.assertEqual(sum_op.oplist[3].coeff, 3)
+
+        sum_op = sum_op.simplify()
+        self.assertEqual(sum_op.coeff, 1)
+        self.assertEqual(len(sum_op), 3)
+        self.assertEqual(str(sum_op.oplist[0].primitive), 'XX')
+        self.assertEqual(sum_op.oplist[0].coeff, 10)
+        self.assertEqual(str(sum_op.oplist[1].primitive), 'YY')
+        self.assertEqual(sum_op.oplist[1].coeff, 2)
+        self.assertEqual(str(sum_op.oplist[2].primitive), 'ZZ')
+        self.assertEqual(sum_op.oplist[2].coeff, 3)
+
 
 if __name__ == '__main__':
     unittest.main()
