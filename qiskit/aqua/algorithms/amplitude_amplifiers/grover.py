@@ -120,7 +120,7 @@ class Grover(QuantumAlgorithm):
                  `<https://www.researchgate.net/publication/220133694_Grover%27s_Quantum_Algorithm_Applied_to_Global_Optimization>`_
             [2]: Boyer et al., Tight bounds on quantum searching
                  `<https://arxiv.org/abs/quant-ph/9605034>`_
-        """
+        """  # pylint: disable=line-too-long
         validate_min('num_iterations', num_iterations, 1)
         validate_in_set('mct_mode', mct_mode,
                         {'basic', 'basic-dirty-ancilla',
