@@ -217,8 +217,6 @@ jobs:
         - sudo apt-get -y install libgfortran5
         # Installing pyquante2 master branch...
         - pip install https://github.com/rpmuller/pyquante2/archive/master.zip --progress-bar off
-        # make sure it uses latest numpy, this will be removed later
-        - pip install -U numpy
         - pip install cplex
       before_script:
         - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
