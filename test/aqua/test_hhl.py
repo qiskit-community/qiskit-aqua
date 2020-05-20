@@ -32,6 +32,8 @@ from qiskit.aqua.operators import MatrixOperator
 from qiskit.aqua.components.eigs import EigsQPE
 from qiskit.aqua.components.reciprocals import LookupRotation, LongDivision
 from qiskit.aqua.components.initial_states import Custom
+from qiskit.aqua.components.qfts import Standard as StandardQFT
+from qiskit.aqua.components.iqfts import Standard as StandardIQFT
 
 
 @ddt
@@ -43,19 +45,24 @@ class TestHHL(QiskitAquaTestCase):
         self.random_seed = 0
         aqua_globals.random_seed = self.random_seed
 
-    def tearDown(self):
-        super().tearDown()
-        warnings.filterwarnings(action="always", category=DeprecationWarning)
-
     @staticmethod
-    def _create_eigs(matrix, num_ancillae, negative_evals):
+    def _create_eigs(matrix, num_ancillae, negative_evals, deprecated_qft=False):
         # Adding an additional flag qubit for negative eigenvalues
+        if deprecated_qft:
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+
         ne_qfts = [None, None]
         if negative_evals:
             num_ancillae += 1
-            ne_qfts = [QFT(num_ancillae - 1), QFT(num_ancillae - 1).inverse()]
+            if deprecated_qft:
+                ne_qfts = [StandardQFT(num_ancillae - 1), StandardIQFT(num_ancillae - 1)]
+            else:
+                ne_qfts = [QFT(num_ancillae - 1), QFT(num_ancillae - 1).inverse()]
 
-        iqft = QFT(num_ancillae).inverse()
+        if deprecated_qft:
+            iqft = StandardIQFT(num_ancillae)
+        else:
+            iqft = QFT(num_ancillae).inverse()
 
         eigs_qpe = EigsQPE(MatrixOperator(matrix=matrix),
                            iqft,
@@ -66,6 +73,9 @@ class TestHHL(QiskitAquaTestCase):
                            evo_time=None,
                            negative_evals=negative_evals,
                            ne_qfts=ne_qfts)
+
+        if deprecated_qft:
+            warnings.filterwarnings('always', category=DeprecationWarning)
 
         return eigs_qpe
 
@@ -186,11 +196,9 @@ class TestHHL(QiskitAquaTestCase):
 
         algo = HHL(matrix, vector, truncate_powerdim, truncate_hermitian, eigs,
                    init_state, reci, num_q, num_a, orig_size)
-        warnings.filterwarnings('ignore', category=DeprecationWarning)
         hhl_result = algo.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),
                                               seed_simulator=aqua_globals.random_seed,
                                               seed_transpiler=aqua_globals.random_seed))
-        warnings.filterwarnings('always', category=DeprecationWarning)
 
         hhl_solution = hhl_result['solution']
         hhl_normed = hhl_solution / np.linalg.norm(hhl_solution)
@@ -234,11 +242,9 @@ class TestHHL(QiskitAquaTestCase):
 
         algo = HHL(matrix, vector, truncate_powerdim, truncate_hermitian, eigs,
                    init_state, reci, num_q, num_a, orig_size)
-        warnings.filterwarnings('ignore', category=DeprecationWarning)
         hhl_result = algo.run(QuantumInstance(BasicAer.get_backend('qasm_simulator'), shots=1000,
                                               seed_simulator=aqua_globals.random_seed,
                                               seed_transpiler=aqua_globals.random_seed))
-        warnings.filterwarnings('always', category=DeprecationWarning)
         hhl_solution = hhl_result['solution']
         hhl_normed = hhl_solution / np.linalg.norm(hhl_solution)
 
@@ -297,7 +303,8 @@ class TestHHL(QiskitAquaTestCase):
         self.log.debug('fidelity HHL to algebraic: %s', fidelity)
         self.log.debug('probability of result:     %s', hhl_result["probability_result"])
 
-    def test_hhl_negative_eigs(self):
+    @data(False, True)
+    def test_hhl_negative_eigs(self, deprecated_qft):
         """ hhl negative eigs test """
         self.log.debug('Testing HHL with matrix with negative eigenvalues')
 
@@ -315,7 +322,7 @@ class TestHHL(QiskitAquaTestCase):
         matrix, vector, truncate_powerdim, truncate_hermitian = HHL.matrix_resize(matrix, vector)
 
         # Initialize eigenvalue finding module
-        eigs = TestHHL._create_eigs(matrix, 4, True)
+        eigs = TestHHL._create_eigs(matrix, 4, deprecated_qft)
         num_q, num_a = eigs.get_register_sizes()
 
         # Initialize initial state module
@@ -383,11 +390,6 @@ class TestHHL(QiskitAquaTestCase):
         # compare result
         fidelity = state_fidelity(ref_normed, hhl_normed)
         np.testing.assert_approx_equal(fidelity, 1, significant=1)
-
-        self.log.debug('HHL solution vector:       %s', hhl_solution)
-        self.log.debug('algebraic solution vector: %s', ref_normed)
-        self.log.debug('fidelity HHL to algebraic: %s', fidelity)
-        self.log.debug('probability of result:     %s', hhl_result["probability_result"])
 
     def test_hhl_non_hermitian(self):
         """ hhl non hermitian test """
