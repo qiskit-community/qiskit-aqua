@@ -301,7 +301,7 @@ class TestOpConstruction(QiskitAquaTestCase):
             self.assertListEqual([op.coeff for op in sum_op], [2, 1])
 
         sum_op = sum_op.simplify()
-        with self.subTest('SummedOp test 7-m'):
+        with self.subTest('SummedOp test 7-b'):
             self.assertEqual(sum_op.coeff, 1)
             self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY'])
             self.assertListEqual([op.coeff for op in sum_op], [8, 4])
@@ -313,7 +313,7 @@ class TestOpConstruction(QiskitAquaTestCase):
             self.assertListEqual([op.coeff for op in sum_op], [4, 2, 6, 3])
 
         sum_op = sum_op.simplify()
-        with self.subTest('SummedOp test 8-a'):
+        with self.subTest('SummedOp test 8-b'):
             self.assertEqual(sum_op.coeff, 1)
             self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY', 'ZZ'])
             self.assertListEqual([op.coeff for op in sum_op], [10, 2, 3])
