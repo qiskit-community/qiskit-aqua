@@ -55,7 +55,7 @@ class TestAbelianGrouper(QiskitAquaTestCase):
     @data((True, True), (True, False), (False, True), (False, False))
     @unpack
     def test_group_subops(self, fast, use_nx):
-        """group subops test"""
+        """grouper subroutine test"""
         paulis = (I ^ X) + (2 * X ^ X) + (3 * Z ^ Y)
         grouped_sum = AbelianGrouper.group_subops(paulis, fast=fast, use_nx=use_nx)
         with self.subTest('test group subops 1'):
