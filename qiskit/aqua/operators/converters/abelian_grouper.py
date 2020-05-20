@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" AbelianGrouper Class """
+"""AbelianGrouper Class"""
 
 import itertools
 from collections import defaultdict
@@ -31,15 +31,16 @@ from ..state_fns.operator_state_fn import OperatorStateFn
 
 
 class AbelianGrouper(ConverterBase):
-    """
-    The AbelianGrouper converts SummedOps into a sum of Abelian sums. Meaning,
-    it will traverse the Operator, and when it finds a SummedOp, it will evaluate which of the
-    summed sub-Operators commute with one another. It will then convert each of the groups of
+    """The AbelianGrouper converts SummedOps into a sum of Abelian sums.
+
+    Meaning, it will traverse the Operator, and when it finds a SummedOp, it will evaluate which of
+    the summed sub-Operators commute with one another. It will then convert each of the groups of
     commuting Operators into their own SummedOps, and return the sum-of-commuting-SummedOps.
     This is particularly useful for cases where mutually commuting groups can be handled
     similarly, as in the case of Pauli Expectations, where commuting Paulis have the same
     diagonalizing circuit rotation, or Pauli Evolutions, where commuting Paulis can be
-    diagonalized together. """
+    diagonalized together.
+    """
 
     def __init__(self, traverse: bool = True) -> None:
         """
@@ -50,7 +51,7 @@ class AbelianGrouper(ConverterBase):
         self._traverse = traverse
 
     def convert(self, operator: OperatorBase) -> OperatorBase:
-        """ Check if operator is a SummedOp, in which case covert it into a sum of mutually
+        """Check if operator is a SummedOp, in which case covert it into a sum of mutually
         commuting sums, or if the Operator contains sub-Operators and ``traverse`` is True,
         attempt to convert any sub-Operators.
 
@@ -83,7 +84,7 @@ class AbelianGrouper(ConverterBase):
 
     @classmethod
     def group_subops(cls, list_op: ListOp, fast: bool = True, use_nx: bool = False) -> ListOp:
-        """ Given a ListOp, attempt to group into Abelian ListOps of the same type.
+        """Given a ListOp, attempt to group into Abelian ListOps of the same type.
 
         Args:
             list_op: The Operator to group into Abelian groups
@@ -124,8 +125,7 @@ class AbelianGrouper(ConverterBase):
 
     @staticmethod
     def _commutation_graph(list_op: ListOp) -> List[Tuple[int, int]]:
-        """
-        Create edges (i, j) if i and j are not commutable.
+        """Create edges (i, j) if i and j are not commutable.
 
         Args:
             list_op: list_op
@@ -139,8 +139,7 @@ class AbelianGrouper(ConverterBase):
 
     @staticmethod
     def _commutation_graph_fast(list_op: ListOp) -> List[Tuple[int, int]]:
-        """
-        Create edges (i, j) if i and j are not commutable.
+        """Create edges (i, j) if i and j are not commutable.
 
         Note:
             This method is applicable to only PauliOps.
