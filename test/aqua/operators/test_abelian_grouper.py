@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Test Abelian Grouper """
+"""Test Abelian Grouper"""
 
 import random
 import unittest
@@ -26,7 +26,7 @@ class TestAbelianGrouper(QiskitAquaTestCase):
     """Abelian Grouper tests."""
 
     def test_abelian_grouper(self):
-        """ abelian grouper test """
+        """Abelian grouper test"""
         paulis = (-1.052373245772859 * I ^ I) + \
                  (0.39793742484318045 * I ^ Z) + \
                  (-0.39793742484318045 * Z ^ I) + \
@@ -39,7 +39,7 @@ class TestAbelianGrouper(QiskitAquaTestCase):
                 self.assertTrue(op_1.commutes(op_2))
 
     def test_abelian_grouper2(self):
-        """ abelian grouper test 2 """
+        """Abelian grouper test 2"""
         paulis = (I ^ I ^ X ^ X * 0.2) + \
                  (Z ^ Z ^ X ^ X * 0.3) + \
                  (Z ^ Z ^ Z ^ Z * 0.4) + \
@@ -53,23 +53,19 @@ class TestAbelianGrouper(QiskitAquaTestCase):
                 self.assertTrue(op_1.commutes(op_2))
 
     def test_abelian_grouper3(self):
-        """ abelian grouper test 3 """
+        """Abelian grouper test 3"""
         paulis = (I ^ X) + (2 * X ^ X) + (3 * Z ^ Y)
         for fast in [True, False]:
             for use_nx in [True, False]:
                 grouped_sum = AbelianGrouper.group_subops(paulis, fast=fast, use_nx=use_nx)
                 self.assertEqual(len(grouped_sum), 2)
-                self.assertEqual(len(grouped_sum[0]), 2)
-                self.assertEqual(str(grouped_sum[0][0].primitive), 'IX')
-                self.assertEqual(grouped_sum[0][0].coeff, 1)
-                self.assertEqual(str(grouped_sum[0][1].primitive), 'XX')
-                self.assertEqual(grouped_sum[0][1].coeff, 2)
-                self.assertEqual(len(grouped_sum[1]), 1)
-                self.assertEqual(str(grouped_sum[1][0].primitive), 'ZY')
-                self.assertEqual(grouped_sum[1][0].coeff, 3)
+                self.assertListEqual([str(op.primitive) for op in grouped_sum[0]], ['IX', 'XX'])
+                self.assertListEqual([op.coeff for op in grouped_sum[0]], [1, 2])
+                self.assertListEqual([str(op.primitive) for op in grouped_sum[1]], ['ZY'])
+                self.assertListEqual([op.coeff for op in grouped_sum[1]], [3])
 
     def test_abelian_grouper4(self):
-        """ abelian grouper test 4 """
+        """Abelian grouper test 4"""
         paulis = X + (2 * Y) + (3 * Z)
         grouped_sum = AbelianGrouper.group_subops(paulis)
         self.assertEqual(len(grouped_sum), 3)
@@ -81,7 +77,7 @@ class TestAbelianGrouper(QiskitAquaTestCase):
         self.assertEqual(grouped_sum[2][0].coeff, 3)
 
     def test_abelian_grouper_random(self):
-        """ abelian grouper test with random paulis """
+        """Abelian grouper test with random paulis"""
         random.seed(1234)
         k = 10  # size of pauli operators
         n = 100  # number of pauli operators

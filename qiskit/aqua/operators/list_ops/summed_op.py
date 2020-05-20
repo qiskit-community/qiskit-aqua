@@ -58,11 +58,11 @@ class SummedOp(ListOp):
         return True
 
     def add(self, other: OperatorBase) -> OperatorBase:
-        """ Return Operator addition of self and other, overloaded by ``+``.
+        """Return Operator addition of ``self`` and ``other``, overloaded by ``+``.
 
         Note:
-            This appends other to ``self.oplist`` without checking other is already included or not.
-            If you want to simplify this, please use ``SummedOp.simplify``.
+            This appends ``other`` to ``self.oplist`` without checking ``other`` is already
+            included or not. If you want to simplify them, please use :meth:`simplify`.
 
         Args:
             other: An ``OperatorBase`` with the same number of qubits as self, and in the same
@@ -85,8 +85,9 @@ class SummedOp(ListOp):
         return SummedOp(self_new_ops + other_new_ops)
 
     def simplify(self) -> 'SummedOp':
-        """ Return Operator by simplifying duplicate operators,
-            e.g., (2 * X ^ Y) + (X ^ Y) -> (3 * X ^ Y).
+        """Return Operator by simplifying duplicate operators.
+
+        E.g., (2 * X ^ Y) + (X ^ Y) -> (3 * X ^ Y).
 
         Returns:
             A simplified ``SummedOp`` equivalent to self.

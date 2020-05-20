@@ -222,133 +222,101 @@ class TestOpConstruction(QiskitAquaTestCase):
         self.assertEqual(c_op, c_op_id)
 
     def test_summed_op(self):
-        """ Test SummedOp """
+        """Test SummedOp"""
         sum_op: SummedOp = (X ^ X * 2) + (Y ^ Y)
-        self.assertEqual(sum_op.coeff, 1)
-        self.assertEqual(len(sum_op), 2)
-        self.assertEqual(str(sum_op.oplist[0].primitive), 'XX')
-        self.assertEqual(sum_op.oplist[0].coeff, 2)
-        self.assertEqual(str(sum_op.oplist[1].primitive), 'YY')
-        self.assertEqual(sum_op.oplist[1].coeff, 1)
+        with self.subTest('SummedOp test 1'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [2, 1])
 
         sum_op = (X ^ X * 2) + (Y ^ Y)
         sum_op += Y ^ Y
-        self.assertEqual(sum_op.coeff, 1)
-        self.assertEqual(len(sum_op), 3)
-        self.assertEqual(str(sum_op.oplist[0].primitive), 'XX')
-        self.assertEqual(sum_op.oplist[0].coeff, 2)
-        self.assertEqual(str(sum_op.oplist[1].primitive), 'YY')
-        self.assertEqual(sum_op.oplist[1].coeff, 1)
-        self.assertEqual(str(sum_op.oplist[2].primitive), 'YY')
-        self.assertEqual(sum_op.oplist[2].coeff, 1)
+        with self.subTest('SummedOp test 2-a'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [2, 1, 1])
 
         sum_op = sum_op.simplify()
-        self.assertEqual(sum_op.coeff, 1)
-        self.assertEqual(len(sum_op), 2)
-        self.assertEqual(str(sum_op.oplist[0].primitive), 'XX')
-        self.assertEqual(sum_op.oplist[0].coeff, 2)
-        self.assertEqual(str(sum_op.oplist[1].primitive), 'YY')
-        self.assertEqual(sum_op.oplist[1].coeff, 2)
+        with self.subTest('SummedOp test 2-b'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [2, 2])
 
         sum_op = (X ^ X * 2) + (Y ^ Y)
         sum_op += (Y ^ Y) + (X ^ X * 2)
-        self.assertEqual(sum_op.coeff, 1)
-        self.assertEqual(len(sum_op), 4)
-        self.assertEqual(str(sum_op.oplist[0].primitive), 'XX')
-        self.assertEqual(sum_op.oplist[0].coeff, 2)
-        self.assertEqual(str(sum_op.oplist[1].primitive), 'YY')
-        self.assertEqual(sum_op.oplist[1].coeff, 1)
-        self.assertEqual(str(sum_op.oplist[2].primitive), 'YY')
-        self.assertEqual(sum_op.oplist[2].coeff, 1)
-        self.assertEqual(str(sum_op.oplist[3].primitive), 'XX')
-        self.assertEqual(sum_op.oplist[3].coeff, 2)
+        with self.subTest('SummedOp test 3-a'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY', 'YY', 'XX'])
+            self.assertListEqual([op.coeff for op in sum_op], [2, 1, 1, 2])
 
         sum_op = sum_op.simplify()
-        self.assertEqual(sum_op.coeff, 1)
-        self.assertEqual(len(sum_op), 2)
-        self.assertEqual(str(sum_op.oplist[0].primitive), 'XX')
-        self.assertEqual(sum_op.oplist[0].coeff, 4)
-        self.assertEqual(str(sum_op.oplist[1].primitive), 'YY')
-        self.assertEqual(sum_op.oplist[1].coeff, 2)
+        with self.subTest('SummedOp test 3-b'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [4, 2])
 
         sum_op = SummedOp([X ^ X * 2, Y ^ Y], 2)
-        self.assertEqual(sum_op.coeff, 2)
-        self.assertEqual(len(sum_op), 2)
-        self.assertEqual(str(sum_op.oplist[0].primitive), 'XX')
-        self.assertEqual(sum_op.oplist[0].coeff, 2)
-        self.assertEqual(str(sum_op.oplist[1].primitive), 'YY')
-        self.assertEqual(sum_op.oplist[1].coeff, 1)
+        with self.subTest('SummedOp test 4-a'):
+            self.assertEqual(sum_op.coeff, 2)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [2, 1])
+
+        sum_op = sum_op.simplify()
+        with self.subTest('SummedOp test 4-b'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [4, 2])
 
         sum_op = SummedOp([X ^ X * 2, Y ^ Y], 2)
         sum_op += Y ^ Y
-        self.assertEqual(sum_op.coeff, 1)
-        self.assertEqual(len(sum_op), 3)
-        self.assertEqual(str(sum_op.oplist[0].primitive), 'XX')
-        self.assertEqual(sum_op.oplist[0].coeff, 4)
-        self.assertEqual(str(sum_op.oplist[1].primitive), 'YY')
-        self.assertEqual(sum_op.oplist[1].coeff, 2)
-        self.assertEqual(str(sum_op.oplist[2].primitive), 'YY')
-        self.assertEqual(sum_op.oplist[2].coeff, 1)
+        with self.subTest('SummedOp test 5-a'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [4, 2, 1])
 
         sum_op = sum_op.simplify()
-        self.assertEqual(sum_op.coeff, 1)
-        self.assertEqual(len(sum_op), 2)
-        self.assertEqual(str(sum_op.oplist[0].primitive), 'XX')
-        self.assertEqual(sum_op.oplist[0].coeff, 4)
-        self.assertEqual(str(sum_op.oplist[1].primitive), 'YY')
-        self.assertEqual(sum_op.oplist[1].coeff, 3)
+        with self.subTest('SummedOp test 5-b'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [4, 3])
 
         sum_op = SummedOp([X ^ X * 2, Y ^ Y], 2)
         sum_op += (X ^ X) * 2 + (Y ^ Y)
-        self.assertEqual(sum_op.coeff, 1)
-        self.assertEqual(len(sum_op), 4)
-        self.assertEqual(str(sum_op.oplist[0].primitive), 'XX')
-        self.assertEqual(sum_op.oplist[0].coeff, 4)
-        self.assertEqual(str(sum_op.oplist[1].primitive), 'YY')
-        self.assertEqual(sum_op.oplist[1].coeff, 2)
-        self.assertEqual(str(sum_op.oplist[2].primitive), 'XX')
-        self.assertEqual(sum_op.oplist[2].coeff, 2)
-        self.assertEqual(str(sum_op.oplist[3].primitive), 'YY')
-        self.assertEqual(sum_op.oplist[3].coeff, 1)
+        with self.subTest('SummedOp test 6-a'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY', 'XX', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [4, 2, 2, 1])
 
         sum_op = sum_op.simplify()
-        self.assertEqual(sum_op.coeff, 1)
-        self.assertEqual(len(sum_op), 2)
-        self.assertEqual(str(sum_op.oplist[0].primitive), 'XX')
-        self.assertEqual(sum_op.oplist[0].coeff, 6)
-        self.assertEqual(str(sum_op.oplist[1].primitive), 'YY')
-        self.assertEqual(sum_op.oplist[1].coeff, 3)
+        with self.subTest('SummedOp test 6-b'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [6, 3])
 
         sum_op = SummedOp([X ^ X * 2, Y ^ Y], 2)
         sum_op += sum_op
-        self.assertEqual(sum_op.coeff, 4)
-        self.assertEqual(len(sum_op), 2)
-        self.assertEqual(str(sum_op.oplist[0].primitive), 'XX')
-        self.assertEqual(sum_op.oplist[0].coeff, 2)
-        self.assertEqual(str(sum_op.oplist[1].primitive), 'YY')
-        self.assertEqual(sum_op.oplist[1].coeff, 1)
-
-        sum_op = SummedOp([X ^ X * 2, Y ^ Y], 2) + SummedOp([X ^ X * 2, Z ^ Z], 3)
-        self.assertEqual(sum_op.coeff, 1)
-        self.assertEqual(len(sum_op), 4)
-        self.assertEqual(str(sum_op.oplist[0].primitive), 'XX')
-        self.assertEqual(sum_op.oplist[0].coeff, 4)
-        self.assertEqual(str(sum_op.oplist[1].primitive), 'YY')
-        self.assertEqual(sum_op.oplist[1].coeff, 2)
-        self.assertEqual(str(sum_op.oplist[2].primitive), 'XX')
-        self.assertEqual(sum_op.oplist[2].coeff, 6)
-        self.assertEqual(str(sum_op.oplist[3].primitive), 'ZZ')
-        self.assertEqual(sum_op.oplist[3].coeff, 3)
+        with self.subTest('SummedOp test 7-a'):
+            self.assertEqual(sum_op.coeff, 4)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [2, 1])
 
         sum_op = sum_op.simplify()
-        self.assertEqual(sum_op.coeff, 1)
-        self.assertEqual(len(sum_op), 3)
-        self.assertEqual(str(sum_op.oplist[0].primitive), 'XX')
-        self.assertEqual(sum_op.oplist[0].coeff, 10)
-        self.assertEqual(str(sum_op.oplist[1].primitive), 'YY')
-        self.assertEqual(sum_op.oplist[1].coeff, 2)
-        self.assertEqual(str(sum_op.oplist[2].primitive), 'ZZ')
-        self.assertEqual(sum_op.oplist[2].coeff, 3)
+        with self.subTest('SummedOp test 7-m'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [8, 4])
+
+        sum_op = SummedOp([X ^ X * 2, Y ^ Y], 2) + SummedOp([X ^ X * 2, Z ^ Z], 3)
+        with self.subTest('SummedOp test 8-a'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY', 'XX', 'ZZ'])
+            self.assertListEqual([op.coeff for op in sum_op], [4, 2, 6, 3])
+
+        sum_op = sum_op.simplify()
+        with self.subTest('SummedOp test 8-a'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY', 'ZZ'])
+            self.assertListEqual([op.coeff for op in sum_op], [10, 2, 3])
 
 
 if __name__ == '__main__':
