@@ -87,7 +87,7 @@ class SummedOp(ListOp):
     def simplify(self) -> 'SummedOp':
         """Return Operator by simplifying duplicate operators.
 
-        E.g., (2 * X ^ Y) + (X ^ Y) -> (3 * X ^ Y).
+        E.g., ``SummedOp([2 * X ^ Y, X ^ Y]).simplify() -> SummedOp([3 * X ^ Y])``.
 
         Returns:
             A simplified ``SummedOp`` equivalent to self.
