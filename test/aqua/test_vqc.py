@@ -395,7 +395,6 @@ class TestVQC(QiskitAquaTestCase):
             warnings.filterwarnings('ignore', category=DeprecationWarning)
             data_preparation = SecondOrderExpansion(feature_dim)
             wavefunction = RYRZ(feature_dim, depth=1)
-            ref_accuracy = -1.0
         else:
             data_preparation = ZZFeatureMap(feature_dim)
             wavefunction = TwoLocal(feature_dim, ['ry', 'rz'], 'cz', reps=1, insert_barriers=True)

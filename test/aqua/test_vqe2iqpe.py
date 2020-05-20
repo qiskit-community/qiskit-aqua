@@ -40,7 +40,7 @@ class TestVQE2IQPE(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
-        self.seed = 50
+        self.seed = 20798
         aqua_globals.random_seed = self.seed
         pauli_dict = {
             'paulis': [{"coeff": {"imag": 0.0, "real": -1.052373245772859}, "label": "II"},
@@ -72,9 +72,6 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         algo = VQE(self.qubit_op, wavefunction, optimizer)
         if wavefunction_type == 'wrapped':
             warnings.filterwarnings('always', category=DeprecationWarning)
-        else:
-            # fix parameter order for reproducibility
-            algo._var_form_params = theta
 
         quantum_instance = QuantumInstance(backend, seed_simulator=self.seed,
                                            seed_transpiler=self.seed)
@@ -82,7 +79,7 @@ class TestVQE2IQPE(QiskitAquaTestCase):
 
         self.log.debug('VQE result: %s.', result)
 
-        ref_eigenval = -1.8491663307965913 + 0j
+        ref_eigenval = -1.85727503  # Known reference value
 
         num_time_slices = 1
         num_iterations = 6
@@ -115,7 +112,7 @@ class TestVQE2IQPE(QiskitAquaTestCase):
             fractional_part_only=True
         ))
 
-        np.testing.assert_approx_equal(result.eigenvalue.real, ref_eigenval.real, significant=1)
+        np.testing.assert_approx_equal(result.eigenvalue.real, ref_eigenval, significant=2)
 
 
 if __name__ == '__main__':

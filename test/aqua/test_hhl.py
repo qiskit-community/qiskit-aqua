@@ -326,9 +326,13 @@ class TestHHL(QiskitAquaTestCase):
         """ hhl negative eigs test """
         self.log.debug('Testing HHL with matrix with negative eigenvalues')
 
+        # The following seed was chosen so as to ensure we get a negative eigenvalue
+        # and in case anything changes we assert this after the random matrix is created
+        aqua_globals.random_seed = 27
         n = 2
         matrix = rmg.random_diag(n, eigrange=[-1, 1])
         vector = aqua_globals.random.random(n)
+        self.assertTrue(np.any(matrix < 0), "Random matrix has no negative values")
 
         # run NumPyLSsolver
         ref_result = NumPyLSsolver(matrix, vector).run()
@@ -360,7 +364,7 @@ class TestHHL(QiskitAquaTestCase):
 
         # compare results
         fidelity = state_fidelity(ref_normed, hhl_normed)
-        np.testing.assert_approx_equal(fidelity, 1, significant=1)
+        np.testing.assert_approx_equal(fidelity, 1, significant=3)
 
         self.log.debug('HHL solution vector:       %s', hhl_solution)
         self.log.debug('algebraic solution vector: %s', ref_normed)
