@@ -214,7 +214,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
                       aux_operators: Optional[List[Optional[Union[OperatorBase,
                                                                   LegacyBaseOperator]]]]) -> None:
         """ Set aux operators """
-        # We need to handle the fact that the aux_ops array entries are Optional i.e. can be None
+        # We need to handle the array entries being Optional i.e. having value None
         self._aux_op_nones = None
         if isinstance(aux_operators, list):
             self._aux_op_nones = [op is None for op in aux_operators]
