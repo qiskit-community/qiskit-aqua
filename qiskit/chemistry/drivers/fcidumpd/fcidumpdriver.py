@@ -54,7 +54,7 @@ class FCIDumpDriver(BaseDriver):
         self._fcidump_input = fcidump_input
 
         if atoms and not isinstance(atoms, list) \
-                and not all([sym in QMolecule.symbols for sym in atoms]):
+                and not all(sym in QMolecule.symbols for sym in atoms):
             raise QiskitChemistryError(
                 "The atoms must be a list of valid atomic symbols, not '{}'".format(atoms))
         self.atoms = atoms
