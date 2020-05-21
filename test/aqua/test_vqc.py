@@ -381,7 +381,7 @@ class TestVQC(QiskitAquaTestCase):
     @data('wrapped', 'circuit', 'library')
     def test_vqc_on_wine(self, mode):
         """Test VQE on the wine test using circuits as feature map and variational form."""
-        aqua_globals.random_seed = 2752
+        aqua_globals.random_seed = 27521
         feature_dim = 4  # dimension of each data point
         training_dataset_size = 6
         testing_dataset_size = 3
@@ -404,7 +404,6 @@ class TestVQC(QiskitAquaTestCase):
 
         vqc = VQC(COBYLA(maxiter=100), data_preparation, wavefunction, training_input, test_input)
 
-        # sort parameters for reproducibility
         if mode == 'wrapped':
             warnings.filterwarnings('always', category=DeprecationWarning)
 
