@@ -43,11 +43,11 @@ class TestStableSet(QiskitOptimizationTestCase):
         algo = NumPyMinimumEigensolver(self.qubit_op, aux_operators=[])
         result = algo.run()
         x = sample_most_likely(result.eigenstate)
-        self.assertAlmostEqual(result.eigenvalue.real, -29.5)
-        self.assertAlmostEqual(result.eigenvalue.real + self.offset, -25.0)
+        self.assertAlmostEqual(result.eigenvalue.real, -39.5)
+        self.assertAlmostEqual(result.eigenvalue.real + self.offset, -38.0)
         ising_sol = stable_set.get_graph_solution(x)
-        np.testing.assert_array_equal(ising_sol, [0, 0, 1, 1, 1])
-        self.assertEqual(stable_set.stable_set_value(x, self.w), (3.0, False))
+        np.testing.assert_array_equal(ising_sol, [1, 1, 0, 1, 1])
+        self.assertEqual(stable_set.stable_set_value(x, self.w), (4, False))
 
     def test_stable_set_vqe(self):
         """ VQE Stable set  test """
@@ -58,11 +58,11 @@ class TestStableSet(QiskitOptimizationTestCase):
                                          seed_simulator=aqua_globals.random_seed,
                                          seed_transpiler=aqua_globals.random_seed))
         x = sample_most_likely(result.eigenstate)
-        self.assertAlmostEqual(result.eigenvalue, -29.5, places=5)
-        self.assertAlmostEqual(result.eigenvalue + self.offset, -25.0)
+        self.assertAlmostEqual(result.eigenvalue, -39.5)
+        self.assertAlmostEqual(result.eigenvalue + self.offset, -38.0)
         ising_sol = stable_set.get_graph_solution(x)
-        np.testing.assert_array_equal(ising_sol, [0, 0, 1, 1, 1])
-        self.assertEqual(stable_set.stable_set_value(x, self.w), (3.0, False))
+        np.testing.assert_array_equal(ising_sol, [1, 1, 0, 1, 1])
+        self.assertEqual(stable_set.stable_set_value(x, self.w), (4.0, False))
 
 
 if __name__ == '__main__':
