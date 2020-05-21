@@ -110,10 +110,10 @@ class Shor(QuantumAlgorithm):
             angles[self._n - i] *= np.pi
         return angles
 
-    def _phi_add_gate(self, size: int, a: int) -> Gate:
+    @staticmethod
+    def _phi_add_gate(size: int, angles: Union[np.ndarray, ParameterVector]) -> Gate:
         """Gate that performs addition by a in Fourier Space."""
-        circuit = QuantumCircuit(size, name="phi_add_{}".format(a))
-        angles = self._get_angles(a)
+        circuit = QuantumCircuit(size, name="phi_add")
         for i, angle in enumerate(angles):
             circuit.u1(angle, i)
         return circuit.to_gate()
