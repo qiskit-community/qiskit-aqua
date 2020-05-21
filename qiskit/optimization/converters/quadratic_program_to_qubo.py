@@ -110,8 +110,8 @@ class QuadraticProgramToQubo:
             msg += 'Continuous variables are not supported! '
 
         # check whether there are incompatible constraint types
-        if not all([constraint.sense == Constraint.Sense.EQ
-                    for constraint in problem.linear_constraints]):
+        if not all(constraint.sense == Constraint.Sense.EQ
+                   for constraint in problem.linear_constraints):
             msg += 'Only linear equality constraints are supported.'
         if len(problem.quadratic_constraints) > 0:
             msg += 'Quadratic constraints are not supported. '
