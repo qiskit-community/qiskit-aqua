@@ -53,7 +53,8 @@ class TestGrover(QiskitAquaTestCase):
     """ Grover test """
     @idata(
         [x[0] + list(x[1:]) for x in list(itertools.product(TESTS, MCT_MODES, SIMULATORS,
-                                                            OPTIMIZATIONS, LAMBDA, ROTATION_COUNTS))]
+                                                            OPTIMIZATIONS, LAMBDA,
+                                                            ROTATION_COUNTS))]
     )
     @unpack
     def test_grover(self, input_test, sol, oracle_cls, mct_mode,
