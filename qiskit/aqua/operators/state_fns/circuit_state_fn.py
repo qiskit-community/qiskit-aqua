@@ -18,10 +18,11 @@
 from typing import Union, Set, List
 import numpy as np
 
-from qiskit import QuantumCircuit, BasicAer, execute, ClassicalRegister
+from qiskit import QuantumCircuit, ClassicalRegister
 from qiskit.circuit import Instruction, ParameterExpression
 from qiskit.extensions import Initialize
 from qiskit.circuit.library import IGate
+from qiskit.aqua.utils.circuit_utils import QuantumCircuitConverter
 
 from ..operator_base import OperatorBase
 from ..list_ops.summed_op import SummedOp
@@ -230,11 +231,7 @@ class CircuitStateFn(StateFn):
         # Need to adjoint to get forward statevector and then reverse
         if self.is_measurement:
             return np.conj(self.adjoint().to_matrix())
-        qc = self.to_circuit(meas=False)
-        statevector_backend = BasicAer.get_backend('statevector_simulator')
-        statevector = execute(qc,
-                              statevector_backend,
-                              optimization_level=0).result().get_statevector()
+        statevector = QuantumCircuitConverter(self.to_circuit(meas=False)).to_state_vector()
         # pylint: disable=cyclic-import
         from ..operator_globals import EVAL_SIG_DIGITS
         return np.round(statevector * self.coeff, decimals=EVAL_SIG_DIGITS)
@@ -330,10 +327,8 @@ class CircuitStateFn(StateFn):
             raise ValueError(
                 'to_vector will return an exponentially large vector, in this case {0} elements.'
                 ' Set massive=True if you want to proceed.'.format(2 ** self.num_qubits))
-
-        qc = self.to_circuit(meas=True)
-        qasm_backend = BasicAer.get_backend('qasm_simulator')
-        counts = execute(qc, qasm_backend, optimization_level=0, shots=shots).result().get_counts()
+        print(self.to_circuit(meas=False))
+        counts = QuantumCircuitConverter(self.to_circuit(meas=False)).to_counts(shots=shots)
         if reverse_endianness:
             scaled_dict = {bstr[::-1]: (prob / shots) for (bstr, prob) in counts.items()}
         else:

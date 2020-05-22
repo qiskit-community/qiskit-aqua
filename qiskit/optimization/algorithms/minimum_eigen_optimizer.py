@@ -18,9 +18,10 @@
 from typing import Optional, Any, Union, Tuple, List
 import numpy as np
 
-from qiskit import QuantumCircuit, BasicAer, execute
+from qiskit import QuantumCircuit
 from qiskit.aqua.algorithms import MinimumEigensolver
 from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator, StateFn, DictStateFn
+from qiskit.aqua.utils.circuit_utils import QuantumCircuitConverter
 
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
 from ..problems.quadratic_program import QuadraticProgram
@@ -264,9 +265,9 @@ def eval_operator_at_bitstring(operator: Union[WeightedPauliOperator, MatrixOper
             circuit.x(i)
 
     # simulate the circuit
-    result = execute(circuit, BasicAer.get_backend('statevector_simulator')).result()
+    state_vector = QuantumCircuitConverter(circuit).to_state_vector()
 
     # evaluate the operator
-    value = np.real(operator.evaluate_with_statevector(result.get_statevector())[0])
+    value = np.real(operator.evaluate_with_statevector(state_vector)[0])
 
     return value

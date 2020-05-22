@@ -19,13 +19,12 @@ import logging
 import numpy as np
 
 from qiskit.circuit import QuantumRegister, QuantumCircuit, Qubit
-from qiskit import execute as q_execute
 
 from qiskit.aqua import AquaError, aqua_globals
 from qiskit.aqua.components.initial_states import InitialState
 from qiskit.aqua.circuits import StateVectorCircuit
 from qiskit.aqua.utils.arithmetic import normalize_vector
-from qiskit.aqua.utils.circuit_utils import convert_to_basis_gates
+from qiskit.aqua.utils.circuit_utils import convert_to_basis_gates, QuantumCircuitConverter
 from qiskit.aqua.utils.validation import validate_in_set, validate_min
 from qiskit.aqua.operators import StateFn
 
@@ -116,13 +115,11 @@ class Custom(InitialState):
 
     def construct_circuit(self, mode='circuit', register=None):
         # pylint: disable=import-outside-toplevel
-        from qiskit import BasicAer
 
         if mode == 'vector':
             if self._state_vector is None:
                 if self._circuit is not None:
-                    self._state_vector = np.asarray(q_execute(self._circuit, BasicAer.get_backend(
-                        'statevector_simulator')).result().get_statevector(self._circuit))
+                    self._state_vector = QuantumCircuitConverter(self._circuit).to_state_vector()
             return self._state_vector
         elif mode == 'circuit':
             if self._circuit is None:

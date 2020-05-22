@@ -18,9 +18,10 @@ from typing import Union, Optional, Set, List
 import logging
 import numpy as np
 
-from qiskit import QuantumCircuit, BasicAer, execute
+from qiskit import QuantumCircuit
 from qiskit.circuit.library import IGate
 from qiskit.circuit import Instruction, ParameterExpression
+from qiskit.aqua.utils.circuit_utils import QuantumCircuitConverter
 
 from ..operator_base import OperatorBase
 from ..list_ops.summed_op import SummedOp
@@ -146,10 +147,7 @@ class CircuitOp(PrimitiveOp):
         # circuit or Pauli representation and matrix representation, but we don't need to here
         # because the Unitary simulator already presents the endianness of the circuit unitary in
         # forward endianness.
-        unitary_backend = BasicAer.get_backend('unitary_simulator')
-        unitary = execute(self.to_circuit(),
-                          unitary_backend,
-                          optimization_level=0).result().get_unitary()
+        unitary = QuantumCircuitConverter(self.to_circuit()).to_unitary_matrix()
         # pylint: disable=cyclic-import
         from ..operator_globals import EVAL_SIG_DIGITS
         return np.round(unitary * self.coeff, decimals=EVAL_SIG_DIGITS)

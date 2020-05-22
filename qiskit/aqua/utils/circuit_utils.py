@@ -14,8 +14,13 @@
 
 """ Circuit utility functions """
 
+from typing import Dict
+
 import numpy as np
+
+from qiskit import QuantumCircuit
 from qiskit.converters import circuit_to_dag, dag_to_circuit
+from qiskit.quantum_info import Operator, Statevector
 from qiskit.transpiler.passes import Unroller
 
 
@@ -75,3 +80,35 @@ def summarize_circuits(circuits):
         ])
     ret += "============================================================================\n"
     return ret
+
+
+class QuantumCircuitConverter:
+    def __init__(self, qc: QuantumCircuit):
+        self._qc = qc
+
+    def _statevector(self):
+        return Statevector.from_int(0, 2 ** self._qc.num_qubits).evolve(self._qc)
+
+    def to_unitary_matrix(self) -> np.ndarray:
+        """Return a unitary matrix corresponding to a quantum circuit.
+
+        Args:
+            qc: a quantum circuit
+
+        Returns: a unitary matrix.
+        """
+        return Operator(self._qc).data
+
+    def to_state_vector(self) -> np.ndarray:
+        return self._statevector().data
+
+    def to_state_vector_dict(self) -> Dict[str, complex]:
+        return self._statevector().to_dict()
+
+    def to_counts(self, shots) -> Dict[str, int]:
+        prob = self._statevector().probabilities_dict()
+        keys = list(prob.keys())
+        values = list(prob.values())
+        indices, counts = np.unique(np.random.choice(a=len(prob), size=shots, p=values),
+                                    return_counts=True)
+        return {keys[i]: count for i, count in zip(indices, counts)}
