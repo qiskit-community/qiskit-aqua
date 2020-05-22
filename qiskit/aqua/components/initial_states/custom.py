@@ -103,7 +103,7 @@ class Custom(InitialState):
                 elif self._state == 'uniform':
                     self._state_vector = np.array([1.0 / np.sqrt(size)] * size)
                 elif self._state == 'random':
-                    self._state_vector = normalize_vector(aqua_globals.random.rand(size))
+                    self._state_vector = normalize_vector(aqua_globals.random.random(size))
                 else:
                     raise AquaError('Unknown state {}'.format(self._state))
             else:

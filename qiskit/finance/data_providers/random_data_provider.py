@@ -17,7 +17,6 @@
 from typing import Optional, Union, List
 import datetime
 import logging
-import random
 
 import numpy as np
 import pandas as pd
@@ -77,14 +76,11 @@ class RandomDataProvider(BaseDataProvider):
         """
 
         length = (self._end - self._start).days
-        if self._seed:
-            random.seed(self._seed)
-            np.random.seed(self._seed)
-
+        generator = np.random.default_rng(self._seed)
         self._data = []
         for _ in self._tickers:
             d_f = pd.DataFrame(
-                np.random.randn(length)).cumsum() + random.randint(1, 101)
+                generator.standard_normal(length)).cumsum() + generator.integers(1, 101)
             trimmed = np.maximum(d_f[0].values, np.zeros(len(d_f[0].values)))
             # pylint: disable=no-member
             self._data.append(trimmed.tolist())

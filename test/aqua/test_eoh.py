@@ -33,11 +33,11 @@ class TestEOH(QiskitAquaTestCase):
         size = 2
         aqua_globals.random_seed = 0
 
-        temp = aqua_globals.random.random_sample((2 ** size, 2 ** size))
+        temp = aqua_globals.random.random((2 ** size, 2 ** size))
         h_1 = temp + temp.T
         qubit_op = MatrixOperator(matrix=h_1)
 
-        temp = aqua_globals.random.random_sample((2 ** size, 2 ** size))
+        temp = aqua_globals.random.random((2 ** size, 2 ** size))
         h_1 = temp + temp.T
         evo_op = MatrixOperator(matrix=h_1)
 

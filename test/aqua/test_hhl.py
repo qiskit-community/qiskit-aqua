@@ -41,9 +41,8 @@ class TestHHL(QiskitAquaTestCase):
     """HHL tests."""
 
     def setUp(self):
-        super(TestHHL, self).setUp()
-        self.random_seed = 0
-        aqua_globals.random_seed = self.random_seed
+        super().setUp()
+        aqua_globals.random_seed = 2752
 
     def tearDown(self):
         super().tearDown()
@@ -284,7 +283,7 @@ class TestHHL(QiskitAquaTestCase):
         self.log.debug('Testing HHL with matrix dimension other than 2**n')
 
         matrix = rmg.random_diag(n, eigrange=[0, 1])
-        vector = aqua_globals.random.random_sample(n)
+        vector = aqua_globals.random.random(n)
 
         # run NumPyLSsolver
         ref_result = NumPyLSsolver(matrix, vector).run()
@@ -316,7 +315,7 @@ class TestHHL(QiskitAquaTestCase):
 
         # compare result
         fidelity = state_fidelity(ref_normed, hhl_normed)
-        np.testing.assert_approx_equal(fidelity, 1, significant=1)
+        np.testing.assert_approx_equal(fidelity, 1.0, significant=1)
 
         self.log.debug('HHL solution vector:       %s', hhl_solution)
         self.log.debug('algebraic solution vector: %s', ref_solution)
@@ -327,9 +326,13 @@ class TestHHL(QiskitAquaTestCase):
         """ hhl negative eigs test """
         self.log.debug('Testing HHL with matrix with negative eigenvalues')
 
+        # The following seed was chosen so as to ensure we get a negative eigenvalue
+        # and in case anything changes we assert this after the random matrix is created
+        aqua_globals.random_seed = 27
         n = 2
         matrix = rmg.random_diag(n, eigrange=[-1, 1])
-        vector = aqua_globals.random.random_sample(n)
+        vector = aqua_globals.random.random(n)
+        self.assertTrue(np.any(matrix < 0), "Random matrix has no negative values")
 
         # run NumPyLSsolver
         ref_result = NumPyLSsolver(matrix, vector).run()
@@ -374,7 +377,7 @@ class TestHHL(QiskitAquaTestCase):
 
         n = 2
         matrix = rmg.random_hermitian(n, eigrange=[0, 1])
-        vector = aqua_globals.random.random_sample(n)
+        vector = aqua_globals.random.random(n)
 
         # run NumPyLSsolver
         ref_result = NumPyLSsolver(matrix, vector).run()
