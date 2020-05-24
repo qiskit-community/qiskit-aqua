@@ -108,7 +108,7 @@ class Shor(QuantumAlgorithm):
                 if s[j] == '1':
                     angles[self._n - i] += math.pow(2, -(j - i))
             angles[self._n - i] *= np.pi
-        return angles
+        return angles[::-1]
 
     @staticmethod
     def _phi_add_gate(size: int, angles: Union[np.ndarray, ParameterVector]) -> Gate:
@@ -225,7 +225,7 @@ class Shor(QuantumAlgorithm):
                                  name="Shor(N={}, a={})".format(self._N, self._a))
 
         # Create gates to perform addition/subtraction by N in Fourier Space
-        self._phi_add_N = self._phi_add_gate(self._aux_qreg.size, self._get_angles(self._N))
+        self._phi_add_N = self._phi_add_gate(self._aux_qreg.size - 1, self._get_angles(self._N))
         self._iphi_add_N = self._phi_add_N.inverse()
 
         # Create maximal superposition in top register
