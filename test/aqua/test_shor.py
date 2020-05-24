@@ -66,7 +66,7 @@ class TestShor(QiskitAquaTestCase):
         with self.assertRaises(ValueError):
             Shor(n_v)
 
-    @data([2, 15, 8])
+    @idata([[2, 15, 8], [4, 15, 4]])
     @unpack
     def test_shor_modinv(self, a_v, m_v, expected):
         """ shor modular inverse test """
