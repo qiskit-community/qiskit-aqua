@@ -111,7 +111,7 @@ class Shor(QuantumAlgorithm):
         return angles
 
     @staticmethod
-    def _phi_add_gate(size: int, angles: np.ndarray) -> Gate:
+    def _phi_add_gate(size: int, angles: Union[np.ndarray, ParameterVector]) -> Gate:
         """Gate that performs addition by a in Fourier Space."""
         circuit = QuantumCircuit(size, name="phi_add")
         for i, angle in enumerate(angles):
@@ -121,7 +121,7 @@ class Shor(QuantumAlgorithm):
     def _double_controlled_phi_add_mod_N(self,
                                          num_qubits: int,
                                          angles: Union[np.ndarray, ParameterVector]) -> QuantumCircuit:
-        """Implements double-controlled modular addition by a on circuit."""
+        """Implements double-controlled modular addition by a, returning the circuit."""
         circuit = QuantumCircuit(num_qubits, name="phi_add")
 
         ctl_up = 0
@@ -157,7 +157,7 @@ class Shor(QuantumAlgorithm):
     def _controlled_multiple_mod_N(self,
                                    num_qubits: int,
                                    a: int) -> Gate:
-        """Returns a circuit implementing modular multiplication by a."""
+        """Gate that implements modular multiplication by a."""
         circuit = QuantumCircuit(num_qubits,
                                  name="multiply_by_{}_mod_{}".format(a % self._N, self._N))
         down = circuit.qubits[1:self._n + 1]
