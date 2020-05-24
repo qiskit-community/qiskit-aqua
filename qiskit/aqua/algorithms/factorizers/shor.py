@@ -111,7 +111,7 @@ class Shor(QuantumAlgorithm):
         return angles
 
     @staticmethod
-    def _phi_add_gate(size: int, angles: Union[np.ndarray, ParameterVector]) -> Gate:
+    def _phi_add_gate(size: int, angles: np.ndarray) -> Gate:
         """Gate that performs addition by a in Fourier Space."""
         circuit = QuantumCircuit(size, name="phi_add")
         for i, angle in enumerate(angles):
@@ -124,33 +124,33 @@ class Shor(QuantumAlgorithm):
         """Implements double-controlled modular addition by a on circuit."""
         circuit = QuantumCircuit(num_qubits, name="phi_add")
 
-        ctl_up = circuit.qubits[0]
-        ctl_down = circuit.qubits[1]
-        ctl_aux = circuit.qubits[2]
+        ctl_up = 0
+        ctl_down = 1
+        ctl_aux = 2
 
         # get qubits from aux register, omitting the control qubit
         qubits = [i for i in range(3, num_qubits)]
 
-        # Store the gate representing addition/subtraction by a in Fourier Space
+        # store the gates representing addition/subtraction by a in Fourier Space
         phi_add_a = self._phi_add_gate(len(qubits), angles)
         iphi_add_a = phi_add_a.inverse()
 
         circuit.append(phi_add_a.control(2), [ctl_up, ctl_down, *qubits])
-        circuit.append(self._iphi_add_N, [ctl_aux, *qubits])
-        circuit.append(self._iqft, qubits)
+        circuit.append(self._iphi_add_N, qubits)
+        circuit.compose(self._iqft, qubits, inplace=True)
 
-        circuit.cx(self._n, ctl_aux)
+        circuit.cx(qubits[0], ctl_aux)
 
-        circuit.append(self._qft, qubits)
-        circuit.append(phi_add_a.control(1), [ctl_aux, *qubits])
+        circuit.compose(self._qft, qubits, inplace=True)
+        circuit.append(self._phi_add_N, qubits)
         circuit.append(iphi_add_a.control(2), [ctl_up, ctl_down, *qubits])
-        circuit.append(self._iqft, qubits)
+        circuit.compose(self._iqft, qubits, inplace=True)
 
-        circuit.x(self._n)
-        circuit.cx(self._n, ctl_aux)
-        circuit.x(self._n)
+        circuit.x(qubits[0])
+        circuit.cx(qubits[0], ctl_aux)
+        circuit.x(qubits[0])
 
-        circuit.append(self._qft, qubits)
+        circuit.compose(self._qft, qubits, inplace=True)
         circuit.append(phi_add_a.control(2), [ctl_up, ctl_down, *qubits])
         return circuit
 
