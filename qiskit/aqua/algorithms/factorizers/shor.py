@@ -22,14 +22,13 @@ import logging
 import numpy as np
 
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
-from qiskit.circuit import Qubit, Gate, ParameterVector
+from qiskit.circuit import Gate, ParameterVector
 from qiskit.circuit.library import QFT
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance
+from qiskit.aqua.algorithms import AlgorithmResult, QuantumAlgorithm
+from qiskit.aqua.utils import get_subsystem_density_matrix, summarize_circuits
 from qiskit.aqua.utils.arithmetic import is_power
-from qiskit.aqua.utils import get_subsystem_density_matrix
-from qiskit.aqua.algorithms import QuantumAlgorithm, AlgorithmResult
-from qiskit.aqua.utils import summarize_circuits
 from qiskit.aqua.utils.validation import validate_min
 
 logger = logging.getLogger(__name__)
