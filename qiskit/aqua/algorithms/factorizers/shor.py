@@ -119,7 +119,8 @@ class Shor(QuantumAlgorithm):
 
     def _double_controlled_phi_add_mod_N(self,
                                          num_qubits: int,
-                                         angles: Union[np.ndarray, ParameterVector]) -> QuantumCircuit:
+                                         angles: Union[np.ndarray, ParameterVector]
+                                         ) -> QuantumCircuit:
         """Implements double-controlled modular addition by a, returning the circuit."""
         circuit = QuantumCircuit(num_qubits, name="phi_add")
 
@@ -128,7 +129,7 @@ class Shor(QuantumAlgorithm):
         ctl_aux = 2
 
         # get qubits from aux register, omitting the control qubit
-        qubits = [i for i in range(3, num_qubits)]
+        qubits = range(3, num_qubits)
 
         # store the gates representing addition/subtraction by a in Fourier Space
         phi_add_a = self._phi_add_gate(len(qubits), angles)
@@ -153,20 +154,20 @@ class Shor(QuantumAlgorithm):
         circuit.append(phi_add_a.control(2), [ctl_up, ctl_down, *qubits])
         return circuit
 
-    def _controlled_multiple_mod_N(self,
-                                   num_qubits: int,
-                                   a: int) -> Gate:
+    def _controlled_multiple_mod_N_gate(self, num_qubits: int, a: int) -> Gate:
         """Gate that implements modular multiplication by a."""
-        circuit = QuantumCircuit(num_qubits,
-                                 name="multiply_by_{}_mod_{}".format(a % self._N, self._N))
-        down = circuit[1:self._n + 1]
+        circuit = QuantumCircuit(
+            num_qubits, name="multiply_by_{}_mod_{}".format(a % self._N, self._N)
+        )
+        down = circuit[1: self._n + 1]
         aux = circuit[self._n + 1:]
         qubits = [aux[i] for i in reversed(range(self._n + 1))]
         ctl_up = 0
         ctl_aux = aux[-1]
 
         angle_params = ParameterVector("angles", length=len(aux) - 1)
-        double_controlled_phi_add = self._double_controlled_phi_add_mod_N(len(aux) + 2, angle_params)
+        double_controlled_phi_add = self._double_controlled_phi_add_mod_N(
+            len(aux) + 2, angle_params)
         idouble_controlled_phi_add = double_controlled_phi_add.inverse()
 
         circuit.compose(self._qft, qubits, inplace=True)
@@ -237,13 +238,12 @@ class Shor(QuantumAlgorithm):
         # the report in order to create the exponentiation
         for i, ctl_up in enumerate(self._up_qreg):
             a = int(pow(self._a, pow(2, i)))
-
-            controlled_multiple_mod_N = self._controlled_multiple_mod_N(
-                len(self._down_qreg) + len(self._aux_qreg) + 1,
-                a,
+            controlled_multiple_mod_N = self._controlled_multiple_mod_N_gate(
+                len(self._down_qreg) + len(self._aux_qreg) + 1, a,
             )
-            circuit.append(controlled_multiple_mod_N,
-                           [ctl_up, *self._down_qreg, *self._aux_qreg])
+            circuit.append(
+                controlled_multiple_mod_N, [ctl_up, *self._down_qreg, *self._aux_qreg]
+            )
 
         # Apply inverse QFT
         iqft = QFT(len(self._up_qreg)).inverse()
