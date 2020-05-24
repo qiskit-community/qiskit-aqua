@@ -155,29 +155,46 @@ class Shor(QuantumAlgorithm):
         return circuit
 
     def _controlled_multiple_mod_N(self,
-                                   ctl_up: Union[Qubit, int],
-                                   down: QuantumRegister,
-                                   aux: QuantumRegister,
-                                   a: int) -> QuantumCircuit:
-        """Returns a circuit implementing single-controlled modular multiplication by a."""
-        qubits = [aux[i] for i in reversed(range(self._n + 1))]
-
-        circuit = QuantumCircuit(len(down) + len(aux) + 1,
+                                   num_qubits: int,
+                                   a: int) -> Gate:
+        """Returns a circuit implementing modular multiplication by a."""
+        circuit = QuantumCircuit(num_qubits,
                                  name="multiply_by_{}_mod_{}".format(a % self._N, self._N))
-        circuit.append(self._qft, qubits)
-
+        down = circuit.qubits[1:self._n + 1]
+        aux = circuit.qubits[self._n + 1:]
+        qubits = [aux[i] for i in reversed(range(self._n + 1))]
+        ctl_up = 0
         ctl_aux = aux[-1]
-        angle_params = ParameterVector("angles", length=aux.size-1)
-        double_controlled_phi_add = self._double_controlled_phi_add_mod_N(len(aux) + 2, angle_params)
 
+        angle_params = ParameterVector("angles", length=len(aux) - 1)
+        double_controlled_phi_add = self._double_controlled_phi_add_mod_N(len(aux) + 2, angle_params)
+        idouble_controlled_phi_add = double_controlled_phi_add.inverse()
+
+        circuit.compose(self._qft, qubits, inplace=True)
+
+        # perform controlled addition by a on the aux register in Fourier space
         for i, ctl_down in enumerate(down):
             a_exp = (2 ** i) * a % self._N
             angles = self._get_angles(a_exp)
             bound = double_controlled_phi_add.assign_parameters({angle_params: angles})
             circuit.compose(bound, [ctl_up, ctl_down, ctl_aux, *qubits], inplace=True)
 
-        circuit.append(self._iqft, qubits)
-        return circuit
+        circuit.compose(self._iqft, qubits, inplace=True)
+
+        # perform controlled subtraction by a in Fourier space on both the aux and down register
+        for j in range(self._n):
+            circuit.cswap(ctl_up, down[j], aux[j])
+        circuit.compose(self._qft, qubits, inplace=True)
+
+        a_inv = self.modinv(a, self._N)
+        for i in reversed(range(len(down))):
+            a_exp = (2 ** i) * a_inv % self._N
+            angles = self._get_angles(a_exp)
+            bound = idouble_controlled_phi_add.assign_parameters({angle_params: angles})
+            circuit.compose(bound, [ctl_up, down[i], ctl_aux, *qubits], inplace=True)
+
+        circuit.compose(self._iqft, qubits, inplace=True)
+        return circuit.to_gate()
 
     def construct_circuit(self, measurement: bool = False) -> QuantumCircuit:
         """Construct circuit.
@@ -208,7 +225,7 @@ class Shor(QuantumAlgorithm):
                                  name="Shor(N={}, a={})".format(self._N, self._a))
 
         # Create gates to perform addition/subtraction by N in Fourier Space
-        self._phi_add_N = self._phi_add_gate(self._aux_qreg.size, self._N)
+        self._phi_add_N = self._phi_add_gate(self._aux_qreg.size, self._get_angles(self._N))
         self._iphi_add_N = self._phi_add_N.inverse()
 
         # Create maximal superposition in top register
@@ -221,23 +238,13 @@ class Shor(QuantumAlgorithm):
         # the report in order to create the exponentiation
         for i, ctl_up in enumerate(self._up_qreg):
             a = int(pow(self._a, pow(2, i)))
-            circuit = circuit.combine(self._controlled_multiple_mod_N(
-                ctl_up,
-                self._down_qreg,
-                self._aux_qreg,
-                a
-            ))
 
-            for j in range(self._n):
-                circuit.cswap(ctl_up, self._down_qreg[j], self._aux_qreg[j])
-
-            a_inv = self.modinv(a, self._N)
-            circuit = circuit.combine(self._controlled_multiple_mod_N(
-                ctl_up,
-                self._down_qreg,
-                self._aux_qreg,
-                a_inv
-            ).inverse())
+            controlled_multiple_mod_N = self._controlled_multiple_mod_N(
+                len(self._down_qreg) + len(self._aux_qreg) + 1,
+                a,
+            )
+            circuit.append(controlled_multiple_mod_N,
+                           [ctl_up, *self._down_qreg, *self._aux_qreg])
 
         # Apply inverse QFT
         iqft = QFT(len(self._up_qreg)).inverse()
