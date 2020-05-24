@@ -159,8 +159,8 @@ class Shor(QuantumAlgorithm):
         circuit = QuantumCircuit(
             num_qubits, name="multiply_by_{}_mod_{}".format(a % self._N, self._N)
         )
-        down = circuit[1: self._n + 1]
-        aux = circuit[self._n + 1:]
+        down = circuit.qubits[1: self._n + 1]
+        aux = circuit.qubits[self._n + 1:]
         qubits = [aux[i] for i in reversed(range(self._n + 1))]
         ctl_up = 0
         ctl_aux = aux[-1]
