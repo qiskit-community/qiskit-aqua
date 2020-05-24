@@ -74,10 +74,9 @@ class TestShor(QiskitAquaTestCase):
         modinv = Shor.modinv(a_v, m_v)
         self.assertTrue(modinv == expected)
 
-    @idata([[3, "0011"],
-            [5, "0101"]])
+    @data(3, 5, 6)
     @unpack
-    def test_phi_add_gate(self, addition_magnitude, expected_state):
+    def test_phi_add_gate(self, addition_magnitude):
         """ shor phi add gate test """
         shor = Shor(3)
         shor._n = 2
@@ -87,7 +86,7 @@ class TestShor(QiskitAquaTestCase):
         c = ClassicalRegister(4, name='measurement')
         circuit = QuantumCircuit(q, c)
 
-        gate = shor._phi_add_gate(3, addition_magnitude)
+        gate = shor._phi_add_gate(3, shor._get_angles(addition_magnitude))
         qubits = [q[i] for i in reversed(range(len(q) - 1))]
 
         circuit.compose(shor._qft, qubits, inplace=True)
@@ -102,7 +101,7 @@ class TestShor(QiskitAquaTestCase):
 
         result_data = result.get_counts().items()
         most_likely_state = max(result_data, key=operator.itemgetter(1))[0]
-        self.assertTrue(most_likely_state, expected_state)
+        self.assertTrue(int(most_likely_state, 2) == addition_magnitude)
 
 
 if __name__ == '__main__':
