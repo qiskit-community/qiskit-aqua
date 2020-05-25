@@ -121,7 +121,7 @@ class Shor(QuantumAlgorithm):
                                          num_qubits: int,
                                          angles: Union[np.ndarray, ParameterVector]
                                          ) -> QuantumCircuit:
-        """Implements double-controlled modular addition by a, returning the circuit."""
+        """Creates a circuit which implements double-controlled modular addition by a."""
         circuit = QuantumCircuit(num_qubits, name="phi_add")
 
         ctl_up = 0
@@ -155,7 +155,7 @@ class Shor(QuantumAlgorithm):
         return circuit
 
     def _controlled_multiple_mod_N(self, num_qubits: int, a: int) -> Instruction:
-        """Gate that implements modular multiplication by a."""
+        """Implements modular multiplication by a as an instruction."""
         circuit = QuantumCircuit(
             num_qubits, name="multiply_by_{}_mod_{}".format(a % self._N, self._N)
         )
