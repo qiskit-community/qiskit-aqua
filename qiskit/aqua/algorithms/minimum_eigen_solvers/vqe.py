@@ -371,7 +371,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         result = VQEResult()
         result.combine(vqresult)
         result.eigenvalue = vqresult.optimal_value + 0j
-        result.eigenstate = self.get_optimal_vector()
+        result.eigenstate = self._ret['eigvecs']
 
         if self.aux_operators:
             self._eval_aux_ops()
