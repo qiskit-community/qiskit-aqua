@@ -36,8 +36,7 @@ class TestVQC(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
-        self.seed = 1376
-        aqua_globals.random_seed = self.seed
+        self.seed = 50
         self.training_data = {'A': np.asarray([[2.95309709, 2.51327412], [3.14159265, 4.08407045]]),
                               'B': np.asarray([[4.08407045, 2.26194671], [4.46106157, 2.38761042]])}
         self.testing_data = {'A': np.asarray([[3.83274304, 2.45044227]]),
@@ -255,14 +254,19 @@ class TestVQC(QiskitAquaTestCase):
 
         vqc.run(self.qasm_simulator)
 
-        self.assertTrue(all(isinstance(count, int) for count in history['eval_count']))
-        self.assertTrue(all(isinstance(cost, float) for cost in history['cost']))
-        self.assertTrue(all(isinstance(index, int) for index in history['batch_index']))
+        with self.subTest('eval count'):
+            self.assertTrue(all(isinstance(count, int) for count in history['eval_count']))
+        with self.subTest('cost'):
+            self.assertTrue(all(isinstance(cost, float) for cost in history['cost']))
+        with self.subTest('batch index'):
+            self.assertTrue(all(isinstance(index, int) for index in history['batch_index']))
         for params in history['parameters']:
-            self.assertTrue(all(isinstance(param, float) for param in params))
+            with self.subTest('params'):
+                self.assertTrue(all(isinstance(param, float) for param in params))
 
     def test_same_parameter_names_raises(self):
         """Test that the varform and feature map can have parameters with the same name."""
+        aqua_globals.random_seed = self.seed
         var_form = QuantumCircuit(1)
         var_form.ry(Parameter('a'), 0)
         feature_map = QuantumCircuit(1)
@@ -275,6 +279,7 @@ class TestVQC(QiskitAquaTestCase):
 
     def test_feature_map_without_parameters_warns(self):
         """Test that specifying a feature map with 0 parameters raises a warning."""
+        aqua_globals.random_seed = self.seed
         var_form = QuantumCircuit(1)
         var_form.ry(Parameter('a'), 0)
         feature_map = QuantumCircuit(1)

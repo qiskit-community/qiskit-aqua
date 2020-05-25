@@ -34,7 +34,7 @@ class TestVQE2IQPE(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
-        self.seed = 8
+        self.seed = 20798
         aqua_globals.random_seed = self.seed
         self.qubit_op = -1.052373245772859 * (I ^ I) \
             + 0.39793742484318045 * (I ^ Z) \
@@ -57,7 +57,7 @@ class TestVQE2IQPE(QiskitAquaTestCase):
 
         self.log.debug('VQE result: %s.', result)
 
-        ref_eigenval = -1.85727503 + 0j
+        ref_eigenval = -1.85727503  # Known reference value
 
         num_time_slices = 1
         num_iterations = 6
