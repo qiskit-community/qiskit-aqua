@@ -22,7 +22,7 @@ import logging
 import numpy as np
 
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
-from qiskit.circuit import Gate, ParameterVector
+from qiskit.circuit import Gate, Instruction, ParameterVector
 from qiskit.circuit.library import QFT
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance
@@ -137,24 +137,24 @@ class Shor(QuantumAlgorithm):
 
         circuit.append(phi_add_a.control(2), [ctl_up, ctl_down, *qubits])
         circuit.append(self._iphi_add_N, qubits)
-        circuit.compose(self._iqft, qubits, inplace=True)
+        circuit.append(self._iqft, qubits)
 
         circuit.cx(qubits[0], ctl_aux)
 
-        circuit.compose(self._qft, qubits, inplace=True)
+        circuit.append(self._qft, qubits)
         circuit.append(self._phi_add_N, qubits)
         circuit.append(iphi_add_a.control(2), [ctl_up, ctl_down, *qubits])
-        circuit.compose(self._iqft, qubits, inplace=True)
+        circuit.append(self._iqft, qubits)
 
         circuit.x(qubits[0])
         circuit.cx(qubits[0], ctl_aux)
         circuit.x(qubits[0])
 
-        circuit.compose(self._qft, qubits, inplace=True)
+        circuit.append(self._qft, qubits)
         circuit.append(phi_add_a.control(2), [ctl_up, ctl_down, *qubits])
         return circuit
 
-    def _controlled_multiple_mod_N_gate(self, num_qubits: int, a: int) -> Gate:
+    def _controlled_multiple_mod_N_gate(self, num_qubits: int, a: int) -> Instruction:
         """Gate that implements modular multiplication by a."""
         circuit = QuantumCircuit(
             num_qubits, name="multiply_by_{}_mod_{}".format(a % self._N, self._N)
@@ -194,7 +194,7 @@ class Shor(QuantumAlgorithm):
             circuit.compose(bound, [ctl_up, down[i], ctl_aux, *qubits], inplace=True)
 
         circuit.compose(self._iqft, qubits, inplace=True)
-        return circuit.to_gate()
+        return circuit.to_instruction()
 
     def construct_circuit(self, measurement: bool = False) -> QuantumCircuit:
         """Construct circuit.
