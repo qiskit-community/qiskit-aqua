@@ -92,7 +92,7 @@ class Shor(QuantumAlgorithm):
             logger.info('The input integer is a power: %s=%s^%s.', N, b, p)
             self._ret['factors'].append(b)
 
-        self._qft = QFT(do_swaps=False)
+        self._qft = QFT(do_swaps=False).to_instruction()
         self._iqft = self._qft.inverse()
 
         self._phi_add_N = None
