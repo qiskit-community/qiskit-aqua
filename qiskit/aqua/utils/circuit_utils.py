@@ -89,7 +89,7 @@ class QuantumCircuitConverter:
         """Initialize a converter with a circuit
 
         Note:
-            It does no unroll all gates to 'u3' and 'cx' to deal with global phase.
+            It does not unroll all gates to 'u3' and 'cx' to deal with global phase.
 
         Args:
             qc: a quantum circuit
