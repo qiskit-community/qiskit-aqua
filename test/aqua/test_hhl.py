@@ -325,7 +325,7 @@ class TestHHL(QiskitAquaTestCase):
         matrix, vector, truncate_powerdim, truncate_hermitian = HHL.matrix_resize(matrix, vector)
 
         # Initialize eigenvalue finding module
-        eigs = TestHHL._create_eigs(matrix, 4, deprecated_qft)
+        eigs = TestHHL._create_eigs(matrix, 4, True, deprecated_qft)
         num_q, num_a = eigs.get_register_sizes()
 
         # Initialize initial state module
