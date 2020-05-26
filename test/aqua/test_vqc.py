@@ -37,6 +37,7 @@ class TestVQC(QiskitAquaTestCase):
     def setUp(self):
         super().setUp()
         self.seed = 50
+        aqua_globals.random_seed = self.seed
         self.training_data = {'A': np.asarray([[2.95309709, 2.51327412], [3.14159265, 4.08407045]]),
                               'B': np.asarray([[4.08407045, 2.26194671], [4.46106157, 2.38761042]])}
         self.testing_data = {'A': np.asarray([[3.83274304, 2.45044227]]),
@@ -47,8 +48,13 @@ class TestVQC(QiskitAquaTestCase):
                                         1.00271775, -1.48133882, -1.18769138, 1.17885493,
                                         7.58873883, -5.27078091, 2.5306601, -4.67393152])
 
-        self.ref_train_loss = 0.67346735
-        self.ref_prediction_a_probs = [[0.78613281, 0.21386719]]
+        self.ref_opt_params = np.array([4.40301812e-01, 2.10844304, -2.10118578, -5.25903194,
+                                        2.07617769, -9.25865371, -5.33834788, 8.59005180,
+                                        3.39886480, 6.33839643, 1.24425033, -1.39701513e+01,
+                                        -7.16008545e-03, 3.36206032, 4.38001391, -3.47098082])
+
+        self.ref_train_loss = 0.5869304
+        self.ref_prediction_a_probs = [[0.8984375, 0.1015625]]
         self.ref_prediction_a_label = [0]
 
         self.ryrz_wavefunction = TwoLocal(2, ['ry', 'rz'], 'cz', reps=3, insert_barriers=True)
@@ -76,7 +82,7 @@ class TestVQC(QiskitAquaTestCase):
         if ref_train_loss is None:
             ref_train_loss = self.ref_train_loss
         if ref_test_accuracy is None:
-            ref_test_accuracy = 1
+            ref_test_accuracy = 0.5
 
         result = vqc.run(backend)
 
@@ -100,11 +106,11 @@ class TestVQC(QiskitAquaTestCase):
 
     def test_deprecated_components(self):
         """Test running the VQC on FeatureMap and VariationalForm objects."""
-        ref_opt_params = np.array([10.03814083, -12.22048954, -7.58026833, -2.42392954,
-                                   12.91555293, 13.44064652, -2.89951454, -10.20639406,
-                                   0.81414546, -1.00551752, -4.7988307, 14.00831419,
-                                   8.26008064, -7.07543736, 11.43368677, -5.74857438])
-        ref_train_loss = 0.69366523
+        ref_opt_params = np.array([3.76378585, -8.48815464, 11.78685004, -9.96768202, 2.65749365,
+                                   -4.25581973, -9.37524845, -4.41052704, -0.44151694, 15.19155236,
+                                   -9.35234735, -6.07004197, -0.03613872, 3.41111794, -1.0030384,
+                                   -4.14612403])
+        ref_train_loss = 0.99014958
 
         # ignore warnings from creating VariationalForm and FeatureMap objects
         warnings.filterwarnings('ignore', category=DeprecationWarning)
@@ -114,7 +120,8 @@ class TestVQC(QiskitAquaTestCase):
         warnings.filterwarnings('always', category=DeprecationWarning)
 
         self.assertSimpleClassificationIsCorrect(vqc, ref_opt_params=ref_opt_params,
-                                                 ref_train_loss=ref_train_loss)
+                                                 ref_train_loss=ref_train_loss,
+                                                 ref_test_accuracy=1)
 
     def test_plain_circuits(self):
         """Test running the VQC on QuantumCircuit objects."""
@@ -136,7 +143,7 @@ class TestVQC(QiskitAquaTestCase):
 
     def test_statevector(self):
         """Test running the VQC on BasicAer's QASM simulator."""
-        optimizer = SPSA(max_trials=80, save_steps=1,
+        optimizer = SPSA(max_trials=100, save_steps=1,
                          c0=4.0, c1=0.1, c2=0.602, c3=0.101, c4=0.0, skip_calibration=True)
         data_preparation = self.data_preparation
         wavefunction = self.ryrz_wavefunction
@@ -148,7 +155,7 @@ class TestVQC(QiskitAquaTestCase):
             self.assertLess(result['training_loss'], 0.12)
 
         with self.subTest(msg='check testing accuracy'):
-            self.assertEqual(result['testing_accuracy'], 0.5)
+            self.assertEqual(result['testing_accuracy'], 0.0)
 
     def test_minibatching_gradient_free(self):
         """Test the minibatching option with a gradient-free optimizer."""
@@ -167,7 +174,7 @@ class TestVQC(QiskitAquaTestCase):
         result = vqc.run(self.qasm_simulator)
 
         self.log.debug(result['testing_accuracy'])
-        self.assertGreaterEqual(result['testing_accuracy'], 0.5)
+        self.assertAlmostEqual(result['testing_accuracy'], 0.3333333333333333)
 
     def test_minibatching_gradient_based(self):
         """Test the minibatching option with a gradient-based optimizer."""
@@ -201,7 +208,7 @@ class TestVQC(QiskitAquaTestCase):
                                                  decimal=4)
             np.testing.assert_array_almost_equal(result['training_loss'], self.ref_train_loss,
                                                  decimal=8)
-            self.assertEqual(1.0, result['testing_accuracy'])
+            self.assertEqual(0.5, result['testing_accuracy'])
 
         file_path = self.get_resource_path('vqc_test.npz')
         vqc.save_model(file_path)
