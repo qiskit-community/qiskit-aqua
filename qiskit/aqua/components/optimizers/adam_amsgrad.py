@@ -183,8 +183,6 @@ class ADAM(Optimizer):
         """
         derivative = gradient_function(initial_point)
         self._t = 0
-        if self._amsgrad:
-            self._v_eff = np.zeros(1)
         self._m = np.zeros(np.shape(derivative))
         self._v = np.zeros(np.shape(derivative))
         if self._amsgrad:
