@@ -83,7 +83,7 @@ class TestVQE(QiskitAquaTestCase):
         """Test running the VQE on a deprecated VariationalForm object."""
         warnings.filterwarnings('ignore', category=DeprecationWarning)
         wavefunction = RYRZ(2)
-        vqe = VQE(self.h2_op, wavefunction)
+        vqe = VQE(self.h2_op, wavefunction, L_BFGS_B())
         warnings.filterwarnings('always', category=DeprecationWarning)
         result = vqe.run(self.statevector_simulator)
         self.assertAlmostEqual(result.eigenvalue.real, self.h2_energy)
@@ -119,7 +119,7 @@ class TestVQE(QiskitAquaTestCase):
 
     @data(
         (SLSQP(maxiter=50), 5, 4),
-        (SPSA(max_trials=50), 3, 2),  # max_evals_grouped=n or =2 if n>2
+        (SPSA(max_trials=150), 3, 2),  # max_evals_grouped=n or =2 if n>2
     )
     @unpack
     def test_max_evals_grouped(self, optimizer, places, max_evals_grouped):
@@ -132,7 +132,7 @@ class TestVQE(QiskitAquaTestCase):
 
     def test_basic_aer_qasm(self):
         """Test the VQE on BasicAer's QASM simulator."""
-        optimizer = SPSA(max_trials=30, last_avg=5)
+        optimizer = SPSA(max_trials=300, last_avg=5)
         wavefunction = self.ry_wavefunction
 
         vqe = VQE(self.h2_op, wavefunction, optimizer, max_evals_grouped=1)
@@ -237,7 +237,7 @@ class TestVQE(QiskitAquaTestCase):
 
     def test_vqe_optimizer(self):
         """ Test running same VQE twice to re-use optimizer, then switch optimizer """
-        vqe = VQE(self.qubit_op, optimizer=SLSQP(),
+        vqe = VQE(self.h2_op, optimizer=SLSQP(),
                   quantum_instance=QuantumInstance(BasicAer.get_backend('statevector_simulator')))
 
         def run_check():

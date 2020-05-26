@@ -206,6 +206,16 @@ class TestQSVM(QiskitAquaTestCase):
                   'all_vs_all': AllPairs(),
                   'error_correcting': ErrorCorrectingCode(code_size=5)}
 
+        accuracy = {'one_vs_all': 0.444444444,
+                    'all_vs_all': 0.444444444,
+                    'error_correcting': 0.555555555}
+
+        predicted_classes = {
+            'one_vs_all': ['A', 'A', 'C', 'A', 'A', 'A', 'A', 'C', 'C'],
+            'all_vs_all': ['A', 'A', 'C', 'A', 'A', 'A', 'A', 'C', 'C'],
+            'error_correcting': ['A', 'A', 'A', 'A', 'A', 'A', 'A', 'C', 'C']
+        }
+
         total_array = np.concatenate((test_input['A'], test_input['B'], test_input['C']))
 
         data_preparation = self.data_preparation
@@ -213,9 +223,9 @@ class TestQSVM(QiskitAquaTestCase):
             svm = QSVM(data_preparation, train_input, test_input, total_array,
                        multiclass_extension=method[multiclass_extension])
             result = svm.run(self.qasm_simulator)
-            expected_accuracy = 0.444444444
             expected_classes = ['A', 'A', 'C', 'A', 'A', 'A', 'A', 'C', 'C']
-            self.assertAlmostEqual(result['testing_accuracy'], expected_accuracy, places=4)
-            self.assertEqual(result['predicted_classes'], expected_classes)
+            self.assertAlmostEqual(result['testing_accuracy'], accuracy[multiclass_extension],
+                                   places=4)
+            self.assertEqual(result['predicted_classes'], predicted_classes[multiclass_extension])
         except NameError as ex:
             self.skipTest(str(ex))
