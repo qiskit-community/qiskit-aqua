@@ -84,7 +84,8 @@ def summarize_circuits(circuits):
 
 class QuantumCircuitConverter:
     def __init__(self, qc: QuantumCircuit):
-        self._qc = transpile(qc, basis_gates=['u1', 'u2', 'u3', 'cx', 'id'])
+        self._qc = transpile(qc,
+                             basis_gates=['u1', 'u2', 'u3', 'cx', 'id', 'x', 'h', 'hamiltonian'])
 
     def _statevector(self):
         return Statevector.from_int(0, 2 ** self._qc.num_qubits).evolve(self._qc)
