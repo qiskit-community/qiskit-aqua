@@ -83,7 +83,17 @@ def summarize_circuits(circuits):
 
 
 class QuantumCircuitConverter:
+    """Convert a quantum circuit into a unitary matrix, a state vector, and counts"""
+
     def __init__(self, qc: QuantumCircuit):
+        """Initialize a converter with a circuit
+
+        Note:
+            It does no unroll all gates to 'u3' and 'cx' to deal with global phase.
+
+        Args:
+            qc: a quantum circuit
+        """
         self._qc = transpile(qc,
                              basis_gates=['u1', 'u2', 'u3', 'cx', 'id', 'x', 'h', 'hamiltonian'])
 
@@ -93,20 +103,29 @@ class QuantumCircuitConverter:
     def to_unitary_matrix(self) -> np.ndarray:
         """Return a unitary matrix corresponding to a quantum circuit.
 
-        Args:
-            qc: a quantum circuit
-
         Returns: a unitary matrix.
         """
         return Operator(self._qc).data
 
     def to_state_vector(self) -> np.ndarray:
+        """Return a state vector corresponding to a quantum circuit.
+
+        Returns: a state vector.
+        """
         return self._statevector().data
 
     def to_state_vector_dict(self) -> Dict[str, complex]:
+        """Return a state vector dictionary corresponding to a quantum circuit.
+
+        Returns: a state vector dictionary.
+        """
         return self._statevector().to_dict()
 
     def to_counts(self, shots) -> Dict[str, int]:
+        """Return counts corresponding to a quantum circuit.
+
+        Returns: counts.
+        """
         prob = self._statevector().probabilities_dict()
         keys = list(prob.keys())
         values = list(prob.values())

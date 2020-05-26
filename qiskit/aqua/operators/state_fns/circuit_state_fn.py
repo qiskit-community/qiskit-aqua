@@ -18,7 +18,7 @@
 from typing import Union, Set, List
 import numpy as np
 
-from qiskit import QuantumCircuit, ClassicalRegister, transpile
+from qiskit import QuantumCircuit, ClassicalRegister
 from qiskit.circuit import Instruction, ParameterExpression
 from qiskit.extensions import Initialize
 from qiskit.circuit.library import IGate
