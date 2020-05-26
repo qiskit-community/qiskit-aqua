@@ -18,7 +18,7 @@
 from typing import Union, Set, List
 import numpy as np
 
-from qiskit import QuantumCircuit, ClassicalRegister
+from qiskit import QuantumCircuit, ClassicalRegister, transpile
 from qiskit.circuit import Instruction, ParameterExpression
 from qiskit.extensions import Initialize
 from qiskit.circuit.library import IGate
@@ -327,7 +327,6 @@ class CircuitStateFn(StateFn):
             raise ValueError(
                 'to_vector will return an exponentially large vector, in this case {0} elements.'
                 ' Set massive=True if you want to proceed.'.format(2 ** self.num_qubits))
-        print(self.to_circuit(meas=False))
         counts = QuantumCircuitConverter(self.to_circuit(meas=False)).to_counts(shots=shots)
         if reverse_endianness:
             scaled_dict = {bstr[::-1]: (prob / shots) for (bstr, prob) in counts.items()}

@@ -18,7 +18,7 @@ from typing import Dict
 
 import numpy as np
 
-from qiskit import QuantumCircuit
+from qiskit import QuantumCircuit, transpile
 from qiskit.converters import circuit_to_dag, dag_to_circuit
 from qiskit.quantum_info import Operator, Statevector
 from qiskit.transpiler.passes import Unroller
@@ -84,7 +84,7 @@ def summarize_circuits(circuits):
 
 class QuantumCircuitConverter:
     def __init__(self, qc: QuantumCircuit):
-        self._qc = qc
+        self._qc = transpile(qc, basis_gates=['u1', 'u2', 'u3', 'cx', 'id'])
 
     def _statevector(self):
         return Statevector.from_int(0, 2 ** self._qc.num_qubits).evolve(self._qc)
