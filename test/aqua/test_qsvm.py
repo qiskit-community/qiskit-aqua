@@ -223,7 +223,6 @@ class TestQSVM(QiskitAquaTestCase):
             svm = QSVM(data_preparation, train_input, test_input, total_array,
                        multiclass_extension=method[multiclass_extension])
             result = svm.run(self.qasm_simulator)
-            expected_classes = ['A', 'A', 'C', 'A', 'A', 'A', 'A', 'C', 'C']
             self.assertAlmostEqual(result['testing_accuracy'], accuracy[multiclass_extension],
                                    places=4)
             self.assertEqual(result['predicted_classes'], predicted_classes[multiclass_extension])
