@@ -358,8 +358,7 @@ class Shor(QuantumAlgorithm):
             other_factor = math.gcd(putting_minus, self._N)
 
             # Check if the factors found are trivial factors or are the desired factors
-            if one_factor == 1 or one_factor == self._N or \
-                    other_factor == 1 or other_factor == self._N:
+            if any([factor in {1, self._N} for factor in (one_factor, other_factor)]):
                 logger.debug('Found just trivial factors, not good enough.')
                 # Check if the number has already been found,
                 # use i-1 because i was already incremented
