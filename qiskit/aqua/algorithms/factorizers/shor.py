@@ -407,16 +407,23 @@ class Shor(QuantumAlgorithm):
 
             # For each simulation result, print proper info to user
             # and try to calculate the factors of N
-            for output_desired in list(counts.keys()):
+            for measurement in list(counts.keys()):
                 # Get the x_value from the final state qubits
-                logger.info("------> Analyzing result %s.", output_desired)
-                self._ret['results'][output_desired] = None
-                success = self._get_factors(output_desired, int(2 * self._n))
-                if success:
-                    logger.info('Found factors %s from measurement %s.',
-                                self._ret['results'][output_desired], output_desired)
-                else:
-                    logger.info('Cannot find factors from measurement %s because %s',
-                                output_desired, self._ret['results'][output_desired])
+                logger.info("------> Analyzing result {}.".format(measurement))
+                self._ret['results'][measurement] = None
+                success = self._get_factors(measurement, int(2 * self._n))
 
+                output = self._ret['results'][measurement]
+                if success:
+                    logger.info(
+                        'Found factors {} from measurement {}.'.format(
+                            output, measurement
+                        )
+                    )
+                else:
+                    logger.debug(
+                        'Cannot find factors from measurement {} because {}'.format(
+                            measurement, output
+                        )
+                    )
         return self._ret
