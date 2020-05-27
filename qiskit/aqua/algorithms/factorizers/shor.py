@@ -167,7 +167,8 @@ class Shor(QuantumAlgorithm):
 
         angle_params = ParameterVector("angles", length=len(aux) - 1)
         double_controlled_phi_add = self._double_controlled_phi_add_mod_N(
-            len(aux) + 2, angle_params)
+            len(aux) + 2, angle_params
+        )
         idouble_controlled_phi_add = double_controlled_phi_add.inverse()
 
         circuit.append(self._qft, qubits)
@@ -246,8 +247,8 @@ class Shor(QuantumAlgorithm):
             )
 
         # Apply inverse QFT
-        iqft = QFT(len(self._up_qreg)).inverse()
-        circuit.compose(iqft, qubits=self._up_qreg)
+        iqft = QFT(len(self._up_qreg)).inverse().to_instruction()
+        circuit.append(iqft, self._up_qreg)
 
         if measurement:
             up_cqreg = ClassicalRegister(2 * self._n, name='m')
