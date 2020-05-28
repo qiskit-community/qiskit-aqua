@@ -105,7 +105,8 @@ class NumPyEigensolver(ClassicalAlgorithm):
         else:
             aux_operators = \
                 [aux_operators] if not isinstance(aux_operators, list) else aux_operators
-            converted = [op.to_opflow() if op is not None else None for op in aux_operators]
+            converted = [op.to_opflow() if isinstance(op, LegacyBaseOperator)
+                         else op for op in aux_operators]
             # Chemistry passes aux_ops with 0 qubits and paulis sometimes
             zero_op = I.tensorpower(self.operator.num_qubits) * 0.0
             converted = [zero_op if op == 0 else op for op in converted]
