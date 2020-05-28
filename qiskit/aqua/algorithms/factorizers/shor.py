@@ -275,18 +275,20 @@ class Shor(QuantumAlgorithm):
                              "modular inverse does not exist.".format(a, m, g))
         return x % m
 
-    def _get_factors(self, output_desired: str, t_upper: int) -> Union[str, Tuple[int, int]]:
+    def _get_factors(self, measurement: str) -> Union[None, Tuple[int, int]]:
         """Apply the continued fractions to find r and the gcd to find the desired factors."""
-        x_value = int(output_desired, 2)
-        logger.info('In decimal, x_final value for this result is: %s.', x_value)
+        x_value = int(measurement, 2)
+        logger.info('In decimal, x_value for this result is: %s.', x_value)
 
         if x_value <= 0:
-            return 'x_value is <= 0, there are no continued fractions.'
-
-        logger.debug('Running continued fractions for this case.')
+            fail_reason = 'x_value is <= 0, there are no continued fractions.'
+        else:
+            fail_reason = None
+            logger.debug('Running continued fractions for this case.')
 
         # Calculate T and x/T
-        T = pow(2, t_upper)
+        T_upper = len(measurement)
+        T = pow(2, T_upper)
         x_over_T = x_value / T
 
         # Cycle in which each iteration corresponds to putting one more term in the
@@ -300,8 +302,8 @@ class Shor(QuantumAlgorithm):
         b.append(math.floor(x_over_T))
         t.append(x_over_T - b[i])
 
-        while i >= 0:
-
+        exponential = 0
+        while i <= self._N and fail_reason is None:
             # From the 2nd iteration onwards, calculate the new terms of the CF based
             # on the previous terms as the rule suggests
             if i > 0:
@@ -313,9 +315,9 @@ class Shor(QuantumAlgorithm):
             j = i
             while j > 0:
                 aux = 1 / (b[j] + aux)
-                j = j - 1
+                j -= 1
 
-            aux = aux + b[0]
+            aux += b[0]
 
             # Get the denominator from the value obtained
             frac = fractions.Fraction(aux).limit_denominator()
@@ -328,42 +330,43 @@ class Shor(QuantumAlgorithm):
             i += 1
 
             if denominator % 2 == 1:
-                if i >= self._N:
-                    return 'unable to find factors after too many attempts.'
                 logger.debug('Odd denominator, will try next iteration of continued fractions.')
                 continue
 
-            # If denominator even, try to get factors of N
+            # Denominator is even, try to get factors of N
             # Get the exponential a^(r/2)
-            exponential = 0
 
             if denominator < 1000:
                 exponential = pow(self._a, denominator / 2)
 
             # Check if the value is too big or not
-            if math.isinf(exponential) or exponential > 1000000000:
-                return 'denominator of continued fraction is too big.'
-
-            # If the value is not too big (infinity),
-            # then get the right values and do the proper gcd()
-            putting_plus = int(exponential + 1)
-            putting_minus = int(exponential - 1)
-            one_factor = math.gcd(putting_plus, self._N)
-            other_factor = math.gcd(putting_minus, self._N)
-
-            # Check if the factors found are trivial factors or are the desired factors
-            if any([factor in {1, self._N} for factor in (one_factor, other_factor)]):
-                logger.debug('Found just trivial factors, not good enough.')
-                # Check if the number has already been found,
-                # use i-1 because i was already incremented
-                if t[i - 1] == 0:
-                    return 'the continued fractions found exactly x_final/(2^(2n)).'
-                if i >= self._N:
-                    return 'unable to find factors after too many attempts.'
+            if exponential > 1000000000:
+                fail_reason = 'denominator of continued fraction is too big.'
             else:
-                logger.debug('The factors of %s are %s and %s.', self._N, one_factor, other_factor)
-                logger.debug('Found the desired factors.')
-                return one_factor, other_factor
+                # The value is not too big,
+                # get the right values and do the proper gcd()
+                putting_plus = int(exponential + 1)
+                putting_minus = int(exponential - 1)
+                one_factor = math.gcd(putting_plus, self._N)
+                other_factor = math.gcd(putting_minus, self._N)
+
+                # Check if the factors found are trivial factors or are the desired factors
+                if any([factor in {1, self._N} for factor in (one_factor, other_factor)]):
+                    logger.debug('Found just trivial factors, not good enough.')
+                    # Check if the number has already been found,
+                    # (use i - 1 because i was already incremented)
+                    if t[i - 1] == 0:
+                        fail_reason = 'the continued fractions found exactly x_final/(2^(2n)).'
+                else:
+                    # Successfully factorized N
+                    return one_factor, other_factor
+
+        # Search for factors failed, write the reason for failure to the debug logs
+        logger.debug(
+            'Cannot find factors from measurement {} because {}'.format(
+                measurement, fail_reason or 'it took too many attempts.'
+            )
+        )
 
     def _run(self) -> AlgorithmResult:
         if not self._ret['factors']:
@@ -397,9 +400,9 @@ class Shor(QuantumAlgorithm):
             for measurement in list(counts.keys()):
                 # Get the x_value from the final state qubits
                 logger.info("------> Analyzing result {}.".format(measurement))
-                output = self._get_factors(measurement, int(2 * self._n))
+                output = self._get_factors(measurement)
 
-                if isinstance(output, tuple):
+                if output:
                     logger.info(
                         'Found factors {} from measurement {}.'.format(
                             output, measurement
@@ -409,10 +412,5 @@ class Shor(QuantumAlgorithm):
                     factors = sorted(output)
                     if factors not in self._ret['factors']:
                         self._ret['factors'].append(factors)
-                else:
-                    logger.debug(
-                        'Cannot find factors from measurement {} because {}'.format(
-                            measurement, output
-                        )
-                    )
+                        
         return self._ret
