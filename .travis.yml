@@ -135,6 +135,7 @@ jobs:
         - make style
         - make lint
         - make copyright
+        - make mypy || true
         - make html SPHINXOPTS=-W
         - make doctest
     - name: "Test Aqua 1 Python 3.7"

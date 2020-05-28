@@ -51,9 +51,9 @@ class IntegerToBinary:
     _delimiter = '@'  # users are supposed not to use this character in variable names
 
     def __init__(self) -> None:
-        self._src = None
-        self._dst = None
-        self._conv = {}  # Dict[Variable, List[Tuple[str, int]]]
+        self._src: Optional[QuadraticProgram] = None
+        self._dst: Optional[QuadraticProgram] = None
+        self._conv: Dict[Variable, List[Tuple[str, int]]] = {}
         # e.g., self._conv = {x: [('x@1', 1), ('x@2', 2)]}
 
     def encode(self, op: QuadraticProgram, name: Optional[str] = None) -> QuadraticProgram:
@@ -82,7 +82,7 @@ class IntegerToBinary:
             # declare variables
             for x in self._src.variables:
                 if x.vartype == Variable.Type.INTEGER:
-                    new_vars = self._encode_var(x.name, x.lowerbound, x.upperbound)
+                    new_vars = self._encode_var(x.name, int(x.lowerbound), int(x.upperbound))
                     self._conv[x] = new_vars
                     for (var_name, _) in new_vars:
                         self._dst.binary_var(var_name)
@@ -119,7 +119,7 @@ class IntegerToBinary:
 
     def _encode_linear_coefficients_dict(self, coefficients: Dict[str, float]) \
             -> Tuple[Dict[str, float], float]:
-        constant = 0
+        constant = 0.0
         linear = {}
         for name, v in coefficients.items():
             x = self._src.get_variable(name)
@@ -134,8 +134,8 @@ class IntegerToBinary:
 
     def _encode_quadratic_coefficients_dict(self, coefficients: Dict[Tuple[str, str], float]) \
             -> Tuple[Dict[Tuple[str, str], float], Dict[str, float], float]:
-        constant = 0
-        linear = {}
+        constant = 0.0
+        linear: Dict[str, float] = {}
         quadratic = {}
         for (name_i, name_j), v in coefficients.items():
             x = self._src.get_variable(name_i)
@@ -226,7 +226,8 @@ class IntegerToBinary:
         new_vals = []
         for x in self._src.variables:
             if x in self._conv:
-                new_vals.append(sum(sol[aux] * coef for aux, coef in self._conv[x]) + x.lowerbound)
+                new_vals.append(
+                    int(sum(sol[aux] * coef for aux, coef in self._conv[x]) + x.lowerbound))
             else:
-                new_vals.append(sol[x.name])
+                new_vals.append(int(sol[x.name]))
         return new_vals
