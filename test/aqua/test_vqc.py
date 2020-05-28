@@ -143,8 +143,7 @@ class TestVQC(QiskitAquaTestCase):
 
     def test_statevector(self):
         """Test running the VQC on BasicAer's QASM simulator."""
-        optimizer = SPSA(max_trials=100, save_steps=1,
-                         c0=4.0, c1=0.1, c2=0.602, c3=0.101, c4=0.0, skip_calibration=True)
+        optimizer = L_BFGS_B(maxfun=200)
         data_preparation = self.data_preparation
         wavefunction = self.ryrz_wavefunction
 
@@ -155,7 +154,7 @@ class TestVQC(QiskitAquaTestCase):
             self.assertLess(result['training_loss'], 0.12)
 
         with self.subTest(msg='check testing accuracy'):
-            self.assertEqual(result['testing_accuracy'], 0.0)
+            self.assertEqual(result['testing_accuracy'], 0.5)
 
     def test_minibatching_gradient_free(self):
         """Test the minibatching option with a gradient-free optimizer."""
