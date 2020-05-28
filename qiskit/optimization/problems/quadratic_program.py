@@ -65,14 +65,14 @@ class QuadraticProgram:
         self._name = name
         self._status = QuadraticProgram.Status.VALID
 
-        self._variables = []  # List[Variable]
-        self._variables_index = {}  # Dict[str, int]
+        self._variables = []  # type: List[Variable]
+        self._variables_index = {}  # type: Dict[str, int]
 
-        self._linear_constraints = []  # List[LinearConstraint]
-        self._linear_constraints_index = {}  # Dict[str, int]
+        self._linear_constraints = []  # type: List[LinearConstraint]
+        self._linear_constraints_index = {}  # type: Dict[str, int]
 
-        self._quadratic_constraints = []  # List[QuadraticConstraint]
-        self._quadratic_constraints_index = {}  # Dict[str, int]
+        self._quadratic_constraints = []  # type: List[QuadraticConstraint]
+        self._quadratic_constraints_index = {}  # type: Dict[str, int]
 
         self._objective = QuadraticObjective(self)
 
@@ -873,9 +873,9 @@ class SubstituteVariables:
     CONST = '__CONSTANT__'
 
     def __init__(self):
-        self._src = None  # Optional[QuadraticProgram]
-        self._dst = None  # Optional[QuadraticProgram]
-        self._subs = {}  # Dict[Union[int, str], Tuple[str, float]]
+        self._src = None  # type: Optional[QuadraticProgram]
+        self._dst = None  # type: Optional[QuadraticProgram]
+        self._subs = {}  # type: Dict[Union[int, str], Tuple[str, float]]
 
     def substitute_variables(
             self, src: QuadraticProgram,
@@ -948,7 +948,7 @@ class SubstituteVariables:
 
     def _subs_dict(self, constants, variables):
         # guarantee that there is no overlap between variables to be replaced and combine input
-        subs = {}  # Dict[Union[int, str], Tuple[str, float]]
+        subs = {}  # type: Dict[Union[int, str], Tuple[str, float]]
         if constants is not None:
             for i, v in constants.items():
                 # substitute i <- v
@@ -1037,7 +1037,7 @@ class SubstituteVariables:
     def _linear_expression(self, lin_expr: LinearExpression) \
             -> Tuple[List[float], LinearExpression]:
         const = []
-        lin_dict = defaultdict(float)  # Dict[Union[int, str], float]
+        lin_dict = defaultdict(float)  # type: Dict[Union[int, str], float]
         for i, w_i in lin_expr.to_dict(use_name=True).items():
             repl_i = self._subs[i] if i in self._subs else (i, 1)
             prod = w_i * repl_i[1]
@@ -1053,8 +1053,8 @@ class SubstituteVariables:
     def _quadratic_expression(self, quad_expr: QuadraticExpression) \
             -> Tuple[List[float], Optional[LinearExpression], Optional[QuadraticExpression]]:
         const = []
-        lin_dict = defaultdict(float)  # Dict[Union[int, str], float]
-        quad_dict = defaultdict(float)  # Dict[Tuple[Union[int, str], Union[int, str]], float]
+        lin_dict = defaultdict(float)  # type: Dict[Union[int, str], float]
+        quad_dict = defaultdict(float)  # type: Dict[Tuple[Union[int, str], Union[int, str]], float]
         for (i, j), w_ij in quad_expr.to_dict(use_name=True).items():
             repl_i = self._subs[i] if i in self._subs else (i, 1)
             repl_j = self._subs[j] if j in self._subs else (j, 1)

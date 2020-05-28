@@ -138,7 +138,7 @@ class GroverOptimizer(OptimizationAlgorithm):
         keys_measured = []
 
         # Variables for result object.
-        func_dict = {}  # Dict[Union[int, Tuple[int, int]], int]
+        func_dict = {}  # type: Dict[Union[int, Tuple[int, int]], int]
         operation_count = {}
         iteration = 0
 

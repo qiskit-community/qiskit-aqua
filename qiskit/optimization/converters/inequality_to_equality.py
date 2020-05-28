@@ -43,9 +43,9 @@ class InequalityToEquality:
     _delimiter = '@'  # users are supposed not to use this character in variable names
 
     def __init__(self) -> None:
-        self._src = None  # Optional[QuadraticProgram]
-        self._dst = None  # Optional[QuadraticProgram]
-        self._conv = {}  # Dict[str, List[Tuple[str, int]]]
+        self._src = None  # type: Optional[QuadraticProgram]
+        self._dst = None  # type: Optional[QuadraticProgram]
+        self._conv = {}  # type: Dict[str, List[Tuple[str, int]]]
         # e.g., self._conv = {'c1': [c1@slack_var]}
 
     def encode(

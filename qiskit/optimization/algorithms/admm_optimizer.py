@@ -117,7 +117,7 @@ class ADMMState:
         self.q1 = None
         self.c1 = None
         # constraints
-        self.a0 = None  # Optional[np.ndarray]
+        self.a0 = None  # type: Optional[np.ndarray]
         self.b0 = None
 
         # These are the parameters that are updated in the ADMM iterations.
@@ -130,22 +130,24 @@ class ADMMState:
         self.lambda_mult = np.zeros(binary_size)
 
         # The following structures store quantities obtained in each ADMM iteration.
-        self.cost_iterates = []  # List[float]
-        self.residuals = []  # List[float]
-        self.dual_residuals = []  # List[float]
-        self.cons_r = []  # List[float]
-        self.merits = []  # List[float]
-        self.lambdas = []  # List[float]
-        self.x0_saved = []  # List[np.ndarray]
-        self.u_saved = []  # List[np.ndarray]
-        self.z_saved = []  # List[np.ndarray]
-        self.y_saved = []  # List[np.ndarray]
+        self.cost_iterates = []  # type: List[float]
+        self.residuals = []  # type: List[float]
+        self.dual_residuals = []  # type: List[float]
+        self.cons_r = []  # type: List[float]
+        self.merits = []  # type: List[float]
+        self.lambdas = []  # type: List[float]
+        self.x0_saved = []  # type: List[np.ndarray]
+        self.u_saved = []  # type: List[np.ndarray]
+        self.z_saved = []  # type: List[np.ndarray]
+        self.y_saved = []  # type: List[np.ndarray]
         self.rho = rho_initial
 
         # lin. eq. constraints with bin. vars. only
-        self.binary_equality_constraints = []  # List[LinearConstraint]
-        self.equality_constraints = []  # all equality constraints List[Constraint]
-        self.inequality_constraints = []  # all inequality constraints : List[Constraint]
+        self.binary_equality_constraints = []  # type: List[LinearConstraint]
+        # all equality constraints
+        self.equality_constraints = []  # type: List[Constraint]
+        # all inequality constraints
+        self.inequality_constraints = []  # type: List[Constraint]
 
 
 class ADMMOptimizationResult(OptimizationResult):
@@ -200,7 +202,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # internal state where we'll keep intermediate solution
         # here, we just declare the class variable, the variable is initialized in kept in
         # the solve method.
-        self._state = None  # Optional[ADMMState]
+        self._state = None  # type: Optional[ADMMState]
 
     def get_compatibility_msg(self, problem: QuadraticProgram) -> Optional[str]:
         """Checks whether a given problem can be solved with the optimizer implementing this method.

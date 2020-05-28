@@ -31,7 +31,7 @@ class QuadraticProgramToIsing:
 
     def __init__(self) -> None:
         """Initialize the internal data structure."""
-        self._src = None  # Optional[QuadraticProgram]
+        self._src = None  # type: Optional[QuadraticProgram]
 
     def encode(self, op: QuadraticProgram) -> Tuple[WeightedPauliOperator, float]:
         """Convert a problem into a qubit operator

@@ -153,7 +153,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         operator, offset = operator_converter.encode(problem_)
 
         # only try to solve non-empty Ising Hamiltonians
-        x = None  # Optional[Any]
+        x = None  # type: Optional[Any]
         if operator.num_qubits > 0:
 
             # approximate ground state of operator using min eigen solver
