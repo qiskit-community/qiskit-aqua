@@ -82,7 +82,7 @@ class IntegerToBinary:
             # declare variables
             for x in self._src.variables:
                 if x.vartype == Variable.Type.INTEGER:
-                    new_vars = self._encode_var(x.name, int(x.lowerbound), int(x.upperbound))
+                    new_vars = self._encode_var(x.name, x.lowerbound, x.upperbound)
                     self._conv[x] = new_vars
                     for (var_name, _) in new_vars:
                         self._dst.binary_var(var_name)
@@ -109,7 +109,7 @@ class IntegerToBinary:
 
         return self._dst
 
-    def _encode_var(self, name: str, lowerbound: int, upperbound: int) -> List[Tuple[str, int]]:
+    def _encode_var(self, name: str, lowerbound: float, upperbound: float) -> List[Tuple[str, int]]:
         var_range = upperbound - lowerbound
         power = int(np.log2(var_range))
         bounded_coef = var_range - (2 ** power - 1)
@@ -120,7 +120,7 @@ class IntegerToBinary:
     def _encode_linear_coefficients_dict(self, coefficients: Dict[str, float]) \
             -> Tuple[Dict[str, float], float]:
         constant = 0.0
-        linear = {}
+        linear: Dict[str, float] = {}
         for name, v in coefficients.items():
             x = self._src.get_variable(name)
             if x in self._conv:
@@ -220,14 +220,13 @@ class IntegerToBinary:
         result.x = new_vals
         return result
 
-    def _decode_var(self, vals) -> List[int]:
+    def _decode_var(self, vals) -> List[float]:
         # decode integer values
         sol = {x.name: float(vals[i]) for i, x in enumerate(self._dst.variables)}
         new_vals = []
         for x in self._src.variables:
             if x in self._conv:
-                new_vals.append(
-                    int(sum(sol[aux] * coef for aux, coef in self._conv[x]) + x.lowerbound))
+                new_vals.append(sum(sol[aux] * coef for aux, coef in self._conv[x]) + x.lowerbound)
             else:
-                new_vals.append(int(sol[x.name]))
+                new_vals.append(sol[x.name])
         return new_vals
