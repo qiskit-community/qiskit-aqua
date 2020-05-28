@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,19 +12,52 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""
+Neural Networks (:mod:`qiskit.aqua.components.neural_networks`)
+===============================================================
+A neural network is a parametrized network which may be defined as a artificial
+neural network - classical neural network - or as parametrized quantum circuits
+- quantum neural network. Furthermore, neural networks can be defined with respect
+to a discriminative or generative task.
+
+Neural Networks may be used, for example, with the
+:class:`~qiskit.aqua.algorithms.QGAN` algorithm.
+
+.. currentmodule:: qiskit.aqua.components.neural_networks
+
+Neural Network Base Classes
+===========================
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   DiscriminativeNetwork
+   GenerativeNetwork
+
+Neural Networks
+===============
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   NumPyDiscriminator
+   PyTorchDiscriminator
+   QuantumGenerator
+
+"""
 
 from .generative_network import GenerativeNetwork
 from .quantum_generator import QuantumGenerator
 from .discriminative_network import DiscriminativeNetwork
+from .numpy_discriminator import NumPyDiscriminator
+from .pytorch_discriminator import PyTorchDiscriminator
 
 __all__ = [
     'DiscriminativeNetwork',
     'GenerativeNetwork',
-    'QuantumGenerator'
+    'QuantumGenerator',
+    'NumPyDiscriminator',
+    'PyTorchDiscriminator'
 ]
-
-try:
-    from .pytorch_discriminator import ClassicalDiscriminator
-    __all__ += ['ClassicalDiscriminator']
-except Exception:
-    pass

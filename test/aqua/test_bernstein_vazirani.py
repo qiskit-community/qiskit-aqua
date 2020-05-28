@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,27 +12,31 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Test Bernstein Vazirani """
+
 import unittest
 import itertools
 import math
-from parameterized import parameterized
+from test.aqua import QiskitAquaTestCase
+from ddt import ddt, idata, unpack
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.components.oracles import TruthTableOracle
 from qiskit.aqua.algorithms import BernsteinVazirani
-from test.aqua.common import QiskitAquaTestCase
 
-bitmaps = ['00111100', '01011010']
-mct_modes = ['basic', 'basic-dirty-ancilla', 'advanced', 'noancilla']
-optimizations = [True, False]
-simulators = ['statevector_simulator', 'qasm_simulator']
+BITMAPS = ['00111100', '01011010']
+MCT_MODES = ['basic', 'basic-dirty-ancilla', 'advanced', 'noancilla']
+OPTIMIZATIONS = [True, False]
+SIMULATORS = ['statevector_simulator', 'qasm_simulator']
 
 
+@ddt
 class TestBernsteinVazirani(QiskitAquaTestCase):
-    @parameterized.expand(
-        itertools.product(bitmaps, mct_modes, optimizations, simulators)
-    )
+    """ Test Bernstein Vazirani """
+    @idata(itertools.product(BITMAPS, MCT_MODES, OPTIMIZATIONS, SIMULATORS))
+    @unpack
     def test_bernstein_vazirani(self, bv_input, mct_mode, optimization, simulator):
+        """ Bernstein Vazirani test """
         nbits = int(math.log(len(bv_input), 2))
         # compute the ground-truth classically
         parameter = ""

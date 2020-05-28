@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,36 +12,31 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from qiskit import QuantumRegister, QuantumCircuit
+"""The zero (null/vacuum) state."""
+
 import numpy as np
+from qiskit import QuantumRegister, QuantumCircuit
 
 from qiskit.aqua import AquaError
 from qiskit.aqua.components.initial_states import InitialState
+from qiskit.aqua.utils.validation import validate_min
 
 
 class Zero(InitialState):
-    """A zero (null/vacuum) state."""
+    """
+    The zero (null/vacuum) state.
 
-    CONFIGURATION = {
-        'name': 'ZERO',
-        'description': 'Zero initial state',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
-            'id': 'zero_state_schema',
-            'type': 'object',
-            'properties': {
-            },
-            'additionalProperties': False
-        }
-    }
+    This is suitable for those situations in which the all-zeros state is the
+    desired state. This is the case for a *vacuum state* in physics or chemistry
+    """
 
-    def __init__(self, num_qubits):
-        """Constructor.
-
+    def __init__(self, num_qubits: int) -> None:
+        """
         Args:
-            num_qubits (int): number of qubits.
+            num_qubits: Number of qubits, has a minimum value of 1.
         """
         super().__init__()
+        validate_min('num_qubits', num_qubits, 1)
         self._num_qubits = num_qubits
 
     def construct_circuit(self, mode='circuit', register=None):

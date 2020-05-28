@@ -12,14 +12,16 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" decimal to binary """
 from numpy import binary_repr
 
 
 def decimal_to_binary(decimal_val, max_num_digits=20, fractional_part_only=False):
+    """ decimal to binary """
     decimal_val_fractional_part = abs(decimal_val - int(decimal_val))
     current_binary_position_val = 1 / 2
     binary_fractional_part_digits = []
-    while decimal_val_fractional_part > 0 and len(binary_fractional_part_digits) < max_num_digits:
+    while decimal_val_fractional_part >= 0 and len(binary_fractional_part_digits) < max_num_digits:
         if decimal_val_fractional_part >= current_binary_position_val:
             binary_fractional_part_digits.append('1')
             decimal_val_fractional_part -= current_binary_position_val

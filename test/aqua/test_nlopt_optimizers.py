@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,47 +12,46 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-import unittest
+""" Test NLOpt Optimizers """
 
-from parameterized import parameterized
+import unittest
+from test.aqua import QiskitAquaTestCase
+
+from ddt import ddt, idata, unpack
 from scipy.optimize import rosen
 import numpy as np
+from qiskit.aqua.components.optimizers import CRS, DIRECT_L, DIRECT_L_RAND
 
-from test.aqua.common import QiskitAquaTestCase
-from qiskit.aqua import PluggableType, get_pluggable_class
+# pylint: disable=unused-import,import-outside-toplevel
 
 
+@ddt
 class TestNLOptOptimizers(QiskitAquaTestCase):
-
-    def setUp(self):
-        super().setUp()
-        np.random.seed(50)
-        try:
-            import nlopt
-        except ImportError:
-            self.skipTest('NLOpt dependency does not appear to be installed')
-        pass
+    """ Test NLOpt Optimizers """
 
     def _optimize(self, optimizer):
-        x0 = [1.3, 0.7, 0.8, 1.9, 1.2]
-        bounds = [(-6, 6)]*len(x0)
-        res = optimizer.optimize(len(x0), rosen, initial_point=x0, variable_bounds=bounds)
-        np.testing.assert_array_almost_equal(res[0], [1.0]*len(x0), decimal=2)
+        x_0 = [1.3, 0.7, 0.8, 1.9, 1.2]
+        bounds = [(-6, 6)] * len(x_0)
+        res = optimizer.optimize(len(x_0), rosen, initial_point=x_0, variable_bounds=bounds)
+        np.testing.assert_array_almost_equal(res[0], [1.0] * len(x_0), decimal=2)
         return res
 
     # ESCH and ISRES do not do well with rosen
-    @parameterized.expand([
-        ['CRS'],
-        ['DIRECT_L'],
-        ['DIRECT_L_RAND'],
-        # ['ESCH'],
-        # ['ISRES']
+    @idata([
+        [CRS],
+        [DIRECT_L],
+        [DIRECT_L_RAND],
     ])
-    def test_nlopt(self, name):
-        optimizer = get_pluggable_class(PluggableType.OPTIMIZER, name)()
-        optimizer.set_options(**{'max_evals': 50000})
-        res = self._optimize(optimizer)
-        self.assertLessEqual(res[2], 50000)
+    @unpack
+    def test_nlopt(self, optimizer_cls):
+        """ NLopt test """
+        try:
+            optimizer = optimizer_cls()
+            optimizer.set_options(**{'max_evals': 50000})
+            res = self._optimize(optimizer)
+            self.assertLessEqual(res[2], 50000)
+        except NameError as ex:
+            self.skipTest(str(ex))
 
 
 if __name__ == '__main__':

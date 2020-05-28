@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,17 +12,22 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from qiskit.chemistry.drivers import BaseDriver, UnitsType, HFMethodType
-from qiskit.chemistry import QiskitChemistryError
-from qiskit.chemistry.drivers.pyscfd.integrals import compute_integrals
+""" PYSCF Driver """
+
+from typing import Optional, Union, List
 import importlib
 from enum import Enum
 import logging
+from qiskit.aqua.utils.validation import validate_min
+from qiskit.chemistry.drivers import BaseDriver, UnitsType, HFMethodType
+from qiskit.chemistry import QiskitChemistryError, QMolecule
+from qiskit.chemistry.drivers.pyscfd.integrals import compute_integrals
 
 logger = logging.getLogger(__name__)
 
 
 class InitialGuess(Enum):
+    """ Initial Guess Enum """
     MINAO = 'minao'
     HCORE = '1e'
     ONE_E = '1e'
@@ -30,101 +35,41 @@ class InitialGuess(Enum):
 
 
 class PySCFDriver(BaseDriver):
-    """Python implementation of a PySCF driver."""
+    """
+    Qiskit chemistry driver using the PySCF library.
 
-    CONFIGURATION = {
-        "name": "PYSCF",
-        "description": "PYSCF Driver",
-        "input_schema": {
-            "$schema": "http://json-schema.org/schema#",
-            "id": "pyscf_schema",
-            "type": "object",
-            "properties": {
-                "atom": {
-                    "type": "string",
-                    "default": "H 0.0 0.0 0.0; H 0.0 0.0 0.735"
-                },
-                "unit": {
-                    "type": "string",
-                    "default": UnitsType.ANGSTROM.value,
-                    "enum": [
-                        UnitsType.ANGSTROM.value,
-                        UnitsType.BOHR.value,
-                    ]
-                },
-                "charge": {
-                    "type": "integer",
-                    "default": 0
-                },
-                "spin": {
-                    "type": "integer",
-                    "default": 0
-                },
-                "basis": {
-                    "type": "string",
-                    "default": "sto3g"
-                },
-                "hf_method": {
-                    "type": "string",
-                    "default": HFMethodType.RHF.value,
-                    "enum": [
-                        HFMethodType.RHF.value,
-                        HFMethodType.ROHF.value,
-                        HFMethodType.UHF.value
-                    ]
-                },
-                "conv_tol": {
-                    "type": "number",
-                    "default": 1e-09
-                },
-                "max_cycle": {
-                    "type": "integer",
-                    "default": 50,
-                    "minimum": 1
-                },
-                "init_guess": {
-                    "type": "string",
-                    "default": InitialGuess.MINAO.value,
-                    "enum": [
-                        InitialGuess.MINAO.value,
-                        InitialGuess.HCORE.value,
-                        InitialGuess.ATOM.value
-                    ]
-                },
-                "max_memory": {
-                    "type": ["integer", "null"],
-                    "default": None
-                }
-            },
-            "additionalProperties": False
-        }
-    }
+    See https://sunqm.github.io/pyscf/
+    """
 
     def __init__(self,
-                 atom,
-                 unit=UnitsType.ANGSTROM,
-                 charge=0,
-                 spin=0,
-                 basis='sto3g',
-                 hf_method=HFMethodType.RHF,
-                 conv_tol=1e-9,
-                 max_cycle=50,
-                 init_guess=InitialGuess.MINAO,
-                 max_memory=None):
+                 atom: Union[str, List[str]] = 'H 0.0 0.0 0.0; H 0.0 0.0 0.735',
+                 unit: UnitsType = UnitsType.ANGSTROM,
+                 charge: int = 0,
+                 spin: int = 0,
+                 basis: str = 'sto3g',
+                 hf_method: HFMethodType = HFMethodType.RHF,
+                 conv_tol: float = 1e-9,
+                 max_cycle: int = 50,
+                 init_guess: InitialGuess = InitialGuess.MINAO,
+                 max_memory: Optional[int] = None) -> None:
         """
-        Initializer
         Args:
-            atom (str or list): atom list or string separated by semicolons or line breaks
-            unit (UnitsType): angstrom or bohr
-            charge (int): charge
-            spin (int): spin
-            basis (str): basis set
-            hf_method (HFMethodType): Hartree-Fock Method type
-            conv_tol (float): Convergence tolerance see PySCF docs and pyscf/scf/hf.py
-            max_cycle (int): Max convergence cycles see PySCF docs and pyscf/scf/hf.py
-            init_guess (InitialGuess): See PySCF pyscf/scf/hf.py init_guess_by_minao/1e/atom methods
-            max_memory (int): maximum memory
+            atom: atom list or string separated by semicolons or line breaks
+            unit: angstrom or bohr
+            charge: charge
+            spin: spin
+            basis: basis set
+            hf_method: Hartree-Fock Method type
+            conv_tol: Convergence tolerance see PySCF docs and pyscf/scf/hf.py
+            max_cycle: Max convergence cycles see PySCF docs and pyscf/scf/hf.py,
+                       has a min. value of 1.
+            init_guess: See PySCF pyscf/scf/hf.py init_guess_by_minao/1e/atom methods
+            max_memory: maximum memory
+
+        Raises:
+            QiskitChemistryError: Invalid Input
         """
+        self._check_valid()
         if not isinstance(atom, list) and not isinstance(atom, str):
             raise QiskitChemistryError("Invalid atom input for PYSCF Driver '{}'".format(atom))
 
@@ -136,7 +81,7 @@ class PySCFDriver(BaseDriver):
         unit = unit.value
         hf_method = hf_method.value
         init_guess = init_guess.value
-        self.validate(locals())
+        validate_min('max_cycle', max_cycle, 1)
         super().__init__()
         self._atom = atom
         self._unit = unit
@@ -150,48 +95,19 @@ class PySCFDriver(BaseDriver):
         self._max_memory = max_memory
 
     @staticmethod
-    def check_driver_valid():
+    def _check_valid():
         err_msg = "PySCF is not installed. See https://sunqm.github.io/pyscf/install.html"
         try:
             spec = importlib.util.find_spec('pyscf')
             if spec is not None:
                 return
-        except Exception as e:
-            logger.debug('PySCF check error {}'.format(str(e)))
-            raise QiskitChemistryError(err_msg) from e
+        except Exception as ex:  # pylint: disable=broad-except
+            logger.debug('PySCF check error %s', str(ex))
+            raise QiskitChemistryError(err_msg) from ex
 
         raise QiskitChemistryError(err_msg)
 
-    @classmethod
-    def init_from_input(cls, section):
-        """
-        Initialize via section dictionary.
-
-        Args:
-            section (dict): section dictionary
-
-        Returns:
-            Driver: Driver object
-        """
-        if section is None or not isinstance(section, dict):
-            raise QiskitChemistryError('Invalid or missing section {}'.format(section))
-
-        params = section
-        kwargs = {}
-        for k, v in params.items():
-            if k == 'unit':
-                v = UnitsType(v)
-            elif k == 'hf_method':
-                v = HFMethodType(v)
-            elif k == 'init_guess':
-                v = InitialGuess(v)
-
-            kwargs[k] = v
-
-        logger.debug('init_from_input: {}'.format(kwargs))
-        return cls(**kwargs)
-
-    def run(self):
+    def run(self) -> QMolecule:
         q_mol = compute_integrals(atom=self._atom,
                                   unit=self._unit,
                                   charge=self._charge,
@@ -203,7 +119,7 @@ class PySCFDriver(BaseDriver):
                                   init_guess=self._init_guess,
                                   max_memory=self._max_memory)
 
-        q_mol.origin_driver_name = self.configuration['name']
+        q_mol.origin_driver_name = 'PYSCF'
         cfg = ['atom={}'.format(self._atom),
                'unit={}'.format(self._unit),
                'charge={}'.format(self._charge),

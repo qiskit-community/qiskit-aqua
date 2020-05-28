@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,70 +12,74 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""Layers of Swap+Z rotations followed by entangling gates."""
+
+import warnings
+from typing import Optional, List
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
-
-from qiskit.aqua.components.variational_forms import VariationalForm
+from qiskit.aqua.utils.validation import validate_min, validate_in_set
+from qiskit.aqua.components.initial_states import InitialState
+from .variational_form import VariationalForm
 
 
 class SwapRZ(VariationalForm):
-    """Layers of Swap+Z rotations followed by entangling gates."""
+    r"""DEPRECATED. The SwapRZ Variational Form.
 
-    CONFIGURATION = {
-        'name': 'SWAPRZ',
-        'description': 'SWAPRZ Variational Form',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
-            'id': 'swaprz_schema',
-            'type': 'object',
-            'properties': {
-                'depth': {
-                    'type': 'integer',
-                    'default': 3,
-                    'minimum': 1
-                },
-                'entanglement': {
-                    'type': 'string',
-                    'default': 'full',
-                    'enum': ['full', 'linear']
-                },
-                'entangler_map': {
-                    'type': ['array', 'null'],
-                    'default': None
-                },
-                'skip_unentangled_qubits': {
-                    'type': 'boolean',
-                    'default': False
-                }
-            },
-            'additionalProperties': False
-        },
-        'depends': [
-            {
-                'pluggable_type': 'initial_state',
-                'default': {
-                    'name': 'ZERO',
-                }
-            },
-        ],
-    }
+    This trial wave function is layers of swap plus :math:`z` rotations with entanglements.
+    It was designed principally to be a particle-preserving variational form for
+    :mod:`qiskit.chemistry`. Given an initial state as a set of 1's and 0's it will preserve
+    the number of 1's - where for chemistry a 1 will indicate a particle.
 
-    def __init__(self, num_qubits, depth=3, entangler_map=None,
-                 entanglement='full', initial_state=None, skip_unentangled_qubits=False):
-        """Constructor.
+    Note:
 
-        Args:
-            num_qubits (int) : number of qubits
-            depth (int) : number of rotation layers
-            entangler_map (list[list]): describe the connectivity of qubits, each list describes
-                                        [source, target], or None for full entanglement.
-                                        Note that the order is the list is the order of
-                                        applying the two-qubit gate.
-            entanglement (str): 'full' or 'linear'
-            initial_state (InitialState): an initial state object
-            skip_unentangled_qubits (bool): skip the qubits not in the entangler_map
+        In chemistry, to define the particles for SwapRZ, use a
+        :class:`~qiskit.chemistry.components.initial_states.HartreeFock` initial state with
+        the `Jordan-Wigner` qubit mapping
+
+    For the case of none of qubits are unentangled to other qubits, the number of optimizer
+    parameters SwapRz creates and uses is given by
+    :math:`q + d \times \left(q + \sum_{k=0}^{q-1}|D(k)|\right)`, where :math:`|D(k)|` denotes the
+    *cardinality* of :math:`D(k)` or, more precisely, the *length* of :math:`D(k)`
+    (since :math:`D(k)` is not just a set, but a list).
+    Nonetheless, in some cases, if an `entangler_map` does not include all qubits, that is, some
+    qubits are not entangled by other qubits. The number of parameters is reduced by
+    :math:`d \times q'`, where :math:`q'` is the number of unentangled qubits.
+    This is because adding more Rz gates to the unentangled qubits only introduce overhead without
+    bringing any benefit; furthermore, theoretically, applying multiple Rz gates in a row can be
+    reduced to a single Rz gate with the summed rotation angles.
+
+    See :class:`RY` for more detail on `entangler_map` and `entanglement` which apply here too
+    but note SwapRZ only supports 'full' and 'linear' values.
+    """
+
+    def __init__(self,
+                 num_qubits: int,
+                 depth: int = 3,
+                 entangler_map: Optional[List[List[int]]] = None,
+                 entanglement: str = 'full',
+                 initial_state: Optional[InitialState] = None,
+                 skip_unentangled_qubits: bool = False) -> None:
         """
-        self.validate(locals())
+        Args:
+            num_qubits: Number of qubits, has a minimum value of 1.
+            depth: Number of rotation layers, has a minimum value of 1.
+            entangler_map: Describe the connectivity of qubits, each list describes
+                [source, target], or None for full entanglement.
+                Note that the order is the list is the order of applying the two-qubit gate.
+            entanglement: ('full' | 'linear') overridden by 'entangler_map` if its
+                provided. 'full' is all-to-all entanglement, 'linear' is nearest-neighbor.
+            initial_state: An initial state object
+            skip_unentangled_qubits: Skip the qubits not in the entangler_map
+        """
+        warnings.warn('The qiskit.aqua.components.variational_forms.SwapRZ object is deprecated as '
+                      'of 0.7.0 and will be removed no sooner than 3 months after the release. You '
+                      'should use the qiskit.circuit.library.ExcitationPreserving object instead.',
+                      DeprecationWarning, stacklevel=2)
+
+        validate_min('num_qubits', num_qubits, 1)
+        validate_min('depth', depth, 1)
+        validate_in_set('entanglement', entanglement, {'full', 'linear'})
         super().__init__()
         self._num_qubits = num_qubits
         self._depth = depth
@@ -98,13 +102,13 @@ class SwapRZ(VariationalForm):
         # for repeated block
         self._num_parameters += (len(self._entangled_qubits) + len(self._entangler_map)) * depth
         self._bounds = [(-np.pi, np.pi)] * self._num_parameters
+        self._support_parameterized_circuit = True
 
     def construct_circuit(self, parameters, q=None):
-        """
-        Construct the variational form, given its parameters.
+        """Construct the variational form, given its parameters.
 
         Args:
-            parameters (numpy.ndarray): circuit parameters
+            parameters (Union(numpy.ndarray, list[Parameter], ParameterVector)): circuit parameters
             q (QuantumRegister): Quantum Register for the circuit.
 
         Returns:
@@ -129,7 +133,7 @@ class SwapRZ(VariationalForm):
                 circuit.u1(parameters[param_idx], q[qubit])  # rz
                 param_idx += 1
 
-        for block in range(self._depth):
+        for _ in range(self._depth):
             circuit.barrier(q)
             for src, targ in self._entangler_map:
                 # XX

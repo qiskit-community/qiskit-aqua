@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,109 +12,63 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from qiskit.chemistry.drivers import BaseDriver, UnitsType, HFMethodType
-from qiskit.chemistry import QiskitChemistryError
-from qiskit.chemistry.drivers.pyquanted.integrals import compute_integrals
+""" PyQuante Driver """
+
+from typing import Union, List
 import importlib
 from enum import Enum
 import logging
+from qiskit.aqua.utils.validation import validate_min
+from qiskit.chemistry.drivers import BaseDriver, UnitsType, HFMethodType
+from qiskit.chemistry import QiskitChemistryError, QMolecule
+from qiskit.chemistry.drivers.pyquanted.integrals import compute_integrals
 
 logger = logging.getLogger(__name__)
 
 
 class BasisType(Enum):
+    """ Basis Type """
     BSTO3G = 'sto3g'
     B631G = '6-31g'
     B631GSS = '6-31g**'
 
 
 class PyQuanteDriver(BaseDriver):
-    """Python implementation of a PyQuante driver."""
+    """
+    Qiskit chemistry driver using the PyQuante2 library.
 
-    KEY_UNITS = 'units'
-    KEY_BASIS = 'basis'
-
-    CONFIGURATION = {
-        "name": "PYQUANTE",
-        "description": "PyQuante Driver",
-        "input_schema": {
-            "$schema": "http://json-schema.org/schema#",
-            "id": "pyquante_schema",
-            "type": "object",
-            "properties": {
-                "atoms": {
-                    "type": "string",
-                    "default": "H 0.0 0.0 0.0; H 0.0 0.0 0.735"
-                },
-                KEY_UNITS: {
-                    "type": "string",
-                    "default": UnitsType.ANGSTROM.value,
-                    "enum": [
-                        UnitsType.ANGSTROM.value,
-                        UnitsType.BOHR.value,
-                     ]
-                },
-                "charge": {
-                    "type": "integer",
-                    "default": 0
-                },
-                "multiplicity": {
-                    "type": "integer",
-                    "default": 1
-                },
-                KEY_BASIS: {
-                    "type": "string",
-                    "default": BasisType.BSTO3G.value,
-                    "enum": [
-                         BasisType.BSTO3G.value,
-                         BasisType.B631G.value,
-                         BasisType.B631GSS.value,
-                    ]
-                },
-                "hf_method": {
-                    "type": "string",
-                    "default": HFMethodType.RHF.value,
-                    "enum": [
-                        HFMethodType.RHF.value,
-                        HFMethodType.ROHF.value,
-                        HFMethodType.UHF.value
-                    ]
-                },
-                "tol": {
-                    "type": "number",
-                    "default": 1e-08
-                },
-                "maxiters": {
-                    "type": "integer",
-                    "default": 100,
-                    "minimum": 1
-                }
-            },
-            "additionalProperties": False
-        }
-    }
+    See https://github.com/rpmuller/pyquante2
+    """
 
     def __init__(self,
-                 atoms,
-                 units=UnitsType.ANGSTROM,
-                 charge=0,
-                 multiplicity=1,
-                 basis=BasisType.BSTO3G,
-                 hf_method=HFMethodType.RHF,
-                 tol=1e-8,
-                 maxiters=100):
+                 atoms: Union[str, List[str]] = 'H 0.0 0.0 0.0; H 0.0 0.0 0.735',
+                 units: UnitsType = UnitsType.ANGSTROM,
+                 charge: int = 0,
+                 multiplicity: int = 1,
+                 basis: BasisType = BasisType.BSTO3G,
+                 hf_method: HFMethodType = HFMethodType.RHF,
+                 tol: float = 1e-8,
+                 maxiters: int = 100) -> None:
         """
-        Initializer
         Args:
-            atoms (str or list): atoms list or string separated by semicolons or line breaks
-            units (UnitsType): angstrom or bohr
-            charge (int): charge
-            multiplicity (int): spin multiplicity
-            basis (BasisType): sto3g or 6-31g or 6-31g**
-            hf_method (HFMethodType): Hartree-Fock Method type
-            tol (float): Convergence tolerance see pyquante2.scf hamiltonians and iterators
-            maxiters (int): Convergence max iterations see pyquante2.scf hamiltonians and iterators
+            atoms: atoms list or string separated by semicolons or line breaks
+            units: angstrom or bohr
+            charge: charge
+            multiplicity: spin multiplicity
+            basis: sto3g or 6-31g or 6-31g**
+            hf_method: Hartree-Fock Method type
+            tol: Convergence tolerance see pyquante2.scf hamiltonians and iterators
+            maxiters: Convergence max iterations see pyquante2.scf hamiltonians and iterators,
+                      has a min. value of 1.
+
+        Raises:
+            QiskitChemistryError: Invalid Input
         """
+        units = units.value
+        basis = basis.value
+        hf_method = hf_method.value
+        validate_min('maxiters', maxiters, 1)
+        self._check_valid()
         if not isinstance(atoms, list) and not isinstance(atoms, str):
             raise QiskitChemistryError("Invalid atom input for PYQUANTE Driver '{}'".format(atoms))
 
@@ -123,10 +77,6 @@ class PyQuanteDriver(BaseDriver):
         else:
             atoms = atoms.replace('\n', ';')
 
-        units = units.value
-        basis = basis.value
-        hf_method = hf_method.value
-        self.validate(locals())
         super().__init__()
         self._atoms = atoms
         self._units = units
@@ -138,48 +88,19 @@ class PyQuanteDriver(BaseDriver):
         self._maxiters = maxiters
 
     @staticmethod
-    def check_driver_valid():
+    def _check_valid():
         err_msg = 'PyQuante2 is not installed. See https://github.com/rpmuller/pyquante2'
         try:
             spec = importlib.util.find_spec('pyquante2')
             if spec is not None:
                 return
-        except Exception as e:
-            logger.debug('PyQuante2 check error {}'.format(str(e)))
-            raise QiskitChemistryError(err_msg) from e
+        except Exception as ex:  # pylint: disable=broad-except
+            logger.debug('PyQuante2 check error %s', str(ex))
+            raise QiskitChemistryError(err_msg) from ex
 
         raise QiskitChemistryError(err_msg)
 
-    @classmethod
-    def init_from_input(cls, section):
-        """
-        Initialize via section dictionary.
-
-        Args:
-            section (dict): section dictionary
-
-        Returns:
-            Driver: Driver object
-        """
-        if section is None or not isinstance(section, dict):
-            raise QiskitChemistryError('Invalid or missing section {}'.format(section))
-
-        params = section
-        kwargs = {}
-        for k, v in params.items():
-            if k == PyQuanteDriver.KEY_UNITS:
-                v = UnitsType(v)
-            elif k == PyQuanteDriver.KEY_BASIS:
-                v = BasisType(v)
-            elif k == 'hf_method':
-                v = HFMethodType(v)
-
-            kwargs[k] = v
-
-        logger.debug('init_from_input: {}'.format(kwargs))
-        return cls(**kwargs)
-
-    def run(self):
+    def run(self) -> QMolecule:
         q_mol = compute_integrals(atoms=self._atoms,
                                   units=self._units,
                                   charge=self._charge,
@@ -189,7 +110,7 @@ class PyQuanteDriver(BaseDriver):
                                   tol=self._tol,
                                   maxiters=self._maxiters)
 
-        q_mol.origin_driver_name = self.configuration['name']
+        q_mol.origin_driver_name = 'PYQUANTE'
         cfg = ['atoms={}'.format(self._atoms),
                'units={}'.format(self._units),
                'charge={}'.format(self._charge),

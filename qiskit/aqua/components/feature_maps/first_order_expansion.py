@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -11,46 +11,39 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""
-This module contains the definition of a base class for
-feature map. Several types of commonly used approaches.
-"""
 
-from qiskit.aqua.components.feature_maps import PauliZExpansion, self_product
+"""First Order Expansion feature map."""
+
+import warnings
+from typing import Callable
+import numpy as np
+from qiskit.aqua.utils.validation import validate_min
+from .pauli_z_expansion import PauliZExpansion
+from .data_mapping import self_product
 
 
 class FirstOrderExpansion(PauliZExpansion):
+    """DEPRECATED. First Order Expansion feature map.
+
+    This is a sub-class of :class:`PauliZExpansion` where *z_order* is fixed at 1.
+    As a result the first order expansion will be a feature map without entangling gates.
     """
-    Mapping data with the first order expansion without entangling gates.
 
-    Refer to https://arxiv.org/pdf/1804.11326.pdf for details.
-    """
-
-    CONFIGURATION = {
-        'name': 'FirstOrderExpansion',
-        'description': 'First order expansion for feature map',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
-            'id': 'First_Order_Expansion_schema',
-            'type': 'object',
-            'properties': {
-                'depth': {
-                    'type': 'integer',
-                    'default': 2,
-                    'minimum': 1
-                }
-            },
-            'additionalProperties': False
-        }
-    }
-
-    def __init__(self, feature_dimension, depth=2, data_map_func=self_product):
-        """Constructor.
-
-        Args:
-            feature_dimension (int): number of features
-            depth (int): the number of repeated circuits
-            data_map_func (Callable): a mapping function for data x
+    def __init__(self,
+                 feature_dimension: int,
+                 depth: int = 2,
+                 data_map_func: Callable[[np.ndarray], float] = self_product) -> None:
         """
-        self.validate(locals())
+        Args:
+            feature_dimension: The number of features
+            depth: The number of repeated circuits. Defaults to 2, has a minimum value of 1.
+            data_map_func: A mapping function for data x which can be supplied to override the
+                default mapping from :meth:`self_product`.
+        """
+        warnings.warn('The qiskit.aqua.components.feature_maps.FirstOrderExpansion object is '
+                      'deprecated as of 0.7.0 and will be removed no sooner than 3 months after '
+                      'the release. You should use qiskit.circuit.library.ZFeatureMap instead.',
+                      DeprecationWarning, stacklevel=2)
+
+        validate_min('depth', depth, 1)
         super().__init__(feature_dimension, depth, z_order=1, data_map_func=data_map_func)

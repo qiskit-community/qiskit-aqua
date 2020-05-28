@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -11,80 +11,42 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
 """
 The Multivariate Normal Distribution.
 """
 
+from typing import Optional, List, Union
 import numpy as np
 from scipy.stats import multivariate_normal
-from qiskit.aqua.components.uncertainty_models.multivariate_distribution import MultivariateDistribution
+from .multivariate_distribution import MultivariateDistribution
+
+# pylint: disable=invalid-name
 
 
 class MultivariateNormalDistribution(MultivariateDistribution):
     """
     The Multivariate Normal Distribution.
+
+    Provides a discretized and truncated normal distribution loaded into a quantum state.
+    Truncation bounds are given by lower and upper bound and discretization is specified by the
+    number of qubits per dimension.
     """
 
-    CONFIGURATION = {
-        'name': 'MultivariateNormalDistribution',
-        'description': 'Multivariate Normal Distribution',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
-            'id': 'MultivariateNormalDistribution_schema',
-            'type': 'object',
-            'properties': {
-                'num_qubits': {
-                    'type': 'array',
-                    "items": {
-                        "type": "number"
-                    },
-                    'default': [2, 2]
-                },
-                'low': {
-                    'type': ['array', 'null'],
-                    "items": {
-                        "type": "number"
-                    },
-                    'default': None
-                },
-                'high': {
-                    'type': ['array', 'null'],
-                    "items": {
-                        "type": "number"
-                    },
-                    'default': None
-                },
-                'mu': {
-                    'type': ['array', 'null'],
-                    "items": {
-                        "type": "number"
-                    },
-                    'default': None
-                },
-                'sigma': {
-                    'type': ['array', 'null'],
-                    'default': None
-                },
-            },
-            'additionalProperties': False
-        }
-    }
-
-    def __init__(self, num_qubits, low=None, high=None, mu=None, sigma=None):
+    def __init__(self,
+                 num_qubits: Union[List[int], np.ndarray],
+                 low: Optional[Union[List[float], np.ndarray]] = None,
+                 high: Optional[Union[List[float], np.ndarray]] = None,
+                 mu: Optional[Union[List[float], np.ndarray]] = None,
+                 sigma: Optional[Union[List[float], np.ndarray]] = None) -> None:
         """
-        Constructor.
-
-        Circuit Factory to build a circuit that represents a multivariate normal distribution.
-
         Args:
-            num_qubits (array or list): representing number of qubits per dimension
-            low (array or list): representing lower bounds per dimension
-            high (array or list): representing upper bounds per dimension
-            mu (array or list): representing expected values
-            sigma (array or list): representing co-variance matrix
+            num_qubits: Number of qubits per dimension
+            low: Lower bounds per dimension
+            high: Upper bounds per dimension
+            mu: Expected values
+            sigma: Co-variance matrix
         """
-        super().validate(locals())
-
         if not isinstance(sigma, np.ndarray):
             sigma = np.asarray(sigma)
 
@@ -103,7 +65,7 @@ class MultivariateNormalDistribution(MultivariateDistribution):
         self.sigma = sigma
         probs = self._compute_probabilities([], num_qubits, low, high)
         probs = np.asarray(probs) / np.sum(probs)
-        super().__init__(num_qubits, low, high, probs)
+        super().__init__(num_qubits, probs, low, high)
 
     def _compute_probabilities(self, probs, num_qubits, low, high, x=None):
 

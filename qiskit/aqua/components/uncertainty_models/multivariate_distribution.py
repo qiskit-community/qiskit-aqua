@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -11,14 +11,15 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
 """
 This module contains the definition of a base class for multivariate distributions.
 """
 
+from typing import Optional, List, Union, Dict
 from abc import ABC
 import numpy as np
 
-from qiskit.aqua import Pluggable
 from qiskit.aqua.components.initial_states import Custom
 from .uncertainty_model import UncertaintyModel
 
@@ -29,19 +30,17 @@ class MultivariateDistribution(UncertaintyModel, ABC):
     (Interface for discrete bounded uncertainty models assuming an equidistant grid)
     """
 
-    @classmethod
-    def get_section_key_name(cls):
-        return Pluggable.SECTION_KEY_MULTIVARIATE_DISTRIBUTION
-
-    def __init__(self, num_qubits, low, high, probabilities=None):
+    def __init__(self,
+                 num_qubits: Union[List[int], np.ndarray],
+                 probabilities: Optional[Dict] = None,
+                 low: Optional[Union[List[float], np.ndarray]] = None,
+                 high: Optional[Union[List[float], np.ndarray]] = None) -> None:
         """
-        Constructor.
-
         Args:
-            num_qubits (array or list): assigns qubits to dimensions
-            probabilities (map): map - maps index tuples to probabilities
-            low (array or list): lowest value per dimension
-            high (array or list): highest value per dimension
+            num_qubits: Assigns qubits to dimensions
+            probabilities: Map - maps index tuples to probabilities
+            low: Lowest value per dimension
+            high: Highest value per dimension
         """
 
         self._values = 0
@@ -88,46 +87,57 @@ class MultivariateDistribution(UncertaintyModel, ABC):
 
     @property
     def num_qubits(self):
+        """ returns num qubits """
         return self._num_qubits
 
     @property
     def dimension(self):
+        """ returns dimensions """
         return self._dimension
 
     @property
     def low(self):
+        """ returns low """
         return self._low
 
     @property
     def high(self):
+        """ returns high """
         return self._high
 
     @property
     def num_values(self):
+        """ returns number of values """
         return self._num_values
 
     @property
     def values(self):
+        """ returns values """
         return self._values
 
     @property
     def probabilities(self):
+        """ returns probabilities """
         return self._probabilities
 
     @property
     def probabilities_vector(self):
+        """ returns probabilities vector """
         return self._probabilities_vector
 
     def build(self, qc, q, q_ancillas=None, params=None):
-        custom_state = Custom(self.num_target_qubits, state_vector=np.sqrt(self._probabilities_vector))
+        """ build """
+        custom_state = Custom(self.num_target_qubits,
+                              state_vector=np.sqrt(self._probabilities_vector))
         qc.extend(custom_state.construct_circuit('circuit', q))
 
     @staticmethod
     def pdf_to_probabilities(pdf, low, high, num_values):
+        """ pdf to probabilities """
         probabilities = np.zeros(num_values)
         values = np.linspace(low, high, num_values)
         total = 0
-        for i, x in enumerate(values):
+        for i, _ in enumerate(values):
             probabilities[i] = pdf(values[i])
             total += probabilities[i]
         probabilities /= total

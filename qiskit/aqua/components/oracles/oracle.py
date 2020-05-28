@@ -15,42 +15,33 @@
 This module contains the definition of a base class for Oracle.
 """
 
-from abc import abstractmethod
-
-from qiskit.aqua import Pluggable
+from abc import ABC, abstractmethod
 
 
-class Oracle(Pluggable):
+class Oracle(ABC):
 
     """
         Base class for oracles.
 
-        This method should initialize the module and its configuration, and
-        use an exception if a component of the module is
+        This method should initialize the module and
+        use an exception if a component of the module is not
         available.
 
         Args:
-            configuration (dict): configuration dictionary
+            args (list): args
+            kwargs (dict): kwargs
     """
-
-    CONFIGURATION = {}
 
     @abstractmethod
     def __init__(self, *args, **kwargs):
-        super().__init__()
         self._output_register = None
         self._variable_register = None
         self._ancillary_register = None
         self._circuit = None
 
-    @classmethod
-    def init_params(cls, params):
-        oracle_params = params.get(Pluggable.SECTION_KEY_ORACLE)
-        args = {k: v for k, v in oracle_params.items() if k != 'name'}
-        return cls(**args)
-
     @property
     def circuit(self):
+        """ circuit """
         if self._circuit is None:
             self._circuit = self.construct_circuit()
         return self._circuit
@@ -58,16 +49,19 @@ class Oracle(Pluggable):
     @property
     @abstractmethod
     def variable_register(self):
+        """ returns variable register """
         raise NotImplementedError()
 
     @property
     @abstractmethod
     def ancillary_register(self):
+        """ returns ancillary register """
         raise NotImplementedError()
 
     @property
     @abstractmethod
     def output_register(self):
+        """ returns output register """
         raise NotImplementedError()
 
     @abstractmethod

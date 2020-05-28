@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -11,7 +11,13 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
+""" Univariate uncertainty problem. """
+
+from typing import Optional
+from qiskit.aqua.components.uncertainty_models import UnivariateDistribution
 from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
+from .univariate_piecewise_linear_objective import UnivariatePiecewiseLinearObjective
 
 
 class UnivariateProblem(UncertaintyProblem):
@@ -20,15 +26,20 @@ class UnivariateProblem(UncertaintyProblem):
     Univariate uncertainty problem.
     """
 
-    def __init__(self, uncertainty_model, univariate_objective, i_state=None, i_objective=None):
+    def __init__(self,
+                 uncertainty_model: UnivariateDistribution,
+                 univariate_objective: UnivariatePiecewiseLinearObjective,
+                 i_state: Optional[int] = None,
+                 i_objective: Optional[int] = None) -> None:
         """
         Constructor.
 
         Args:
-            uncertainty_model (UnivariateUncertaintyModel): univariate uncertainty model to
-            univariate_objective (UnivariatePiecewiseLinearObjective): objective function based on uncertainty
-            i_state(int): indices of qubits representing uncertainty
-            i_objective: index of qubit representing the objective value in the amplitude
+            uncertainty_model: univariate uncertainty model to
+            univariate_objective: objective function based on uncertainty
+            i_state: indices of qubits representing uncertainty
+            i_objective: index of qubit representing the objective
+                            value in the amplitude
         """
 
         # determine number of target qubits
@@ -55,7 +66,7 @@ class UnivariateProblem(UncertaintyProblem):
         num_objective_ancillas = self._univariate_objective.required_ancillas()
         return max([num_uncertainty_ancillas, num_objective_ancillas])
 
-    def build(self, qc, q, q_ancillas=None):
+    def build(self, qc, q, q_ancillas=None, params=None):
 
         q_state = [q[i] for i in self.i_state]
         q_objective = q[self.i_objective]

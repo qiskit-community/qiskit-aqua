@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -11,108 +11,129 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
 """Utilities for logging."""
 
-import copy
-import logging
-from logging.config import dictConfig
-from collections import OrderedDict
-import pkg_resources
+from typing import Optional, Dict, List
 import os
-
-_ALGO_LOGGING_CONFIG = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'f': {
-            'format': '%(asctime)s:%(name)s:%(levelname)s: %(message)s'
-        },
-    },
-    'handlers': {
-        'h': {
-            'class': 'logging.StreamHandler',
-            'formatter': 'f'
-        }
-    },
-    'loggers': {}
-}
+import logging
+from enum import Enum
+from logging.config import dictConfig
 
 
-def _get_logging_names():
-    from qiskit.aqua import PLUGGABLES_ENTRY_POINT
-    names = OrderedDict()
-    names['qiskit.aqua'] = None
-    for entry_point in pkg_resources.iter_entry_points(PLUGGABLES_ENTRY_POINT):
-        names[entry_point.module_name] = None
+class QiskitLogDomains(Enum):
+    """ Qiskit available Log Domains  """
+    DOMAIN_AQUA = 'qiskit.aqua'
+    DOMAIN_CHEMISTRY = 'qiskit.chemistry'
+    DOMAIN_FINANCE = 'qiskit.finance'
+    DOMAIN_ML = 'qiskit.ml'
+    DOMAIN_OPTIMIZATION = 'qiskit.optimization'
 
-    return list(names.keys())
 
-
-def build_logging_config(level, filepath=None):
+def build_logging_config(level: int,
+                         domains: List[QiskitLogDomains],
+                         filepath: Optional[str] = None) -> Dict:
     """
-     Creates a the configuration dict of the named loggers using the default SDK
-     configuration provided by `_ALGO_LOGGING_CONFIG`:
+    Creates a configuration dict for the given domains
 
     * console logging using a custom format for levels != level parameter.
     * console logging with simple format for level parameter.
     * set logger level to level parameter.
 
     Args:
-        level (number): logging level
-        filepath (str): file to receive logging data
+        level: logging level
+        domains: Qiskit domains to be logged
+        filepath: file to receive logging data
+    Returns:
+        dict: New configuration dictionary
     """
-    dict = copy.deepcopy(_ALGO_LOGGING_CONFIG)
+    dict_conf = {
+        'version': 1,
+        'disable_existing_loggers': False,
+        'formatters': {
+            'f': {
+                'format': '%(asctime)s:%(name)s:%(levelname)s: %(message)s'
+            },
+        },
+        'handlers': {
+            'h': {
+                'class': 'logging.StreamHandler',
+                'formatter': 'f'
+            }
+        },
+        'loggers': {}
+    }
     if filepath is not None:
         filepath = os.path.expanduser(filepath)
-        dict['handlers']['f'] = {
+        dict_conf['handlers']['f'] = {
             'class': 'logging.FileHandler',
             'formatter': 'f',
             'filename': filepath,
             'mode': 'w'
         }
 
-    handlers = list(dict['handlers'].keys())
-    for name in _get_logging_names():
-        dict['loggers'][name] = {
+    handlers = list(dict_conf['handlers'].keys())
+    for domain in domains:
+        dict_conf['loggers'][domain.value] = {
             'handlers': handlers,
             'propagate': False,
             'level': level
         }
-    return dict
+    return dict_conf
 
 
-def get_logging_level():
-    """get level for the named logger."""
-    return logging.getLogger('qiskit.aqua').getEffectiveLevel()
+def get_logging_level(domain: QiskitLogDomains) -> int:
+    """
+    Get level for the named logger.
+    Args:
+        domain: Qiskit domain.
+    Returns:
+        int: logging level
+    """
+    return logging.getLogger(domain.value).getEffectiveLevel()
 
 
-def set_logging_config(logging_config):
-    """Update logger configurations using a SDK default one.
+def set_logging_level(level: int,
+                      domains: Optional[List[QiskitLogDomains]],
+                      filepath: Optional[str] = None) -> None:
+    """
+    Updates given domains with the appropriate logging level
+
+    Args:
+        level: logging level
+        domains: Qiskit domains to be logged.
+        filepath: file to receive logging data
+    """
+    set_logging_config(build_logging_config(level, domains, filepath))
+
+
+def set_logging_config(logging_config: Dict) -> None:
+    """Update logger configurations.
 
     Warning:
         This function modifies the configuration of the standard logging system
-        for the loggers, and might interfere with custom logger
+        for all loggers, and might interfere with custom logger
         configurations.
     """
     dictConfig(logging_config)
 
 
-def get_qiskit_aqua_logging():
+def get_qiskit_aqua_logging() -> int:
     """
     Returns the current Aqua logging level
 
     Returns:
-        logging level
+        int: logging level
     """
-    return get_logging_level()
+    return get_logging_level(QiskitLogDomains.DOMAIN_AQUA)
 
 
-def set_qiskit_aqua_logging(level, filepath=None):
+def set_qiskit_aqua_logging(level: int, filepath: Optional[str] = None) -> None:
     """
-    Updates the Aqua logging with the appropriate logging level
+    Updates the Qiskit Aqua logging with the appropriate logging level
 
     Args:
-        level (number): logging level
-        filepath (str): file to receive logging data
+        level: logging level
+        filepath: file to receive logging data
     """
-    set_logging_config(build_logging_config(level, filepath))
+    set_logging_level(level, [QiskitLogDomains.DOMAIN_AQUA], filepath)

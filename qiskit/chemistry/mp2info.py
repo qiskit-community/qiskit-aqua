@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,22 +12,25 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from qiskit.chemistry.aqua_extensions.components.variational_forms import UCCSD
+""" MP2Info class """
+
+from qiskit.chemistry.components.variational_forms import UCCSD
 
 
 class MP2Info:
-    """A utility class for Moller-Plesset 2nd order (MP2) information
+    """
+    A utility class for Moller-Plesset 2nd order (MP2) information
 
-    Each double excitation given by [i,a,j,b] has a coefficient computed using
-      coeff = -(2 * Tiajb - Tibja)/(oe[b] + oe[a] - oe[i] - oe[j])
-    where oe[] is the orbital energy
+    | Each double excitation given by [i,a,j,b] has a coefficient computed using
+    |     coeff = -(2 * Tiajb - Tibja)/(oe[b] + oe[a] - oe[i] - oe[j])
+    | where oe[] is the orbital energy
 
-    and an energy delta given by
-      e_delta = coeff * Tiajb
+    | and an energy delta given by
+    |     e_delta = coeff * Tiajb
 
     All the computations are done using the molecule orbitals but the indexes used
     in the excitation information passed in and out are in the block spin orbital
-    numbering as normally used by the chemistry stack.
+    numbering as normally used by the chemistry module.
     """
 
     def __init__(self, qmolecule, threshold=1e-12):
@@ -98,7 +101,7 @@ class MP2Info:
         remain_spin_orbs = [-1] * len(full_spin_orbs)
 
         new_idx = 0
-        for i in range(len(full_spin_orbs)):
+        for i, _ in enumerate(full_spin_orbs):
             if full_spin_orbs[i] in remove_spin_orbitals:
                 full_spin_orbs[i] = -1
                 continue
@@ -133,7 +136,10 @@ class MP2Info:
             orbital_reduction (list): An optional list of ints indicating removed orbitals
 
         Returns:
-            list, list: List of coefficients and list of energy deltas
+            Tuple(list, list): List of coefficients and list of energy deltas
+
+        Raises:
+            ValueError: Excitation not present in mp2 terms
         """
         terms = self.mp2_terms(freeze_core, orbital_reduction)
         coeffs = []
@@ -165,25 +171,26 @@ def _compute_mp2(qmolecule, threshold):
 
     num_orbitals = qmolecule.num_orbitals
     ints = qmolecule.mo_eri_ints
-    oe = qmolecule.orbital_energies
+    o_e = qmolecule.orbital_energies
 
     # Orbital indexes given by this method are numbered according to the blocked spin ordering
-    singles, doubles = UCCSD.compute_excitation_lists([qmolecule.num_alpha, qmolecule.num_beta], num_orbitals * 2, same_spin_doubles=True)
+    _, doubles = UCCSD.compute_excitation_lists([qmolecule.num_alpha, qmolecule.num_beta],
+                                                num_orbitals * 2, same_spin_doubles=True)
 
     # doubles is list of [from, to, from, to] in spin orbital indexing where alpha runs
     # from 0 to num_orbitals-1, and beta from num_orbitals to num_orbitals*2-1
-    for n in range(len(doubles)):
+    for n, _ in enumerate(doubles):
         idxs = doubles[n]
         i = idxs[0] % num_orbitals  # Since spins are same drop to MO indexing
         j = idxs[2] % num_orbitals
-        a = idxs[1] % num_orbitals
+        a_i = idxs[1] % num_orbitals
         b = idxs[3] % num_orbitals
 
-        tiajb = ints[i, a, j, b]
-        tibja = ints[i, b, j, a]
+        tiajb = ints[i, a_i, j, b]
+        tibja = ints[i, b, j, a_i]
 
         num = (2 * tiajb - tibja)
-        denom = oe[b] + oe[a] - oe[i] - oe[j]
+        denom = o_e[b] + o_e[a_i] - o_e[i] - o_e[j]
         coeff = -num / denom
         coeff = coeff if abs(coeff) > threshold else 0
         e_delta = coeff * tiajb

@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -21,19 +21,18 @@ long_description = """<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Aqua
  modular, open-source library of quantum computing algorithms.
  Researchers can experiment with Aqua algorithms, on near-term quantum devices and simulators,
  and can also get involved by contributing new algorithms and algorithm-supporting objects,
- such as optimizers and variational forms. Qiskit Aqua is used by Qiskit Aqua Chemistry,
- Qiskit Aqua Artificial Intelligence, and Qiskit Aqua Optimization to experiment with real-world applications to quantum computing."""
+ such as optimizers and variational forms.
+ Qiskit Aqua also contains application domain support in the form of the chemistry, finance,
+ machine learning and optimization modules to experiment with real-world applications to quantum computing."""
 
 requirements = [
-    "qiskit-terra>=0.9.0,<0.10.0",
-    "qiskit-ignis>=0.2.0,<0.3.0",
-    "scipy>=1.0",
+    "qiskit-terra>=0.14.0",
+    "qiskit-ignis>=0.2.0",
+    "scipy>=1.4",
     "sympy>=1.3",
-    "numpy>=1.13",
+    "numpy>=1.17",
     "psutil>=5",
-    "jsonschema>=2.6,<2.7",
     "scikit-learn>=0.20.0",
-    "cvxopt",
     "dlx",
     "docplex",
     "fastdtw",
@@ -71,8 +70,11 @@ setuptools.setup(
         "Operating System :: Microsoft :: Windows",
         "Operating System :: MacOS",
         "Operating System :: POSIX :: Linux",
+        "Programming Language :: Python :: 3 :: Only",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
         "Topic :: Scientific/Engineering"
     ),
     keywords='qiskit sdk quantum aqua',
@@ -81,6 +83,8 @@ setuptools.setup(
     include_package_data=True,
     python_requires=">=3.5",
     extras_require={
-        'torch': ["torch; sys_platform != 'win32'"],
-    }
+        'torch': ["torch; sys_platform == 'linux' or (python_version < '3.8' and sys_platform != 'win32')"],
+        'cplex': ["cplex; python_version >= '3.6' and python_version < '3.8'"],
+    },
+    zip_safe=False
 )

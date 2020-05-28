@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -11,43 +11,28 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
 """
-The abstract Uncertainty Problem pluggable component.
+The abstract Uncertainty Problem component.
 """
 
 from abc import ABC
-from qiskit.aqua import AquaError, Pluggable, PluggableType, get_pluggable_class
 from qiskit.aqua.utils import CircuitFactory
+from qiskit.aqua.utils.validation import validate_min
+
+# pylint: disable=abstract-method
 
 
-class UncertaintyProblem(CircuitFactory, Pluggable, ABC):
+class UncertaintyProblem(CircuitFactory, ABC):
     """
-    The abstract Uncertainty Problem pluggable component.
+    The abstract Uncertainty Problem component.
     """
 
-    @classmethod
-    def init_params(cls, params):
-        uncertainty_problem_params = params.get(Pluggable.SECTION_KEY_UNCERTAINTY_PROBLEM)
-        args = {k: v for k, v in uncertainty_problem_params.items() if k != 'name'}
-
-        # Uncertainty problems take an uncertainty model. Each can take a specific type as
-        # a dependent. We currently have two known types and to save having init_params in
-        # each of the problems a problem can use this base class method that tries to find
-        # params for the set of known uncertainty model types.
-        uncertainty_model_params = params.get(Pluggable.SECTION_KEY_UNIVARIATE_DISTRIBUTION)
-        pluggable_type = PluggableType.UNIVARIATE_DISTRIBUTION
-        if uncertainty_model_params is None:
-            uncertainty_model_params = params.get(Pluggable.SECTION_KEY_MULTIVARIATE_DISTRIBUTION)
-            pluggable_type = PluggableType.MULTIVARIATE_DISTRIBUTION
-        if uncertainty_model_params is None:
-            raise AquaError("No params for known uncertainty model types found")
-        uncertainty_model = get_pluggable_class(pluggable_type,
-                                                uncertainty_model_params['name']).init_params(params)
-
-        return cls(uncertainty_model, **args)
-
-    def __init__(self, num_qubits):
+    # pylint: disable=useless-super-delegation
+    def __init__(self, num_qubits: int) -> None:
+        validate_min('num_qubits', num_qubits, 1)
         super().__init__(num_qubits)
 
     def value_to_estimation(self, value):
+        """ value to estimate """
         return value

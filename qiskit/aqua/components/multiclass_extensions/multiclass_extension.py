@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,35 +12,44 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-from qiskit.aqua import Pluggable
-from abc import abstractmethod
+""" Base class for multiclass extension """
+
+from typing import Optional, List, Callable
+from abc import ABC, abstractmethod
+from .estimator import Estimator
 
 
-class MulticlassExtension(Pluggable):
+class MulticlassExtension(ABC):
     """
         Base class for multiclass extension.
 
-        This method should initialize the module and its configuration, and
-        use an exception if a component of the module is available.
-
-        Args:
-            configuration (dict): configuration dictionary
+        This method should initialize the module and
+        use an exception if a component of the module is not available.
     """
 
     @abstractmethod
-    def __init__(self):
+    def __init__(self) -> None:
         super().__init__()
+        self.estimator_cls = None
+        self.params = []
 
-    @classmethod
-    def init_params(cls, params):
-        multiclass_extension_params = params.get(Pluggable.SECTION_KEY_MULTICLASS_EXTENSION)
-        args = {k: v for k, v in multiclass_extension_params.items() if k != 'name'}
-        return cls(**args)
+    def set_estimator(self,
+                      estimator_cls: Callable[[List], Estimator],
+                      params: Optional[List] = None) -> None:
+        """
+        Called internally to set :class:`Estimator` and parameters
+        Args:
+           estimator_cls: An :class:`Estimator` class
+           params: Parameters for the estimator
+        """
+        self.estimator_cls = estimator_cls
+        self.params = params if params is not None else []
 
     @abstractmethod
     def train(self, x, y):
         """
-        training multiple estimators each for distinguishing a pair of classes.
+        Training multiple estimators each for distinguishing a pair of classes.
+
         Args:
             x (numpy.ndarray): input points
             y (numpy.ndarray): input labels
@@ -50,7 +59,8 @@ class MulticlassExtension(Pluggable):
     @abstractmethod
     def test(self, x, y):
         """
-        testing multiple estimators each for distinguishing a pair of classes.
+        Testing multiple estimators each for distinguishing a pair of classes.
+
         Args:
             x (numpy.ndarray): input points
             y (numpy.ndarray): input labels
@@ -60,7 +70,8 @@ class MulticlassExtension(Pluggable):
     @abstractmethod
     def predict(self, x):
         """
-        applying multiple estimators for prediction
+        Applying multiple estimators for prediction.
+
         Args:
             x (numpy.ndarray): input points
         """

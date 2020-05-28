@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -11,38 +11,26 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
+"""DEPRECATED. This module contains the definition of a base class for quantum fourier transforms.
 """
-This module contains the definition of a base class for quantum fourier transforms.
-"""
 
-from abc import abstractmethod
+import warnings
+from abc import ABC, abstractmethod
 
-from qiskit import QuantumRegister, QuantumCircuit
+from qiskit import QuantumRegister, QuantumCircuit  # pylint: disable=unused-import
 
-from qiskit.aqua import Pluggable, AquaError
+from qiskit.aqua import AquaError
 
 
-class QFT(Pluggable):
+class QFT(ABC):
+    """DEPRECATED. Base class for QFT."""
 
-    """Base class for QFT.
-
-        This method should initialize the module and its configuration, and
-        use an exception if a component of the module is
-        available.
-
-        Args:
-            configuration (dict): configuration dictionary
-    """
-
-    @abstractmethod
-    def __init__(self, *args, **kwargs):
-        super().__init__()
-
-    @classmethod
-    def init_params(cls, params):
-        qft_params = params.get(Pluggable.SECTION_KEY_QFT)
-        kwargs = {k: v for k, v in qft_params.items() if k != 'name'}
-        return cls(**kwargs)
+    def __init__(self):
+        warnings.warn('The class qiskit.aqua.components.qfts.QFT is deprecated and will be removed '
+                      'no earlier than 3 months after the release 0.7.0. You should use the '
+                      'qiskit.circuit.library.QFT class instead.',
+                      DeprecationWarning, stacklevel=2)
 
     @abstractmethod
     def _build_matrix(self):
@@ -62,7 +50,9 @@ class QFT(Pluggable):
             do_swaps (bool): include the swaps.
 
         Returns:
-            The matrix or circuit depending on the specified mode.
+            numpy.ndarray: The matrix or circuit depending on the specified mode.
+        Raises:
+            AquaError: 'Unrecognized mode
         """
         if mode == 'circuit':
             return self._build_circuit(qubits=qubits, circuit=circuit, do_swaps=do_swaps)

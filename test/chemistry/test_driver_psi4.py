@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,12 +12,14 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Test Driver PSI4 """
+
 import unittest
 
-from test.chemistry.common import QiskitChemistryTestCase
-from qiskit.chemistry import QiskitChemistryError
-from qiskit.chemistry.drivers import PSI4Driver
+from test.chemistry import QiskitChemistryTestCase
 from test.chemistry.test_driver import TestDriver
+from qiskit.chemistry.drivers import PSI4Driver
+from qiskit.chemistry import QiskitChemistryError
 
 
 class TestDriverPSI4(QiskitChemistryTestCase, TestDriver):
@@ -31,6 +33,8 @@ class TestDriverPSI4(QiskitChemistryTestCase, TestDriver):
                 '  0 1',
                 '  H  0.0 0.0 0.0',
                 '  H  0.0 0.0 0.735',
+                '  no_com',
+                '  no_reorient',
                 '}',
                 '',
                 'set {',

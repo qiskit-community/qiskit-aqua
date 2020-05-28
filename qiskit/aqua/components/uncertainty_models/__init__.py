@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -11,6 +11,59 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
+"""
+Uncertainty Models (:mod:`qiskit.aqua.components.uncertainty_models`)
+=====================================================================
+An uncertainty model is an implementation that provides a way to construct a
+quantum circuit to prepare a state which corresponds to a particular distribution.
+More precisely, the resulting state together with an affine map can be used to sample from the
+considered distribution. The qubits are measured and then mapped to the desired range using
+the affine map.
+
+.. currentmodule:: qiskit.aqua.components.uncertainty_models
+
+Uncertainty Model Base Classes
+==============================
+:class:`UncertaintyModel` is the base class from which further
+base classes for univariate and multivariate distributions are
+derived
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   UncertaintyModel
+   UnivariateDistribution
+   MultivariateDistribution
+
+Univariate Distributions
+========================
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+    NormalDistribution
+    LogNormalDistribution
+    BernoulliDistribution
+    UniformDistribution
+    UnivariateVariationalDistribution
+
+Multivariate Distributions
+==========================
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+    MultivariateNormalDistribution
+    MultivariateLogNormalDistribution
+    MultivariateUniformDistribution
+    MultivariateVariationalDistribution
+    GaussianConditionalIndependenceModel
+
+"""
 
 from .uncertainty_model import UncertaintyModel
 from .univariate_distribution import UnivariateDistribution

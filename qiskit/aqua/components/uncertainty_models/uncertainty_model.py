@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -18,25 +18,20 @@ constructing Amplification Estimation tasks.
 """
 
 from abc import ABC, abstractmethod
-from qiskit.aqua import Pluggable
+from qiskit.aqua.utils.validation import validate_min
 from qiskit.aqua.utils import CircuitFactory
 
 
-class UncertaintyModel(CircuitFactory, Pluggable, ABC):
+class UncertaintyModel(CircuitFactory, ABC):
     """
     The abstract Uncertainty Model
     """
 
-    @classmethod
-    def init_params(cls, params):
-        uncertainty_model_params = params.get(cls.get_section_key_name())
-        args = {k: v for k, v in uncertainty_model_params.items() if k != 'name'}
-        return cls(**args)
-
-    @classmethod
-    @abstractmethod
-    def get_section_key_name(cls):
-        pass
-
-    def __init__(self, num_target_qubits):
+    # pylint: disable=useless-super-delegation
+    def __init__(self, num_target_qubits: int) -> None:
+        validate_min('num_target_qubits', num_target_qubits, 1)
         super().__init__(num_target_qubits)
+
+    @abstractmethod
+    def build(self, qc, q, q_ancillas=None, params=None):
+        raise NotImplementedError()
