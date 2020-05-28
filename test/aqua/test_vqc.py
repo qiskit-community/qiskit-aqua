@@ -142,7 +142,7 @@ class TestVQC(QiskitAquaTestCase):
         self.assertSimpleClassificationIsCorrect(vqc)
 
     def test_statevector(self):
-        """Test running the VQC on BasicAer's QASM simulator."""
+        """Test running the VQC on BasicAer's Statevector simulator."""
         optimizer = L_BFGS_B(maxfun=200)
         data_preparation = self.data_preparation
         wavefunction = self.ryrz_wavefunction
