@@ -84,7 +84,7 @@ class Shor(QuantumAlgorithm):
 
         self._a = a
 
-        self._ret = AlgorithmResult({"factors": [], "results": {}})
+        self._ret = AlgorithmResult({"factors": [], "total_counts": 0, "successful_counts": 0})
 
         # check if the input integer is a power
         tf, b, p = is_power(N, return_decomposition=True)
@@ -275,15 +275,13 @@ class Shor(QuantumAlgorithm):
                              "modular inverse does not exist.".format(a, m, g))
         return x % m
 
-    def _get_factors(self, output_desired: str, t_upper: int) -> bool:
+    def _get_factors(self, output_desired: str, t_upper: int) -> Union[str, Tuple[int, int]]:
         """Apply the continued fractions to find r and the gcd to find the desired factors."""
         x_value = int(output_desired, 2)
         logger.info('In decimal, x_final value for this result is: %s.', x_value)
 
         if x_value <= 0:
-            self._ret['results'][output_desired] = \
-                'x_value is <= 0, there are no continued fractions.'
-            return False
+            return 'x_value is <= 0, there are no continued fractions.'
 
         logger.debug('Running continued fractions for this case.')
 
@@ -327,13 +325,11 @@ class Shor(QuantumAlgorithm):
             logger.debug("Numerator:%s \t\t Denominator: %s.", frac.numerator, frac.denominator)
 
             # Increment i for next iteration
-            i = i + 1
+            i += 1
 
             if denominator % 2 == 1:
                 if i >= self._N:
-                    self._ret['results'][output_desired] = \
-                        'unable to find factors after too many attempts.'
-                    return False
+                    return 'unable to find factors after too many attempts.'
                 logger.debug('Odd denominator, will try next iteration of continued fractions.')
                 continue
 
@@ -346,11 +342,9 @@ class Shor(QuantumAlgorithm):
 
             # Check if the value is too big or not
             if math.isinf(exponential) or exponential > 1000000000:
-                self._ret['results'][output_desired] = \
-                    'denominator of continued fraction is too big.'
-                return False
+                return 'denominator of continued fraction is too big.'
 
-            # If the value is not to big (infinity),
+            # If the value is not too big (infinity),
             # then get the right values and do the proper gcd()
             putting_plus = int(exponential + 1)
             putting_minus = int(exponential - 1)
@@ -363,21 +357,13 @@ class Shor(QuantumAlgorithm):
                 # Check if the number has already been found,
                 # use i-1 because i was already incremented
                 if t[i - 1] == 0:
-                    self._ret['results'][output_desired] = \
-                        'the continued fractions found exactly x_final/(2^(2n)).'
-                    return False
+                    return 'the continued fractions found exactly x_final/(2^(2n)).'
                 if i >= self._N:
-                    self._ret['results'][output_desired] = \
-                        'unable to find factors after too many attempts.'
-                    return False
+                    return 'unable to find factors after too many attempts.'
             else:
                 logger.debug('The factors of %s are %s and %s.', self._N, one_factor, other_factor)
                 logger.debug('Found the desired factors.')
-                self._ret['results'][output_desired] = (one_factor, other_factor)
-                factors = sorted((one_factor, other_factor))
-                if factors not in self._ret['factors']:
-                    self._ret['factors'].append(factors)
-                return True
+                return one_factor, other_factor
 
     def _run(self) -> AlgorithmResult:
         if not self._ret['factors']:
@@ -404,21 +390,25 @@ class Shor(QuantumAlgorithm):
                 circuit = self.construct_circuit(measurement=True)
                 counts = self._quantum_instance.execute(circuit).get_counts(circuit)
 
+            self._ret.data["total_counts"] = len(counts)
+
             # For each simulation result, print proper info to user
             # and try to calculate the factors of N
             for measurement in list(counts.keys()):
                 # Get the x_value from the final state qubits
                 logger.info("------> Analyzing result {}.".format(measurement))
-                self._ret['results'][measurement] = None
-                success = self._get_factors(measurement, int(2 * self._n))
+                output = self._get_factors(measurement, int(2 * self._n))
 
-                output = self._ret['results'][measurement]
-                if success:
+                if isinstance(output, tuple):
                     logger.info(
                         'Found factors {} from measurement {}.'.format(
                             output, measurement
                         )
                     )
+                    self._ret.data["successful_counts"] += 1
+                    factors = sorted(output)
+                    if factors not in self._ret['factors']:
+                        self._ret['factors'].append(factors)
                 else:
                     logger.debug(
                         'Cannot find factors from measurement {} because {}'.format(
