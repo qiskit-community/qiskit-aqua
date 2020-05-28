@@ -51,9 +51,9 @@ class IntegerToBinary:
     _delimiter = '@'  # users are supposed not to use this character in variable names
 
     def __init__(self) -> None:
-        self._src: Optional[QuadraticProgram] = None
-        self._dst: Optional[QuadraticProgram] = None
-        self._conv: Dict[Variable, List[Tuple[str, int]]] = {}
+        self._src = None  # Optional[QuadraticProgram]
+        self._dst = None  # Optional[QuadraticProgram]
+        self._conv = {}  # Dict[Variable, List[Tuple[str, int]]]
         # e.g., self._conv = {x: [('x@1', 1), ('x@2', 2)]}
 
     def encode(self, op: QuadraticProgram, name: Optional[str] = None) -> QuadraticProgram:
@@ -120,7 +120,7 @@ class IntegerToBinary:
     def _encode_linear_coefficients_dict(self, coefficients: Dict[str, float]) \
             -> Tuple[Dict[str, float], float]:
         constant = 0.0
-        linear: Dict[str, float] = {}
+        linear = {}  # Dict[str, float]
         for name, v in coefficients.items():
             x = self._src.get_variable(name)
             if x in self._conv:
@@ -135,7 +135,7 @@ class IntegerToBinary:
     def _encode_quadratic_coefficients_dict(self, coefficients: Dict[Tuple[str, str], float]) \
             -> Tuple[Dict[Tuple[str, str], float], Dict[str, float], float]:
         constant = 0.0
-        linear: Dict[str, float] = {}
+        linear = {}  # Dict[str, float]
         quadratic = {}
         for (name_i, name_j), v in coefficients.items():
             x = self._src.get_variable(name_i)

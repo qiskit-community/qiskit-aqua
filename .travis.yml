@@ -122,7 +122,7 @@ jobs:
   include:
     - stage: Checks and Tests
       <<: *stage_dependencies
-      name: "Spell, Style, Lint, Docs check"
+      name: "Spell, style, lint, copyright and docs checks"
       if: tag IS blank
       install:
         # install spell check libraries
@@ -135,9 +135,16 @@ jobs:
         - make style
         - make lint
         - make copyright
-        - make mypy || true
         - make html SPHINXOPTS=-W
         - make doctest
+    - name: "Mypy check"
+      <<: *stage_dependencies
+      if: tag IS blank
+      python: 3.5
+      install:
+        - pip install cplex
+      script:
+        - make mypy || true
     - name: "Test Aqua 1 Python 3.7"
       <<: *stage_test_aqua
       if: tag IS blank

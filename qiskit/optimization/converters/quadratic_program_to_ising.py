@@ -15,7 +15,7 @@
 
 """The converter from an ```QuadraticProgram``` to ``Operator``."""
 
-from typing import Tuple, Optional
+from typing import Tuple
 
 import numpy as np
 from qiskit.quantum_info import Pauli
@@ -31,7 +31,7 @@ class QuadraticProgramToIsing:
 
     def __init__(self) -> None:
         """Initialize the internal data structure."""
-        self._src: Optional[QuadraticProgram] = None
+        self._src = None  # Optional[QuadraticProgram]
 
     def encode(self, op: QuadraticProgram) -> Tuple[WeightedPauliOperator, float]:
         """Convert a problem into a qubit operator
