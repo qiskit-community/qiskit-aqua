@@ -305,13 +305,13 @@ class TestVQC(QiskitAquaTestCase):
                                                 plot_data=False)
         aqua_globals.random_seed = self.seed
         data_preparation = ZZFeatureMap(feature_dim)
-        wavefunction = TwoLocal(feature_dim, ['ry', 'rz'], 'cz', reps=1, insert_barriers=True)
+        wavefunction = TwoLocal(feature_dim, ['ry', 'rz'], 'cz', reps=2)
 
         vqc = VQC(COBYLA(maxiter=100), data_preparation, wavefunction, training_input, test_input)
         result = vqc.run(self.statevector_simulator)
 
         self.log.debug(result['testing_accuracy'])
-        self.assertLess(result['testing_accuracy'], 0.6)
+        self.assertGreater(result['testing_accuracy'], 0.3)
 
     def test_raw_feature_vector_on_wine(self):
         """Test VQE on the wine dataset using the ``RawFeatureVector`` as data preparation."""
