@@ -14,7 +14,7 @@
 
 """Shor's factoring algorithm."""
 
-from typing import Optional, Union, Tuple
+from typing import Optional, Union, Tuple, List
 import math
 import array
 import fractions
@@ -275,7 +275,7 @@ class Shor(QuantumAlgorithm):
                              "modular inverse does not exist.".format(a, m, g))
         return x % m
 
-    def _get_factors(self, measurement: str) -> Union[None, Tuple[int, int]]:
+    def _get_factors(self, measurement: str) -> Union[None, List[int]]:
         """Apply the continued fractions to find r and the gcd to find the desired factors."""
         x_value = int(measurement, 2)
         logger.info('In decimal, x_value for this result is: %s.', x_value)
@@ -346,7 +346,7 @@ class Shor(QuantumAlgorithm):
                         fail_reason = 'the continued fractions found exactly x_value/(2^(2n)).'
                 else:
                     # Successfully factorized N
-                    return one_factor, other_factor
+                    return sorted((one_factor, other_factor))
 
         # Search for factors failed, write the reason for failure to the debug logs
         logger.debug(
@@ -404,15 +404,14 @@ class Shor(QuantumAlgorithm):
             for measurement in list(counts.keys()):
                 # Get the x_value from the final state qubits
                 logger.info("------> Analyzing result %s.", measurement)
-                output = self._get_factors(measurement)
+                factors = self._get_factors(measurement)
 
-                if output:
+                if factors:
                     logger.info(
                         'Found factors %s from measurement %s.',
-                        output, measurement
+                        factors, measurement
                     )
                     self._ret.data["successful_counts"] += 1
-                    factors = sorted(output)
                     if factors not in self._ret['factors']:
                         self._ret['factors'].append(factors)
 
