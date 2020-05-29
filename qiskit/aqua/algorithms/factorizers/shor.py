@@ -277,11 +277,11 @@ class Shor(QuantumAlgorithm):
 
     def _get_factors(self, measurement: str) -> Union[None, List[int]]:
         """Apply the continued fractions to find r and the gcd to find the desired factors."""
-        x_value = int(measurement, 2)
-        logger.info('In decimal, x_value for this result is: %s.', x_value)
+        x_final = int(measurement, 2)
+        logger.info('In decimal, x_final value for this result is: %s.', x_final)
 
-        if x_value <= 0:
-            fail_reason = 'x_value is <= 0, there are no continued fractions.'
+        if x_final <= 0:
+            fail_reason = 'x_final value is <= 0, there are no continued fractions.'
         else:
             fail_reason = None
             logger.debug('Running continued fractions for this case.')
@@ -289,7 +289,7 @@ class Shor(QuantumAlgorithm):
         # Calculate T and x/T
         T_upper = len(measurement)
         T = pow(2, T_upper)
-        x_over_T = x_value / T
+        x_over_T = x_final / T
 
         # Cycle in which each iteration corresponds to putting one more term in the
         # calculation of the Continued Fraction (CF) of x/T
@@ -343,7 +343,7 @@ class Shor(QuantumAlgorithm):
                     # Check if the number has already been found,
                     # (use i - 1 because i was already incremented)
                     if t[i - 1] == 0:
-                        fail_reason = 'the continued fractions found exactly x_value/(2^(2n)).'
+                        fail_reason = 'the continued fractions found exactly x_final/(2^(2n)).'
                 else:
                     # Successfully factorized N
                     return sorted((one_factor, other_factor))
@@ -402,7 +402,7 @@ class Shor(QuantumAlgorithm):
             # For each simulation result, print proper info to user
             # and try to calculate the factors of N
             for measurement in list(counts.keys()):
-                # Get the x_value from the final state qubits
+                # Get the x_final value from the final state qubits
                 logger.info("------> Analyzing result %s.", measurement)
                 factors = self._get_factors(measurement)
 
