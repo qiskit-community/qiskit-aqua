@@ -36,6 +36,7 @@ class TestShor(QiskitAquaTestCase):
         shor = Shor(n_v)
         result_dict = shor.run(QuantumInstance(BasicAer.get_backend(backend), shots=1000))
         self.assertListEqual(result_dict['factors'][0], factors)
+        self.assertTrue(result_dict["total_counts"] >= result_dict["successful_counts"])
 
     @data(5, 7)
     def test_shor_no_factors(self, n_v):
@@ -45,6 +46,7 @@ class TestShor(QiskitAquaTestCase):
         quantum_instance = QuantumInstance(backend, shots=1000)
         ret = shor.run(quantum_instance)
         self.assertTrue(ret['factors'] == [])
+        self.assertTrue(ret["successful_counts"] == 0)
 
     @idata([
         [3, 5],
@@ -59,6 +61,7 @@ class TestShor(QiskitAquaTestCase):
         quantum_instance = QuantumInstance(backend, shots=1000)
         ret = shor.run(quantum_instance)
         self.assertTrue(ret['factors'] == [base])
+        self.assertTrue(ret["total_counts"] >= ret["successful_counts"])
 
     @data(-1, 0, 1, 2, 4, 16)
     def test_shor_bad_input(self, n_v):

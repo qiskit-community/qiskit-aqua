@@ -14,7 +14,7 @@
 
 """Shor's factoring algorithm."""
 
-from typing import Optional, Union, Tuple
+from typing import Optional, Union, Tuple, List
 import math
 import array
 import fractions
@@ -84,7 +84,7 @@ class Shor(QuantumAlgorithm):
 
         self._a = a
 
-        self._ret = AlgorithmResult({"factors": [], "results": {}})
+        self._ret = AlgorithmResult({"factors": [], "total_counts": 0, "successful_counts": 0})
 
         # check if the input integer is a power
         tf, b, p = is_power(N, return_decomposition=True)
@@ -167,7 +167,8 @@ class Shor(QuantumAlgorithm):
 
         angle_params = ParameterVector("angles", length=len(aux) - 1)
         double_controlled_phi_add = self._double_controlled_phi_add_mod_N(
-            len(aux) + 2, angle_params)
+            len(aux) + 2, angle_params
+        )
         idouble_controlled_phi_add = double_controlled_phi_add.inverse()
 
         circuit.append(self._qft, qubits)
@@ -246,8 +247,8 @@ class Shor(QuantumAlgorithm):
             )
 
         # Apply inverse QFT
-        iqft = QFT(len(self._up_qreg)).inverse()
-        circuit.compose(iqft, qubits=self._up_qreg)
+        iqft = QFT(len(self._up_qreg)).inverse().to_instruction()
+        circuit.append(iqft, self._up_qreg)
 
         if measurement:
             up_cqreg = ClassicalRegister(2 * self._n, name='m')
@@ -274,21 +275,21 @@ class Shor(QuantumAlgorithm):
                              "modular inverse does not exist.".format(a, m, g))
         return x % m
 
-    def _get_factors(self, output_desired: str, t_upper: int) -> bool:
+    def _get_factors(self, measurement: str) -> Union[None, List[int]]:
         """Apply the continued fractions to find r and the gcd to find the desired factors."""
-        x_value = int(output_desired, 2)
-        logger.info('In decimal, x_final value for this result is: %s.', x_value)
+        x_final = int(measurement, 2)
+        logger.info('In decimal, x_final value for this result is: %s.', x_final)
 
-        if x_value <= 0:
-            self._ret['results'][output_desired] = \
-                'x_value is <= 0, there are no continued fractions.'
-            return False
-
-        logger.debug('Running continued fractions for this case.')
+        if x_final <= 0:
+            fail_reason = 'x_final value is <= 0, there are no continued fractions.'
+        else:
+            fail_reason = None
+            logger.debug('Running continued fractions for this case.')
 
         # Calculate T and x/T
-        T = pow(2, t_upper)
-        x_over_T = x_value / T
+        T_upper = len(measurement)
+        T = pow(2, T_upper)
+        x_over_T = x_final / T
 
         # Cycle in which each iteration corresponds to putting one more term in the
         # calculation of the Continued Fraction (CF) of x/T
@@ -301,83 +302,75 @@ class Shor(QuantumAlgorithm):
         b.append(math.floor(x_over_T))
         t.append(x_over_T - b[i])
 
-        while i >= 0:
-
+        exponential = 0
+        while i <= self._N and fail_reason is None:
             # From the 2nd iteration onwards, calculate the new terms of the CF based
             # on the previous terms as the rule suggests
             if i > 0:
                 b.append(math.floor(1 / t[i - 1]))
                 t.append((1 / t[i - 1]) - b[i])
 
-            # Calculate the CF using the known terms
-            aux = 0
-            j = i
-            while j > 0:
-                aux = 1 / (b[j] + aux)
-                j = j - 1
-
-            aux = aux + b[0]
-
-            # Get the denominator from the value obtained
-            frac = fractions.Fraction(aux).limit_denominator()
-            denominator = frac.denominator
-
-            logger.debug('Approximation number %s of continued fractions:', i + 1)
-            logger.debug("Numerator:%s \t\t Denominator: %s.", frac.numerator, frac.denominator)
+            # Calculate the denominator of the CF using the known terms
+            denominator = self._calculate_continued_fraction(b)
 
             # Increment i for next iteration
-            i = i + 1
+            i += 1
 
             if denominator % 2 == 1:
-                if i >= self._N:
-                    self._ret['results'][output_desired] = \
-                        'unable to find factors after too many attempts.'
-                    return False
                 logger.debug('Odd denominator, will try next iteration of continued fractions.')
                 continue
 
-            # If denominator even, try to get factors of N
+            # Denominator is even, try to get factors of N
             # Get the exponential a^(r/2)
-            exponential = 0
 
             if denominator < 1000:
                 exponential = pow(self._a, denominator / 2)
 
             # Check if the value is too big or not
-            if math.isinf(exponential) or exponential > 1000000000:
-                self._ret['results'][output_desired] = \
-                    'denominator of continued fraction is too big.'
-                return False
-
-            # If the value is not to big (infinity),
-            # then get the right values and do the proper gcd()
-            putting_plus = int(exponential + 1)
-            putting_minus = int(exponential - 1)
-            one_factor = math.gcd(putting_plus, self._N)
-            other_factor = math.gcd(putting_minus, self._N)
-
-            # Check if the factors found are trivial factors or are the desired factors
-            if one_factor == 1 or one_factor == self._N or \
-                    other_factor == 1 or other_factor == self._N:
-                logger.debug('Found just trivial factors, not good enough.')
-                # Check if the number has already been found,
-                # use i-1 because i was already incremented
-                if t[i - 1] == 0:
-                    self._ret['results'][output_desired] = \
-                        'the continued fractions found exactly x_final/(2^(2n)).'
-                    return False
-                if i >= self._N:
-                    self._ret['results'][output_desired] = \
-                        'unable to find factors after too many attempts.'
-                    return False
+            if exponential > 1000000000:
+                fail_reason = 'denominator of continued fraction is too big.'
             else:
-                logger.debug('The factors of %s are %s and %s.', self._N, one_factor, other_factor)
-                logger.debug('Found the desired factors.')
-                self._ret['results'][output_desired] = (one_factor, other_factor)
-                factors = sorted((one_factor, other_factor))
-                if factors not in self._ret['factors']:
-                    self._ret['factors'].append(factors)
-                return True
+                # The value is not too big,
+                # get the right values and do the proper gcd()
+                putting_plus = int(exponential + 1)
+                putting_minus = int(exponential - 1)
+                one_factor = math.gcd(putting_plus, self._N)
+                other_factor = math.gcd(putting_minus, self._N)
+
+                # Check if the factors found are trivial factors or are the desired factors
+                if any([factor in {1, self._N} for factor in (one_factor, other_factor)]):
+                    logger.debug('Found just trivial factors, not good enough.')
+                    # Check if the number has already been found,
+                    # (use i - 1 because i was already incremented)
+                    if t[i - 1] == 0:
+                        fail_reason = 'the continued fractions found exactly x_final/(2^(2n)).'
+                else:
+                    # Successfully factorized N
+                    return sorted((one_factor, other_factor))
+
+        # Search for factors failed, write the reason for failure to the debug logs
+        logger.debug(
+            'Cannot find factors from measurement %s because %s',
+            measurement, fail_reason or 'it took too many attempts.'
+        )
+
+    @staticmethod
+    def _calculate_continued_fraction(b: array.array) -> int:
+        """Calculate the continued fraction of x/T from the current terms of expansion b."""
+
+        x_over_T = 0
+
+        for i in reversed(range(len(b) - 1)):
+            x_over_T = 1 / (b[i + 1] + x_over_T)
+
+        x_over_T += b[0]
+
+        # Get the denominator from the value obtained
+        frac = fractions.Fraction(x_over_T).limit_denominator()
+
+        logger.debug('Approximation number %s of continued fractions:', len(b))
+        logger.debug("Numerator:%s \t\t Denominator: %s.", frac.numerator, frac.denominator)
+        return frac.denominator
 
     def _run(self) -> AlgorithmResult:
         if not self._ret['factors']:
@@ -404,18 +397,22 @@ class Shor(QuantumAlgorithm):
                 circuit = self.construct_circuit(measurement=True)
                 counts = self._quantum_instance.execute(circuit).get_counts(circuit)
 
+            self._ret.data["total_counts"] = len(counts)
+
             # For each simulation result, print proper info to user
             # and try to calculate the factors of N
-            for output_desired in list(counts.keys()):
-                # Get the x_value from the final state qubits
-                logger.info("------> Analyzing result %s.", output_desired)
-                self._ret['results'][output_desired] = None
-                success = self._get_factors(output_desired, int(2 * self._n))
-                if success:
-                    logger.info('Found factors %s from measurement %s.',
-                                self._ret['results'][output_desired], output_desired)
-                else:
-                    logger.info('Cannot find factors from measurement %s because %s',
-                                output_desired, self._ret['results'][output_desired])
+            for measurement in list(counts.keys()):
+                # Get the x_final value from the final state qubits
+                logger.info("------> Analyzing result %s.", measurement)
+                factors = self._get_factors(measurement)
+
+                if factors:
+                    logger.info(
+                        'Found factors %s from measurement %s.',
+                        factors, measurement
+                    )
+                    self._ret.data["successful_counts"] += 1
+                    if factors not in self._ret['factors']:
+                        self._ret['factors'].append(factors)
 
         return self._ret
