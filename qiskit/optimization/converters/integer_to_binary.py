@@ -120,7 +120,7 @@ class IntegerToBinary:
     def _encode_linear_coefficients_dict(self, coefficients: Dict[str, float]) \
             -> Tuple[Dict[str, float], float]:
         constant = 0.0
-        linear = {}  # Dict[str, float]
+        linear = {}  # type: Dict[str, float]
         for name, v in coefficients.items():
             x = self._src.get_variable(name)
             if x in self._conv:
