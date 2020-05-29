@@ -1061,7 +1061,7 @@ class SubstituteVariables:
             idx = tuple(x for x, _ in [repl_i, repl_j] if x != self.CONST)
             prod = w_ij * repl_i[1] * repl_j[1]
             if len(idx) == 2:
-                quad_dict[idx] += prod
+                quad_dict[idx] += prod  # type: ignore
             elif len(idx) == 1:
                 lin_dict[idx[0]] += prod
             else:

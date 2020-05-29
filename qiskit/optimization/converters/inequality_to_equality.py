@@ -15,7 +15,7 @@
 
 import copy
 import math
-from typing import List, Optional
+from typing import List, Optional, Dict, Tuple
 import logging
 
 from ..algorithms.optimization_algorithm import OptimizationResult
@@ -352,7 +352,7 @@ class InequalityToEquality:
         names = [x.name for x in self._dst.variables]
         vals = result.x
         new_vals = self._decode_var(names, vals)
-        result.x = new_vals
+        result.x = new_vals  # type: ignore
         return result
 
     def _decode_var(self, names, vals) -> List[int]:

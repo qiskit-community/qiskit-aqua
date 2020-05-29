@@ -15,7 +15,7 @@
 
 """The converter from an ```QuadraticProgram``` to ``Operator``."""
 
-from typing import Tuple
+from typing import Tuple, Optional, Dict
 
 import numpy as np
 from qiskit.quantum_info import Pauli
@@ -73,19 +73,19 @@ class QuadraticProgramToIsing:
         shift += self._src.objective.constant * sense
 
         # convert linear parts of the object function into Hamiltonian.
-        for i, coef in self._src.objective.linear.to_dict().items():
+        for idx, coef in self._src.objective.linear.to_dict().items():
             z_p = np.zeros(num_nodes, dtype=np.bool)
             weight = coef * sense / 2
-            z_p[i] = True
+            z_p[idx] = True
 
             pauli_list.append([-weight, Pauli(z_p, zero)])
             shift += weight
 
         # convert quadratic parts of the object function into Hamiltonian.
         # first merge coefficients (i, j) and (j, i)
-        coeffs = {}
+        coeffs = {}  # type: Dict
         for (i, j), coeff in self._src.objective.quadratic.to_dict().items():
-            if j < i:
+            if j < i:  # type: ignore
                 coeffs[(j, i)] = coeffs.get((j, i), 0.0) + coeff
             else:
                 coeffs[(i, j)] = coeffs.get((i, j), 0.0) + coeff

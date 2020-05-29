@@ -148,7 +148,7 @@ jobs:
         - mypy qiskit/chemistry
         - mypy qiskit/finance
         - mypy qiskit/ml
-        - mypy qiskit/optimization || true
+        - mypy qiskit/optimization
         - mypy test
         - mypy tools
     - name: "Test Aqua 1 Python 3.7"

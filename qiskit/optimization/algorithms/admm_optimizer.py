@@ -25,6 +25,7 @@ from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
 from ..problems.quadratic_program import QuadraticProgram
 from ..problems.variable import VarType, Variable
 from ..problems.constraint import Constraint
+from ..problems.linear_constraint import LinearConstraint
 from ..problems.quadratic_objective import QuadraticObjective
 
 UPDATE_RHO_BY_TEN_PERCENT = 0
