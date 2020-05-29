@@ -356,16 +356,15 @@ class Shor(QuantumAlgorithm):
                     # Check if the number has already been found,
                     # (use i - 1 because i was already incremented)
                     if t[i - 1] == 0:
-                        fail_reason = 'the continued fractions found exactly x_final/(2^(2n)).'
+                        fail_reason = 'the continued fractions found exactly x_value/(2^(2n)).'
                 else:
                     # Successfully factorized N
                     return one_factor, other_factor
 
         # Search for factors failed, write the reason for failure to the debug logs
         logger.debug(
-            'Cannot find factors from measurement {} because {}'.format(
-                measurement, fail_reason or 'it took too many attempts.'
-            )
+            'Cannot find factors from measurement %s because %s',
+            measurement, fail_reason or 'it took too many attempts.'
         )
 
     def _run(self) -> AlgorithmResult:
@@ -399,18 +398,17 @@ class Shor(QuantumAlgorithm):
             # and try to calculate the factors of N
             for measurement in list(counts.keys()):
                 # Get the x_value from the final state qubits
-                logger.info("------> Analyzing result {}.".format(measurement))
+                logger.info("------> Analyzing result %s.", measurement)
                 output = self._get_factors(measurement)
 
                 if output:
                     logger.info(
-                        'Found factors {} from measurement {}.'.format(
-                            output, measurement
-                        )
+                        'Found factors %s from measurement %s.',
+                        output, measurement
                     )
                     self._ret.data["successful_counts"] += 1
                     factors = sorted(output)
                     if factors not in self._ret['factors']:
                         self._ret['factors'].append(factors)
-                        
+
         return self._ret
