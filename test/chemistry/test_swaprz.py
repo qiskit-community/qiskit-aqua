@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Test of SWAPRZ from the circuit library."""
+"""Test of ExcitationPreserving from the circuit library."""
 
 import warnings
 from test.chemistry import QiskitChemistryTestCase
@@ -29,12 +29,12 @@ from qiskit.chemistry.core import Hamiltonian, QubitMappingType
 
 
 @ddt
-class TestSwapRZ(QiskitChemistryTestCase):
-    """
-       SwapRZ was designed to preserve particles. We test it here from
-       chemistry with JORDAN_WIGNER mapping and HartreeFock initial
-       state to set it up. THis facilitates testing SwapRZ using these
-       chemistry components/problem to ensure its correct operation
+class TestExcitationPreserving(QiskitChemistryTestCase):
+    """The ExcitationPresering wavefunction was design to preserve the excitation of the system.
+
+    We test it here from chemistry with JORDAN_WIGNER mapping (then the number of particles
+    is preserved) and HartreeFock initial state to set it up. This facilitates testing
+    ExcitationPreserving using these chemistry components/problem to ensure its correct operation.
     """
 
     def setUp(self):
@@ -43,9 +43,9 @@ class TestSwapRZ(QiskitChemistryTestCase):
         aqua_globals.random_seed = self.seed
         self.reference_energy = -1.137305593252385
 
-    @data('wrapped', 'library')
-    def test_swaprz(self, mode):
-        """ SwapRZ variational form test """
+    @data('library', 'component')
+    def test_excitation_preserving(self, mode):
+        """Test the excitation preserving wavefunction on a chemistry example."""
 
         driver = HDF5Driver(self.get_resource_path('test_driver_hdf5.hdf5'))
         qmolecule = driver.run()
@@ -59,15 +59,13 @@ class TestSwapRZ(QiskitChemistryTestCase):
                                     qubit_mapping=operator._qubit_mapping,
                                     two_qubit_reduction=operator._two_qubit_reduction)
 
-        if mode == 'wrapped':
+        if mode == 'component':
             warnings.filterwarnings('ignore', category=DeprecationWarning)
             wavefunction = SwapRZ(qubit_op.num_qubits, initial_state=initial_state)
         else:
             wavefunction = ExcitationPreserving(qubit_op.num_qubits, initial_state=initial_state)
-
         algo = VQE(qubit_op, wavefunction, optimizer)
-
-        if mode == 'wrapped':
+        if mode == 'component':
             warnings.filterwarnings('always', category=DeprecationWarning)
 
         result = algo.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),
