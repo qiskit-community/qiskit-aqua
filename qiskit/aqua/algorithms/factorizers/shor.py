@@ -310,21 +310,8 @@ class Shor(QuantumAlgorithm):
                 b.append(math.floor(1 / t[i - 1]))
                 t.append((1 / t[i - 1]) - b[i])
 
-            # Calculate the CF using the known terms
-            aux = 0
-            j = i
-            while j > 0:
-                aux = 1 / (b[j] + aux)
-                j -= 1
-
-            aux += b[0]
-
-            # Get the denominator from the value obtained
-            frac = fractions.Fraction(aux).limit_denominator()
-            denominator = frac.denominator
-
-            logger.debug('Approximation number %s of continued fractions:', i + 1)
-            logger.debug("Numerator:%s \t\t Denominator: %s.", frac.numerator, frac.denominator)
+            # Calculate the denominator of the CF using the known terms
+            denominator = self._calculate_continued_fraction(b)
 
             # Increment i for next iteration
             i += 1
@@ -366,6 +353,24 @@ class Shor(QuantumAlgorithm):
             'Cannot find factors from measurement %s because %s',
             measurement, fail_reason or 'it took too many attempts.'
         )
+
+    @staticmethod
+    def _calculate_continued_fraction(b: array.array) -> int:
+        """Calculate the continued fraction of x/T from the current terms of expansion b."""
+
+        x_over_T = 0
+
+        for i in reversed(range(len(b) - 1)):
+            x_over_T = 1 / (b[i + 1] + x_over_T)
+
+        x_over_T += b[0]
+
+        # Get the denominator from the value obtained
+        frac = fractions.Fraction(x_over_T).limit_denominator()
+
+        logger.debug('Approximation number %s of continued fractions:', len(b))
+        logger.debug("Numerator:%s \t\t Denominator: %s.", frac.numerator, frac.denominator)
+        return frac.denominator
 
     def _run(self) -> AlgorithmResult:
         if not self._ret['factors']:
