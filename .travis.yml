@@ -144,7 +144,13 @@ jobs:
       install:
         - pip install cplex
       script:
-        - make mypy || true
+        - mypy qiskit/aqua || true
+        - mypy qiskit/chemistry
+        - mypy qiskit/finance
+        - mypy qiskit/ml
+        - mypy qiskit/optimization || true
+        - mypy test
+        - mypy tools
     - name: "Test Aqua 1 Python 3.7"
       <<: *stage_test_aqua
       if: tag IS blank

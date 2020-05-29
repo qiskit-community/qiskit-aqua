@@ -14,14 +14,13 @@
 
 """FCIDump dumper."""
 
-from typing import List, Optional
-from io import TextIOWrapper
+from typing import List, Optional, Union, TextIO, Tuple
 import itertools
 import numpy as np
 
 
-def dump(outpath: str, norb: int, nelec: int, hijs: List[float], hijkls: List[float], einact: float,
-         ms2: int = 0, orbsym: Optional[List[int]] = None, isym: int = 1
+def dump(outpath: str, norb: int, nelec: int, hijs: np.ndarray, hijkls: np.ndarray, einact: float,
+         ms2: int = 0, orbsym: Optional[List[str]] = None, isym: int = 1
          ) -> None:
     # pylint: disable=wrong-spelling-in-docstring
     """Generates a FCIDump output.
@@ -69,7 +68,9 @@ def dump(outpath: str, norb: int, nelec: int, hijs: List[float], hijkls: List[fl
         _write_to_outfile(outfile, einact, (0, 0, 0, 0))
 
 
-def _dump_1e_ints(hij: List[float], mos: List[int], outfile: TextIOWrapper,
+def _dump_1e_ints(hij: List[float],
+                  mos: Union[range, List[int]],
+                  outfile: TextIO,
                   beta: bool = False) -> None:
     idx_offset = 1 if not beta else 1+len(mos)
     hij_elements = set()
@@ -83,7 +84,9 @@ def _dump_1e_ints(hij: List[float], mos: List[int], outfile: TextIOWrapper,
         hij_elements.add((i, j))
 
 
-def _dump_2e_ints(hijkl: List[float], mos: List[int], outfile: TextIOWrapper,
+def _dump_2e_ints(hijkl: np.ndarray,
+                  mos: Union[range, List[int]],
+                  outfile: TextIO,
                   beta: int = 0) -> None:
     idx_offsets = [1, 1]
     for b in range(beta):
@@ -118,5 +121,5 @@ def _dump_2e_ints(hijkl: List[float], mos: List[int], outfile: TextIOWrapper,
             hijkl_elements.add(elem)
 
 
-def _write_to_outfile(outfile: str, value: float, indices: List[int]):
+def _write_to_outfile(outfile: TextIO, value: float, indices: Tuple):
     outfile.write('{:23.16E}{:4d}{:4d}{:4d}{:4d}\n'.format(value, *indices))
