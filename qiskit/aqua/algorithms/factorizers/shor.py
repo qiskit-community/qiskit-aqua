@@ -275,7 +275,7 @@ class Shor(QuantumAlgorithm):
                              "modular inverse does not exist.".format(a, m, g))
         return x % m
 
-    def _get_factors(self, measurement: str) -> Union[None, List[int]]:
+    def _get_factors(self, measurement: str) -> Optional[List[int]]:
         """Apply the continued fractions to find r and the gcd to find the desired factors."""
         x_final = int(measurement, 2)
         logger.info('In decimal, x_final value for this result is: %s.', x_final)
