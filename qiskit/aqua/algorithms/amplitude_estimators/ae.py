@@ -50,8 +50,8 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
     """
 
     def __init__(self, num_eval_qubits: int,
-                 a_factory: Optional[QuantumCircuit, CircuitFactory] = None,
-                 q_factory: Optional[QuantumCircuit, CircuitFactory] = None,
+                 a_factory: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
+                 q_factory: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
                  i_objective: Optional[int] = None,
                  iqft: Optional[QuantumCircuit] = None,
                  quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:

@@ -22,6 +22,7 @@ from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.utils.circuit_factory import CircuitFactory
 from qiskit.aqua.utils.validation import validate_range, validate_in_set
+from qiskit.aqua.components.uncertainty_problems.grover_operator import _append
 
 from .ae_algorithm import AmplitudeEstimationAlgorithm
 
@@ -43,9 +44,9 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
     """
 
     def __init__(self, epsilon: float, alpha: float,
-                 confint_method: str = 'beta', min_ratio: float = 2.0,
-                 a_factory: Optional[CircuitFactory] = None,
-                 q_factory: Optional[CircuitFactory] = None,
+                 confint_method: str = 'beta', min_ratio: float = 2,
+                 a_factory: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
+                 q_factory: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
                  i_objective: Optional[int] = None,
                  quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
         """
@@ -169,32 +170,68 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             The circuit Q^k A \|0>.
         """
         # set up circuit
-        q = QuantumRegister(self.a_factory.num_target_qubits, 'q')
-        circuit = QuantumCircuit(q, name='circuit')
+        if isinstance(self.a_factory, CircuitFactory) and \
+                isinstance(self.q_factory, CircuitFactory):
+            q = QuantumRegister(self.a_factory.num_target_qubits, 'q')
+            circuit = QuantumCircuit(q, name='circuit')
 
-        # get number of ancillas and add register if needed
-        num_ancillas = np.maximum(self.a_factory.required_ancillas(),
-                                  self.q_factory.required_ancillas())
+            # get number of ancillas and add register if needed
+            num_ancillas = np.maximum(self.a_factory.required_ancillas(),
+                                      self.q_factory.required_ancillas())
 
-        q_aux = None
-        # pylint: disable=comparison-with-callable
-        if num_ancillas > 0:
-            q_aux = QuantumRegister(num_ancillas, 'aux')
-            circuit.add_register(q_aux)
+            q_aux = None
+            # pylint: disable=comparison-with-callable
+            if num_ancillas > 0:
+                q_aux = QuantumRegister(num_ancillas, 'aux')
+                circuit.add_register(q_aux)
 
-        # add classical register if needed
-        if measurement:
-            c = ClassicalRegister(1)
-            circuit.add_register(c)
+            # add classical register if needed
+            if measurement:
+                c = ClassicalRegister(1)
+                circuit.add_register(c)
 
-        # add A operator
-        self.a_factory.build(circuit, q, q_aux)
+            # add A operator
+            self.a_factory.build(circuit, q, q_aux)
 
-        # add Q^k
-        if k != 0:
-            self.q_factory.build_power(circuit, q, k, q_aux)
+            # add Q^k
+            if k != 0:
+                self.q_factory.build_power(circuit, q, k, q_aux)
+        else:  # circuit
+            q = QuantumRegister(self.a_factory.num_qubits, 'q')
+            circuit = QuantumCircuit(q, name='circuit')
 
-        # add optional measurement
+            # get number of ancillas and add register if needed
+            num_ancillas = 0
+            if hasattr(self.a_factory, 'num_ancilla_qubits'):
+                num_ancillas = self.a_factory.num_ancilla_qubits
+            if hasattr(self.q_factory, 'num_ancilla_qubits'):
+                num_ancillas = max(num_ancillas, self.q_factory.num_ancilla_qubits)
+
+            q_aux = None
+            # pylint: disable=comparison-with-callable
+            if num_ancillas > 0:
+                q_aux = QuantumRegister(num_ancillas, 'aux')
+                circuit.add_register(q_aux)
+
+            # add classical register if needed
+            if measurement:
+                c = ClassicalRegister(1)
+                circuit.add_register(c)
+
+            # add A operator
+            _append(circuit, self.a_factory, q, q_aux)
+
+            # add Q^k
+            if k != 0:
+                repeated = self.q_factory.repeat(k)
+                if hasattr(self.q_factory, 'num_state_qubits'):
+                    repeated.num_state_qubits = self.q_factory.num_state_qubits
+                if hasattr(self.q_factory, 'num_ancilla_qubits'):
+                    repeated.num_ancilla_qubits = self.q_factory.num_ancilla_qubits
+
+                _append(circuit, repeated, q, q_aux)
+
+            # add optional measurement
         if measurement:
             # real hardware can currently not handle operations after measurements, which might
             # happen if the circuit gets transpiled, hence we're adding a safeguard-barrier
@@ -221,7 +258,10 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             return int(one_counts), one_counts / sum(counts_or_statevector.values())
         else:
             statevector = counts_or_statevector
-            num_qubits = self.a_factory.num_target_qubits
+            if isinstance(self.a_factory, CircuitFactory):
+                num_qubits = self.a_factory.num_target_qubits
+            else:
+                num_qubits = self.a_factory.num_qubits
 
             # sum over all amplitudes where the objective qubit is 1
             prob = 0

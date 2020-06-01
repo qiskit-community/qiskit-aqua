@@ -111,17 +111,17 @@ class GroverOperator(QuantumCircuit):
         return self._oracle
 
     def _build(self):
-        qr_state = QuantumRegister(self.num_state_qubits, name='state')
-        qr_ancilla = QuantumRegister(self.num_ancilla_qubits, name='ancilla')
-        self.qregs = [qr_state, qr_ancilla]
+        self.qregs = [QuantumRegister(self.num_state_qubits, name='state')]
+        if self.num_ancilla_qubits > 0:
+            self.qregs += [QuantumRegister(self.num_ancilla_qubits, name='ancilla')]
 
-        _append(self, self.a_operator)
-        _append(self, self.zero_reflection)
-        _append(self, self.a_operator.inverse())
         _append(self, self.oracle)
+        _append(self, self.a_operator.inverse())
+        _append(self, self.zero_reflection)
+        _append(self, self.a_operator)
 
 
-def _append(target, other, qubits=None):
+def _append(target, other, qubits=None, ancillas=None):
     if hasattr(other, 'num_state_qubits') and hasattr(other, 'num_ancilla_qubits'):
         num_state_qubits = other.num_state_qubits
         num_ancilla_qubits = other.num_ancilla_qubits
@@ -130,6 +130,14 @@ def _append(target, other, qubits=None):
         num_ancilla_qubits = 0
 
     if qubits is None:
-        qubits = list(range(num_state_qubits + num_ancilla_qubits))
+        qubits = list(range(num_state_qubits))
+    elif isinstance(qubits, QuantumRegister):
+        qubits = qubits[:]
+
+    if num_ancilla_qubits > 0:
+        if ancillas is None:
+            qubits += list(range(num_state_qubits, num_state_qubits + num_ancilla_qubits))
+        else:
+            qubits += ancillas[:num_ancilla_qubits]
 
     target.append(other.to_instruction(), qubits)
