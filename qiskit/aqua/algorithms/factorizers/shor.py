@@ -303,7 +303,7 @@ class Shor(QuantumAlgorithm):
         t.append(x_over_T - b[i])
 
         exponential = 0
-        while i <= self._N and fail_reason is None:
+        while i < self._N and fail_reason is None:
             # From the 2nd iteration onwards, calculate the new terms of the CF based
             # on the previous terms as the rule suggests
             if i > 0:
