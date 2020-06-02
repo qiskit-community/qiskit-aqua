@@ -53,7 +53,8 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
                  a_factory: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
                  q_factory: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
                  i_objective: Optional[int] = None,
-                 iqft: Optional[QuantumCircuit] = None,
+                 iqft: Optional[Union[QuantumCircuit, IQFT]] = None,
+                 initial_state: Optional[QuantumCircuit] = None,
                  quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
         r"""
         Args:
@@ -74,6 +75,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         self._m = num_eval_qubits
         self._M = 2 ** num_eval_qubits
         self._iqft = iqft or QFT(self._m).inverse()
+        self._initial_state = initial_state
         self._circuit = None
         self._ret = {}  # type: Dict[str, Any]
 
@@ -87,8 +89,21 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         if self.a_factory is None:  # if A factory is not set, no qubits are specified
             return 0
 
-        num_ancillas = self.q_factory.required_ancillas_controlled()
-        num_qubits = self.a_factory.num_target_qubits + self._m + num_ancillas
+        if isinstance(self.q_factory, CircuitFactory):
+            num_ancillas = self.q_factory.required_ancillas_controlled()
+        elif hasattr(self.q_factory, 'num_ancilla_qubits'):
+            num_ancillas = self.q_factory.num_ancilla_qubits
+        else:
+            num_ancillas = 0
+
+        if isinstance(self.a_factory, CircuitFactory):
+            num_target_qubits = self.a_factory.num_target_qubits
+        elif hasattr(self.a_factory, 'num_state_qubits'):
+            num_target_qubits = self.a_factory.num_state_qubits
+        else:
+            num_target_qubits = self.a_factory.num_qubits
+
+        num_qubits = num_target_qubits + self._m + num_ancillas
 
         return num_qubits
 
@@ -101,9 +116,14 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         Returns:
             The QuantumCircuit object for the constructed circuit.
         """
+        if self._initial_state is not None:
+            state_in = self._initial_state.compose(self.a_factory)
+        else:
+            state_in = self.a_factory
+
         pec = PhaseEstimationCircuit(
             iqft=self._iqft, num_ancillae=self._m,
-            state_in_circuit_factory=self.a_factory,
+            state_in_circuit_factory=state_in,
             unitary_circuit_factory=self.q_factory
         )
 
