@@ -104,6 +104,7 @@ from .nlopts.isres import ISRES
 from .snobfit import SNOBFIT
 from .bobyqa import BOBYQA
 from .imfil import IMFIL
+from .orbit import ORBIT
 
 __all__ = ['Optimizer',
            'OptimizerSupportLevel',
@@ -121,4 +122,4 @@ __all__ = ['Optimizer',
            'SPSA',
            'TNC',
            'CRS', 'DIRECT_L', 'DIRECT_L_RAND', 'ESCH', 'ISRES',
-           'SNOBFIT','BOBYQA', 'IMFIL']
+           'SNOBFIT','BOBYQA', 'IMFIL','ORBIT']
