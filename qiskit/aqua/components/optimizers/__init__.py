@@ -101,6 +101,7 @@ from .nlopts.direct_l import DIRECT_L
 from .nlopts.direct_l_rand import DIRECT_L_RAND
 from .nlopts.esch import ESCH
 from .nlopts.isres import ISRES
+from .snobfit import SNOBFIT
 
 __all__ = ['Optimizer',
            'OptimizerSupportLevel',
@@ -117,4 +118,5 @@ __all__ = ['Optimizer',
            'SLSQP',
            'SPSA',
            'TNC',
-           'CRS', 'DIRECT_L', 'DIRECT_L_RAND', 'ESCH', 'ISRES']
+           'CRS', 'DIRECT_L', 'DIRECT_L_RAND', 'ESCH', 'ISRES',
+           'SNOBFIT']
