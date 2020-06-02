@@ -61,7 +61,7 @@ class GroverOperator(QuantumCircuit):
         max_num_ancillas = 0
         if self._zero_reflection:
             max_num_ancillas = self._zero_reflection.num_ancilla_qubits
-        elif self._oracle.num_qubits > 1:
+        elif self._oracle.num_qubits - len(self.idle_qubits) > 1:
             max_num_ancillas = 1
 
         if self._a_operator and hasattr(self._a_operator, 'num_ancilla_qubits'):
@@ -71,6 +71,13 @@ class GroverOperator(QuantumCircuit):
             max_num_ancillas = max(max_num_ancillas, self._oracle.num_ancilla_qubits)
 
         return max_num_ancillas
+
+    @property
+    def idle_qubits(self):
+        """Idle qubits, on which S0 is not applied."""
+        if self._idle_qubits is None:
+            return []
+        return self._idle_qubits
 
     @property
     def num_qubits(self):
@@ -84,14 +91,15 @@ class GroverOperator(QuantumCircuit):
             return self._zero_reflection
 
         zero_reflection = QuantumCircuit(self.num_qubits, name='S_0')
-        if self.num_qubits == 1:
-            zero_reflection.z(0)
+        qubits = [i for i in range(self.num_qubits) if i not in self.idle_qubits]
+        if len(qubits) == 1:
+            zero_reflection.z(qubits[0])
         else:
-            zero_reflection.x(list(range(self.num_qubits)))
-            zero_reflection.h(self.num_qubits - 1)
-            zero_reflection.mcx(list(range(self.num_qubits - 1)), self.num_qubits - 1)
-            zero_reflection.h(self.num_qubits - 1)
-            zero_reflection.x(list(range(self.num_qubits)))
+            zero_reflection.x(qubits)
+            zero_reflection.h(qubits[-1])
+            zero_reflection.mcx(qubits[:-1], qubits[-1])
+            zero_reflection.h(qubits[-1])
+            zero_reflection.x(qubits)
 
         return zero_reflection
 
@@ -140,4 +148,4 @@ def _append(target, other, qubits=None, ancillas=None):
         else:
             qubits += ancillas[:num_ancilla_qubits]
 
-    target.append(other.to_instruction(), qubits)
+    target.append(other.to_gate(), qubits)
