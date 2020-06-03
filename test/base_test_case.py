@@ -16,7 +16,7 @@
 
 from typing import Optional
 from abc import ABC, abstractmethod
-# import warnings
+import warnings
 import inspect
 import logging
 import os
@@ -45,6 +45,7 @@ class QiskitBaseTestCase(unittest.TestCase, ABC):
 
     @abstractmethod
     def setUp(self) -> None:
+        warnings.filterwarnings('default', category=DeprecationWarning)
         self._started_at = time.time()
         self._class_location = __file__
 

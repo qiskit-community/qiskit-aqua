@@ -14,7 +14,7 @@
 
 """The HHL algorithm."""
 
-from typing import Optional, Union
+from typing import Optional, Union, Dict, Any
 import logging
 from copy import deepcopy
 import numpy as np
@@ -141,7 +141,7 @@ class HHL(QuantumAlgorithm):
         self._ancilla_register = None
         self._success_bit = None
         self._original_dimension = orig_size
-        self._ret = {}
+        self._ret = {}  # type: Dict[str, Any]
 
     @staticmethod
     def matrix_resize(matrix, vector):

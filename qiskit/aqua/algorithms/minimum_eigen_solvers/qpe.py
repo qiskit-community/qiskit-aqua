@@ -15,7 +15,7 @@
 """The Quantum Phase Estimation Algorithm."""
 
 import logging
-from typing import Optional, List, Dict, Union
+from typing import Optional, List, Dict, Union, Any
 import warnings
 
 import numpy as np
@@ -106,9 +106,9 @@ class QPE(QuantumAlgorithm, MinimumEigensolver):
         self._shallow_circuit_concat = shallow_circuit_concat
         self._binary_fractions = [1 / 2 ** p for p in range(1, self._num_ancillae + 1)]
         self._in_operator = operator
-        self._operator = None
-        self._ret = {}
-        self._pauli_list = None
+        self._operator = None  # type: Optional[WeightedPauliOperator]
+        self._ret = {}  # type: Dict[str, Any]
+        self._pauli_list = None  # type: Optional[List[List[Union[complex, Pauli]]]]
         self._phase_estimation_circuit = None
         self._setup(operator)
 

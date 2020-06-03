@@ -14,7 +14,7 @@
 
 """ Univariate uncertainty problem. """
 
-from typing import Optional
+from typing import Optional, List
 from qiskit.aqua.components.uncertainty_models import UnivariateDistribution
 from qiskit.aqua.components.uncertainty_problems import UncertaintyProblem
 from .univariate_piecewise_linear_objective import UnivariatePiecewiseLinearObjective
@@ -29,7 +29,7 @@ class UnivariateProblem(UncertaintyProblem):
     def __init__(self,
                  uncertainty_model: UnivariateDistribution,
                  univariate_objective: UnivariatePiecewiseLinearObjective,
-                 i_state: Optional[int] = None,
+                 i_state: Optional[List[int]] = None,
                  i_objective: Optional[int] = None) -> None:
         """
         Constructor.

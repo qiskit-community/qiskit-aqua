@@ -80,6 +80,7 @@ Chuang's
 circ
 CircuitCache
 CircuitOp
+CircuitSampler
 clas
 clbits
 clifford
@@ -479,6 +480,7 @@ Parikh
 pascual
 pauli
 pauli's
+PauliOp
 paulis
 paulische
 pca
