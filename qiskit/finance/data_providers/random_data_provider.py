@@ -34,8 +34,8 @@ class RandomDataProvider(BaseDataProvider):
     def __init__(self,
                  tickers: Optional[Union[str, List[str]]] = None,
                  stockmarket: StockMarket = StockMarket.RANDOM,
-                 start: datetime = datetime.datetime(2016, 1, 1),
-                 end: datetime = datetime.datetime(2016, 1, 30),
+                 start: datetime.datetime = datetime.datetime(2016, 1, 1),
+                 end: datetime.datetime = datetime.datetime(2016, 1, 30),
                  seed: Optional[int] = None) -> None:
         """
         Initializer

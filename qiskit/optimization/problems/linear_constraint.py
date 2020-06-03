@@ -32,7 +32,7 @@ class LinearConstraint(Constraint):
     def __init__(self,
                  quadratic_program: Any, name: str,
                  linear: Union[ndarray, spmatrix, List[float], Dict[Union[str, int], float]],
-                 sense: Constraint.Sense,
+                 sense: ConstraintSense,
                  rhs: float
                  ) -> None:
         """
