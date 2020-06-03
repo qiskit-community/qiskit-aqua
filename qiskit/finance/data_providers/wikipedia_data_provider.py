@@ -40,8 +40,8 @@ class WikipediaDataProvider(BaseDataProvider):
                  token: Optional[str] = None,
                  tickers: Optional[Union[str, List[str]]] = None,
                  stockmarket: StockMarket = StockMarket.NASDAQ,
-                 start: datetime = datetime.datetime(2016, 1, 1),
-                 end: datetime = datetime.datetime(2016, 1, 30)) -> None:
+                 start: datetime.datetime = datetime.datetime(2016, 1, 1),
+                 end: datetime.datetime = datetime.datetime(2016, 1, 30)) -> None:
         """
         Initializer
         Args:
@@ -54,6 +54,7 @@ class WikipediaDataProvider(BaseDataProvider):
             QiskitFinanceError: provider doesn't support stock market input
         """
         super().__init__()
+        self._tickers = None  # type: Optional[Union[str, List[str]]]
         tickers = tickers if tickers is not None else []
         if isinstance(tickers, list):
             self._tickers = tickers
