@@ -40,6 +40,9 @@ def _noop(*args, **kargs):
 class QiskitBaseTestCase(unittest.TestCase, ABC):
     """Base Helper class that contains common functionality."""
 
+    moduleName = None
+    log = None
+
     @abstractmethod
     def setUp(self) -> None:
         self._started_at = time.time()

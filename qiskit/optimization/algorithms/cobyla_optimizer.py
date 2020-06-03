@@ -15,7 +15,7 @@
 
 """The COBYLA optimizer wrapped to be used within Qiskit's optimization module."""
 
-from typing import Optional
+from typing import Optional, cast, List
 
 import numpy as np
 from scipy.optimize import fmin_cobyla
@@ -128,7 +128,8 @@ class CobylaOptimizer(OptimizationAlgorithm):
 
         # pylint: disable=no-member
         # add linear and quadratic constraints
-        for constraint in problem.linear_constraints + problem.quadratic_constraints:
+        for constraint in cast(List[Constraint], problem.linear_constraints) +\
+                cast(List[Constraint], problem.quadratic_constraints):
             rhs = constraint.rhs
             sense = constraint.sense
 

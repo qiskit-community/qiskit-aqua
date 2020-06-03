@@ -51,9 +51,9 @@ class IntegerToBinary:
     _delimiter = '@'  # users are supposed not to use this character in variable names
 
     def __init__(self) -> None:
-        self._src = None
-        self._dst = None
-        self._conv = {}  # Dict[Variable, List[Tuple[str, int]]]
+        self._src = None  # type: Optional[QuadraticProgram]
+        self._dst = None  # type: Optional[QuadraticProgram]
+        self._conv = {}  # type: Dict[Variable, List[Tuple[str, int]]]
         # e.g., self._conv = {x: [('x@1', 1), ('x@2', 2)]}
 
     def encode(self, op: QuadraticProgram, name: Optional[str] = None) -> QuadraticProgram:
@@ -109,7 +109,7 @@ class IntegerToBinary:
 
         return self._dst
 
-    def _encode_var(self, name: str, lowerbound: int, upperbound: int) -> List[Tuple[str, int]]:
+    def _encode_var(self, name: str, lowerbound: float, upperbound: float) -> List[Tuple[str, int]]:
         var_range = upperbound - lowerbound
         power = int(np.log2(var_range))
         bounded_coef = var_range - (2 ** power - 1)
@@ -119,8 +119,8 @@ class IntegerToBinary:
 
     def _encode_linear_coefficients_dict(self, coefficients: Dict[str, float]) \
             -> Tuple[Dict[str, float], float]:
-        constant = 0
-        linear = {}
+        constant = 0.0
+        linear = {}  # type: Dict[str, float]
         for name, v in coefficients.items():
             x = self._src.get_variable(name)
             if x in self._conv:
@@ -134,8 +134,8 @@ class IntegerToBinary:
 
     def _encode_quadratic_coefficients_dict(self, coefficients: Dict[Tuple[str, str], float]) \
             -> Tuple[Dict[Tuple[str, str], float], Dict[str, float], float]:
-        constant = 0
-        linear = {}
+        constant = 0.0
+        linear = {}  # type: Dict[str, float]
         quadratic = {}
         for (name_i, name_j), v in coefficients.items():
             x = self._src.get_variable(name_i)
@@ -217,10 +217,10 @@ class IntegerToBinary:
         """
         vals = result.x
         new_vals = self._decode_var(vals)
-        result.x = new_vals
+        result.x = new_vals  # type: ignore
         return result
 
-    def _decode_var(self, vals) -> List[int]:
+    def _decode_var(self, vals) -> List[float]:
         # decode integer values
         sol = {x.name: float(vals[i]) for i, x in enumerate(self._dst.variables)}
         new_vals = []

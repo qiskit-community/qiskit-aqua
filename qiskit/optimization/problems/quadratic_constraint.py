@@ -35,7 +35,7 @@ class QuadraticConstraint(Constraint):
                  linear: Union[ndarray, spmatrix, List[float], Dict[Union[str, int], float]],
                  quadratic: Union[ndarray, spmatrix, List[List[float]],
                                   Dict[Tuple[Union[int, str], Union[int, str]], float]],
-                 sense: Constraint.Sense,
+                 sense: ConstraintSense,
                  rhs: float
                  ) -> None:
         """Constructs a quadratic constraint, consisting of a linear and a quadratic term.
@@ -94,7 +94,7 @@ class QuadraticConstraint(Constraint):
         Args:
             quadratic: The quadratic coefficients of the left-hand-side.
         """
-        self._linear = QuadraticExpression(self.quadratic_program, quadratic)
+        self._quadratic = QuadraticExpression(self.quadratic_program, quadratic)
 
     def evaluate(self, x: Union[ndarray, List, Dict[Union[int, str], float]]) -> float:
         """Evaluate the left-hand-side of the constraint.

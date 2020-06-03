@@ -15,7 +15,7 @@
 """Converter to convert a problem with equality constraints to unconstrained with penalty terms."""
 
 import copy
-from typing import Optional
+from typing import Optional, cast, Union, Tuple
 
 from ..problems.quadratic_program import QuadraticProgram
 from ..problems.variable import Variable
@@ -102,7 +102,8 @@ class LinearEqualityToPenalty:
 
                     # according to implementation of quadratic terms in OptimizationModel,
                     # don't need to multiply by 2, since loops run over (x, y) and (y, x).
-                    quadratic[(j, k)] = quadratic.get((j, k), 0.0) \
+                    tup = cast(Union[Tuple[int, int], Tuple[str, str]], (j, k))
+                    quadratic[tup] = quadratic.get(tup, 0.0) \
                         + sense * penalty_factor * coef_1 * coef_2
 
         if self._src.objective.sense == QuadraticObjective.Sense.MINIMIZE:

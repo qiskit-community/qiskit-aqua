@@ -16,7 +16,7 @@ This module implements a molecular Hamiltonian operator, representing the
 energy of the electrons and nuclei in a molecule.
 """
 import warnings
-from typing import Optional, List, Union
+from typing import Optional, List, Union, cast
 import logging
 from enum import Enum
 
@@ -25,7 +25,9 @@ from qiskit.aqua.algorithms import MinimumEigensolverResult, EigensolverResult
 from qiskit.aqua.operators import Z2Symmetries, WeightedPauliOperator
 from qiskit.chemistry import QMolecule, QiskitChemistryError
 from qiskit.chemistry.fermionic_operator import FermionicOperator
-from .chemistry_operator import ChemistryOperator, MolecularGroundStateResult
+from .chemistry_operator import (ChemistryOperator,
+                                 MolecularGroundStateResult,
+                                 DipoleTuple)
 from ..components.initial_states import HartreeFock
 
 logger = logging.getLogger(__name__)
@@ -387,7 +389,7 @@ class Hamiltonian(ChemistryOperator):
                 dipm = []
                 for i in range(dipole_idx, dipole_idx+3):  # Gets X, Y and Z components
                     dipm.append(aux_ops_vals[i][0].real if aux_ops_vals[i] is not None else None)
-                mgsr.computed_dipole_moment = tuple(dipm)
+                mgsr.computed_dipole_moment = cast(DipoleTuple, tuple(dipm))
                 mgsr.ph_extracted_dipole_moment = (self._ph_x_dipole_shift,
                                                    self._ph_y_dipole_shift,
                                                    self._ph_z_dipole_shift)
