@@ -37,8 +37,8 @@ class ExchangeDataProvider(BaseDataProvider):
                  token: str,
                  tickers: Union[str, List[str]],
                  stockmarket: StockMarket = StockMarket.LONDON,
-                 start: datetime = datetime.datetime(2016, 1, 1),
-                 end: datetime = datetime.datetime(2016, 1, 30)) -> None:
+                 start: datetime.datetime = datetime.datetime(2016, 1, 1),
+                 end: datetime.datetime = datetime.datetime(2016, 1, 30)) -> None:
         """
         Initializer
         Args:
@@ -52,7 +52,7 @@ class ExchangeDataProvider(BaseDataProvider):
         """
 
         super().__init__()
-
+        self._tickers = []  # type: Union[str, List[str]]
         if isinstance(tickers, list):
             self._tickers = tickers
         else:

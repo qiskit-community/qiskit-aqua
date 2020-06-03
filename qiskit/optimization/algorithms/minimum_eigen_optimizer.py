@@ -15,7 +15,7 @@
 
 """A wrapper for minimum eigen solvers from Aqua to be used within the optimization module."""
 
-from typing import Optional, Any, Union, Tuple, List
+from typing import Optional, Any, Union, Tuple, List, cast
 import numpy as np
 
 from qiskit import QuantumCircuit, BasicAer, execute
@@ -153,6 +153,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         operator, offset = operator_converter.encode(problem_)
 
         # only try to solve non-empty Ising Hamiltonians
+        x = None  # type: Optional[Any]
         if operator.num_qubits > 0:
 
             # approximate ground state of operator using min eigen solver
@@ -175,7 +176,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
 
         # translate result back to integers
         opt_res = MinimumEigenOptimizerResult(x, fval, samples, qubo_converter)
-        opt_res = qubo_converter.decode(opt_res)
+        opt_res = cast(MinimumEigenOptimizerResult, qubo_converter.decode(opt_res))
 
         # translate results back to original problem
         return opt_res
