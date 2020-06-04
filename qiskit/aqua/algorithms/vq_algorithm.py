@@ -186,7 +186,7 @@ class VQAlgorithm(QuantumAlgorithm):
         else:
             if optimizer.is_initial_point_required:
                 if hasattr(var_form, 'preferred_init_points'):
-                    # Note: default impl returns None, hence check again after below
+                    # Note: default implementation returns None, hence check again after below
                     initial_point = var_form.preferred_init_points
 
                 if initial_point is None:  # If still None use a random generated point
