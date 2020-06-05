@@ -122,7 +122,7 @@ jobs:
   include:
     - stage: Checks and Tests
       <<: *stage_dependencies
-      name: "Spell, style, lint, copyright and docs checks"
+      name: "Pip, spell, style, lint, copyright and docs checks"
       if: tag IS blank
       install:
         # install spell check libraries
@@ -130,7 +130,10 @@ jobs:
         - sudo apt-get -y install hunspell-en-us
         - pip install pyenchant
         - pip install cplex
+        - pip install cvxopt
+        - pip install https://github.com/rpmuller/pyquante2/archive/master.zip --progress-bar off
       script:
+        - pip check
         - make spell
         - make style
         - make lint
@@ -144,13 +147,7 @@ jobs:
       install:
         - pip install cplex
       script:
-        - mypy qiskit/aqua || true
-        - mypy qiskit/chemistry
-        - mypy qiskit/finance
-        - mypy qiskit/ml
-        - mypy qiskit/optimization
-        - mypy test
-        - mypy tools
+        - make mypy
     - name: "Test Aqua 1 Python 3.7"
       <<: *stage_test_aqua
       if: tag IS blank
@@ -341,16 +338,8 @@ jobs:
       script:
         - stestr --test-path test/optimization run 2> >(tee /dev/stderr out.txt > /dev/null)
         - python tools/extract_deprecation.py -file out.txt -output optimization38.dep
-    - name: "Run pip check"
-      <<: *stage_dependencies
-      if: tag IS blank
-      script:
-        - pip install cplex
-        - pip install cvxopt
-        - pip install https://github.com/rpmuller/pyquante2/archive/master.zip --progress-bar off
-        - pip check
-    - stage: Deprecation Messages
-      name: "Print deprecation messages"
+    - stage: Deprecation Messages and Coverage
+      name: "Print deprecation msgs, combine all coverages and upload to Coveralls"
       if: tag IS blank
       workspaces:
         use:
@@ -367,24 +356,9 @@ jobs:
           - optimization37
           - optimization38
       install:
-        # dummy install cmd to prevent travis from installing requirements.txt
-        - pip --version
-      script:
-        - sort -f -u aqua137.dep aqua138.dep aqua237.dep aqua238.dep chemistry37.dep chemistry38.dep finance37.dep finance38.dep ml37.dep ml38.dep optimization37.dep optimization38.dep || true
-    - stage: Coverage
-      name: "Combine all coverages and upload to Coveralls"
-      if: tag IS blank
-      workspaces:
-        use:
-          - aqua137
-          - aqua237
-          - chemistry37
-          - finance37
-          - ml37
-          - optimization37
-      install:
         - pip install -U coverage coveralls diff-cover
       script:
+        - sort -f -u aqua137.dep aqua138.dep aqua237.dep aqua238.dep chemistry37.dep chemistry38.dep finance37.dep finance38.dep ml37.dep ml38.dep optimization37.dep optimization38.dep || true
         - coverage3 combine aqua1.dat aqua2.dat chemistry.dat finance.dat ml.dat optimization.dat
         - coveralls || true
         - coverage3 xml

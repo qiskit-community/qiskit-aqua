@@ -105,6 +105,41 @@ class TestQAOA(QiskitOptimizationTestCase):
         qaoa.operator = (X ^ qubit_op ^ Z)
         qaoa.run()
 
+    @idata([
+        [W2, S2, None],
+        [W2, S2, [0.0, 0.0]],
+        [W2, S2, [1.0, 0.8]]
+    ])
+    @unpack
+    def test_qaoa_initial_point(self, w, solutions, init_pt):
+        """ Check first parameter value used is initial point as expected """
+        optimizer = COBYLA()
+        qubit_op, _ = max_cut.get_operator(w)
+
+        first_pt = []
+
+        def cb_callback(eval_count, parameters, mean, std):
+            nonlocal first_pt
+            if eval_count == 1:
+                first_pt = list(parameters)
+
+        quantum_instance = QuantumInstance(BasicAer.get_backend('statevector_simulator'))
+        qaoa = QAOA(qubit_op, optimizer, initial_point=init_pt, callback=cb_callback,
+                    quantum_instance=quantum_instance)
+
+        result = qaoa.compute_minimum_eigenvalue()
+        x = sample_most_likely(result.eigenstate)
+        graph_solution = max_cut.get_graph_solution(x)
+
+        if init_pt is None:       # If None the preferred initial point of QAOA variational form
+            init_pt = [0.0, 0.0]  # i.e. 0,0 should come through as the first point
+
+        with self.subTest('Initial Point'):
+            self.assertListEqual(init_pt, first_pt)
+
+        with self.subTest('Solution'):
+            self.assertIn(''.join([str(int(i)) for i in graph_solution]), solutions)
+
 
 if __name__ == '__main__':
     unittest.main()
