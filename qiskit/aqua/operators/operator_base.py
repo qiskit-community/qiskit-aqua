@@ -264,7 +264,7 @@ class OperatorBase(ABC):
             A bool equal to the equality of self and other.
         """
         if not isinstance(other, OperatorBase):
-            return False
+            return NotImplemented
         return self.equals(cast(OperatorBase, other))
 
     @abstractmethod
