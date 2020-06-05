@@ -45,7 +45,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
     """
 
     def __init__(self, epsilon: float, alpha: float,
-                 confint_method: str = 'beta', min_ratio: int = 2,
+                 confint_method: str = 'beta', min_ratio: float = 2.0,
                  a_factory: Optional[CircuitFactory] = None,
                  q_factory: Optional[CircuitFactory] = None,
                  i_objective: Optional[int] = None,
@@ -106,7 +106,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         self._epsilon = epsilon
 
     def _find_next_k(self, k: int, upper_half_circle: bool, theta_interval: Tuple[float, float],
-                     min_ratio: int = 2) -> Tuple[int, bool]:
+                     min_ratio: float = 2.0) -> Tuple[int, bool]:
         """Find the largest integer k_next, such that the interval (4 * k_next + 2)*theta_interval
         lies completely in [0, pi] or [pi, 2pi], for theta_interval = (theta_lower, theta_upper).
 
