@@ -151,7 +151,7 @@ class PhaseEstimationCircuit:
                     if isinstance(self._state_in_circuit_factory, CircuitFactory):
                         num_aux_qubits = self._state_in_circuit_factory.required_ancillas()
                     elif hasattr(self._state_in_circuit_factory, 'num_ancilla_qubits'):
-                        num_aux_qubits = self._state_in_circuit_factory.num_ancilla_qubitsA
+                        num_aux_qubits = self._state_in_circuit_factory.num_ancilla_qubits
                 if self._unitary_circuit_factory is not None:
                     if isinstance(self._unitary_circuit_factory, CircuitFactory):
                         num_aux_qubits = max(
@@ -229,7 +229,7 @@ class PhaseEstimationCircuit:
                     if isinstance(self._unitary_circuit_factory, CircuitFactory):
                         self._unitary_circuit_factory.build_controlled_power(qc, q, a[i], 2**i, aux)
                     else:
-                        power = self._unitary_circuit_factory.to_gate().control().repeat(2 ** i)
+                        power = self._unitary_circuit_factory.repeat(2 ** i).to_gate().control()
                         if aux is None:
                             aux = []
                         qc.append(power, [a[i]] + q[:] + aux[:])

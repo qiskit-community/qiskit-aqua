@@ -27,20 +27,19 @@ class BitOracle(QuantumCircuit):
 
     def __init__(self, num_state_qubits: int,
                  objective_qubits: List[int],
-                 mcx_mode: str = 'noancilla',
-                 name: str = 'S_Psi0') -> None:
+                 mcx: str = 'noancilla',
+                 name: str = 'S_f') -> None:
         """
         Args:
             num_state_qubits: The number of qubits.
             objective_qubits: The objective qubits.
-            mcx_mode: The mode for the multi-controlled X gate.
+            mcx: The mode for the multi-controlled X gate.
             name: The name of the circuit.
 
         Raises:
             ValueError: If ``objective_qubits`` contains an invalid index.
         """
-        self._num_ancilla_qubits = MCXGate.get_num_ancilla_qubits(len(objective_qubits) - 1,
-                                                                  mcx_mode)
+        self._num_ancilla_qubits = MCXGate.get_num_ancilla_qubits(len(objective_qubits) - 1, mcx)
         super().__init__(num_state_qubits + self._num_ancilla_qubits, name=name)
 
         if any(qubit >= num_state_qubits for qubit in objective_qubits):
@@ -51,10 +50,16 @@ class BitOracle(QuantumCircuit):
 
         ancilla_qubits = list(range(num_state_qubits, num_state_qubits + self._num_ancilla_qubits))
 
-        self.h(objective_qubits)
-        self.mcx(objective_qubits[:-1], objective_qubits[-1],
-                 ancilla_qubits, mode=mcx_mode)
-        self.h(objective_qubits)
+        if num_state_qubits == 1:
+            self.x(0)
+            self.z(0)
+            self.x(0)
+        else:
+            self.x(objective_qubits)
+            self.h(objective_qubits[-1])
+            self.mcx(objective_qubits[:-1], objective_qubits[-1], ancilla_qubits, mode=mcx)
+            self.h(objective_qubits[-1])
+            self.x(objective_qubits)
 
     @property
     def num_ancilla_qubits(self) -> int:

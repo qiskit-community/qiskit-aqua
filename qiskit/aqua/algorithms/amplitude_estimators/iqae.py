@@ -48,6 +48,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                  a_factory: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
                  q_factory: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
                  i_objective: Optional[int] = None,
+                 initial_state: Optional[QuantumCircuit] = None,
                  quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
         """
         The output of the algorithm is an estimate for the amplitude `a`, that with at least
@@ -65,6 +66,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             q_factory: The Q operator (Grover operator), constructed from the
                 A operator
             i_objective: Index of the objective qubit, that marks the 'good/bad' states
+            initial_state: A state to prepend to the constructed circuits.
             quantum_instance: Quantum Instance or Backend
 
         Raises:
@@ -82,6 +84,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         self._alpha = alpha
         self._min_ratio = min_ratio
         self._confint_method = confint_method
+        self._initial_state = initial_state
 
         # results dictionary
         self._ret = {}  # type: Dict[str, Any]
@@ -199,6 +202,9 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         else:  # circuit
             q = QuantumRegister(self.a_factory.num_qubits, 'q')
             circuit = QuantumCircuit(q, name='circuit')
+
+            if self._initial_state is not None:
+                circuit.compose(self._initial_state, inplace=True)
 
             # get number of ancillas and add register if needed
             num_ancillas = 0

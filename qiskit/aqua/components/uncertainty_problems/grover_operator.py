@@ -16,6 +16,7 @@
 
 from typing import List, Optional
 from qiskit.circuit import QuantumCircuit, QuantumRegister
+from .bit_oracle import BitOracle
 
 
 class GroverOperator(QuantumCircuit):
@@ -25,6 +26,8 @@ class GroverOperator(QuantumCircuit):
                  a_operator: Optional[QuantumCircuit] = None,
                  zero_reflection: Optional[QuantumCircuit] = None,
                  idle_qubits: Optional[List[int]] = None,
+                 insert_barriers: bool = False,
+                 mcx: str = 'noancilla',
                  name: str = 'Q') -> None:
         """
         Args:
@@ -34,6 +37,8 @@ class GroverOperator(QuantumCircuit):
                 the operator A.
             zero_reflection: The reflection about the zero state.
             idle_qubits: Qubits that are ignored in the reflection about zero.
+            insert_barriers: Whether barriers should be inserted between the reflections and A.
+            mcx: The mode to use for building the default zero reflection.
             name: The name of the circuit.
         """
         super().__init__(name=name)
@@ -41,6 +46,8 @@ class GroverOperator(QuantumCircuit):
         self._a_operator = a_operator
         self._zero_reflection = zero_reflection
         self._idle_qubits = idle_qubits
+        self._insert_barriers = insert_barriers
+        self._mcx = mcx
 
         self._build()
 
@@ -90,17 +97,8 @@ class GroverOperator(QuantumCircuit):
         if self._zero_reflection is not None:
             return self._zero_reflection
 
-        zero_reflection = QuantumCircuit(self.num_qubits, name='S_0')
-        qubits = [i for i in range(self.num_qubits) if i not in self.idle_qubits]
-        if len(qubits) == 1:
-            zero_reflection.z(qubits[0])
-        else:
-            zero_reflection.x(qubits)
-            zero_reflection.h(qubits[-1])
-            zero_reflection.mcx(qubits[:-1], qubits[-1])
-            zero_reflection.h(qubits[-1])
-            zero_reflection.x(qubits)
-
+        qubits = [i for i in range(self.num_state_qubits) if i not in self.idle_qubits]
+        zero_reflection = BitOracle(self.num_state_qubits, qubits, mcx=self._mcx)
         return zero_reflection
 
     @property
@@ -109,13 +107,14 @@ class GroverOperator(QuantumCircuit):
         if self._a_operator:
             return self._a_operator
 
+        qubits = [i for i in range(self.num_state_qubits) if i not in self.idle_qubits]
         hadamards = QuantumCircuit(self.num_state_qubits, name='H')
-        hadamards.h(list(range(self.num_state_qubits)))
+        hadamards.h(qubits)
         return hadamards
 
     @property
     def oracle(self):
-        """The oracle implementing a relfection about the bad state."""
+        """The oracle implementing a reflection about the bad state."""
         return self._oracle
 
     def _build(self):
@@ -124,8 +123,14 @@ class GroverOperator(QuantumCircuit):
             self.qregs += [QuantumRegister(self.num_ancilla_qubits, name='ancilla')]
 
         _append(self, self.oracle)
+        if self._insert_barriers:
+            self.barrier()
         _append(self, self.a_operator.inverse())
+        if self._insert_barriers:
+            self.barrier()
         _append(self, self.zero_reflection)
+        if self._insert_barriers:
+            self.barrier()
         _append(self, self.a_operator)
 
 
