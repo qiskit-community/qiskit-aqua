@@ -14,7 +14,7 @@
 # that they have been altered from the originals.
 """The Iterative Quantum Amplitude Estimation Algorithm."""
 
-from typing import Optional, Union, List, Tuple
+from typing import Optional, Union, List, Tuple, Dict, Any
 import logging
 import numpy as np
 from scipy.stats import beta
@@ -45,7 +45,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
     """
 
     def __init__(self, epsilon: float, alpha: float,
-                 confint_method: str = 'beta', min_ratio: float = 2,
+                 confint_method: str = 'beta', min_ratio: float = 2.0,
                  a_factory: Optional[CircuitFactory] = None,
                  q_factory: Optional[CircuitFactory] = None,
                  i_objective: Optional[int] = None,
@@ -85,7 +85,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         self._confint_method = confint_method
 
         # results dictionary
-        self._ret = {}
+        self._ret = {}  # type: Dict[str, Any]
 
     @property
     def precision(self) -> float:
@@ -106,7 +106,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         self._epsilon = epsilon
 
     def _find_next_k(self, k: int, upper_half_circle: bool, theta_interval: Tuple[float, float],
-                     min_ratio: int = 2) -> Tuple[int, bool]:
+                     min_ratio: float = 2.0) -> Tuple[int, bool]:
         """Find the largest integer k_next, such that the interval (4 * k_next + 2)*theta_interval
         lies completely in [0, pi] or [pi, 2pi], for theta_interval = (theta_lower, theta_upper).
 
@@ -313,9 +313,10 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             prob = self._probability_to_measure_one(statevector)
 
             a_confidence_interval = [prob, prob]
-            a_intervals.append(a_confidence_interval)
+            a_intervals.append(a_confidence_interval)  # type: ignore
 
-            theta_i_interval = [np.arccos(1 - 2 * a_i) / 2 / np.pi for a_i in a_confidence_interval]
+            theta_i_interval = [np.arccos(1 - 2 * a_i) / 2 / np.pi  # type: ignore
+                                for a_i in a_confidence_interval]
             theta_intervals.append(theta_i_interval)
             num_oracle_queries = 0  # no Q-oracle call, only a single one to A
 
@@ -329,7 +330,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
                 # get the next k
                 k, upper_half_circle = self._find_next_k(powers[-1], upper_half_circle,
-                                                         theta_intervals[-1],
+                                                         theta_intervals[-1],  # type: ignore
                                                          min_ratio=self._min_ratio)
 
                 # store the variables
@@ -344,7 +345,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 counts = ret.get_counts(circuit)
 
                 # calculate the probability of measuring '1', 'prob' is a_i in the paper
-                one_counts, prob = self._probability_to_measure_one(counts)
+                one_counts, prob = self._probability_to_measure_one(counts)  # type: ignore
                 num_one_shots.append(one_counts)
 
                 # track number of Q-oracle calls
@@ -389,7 +390,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 a_intervals.append([a_l, a_u])
 
         # get the latest confidence interval for the estimate of a
-        a_confidence_interval = a_intervals[-1]
+        a_confidence_interval = a_intervals[-1]  # type: ignore
 
         # the final estimate is the mean of the confidence interval
         value = np.mean(a_confidence_interval)

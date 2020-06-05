@@ -43,7 +43,7 @@ lint:
 	pylint -rn --ignore=gauopen qiskit/aqua qiskit/chemistry qiskit/finance qiskit/ml qiskit/optimization test tools
 
 mypy:
-	mypy qiskit
+	mypy qiskit test tools
 
 style:
 	pycodestyle qiskit/aqua qiskit/chemistry qiskit/finance qiskit/ml qiskit/optimization test tools
