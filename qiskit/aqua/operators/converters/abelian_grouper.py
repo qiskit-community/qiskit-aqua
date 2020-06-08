@@ -20,6 +20,7 @@ from typing import List, Tuple, Dict, cast
 
 import networkx as nx
 import numpy as np
+import retworkx as rx
 
 from qiskit.aqua import AquaError
 from .converter_base import ConverterBase
@@ -161,6 +162,14 @@ class AbelianGrouper(ConverterBase):
     @staticmethod
     def _networkx_coloring(nodes: range, edges: List[Tuple[int, int]], strategy='largest_first') \
             -> Dict[int, List[int]]:
+        if True:
+            graph = rx.PyGraph()
+            for i in nodes:
+                graph.add_node(i)
+            for i, j in edges:
+                graph.add_edge(i, j, None)
+            return rx.graph_greedy_color(graph)
+
         graph = nx.Graph()
         graph.add_nodes_from(nodes)
         graph.add_edges_from(edges)
