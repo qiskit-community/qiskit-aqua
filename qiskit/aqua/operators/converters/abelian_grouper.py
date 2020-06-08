@@ -164,10 +164,8 @@ class AbelianGrouper(ConverterBase):
             -> Dict[int, List[int]]:
         if True:
             graph = rx.PyGraph()
-            for i in nodes:
-                graph.add_node(i)
-            for i, j in edges:
-                graph.add_edge(i, j, None)
+            graph.add_nodes_from(nodes)
+            graph.add_edges_from([(e[0], e[1], None) for e in edges])
             return rx.graph_greedy_color(graph)
 
         graph = nx.Graph()
