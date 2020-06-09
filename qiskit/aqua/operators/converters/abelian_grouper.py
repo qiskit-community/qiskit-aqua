@@ -157,7 +157,7 @@ class AbelianGrouper(ConverterBase):
         # mat3[i, j] is True if i and j are commutable with TPB
         mat3 = (((mat1 * mat2) * (mat1 - mat2)) == 0).all(axis=2)
         # return [(i, j) if mat3[i, j] is False and i < j]
-        return cast(List[Tuple[int, int]], zip(*np.where(np.triu(np.logical_not(mat3), k=1))))
+        return cast(List[Tuple[int, int]], list(zip(*np.where(np.triu(np.logical_not(mat3), k=1)))))
 
     @staticmethod
     def _networkx_coloring(nodes: range, edges: List[Tuple[int, int]], strategy='largest_first') \
@@ -165,7 +165,7 @@ class AbelianGrouper(ConverterBase):
         if True:
             graph = rx.PyGraph()
             graph.add_nodes_from(nodes)
-            graph.add_edges_from([(e[0], e[1], None) for e in edges])
+            graph.add_edges_from_no_data(edges)
             return rx.graph_greedy_color(graph)
 
         graph = nx.Graph()
