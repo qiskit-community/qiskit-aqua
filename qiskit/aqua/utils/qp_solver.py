@@ -31,9 +31,6 @@ def optimize_svm(kernel_matrix: np.ndarray,
     """
     Solving quadratic programming problem for SVM; thus, some constraints are fixed.
 
-    The notation is follows the equation here:
-    http://cvxopt.org/userguide/coneprog.html#quadratic-programming
-
     Args:
         kernel_matrix: NxN array
         y: Nx1 array
@@ -46,9 +43,6 @@ def optimize_svm(kernel_matrix: np.ndarray,
         np.ndarray: Sx1 array, where S is the number of supports
         np.ndarray: Sx1 array, where S is the number of supports
         np.ndarray: Sx1 array, where S is the number of supports
-
-    Raises:
-        NameError: CVXOPT not installed.
     """
     # pylint: disable=invalid-name, unused-argument
     if y.ndim == 1:
