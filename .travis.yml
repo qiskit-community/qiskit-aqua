@@ -148,7 +148,6 @@ jobs:
             - aqua137.dep
       before_script:
         - pip install cplex
-        - pip install cvxopt
         - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
       script:
         - stestr --test-path test/aqua run --blacklist-file selection.txt 2> >(tee /dev/stderr out.txt > /dev/null)
@@ -163,8 +162,6 @@ jobs:
           name: aqua138
           paths: aqua138.dep
       python: 3.8
-      before_script:
-        - pip install cvxopt
       script:
         - stestr --test-path test/aqua run --blacklist-file selection.txt 2> >(tee /dev/stderr out.txt > /dev/null)
         - python tools/extract_deprecation.py -file out.txt -output aqua138.dep
@@ -179,7 +176,6 @@ jobs:
             - aqua237.dep
       before_script:
         - pip install cplex
-        - pip install cvxopt
         - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
       script:
         - stestr --test-path test/aqua run --whitelist-file selection.txt 2> >(tee /dev/stderr out.txt > /dev/null)
@@ -194,8 +190,6 @@ jobs:
           name: aqua238
           paths: aqua238.dep
       python: 3.8
-      before_script:
-        - pip install cvxopt
       script:
         - stestr --test-path test/aqua run --whitelist-file selection.txt 2> >(tee /dev/stderr out.txt > /dev/null)
         - python tools/extract_deprecation.py -file out.txt -output aqua238.dep
