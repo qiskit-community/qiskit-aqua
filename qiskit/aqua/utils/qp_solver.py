@@ -50,7 +50,7 @@ def optimize_svm(kernel_matrix: np.ndarray,
     Raises:
         NameError: CVXOPT not installed.
     """
-    # pylint: disable=invalid-name
+    # pylint: disable=invalid-name, unused-argument
     if y.ndim == 1:
         y = y[:, np.newaxis]
     H = np.outer(y, y) * kernel_matrix
