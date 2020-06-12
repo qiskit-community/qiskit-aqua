@@ -41,6 +41,7 @@ requirements = [
     "h5py",
     "networkx>=2.2",
     "pyscf; sys_platform != 'win32'",
+    'cvxpy>1.0.0,<1.1.0',
 ]
 
 if not hasattr(setuptools, 'find_namespace_packages') or not inspect.ismethod(setuptools.find_namespace_packages):
