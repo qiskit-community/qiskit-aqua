@@ -14,11 +14,11 @@
 
 """ Test QPE """
 
-import warnings
 import unittest
+import warnings
 from test.aqua import QiskitAquaTestCase
 import numpy as np
-from ddt import ddt, idata, unpack
+from ddt import ddt, data, unpack
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import MatrixOperator, WeightedPauliOperator
@@ -27,8 +27,8 @@ from qiskit.aqua.utils import decimal_to_binary
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.aqua.algorithms import QPE
 from qiskit.circuit.library import QFT
-from qiskit.aqua.components.iqfts import Standard
 from qiskit.aqua.components.initial_states import Custom
+from qiskit.aqua.components.iqfts import Standard
 
 # pylint: disable=invalid-name
 
@@ -72,21 +72,37 @@ class TestQPE(QiskitAquaTestCase):
             'QUBIT_OP_H2_WITH_2_QUBIT_REDUCTION': qubit_op_h2_with_2_qubit_reduction.to_opflow()
         }
 
-    def tearDown(self):
-        super().tearDown()
-        warnings.filterwarnings(action="always", category=DeprecationWarning)
+    def test_deprecated_qft(self):
+        """Test the QPE algorithm on the deprecated QFT component."""
+        qubit_op = self._dict['QUBIT_OP_SIMPLE']
+        exact_eigensolver = NumPyMinimumEigensolver(qubit_op)
+        results = exact_eigensolver.run()
+        ref_eigenval = results.eigenvalue
+        ref_eigenvec = results.eigenstate
+        state_in = Custom(qubit_op.num_qubits, state_vector=ref_eigenvec)
 
-    @idata([
-        ['QUBIT_OP_SIMPLE', 'qasm_simulator', 1, 5, False],
-        ['QUBIT_OP_SIMPLE', 'qasm_simulator', 1, 5, True],
-        ['QUBIT_OP_ZZ', 'statevector_simulator', 1, 1, False],
-        ['QUBIT_OP_ZZ', 'statevector_simulator', 1, 1, True],
-        ['QUBIT_OP_H2_WITH_2_QUBIT_REDUCTION', 'statevector_simulator', 1, 6, False],
-        ['QUBIT_OP_H2_WITH_2_QUBIT_REDUCTION', 'statevector_simulator', 1, 6, True],
-    ])
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
+        iqft = Standard(5)
+        qpe = QPE(qubit_op, state_in, iqft, num_time_slices=1, num_ancillae=5,
+                  expansion_mode='suzuki', expansion_order=2,
+                  shallow_circuit_concat=True)
+
+        backend = BasicAer.get_backend('qasm_simulator')
+        quantum_instance = QuantumInstance(backend, shots=100, seed_transpiler=1, seed_simulator=1)
+
+        # run qpe
+        result = qpe.run(quantum_instance)
+        warnings.filterwarnings('always', category=DeprecationWarning)
+        self.assertAlmostEqual(result.eigenvalue.real, ref_eigenval.real, delta=2e-2)
+
+    @data(
+        ('QUBIT_OP_SIMPLE', 'qasm_simulator', 1, 5),
+        ('QUBIT_OP_ZZ', 'statevector_simulator', 1, 1),
+        ('QUBIT_OP_H2_WITH_2_QUBIT_REDUCTION', 'statevector_simulator', 1, 6),
+    )
     @unpack
-    def test_qpe(self, qubit_op, simulator, num_time_slices, n_ancillae, use_circuit_library):
-        """ QPE test """
+    def test_qpe(self, qubit_op, simulator, num_time_slices, n_ancillae):
+        """Test the QPE algorithm."""
         self.log.debug('Testing QPE')
         qubit_op = self._dict[qubit_op]
         exact_eigensolver = NumPyMinimumEigensolver(qubit_op)
@@ -98,19 +114,14 @@ class TestQPE(QiskitAquaTestCase):
         self.log.debug('The corresponding eigenvector: %s', ref_eigenvec)
 
         state_in = Custom(qubit_op.num_qubits, state_vector=ref_eigenvec)
-        if use_circuit_library:
-            iqft = QFT(n_ancillae).inverse()
-        else:
-            # ignore deprecation warnings from QFTs
-            warnings.filterwarnings(action="ignore", category=DeprecationWarning)
-            iqft = Standard(n_ancillae)
+        iqft = QFT(n_ancillae).inverse()
 
         qpe = QPE(qubit_op, state_in, iqft, num_time_slices, n_ancillae,
                   expansion_mode='suzuki', expansion_order=2,
                   shallow_circuit_concat=True)
 
         backend = BasicAer.get_backend(simulator)
-        quantum_instance = QuantumInstance(backend, shots=100)
+        quantum_instance = QuantumInstance(backend, shots=100, seed_transpiler=1, seed_simulator=1)
 
         # run qpe
         result = qpe.run(quantum_instance)
@@ -130,10 +141,7 @@ class TestQPE(QiskitAquaTestCase):
             fractional_part_only=True
         ))
 
-        np.testing.assert_approx_equal(result.eigenvalue.real, ref_eigenval.real, significant=2)
-
-        if not use_circuit_library:
-            warnings.filterwarnings(action="always", category=DeprecationWarning)
+        self.assertAlmostEqual(result.eigenvalue.real, ref_eigenval.real, delta=2e-2)
 
 
 if __name__ == '__main__':

@@ -41,7 +41,7 @@ def random_h1_body(N):  # pylint: disable=invalid-name
 
     if N % 2 != 0:
         raise ValueError('The number of spin-orbitals must be even but {}'.format(N))
-    h_1 = np.ones((N // 2, N // 2)) - 2 * aqua_globals.random.random_sample((N // 2, N // 2))
+    h_1 = np.ones((N // 2, N // 2)) - 2 * aqua_globals.random.random((N // 2, N // 2))
     h_1 = np.triu(tensorproduct(pup, h_1) + tensorproduct(pdown, h_1))
     h_1 = (h_1 + h_1.T) / 2.0  # pylint: disable=no-member
     return h_1
@@ -57,8 +57,8 @@ def random_unitary(N):  # pylint: disable=invalid-name
     Returns:
         np.ndarray: a 2-D matrix with np.complex data type.
     """
-    x = (aqua_globals.random.random_sample(size=(N, N)) * N + 1j
-         * aqua_globals.random.random_sample(size=(N, N)) * N) / np.sqrt(2)
+    x = (aqua_globals.random.random(size=(N, N)) * N + 1j
+         * aqua_globals.random.random(size=(N, N)) * N) / np.sqrt(2)
     q, r = np.linalg.qr(x)
     r = np.diag(np.divide(np.diag(r), abs(np.diag(r))))
     unitary_matrix = np.dot(q, r)
@@ -105,10 +105,10 @@ def random_h2_body(N, M):  # pylint: disable=invalid-name
     # pylint: disable=invalid-name
     element_count = 0
     while element_count < M:
-        r_i = aqua_globals.random.randint(N // 2, size=(4))
+        r_i = aqua_globals.random.integers(N // 2, size=(4))
         i, j, l, m = r_i[0], r_i[1], r_i[2], r_i[3]
         if i != l and j != m and h_2[i, j, l, m] == 0:
-            h_2[i, j, l, m] = 1 - 2 * aqua_globals.random.random_sample(1)
+            h_2[i, j, l, m] = 1 - 2 * aqua_globals.random.random(1)
             element_count += 4
             # In the chemists notation h2bodys(i,j,l,m) refers to
             # a^dag_i a^dag_l a_m a_j
@@ -190,19 +190,19 @@ def random_diag(N, eigs=None, K=None, eigrange=None):  # pylint: disable=invalid
                     sgn = 1
                 elif len(K) == 3:
                     k, lmin, sgn = K
-                eigs = aqua_globals.random.random_sample(N)
+                eigs = aqua_globals.random.random(N)
                 a = (k - 1) * lmin / (max(eigs) - min(eigs))
                 b = lmin * (max(eigs) - k * min(eigs)) / (max(eigs) - min(eigs))
                 eigs = a * eigs + b
                 if sgn == -1:
-                    sgs = aqua_globals.random.random_sample(N) - 0.5
+                    sgs = aqua_globals.random.random(N) - 0.5
                     while min(sgs) > 0 or max(sgs) < 0:
-                        sgs = aqua_globals.random.random_sample(N) - 0.5
+                        sgs = aqua_globals.random.random(N) - 0.5
                     eigs = eigs * (sgs / abs(sgs))
             elif isinstance(eigrange, (tuple, list, np.ndarray)) \
                     and len(eigrange) == 2:
                 eigs = \
-                    aqua_globals.random.random_sample(N) * (eigrange[1] - eigrange[0]) + eigrange[0]
+                    aqua_globals.random.random(N) * (eigrange[1] - eigrange[0]) + eigrange[0]
             else:
                 raise ValueError("Wrong input data: either 'eigs', 'K' or"
                                  "'eigrange' needed to be set correctly.")

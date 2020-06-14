@@ -127,7 +127,7 @@ QUBIT_OP_TSP = WeightedPauliOperator(
                             x=[False, False, False, False, False, False, False, False, False])],
             [50000.0, Pauli(z=[False, False, False, False, False, False, False, True, True],
                             x=[False, False, False, False, False, False, False, False, False])]])
-OFFSET_TSP = 600297.0
+OFFSET_TSP = 600279.0
 
 
 class TestDocplex(QiskitOptimizationTestCase):
@@ -164,7 +164,7 @@ class TestDocplex(QiskitOptimizationTestCase):
     def test_auto_define_penalty(self):
         """ Auto define Penalty test """
         # check _auto_define_penalty() for positive coefficients.
-        positive_coefficients = aqua_globals.random.rand(10, 10)
+        positive_coefficients = aqua_globals.random.random((10, 10))
         for i in range(10):
             mdl = Model(name='Positive_auto_define_penalty')
             x = {j: mdl.binary_var(name='x_{0}'.format(j)) for j in range(10)}
@@ -175,7 +175,7 @@ class TestDocplex(QiskitOptimizationTestCase):
             self.assertEqual(isclose(actual, expected), True)
 
         # check _auto_define_penalty() for negative coefficients
-        negative_coefficients = -1 * aqua_globals.random.rand(10, 10)
+        negative_coefficients = -1 * aqua_globals.random.random((10, 10))
         for i in range(10):
             mdl = Model(name='Negative_auto_define_penalty')
             x = {j: mdl.binary_var(name='x_{0}'.format(j)) for j in range(10)}
@@ -186,7 +186,7 @@ class TestDocplex(QiskitOptimizationTestCase):
             self.assertEqual(isclose(actual, expected), True)
 
         # check _auto_define_penalty() for mixed coefficients
-        mixed_coefficients = aqua_globals.random.randint(-100, 100, (10, 10))
+        mixed_coefficients = aqua_globals.random.integers(-100, 100, (10, 10))
         for i in range(10):
             mdl = Model(name='Mixed_auto_define_penalty')
             x = {j: mdl.binary_var(name='x_{0}'.format(j)) for j in range(10)}
@@ -332,7 +332,7 @@ class TestDocplex(QiskitOptimizationTestCase):
         mdl.add_constraint(x == y)
 
         qubit_op, offset = docplex.get_operator(mdl)
-        print(qubit_op.print_details())
+        self.log.debug(qubit_op.print_details())
         e_e = NumPyMinimumEigensolver(qubit_op)
         result = e_e.run()
 

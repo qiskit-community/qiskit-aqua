@@ -43,7 +43,8 @@ class VariationalForm(ABC):
         super().__init__()
         self._num_parameters = 0
         self._num_qubits = 0
-        self._bounds = list()
+        self._bounds = list()  # type: List[object]
+        self._preferred_init_points = None
         self._support_parameterized_circuit = False
         pass
 
@@ -95,7 +96,7 @@ class VariationalForm(ABC):
         return self._num_qubits
 
     @property
-    def parameter_bounds(self):
+    def parameter_bounds(self) -> List[object]:
         """Parameter bounds.
 
         Returns:
@@ -126,7 +127,7 @@ class VariationalForm(ABC):
         this set of parameters which when used on the variational form should
         result in the overall state being that defined by the initial state
         """
-        return None
+        return self._preferred_init_points
 
     @staticmethod
     def get_entangler_map(map_type, num_qubits, offset=0):

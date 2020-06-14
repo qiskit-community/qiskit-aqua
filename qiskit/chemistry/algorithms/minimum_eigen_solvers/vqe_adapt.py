@@ -16,7 +16,7 @@
 An adaptive VQE implementation.
 """
 
-from typing import Optional, List, Union
+from typing import Optional, List, Union, Dict
 import logging
 import warnings
 import re
@@ -76,7 +76,7 @@ class VQEAdapt(VQAlgorithm):
                          optimizer=optimizer,
                          initial_point=initial_point,
                          quantum_instance=quantum_instance)
-        self._ret = None
+        self._ret = None  # type: Dict
         self._optimizer.set_max_evals_grouped(max_evals_grouped)
         if initial_point is None:
             self._initial_point = var_form_base.preferred_init_points
@@ -156,8 +156,8 @@ class VQEAdapt(VQAlgorithm):
         threshold_satisfied = False
         alternating_sequence = False
         prev_op_indices = []
-        theta = []
-        max_grad = ()
+        theta = []  # type: List
+        max_grad = (0, 0)
         iteration = 0
         while not threshold_satisfied and not alternating_sequence:
             iteration += 1

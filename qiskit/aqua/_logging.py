@@ -14,7 +14,7 @@
 
 """Utilities for logging."""
 
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Any
 import os
 import logging
 from enum import Enum
@@ -62,7 +62,7 @@ def build_logging_config(level: int,
             }
         },
         'loggers': {}
-    }
+    }  # type: Dict[str, Any]
     if filepath is not None:
         filepath = os.path.expanduser(filepath)
         dict_conf['handlers']['f'] = {

@@ -17,7 +17,7 @@
 See https://arxiv.org/abs/1304.3061
 """
 
-from typing import Optional, List, Callable, Union, Dict
+from typing import Optional, List, Callable, Union, Dict, Any
 import logging
 import warnings
 from time import time
@@ -127,8 +127,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         """
         validate_min('max_evals_grouped', max_evals_grouped, 1)
         if var_form is None:
-            if operator is not None:
-                var_form = RealAmplitudes()
+            var_form = RealAmplitudes()
 
         if optimizer is None:
             optimizer = SLSQP()
@@ -138,7 +137,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
             initial_point = var_form.preferred_init_points
 
         self._max_evals_grouped = max_evals_grouped
-        self._circuit_sampler = None
+        self._circuit_sampler = None  # type: Optional[CircuitSampler]
         self._expectation = expectation
         self._expect_op = None
         self._operator = None
@@ -148,7 +147,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
                          cost_fn=self._energy_evaluation,
                          initial_point=initial_point,
                          quantum_instance=quantum_instance)
-        self._ret = None
+        self._ret = None  # type: Dict[str, Any]
         self._eval_time = None
         self._optimizer.set_max_evals_grouped(max_evals_grouped)
         self._callback = callback
@@ -215,7 +214,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
                       aux_operators: Optional[List[Optional[Union[OperatorBase,
                                                                   LegacyBaseOperator]]]]) -> None:
         """ Set aux operators """
-        # This is all terrible code to deal with weight 0-qubit None aux_ops.
+        # We need to handle the array entries being Optional i.e. having value None
         self._aux_op_nones = None
         if isinstance(aux_operators, list):
             self._aux_op_nones = [op is None for op in aux_operators]
@@ -241,10 +240,10 @@ class VQE(VQAlgorithm, MinimumEigensolver):
                                     "the operator, and the variational form does not allow setting "
                                     "the number of qubits using `num_qubits`.")
 
-    @VQAlgorithm.optimizer.setter
+    @VQAlgorithm.optimizer.setter  # type: ignore
     def optimizer(self, optimizer: Optimizer):
         """ Sets optimizer """
-        super().optimizer = optimizer
+        super(VQE, self.__class__).optimizer.__set__(self, optimizer)  # type: ignore
         if optimizer is not None:
             optimizer.set_max_evals_grouped(self._max_evals_grouped)
 
@@ -311,7 +310,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         self._check_operator_varform()
 
         if isinstance(self.var_form, QuantumCircuit):
-            param_dict = dict(zip(self._var_form_params, parameter))
+            param_dict = dict(zip(self._var_form_params, parameter))  # type: Dict
             wave_function = self.var_form.assign_parameters(param_dict)
         else:
             wave_function = self.var_form.construct_circuit(parameter)
@@ -365,14 +364,14 @@ class VQE(VQAlgorithm, MinimumEigensolver):
                     self._eval_time, self._ret['opt_params'], self._eval_count)
         self._ret['eval_count'] = self._eval_count
 
-        self._ret['energy'] = self.get_optimal_cost()
-        self._ret['eigvals'] = np.asarray([self._ret['energy']])
-        self._ret['eigvecs'] = np.asarray([self.get_optimal_vector()])
-
         result = VQEResult()
         result.combine(vqresult)
         result.eigenvalue = vqresult.optimal_value + 0j
         result.eigenstate = self.get_optimal_vector()
+
+        self._ret['energy'] = self.get_optimal_cost()
+        self._ret['eigvals'] = np.asarray([self._ret['energy']])
+        self._ret['eigvecs'] = np.asarray([result.eigenstate])
 
         if self.aux_operators:
             self._eval_aux_ops()
@@ -432,7 +431,8 @@ class VQE(VQAlgorithm, MinimumEigensolver):
 
         parameter_sets = np.reshape(parameters, (-1, num_parameters))
         # Create dict associating each parameter with the lists of parameterization values for it
-        param_bindings = dict(zip(self._var_form_params, parameter_sets.transpose().tolist()))
+        param_bindings = dict(zip(self._var_form_params,
+                                  parameter_sets.transpose().tolist()))  # type: Dict
 
         start_time = time()
         sampled_expect_op = self._circuit_sampler.convert(self._expect_op, params=param_bindings)

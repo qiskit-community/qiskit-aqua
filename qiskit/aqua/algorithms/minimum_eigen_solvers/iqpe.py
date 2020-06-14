@@ -17,7 +17,7 @@
 See https://arxiv.org/abs/quant-ph/0610214
 """
 
-from typing import Optional, List, Dict, Union
+from typing import Optional, List, Dict, Union, Any
 import logging
 import numpy as np
 
@@ -93,11 +93,11 @@ class IQPE(QuantumAlgorithm, MinimumEigensolver):
         self._ancillary_register = None
         self._ancilla_phase_coef = None
         self._in_operator = operator
-        self._operator = None
-        self._ret = {}
-        self._pauli_list = None
+        self._operator = None  # type: Optional[WeightedPauliOperator]
+        self._ret = {}  # type: Dict[str, Any]
+        self._pauli_list = None  # type: Optional[List[List[Union[complex, Pauli]]]]
         self._phase_estimation_circuit = None
-        self._slice_pauli_list = None
+        self._slice_pauli_list = None  # type: Optional[List[List[Union[complex, Pauli]]]]
         self._setup(operator)
 
     def _setup(self, operator: Optional[Union[OperatorBase, LegacyBaseOperator]]) -> None:

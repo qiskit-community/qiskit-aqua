@@ -14,7 +14,7 @@
 
 """The HHL algorithm."""
 
-from typing import Optional, Union
+from typing import Optional, Union, Dict, Any
 import logging
 from copy import deepcopy
 import numpy as np
@@ -141,7 +141,7 @@ class HHL(QuantumAlgorithm):
         self._ancilla_register = None
         self._success_bit = None
         self._original_dimension = orig_size
-        self._ret = {}
+        self._ret = {}  # type: Dict[str, Any]
 
     @staticmethod
     def matrix_resize(matrix, vector):
@@ -354,7 +354,7 @@ class HHL(QuantumAlgorithm):
         # to 1, i.e. c1==1
         results_noanc = self._tomo_postselect(results)
         tomo_data = StateTomographyFitter(results_noanc, tomo_circuits_noanc)
-        rho_fit = tomo_data.fit()
+        rho_fit = tomo_data.fit('lstsq')
         vec = np.sqrt(np.diag(rho_fit))
         self._hhl_results(vec)
 

@@ -14,13 +14,14 @@
 
 """ DictStateFn Class """
 
-from typing import Union, Set
+from typing import Union, Set, cast
 import itertools
 import numpy as np
 from scipy import sparse
 
 from qiskit.result import Result
 from qiskit.circuit import ParameterExpression
+from qiskit.aqua import aqua_globals
 
 from ..operator_base import OperatorBase
 from .state_fn import StateFn
@@ -165,7 +166,7 @@ class DictStateFn(StateFn):
     def to_circuit_op(self) -> OperatorBase:
         """ Return ``StateFnCircuit`` corresponding to this StateFn."""
         from .circuit_state_fn import CircuitStateFn
-        csfn = CircuitStateFn.from_dict(self.primitive) * self.coeff
+        csfn = CircuitStateFn.from_dict(self.primitive) * self.coeff  # type: ignore
         return csfn.adjoint() if self.is_measurement else csfn
 
     def __str__(self) -> str:
@@ -190,7 +191,7 @@ class DictStateFn(StateFn):
                 'sf.adjoint() first to convert to measurement.')
 
         if isinstance(front, ListOp) and front.distributive:
-            return front.combo_fn([self.eval(front.coeff * front_elem)
+            return front.combo_fn([self.eval(front.coeff * front_elem)  # type: ignore
                                    for front_elem in front.oplist])
 
         # For now, always do this. If it's not performant, we can be more granular.
@@ -204,9 +205,10 @@ class DictStateFn(StateFn):
         # we define all missing strings to have a function value of
         # zero.
         if isinstance(front, DictStateFn):
-            return round(sum([v * front.primitive.get(b, 0) for (b, v) in
-                              self.primitive.items()]) * self.coeff * front.coeff,
-                         ndigits=EVAL_SIG_DIGITS)
+            return round(
+                cast(float, sum([v * front.primitive.get(b, 0) for (b, v) in
+                                 self.primitive.items()]) * self.coeff * front.coeff),
+                ndigits=EVAL_SIG_DIGITS)
 
         # All remaining possibilities only apply when self.is_measurement is True
 
@@ -215,30 +217,32 @@ class DictStateFn(StateFn):
             # TODO does it need to be this way for measurement?
             # return sum([v * front.primitive.data[int(b, 2)] *
             # np.conj(front.primitive.data[int(b, 2)])
-            return round(sum([v * front.primitive.data[int(b, 2)]
-                              for (b, v) in self.primitive.items()]) * self.coeff,
-                         ndigits=EVAL_SIG_DIGITS)
+            return round(
+                cast(float, sum([v * front.primitive.data[int(b, 2)] for (b, v) in
+                                 self.primitive.items()]) * self.coeff),
+                ndigits=EVAL_SIG_DIGITS)
 
         from .circuit_state_fn import CircuitStateFn
         if isinstance(front, CircuitStateFn):
             # Don't reimplement logic from CircuitStateFn
-            return np.conj(front.adjoint().eval(self.adjoint().primitive)) * self.coeff
+            return np.conj(
+                front.adjoint().eval(self.adjoint().primitive)) * self.coeff  # type: ignore
 
         from .operator_state_fn import OperatorStateFn
         if isinstance(front, OperatorStateFn):
-            return front.adjoint().eval(self.adjoint())
+            return cast(Union[OperatorBase, float, complex], front.adjoint().eval(self.adjoint()))
 
         # All other OperatorBases go here
-        return front.adjoint().eval(self.adjoint().primitive).adjoint() * self.coeff
+        return front.adjoint().eval(self.adjoint().primitive).adjoint() * self.coeff  # type: ignore
 
     def sample(self,
                shots: int = 1024,
                massive: bool = False,
                reverse_endianness: bool = False) -> dict:
         probs = np.array(list(self.primitive.values()))**2
-        unique, counts = np.unique(np.random.choice(list(self.primitive.keys()),
-                                                    size=shots,
-                                                    p=(probs / sum(probs))),
+        unique, counts = np.unique(aqua_globals.random.choice(list(self.primitive.keys()),
+                                                              size=shots,
+                                                              p=(probs / sum(probs))),
                                    return_counts=True)
         counts = dict(zip(unique, counts))
         if reverse_endianness:

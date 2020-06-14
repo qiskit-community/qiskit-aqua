@@ -64,7 +64,7 @@ class TestVertexCover(QiskitOptimizationTestCase):
         result = algo.run()
         x = sample_most_likely(result.eigenstate)
         sol = vertex_cover.get_graph_solution(x)
-        np.testing.assert_array_equal(sol, [0, 1, 1])
+        np.testing.assert_array_equal(sol, [0, 0, 1])
         oracle = self._brute_force()
         self.assertEqual(np.count_nonzero(sol), oracle)
 

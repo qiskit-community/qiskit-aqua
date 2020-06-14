@@ -140,7 +140,7 @@ class OptimizationResult:
         """
         return self._status
 
-    @x.setter
+    @x.setter  # type: ignore
     def x(self, x: Any) -> None:
         """Set a new optimal value.
 
@@ -149,7 +149,7 @@ class OptimizationResult:
         """
         self._val = x
 
-    @fval.setter
+    @fval.setter  # type: ignore
     def fval(self, fval: Any) -> None:
         """Set a new optimal function value.
 
@@ -158,7 +158,7 @@ class OptimizationResult:
         """
         self._fval = fval
 
-    @results.setter
+    @results.setter  # type: ignore
     def results(self, results: Any) -> None:
         """Set results.
 
@@ -167,7 +167,7 @@ class OptimizationResult:
         """
         self._results = results
 
-    @status.setter
+    @status.setter  # type: ignore
     def status(self, status: OptimizationResultStatus) -> None:
         """Set a new termination status.
 
