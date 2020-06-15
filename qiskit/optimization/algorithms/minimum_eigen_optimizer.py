@@ -197,7 +197,7 @@ def eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray, StateFn],
         eigenvector: The eigenvector from which the solution states are extracted.
         operator: The operator to compute the eigenvalues.
         min_probability: Only consider states where the amplitude exceeds this threshold.
-        backend: The backend to use to compute the eigevalues expression. If None, the evaluation
+        backend: The backend to use to compute the eigenvalues expression. If None, the evaluation
             is done exactly by converting the operator to a matrix.
 
     Returns:
