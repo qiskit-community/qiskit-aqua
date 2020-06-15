@@ -163,10 +163,11 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
             eigen_results = self._min_eigen_solver.compute_minimum_eigenvalue(operator)
 
             # analyze results
-            backend = getattr(self._min_eigen_solver, 'quantum_instance', None)
-            samples = eigenvector_to_solutions(eigen_results.eigenstate, operator, backend=backend)
-            samples = [(res[0], problem_.objective.sense.value * (res[1] + offset), res[2])
-                       for res in samples]
+            # backend = getattr(self._min_eigen_solver, 'quantum_instance', None)
+            samples = _eigenvector_to_solutions(eigen_results.eigenstate, problem_)
+            # print(offset, samples)
+            # samples = [(res[0], problem_.objective.sense.value * (res[1] + offset), res[2])
+            #    for res in samples]
             samples.sort(key=lambda x: problem_.objective.sense.value * x[1])
             x = samples[0][0]
             fval = samples[0][1]
@@ -186,19 +187,16 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         return opt_res
 
 
-def eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray, StateFn],
-                             operator: Union[OperatorBase, LegacyBaseOperator],
-                             min_probability: float = 1e-6,
-                             backend: Optional[Union[BaseBackend, QuantumInstance]] = None,
-                             ) -> List[Tuple[str, float, float]]:
+def _eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray, StateFn],
+                              qubo: QuadraticProgram,
+                              min_probability: float = 1e-6,
+                              ) -> List[Tuple[str, float, float]]:
     """Convert the eigenvector to the bitstrings and corresponding eigenvalues.
 
     Args:
         eigenvector: The eigenvector from which the solution states are extracted.
-        operator: The operator to compute the eigenvalues.
+        qubo: The QUBO to evaluate at the bitstring.
         min_probability: Only consider states where the amplitude exceeds this threshold.
-        backend: The backend to use to compute the eigenvalues expression. If None, the evaluation
-            is done exactly by converting the operator to a matrix.
 
     Returns:
         For each computational basis state contained in the eigenvector, return the basis
@@ -235,7 +233,7 @@ def eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray, StateFn],
             # add the bitstring, if the sampling probability exceeds the threshold
             if sampling_probability > 0:
                 if sampling_probability >= min_probability:
-                    value = eval_operator_at_bitstring(operator, bitstr, backend)
+                    value = qubo.objective.evaluate([int(bit) for bit in bitstr])
                     solutions += [(bitstr, value, sampling_probability)]
 
     elif isinstance(eigenvector, np.ndarray):
@@ -249,7 +247,7 @@ def eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray, StateFn],
             if sampling_probability > 0:
                 if sampling_probability >= min_probability:
                     bitstr = '{:b}'.format(i).rjust(num_qubits, '0')[::-1]
-                    value = eval_operator_at_bitstring(operator, bitstr, backend)
+                    value = qubo.objective.evaluate([int(bit) for bit in bitstr])
                     solutions += [(bitstr, value, sampling_probability)]
 
     else:
