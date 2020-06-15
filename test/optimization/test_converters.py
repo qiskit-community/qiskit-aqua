@@ -538,9 +538,10 @@ class TestConverters(QiskitOptimizationTestCase):
         lineq2penalty = LinearEqualityToPenalty()
         qubo = lineq2penalty.encode(op, auto_penalty=False)
         qubo_auto = lineq2penalty.encode(op)
-        cplex = CplexOptimizer()
-        result = cplex.solve(qubo)
-        result_auto = cplex.solve(qubo_auto)
+        exact_mes = NumPyMinimumEigensolver()
+        exact = MinimumEigenOptimizer(exact_mes)
+        result = exact.solve(qubo)
+        result_auto = exact.solve(qubo_auto)
         self.assertEqual(result.fval, result_auto.fval)
         self.assertListEqual(result.x, result_auto.x)
 
