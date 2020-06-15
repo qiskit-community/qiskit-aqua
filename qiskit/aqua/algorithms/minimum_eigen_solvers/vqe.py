@@ -92,6 +92,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
                  optimizer: Optional[Optimizer] = None,
                  initial_point: Optional[np.ndarray] = None,
                  expectation: Optional[ExpectationBase] = None,
+                 include_custom: bool = False,
                  max_evals_grouped: int = 1,
                  aux_operators: Optional[List[Optional[Union[OperatorBase,
                                                              LegacyBaseOperator]]]] = None,
@@ -107,7 +108,17 @@ class VQE(VQAlgorithm, MinimumEigensolver):
                 for the optimizer. If ``None`` then VQE will look to the variational form for a
                 preferred point and if not will simply compute a random one.
             expectation: The Expectation converter for taking the average value of the
-                Observable over the var_form state function.
+                Observable over the var_form state function. When ``None`` (the default) an
+                :class:`~qiskit.aqua.operators.expectations.ExpectationFactory` is used to select
+                an appropriate expectation based on the operator and backend. When using Aer
+                qasm_simulator backend, with paulis, it is however much faster to leverage custom
+                Aer function for the computation but, although VQE performs much faster
+                with it, the outcome is ideal, with no shot noise, like using a state vector
+                simulator. If you are just looking for the quickest performance when choosing Aer
+                qasm_simulator and the lack of shot noise is not an issue then set `include_custom`
+                parameter here to ``True`` (defaults to ``False``).
+            include_custom: When `expectation` parameter here is None setting this to ``True`` will
+                allow the factory to include the custom Aer pauli expectation.
             max_evals_grouped: Max number of evaluations performed simultaneously. Signals the
                 given optimizer that more than one set of parameters can be supplied so that
                 potentially the expectation values can be computed in parallel. Typically this is
@@ -127,8 +138,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         """
         validate_min('max_evals_grouped', max_evals_grouped, 1)
         if var_form is None:
-            if operator is not None:
-                var_form = RealAmplitudes()
+            var_form = RealAmplitudes()
 
         if optimizer is None:
             optimizer = SLSQP()
@@ -140,6 +150,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         self._max_evals_grouped = max_evals_grouped
         self._circuit_sampler = None
         self._expectation = expectation
+        self._include_custom = include_custom
         self._expect_op = None
         self._operator = None
 
@@ -179,7 +190,8 @@ class VQE(VQAlgorithm, MinimumEigensolver):
     def _try_set_expectation_value_from_factory(self):
         if self.operator and self.quantum_instance:
             self.expectation = ExpectationFactory.build(operator=self.operator,
-                                                        backend=self.quantum_instance)
+                                                        backend=self.quantum_instance,
+                                                        include_custom=self._include_custom)
 
     @QuantumAlgorithm.quantum_instance.setter
     def quantum_instance(self, quantum_instance: Union[QuantumInstance, BaseBackend]) -> None:
@@ -215,7 +227,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
                       aux_operators: Optional[List[Optional[Union[OperatorBase,
                                                                   LegacyBaseOperator]]]]) -> None:
         """ Set aux operators """
-        # This is all terrible code to deal with weight 0-qubit None aux_ops.
+        # We need to handle the array entries being Optional i.e. having value None
         self._aux_op_nones = None
         if isinstance(aux_operators, list):
             self._aux_op_nones = [op is None for op in aux_operators]
@@ -244,7 +256,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
     @VQAlgorithm.optimizer.setter
     def optimizer(self, optimizer: Optimizer):
         """ Sets optimizer """
-        super().optimizer = optimizer
+        super(VQE, self.__class__).optimizer.__set__(self, optimizer)
         if optimizer is not None:
             optimizer.set_max_evals_grouped(self._max_evals_grouped)
 
