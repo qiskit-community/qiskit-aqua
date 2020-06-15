@@ -429,7 +429,7 @@ class TestConverters(QiskitOptimizationTestCase):
         op.linear_constraint(linear, Constraint.Sense.EQ, 3, 'sum1')
         penalize = LinearEqualityToPenalty()
         op2ope = QuadraticProgramToIsing()
-        op2 = penalize.encode(op)
+        op2 = penalize.encode(op, auto_penalty=False)
         qubitop, offset = op2ope.encode(op2)
 
         # the encoder uses a dictionary, in which the order of items in Python 3.5 is not
@@ -526,6 +526,23 @@ class TestConverters(QiskitOptimizationTestCase):
             self.assertEqual(solution.x[0], 10.9)
         except NameError as ex:
             self.skipTest(str(ex))
+
+    def test_auto_penalty(self):
+        """ Test auto penalty function"""
+        op = QuadraticProgram()
+        op.binary_var('x')
+        op.binary_var('y')
+        op.binary_var('z')
+        op.minimize(constant=3, linear={'x': 1}, quadratic={('x', 'y'): 2})
+        op.linear_constraint(linear={'x': 1, 'y': 1, 'z': 1}, sense='EQ', rhs=2, name='xyz_eq')
+        lineq2penalty = LinearEqualityToPenalty()
+        qubo = lineq2penalty.encode(op, auto_penalty=False)
+        qubo_auto = lineq2penalty.encode(op)
+        cplex = CplexOptimizer()
+        result = cplex.solve(qubo)
+        result_auto = cplex.solve(qubo_auto)
+        self.assertEqual(result.fval, result_auto.fval)
+        self.assertListEqual(result.x, result_auto.x)
 
 
 if __name__ == '__main__':

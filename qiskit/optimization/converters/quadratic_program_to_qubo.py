@@ -35,15 +35,18 @@ class QuadraticProgramToQubo:
             >>> problem2 = conv.encode(problem)
     """
 
-    def __init__(self, penalty: Optional[float] = None) -> None:
+    def __init__(self, auto_penalty: bool = True, penalty: Optional[float] = 1e5) -> None:
         """
         Args:
+            auto_penalty: If true, the penalty factor is automatically defined
+                          by `LinearEqualityToPenalty._auto_define_penalty()`.
             penalty: Penalty factor to scale equality constraints that are added to objective.
         """
         from ..converters.integer_to_binary import IntegerToBinary
         self._int_to_bin = IntegerToBinary()
         self._penalize_lin_eq_constraints = LinearEqualityToPenalty()
         self._penalty = penalty
+        self._auto_penalty = auto_penalty
 
     def encode(self, problem: QuadraticProgram) -> QuadraticProgram:
         """Convert a problem with linear equality constraints into new one with a QUBO form.
@@ -67,12 +70,9 @@ class QuadraticProgramToQubo:
         problem_ = self._int_to_bin.encode(problem)
 
         # penalize linear equality constraints with only binary variables
-        if self._penalty is None:
-            # TODO: should be derived from problem
-            penalty = 1e5
-        else:
-            penalty = self._penalty
-        problem_ = self._penalize_lin_eq_constraints.encode(problem_, penalty_factor=penalty)
+        problem_ = self._penalize_lin_eq_constraints.encode(problem_,
+                                                            auto_penalty=self._auto_penalty,
+                                                            penalty_factor=self._penalty)
 
         # return QUBO
         return problem_

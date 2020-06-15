@@ -16,12 +16,16 @@
 
 import copy
 from typing import Optional, cast, Union, Tuple
+from math import fsum
+import logging
 
 from ..problems.quadratic_program import QuadraticProgram
 from ..problems.variable import Variable
 from ..problems.constraint import Constraint
 from ..problems.quadratic_objective import QuadraticObjective
 from ..exceptions import QiskitOptimizationError
+
+logger = logging.getLogger(__name__)
 
 
 class LinearEqualityToPenalty:
@@ -31,12 +35,14 @@ class LinearEqualityToPenalty:
         self._src = None
         self._dst = None
 
-    def encode(self, op: QuadraticProgram, penalty_factor: float = 1e5,
+    def encode(self, op: QuadraticProgram, auto_penalty: bool = True, penalty_factor: float = 1e5,
                name: Optional[str] = None) -> QuadraticProgram:
         """Convert a problem with equality constraints into an unconstrained problem.
 
         Args:
             op: The problem to be solved, that does not contain inequality constraints.
+            auto_penalty: If true, the penalty factor is automatically defined
+                          by `LinearEqualityToPenalty._auto_define_penalty()`.
             penalty_factor: Penalty terms in the objective function is multiplied with this factor.
             name: The name of the converted problem.
 
@@ -50,6 +56,10 @@ class LinearEqualityToPenalty:
         # create empty QuadraticProgram model
         self._src = copy.deepcopy(op)  # deep copy
         self._dst = QuadraticProgram()
+
+        # set the penalty coefficient by _auto_define_penalty() or manually.
+        if auto_penalty:
+            penalty_factor = self._auto_define_penalty(penalty_factor)
 
         # set variables
         for x in self._src.variables:
@@ -112,3 +122,39 @@ class LinearEqualityToPenalty:
             self._dst.maximize(offset, linear, quadratic)
 
         return self._dst
+
+    def _auto_define_penalty(self, penalty_factor: float = 1e5) -> float:
+        """Automatically define the penalty coefficient.
+
+        This returns (upper bound - lower bound + 1) of the objective function.
+
+        Args:
+            penalty_factor: The penalty factor from `LinearEqualityToPenalty.encode`
+
+        Returns:
+            Return the minimum valid penalty factor calculated
+            from the upper bound and the lower bound of the objective function
+        """
+
+        # if a constraint has a float coefficient,
+        # return input `penalty_factor` for the penalty factor.
+        terms = []
+        for constraint in self._src.linear_constraints:
+            terms.append(constraint.rhs)
+            terms.extend(coef for coef in constraint.linear.to_dict().values())
+        if any(isinstance(term, float) and not term.is_integer() for term in terms):
+            logger.warning('Using %f for the penalty coefficient because '
+                           'a float coefficient exists in constraints. \n'
+                           'The value could be too small. '
+                           'If so, set the penalty coefficient manually.', penalty_factor)
+            return penalty_factor
+
+        # (upper bound - lower bound) can be calculate as the sum of absolute value of coefficients
+        # Firstly, add 1 to guarantee that infeasible answers will be greater than upper bound.
+        penalties = [1]
+        # add linear terms of the object function.
+        penalties.extend(abs(coef) for coef in self._src.objective.linear.to_dict().values())
+        # add quadratic terms of the object function.
+        penalties.extend(abs(coef) for coef in self._src.objective.quadratic.to_dict().values())
+
+        return fsum(penalties)
