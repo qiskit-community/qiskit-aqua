@@ -15,8 +15,19 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 > -   **Fixed**: for any bug fixes.
 > -   **Security**: in case of vulnerabilities.
 
-[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.7.1...HEAD)
+[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.7.2...HEAD)
 ========================================================================
+
+[0.7.2](https://github.com/Qiskit/qiskit-aqua/compare/0.7.1...0.7.2) - 2020-06-15
+=================================================================================
+
+Fixed
+-----
+
+-   Remove cvxopt and use cvxpy instead (#1036)
+-   Pin sphinx version temporarily (#1038)
+-   Fix VQE optimizer setter, VQE default expectation selection (#1046)
+
 
 [0.7.1](https://github.com/Qiskit/qiskit-aqua/compare/0.7.0...0.7.1) - 2020-05-14
 =================================================================================
