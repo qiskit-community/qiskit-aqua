@@ -16,7 +16,6 @@
 """A wrapper for minimum eigen solvers from Aqua to be used within the optimization module."""
 
 from typing import Optional, Any, Union, Tuple, List, cast
-import warnings
 import numpy as np
 
 from qiskit.providers import BaseBackend
@@ -271,10 +270,6 @@ def eval_operator_at_bitstring(operator: Union[OperatorBase, LegacyBaseOperator]
         The operator evaluated with the quantum state the bitstring describes.
     """
     if isinstance(operator, LegacyBaseOperator):
-        warnings.warn('Passing a LegacyBaseOperator to eval_operator_at_bitring is deprecated as '
-                      'of 0.9.0 and will be removed no earlier than 3 months after the release. '
-                      'You should pass an OperatorBase object instead.', DeprecationWarning,
-                      stacklevel=2)
         operator = operator.to_opflow()
 
     state = StateFn(bitstr[::-1])
