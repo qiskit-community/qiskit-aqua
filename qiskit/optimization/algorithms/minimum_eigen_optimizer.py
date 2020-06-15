@@ -263,9 +263,6 @@ def eval_operator_at_bitstring(operator: Union[OperatorBase, LegacyBaseOperator]
                                ) -> float:
     """Evaluate an Aqua operator at a given bitstring.
 
-    This simulates a circuit representing the bitstring. Note that this will not be needed
-    with the Operator logic introduced in 0.7.0.
-
     Args:
         operator: The operator which is evaluated.
         bitstr: The bitstring at which the operator is evaluated.
