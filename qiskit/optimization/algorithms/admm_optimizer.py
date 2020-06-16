@@ -456,7 +456,14 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # equality constraints with binary vars only
         self._state.a0, self._state.b0 = self._get_a0_b0()
 
-    def _get_step1_indices(self) -> (List[int], List[int]):
+    def _get_step1_indices(self) -> Tuple[List[int], List[int]]:
+        """
+        Constructs two arrays of absolute (pointing to the original problem) and relative (pointing
+        to the list of all binary variables) indices of the variables considered
+        to be included in the step1(QUBO) problem.
+
+        Returns: A tuple of lists with abolute and relative indices
+        """
         # here we keep binary indices from the original problem
         step1_absolute_indices = []
 
