@@ -110,13 +110,13 @@ class ADMMState:
         # they are np.ndarrays
         # pylint:disable=invalid-name
         # objective
-        self.q0 = None
-        self.c0 = None
-        self.q1 = None
-        self.c1 = None
+        self.q0 = None  # type: Optional[np.ndarray]
+        self.c0 = None  # type: Optional[np.ndarray]
+        self.q1 = None  # type: Optional[np.ndarray]
+        self.c1 = None  # type: Optional[np.ndarray]
         # constraints
         self.a0 = None  # type: Optional[np.ndarray]
-        self.b0 = None
+        self.b0 = None  # type: Optional[np.ndarray]
 
         # These are the parameters that are updated in the ADMM iterations.
         self.u = np.zeros(op.get_num_continuous_vars())
