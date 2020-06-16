@@ -19,11 +19,13 @@ from test.aqua import QiskitAquaTestCase
 import itertools
 import numpy as np
 
-from qiskit import QuantumCircuit
+from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.quantum_info.operators import Operator, Pauli
 from qiskit.circuit.library import CZGate
 
-from qiskit.aqua.operators import X, Y, Z, I, CX, T, H, PrimitiveOp, SummedOp, PauliOp, Minus
+from qiskit.aqua.operators import (
+    X, Y, Z, I, CX, T, H, PrimitiveOp, SummedOp, PauliOp, Minus, CircuitOp
+)
 
 
 # pylint: disable=invalid-name
@@ -220,6 +222,18 @@ class TestOpConstruction(QiskitAquaTestCase):
         self.assertNotEqual(c_op, c_op_perm)
         c_op_id = c_op_perm.permute(perm)
         self.assertEqual(c_op, c_op_id)
+
+    def test_circuit_compose_register_independent(self):
+        """Test that CircuitOp uses combines circuits independent of the register.
+
+        I.e. that is uses ``QuantumCircuit.compose`` over ``combine`` or ``extend``.
+        """
+        op = Z ^ 2
+        qr = QuantumRegister(2, 'my_qr')
+        circuit = QuantumCircuit(qr)
+        composed = op.compose(CircuitOp(circuit))
+
+        self.assertEqual(composed.num_qubits, 2)
 
 
 if __name__ == '__main__':
