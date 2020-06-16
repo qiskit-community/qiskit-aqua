@@ -37,6 +37,7 @@ requirements = [
     "docplex",
     "fastdtw",
     "quandl",
+    "yfinance",
     "setuptools>=40.1.0",
     "h5py",
     "networkx>=2.2",

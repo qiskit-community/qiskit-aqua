@@ -32,7 +32,7 @@ class DataOnDemandProvider(BaseDataProvider):
     """NASDAQ Data on Demand data provider.
 
     Please see:
-    https://github.com/Qiskit/qiskit-tutorials/blob/stable/0.14.x/qiskit/advanced/aqua/finance/data_providers/time_series.ipynb
+    https://github.com/Qiskit/qiskit-tutorials/blob/master/legacy_tutorials/aqua/finance/data_providers/time_series.ipynb
     for instructions on use, which involve obtaining a NASDAQ DOD access token.
     """
 
@@ -45,7 +45,7 @@ class DataOnDemandProvider(BaseDataProvider):
                  verify: Optional[Union[str, bool]] = None) -> None:
         """
         Args:
-            token: quandl access token
+            token: data on demand access token
             tickers: tickers
             stockmarket: NYSE or NASDAQ
             start: first data point
@@ -86,7 +86,7 @@ class DataOnDemandProvider(BaseDataProvider):
         self._end = end
         self._verify = verify
 
-    def run(self):
+    def run(self) -> None:
         """
         Loads data, thus enabling get_similarity_matrix and get_covariance_matrix
         methods in the base class.

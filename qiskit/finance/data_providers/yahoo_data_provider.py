@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Wikipedia data provider. """
+""" Yahoo data provider. """
 
 from typing import Optional, Union, List
 import datetime
@@ -25,8 +25,8 @@ from ..exceptions import QiskitFinanceError
 logger = logging.getLogger(__name__)
 
 
-class WikipediaDataProvider(BaseDataProvider):
-    """Wikipedia data provider.
+class YahooDataProvider(BaseDataProvider):
+    """Yahoo data provider.
 
     Please see:
     https://github.com/Qiskit/qiskit-tutorials/blob/master/legacy_tutorials/aqua/finance/data_providers/time_series.ipynb
@@ -34,17 +34,15 @@ class WikipediaDataProvider(BaseDataProvider):
     """
 
     def __init__(self,
-                 token: Optional[str] = None,
                  tickers: Optional[Union[str, List[str]]] = None,
-                 stockmarket: StockMarket = StockMarket.WIKI,
+                 stockmarket: StockMarket = StockMarket.YAHOO,
                  start: datetime.datetime = datetime.datetime(2016, 1, 1),
                  end: datetime.datetime = datetime.datetime(2016, 1, 30)) -> None:
         """
         Initializer
         Args:
-            token: quandl access token, which is not needed, strictly speaking
             tickers: tickers
-            stockmarket: WIKI
+            stockmarket: YAHOO
             start: start time
             end: end time
         Raises:
@@ -59,8 +57,8 @@ class WikipediaDataProvider(BaseDataProvider):
             self._tickers = tickers.replace('\n', ';').split(";")
         self._n = len(self._tickers)
 
-        if stockmarket not in [StockMarket.WIKI]:
-            msg = "WikipediaDataProvider does not support "
+        if stockmarket != StockMarket.YAHOO:
+            msg = "YahooDataProvider does not support "
             msg += stockmarket.value
             msg += " as a stock market."
             raise QiskitFinanceError(msg)
@@ -68,7 +66,6 @@ class WikipediaDataProvider(BaseDataProvider):
         # This is to aid serialization; string is ok to serialize
         self._stockmarket = str(stockmarket.value)
 
-        self._token = token
         self._tickers = tickers
         self._start = start.strftime('%Y-%m-%d')
         self._end = end.strftime('%Y-%m-%d')
@@ -77,13 +74,13 @@ class WikipediaDataProvider(BaseDataProvider):
     @staticmethod
     def _check_provider_valid():
         """ checks if provider is valid """
-        err_msg = 'quandl is not installed.'
+        err_msg = 'yfinance is not installed.'
         try:
-            spec = importlib.util.find_spec('quandl')
+            spec = importlib.util.find_spec('yfinance')
             if spec is not None:
                 return
         except Exception as ex:  # pylint: disable=broad-except
-            logger.debug('quandl check error %s', str(ex))
+            logger.debug('Yahoo finance check error %s', str(ex))
             raise QiskitFinanceError(err_msg) from ex
 
         raise QiskitFinanceError(err_msg)
@@ -94,30 +91,26 @@ class WikipediaDataProvider(BaseDataProvider):
         get_covariance_matrix methods in the base class.
         """
         self._check_provider_valid()
-        import quandl  # pylint: disable=import-outside-toplevel
-        quandl.ApiConfig.api_key = self._token
-        quandl.ApiConfig.api_version = '2015-04-09'
+        import yfinance as yf  # pylint: disable=import-outside-toplevel
         self._data = []
         stocks_notfound = []
-        for _, ticker_name in enumerate(self._tickers):
-            stock_data = None
-            name = self._stockmarket + "/" + ticker_name
-            try:
-                stock_data = quandl.get(name,
-                                        start_date=self._start,
-                                        end_date=self._end)
-            except quandl.AuthenticationError as ex:
-                raise QiskitFinanceError("Quandl invalid token.") from ex
-            except quandl.NotFoundError as ex:
-                stocks_notfound.append(name)
-                continue
-            except quandl.QuandlError as ex:
-                raise QiskitFinanceError("Quandl Error for '{}'.".format(name)) from ex
-
-            try:
-                self._data.append(stock_data["Adj. Close"])
-            except KeyError as ex:
-                raise QiskitFinanceError("Cannot parse quandl output.") from ex
+        try:
+            stock_data = yf.download(' '.join(self._tickers),
+                                     start=self._start,
+                                     end=self._end,
+                                     group_by='ticker',
+                                     # threads=False,
+                                     progress=logger.isEnabledFor(logging.DEBUG))
+            for ticker_name in self._tickers:
+                stock_value = stock_data[ticker_name]['Adj Close']
+                if stock_value.dropna().empty:
+                    stocks_notfound.append(ticker_name)
+                self._data.append(stock_value)
+        except Exception as ex:  # pylint: disable=broad-except
+            raise QiskitFinanceError(
+                'Accessing Yahoo Data failed.') from ex
 
         if stocks_notfound:
-            raise QiskitFinanceError('Stocks not found: {}. '.format(stocks_notfound))
+            raise QiskitFinanceError(
+                'No data found for this date range, symbols may be delisted: {}.'.format(
+                    stocks_notfound))

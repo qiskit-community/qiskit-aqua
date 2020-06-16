@@ -69,7 +69,7 @@ class RandomDataProvider(BaseDataProvider):
         self._end = end
         self._seed = seed
 
-    def run(self):
+    def run(self) -> None:
         """
         Generates data pseudo-randomly, thus enabling get_similarity_matrix
         and get_covariance_matrix methods in the base class.

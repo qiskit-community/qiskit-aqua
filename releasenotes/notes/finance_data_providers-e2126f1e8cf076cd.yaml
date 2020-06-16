@@ -1,0 +1,9 @@
+---
+fixes:
+  - |
+    Exchange and Wikipedia finance providers were fixed to correctly handle Quandl data.
+    New Yahoo! finance provider was created. Refer to
+    `#775 <https://github.com/Qiskit/qiskit-aqua/issues/775>` for more details.
+    Fixes a divide by 0 error on finance providers mean vector and covariance matrix
+    calculations. Refer to
+    `#781 <https://github.com/Qiskit/qiskit-aqua/issues/781>` for more details.
