@@ -18,11 +18,8 @@
 from typing import Optional, Any, Union, Tuple, List, cast
 import numpy as np
 
-from qiskit.providers import BaseBackend
-from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import MinimumEigensolver
-from qiskit.aqua.operators import (LegacyBaseOperator, OperatorBase, StateFn, DictStateFn,
-                                   CircuitSampler)
+from qiskit.aqua.operators import StateFn, DictStateFn
 
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
 from ..problems.quadratic_program import QuadraticProgram
@@ -253,31 +250,3 @@ def _eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray, StateFn],
         raise TypeError('Unsupported format of eigenvector. Provide a dict or numpy.ndarray.')
 
     return solutions
-
-
-def eval_operator_at_bitstring(operator: Union[OperatorBase, LegacyBaseOperator], bitstr: str,
-                               backend: Optional[Union[BaseBackend, QuantumInstance]] = None
-                               ) -> float:
-    """Evaluate an Aqua operator at a given bitstring.
-
-    Args:
-        operator: The operator which is evaluated.
-        bitstr: The bitstring at which the operator is evaluated.
-        backend: The backend to use to evaluate the expression. If None, the evaluation is done
-            exactly by converting the operator to a matrix.
-
-    Returns:
-        The operator evaluated with the quantum state the bitstring describes.
-    """
-    if isinstance(operator, LegacyBaseOperator):
-        operator = operator.to_opflow()
-
-    state = StateFn(bitstr[::-1])
-    expr = StateFn(operator).adjoint() @ state
-
-    # lazy evaluation, not very efficient for large number of qubits!
-    if backend is None:
-        return expr.eval().real
-    else:
-        sampler = CircuitSampler(backend).convert(expr)
-        return sampler.eval().real
