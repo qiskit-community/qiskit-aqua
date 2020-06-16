@@ -504,8 +504,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # for each binary variable that comes from lin.eq/obj and which is denoted by abs_index
         for abs_index in step1_absolute_indices:
             found = False
-            # we want to find relative index of a variable the comes from lin. const. or objective
-            # across all binary variables
+            # we want to find relative index of a variable the comes from linear constraints
+            # or objective across all binary variables
             for j in range(relative_index, len(self._state.binary_indices)):
                 if self._state.binary_indices[j] == abs_index:
                     found = True
