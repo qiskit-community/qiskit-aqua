@@ -101,10 +101,10 @@ class ADMMState:
         # Optimization problem itself
         self.op = op
         # Indices of the variables
-        self.binary_indices = None
-        self.continuous_indices = None
-        self.step1_absolute_indices = None
-        self.step1_relative_indices = None
+        self.binary_indices = None  # type: Optional[List[int]]
+        self.continuous_indices = None  # type: Optional[List[int]]
+        self.step1_absolute_indices = None  # type: Optional[List[int]]
+        self.step1_relative_indices = None  # type: Optional[List[int]]
 
         # define heavily used matrix, they are used at each iteration, so let's cache them,
         # they are np.ndarrays
