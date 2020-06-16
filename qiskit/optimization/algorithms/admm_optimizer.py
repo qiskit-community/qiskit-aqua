@@ -462,7 +462,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         to the list of all binary variables) indices of the variables considered
         to be included in the step1(QUBO) problem.
 
-        Returns: A tuple of lists with abolute and relative indices
+        Returns: A tuple of lists with absolute and relative indices
         """
         # here we keep binary indices from the original problem
         step1_absolute_indices = []
@@ -590,10 +590,10 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         # prepare and set linear objective.
         linear_objective = self._state.c0 - \
-                           self._params.factor_c * np.dot(self._state.b0, self._state.a0) + \
-                           self._state.rho * (- self._state.y[self._state.step1_relative_indices] -
-                                              self._state.z[self._state.step1_relative_indices]) + \
-                           self._state.lambda_mult[self._state.step1_relative_indices]
+            self._params.factor_c * np.dot(self._state.b0, self._state.a0) + \
+            self._state.rho * (- self._state.y[self._state.step1_relative_indices] -
+                               self._state.z[self._state.step1_relative_indices]) + \
+            self._state.lambda_mult[self._state.step1_relative_indices]
 
         op1.objective.linear = linear_objective
         return op1
