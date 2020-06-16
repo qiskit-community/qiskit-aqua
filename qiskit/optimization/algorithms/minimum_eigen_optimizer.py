@@ -196,7 +196,7 @@ def _eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray, StateFn],
 
     Returns:
         For each computational basis state contained in the eigenvector, return the basis
-        state as bitstring along with the operator evaluated at that bitstring and the
+        state as bitstring along with the QUBO evaluated at that bitstring and the
         probability of sampling this bitstring from the eigenvector.
 
     Examples:
