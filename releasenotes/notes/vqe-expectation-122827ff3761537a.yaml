@@ -1,0 +1,11 @@
+---
+prelude: >
+    VQE expectation computation with Aer qasm_simulator now defaults to a
+    computation that has the expected shot noise behavior.
+features:
+  - |
+    VQE expectation computation with Aer qasm_simulator now defaults to a
+    computation that has the expected shot noise behavior. The special Aer
+    snapshot based computation, that is much faster, with the ideal output
+    similar to state vector simulator, may still be chosen but like before
+    Aqua 0.7 it now no longer defaults to this but can be chosen.
