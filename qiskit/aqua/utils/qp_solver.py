@@ -47,6 +47,9 @@ def optimize_svm(kernel_matrix: np.ndarray,
         np.ndarray: Sx1 array, where S is the number of supports
         np.ndarray: Sx1 array, where S is the number of supports
         np.ndarray: Sx1 array, where S is the number of supports
+
+    Raises:
+        ImportError: If cvxpy is not installed
     """
     # pylint: disable=invalid-name, unused-argument
     if not HAS_CVX:
