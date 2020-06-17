@@ -20,7 +20,7 @@ import logging
 import numpy as np
 from docplex.mp.model import Model
 
-from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.aqua.operators import Z, I
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.optimization import QuadraticProgram, QiskitOptimizationError
 from qiskit.optimization.problems import Constraint, Variable
@@ -34,25 +34,19 @@ from qiskit.optimization.converters import (
 )
 from qiskit.optimization.algorithms import MinimumEigenOptimizer, CplexOptimizer, ADMMOptimizer
 from qiskit.optimization.algorithms.admm_optimizer import ADMMParameters
-from qiskit.quantum_info import Pauli
 
 logger = logging.getLogger(__name__)
 
-
-QUBIT_OP_MAXIMIZE_SAMPLE = WeightedPauliOperator(
-    paulis=[
-        [(-199999.5 + 0j), Pauli(z=[True, False, False, False], x=[False, False, False, False])],
-        [(-399999.5 + 0j), Pauli(z=[False, True, False, False], x=[False, False, False, False])],
-        [(-599999.5 + 0j), Pauli(z=[False, False, True, False], x=[False, False, False, False])],
-        [(-799999.5 + 0j), Pauli(z=[False, False, False, True], x=[False, False, False, False])],
-        [(100000 + 0j), Pauli(z=[True, True, False, False], x=[False, False, False, False])],
-        [(150000 + 0j), Pauli(z=[True, False, True, False], x=[False, False, False, False])],
-        [(300000 + 0j), Pauli(z=[False, True, True, False], x=[False, False, False, False])],
-        [(200000 + 0j), Pauli(z=[True, False, False, True], x=[False, False, False, False])],
-        [(400000 + 0j), Pauli(z=[False, True, False, True], x=[False, False, False, False])],
-        [(600000 + 0j), Pauli(z=[False, False, True, True], x=[False, False, False, False])],
-    ]
-)
+QUBIT_OP_MAXIMIZE_SAMPLE = (-199999.5 + 0j) * (I ^ I ^ I ^ Z) + \
+                           (-399999.5 + 0j) * (I ^ I ^ Z ^ I) + \
+                           (-599999.5 + 0j) * (I ^ Z ^ I ^ I) + \
+                           (-799999.5 + 0j) * (Z ^ I ^ I ^ I) + \
+                           (100000 + 0j) * (I ^ I ^ Z ^ Z) + \
+                           (150000 + 0j) * (I ^ Z ^ I ^ Z) + \
+                           (300000 + 0j) * (I ^ Z ^ Z ^ I) + \
+                           (200000 + 0j) * (Z ^ I ^ I ^ Z) + \
+                           (400000 + 0j) * (Z ^ I ^ Z ^ I) + \
+                           (600000 + 0j) * (Z ^ Z ^ I ^ I)
 OFFSET_MAXIMIZE_SAMPLE = 1149998
 
 
@@ -434,9 +428,13 @@ class TestConverters(QiskitOptimizationTestCase):
 
         # the encoder uses a dictionary, in which the order of items in Python 3.5 is not
         # maintained, therefore don't do a list compare but dictionary compare
-        qubit_op_as_dict = dict(qubitop.paulis)
-        for coeff, paulis in QUBIT_OP_MAXIMIZE_SAMPLE.paulis:
-            self.assertEqual(paulis, qubit_op_as_dict[coeff])
+        # qubit_op_as_dict = dict(qubitop.paulis)
+        # for coeff, paulis in QUBIT_OP_MAXIMIZE_SAMPLE.paulis:
+        #     self.assertEqual(paulis, qubit_op_as_dict[coeff])
+        print(qubitop.reduce())
+        print(qubitop.simplify())
+        print(QUBIT_OP_MAXIMIZE_SAMPLE.reduce())
+        self.assertEqual(qubitop, QUBIT_OP_MAXIMIZE_SAMPLE)
 
         self.assertEqual(offset, OFFSET_MAXIMIZE_SAMPLE)
 

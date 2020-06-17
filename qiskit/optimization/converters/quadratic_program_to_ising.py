@@ -20,7 +20,7 @@ from typing import Tuple, Optional, Dict
 import numpy as np
 from qiskit.quantum_info import Pauli
 
-from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.aqua.operators import OperatorBase, PauliOp
 
 from ..problems.quadratic_program import QuadraticProgram
 from ..exceptions import QiskitOptimizationError
@@ -33,7 +33,7 @@ class QuadraticProgramToIsing:
         """Initialize the internal data structure."""
         self._src = None  # type: Optional[QuadraticProgram]
 
-    def encode(self, op: QuadraticProgram) -> Tuple[WeightedPauliOperator, float]:
+    def encode(self, op: QuadraticProgram) -> Tuple[OperatorBase, float]:
         """Convert a problem into a qubit operator
 
         Args:
@@ -114,6 +114,8 @@ class QuadraticProgramToIsing:
             shift += weight
 
         # Remove paulis whose coefficients are zeros.
-        qubit_op = WeightedPauliOperator(paulis=pauli_list)
+        qubit_op = sum(PauliOp(pauli, coeff=coeff) for coeff, pauli in pauli_list)
+        if len(pauli_list) > 0:  # if the list is empty, qubit op is 0
+            qubit_op = qubit_op.reduce()
 
         return qubit_op, shift

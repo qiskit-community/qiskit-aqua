@@ -116,8 +116,33 @@ class SummedOp(ListOp):
     # Try collapsing list or trees of Sums.
     # TODO be smarter about the fact that any two ops in oplist could be evaluated for sum.
     def reduce(self) -> OperatorBase:
+        # first reduce constituents
         reduced_ops = [op.reduce() for op in self.oplist]
         reduced_ops = reduce(lambda x, y: x.add(y), reduced_ops) * self.coeff
+
+        # then group duplicate operators
+        # e.g., ``SummedOp([2 * X ^ Y, X ^ Y]).simplify() -> SummedOp([3 * X ^ Y])``.
+        oplist = []  # type: List[OperatorBase]
+        coeffs = []  # type: List[Union[int, float, complex, ParameterExpression]]
+        for op in self.oplist:
+            if isinstance(op, PrimitiveOp):
+                new_op = PrimitiveOp(op.primitive)
+                new_coeff = op.coeff * self.coeff
+                if new_op in oplist:
+                    index = oplist.index(new_op)
+                    coeffs[index] += new_coeff
+                else:
+                    oplist.append(new_op)
+                    coeffs.append(new_coeff)
+            else:
+                if op in oplist:
+                    index = oplist.index(op)
+                    coeffs[index] += self.coeff
+                else:
+                    oplist.append(op)
+                    coeffs.append(self.coeff)
+        reduced_ops = SummedOp([op * coeff for op, coeff in zip(oplist, coeffs)])  # type: ignore
+
         if isinstance(reduced_ops, SummedOp) and len(reduced_ops.oplist) == 1:
             return reduced_ops.oplist[0]
         else:
@@ -142,3 +167,32 @@ class SummedOp(ListOp):
             coeff = cast(float, self.coeff)
 
         return self.combo_fn(legacy_ops) * coeff
+
+    def equals(self, other: OperatorBase) -> bool:
+        self_reduced, other_reduced = self.reduce(), other.reduce()
+        if not isinstance(other_reduced, type(self_reduced)):
+            return False
+
+        # check if reduced op is still a SummedOp
+        if not isinstance(self_reduced, self.__class__):
+            return self_reduced == other_reduced
+
+        if not len(self_reduced.oplist) == len(other_reduced.oplist):
+            return False
+
+        # absorb coeffs into the operators
+        if self_reduced.coeff != 1:
+            self_reduced = SummedOp([op * self_reduced.coeff for op in self_reduced.oplist])
+        if other_reduced.coeff != 1:
+            other_reduced = SummedOp([op * other_reduced.coeff for op in other_reduced.oplist])
+
+        # compare independent of order, for some reason set(...) == set(...) does not work
+        for op1 in self_reduced.oplist:
+            found = False
+            for op2 in other_reduced.oplist:
+                if op1 == op2:
+                    found = True
+                    break
+            if not found:
+                return False
+        return True
