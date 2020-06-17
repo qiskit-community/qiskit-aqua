@@ -76,7 +76,7 @@ class QuadraticProgram:
 
         self._objective = QuadraticObjective(self)
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         return self.to_docplex().export_as_lp_string()
 
     def clear(self) -> None:
