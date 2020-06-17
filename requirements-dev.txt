@@ -16,4 +16,4 @@ torch; sys_platform == 'linux' or (python_version < '3.8' and sys_platform != 'w
 qiskit-aer
 mypy
 mypy-extensions
-cvxpy>1.0.0,<1.11.0
+cvxpy>1.0.0,<1.1.0
