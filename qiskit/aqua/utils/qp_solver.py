@@ -49,13 +49,13 @@ def optimize_svm(kernel_matrix: np.ndarray,
         np.ndarray: Sx1 array, where S is the number of supports
 
     Raises:
-        ImportError: If cvxpy is not installed
+        NameError: If cvxpy is not installed
     """
     # pylint: disable=invalid-name, unused-argument
     if not HAS_CVX:
-        raise ImportError("The CVXPY package is required to use the "
-                          "optimize_svm() function. You can install it with "
-                          "'pip install cvxpy'.")
+        raise NameError("The CVXPY package is required to use the "
+                        "optimize_svm() function. You can install it with "
+                        "'pip install qiskit-aqua[cvx]'.")
     if y.ndim == 1:
         y = y[:, np.newaxis]
     H = np.outer(y, y) * kernel_matrix
