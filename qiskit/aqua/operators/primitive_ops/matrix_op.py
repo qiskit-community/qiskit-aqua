@@ -14,7 +14,7 @@
 
 """ MatrixOp Class """
 
-from typing import Union, Optional, Set, cast
+from typing import Union, Optional, Set
 import logging
 import numpy as np
 from scipy.sparse import spmatrix
@@ -165,8 +165,7 @@ class MatrixOp(PrimitiveOp):
         return self
 
     def to_instruction(self) -> Instruction:
-        cast(Operator, self.primitive)
-        return (self.coeff * self.primitive).to_instruction()
+        return (self.coeff * self.primitive).to_instruction()  # type: ignore
 
     def to_legacy_op(self, massive: bool = False) -> MatrixOperator:
         return MatrixOperator(self.to_matrix(massive=massive))
