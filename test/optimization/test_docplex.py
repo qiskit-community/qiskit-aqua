@@ -26,15 +26,11 @@ from qiskit.quantum_info import Pauli
 from qiskit.aqua import AquaError, aqua_globals
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.optimization.applications.ising import docplex, tsp
-from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.aqua.operators import WeightedPauliOperator, I, Z
 
 # Reference operators and offsets for maxcut and tsp.
-QUBIT_OP_MAXCUT = WeightedPauliOperator(
-    paulis=[[0.5, Pauli(z=[True, True, False, False], x=[False, False, False, False])],
-            [0.5, Pauli(z=[True, False, True, False], x=[False, False, False, False])],
-            [0.5, Pauli(z=[False, True, True, False], x=[False, False, False, False])],
-            [0.5, Pauli(z=[True, False, False, True], x=[False, False, False, False])],
-            [0.5, Pauli(z=[False, False, True, True], x=[False, False, False, False])]])
+QUBIT_OP_MAXCUT = 0.5 * ((I ^ I ^ Z ^ Z) + (I ^ Z ^ I ^ Z) + (I ^ Z ^ Z ^ I) + (Z ^ I ^ I ^ Z)
+                         + (Z ^ Z ^ I ^ I))
 OFFSET_MAXCUT = -2.5
 QUBIT_OP_TSP = WeightedPauliOperator(
     paulis=[[-100057.0, Pauli(z=[True, False, False, False, False, False, False, False, False],
