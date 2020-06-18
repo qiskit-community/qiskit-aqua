@@ -120,36 +120,44 @@ class SummedOp(ListOp):
         Returns:
             A collapsed version of self, if possible.
         """
+        print('in')
+        print(self)
+        # reduce constituents
+        reduced_ops = [op.reduce() for op in self.oplist]
+        reduced_ops = reduce(lambda x, y: x.add(y), reduced_ops) * self.coeff
+
+        # grouped_op = self
         # group duplicate operators
         # e.g., ``SummedOp([2 * X ^ Y, X ^ Y]).simplify() -> SummedOp([3 * X ^ Y])``.
-        oplist = []  # type: List[OperatorBase]
-        coeffs = []  # type: List[Union[int, float, complex, ParameterExpression]]
-        for op in self.oplist:
-            if isinstance(op, PrimitiveOp):
-                new_op = PrimitiveOp(op.primitive)
-                new_coeff = op.coeff * self.coeff
-                if new_op in oplist:
-                    index = oplist.index(new_op)
-                    coeffs[index] += new_coeff
-                else:
-                    oplist.append(new_op)
-                    coeffs.append(new_coeff)
-            else:
-                if op in oplist:
-                    index = oplist.index(op)
-                    coeffs[index] += self.coeff
-                else:
-                    oplist.append(op)
-                    coeffs.append(self.coeff)
-        reduced_ops = SummedOp([op * coeff for op, coeff in zip(oplist, coeffs)])  # type: ignore
+        # oplist = []  # type: List[OperatorBase]
+        # coeffs = []  # type: List[Union[int, float, complex, ParameterExpression]]
+        # for op in self.oplist:
+        #     if isinstance(op, PrimitiveOp):
+        #         new_op = PrimitiveOp(op.primitive)
+        #         new_coeff = op.coeff * self.coeff
+        #         if new_op in oplist:
+        #             index = oplist.index(new_op)
+        #             coeffs[index] += new_coeff
+        #         else:
+        #             oplist.append(new_op)
+        #             coeffs.append(new_coeff)
+        #     else:
+        #         if op in oplist:
+        #             index = oplist.index(op)
+        #             coeffs[index] += self.coeff
+        #         else:
+        #             oplist.append(op)
+        #             coeffs.append(self.coeff)
+        # grouped_op = SummedOp([op * coeff for op, coeff in zip(oplist, coeffs)])  # type: ignore
 
-        # reduce constituents
-        reduced_ops = [op.reduce() for op in reduced_ops.oplist]
-        reduced_ops = reduce(lambda x, y: x.add(y), reduced_ops) * reduced_ops.coeff
+        # if isinstance(reduced_ops, SummedOp):
+        #     reduced_ops = reduced_ops.simplify()
 
         if isinstance(reduced_ops, SummedOp) and len(reduced_ops.oplist) == 1:
+            print('out', reduced_ops.oplist[0])
             return reduced_ops.oplist[0]
         else:
+            print('out', reduced_ops)
             return cast(OperatorBase, reduced_ops)
 
     def to_legacy_op(self, massive: bool = False) -> LegacyBaseOperator:

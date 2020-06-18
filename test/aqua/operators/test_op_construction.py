@@ -257,11 +257,17 @@ class TestOpConstruction(QiskitAquaTestCase):
             self.assertListEqual([op.coeff for op in sum_op], [2, 2])
 
         sum_op = (X ^ X * 2) + (Y ^ Y)
-        sum_op += (Y ^ Y) + (X ^ X * 2)  # if self == other the summed op directly multiplied by 2
-        with self.subTest('SummedOp test 3'):
-            self.assertEqual(sum_op.coeff, 2)
+        sum_op += (Y ^ Y) + (X ^ X * 2)
+        with self.subTest('SummedOp test 3-a'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY', 'YY', 'XX'])
+            self.assertListEqual([op.coeff for op in sum_op], [2, 1, 1, 2])
+
+        sum_op = sum_op.reduce()
+        with self.subTest('SummedOp test 3-b'):
+            self.assertEqual(sum_op.coeff, 1)
             self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY'])
-            self.assertListEqual([op.coeff for op in sum_op], [2, 1])
+            self.assertListEqual([op.coeff for op in sum_op], [4, 2])
 
         sum_op = SummedOp([X ^ X * 2, Y ^ Y], 2)
         with self.subTest('SummedOp test 4-a'):
@@ -304,9 +310,9 @@ class TestOpConstruction(QiskitAquaTestCase):
         sum_op = SummedOp([X ^ X * 2, Y ^ Y], 2)
         sum_op += sum_op
         with self.subTest('SummedOp test 7-a'):
-            self.assertEqual(sum_op.coeff, 4)
-            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY'])
-            self.assertListEqual([op.coeff for op in sum_op], [2, 1])
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY', 'XX', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [4, 2, 4, 2])
 
         sum_op = sum_op.simplify()
         with self.subTest('SummedOp test 7-b'):
