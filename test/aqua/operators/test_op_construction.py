@@ -250,7 +250,7 @@ class TestOpConstruction(QiskitAquaTestCase):
             self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY', 'YY'])
             self.assertListEqual([op.coeff for op in sum_op], [2, 1, 1])
 
-        sum_op = sum_op.simplify()
+        sum_op = sum_op.collapse_summands()
         with self.subTest('SummedOp test 2-b'):
             self.assertEqual(sum_op.coeff, 1)
             self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY'])
@@ -275,7 +275,7 @@ class TestOpConstruction(QiskitAquaTestCase):
             self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY'])
             self.assertListEqual([op.coeff for op in sum_op], [2, 1])
 
-        sum_op = sum_op.simplify()
+        sum_op = sum_op.collapse_summands()
         with self.subTest('SummedOp test 4-b'):
             self.assertEqual(sum_op.coeff, 1)
             self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY'])
@@ -288,7 +288,7 @@ class TestOpConstruction(QiskitAquaTestCase):
             self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY', 'YY'])
             self.assertListEqual([op.coeff for op in sum_op], [4, 2, 1])
 
-        sum_op = sum_op.simplify()
+        sum_op = sum_op.collapse_summands()
         with self.subTest('SummedOp test 5-b'):
             self.assertEqual(sum_op.coeff, 1)
             self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY'])
@@ -301,7 +301,7 @@ class TestOpConstruction(QiskitAquaTestCase):
             self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY', 'XX', 'YY'])
             self.assertListEqual([op.coeff for op in sum_op], [4, 2, 2, 1])
 
-        sum_op = sum_op.simplify()
+        sum_op = sum_op.collapse_summands()
         with self.subTest('SummedOp test 6-b'):
             self.assertEqual(sum_op.coeff, 1)
             self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY'])
@@ -314,7 +314,7 @@ class TestOpConstruction(QiskitAquaTestCase):
             self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY', 'XX', 'YY'])
             self.assertListEqual([op.coeff for op in sum_op], [4, 2, 4, 2])
 
-        sum_op = sum_op.simplify()
+        sum_op = sum_op.collapse_summands()
         with self.subTest('SummedOp test 7-b'):
             self.assertEqual(sum_op.coeff, 1)
             self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY'])
@@ -326,7 +326,7 @@ class TestOpConstruction(QiskitAquaTestCase):
             self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY', 'XX', 'ZZ'])
             self.assertListEqual([op.coeff for op in sum_op], [4, 2, 6, 3])
 
-        sum_op = sum_op.simplify()
+        sum_op = sum_op.collapse_summands()
         with self.subTest('SummedOp test 8-b'):
             self.assertEqual(sum_op.coeff, 1)
             self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY', 'ZZ'])

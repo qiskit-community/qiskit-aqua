@@ -81,10 +81,10 @@ class SummedOp(ListOp):
             other_new_ops = [other]
         return SummedOp(self_new_ops + other_new_ops)
 
-    def simplify(self) -> 'SummedOp':
+    def collapse_summands(self) -> 'SummedOp':
         """Return Operator by simplifying duplicate operators.
 
-        E.g., ``SummedOp([2 * X ^ Y, X ^ Y]).simplify() -> SummedOp([3 * X ^ Y])``.
+        E.g., ``SummedOp([2 * X ^ Y, X ^ Y]).collapse_summands() -> SummedOp([3 * X ^ Y])``.
 
         Returns:
             A simplified ``SummedOp`` equivalent to self.
@@ -120,44 +120,17 @@ class SummedOp(ListOp):
         Returns:
             A collapsed version of self, if possible.
         """
-        print('in')
-        print(self)
         # reduce constituents
         reduced_ops = [op.reduce() for op in self.oplist]
         reduced_ops = reduce(lambda x, y: x.add(y), reduced_ops) * self.coeff
 
-        # grouped_op = self
         # group duplicate operators
-        # e.g., ``SummedOp([2 * X ^ Y, X ^ Y]).simplify() -> SummedOp([3 * X ^ Y])``.
-        # oplist = []  # type: List[OperatorBase]
-        # coeffs = []  # type: List[Union[int, float, complex, ParameterExpression]]
-        # for op in self.oplist:
-        #     if isinstance(op, PrimitiveOp):
-        #         new_op = PrimitiveOp(op.primitive)
-        #         new_coeff = op.coeff * self.coeff
-        #         if new_op in oplist:
-        #             index = oplist.index(new_op)
-        #             coeffs[index] += new_coeff
-        #         else:
-        #             oplist.append(new_op)
-        #             coeffs.append(new_coeff)
-        #     else:
-        #         if op in oplist:
-        #             index = oplist.index(op)
-        #             coeffs[index] += self.coeff
-        #         else:
-        #             oplist.append(op)
-        #             coeffs.append(self.coeff)
-        # grouped_op = SummedOp([op * coeff for op, coeff in zip(oplist, coeffs)])  # type: ignore
-
-        # if isinstance(reduced_ops, SummedOp):
-        #     reduced_ops = reduced_ops.simplify()
+        if isinstance(reduced_ops, SummedOp):
+            reduced_ops = reduced_ops.collapse_summands()
 
         if isinstance(reduced_ops, SummedOp) and len(reduced_ops.oplist) == 1:
-            print('out', reduced_ops.oplist[0])
             return reduced_ops.oplist[0]
         else:
-            print('out', reduced_ops)
             return cast(OperatorBase, reduced_ops)
 
     def to_legacy_op(self, massive: bool = False) -> LegacyBaseOperator:
@@ -213,13 +186,5 @@ class SummedOp(ListOp):
         if other_reduced.coeff != 1:
             other_reduced = SummedOp([op * other_reduced.coeff for op in other_reduced.oplist])
 
-        # compare independent of order, for some reason set(...) == set(...) does not work
-        for op1 in self_reduced.oplist:
-            found = False
-            for op2 in other_reduced.oplist:
-                if op1 == op2:
-                    found = True
-                    break
-            if not found:
-                return False
-        return True
+        # compare independent of order
+        return set(self_reduced) == set(other_reduced)
