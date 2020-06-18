@@ -31,20 +31,24 @@ logger = logging.getLogger(__name__)
 class LinearEqualityToPenalty:
     """Convert a problem with only equality constraints to unconstrained with penalty terms."""
 
-    def __init__(self):
+    def __init__(self, penalty: Optional[float] = None, name: Optional[str] = None):
+        """
+        Args:
+            penalty: Penalty factor to scale equality constraints that are added to objective.
+                     If None is passed, penalty factor will be automatically calculated.
+            name: The name of the converted problem.
+
+        """
         self._src = None
         self._dst = None
+        self._penalty = penalty
+        self._dst_name = name
 
-    def encode(self, op: QuadraticProgram, auto_penalty: bool = True, penalty_factor: float = 1e5,
-               name: Optional[str] = None) -> QuadraticProgram:
+    def encode(self, op: QuadraticProgram) -> QuadraticProgram:
         """Convert a problem with equality constraints into an unconstrained problem.
 
         Args:
             op: The problem to be solved, that does not contain inequality constraints.
-            auto_penalty: If true, the penalty factor is automatically defined
-                          by `LinearEqualityToPenalty._auto_define_penalty()`.
-            penalty_factor: Penalty terms in the objective function is multiplied with this factor.
-            name: The name of the converted problem.
 
         Returns:
             The converted problem, that is an unconstrained problem.
@@ -57,9 +61,18 @@ class LinearEqualityToPenalty:
         self._src = copy.deepcopy(op)  # deep copy
         self._dst = QuadraticProgram()
 
-        # set the penalty coefficient by _auto_define_penalty() or manually.
-        if auto_penalty:
-            penalty_factor = self._auto_define_penalty(penalty_factor)
+        # If penalty is None, set the penalty coefficient by _auto_define_penalty()
+        if self._penalty is None:
+            self._penalty = self._auto_define_penalty()
+            penalty = self._penalty
+        else:
+            penalty = self._penalty
+
+        # set problem name
+        if self._dst_name is None:
+            self._dst.name = self._src.name
+        else:
+            self._dst.name = self._dst_name
 
         # set variables
         for x in self._src.variables:
@@ -72,12 +85,6 @@ class LinearEqualityToPenalty:
             else:
                 raise QiskitOptimizationError('Unsupported vartype: {}'.format(x.vartype))
 
-        # set problem name
-        if name is None:
-            self._dst.name = self._src.name
-        else:
-            self._dst.name = name
-
         # get original objective terms
         offset = self._src.objective.constant
         linear = self._src.objective.linear.to_dict()
@@ -88,20 +95,22 @@ class LinearEqualityToPenalty:
         for constraint in self._src.linear_constraints:
 
             if constraint.sense != Constraint.Sense.EQ:
-                raise QiskitOptimizationError('An inequality constraint exists. '
-                                              'The method supports only equality constraints.')
+                raise QiskitOptimizationError(
+                    'An inequality constraint exists. '
+                    'The method supports only equality constraints.'
+                )
 
             constant = constraint.rhs
             row = constraint.linear.to_dict()
 
             # constant parts of penalty*(Constant-func)**2: penalty*(Constant**2)
-            offset += sense * penalty_factor * constant**2
+            offset += sense * penalty * constant ** 2
 
             # linear parts of penalty*(Constant-func)**2: penalty*(-2*Constant*func)
             for j, coef in row.items():
                 # if j already exists in the linear terms dic, add a penalty term
                 # into existing value else create new key and value in the linear_term dict
-                linear[j] = linear.get(j, 0.0) + sense * penalty_factor * -2 * coef * constant
+                linear[j] = linear.get(j, 0.0) + sense * penalty * -2 * coef * constant
 
             # quadratic parts of penalty*(Constant-func)**2: penalty*(func**2)
             for j, coef_1 in row.items():
@@ -113,8 +122,7 @@ class LinearEqualityToPenalty:
                     # according to implementation of quadratic terms in OptimizationModel,
                     # don't need to multiply by 2, since loops run over (x, y) and (y, x).
                     tup = cast(Union[Tuple[int, int], Tuple[str, str]], (j, k))
-                    quadratic[tup] = quadratic.get(tup, 0.0) \
-                        + sense * penalty_factor * coef_1 * coef_2
+                    quadratic[tup] = quadratic.get(tup, 0.0) + sense * penalty * coef_1 * coef_2
 
         if self._src.objective.sense == QuadraticObjective.Sense.MINIMIZE:
             self._dst.minimize(offset, linear, quadratic)
@@ -123,31 +131,32 @@ class LinearEqualityToPenalty:
 
         return self._dst
 
-    def _auto_define_penalty(self, penalty_factor: float = 1e5) -> float:
+    def _auto_define_penalty(self) -> float:
         """Automatically define the penalty coefficient.
-
-        This returns (upper bound - lower bound + 1) of the objective function.
-
-        Args:
-            penalty_factor: The penalty factor from `LinearEqualityToPenalty.encode`
 
         Returns:
             Return the minimum valid penalty factor calculated
-            from the upper bound and the lower bound of the objective function
+            from the upper bound and the lower bound of the objective function.
+            If a constraint has a float coefficient,
+            return the default value for the penalty factor.
         """
+        default_penalty = 1e5
 
-        # if a constraint has a float coefficient,
-        # return input `penalty_factor` for the penalty factor.
+        # Check coefficients of constraints.
+        # If a constraint has a float coefficient, return the default value for the penalty factor.
         terms = []
         for constraint in self._src.linear_constraints:
             terms.append(constraint.rhs)
             terms.extend(coef for coef in constraint.linear.to_dict().values())
         if any(isinstance(term, float) and not term.is_integer() for term in terms):
-            logger.warning('Using %f for the penalty coefficient because '
-                           'a float coefficient exists in constraints. \n'
-                           'The value could be too small. '
-                           'If so, set the penalty coefficient manually.', penalty_factor)
-            return penalty_factor
+            logger.warning(
+                'Warning: Using %f for the penalty coefficient because '
+                'a float coefficient exists in constraints. \n'
+                'The value could be too small. '
+                'If so, set the penalty coefficient manually.',
+                default_penalty,
+            )
+            return default_penalty
 
         # (upper bound - lower bound) can be calculate as the sum of absolute value of coefficients
         # Firstly, add 1 to guarantee that infeasible answers will be greater than upper bound.

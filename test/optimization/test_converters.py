@@ -427,9 +427,9 @@ class TestConverters(QiskitOptimizationTestCase):
         for i, x in enumerate(op.variables):
             linear[x.name] = i + 1
         op.linear_constraint(linear, Constraint.Sense.EQ, 3, 'sum1')
-        penalize = LinearEqualityToPenalty()
+        penalize = LinearEqualityToPenalty(penalty=1e5)
         op2ope = QuadraticProgramToIsing()
-        op2 = penalize.encode(op, auto_penalty=False)
+        op2 = penalize.encode(op)
         qubitop, offset = op2ope.encode(op2)
 
         # the encoder uses a dictionary, in which the order of items in Python 3.5 is not
@@ -535,15 +535,33 @@ class TestConverters(QiskitOptimizationTestCase):
         op.binary_var('z')
         op.minimize(constant=3, linear={'x': 1}, quadratic={('x', 'y'): 2})
         op.linear_constraint(linear={'x': 1, 'y': 1, 'z': 1}, sense='EQ', rhs=2, name='xyz_eq')
-        lineq2penalty = LinearEqualityToPenalty()
-        qubo = lineq2penalty.encode(op, auto_penalty=False)
-        qubo_auto = lineq2penalty.encode(op)
+        lineq2penalty = LinearEqualityToPenalty(penalty=1e5)
+        lineq2penalty_auto = LinearEqualityToPenalty()
+        qubo = lineq2penalty.encode(op)
+        qubo_auto = lineq2penalty_auto.encode(op)
         exact_mes = NumPyMinimumEigensolver()
         exact = MinimumEigenOptimizer(exact_mes)
         result = exact.solve(qubo)
         result_auto = exact.solve(qubo_auto)
         self.assertEqual(result.fval, result_auto.fval)
         self.assertListEqual(result.x, result_auto.x)
+
+    def test_auto_penalty_warning(self):
+        """ Test warnings of auto penalty function"""
+        op = QuadraticProgram()
+        op.binary_var('x')
+        op.binary_var('y')
+        op.binary_var('z')
+        op.minimize(linear={'x': 1, 'y': 2})
+        op.linear_constraint(linear={'x': 0.5, 'y': 0.5, 'z': 0.5}, sense='EQ', rhs=1, name='xyz')
+        with self.assertLogs('qiskit.optimization', level='WARNING') as log:
+            lineq2penalty = LinearEqualityToPenalty()
+            _ = lineq2penalty.encode(op)
+        warning = 'WARNING:qiskit.optimization.converters.linear_equality_to_penalty:' + \
+                  'Warning: Using 100000.000000 for the penalty coefficient because a float ' + \
+                  'coefficient exists in constraints. \nThe value could be too small. If so, ' + \
+                  'set the penalty coefficient manually.'
+        self.assertIn(warning, log.output)
 
 
 if __name__ == '__main__':
