@@ -312,7 +312,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
             Quantum circuit.
         """
         if isinstance(self.var_form, QuantumCircuit):
-            param_dict = dict(zip(self._var_form_params, parameter))
+            param_dict = dict(zip(self._var_form_params, parameter))  # type: Dict
             return self.var_form.assign_parameters(param_dict)
         return self.var_form.construct_circuit(parameter)
 
