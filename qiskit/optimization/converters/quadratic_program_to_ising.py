@@ -114,7 +114,7 @@ class QuadraticProgramToIsing:
             shift += weight
 
         # Remove paulis whose coefficients are zeros.
-        qubit_op = sum(PauliOp(pauli, coeff=coeff) for coeff, pauli in pauli_list)
+        qubit_op = sum(PauliOp(pauli, coeff=complex(coeff)) for coeff, pauli in pauli_list)
         if len(pauli_list) > 0:  # if the list is empty, qubit op is 0
             qubit_op = qubit_op.reduce()
 
