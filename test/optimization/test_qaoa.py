@@ -35,7 +35,7 @@ W1 = np.array([
     [1, 0, 1, 0]
 ])
 P1 = 1
-M1 = I ^ I ^ I ^ X + I ^ I ^ X ^ I + I ^ X ^ I ^ I + X ^ I ^ I ^ I
+M1 = (I ^ I ^ I ^ X) + (I ^ I ^ X ^ I) + (I ^ X ^ I ^ I) + (X ^ I ^ I ^ I)
 S1 = {'0101', '1010'}
 
 
