@@ -37,16 +37,16 @@ from qiskit.optimization.algorithms.admm_optimizer import ADMMParameters
 
 logger = logging.getLogger(__name__)
 
-QUBIT_OP_MAXIMIZE_SAMPLE = (-199999.5 + 0j) * (I ^ I ^ I ^ Z) + \
-                           (-399999.5 + 0j) * (I ^ I ^ Z ^ I) + \
-                           (-599999.5 + 0j) * (I ^ Z ^ I ^ I) + \
-                           (-799999.5 + 0j) * (Z ^ I ^ I ^ I) + \
-                           (100000 + 0j) * (I ^ I ^ Z ^ Z) + \
-                           (150000 + 0j) * (I ^ Z ^ I ^ Z) + \
-                           (300000 + 0j) * (I ^ Z ^ Z ^ I) + \
-                           (200000 + 0j) * (Z ^ I ^ I ^ Z) + \
-                           (400000 + 0j) * (Z ^ I ^ Z ^ I) + \
-                           (600000 + 0j) * (Z ^ Z ^ I ^ I)
+QUBIT_OP_MAXIMIZE_SAMPLE = -199999.5 * (I ^ I ^ I ^ Z) + \
+                           -399999.5 * (I ^ I ^ Z ^ I) + \
+                           -599999.5 * (I ^ Z ^ I ^ I) + \
+                           -799999.5 * (Z ^ I ^ I ^ I) + \
+                           100000 * (I ^ I ^ Z ^ Z) + \
+                           150000 * (I ^ Z ^ I ^ Z) + \
+                           300000 * (I ^ Z ^ Z ^ I) + \
+                           200000 * (Z ^ I ^ I ^ Z) + \
+                           400000 * (Z ^ I ^ Z ^ I) + \
+                           600000 * (Z ^ Z ^ I ^ I)
 OFFSET_MAXIMIZE_SAMPLE = 1149998
 
 
