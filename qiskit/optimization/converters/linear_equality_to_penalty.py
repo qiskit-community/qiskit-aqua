@@ -63,9 +63,7 @@ class LinearEqualityToPenalty:
         # If penalty is None, set the penalty coefficient by _auto_define_penalty()
         if self._penalty is None:
             self._penalty = self._auto_define_penalty()
-            penalty = self._penalty
-        else:
-            penalty = self._penalty
+        penalty = self._penalty
 
         # set problem name
         if self._dst_name is None:
