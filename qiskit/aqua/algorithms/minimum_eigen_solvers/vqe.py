@@ -289,7 +289,24 @@ class VQE(VQAlgorithm, MinimumEigensolver):
 
     def construct_circuit(self,
                           parameter: Union[List[float], List[Parameter], np.ndarray]
-                          ) -> OperatorBase:
+                          ) -> QuantumCircuit:
+        r"""
+        Generate and return the ansatz circuit.
+
+        Args:
+            parameter: Parameters for the ansatz circuit.
+
+        Returns:
+            Quantum circuit.
+        """
+        if isinstance(self.var_form, QuantumCircuit):
+            param_dict = dict(zip(self._var_form_params, parameter))
+            return self.var_form.assign_parameters(param_dict)
+        return self.var_form.construct_circuit(parameter)
+
+    def construct_observable_measurement(self,
+                                         parameter: Union[List[float], List[Parameter], np.ndarray]
+                                         ) -> OperatorBase:
         r"""
         Generate the ansatz circuit and expectation value measurement, and return their
         runnable composition.
@@ -310,11 +327,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         # ensure operator and varform are compatible
         self._check_operator_varform()
 
-        if isinstance(self.var_form, QuantumCircuit):
-            param_dict = dict(zip(self._var_form_params, parameter))
-            wave_function = self.var_form.assign_parameters(param_dict)
-        else:
-            wave_function = self.var_form.construct_circuit(parameter)
+        wave_function = self.construct_circuit(parameter)
 
         # If ExpectationValue was never created, create one now.
         if not self.expectation:
@@ -424,7 +437,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
             RuntimeError: If the variational form has no parameters.
         """
         if not self._expect_op:
-            self._expect_op = self.construct_circuit(self._var_form_params)
+            self._expect_op = self.construct_observable_measurement(self._var_form_params)
 
         num_parameters = self.var_form.num_parameters
         if self._var_form.num_parameters == 0:
