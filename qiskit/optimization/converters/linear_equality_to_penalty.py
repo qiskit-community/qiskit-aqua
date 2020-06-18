@@ -37,7 +37,6 @@ class LinearEqualityToPenalty:
             penalty: Penalty factor to scale equality constraints that are added to objective.
                      If None is passed, penalty factor will be automatically calculated.
             name: The name of the converted problem.
-
         """
         self._src = None
         self._dst = None
