@@ -72,9 +72,6 @@ class SummedOp(ListOp):
         Returns:
             A ``SummedOp`` equivalent to the sum of self and other.
         """
-        if self == other:
-            return self.mul(2.0)
-
         self_new_ops = self.oplist if self.coeff == 1 \
             else [op.mul(self.coeff) for op in self.oplist]
         if isinstance(other, SummedOp):
@@ -147,8 +144,8 @@ class SummedOp(ListOp):
         reduced_ops = SummedOp([op * coeff for op, coeff in zip(oplist, coeffs)])  # type: ignore
 
         # reduce constituents
-        reduced_ops = [op.reduce() for op in self.oplist]
-        reduced_ops = reduce(lambda x, y: x.add(y), reduced_ops) * self.coeff
+        reduced_ops = [op.reduce() for op in reduced_ops.oplist]
+        reduced_ops = reduce(lambda x, y: x.add(y), reduced_ops) * reduced_ops.coeff
 
         if isinstance(reduced_ops, SummedOp) and len(reduced_ops.oplist) == 1:
             return reduced_ops.oplist[0]
