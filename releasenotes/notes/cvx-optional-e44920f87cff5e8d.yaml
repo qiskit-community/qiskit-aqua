@@ -1,0 +1,10 @@
+---
+upgrade:
+  - |
+    The ``cvxpy <https://www.cvxpy.org/>`_ dependency which is required for
+    the the svm classifier has been removed from the requirements list and made
+    an optional dependency. This is because installing cvxpy is not seamless
+    in every environment and often requires a compiler be installed to run.
+    To use the svm classifier now you'll need to install cvxpy by either
+    running ``pip install cvxpy<1.1.0`` or to install it with aqua running
+    ``pip install qiskit-aqua[cvx]``.
