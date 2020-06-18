@@ -235,7 +235,7 @@ class TestOpConstruction(QiskitAquaTestCase):
         c_op_id = c_op_perm.permute(perm)
         self.assertEqual(c_op, c_op_id)
 
-    def test_summed_op(self):
+    def test_summed_op_reduce(self):
         """Test SummedOp"""
         sum_op = (X ^ X * 2) + (Y ^ Y)  # type: SummedOp
         with self.subTest('SummedOp test 1'):
@@ -331,6 +331,14 @@ class TestOpConstruction(QiskitAquaTestCase):
             self.assertEqual(sum_op.coeff, 1)
             self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY', 'ZZ'])
             self.assertListEqual([op.coeff for op in sum_op], [10, 2, 3])
+
+    def test_summed_op_equals(self):
+        """Test corner cases of SummedOp's equals function."""
+        with self.subTest('multiplicative factor'):
+            self.assertEqual(2 * X, X + X)
+
+        with self.subTest('commutative'):
+            self.assertEqual(X + Z, Z + X)
 
     def test_circuit_compose_register_independent(self):
         """Test that CircuitOp uses combines circuits independent of the register.
