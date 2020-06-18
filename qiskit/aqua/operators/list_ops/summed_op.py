@@ -174,17 +174,19 @@ class SummedOp(ListOp):
             return False
 
         # check if reduced op is still a SummedOp
-        if not isinstance(self_reduced, self.__class__):
+        if not isinstance(self_reduced, SummedOp):
             return self_reduced == other_reduced
 
+        self_reduced = cast(SummedOp, self_reduced)
+        other_reduced = cast(SummedOp, other_reduced)
         if not len(self_reduced.oplist) == len(other_reduced.oplist):
             return False
 
         # absorb coeffs into the operators
         if self_reduced.coeff != 1:
-            self_reduced = SummedOp([op * self_reduced.coeff for op in self_reduced.oplist])
+            self_reduced = SummedOp([op * coeff for op in self_reduced.oplist])  # type: ignore
         if other_reduced.coeff != 1:
-            other_reduced = SummedOp([op * other_reduced.coeff for op in other_reduced.oplist])
+            other_reduced = SummedOp([op * coeff for op in other_reduced.oplist])  # type: ignore
 
         # compare independent of order
         return set(self_reduced) == set(other_reduced)
