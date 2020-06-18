@@ -184,9 +184,11 @@ class SummedOp(ListOp):
 
         # absorb coeffs into the operators
         if self_reduced.coeff != 1:
-            self_reduced = SummedOp([op * coeff for op in self_reduced.oplist])  # type: ignore
+            self_reduced = SummedOp(
+                [op * self_reduced.coeff for op in self_reduced.oplist])  # type: ignore
         if other_reduced.coeff != 1:
-            other_reduced = SummedOp([op * coeff for op in other_reduced.oplist])  # type: ignore
+            other_reduced = SummedOp(
+                [op * other_reduced.coeff for op in other_reduced.oplist])  # type: ignore
 
         # compare independent of order
         return set(self_reduced) == set(other_reduced)
