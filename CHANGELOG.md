@@ -15,8 +15,19 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 > -   **Fixed**: for any bug fixes.
 > -   **Security**: in case of vulnerabilities.
 
-[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.7.2...HEAD)
+[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.7.3...HEAD)
 ========================================================================
+
+[0.7.3](https://github.com/Qiskit/qiskit-aqua/compare/0.7.2...0.7.3) - 2020-06-18
+=================================================================================
+
+Fixed
+-----
+
+-   CircuitOp uses QuantumCircuit.compose, not .combine (#1048)
+-   MatrixOp.to_instruction updated to return an Instruction (#1049)
+-   Fix hash function of PauliOp class (#1052)
+-   Make cvxpy an optional dependency (#1055)
 
 [0.7.2](https://github.com/Qiskit/qiskit-aqua/compare/0.7.1...0.7.2) - 2020-06-15
 =================================================================================
