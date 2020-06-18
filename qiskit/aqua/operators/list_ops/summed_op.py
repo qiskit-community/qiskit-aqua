@@ -113,14 +113,17 @@ class SummedOp(ListOp):
                     coeffs.append(self.coeff)
         return SummedOp([op * coeff for op, coeff in zip(oplist, coeffs)])  # type: ignore
 
-    # Try collapsing list or trees of Sums.
     # TODO be smarter about the fact that any two ops in oplist could be evaluated for sum.
     def reduce(self) -> OperatorBase:
-        # first reduce constituents
-        reduced_ops = [op.reduce() for op in self.oplist]
-        reduced_ops = reduce(lambda x, y: x.add(y), reduced_ops) * self.coeff
+        """Try collapsing list or trees of sums.
 
-        # then group duplicate operators
+        Tries to sum up duplicate operators and reduces the operators
+        in the sum.
+
+        Returns:
+            A collapsed version of self, if possible.
+        """
+        # group duplicate operators
         # e.g., ``SummedOp([2 * X ^ Y, X ^ Y]).simplify() -> SummedOp([3 * X ^ Y])``.
         oplist = []  # type: List[OperatorBase]
         coeffs = []  # type: List[Union[int, float, complex, ParameterExpression]]
@@ -142,6 +145,10 @@ class SummedOp(ListOp):
                     oplist.append(op)
                     coeffs.append(self.coeff)
         reduced_ops = SummedOp([op * coeff for op, coeff in zip(oplist, coeffs)])  # type: ignore
+
+        # reduce constituents
+        reduced_ops = [op.reduce() for op in self.oplist]
+        reduced_ops = reduce(lambda x, y: x.add(y), reduced_ops) * self.coeff
 
         if isinstance(reduced_ops, SummedOp) and len(reduced_ops.oplist) == 1:
             return reduced_ops.oplist[0]
@@ -169,6 +176,21 @@ class SummedOp(ListOp):
         return self.combo_fn(legacy_ops) * coeff
 
     def equals(self, other: OperatorBase) -> bool:
+        """Check if other is equal to self.
+
+        Args:
+            other: The other operator to check for equality.
+
+        Returns:
+            True, if other and self are equal, otherwise False.
+
+        Examples:
+            >>> from qiskit.aqua.operators import X, Z
+            >>> 2 * X == X + X
+            True
+            >>> X + Z == Z + X
+            True
+        """
         self_reduced, other_reduced = self.reduce(), other.reduce()
         if not isinstance(other_reduced, type(self_reduced)):
             return False
