@@ -16,15 +16,16 @@
 import copy
 import logging
 import time
-from typing import List, Optional, Any
+from typing import List, Optional, Any, Tuple, cast
 
 import numpy as np
 from ..exceptions import QiskitOptimizationError
 from .cplex_optimizer import CplexOptimizer
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
 from ..problems.quadratic_program import QuadraticProgram
-from ..problems.variable import Variable
+from ..problems.variable import VarType, Variable
 from ..problems.constraint import Constraint
+from ..problems.linear_constraint import LinearConstraint
 from ..problems.quadratic_objective import QuadraticObjective
 
 UPDATE_RHO_BY_TEN_PERCENT = 0
@@ -117,7 +118,7 @@ class ADMMState:
         self.q1 = None
         self.c1 = None
         # constraints
-        self.a0 = None
+        self.a0 = None  # type: Optional[np.ndarray]
         self.b0 = None
 
         # These are the parameters that are updated in the ADMM iterations.
@@ -130,21 +131,24 @@ class ADMMState:
         self.lambda_mult = np.zeros(binary_size)
 
         # The following structures store quantities obtained in each ADMM iteration.
-        self.cost_iterates = []
-        self.residuals = []
-        self.dual_residuals = []
-        self.cons_r = []
-        self.merits = []
-        self.lambdas = []
-        self.x0_saved = []
-        self.u_saved = []
-        self.z_saved = []
-        self.y_saved = []
+        self.cost_iterates = []  # type: List[float]
+        self.residuals = []  # type: List[float]
+        self.dual_residuals = []  # type: List[float]
+        self.cons_r = []  # type: List[float]
+        self.merits = []  # type: List[float]
+        self.lambdas = []  # type: List[float]
+        self.x0_saved = []  # type: List[np.ndarray]
+        self.u_saved = []  # type: List[np.ndarray]
+        self.z_saved = []  # type: List[np.ndarray]
+        self.y_saved = []  # type: List[np.ndarray]
         self.rho = rho_initial
 
-        self.binary_equality_constraints = []  # lin. eq. constraints with bin. vars. only
-        self.equality_constraints = []  # all equality constraints
-        self.inequality_constraints = []  # all inequality constraints
+        # lin. eq. constraints with bin. vars. only
+        self.binary_equality_constraints = []  # type: List[LinearConstraint]
+        # all equality constraints
+        self.equality_constraints = []  # type: List[Constraint]
+        # all inequality constraints
+        self.inequality_constraints = []  # type: List[Constraint]
 
 
 class ADMMOptimizationResult(OptimizationResult):
@@ -199,7 +203,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # internal state where we'll keep intermediate solution
         # here, we just declare the class variable, the variable is initialized in kept in
         # the solve method.
-        self._state = None  # Optional[ADMMState]
+        self._state = None  # type: Optional[ADMMState]
 
     def get_compatibility_msg(self, problem: QuadraticProgram) -> Optional[str]:
         """Checks whether a given problem can be solved with the optimizer implementing this method.
@@ -273,7 +277,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         start_time = time.time()
         # we have not stated our computations yet, so elapsed time initialized as zero.
-        elapsed_time = 0
+        elapsed_time = 0.0
         iteration = 0
         residual = 1.e+2
 
@@ -344,14 +348,14 @@ class ADMMOptimizer(OptimizationAlgorithm):
         result = ADMMOptimizationResult(solution, objective_value, self._state)
 
         # convert back integer to binary
-        result = int2bin.decode(result)
+        result = cast(ADMMOptimizationResult, int2bin.decode(result))
         # debug
         self._log.debug("solution=%s, objective=%s at iteration=%s",
                         solution, objective_value, iteration)
         return result
 
     @staticmethod
-    def _turn_to_minimization(problem: QuadraticProgram) -> (QuadraticProgram, float):
+    def _turn_to_minimization(problem: QuadraticProgram) -> Tuple[QuadraticProgram, float]:
         """
         Turns the problem to `ObjSense.MINIMIZE` by flipping the sign of the objective function
         if initially it is `ObjSense.MAXIMIZE`. Otherwise returns the original problem.
@@ -373,7 +377,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         return problem, sense
 
     @staticmethod
-    def _get_variable_indices(op: QuadraticProgram, var_type: Variable.Type) -> List[int]:
+    def _get_variable_indices(op: QuadraticProgram, var_type: VarType) -> List[int]:
         """Returns a list of indices of the variables of the specified type.
 
         Args:
@@ -420,25 +424,25 @@ class ADMMOptimizer(OptimizationAlgorithm):
         """Converts problem representation into set of matrices and vectors."""
         binary_var_indices = set(self._state.binary_indices)
         # separate constraints
-        for constraint in self._state.op.linear_constraints:
-            if constraint.sense == Constraint.Sense.EQ:
-                self._state.equality_constraints.append(constraint)
+        for l_constraint in self._state.op.linear_constraints:
+            if l_constraint.sense == Constraint.Sense.EQ:
+                self._state.equality_constraints.append(l_constraint)
 
                 # verify that there are only binary variables in the constraint
                 # this is to build A0, b0 in step 1
-                constraint_var_indices = set(constraint.linear.to_dict().keys())
+                constraint_var_indices = set(l_constraint.linear.to_dict().keys())
                 if constraint_var_indices.issubset(binary_var_indices):
-                    self._state.binary_equality_constraints.append(constraint)
+                    self._state.binary_equality_constraints.append(l_constraint)
 
-            elif constraint.sense in (Constraint.Sense.LE, Constraint.Sense.GE):
-                self._state.inequality_constraints.append(constraint)
+            elif l_constraint.sense in (Constraint.Sense.LE, Constraint.Sense.GE):
+                self._state.inequality_constraints.append(l_constraint)
 
         # separate quadratic constraints into eq and non-eq
-        for constraint in self._state.op.quadratic_constraints:
-            if constraint.sense == Constraint.Sense.EQ:
-                self._state.equality_constraints.append(constraint)
-            elif constraint.sense in (Constraint.Sense.LE, Constraint.Sense.GE):
-                self._state.inequality_constraints.append(constraint)
+        for q_constraint in self._state.op.quadratic_constraints:
+            if q_constraint.sense == Constraint.Sense.EQ:
+                self._state.equality_constraints.append(q_constraint)
+            elif q_constraint.sense in (Constraint.Sense.LE, Constraint.Sense.GE):
+                self._state.inequality_constraints.append(q_constraint)
 
         # objective
         self._state.q0 = self._get_q(self._state.binary_indices)
@@ -469,7 +473,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         return q
 
-    def _get_a0_b0(self) -> (np.ndarray, np.ndarray):
+    def _get_a0_b0(self) -> Tuple[np.ndarray, np.ndarray]:
         """Constructs a matrix and a vector from the constraints in a form of Ax = b, where
         x is a vector of binary variables.
 
@@ -586,7 +590,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         """
         return np.asarray(self._qubo_optimizer.solve(op1).x)
 
-    def _update_x1(self, op2: QuadraticProgram) -> (np.ndarray, np.ndarray):
+    def _update_x1(self, op2: QuadraticProgram) -> Tuple[np.ndarray, np.ndarray]:
         """Solves the Step2 QuadraticProgram via the continuous optimizer.
 
         Args:
@@ -615,7 +619,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         """
         return np.asarray(self._continuous_optimizer.solve(op3).x)
 
-    def _get_best_merit_solution(self) -> (np.ndarray, np.ndarray, float):
+    def _get_best_merit_solution(self) -> Tuple[np.ndarray, np.ndarray, float]:
         """The ADMM solution is that for which the merit value is the min
             * sol: Iterate with the min merit value
             * sol_val: Value of sol, according to the original objective
@@ -678,10 +682,10 @@ class ADMMOptimizer(OptimizationAlgorithm):
             cr_eq += np.abs(constraint.evaluate(solution) - constraint.rhs)
 
         # inequality constraints
-        cr_ineq = 0
+        cr_ineq = 0.0
         for constraint in self._state.inequality_constraints:
-            sense = -1 if constraint.sense == Constraint.Sense.GE else 1
-            cr_ineq += max(sense * (constraint.evaluate(solution) - constraint.rhs), 0)
+            sense = -1.0 if constraint.sense == Constraint.Sense.GE else 1.0
+            cr_ineq += max(sense * (constraint.evaluate(solution) - constraint.rhs), 0.0)
 
         return cr_eq + cr_ineq
 
@@ -705,7 +709,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         """
         return self._state.op.objective.evaluate(self._get_current_solution())
 
-    def _get_solution_residuals(self, iteration: int) -> (float, float):
+    def _get_solution_residuals(self, iteration: int) -> Tuple[float, float]:
         """Compute primal and dual residual.
 
         Args:

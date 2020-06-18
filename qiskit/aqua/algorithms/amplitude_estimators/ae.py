@@ -14,7 +14,7 @@
 
 """The Quantum Phase Estimation-based Amplitude Estimation algorithm."""
 
-from typing import Optional, Union, List, Tuple
+from typing import Optional, Union, List, Tuple, Dict, Any
 import warnings
 import logging
 from collections import OrderedDict
@@ -86,7 +86,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
                           DeprecationWarning, stacklevel=2)
         self._iqft = iqft or QFT(self._m).inverse()
         self._circuit = None
-        self._ret = {}
+        self._ret = {}  # type: Dict[str, Any]
 
     @property
     def _num_qubits(self) -> int:
@@ -137,13 +137,13 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 y measurements with respective probabilities, in this order.
         """
         # map measured results to estimates
-        y_probabilities = OrderedDict()
+        y_probabilities = OrderedDict()  # type: OrderedDict
         for i, probability in enumerate(probabilities):
             b = '{0:b}'.format(i).rjust(self._num_qubits, '0')[::-1]
             y = int(b[:self._m], 2)
             y_probabilities[y] = y_probabilities.get(y, 0) + probability
 
-        a_probabilities = OrderedDict()
+        a_probabilities = OrderedDict()  # type: OrderedDict
         for y, probability in y_probabilities.items():
             if y >= int(self._M / 2):
                 y = self._M - y
@@ -399,8 +399,8 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
             self._ret['counts'] = ret.get_counts()
 
             # construct probabilities
-            y_probabilities = {}
-            a_probabilities = {}
+            y_probabilities = OrderedDict()
+            a_probabilities = OrderedDict()
             shots = self._quantum_instance._run_config.shots
 
             for state, counts in ret.get_counts().items():

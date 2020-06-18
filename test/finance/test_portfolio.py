@@ -35,7 +35,7 @@ class TestPortfolio(QiskitFinanceTestCase):
 
     def setUp(self):
         super().setUp()
-        self.seed = 45764
+        self.seed = 50
         aqua_globals.random_seed = self.seed
 
         num_assets = 4
@@ -61,8 +61,8 @@ class TestPortfolio(QiskitFinanceTestCase):
         selection = sample_most_likely(result.eigenstate)
         value = portfolio.portfolio_value(
             selection, self.muu, self.sigma, self.risk, self.budget, self.penalty)
-        np.testing.assert_array_equal(selection, [1, 0, 0, 1])
-        self.assertAlmostEqual(value, -0.0055989)
+        np.testing.assert_array_equal(selection, [0, 1, 1, 0])
+        self.assertAlmostEqual(value, -0.00679917)
 
     def test_portfolio_qaoa(self):
         """ portfolio test with QAOA """
@@ -76,8 +76,8 @@ class TestPortfolio(QiskitFinanceTestCase):
         selection = sample_most_likely(result.eigenstate)
         value = portfolio.portfolio_value(
             selection, self.muu, self.sigma, self.risk, self.budget, self.penalty)
-        np.testing.assert_array_equal(selection, [1, 0, 0, 1])
-        self.assertAlmostEqual(value, -0.0055989)
+        np.testing.assert_array_equal(selection, [0, 1, 1, 0])
+        self.assertAlmostEqual(value, -0.00679917)
 
 
 if __name__ == '__main__':

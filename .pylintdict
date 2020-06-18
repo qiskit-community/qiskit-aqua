@@ -43,6 +43,7 @@ babbush
 backend
 backends
 barenco
+Baritompa
 barkoutsos
 basebackend
 baseoperator
@@ -79,6 +80,7 @@ Chuang's
 circ
 CircuitCache
 CircuitOp
+CircuitSampler
 clas
 clbits
 clifford
@@ -116,6 +118,7 @@ ctls
 cts
 currentmodule
 cvs
+cvxpy
 cx
 cx's
 cz
@@ -478,6 +481,7 @@ Parikh
 pascual
 pauli
 pauli's
+PauliOp
 paulis
 paulische
 pca

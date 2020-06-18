@@ -17,7 +17,7 @@ The Quantum Dynamics algorithm.
 
 import logging
 
-from typing import Optional, Union
+from typing import Optional, Union, Dict, Any
 from qiskit import QuantumRegister
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance
@@ -74,7 +74,7 @@ class EOH(QuantumAlgorithm):
         self._num_time_slices = num_time_slices
         self._expansion_mode = expansion_mode
         self._expansion_order = expansion_order
-        self._ret = {}
+        self._ret = {}  # type: Dict[str, Any]
 
     def construct_circuit(self):
         """

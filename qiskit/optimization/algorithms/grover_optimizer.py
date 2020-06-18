@@ -120,10 +120,10 @@ class GroverOptimizer(OptimizationAlgorithm):
         if sense == problem_.objective.Sense.MAXIMIZE:
             problem_.objective.sense = problem_.objective.Sense.MINIMIZE
             problem_.objective.constant = -problem_.objective.constant
-            for i, v in problem_.objective.linear.to_dict().items():
-                problem_.objective.linear[i] = -v
-            for (i, j), v in problem_.objective.quadratic.to_dict().items():
-                problem_.objective.quadratic[i, j] = -v
+            for i, val in problem_.objective.linear.to_dict().items():
+                problem_.objective.linear[i] = -val
+            for (i, j), val in problem_.objective.quadratic.to_dict().items():
+                problem_.objective.quadratic[i, j] = -val
 
         # Variables for tracking the optimum.
         optimum_found = False
@@ -138,7 +138,7 @@ class GroverOptimizer(OptimizationAlgorithm):
         keys_measured = []
 
         # Variables for result object.
-        func_dict = {}
+        func_dict = {}  # type: Dict[Union[int, Tuple[int, int]], int]
         operation_count = {}
         iteration = 0
 
@@ -148,7 +148,7 @@ class GroverOptimizer(OptimizationAlgorithm):
 
         # Initialize oracle helper object.
         orig_constant = problem_.objective.constant
-        measurement = not self._quantum_instance.is_statevector
+        measurement = not self.quantum_instance.is_statevector
         opt_prob_converter = QuadraticProgramToNegativeValueOracle(n_value,
                                                                    measurement)
 
@@ -173,7 +173,7 @@ class GroverOptimizer(OptimizationAlgorithm):
                     # TODO: Utilize Grover's incremental feature - requires changes to Grover.
                     grover = Grover(oracle, init_state=a_operator, num_iterations=rotation_count)
                     circuit = grover.construct_circuit(
-                        measurement=self._quantum_instance.is_statevector)
+                        measurement=self.quantum_instance.is_statevector)
                 else:
                     circuit = a_operator._circuit
 
@@ -217,7 +217,7 @@ class GroverOptimizer(OptimizationAlgorithm):
                 logger.info('Operation Count: %s\n', operations)
 
         # Get original key and value pairs.
-        func_dict[-1] = orig_constant
+        func_dict[-1] = int(orig_constant)
         solutions = self._get_qubo_solutions(func_dict, n_key)
 
         # If the constant is 0 and we didn't find a negative, the answer is likely 0.
@@ -245,7 +245,7 @@ class GroverOptimizer(OptimizationAlgorithm):
         freq = sorted(probs.items(), key=lambda x: x[1], reverse=True)
 
         # Pick a random outcome.
-        freq[len(freq)-1] = (freq[len(freq)-1][0], 1 - sum([x[1] for x in freq[0:len(freq)-1]]))
+        freq[len(freq)-1] = (freq[len(freq)-1][0], 1.0 - sum([x[1] for x in freq[0:len(freq)-1]]))
         idx = aqua_globals.random.choice(len(freq), 1, p=[x[1] for x in freq])[0]
         logger.info('Frequencies: %s', freq)
 
@@ -254,8 +254,8 @@ class GroverOptimizer(OptimizationAlgorithm):
     def _get_probs(self, n_key: int, n_value: int, qc: QuantumCircuit) -> Dict[str, float]:
         """Gets probabilities from a given backend."""
         # Execute job and filter results.
-        result = self._quantum_instance.execute(qc)
-        if self._quantum_instance.is_statevector:
+        result = self.quantum_instance.execute(qc)
+        if self.quantum_instance.is_statevector:
             state = np.round(result.get_statevector(qc), 5)
             keys = [bin(i)[2::].rjust(int(np.log2(len(state))), '0')[::-1]
                     for i in range(0, len(state))]
@@ -267,7 +267,7 @@ class GroverOptimizer(OptimizationAlgorithm):
                 hist[new_key] = f_hist[key]
         else:
             state = result.get_counts(qc)
-            shots = self._quantum_instance.run_config.shots
+            shots = self.quantum_instance.run_config.shots
             hist = {}
             for key in state:
                 hist[key[:n_key] + key[n_key:n_key+n_value][::-1] + key[n_key+n_value:]] = \

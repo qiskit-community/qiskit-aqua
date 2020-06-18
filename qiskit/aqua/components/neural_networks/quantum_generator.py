@@ -14,7 +14,7 @@
 
 """Quantum Generator."""
 
-from typing import Optional, List, Union
+from typing import Optional, List, Union, Dict, Any
 from copy import deepcopy
 import numpy as np
 
@@ -97,7 +97,7 @@ class QuantumGenerator(GenerativeNetwork):
                                     initial_state=init_distribution,
                                     entanglement=entangler_map)
                 if init_params is None:
-                    init_params = aqua_globals.random.rand(var_form.num_parameters) * 2 * 1e-2
+                    init_params = aqua_globals.random.random(var_form.num_parameters) * 2 * 1e-2
                 # Set generator circuit
                 self.generator_circuit = MultivariateVariationalDistribution(num_qubits, var_form,
                                                                              init_params,
@@ -112,7 +112,7 @@ class QuantumGenerator(GenerativeNetwork):
                                     initial_state=init_distribution,
                                     entanglement=entangler_map)
                 if init_params is None:
-                    init_params = aqua_globals.random.rand(var_form.num_parameters) * 2 * 1e-2
+                    init_params = aqua_globals.random.random(var_form.num_parameters) * 2 * 1e-2
                 # Set generator circuit
                 self.generator_circuit = UnivariateVariationalDistribution(
                     int(np.sum(num_qubits)), var_form, init_params, low=bounds[0], high=bounds[1])
@@ -169,7 +169,7 @@ class QuantumGenerator(GenerativeNetwork):
 
         self._shots = None
         self._discriminator = None
-        self._ret = {}
+        self._ret = {}  # type: Dict[str, Any]
 
     def set_seed(self, seed):
         """

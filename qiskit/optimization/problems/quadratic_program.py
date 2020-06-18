@@ -13,11 +13,12 @@
 # that they have been altered from the originals.
 
 """Quadratic Program."""
+
+from typing import cast, List, Union, Dict, Optional, Tuple
 import logging
 from collections import defaultdict
 from enum import Enum
 from math import fsum
-from typing import List, Union, Dict, Optional, Tuple
 
 from docplex.mp.constr import (LinearConstraint as DocplexLinearConstraint,
                                QuadraticConstraint as DocplexQuadraticConstraint,
@@ -29,13 +30,13 @@ from docplex.mp.quad import QuadExpr
 from numpy import ndarray
 from scipy.sparse import spmatrix
 
-from .constraint import Constraint
+from .constraint import Constraint, ConstraintSense
 from .linear_constraint import LinearConstraint
 from .linear_expression import LinearExpression
 from .quadratic_constraint import QuadraticConstraint
 from .quadratic_expression import QuadraticExpression
 from .quadratic_objective import QuadraticObjective
-from .variable import Variable
+from .variable import Variable, VarType
 from ..exceptions import QiskitOptimizationError
 from ..infinity import INFINITY
 
@@ -64,14 +65,14 @@ class QuadraticProgram:
         self._name = name
         self._status = QuadraticProgram.Status.VALID
 
-        self._variables = []  # List[Variable]
-        self._variables_index = {}  # Dict[str, int]
+        self._variables = []  # type: List[Variable]
+        self._variables_index = {}  # type: Dict[str, int]
 
-        self._linear_constraints = []  # List[LinearConstraint]
-        self._linear_constraints_index = {}  # Dict[str, int]
+        self._linear_constraints = []  # type: List[LinearConstraint]
+        self._linear_constraints_index = {}  # type: Dict[str, int]
 
-        self._quadratic_constraints = []  # List[QuadraticConstraint]
-        self._quadratic_constraints_index = {}  # Dict[str, int]
+        self._quadratic_constraints = []  # type: List[QuadraticConstraint]
+        self._quadratic_constraints_index = {}  # type: Dict[str, int]
 
         self._objective = QuadraticObjective(self)
 
@@ -142,7 +143,7 @@ class QuadraticProgram:
     def _add_variable(self,
                       lowerbound: Union[float, int] = 0,
                       upperbound: Union[float, int] = INFINITY,
-                      vartype: Variable.Type = Variable.Type.CONTINUOUS,
+                      vartype: VarType = VarType.CONTINUOUS,
                       name: Optional[str] = None) -> Variable:
         """Checks whether a variable name is already taken and adds the variable to list and index
         if not.
@@ -237,7 +238,7 @@ class QuadraticProgram:
         else:
             return self.variables[self._variables_index[i]]
 
-    def get_num_vars(self, vartype: Optional[Variable.Type] = None) -> int:
+    def get_num_vars(self, vartype: Optional[VarType] = None) -> int:
         """Returns the total number of variables or the number of variables of the specified type.
 
         Args:
@@ -296,7 +297,7 @@ class QuadraticProgram:
     def linear_constraint(self,
                           linear: Union[ndarray, spmatrix, List[float],
                                         Dict[Union[int, str], float]] = None,
-                          sense: Union[str, Constraint.Sense] = '<=',
+                          sense: Union[str, ConstraintSense] = '<=',
                           rhs: float = 0.0, name: Optional[str] = None) -> LinearConstraint:
         """Adds a linear equality constraint to the quadratic program of the form:
             linear * x sense rhs.
@@ -383,7 +384,7 @@ class QuadraticProgram:
                              quadratic: Union[ndarray, spmatrix, List[List[float]],
                                               Dict[Tuple[Union[int, str],
                                                          Union[int, str]], float]] = None,
-                             sense: Union[str, Constraint.Sense] = '<=',
+                             sense: Union[str, ConstraintSense] = '<=',
                              rhs: float = 0.0, name: Optional[str] = None) -> QuadraticConstraint:
         """Adds a quadratic equality constraint to the quadratic program of the form:
             x * Q * x <= rhs.
@@ -692,13 +693,13 @@ class QuadraticProgram:
 
         # add variables
         var = {}
-        for i, x in enumerate(self.variables):
+        for idx, x in enumerate(self.variables):
             if x.vartype == Variable.Type.CONTINUOUS:
-                var[i] = mdl.continuous_var(lb=x.lowerbound, ub=x.upperbound, name=x.name)
+                var[idx] = mdl.continuous_var(lb=x.lowerbound, ub=x.upperbound, name=x.name)
             elif x.vartype == Variable.Type.BINARY:
-                var[i] = mdl.binary_var(name=x.name)
+                var[idx] = mdl.binary_var(name=x.name)
             elif x.vartype == Variable.Type.INTEGER:
-                var[i] = mdl.integer_var(lb=x.lowerbound, ub=x.upperbound, name=x.name)
+                var[idx] = mdl.integer_var(lb=x.lowerbound, ub=x.upperbound, name=x.name)
             else:
                 # should never happen
                 raise QiskitOptimizationError('Unsupported variable type: {}'.format(x.vartype))
@@ -706,24 +707,24 @@ class QuadraticProgram:
         # add objective
         objective = self.objective.constant
         for i, v in self.objective.linear.to_dict().items():
-            objective += v * var[i]
+            objective += v * var[cast(int, i)]
         for (i, j), v in self.objective.quadratic.to_dict().items():
-            objective += v * var[i] * var[j]
+            objective += v * var[cast(int, i)] * var[cast(int, j)]
         if self.objective.sense == QuadraticObjective.Sense.MINIMIZE:
             mdl.minimize(objective)
         else:
             mdl.maximize(objective)
 
         # add linear constraints
-        for i, constraint in enumerate(self.linear_constraints):
-            name = constraint.name
-            rhs = constraint.rhs
-            if rhs == 0 and constraint.linear.coefficients.nnz == 0:
+        for i, l_constraint in enumerate(self.linear_constraints):
+            name = l_constraint.name
+            rhs = l_constraint.rhs
+            if rhs == 0 and l_constraint.linear.coefficients.nnz == 0:
                 continue
             linear_expr = 0
-            for j, v in constraint.linear.to_dict().items():
-                linear_expr += v * var[j]
-            sense = constraint.sense
+            for j, v in l_constraint.linear.to_dict().items():
+                linear_expr += v * var[cast(int, j)]
+            sense = l_constraint.sense
             if sense == Constraint.Sense.EQ:
                 mdl.add_constraint(linear_expr == rhs, ctname=name)
             elif sense == Constraint.Sense.GE:
@@ -735,19 +736,19 @@ class QuadraticProgram:
                 raise QiskitOptimizationError("Unsupported constraint sense: {}".format(sense))
 
         # add quadratic constraints
-        for i, constraint in enumerate(self.quadratic_constraints):
-            name = constraint.name
-            rhs = constraint.rhs
+        for i, q_constraint in enumerate(self.quadratic_constraints):
+            name = q_constraint.name
+            rhs = q_constraint.rhs
             if rhs == 0 \
-                    and constraint.linear.coefficients.nnz == 0 \
-                    and constraint.quadratic.coefficients.nnz == 0:
+                    and q_constraint.linear.coefficients.nnz == 0 \
+                    and q_constraint.quadratic.coefficients.nnz == 0:
                 continue
             quadratic_expr = 0
-            for j, v in constraint.linear.to_dict().items():
-                quadratic_expr += v * var[j]
-            for (j, k), v in constraint.quadratic.to_dict().items():
-                quadratic_expr += v * var[j] * var[k]
-            sense = constraint.sense
+            for j, v in q_constraint.linear.to_dict().items():
+                quadratic_expr += v * var[cast(int, j)]
+            for (j, k), v in q_constraint.quadratic.to_dict().items():
+                quadratic_expr += v * var[cast(int, j)] * var[cast(int, k)]
+            sense = q_constraint.sense
             if sense == Constraint.Sense.EQ:
                 mdl.add_constraint(quadratic_expr == rhs, ctname=name)
             elif sense == Constraint.Sense.GE:
@@ -872,9 +873,9 @@ class SubstituteVariables:
     CONST = '__CONSTANT__'
 
     def __init__(self):
-        self._src = None  # Optional[QuadraticProgram]
-        self._dst = None  # Optional[QuadraticProgram]
-        self._subs = {}
+        self._src = None  # type: Optional[QuadraticProgram]
+        self._dst = None  # type: Optional[QuadraticProgram]
+        self._subs = {}  # type: Dict[Union[int, str], Tuple[str, float]]
 
     def substitute_variables(
             self, src: QuadraticProgram,
@@ -919,7 +920,7 @@ class SubstituteVariables:
         return self._dst
 
     @staticmethod
-    def _feasible(sense: Constraint.Sense, rhs: float) -> bool:
+    def _feasible(sense: ConstraintSense, rhs: float) -> bool:
         """Checks feasibility of the following condition
             0 `sense` rhs
         """
@@ -947,7 +948,7 @@ class SubstituteVariables:
 
     def _subs_dict(self, constants, variables):
         # guarantee that there is no overlap between variables to be replaced and combine input
-        subs = {}  # Dict[str, Tuple[str, float]]
+        subs = {}  # type: Dict[Union[int, str], Tuple[str, float]]
         if constants is not None:
             for i, v in constants.items():
                 # substitute i <- v
@@ -1036,7 +1037,7 @@ class SubstituteVariables:
     def _linear_expression(self, lin_expr: LinearExpression) \
             -> Tuple[List[float], LinearExpression]:
         const = []
-        lin_dict = defaultdict(float)
+        lin_dict = defaultdict(float)  # type: Dict[Union[int, str], float]
         for i, w_i in lin_expr.to_dict(use_name=True).items():
             repl_i = self._subs[i] if i in self._subs else (i, 1)
             prod = w_i * repl_i[1]
@@ -1052,15 +1053,15 @@ class SubstituteVariables:
     def _quadratic_expression(self, quad_expr: QuadraticExpression) \
             -> Tuple[List[float], Optional[LinearExpression], Optional[QuadraticExpression]]:
         const = []
-        lin_dict = defaultdict(float)
-        quad_dict = defaultdict(float)
+        lin_dict = defaultdict(float)  # type: Dict[Union[int, str], float]
+        quad_dict = defaultdict(float)  # type: Dict[Tuple[Union[int, str], Union[int, str]], float]
         for (i, j), w_ij in quad_expr.to_dict(use_name=True).items():
             repl_i = self._subs[i] if i in self._subs else (i, 1)
             repl_j = self._subs[j] if j in self._subs else (j, 1)
             idx = tuple(x for x, _ in [repl_i, repl_j] if x != self.CONST)
             prod = w_ij * repl_i[1] * repl_j[1]
             if len(idx) == 2:
-                quad_dict[idx] += prod
+                quad_dict[idx] += prod  # type: ignore
             elif len(idx) == 1:
                 lin_dict[idx[0]] += prod
             else:

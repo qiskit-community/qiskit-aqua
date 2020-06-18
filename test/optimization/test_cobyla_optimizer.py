@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 
 class TestCobylaOptimizer(QiskitOptimizationTestCase):
-    """Cobyla Optimizer Tests."""
+    """Cobyla Optimizer Tests. """
 
     def test_cobyla_optimizer(self):
         """ Cobyla Optimizer Test. """
@@ -45,7 +45,7 @@ class TestCobylaOptimizer(QiskitOptimizationTestCase):
         self.assertAlmostEqual(result.fval, 5.8750)
 
     def test_cobyla_optimizer_with_quadratic_constraint(self):
-        """ Cobyla Optimizer Test """
+        """ Cobyla Optimizer Test With Quadratic Constraints. """
         # load optimization problem
         problem = QuadraticProgram()
         problem.continuous_var(upperbound=1)
@@ -63,6 +63,39 @@ class TestCobylaOptimizer(QiskitOptimizationTestCase):
 
         # analyze results
         self.assertAlmostEqual(result.fval, 1.0, places=2)
+
+    def test_cobyla_optimizer_with_variable_bounds(self):
+        """ Cobyla Optimizer Test With Variable Bounds. """
+
+        # initialize optimizer
+        cobyla = CobylaOptimizer()
+
+        # initialize problem
+        problem = QuadraticProgram()
+
+        # set variables and bounds
+        problem.continuous_var(lowerbound=-1, upperbound=1)
+        problem.continuous_var(lowerbound=-2, upperbound=2)
+
+        # set objective and minimize
+        problem.minimize(linear=[1, 1])
+
+        # solve problem with cobyla
+        result = cobyla.solve(problem)
+
+        # analyze results
+        self.assertAlmostEqual(result.x[0], -1.0, places=6)
+        self.assertAlmostEqual(result.x[1], -2.0, places=6)
+
+        # set objective and minimize
+        problem.maximize(linear=[1, 1])
+
+        # solve problem with cobyla
+        result = cobyla.solve(problem)
+
+        # analyze results
+        self.assertAlmostEqual(result.x[0], 1.0, places=6)
+        self.assertAlmostEqual(result.x[1], 2.0, places=6)
 
 
 if __name__ == '__main__':

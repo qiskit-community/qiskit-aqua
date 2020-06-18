@@ -15,6 +15,7 @@
 
 """The converter from a ```Operator``` to ``QuadraticProgram``."""
 
+from typing import Optional
 import copy
 
 import numpy as np
@@ -37,10 +38,10 @@ class IsingToQuadraticProgram:
                 The default value is False.
         """
         self._qubit_op = None
-        self._offset = 0
+        self._offset = 0.0
         self._num_qubits = 0
-        self._qubo_matrix = None
-        self._qp = None
+        self._qubo_matrix = None  # type: Optional[np.ndarray]
+        self._qp = None  # type: Optional[QuadraticProgram]
         self._linear = linear
 
     def encode(self, qubit_op: WeightedPauliOperator, offset: float = 0.0) -> QuadraticProgram:

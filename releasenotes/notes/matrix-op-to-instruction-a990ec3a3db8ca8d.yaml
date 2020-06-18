@@ -1,0 +1,7 @@
+---
+fixes:
+  - |
+    The ``MatrixOp.to_instruction`` method previously returned an operator and not
+    an instruction. This method has been updated to return an Instruction.
+    Note that this only works if the operator primitive is unitary, otherwise
+    an error is raised upon the construction of the instruction.
