@@ -431,9 +431,6 @@ class TestConverters(QiskitOptimizationTestCase):
         # qubit_op_as_dict = dict(qubitop.paulis)
         # for coeff, paulis in QUBIT_OP_MAXIMIZE_SAMPLE.paulis:
         #     self.assertEqual(paulis, qubit_op_as_dict[coeff])
-        print(qubitop.reduce())
-        print(qubitop.simplify())
-        print(QUBIT_OP_MAXIMIZE_SAMPLE.reduce())
         self.assertEqual(qubitop, QUBIT_OP_MAXIMIZE_SAMPLE)
 
         self.assertEqual(offset, OFFSET_MAXIMIZE_SAMPLE)
