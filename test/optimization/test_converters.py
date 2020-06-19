@@ -253,8 +253,8 @@ class TestConverters(QiskitOptimizationTestCase):
         linear_constraint['x0'] = 1
         linear_constraint['x2'] = 3
         op.linear_constraint(linear_constraint, Constraint.Sense.GE, 2, 'x0x2')
-        conv = InequalityToEquality()
-        op2 = conv.encode(op, mode='integer')
+        conv = InequalityToEquality(mode='integer')
+        op2 = conv.encode(op)
         lst = [op2.variables[3].vartype, op2.variables[4].vartype]
         self.assertListEqual(lst, [Variable.Type.INTEGER, Variable.Type.INTEGER])
 
@@ -276,8 +276,8 @@ class TestConverters(QiskitOptimizationTestCase):
         linear_constraint['x0'] = 1
         linear_constraint['x2'] = 3
         op.linear_constraint(linear_constraint, Constraint.Sense.GE, 2, 'x0x2')
-        conv = InequalityToEquality()
-        op2 = conv.encode(op, mode='continuous')
+        conv = InequalityToEquality(mode='continuous')
+        op2 = conv.encode(op)
         lst = [op2.variables[3].vartype, op2.variables[4].vartype]
         self.assertListEqual(lst, [Variable.Type.CONTINUOUS, Variable.Type.CONTINUOUS])
 
@@ -299,8 +299,8 @@ class TestConverters(QiskitOptimizationTestCase):
         linear_constraint['x0'] = 1.1
         linear_constraint['x2'] = 2.2
         op.linear_constraint(linear_constraint, Constraint.Sense.GE, 3.3, 'x0x2')
-        conv = InequalityToEquality()
-        op2 = conv.encode(op, mode='auto')
+        conv = InequalityToEquality(mode='auto')
+        op2 = conv.encode(op)
         lst = [op2.variables[3].vartype, op2.variables[4].vartype]
         self.assertListEqual(lst, [Variable.Type.INTEGER, Variable.Type.CONTINUOUS])
 

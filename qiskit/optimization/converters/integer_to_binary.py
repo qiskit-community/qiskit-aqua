@@ -50,19 +50,24 @@ class IntegerToBinary:
 
     _delimiter = '@'  # users are supposed not to use this character in variable names
 
-    def __init__(self) -> None:
+    def __init__(self, name: Optional[str] = None) -> None:
+        """
+        Args:
+            name: The name of the converted problem. If not provided, the name of the input
+                  problem is used.
+        """
         self._src = None  # type: Optional[QuadraticProgram]
         self._dst = None  # type: Optional[QuadraticProgram]
+        self._dst_name = name
         self._conv = {}  # type: Dict[Variable, List[Tuple[str, int]]]
+
         # e.g., self._conv = {x: [('x@1', 1), ('x@2', 2)]}
 
-    def encode(self, op: QuadraticProgram, name: Optional[str] = None) -> QuadraticProgram:
+    def encode(self, op: QuadraticProgram) -> QuadraticProgram:
         """Convert an integer problem into a new problem with binary variables.
 
         Args:
             op: The problem to be solved, that may contain integer variables.
-            name: The name of the converted problem. If not provided, the name of the input
-                problem is used.
 
         Returns:
             The converted problem, that contains no integer variables.
@@ -102,10 +107,10 @@ class IntegerToBinary:
             self._dst = copy.deepcopy(op)
 
         # adjust name of resulting problem if necessary
-        if name:
-            self._dst.name = name
-        else:
+        if self._dst.name is None:
             self._dst.name = self._src.name
+        else:
+            self._dst.name = self._dst_name
 
         return self._dst
 

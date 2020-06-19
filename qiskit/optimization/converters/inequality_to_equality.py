@@ -42,26 +42,30 @@ class InequalityToEquality:
 
     _delimiter = '@'  # users are supposed not to use this character in variable names
 
-    def __init__(self) -> None:
-        self._src = None  # type: Optional[QuadraticProgram]
-        self._dst = None  # type: Optional[QuadraticProgram]
-        self._conv = {}  # type: Dict[str, List[Tuple[str, int]]]
-        # e.g., self._conv = {'c1': [c1@slack_var]}
-
-    def encode(
-            self, op: QuadraticProgram, name: Optional[str] = None, mode: str = 'auto'
-    ) -> QuadraticProgram:
-        """Convert a problem with inequality constraints into one with only equality constraints.
-
+    def __init__(self, name: Optional[str] = None, mode: str = 'auto') -> None:
+        """
         Args:
-            op: The problem to be solved, that may contain inequality constraints.
-            name: The name of the converted problem.
+            name: The name of the converted problem. If not provided, the name of the input
+                  problem is used.
             mode: To chose the type of slack variables. There are 3 options for mode.
 
                 - 'integer': All slack variables will be integer variables.
                 - 'continuous': All slack variables will be continuous variables
                 - 'auto': Try to use integer variables but if it's not possible,
                    use continuous variables
+        """
+        self._src = None  # type: Optional[QuadraticProgram]
+        self._dst = None  # type: Optional[QuadraticProgram]
+        self._dst_name = name
+        self._mode = mode
+        self._conv = {}  # type: Dict[str, List[Tuple[str, int]]]
+        # e.g., self._conv = {'c1': [c1@slack_var]}
+
+    def encode(self, op: QuadraticProgram) -> QuadraticProgram:
+        """Convert a problem with inequality constraints into one with only equality constraints.
+
+        Args:
+            op: The problem to be solved, that may contain inequality constraints.
 
         Returns:
             The converted problem, that contain only equality constraints.
@@ -73,10 +77,15 @@ class InequalityToEquality:
         """
         self._src = copy.deepcopy(op)
         self._dst = QuadraticProgram()
-        if name:
-            self._dst.name = name
-        else:
+
+        # set a problem name
+        if self._dst_name is None:
             self._dst.name = self._src.name
+        else:
+            self._dst.name = self._dst_name
+
+        # set a converting mode
+        mode = self._mode
 
         # Copy variables
         for x in self._src.variables:
