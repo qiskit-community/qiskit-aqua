@@ -19,7 +19,7 @@ import datetime
 import importlib
 import logging
 
-from ._base_data_provider import BaseDataProvider, StockMarket
+from ._base_data_provider import BaseDataProvider
 from ..exceptions import QiskitFinanceError
 
 logger = logging.getLogger(__name__)
@@ -36,7 +36,6 @@ class WikipediaDataProvider(BaseDataProvider):
     def __init__(self,
                  token: Optional[str] = None,
                  tickers: Optional[Union[str, List[str]]] = None,
-                 stockmarket: StockMarket = StockMarket.WIKI,
                  start: datetime.datetime = datetime.datetime(2016, 1, 1),
                  end: datetime.datetime = datetime.datetime(2016, 1, 30)) -> None:
         """
@@ -44,7 +43,6 @@ class WikipediaDataProvider(BaseDataProvider):
         Args:
             token: quandl access token, which is not needed, strictly speaking
             tickers: tickers
-            stockmarket: WIKI
             start: start time
             end: end time
         Raises:
@@ -58,15 +56,6 @@ class WikipediaDataProvider(BaseDataProvider):
         else:
             self._tickers = tickers.replace('\n', ';').split(";")
         self._n = len(self._tickers)
-
-        if stockmarket not in [StockMarket.WIKI]:
-            msg = "WikipediaDataProvider does not support "
-            msg += stockmarket.value
-            msg += " as a stock market."
-            raise QiskitFinanceError(msg)
-
-        # This is to aid serialization; string is ok to serialize
-        self._stockmarket = str(stockmarket.value)
 
         self._token = token
         self._tickers = tickers
@@ -101,7 +90,7 @@ class WikipediaDataProvider(BaseDataProvider):
         stocks_notfound = []
         for _, ticker_name in enumerate(self._tickers):
             stock_data = None
-            name = self._stockmarket + "/" + ticker_name
+            name = 'WIKI' + "/" + ticker_name
             try:
                 stock_data = quandl.get(name,
                                         start_date=self._start,

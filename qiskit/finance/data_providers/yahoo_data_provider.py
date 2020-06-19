@@ -19,7 +19,7 @@ import datetime
 import importlib
 import logging
 
-from ._base_data_provider import BaseDataProvider, StockMarket
+from ._base_data_provider import BaseDataProvider
 from ..exceptions import QiskitFinanceError
 
 logger = logging.getLogger(__name__)
@@ -35,14 +35,12 @@ class YahooDataProvider(BaseDataProvider):
 
     def __init__(self,
                  tickers: Optional[Union[str, List[str]]] = None,
-                 stockmarket: StockMarket = StockMarket.YAHOO,
                  start: datetime.datetime = datetime.datetime(2016, 1, 1),
                  end: datetime.datetime = datetime.datetime(2016, 1, 30)) -> None:
         """
         Initializer
         Args:
             tickers: tickers
-            stockmarket: YAHOO
             start: start time
             end: end time
         Raises:
@@ -56,15 +54,6 @@ class YahooDataProvider(BaseDataProvider):
         else:
             self._tickers = tickers.replace('\n', ';').split(";")
         self._n = len(self._tickers)
-
-        if stockmarket != StockMarket.YAHOO:
-            msg = "YahooDataProvider does not support "
-            msg += stockmarket.value
-            msg += " as a stock market."
-            raise QiskitFinanceError(msg)
-
-        # This is to aid serialization; string is ok to serialize
-        self._stockmarket = str(stockmarket.value)
 
         self._tickers = tickers
         self._start = start.strftime('%Y-%m-%d')

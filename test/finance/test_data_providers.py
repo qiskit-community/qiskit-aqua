@@ -57,7 +57,6 @@ class TestDataProviders(QiskitFinanceTestCase):
         wiki = WikipediaDataProvider(
             token=self._quandl_token,
             tickers=["GOOG", "AAPL"],
-            stockmarket=StockMarket.WIKI,
             start=datetime.datetime(2016, 1, 1),
             end=datetime.datetime(2016, 1, 30)
         )
@@ -112,7 +111,6 @@ class TestDataProviders(QiskitFinanceTestCase):
         wiki = WikipediaDataProvider(
             token=self._quandl_token,
             tickers=["GOOG", "AAPL"],
-            stockmarket=StockMarket.WIKI,
             start=datetime.datetime(2016, 1, 1),
             end=datetime.datetime(2016, 1, 30)
         )
@@ -150,7 +148,6 @@ class TestDataProviders(QiskitFinanceTestCase):
         nasdaq = DataOnDemandProvider(
             token=self._on_demand_token,
             tickers=["GOOG", "AAPL"],
-            stockmarket=StockMarket.NASDAQ,
             start=datetime.datetime(2016, 1, 1),
             end=datetime.datetime(2016, 1, 2)
         )

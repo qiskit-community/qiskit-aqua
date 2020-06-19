@@ -22,7 +22,7 @@ import json
 import certifi
 import urllib3
 
-from ._base_data_provider import BaseDataProvider, StockMarket
+from ._base_data_provider import BaseDataProvider
 from ..exceptions import QiskitFinanceError
 
 logger = logging.getLogger(__name__)
@@ -39,7 +39,6 @@ class DataOnDemandProvider(BaseDataProvider):
     def __init__(self,
                  token: str,
                  tickers: Union[str, List[str]],
-                 stockmarket: StockMarket = StockMarket.NASDAQ,
                  start: datetime.datetime = datetime.datetime(2016, 1, 1),
                  end: datetime.datetime = datetime.datetime(2016, 1, 30),
                  verify: Optional[Union[str, bool]] = None) -> None:
@@ -47,7 +46,6 @@ class DataOnDemandProvider(BaseDataProvider):
         Args:
             token: data on demand access token
             tickers: tickers
-            stockmarket: NYSE or NASDAQ
             start: first data point
             end: last data point precedes this date
             verify: if verify is None, certify certificates
@@ -71,15 +69,6 @@ class DataOnDemandProvider(BaseDataProvider):
         else:
             self._tickers = tickers.replace('\n', ';').split(";")
         self._n = len(self._tickers)
-
-        if stockmarket not in [StockMarket.NASDAQ, StockMarket.NYSE]:
-            msg = "NASDAQ Data on Demand does not support "
-            msg += stockmarket.value
-            msg += " as a stock market."
-            raise QiskitFinanceError(msg)
-
-        # This is to aid serialization; string is ok to serialize
-        self._stockmarket = str(stockmarket.value)
 
         self._token = token
         self._start = start

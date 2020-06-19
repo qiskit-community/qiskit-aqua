@@ -37,9 +37,6 @@ class StockMarket(Enum):
     LONDON = 'XLON'
     EURONEXT = 'XPAR'
     SINGAPORE = 'XSES'
-    RANDOM = 'RANDOM'
-    WIKI = 'WIKI'
-    YAHOO = 'YAHOO'
 
 
 class BaseDataProvider(ABC):

@@ -21,8 +21,7 @@ import logging
 import numpy as np
 import pandas as pd
 
-from ._base_data_provider import BaseDataProvider, StockMarket
-from ..exceptions import QiskitFinanceError
+from ._base_data_provider import BaseDataProvider
 
 logger = logging.getLogger(__name__)
 
@@ -33,7 +32,6 @@ class RandomDataProvider(BaseDataProvider):
 
     def __init__(self,
                  tickers: Optional[Union[str, List[str]]] = None,
-                 stockmarket: StockMarket = StockMarket.RANDOM,
                  start: datetime.datetime = datetime.datetime(2016, 1, 1),
                  end: datetime.datetime = datetime.datetime(2016, 1, 30),
                  seed: Optional[int] = None) -> None:
@@ -41,7 +39,6 @@ class RandomDataProvider(BaseDataProvider):
         Initializer
         Args:
             tickers: tickers
-            stockmarket: RANDOM
             start: first data point
             end: last data point precedes this date
             seed: shall a seed be used?
@@ -55,15 +52,6 @@ class RandomDataProvider(BaseDataProvider):
         else:
             self._tickers = tickers.replace('\n', ';').split(";")
         self._n = len(self._tickers)
-
-        if stockmarket not in [StockMarket.RANDOM]:
-            msg = "RandomDataProvider does not support "
-            msg += stockmarket.value
-            msg += " as a stock market. Please use Stockmarket.RANDOM."
-            raise QiskitFinanceError(msg)
-
-        # This is to aid serialization; string is ok to serialize
-        self._stockmarket = str(stockmarket.value)
 
         self._start = start
         self._end = end
