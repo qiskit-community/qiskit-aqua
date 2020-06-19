@@ -8,6 +8,7 @@ scikit-learn>=0.20.0
 dlx
 docplex
 fastdtw
+pandas
 quandl
 yfinance
 setuptools>=40.1.0

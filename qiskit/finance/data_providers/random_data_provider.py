@@ -70,5 +70,11 @@ class RandomDataProvider(BaseDataProvider):
             d_f = pd.DataFrame(
                 generator.standard_normal(length)).cumsum() + generator.integers(1, 101)
             trimmed = np.maximum(d_f[0].values, np.zeros(len(d_f[0].values)))
-            # pylint: disable=no-member
-            self._data.append(trimmed.tolist())
+            trimmed_list = trimmed.tolist()
+            # find index of first 0 element
+            zero_idx = next((idx for idx, val in enumerate(trimmed_list) if val == 0), -1)
+            if zero_idx >= 0:
+                # set to 0 all values after first 0
+                trimmed_list = \
+                    [val if idx < zero_idx else 0 for idx, val in enumerate(trimmed_list)]
+            self._data.append(trimmed_list)

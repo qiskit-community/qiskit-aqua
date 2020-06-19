@@ -28,12 +28,8 @@ from ..exceptions import QiskitFinanceError
 logger = logging.getLogger(__name__)
 
 
-# Note: Not all DataProviders support all stock markets.
-# Check the DataProvider before use.
 class StockMarket(Enum):
     """ Stock Market enum """
-    NASDAQ = 'NASDAQ'
-    NYSE = 'NYSE'
     LONDON = 'XLON'
     EURONEXT = 'XPAR'
     SINGAPORE = 'XSES'
@@ -86,6 +82,15 @@ class BaseDataProvider(ABC):
         self.mean = np.mean(self._data, axis=1)
         return self.mean
 
+    @staticmethod
+    def _divide(val_1, val_2):
+        if val_2 == 0:
+            if val_1 == 0:
+                return 1
+            logger.warning('Division by 0 on values %f and %f', val_1, val_2)
+            return np.nan
+        return val_1 / val_2
+
     # it does not have to be overridden in non-abstract derived classes.
     def get_period_return_mean_vector(self) -> np.ndarray:
         """
@@ -105,12 +110,8 @@ class BaseDataProvider(ABC):
             raise QiskitFinanceError(
                 'No data loaded, yet. Please run the method run() first to load the data.'
             )
-        a_array = np.array(self._data)[:, 1:]
-        b_array = np.array(self._data)[:, :-1]
-        # use 0 value if dividing by 0
-        period_returns = np.divide(a_array, b_array,
-                                   out=np.zeros_like(a_array), where=b_array != 0) - 1
-
+        _div_func = np.vectorize(BaseDataProvider._divide)
+        period_returns = _div_func(np.array(self._data)[:, 1:], np.array(self._data)[:, :-1]) - 1
         self.period_return_mean = np.mean(period_returns, axis=1)
         return self.period_return_mean
 
@@ -155,12 +156,8 @@ class BaseDataProvider(ABC):
             raise QiskitFinanceError(
                 'No data loaded, yet. Please run the method run() first to load the data.'
             )
-        a_array = np.array(self._data)[:, 1:]
-        b_array = np.array(self._data)[:, :-1]
-        # use 0 value if dividing by 0
-        period_returns = np.divide(a_array, b_array,
-                                   out=np.zeros_like(a_array), where=b_array != 0) - 1
-
+        _div_func = np.vectorize(BaseDataProvider._divide)
+        period_returns = _div_func(np.array(self._data)[:, 1:], np.array(self._data)[:, :-1]) - 1
         self.period_return_cov = np.cov(period_returns)
         return self.period_return_cov
 

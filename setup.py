@@ -36,6 +36,7 @@ requirements = [
     "dlx",
     "docplex",
     "fastdtw",
+    "pandas",
     "quandl",
     "yfinance",
     "setuptools>=40.1.0",
