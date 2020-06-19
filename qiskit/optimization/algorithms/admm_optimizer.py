@@ -90,15 +90,10 @@ class ADMMState:
 
     def __init__(self,
                  op: QuadraticProgram,
-                 binary_indices: List[int],
-                 continuous_indices: List[int],
                  rho_initial: float) -> None:
         """
         Args:
             op: The optimization problem being solved.
-            binary_indices: Indices of the binary decision variables of the original problem.
-            continuous_indices: Indices of the continuous decision variables of the original
-             problem.
             rho_initial: Initial value of the rho parameter.
         """
         super().__init__()
@@ -106,24 +101,26 @@ class ADMMState:
         # Optimization problem itself
         self.op = op
         # Indices of the variables
-        self.binary_indices = binary_indices
-        self.continuous_indices = continuous_indices
+        self.binary_indices = None  # type: Optional[List[int]]
+        self.continuous_indices = None  # type: Optional[List[int]]
+        self.step1_absolute_indices = None  # type: Optional[List[int]]
+        self.step1_relative_indices = None  # type: Optional[List[int]]
 
         # define heavily used matrix, they are used at each iteration, so let's cache them,
         # they are np.ndarrays
         # pylint:disable=invalid-name
         # objective
-        self.q0 = None
-        self.c0 = None
-        self.q1 = None
-        self.c1 = None
+        self.q0 = None  # type: Optional[np.ndarray]
+        self.c0 = None  # type: Optional[np.ndarray]
+        self.q1 = None  # type: Optional[np.ndarray]
+        self.c1 = None  # type: Optional[np.ndarray]
         # constraints
         self.a0 = None  # type: Optional[np.ndarray]
-        self.b0 = None
+        self.b0 = None  # type: Optional[np.ndarray]
 
         # These are the parameters that are updated in the ADMM iterations.
-        self.u = np.zeros(len(continuous_indices))
-        binary_size = len(binary_indices)
+        self.u = np.zeros(op.get_num_continuous_vars())
+        binary_size = op.get_num_binary_vars()
         self.x0 = np.zeros(binary_size)
         self.z = np.zeros(binary_size)
         self.z_init = self.z
@@ -263,13 +260,13 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # we deal with minimization in the optimizer, so turn the problem to minimization
         problem, sense = self._turn_to_minimization(problem)
 
-        # parse problem and convert to an ADMM specific representation.
-        binary_indices = self._get_variable_indices(problem, Variable.Type.BINARY)
-        continuous_indices = self._get_variable_indices(problem, Variable.Type.CONTINUOUS)
-
         # create our computation state.
-        self._state = ADMMState(problem, binary_indices,
-                                continuous_indices, self._params.rho_initial)
+        self._state = ADMMState(problem, self._params.rho_initial)
+
+        # parse problem and convert to an ADMM specific representation.
+        self._state.binary_indices = self._get_variable_indices(problem, Variable.Type.BINARY)
+        self._state.continuous_indices = self._get_variable_indices(problem,
+                                                                    Variable.Type.CONTINUOUS)
 
         # convert optimization problem to a set of matrices and vector that are used
         # at each iteration.
@@ -283,7 +280,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         while (iteration < self._params.max_iter and residual > self._params.tol) \
                 and (elapsed_time < self._params.max_time):
-            if binary_indices:
+            if self._state.step1_absolute_indices:
                 op1 = self._create_step1_problem()
                 self._state.x0 = self._update_x0(op1)
                 # debug
@@ -300,7 +297,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
             self._log.debug("z=%s", self._state.z)
 
             if self._params.three_block:
-                if binary_indices:
+                if self._state.binary_indices:
                     op3 = self._create_step3_problem()
                     self._state.y = self._update_y(op3)
                     # debug
@@ -444,13 +441,82 @@ class ADMMOptimizer(OptimizationAlgorithm):
             elif q_constraint.sense in (Constraint.Sense.LE, Constraint.Sense.GE):
                 self._state.inequality_constraints.append(q_constraint)
 
+        # separately keep binary variables that are for step 1 only
+        # temp variables are due to limit of 100 chars per line
+        step1_absolute_indices, step1_relative_indices = self._get_step1_indices()
+        self._state.step1_absolute_indices = step1_absolute_indices
+        self._state.step1_relative_indices = step1_relative_indices
+
         # objective
-        self._state.q0 = self._get_q(self._state.binary_indices)
-        self._state.c0 = self._state.op.objective.linear.to_array()[self._state.binary_indices]
+        self._state.q0 = self._get_q(self._state.step1_absolute_indices)
+        c0_vec = self._state.op.objective.linear.to_array()[self._state.step1_absolute_indices]
+        self._state.c0 = c0_vec
         self._state.q1 = self._get_q(self._state.continuous_indices)
         self._state.c1 = self._state.op.objective.linear.to_array()[self._state.continuous_indices]
         # equality constraints with binary vars only
         self._state.a0, self._state.b0 = self._get_a0_b0()
+
+    def _get_step1_indices(self) -> Tuple[List[int], List[int]]:
+        """
+        Constructs two arrays of absolute (pointing to the original problem) and relative (pointing
+        to the list of all binary variables) indices of the variables considered
+        to be included in the step1(QUBO) problem.
+
+        Returns: A tuple of lists with absolute and relative indices
+        """
+        # here we keep binary indices from the original problem
+        step1_absolute_indices = []
+
+        # iterate over binary variables and put all binary variables mentioned in the objective
+        # to the array for the step1
+        for binary_index in self._state.binary_indices:
+            # here we check if this binary variable present in the objective
+            # either in the linear or quadratic terms
+            if self._state.op.objective.linear[binary_index] != 0 or np.abs(
+                    self._state.op.objective.quadratic.coefficients[binary_index, :]).sum() != 0:
+                # add the variable if it was not added before
+                if binary_index not in step1_absolute_indices:
+                    step1_absolute_indices.append(binary_index)
+
+        # compute all unverified binary variables (the variables that are present in constraints
+        # but not in objective):
+        #   rest variables := all binary variables - already verified for step 1
+        rest_binary = set(self._state.binary_indices).difference(step1_absolute_indices)
+
+        # verify if an equality contains binary variables
+        for constraint in self._state.binary_equality_constraints:
+            for binary_index in list(rest_binary):
+                if constraint.linear[binary_index] > 0 \
+                        and binary_index not in step1_absolute_indices:
+                    # a binary variable with the binary_index is present in this constraint
+                    step1_absolute_indices.append(binary_index)
+
+        # we want to preserve order of the variables but this order could be broken by adding
+        # a variable in the previous for loop.
+        step1_absolute_indices.sort()
+
+        # compute relative indices, these indices are used when we generate step1 and
+        # update variables on step1.
+        # on step1 we solve for a subset of all binary variables,
+        # so we want to operate only these indices
+        step1_relative_indices = []
+        relative_index = 0
+        # for each binary variable that comes from lin.eq/obj and which is denoted by abs_index
+        for abs_index in step1_absolute_indices:
+            found = False
+            # we want to find relative index of a variable the comes from linear constraints
+            # or objective across all binary variables
+            for j in range(relative_index, len(self._state.binary_indices)):
+                if self._state.binary_indices[j] == abs_index:
+                    found = True
+                    relative_index = j
+                    break
+            if found:
+                step1_relative_indices.append(relative_index)
+            else:
+                raise ValueError("No relative index found!")
+
+        return step1_absolute_indices, step1_relative_indices
 
     def _get_q(self, variable_indices: List[int]) -> np.ndarray:
         """Constructs a quadratic matrix for the variables with the specified indices
@@ -466,10 +532,11 @@ class ADMMOptimizer(OptimizationAlgorithm):
         q = np.zeros(shape=(size, size))
         # fill in the matrix
         # in fact we use re-indexed variables
-        for i, var_index_i in enumerate(variable_indices):
-            for j, var_index_j in enumerate(variable_indices):
-                # coefficients_as_array
-                q[i, j] = self._state.op.objective.quadratic[var_index_i, var_index_j]
+        # we build upper triangular matrix to avoid doubling of the coefficients
+        for i in range(0, size):
+            for j in range(i, size):
+                q[i, j] = \
+                    self._state.op.objective.quadratic[variable_indices[i], variable_indices[j]]
 
         return q
 
@@ -487,7 +554,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         vector = []
 
         for constraint in self._state.binary_equality_constraints:
-            row = constraint.linear.to_array().take(self._state.binary_indices).tolist()
+            row = constraint.linear.to_array().take(self._state.step1_absolute_indices).tolist()
 
             matrix.append(row)
             vector.append(constraint.rhs)
@@ -496,7 +563,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
             np_matrix = np.array(matrix)
             np_vector = np.array(vector)
         else:
-            np_matrix = np.array([0] * len(self._state.binary_indices)).reshape((1, -1))
+            np_matrix = np.array([0] * len(self._state.step1_absolute_indices)).reshape((1, -1))
             np_vector = np.zeros(shape=(1,))
 
         return np_matrix, np_vector
@@ -509,13 +576,14 @@ class ADMMOptimizer(OptimizationAlgorithm):
         """
         op1 = QuadraticProgram()
 
-        binary_size = len(self._state.binary_indices)
+        binary_size = len(self._state.step1_absolute_indices)
         # create the same binary variables.
         for i in range(binary_size):
-            op1.binary_var(name="x0_" + str(i + 1))
+            name = self._state.op.variables[self._state.step1_absolute_indices[i]].name
+            op1.binary_var(name=name)
 
         # prepare and set quadratic objective.
-        quadratic_objective = self._state.q0 +\
+        quadratic_objective = self._state.q0 + \
             self._params.factor_c / 2 * np.dot(self._state.a0.transpose(), self._state.a0) +\
             self._state.rho / 2 * np.eye(binary_size)
         op1.objective.quadratic = quadratic_objective
@@ -523,8 +591,9 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # prepare and set linear objective.
         linear_objective = self._state.c0 - \
             self._params.factor_c * np.dot(self._state.b0, self._state.a0) + \
-            self._state.rho * (- self._state.y - self._state.z) + \
-            self._state.lambda_mult
+            self._state.rho * (- self._state.y[self._state.step1_relative_indices] -
+                               self._state.z[self._state.step1_relative_indices]) + \
+            self._state.lambda_mult[self._state.step1_relative_indices]
 
         op1.objective.linear = linear_objective
         return op1
@@ -566,7 +635,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # add y variables.
         binary_size = len(self._state.binary_indices)
         for i in range(binary_size):
-            op3.continuous_var(name="y_" + str(i + 1), lowerbound=-np.inf, upperbound=np.inf)
+            name = self._state.op.variables[self._state.binary_indices[i]].name
+            op3.continuous_var(lowerbound=-np.inf, upperbound=np.inf, name=name)
 
         # set quadratic objective y
         quadratic_y = self._params.beta / 2 * np.eye(binary_size) + \
@@ -588,7 +658,10 @@ class ADMMOptimizer(OptimizationAlgorithm):
         Returns:
             A solution of the Step1, as a numpy array.
         """
-        return np.asarray(self._qubo_optimizer.solve(op1).x)
+        x0_all_binaries = np.zeros(len(self._state.binary_indices))
+        x0_qubo = np.asarray(self._qubo_optimizer.solve(op1).x)
+        x0_all_binaries[self._state.step1_relative_indices] = x0_qubo
+        return x0_all_binaries
 
     def _update_x1(self, op2: QuadraticProgram) -> Tuple[np.ndarray, np.ndarray]:
         """Solves the Step2 QuadraticProgram via the continuous optimizer.
