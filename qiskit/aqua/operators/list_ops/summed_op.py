@@ -121,8 +121,7 @@ class SummedOp(ListOp):
             A collapsed version of self, if possible.
         """
         # reduce constituents
-        reduced_ops = [op.reduce() for op in self.oplist]
-        reduced_ops = reduce(lambda x, y: x.add(y), reduced_ops) * self.coeff
+        reduced_ops = sum(op.reduce() for op in self.oplist) * self.coeff
 
         # group duplicate operators
         if isinstance(reduced_ops, SummedOp):
