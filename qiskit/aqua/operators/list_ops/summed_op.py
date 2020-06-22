@@ -14,7 +14,6 @@
 
 """ SummedOp Class """
 
-from functools import reduce
 from typing import List, Union, cast
 
 import numpy as np
