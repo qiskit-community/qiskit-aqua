@@ -16,11 +16,16 @@
 
 from typing import Optional, Union, List
 import datetime
-import importlib
 import logging
 
 from ._base_data_provider import BaseDataProvider
 from ..exceptions import QiskitFinanceError
+
+try:
+    import yfinance as yf
+    HAS_YFINANCE = True
+except ImportError:
+    HAS_YFINANCE = False
 
 logger = logging.getLogger(__name__)
 
@@ -44,9 +49,13 @@ class YahooDataProvider(BaseDataProvider):
             start: start time
             end: end time
         Raises:
-            QiskitFinanceError: provider doesn't support stock market input
+            NameError: YFinance not installed
         """
         super().__init__()
+        if not HAS_YFINANCE:
+            raise NameError("The YFinance package is required to use the "
+                            "YahooDataProvider. You can install it with "
+                            "'pip install qiskit-aqua[finance]'.")
         self._tickers = None  # type: Optional[Union[str, List[str]]]
         tickers = tickers if tickers is not None else []
         if isinstance(tickers, list):
@@ -60,27 +69,11 @@ class YahooDataProvider(BaseDataProvider):
         self._end = end.strftime('%Y-%m-%d')
         self._data = []
 
-    @staticmethod
-    def _check_provider_valid():
-        """ checks if provider is valid """
-        err_msg = 'yfinance is not installed.'
-        try:
-            spec = importlib.util.find_spec('yfinance')
-            if spec is not None:
-                return
-        except Exception as ex:  # pylint: disable=broad-except
-            logger.debug('Yahoo finance check error %s', str(ex))
-            raise QiskitFinanceError(err_msg) from ex
-
-        raise QiskitFinanceError(err_msg)
-
     def run(self) -> None:
         """
         Loads data, thus enabling get_similarity_matrix and
         get_covariance_matrix methods in the base class.
         """
-        self._check_provider_valid()
-        import yfinance as yf  # pylint: disable=import-outside-toplevel
         self._data = []
         stocks_notfound = []
         try:

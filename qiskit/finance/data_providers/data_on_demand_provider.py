@@ -55,13 +55,7 @@ class DataOnDemandProvider(BaseDataProvider):
                 to a certificate for the HTTPS connection to NASDAQ (dataondemand.nasdaq.com),
                 either in the
                 form of a CA_BUNDLE file or a directory wherein to look.
-
-        Raises:
-            QiskitFinanceError: invalid data
         """
-        # if not isinstance(atoms, list) and not isinstance(atoms, str):
-        #    raise QiskitFinanceError("Invalid atom input for DOD Driver '{}'".format(atoms))
-
         super().__init__()
 
         if isinstance(tickers, list):

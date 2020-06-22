@@ -16,11 +16,16 @@
 
 from typing import Union, List
 import datetime
-import importlib
 import logging
 
 from ._base_data_provider import BaseDataProvider, StockMarket
 from ..exceptions import QiskitFinanceError
+
+try:
+    import quandl
+    HAS_QUANDL = True
+except ImportError:
+    HAS_QUANDL = False
 
 logger = logging.getLogger(__name__)
 
@@ -48,10 +53,14 @@ class ExchangeDataProvider(BaseDataProvider):
             start: first data point
             end: last data point precedes this date
         Raises:
-            QiskitFinanceError: provider doesn't support stock market
+            NameError: Quandl not installed
+            QiskitFinanceError: provider doesn't support given stock market
         """
-
         super().__init__()
+        if not HAS_QUANDL:
+            raise NameError("The Quandl package is required to use the "
+                            "ExchangeDataProvider. You can install it with "
+                            "'pip install qiskit-aqua[finance]'.")
         self._tickers = []  # type: Union[str, List[str]]
         if isinstance(tickers, list):
             self._tickers = tickers
@@ -73,27 +82,11 @@ class ExchangeDataProvider(BaseDataProvider):
         self._start = start.strftime('%Y-%m-%d')
         self._end = end.strftime('%Y-%m-%d')
 
-    @staticmethod
-    def _check_provider_valid():
-        """ check if provider is valid """
-        err_msg = 'quandl is not installed.'
-        try:
-            spec = importlib.util.find_spec('quandl')
-            if spec is not None:
-                return
-        except Exception as ex:  # pylint: disable=broad-except
-            logger.debug('quandl check error %s', str(ex))
-            raise QiskitFinanceError(err_msg) from ex
-
-        raise QiskitFinanceError(err_msg)
-
     def run(self) -> None:
         """
         Loads data, thus enabling get_similarity_matrix and get_covariance_matrix
         methods in the base class.
         """
-        self._check_provider_valid()
-        import quandl  # pylint: disable=import-outside-toplevel
         quandl.ApiConfig.api_key = self._token
         quandl.ApiConfig.api_version = '2015-04-09'
         self._data = []

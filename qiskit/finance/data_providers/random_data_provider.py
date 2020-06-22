@@ -19,9 +19,14 @@ import datetime
 import logging
 
 import numpy as np
-import pandas as pd
 
 from ._base_data_provider import BaseDataProvider
+
+try:
+    import pandas as pd
+    HAS_PANDAS = True
+except ImportError:
+    HAS_PANDAS = False
 
 logger = logging.getLogger(__name__)
 
@@ -43,9 +48,13 @@ class RandomDataProvider(BaseDataProvider):
             end: last data point precedes this date
             seed: shall a seed be used?
         Raises:
-            QiskitFinanceError: provider doesn't support stock market value
+            NameError: Pandas not installed
         """
         super().__init__()
+        if not HAS_PANDAS:
+            raise NameError("The Pandas package is required to use the "
+                            "RandomDataProvider. You can install it with "
+                            "'pip install qiskit-aqua[finance]'.")
         tickers = tickers if tickers is not None else ["TICKER1", "TICKER2"]
         if isinstance(tickers, list):
             self._tickers = tickers
