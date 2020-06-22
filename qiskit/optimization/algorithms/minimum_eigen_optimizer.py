@@ -18,9 +18,8 @@
 from typing import Optional, Any, Union, Tuple, List, cast
 import numpy as np
 
-from qiskit import QuantumCircuit, BasicAer, execute
 from qiskit.aqua.algorithms import MinimumEigensolver
-from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator, StateFn, DictStateFn
+from qiskit.aqua.operators import StateFn, DictStateFn
 
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
 from ..problems.quadratic_program import QuadraticProgram
@@ -160,9 +159,11 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
             eigen_results = self._min_eigen_solver.compute_minimum_eigenvalue(operator)
 
             # analyze results
-            samples = eigenvector_to_solutions(eigen_results.eigenstate, operator)
-            samples = [(res[0], problem_.objective.sense.value * (res[1] + offset), res[2])
-                       for res in samples]
+            # backend = getattr(self._min_eigen_solver, 'quantum_instance', None)
+            samples = _eigenvector_to_solutions(eigen_results.eigenstate, problem_)
+            # print(offset, samples)
+            # samples = [(res[0], problem_.objective.sense.value * (res[1] + offset), res[2])
+            #    for res in samples]
             samples.sort(key=lambda x: problem_.objective.sense.value * x[1])
             x = samples[0][0]
             fval = samples[0][1]
@@ -182,30 +183,37 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         return opt_res
 
 
-def eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray, StateFn],
-                             operator: Union[WeightedPauliOperator, MatrixOperator],
-                             min_probability: float = 1e-6) -> List[Tuple[str, float, float]]:
+def _eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray, StateFn],
+                              qubo: QuadraticProgram,
+                              min_probability: float = 1e-6,
+                              ) -> List[Tuple[str, float, float]]:
     """Convert the eigenvector to the bitstrings and corresponding eigenvalues.
 
-    Examples:
-    >>> op = MatrixOperator(numpy.array([[1, 1], [1, -1]]) / numpy.sqrt(2))
-    >>> eigenvectors = {'0': 12, '1': 1}
-    >>> print(eigenvector_to_solutions(eigenvectors, op))
-    [('0', 0.7071067811865475, 0.9230769230769231), ('1', -0.7071067811865475, 0.07692307692307693)]
-
-    >>> op = MatrixOperator(numpy.array([[1, 1], [1, -1]]) / numpy.sqrt(2))
-    >>> eigenvectors = numpy.array([1, 1] / numpy.sqrt(2), dtype=complex)
-    >>> print(eigenvector_to_solutions(eigenvectors, op))
-    [('0', 0.7071067811865475, 0.4999999999999999), ('1', -0.7071067811865475, 0.4999999999999999)]
+    Args:
+        eigenvector: The eigenvector from which the solution states are extracted.
+        qubo: The QUBO to evaluate at the bitstring.
+        min_probability: Only consider states where the amplitude exceeds this threshold.
 
     Returns:
         For each computational basis state contained in the eigenvector, return the basis
-        state as bitstring along with the operator evaluated at that bitstring and the
+        state as bitstring along with the QUBO evaluated at that bitstring and the
         probability of sampling this bitstring from the eigenvector.
 
-    Raises:
-        TypeError: Invalid Argument
+    Examples:
+        >>> op = MatrixOp(numpy.array([[1, 1], [1, -1]]) / numpy.sqrt(2))
+        >>> eigenvectors = {'0': 12, '1': 1}
+        >>> print(eigenvector_to_solutions(eigenvectors, op))
+        [('0', 0.7071067811865475, 0.9230769230769231),
+        ('1', -0.7071067811865475, 0.07692307692307693)]
 
+        >>> op = MatrixOp(numpy.array([[1, 1], [1, -1]]) / numpy.sqrt(2))
+        >>> eigenvectors = numpy.array([1, 1] / numpy.sqrt(2), dtype=complex)
+        >>> print(eigenvector_to_solutions(eigenvectors, op))
+        [('0', 0.7071067811865475, 0.4999999999999999),
+        ('1', -0.7071067811865475, 0.4999999999999999)]
+
+    Raises:
+        TypeError: If the type of eigenvector is not supported.
     """
     if isinstance(eigenvector, DictStateFn):
         eigenvector = {bitstr: val**2 for (bitstr, val) in eigenvector.primitive.items()}
@@ -221,7 +229,7 @@ def eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray, StateFn],
             # add the bitstring, if the sampling probability exceeds the threshold
             if sampling_probability > 0:
                 if sampling_probability >= min_probability:
-                    value = eval_operator_at_bitstring(operator, bitstr)
+                    value = qubo.objective.evaluate([int(bit) for bit in bitstr])
                     solutions += [(bitstr, value, sampling_probability)]
 
     elif isinstance(eigenvector, np.ndarray):
@@ -235,39 +243,10 @@ def eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray, StateFn],
             if sampling_probability > 0:
                 if sampling_probability >= min_probability:
                     bitstr = '{:b}'.format(i).rjust(num_qubits, '0')[::-1]
-                    value = eval_operator_at_bitstring(operator, bitstr)
+                    value = qubo.objective.evaluate([int(bit) for bit in bitstr])
                     solutions += [(bitstr, value, sampling_probability)]
 
     else:
         raise TypeError('Unsupported format of eigenvector. Provide a dict or numpy.ndarray.')
 
     return solutions
-
-
-def eval_operator_at_bitstring(operator: Union[WeightedPauliOperator, MatrixOperator],
-                               bitstr: str) -> float:
-    """Evaluate an Aqua operator at a given bitstring.
-
-    This simulates a circuit representing the bitstring. Note that this will not be needed
-    with the Operator logic introduced in 0.7.0.
-
-    Args:
-        operator: The operator which is evaluated.
-        bitstr: The bitstring at which the operator is evaluated.
-
-    Returns:
-        The operator evaluated with the quantum state the bitstring describes.
-    """
-    # TODO check that operator size and bitstr are compatible
-    circuit = QuantumCircuit(len(bitstr))
-    for i, bit in enumerate(bitstr):
-        if bit == '1':
-            circuit.x(i)
-
-    # simulate the circuit
-    result = execute(circuit, BasicAer.get_backend('statevector_simulator')).result()
-
-    # evaluate the operator
-    value = np.real(operator.evaluate_with_statevector(result.get_statevector())[0])
-
-    return value
