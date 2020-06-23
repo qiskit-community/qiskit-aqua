@@ -76,6 +76,9 @@ class QuadraticProgram:
 
         self._objective = QuadraticObjective(self)
 
+    def __repr__(self) -> str:
+        return self.to_docplex().export_as_lp_string()
+
     def clear(self) -> None:
         """Clears the quadratic program, i.e., deletes all variables, constraints, the
         objective function as well as the name.
@@ -760,23 +763,6 @@ class QuadraticProgram:
                 raise QiskitOptimizationError("Unsupported constraint sense: {}".format(sense))
 
         return mdl
-
-    def pprint_as_string(self) -> str:
-        """Returns the quadratic program as a string in Docplex's pretty print format.
-
-        Returns:
-            A string representing the quadratic program.
-        """
-        return self.to_docplex().pprint_as_string()
-
-    def prettyprint(self, out: Optional[str] = None) -> None:
-        """Pretty prints the quadratic program to a given output stream (None = default).
-
-        Args:
-            out: The output stream or file name to print to.
-              if you specify a file name, the output file name is has '.mod' as suffix.
-        """
-        self.to_docplex().prettyprint(out)
 
     def export_as_lp_string(self) -> str:
         """Returns the quadratic program as a string of LP format.
