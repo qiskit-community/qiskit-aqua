@@ -38,8 +38,8 @@ class LinearEqualityToPenalty:
                      If None is passed, penalty factor will be automatically calculated.
             name: The name of the converted problem.
         """
-        self._src = None
-        self._dst = None
+        self._src = None  # type: Optional[QuadraticProgram]
+        self._dst = None  # type: Optional[QuadraticProgram]
         self._penalty = penalty
         self._dst_name = name
 
