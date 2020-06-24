@@ -59,7 +59,8 @@ class ExchangeDataProvider(BaseDataProvider):
         super().__init__()
         if not HAS_QUANDL:
             raise NameError("The Quandl package is required to use the "
-                            "ExchangeDataProvider.")
+                            "ExchangeDataProvider. You can install it with "
+                            "'pip install quandl'.")
         self._tickers = []  # type: Union[str, List[str]]
         if isinstance(tickers, list):
             self._tickers = tickers

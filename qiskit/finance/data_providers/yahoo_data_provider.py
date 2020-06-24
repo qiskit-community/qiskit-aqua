@@ -54,7 +54,8 @@ class YahooDataProvider(BaseDataProvider):
         super().__init__()
         if not HAS_YFINANCE:
             raise NameError("The YFinance package is required to use the "
-                            "YahooDataProvider.")
+                            "YahooDataProvider. You can install it with "
+                            "'pip install yfinance'.")
         self._tickers = None  # type: Optional[Union[str, List[str]]]
         tickers = tickers if tickers is not None else []
         if isinstance(tickers, list):

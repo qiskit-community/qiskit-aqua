@@ -53,7 +53,8 @@ class RandomDataProvider(BaseDataProvider):
         super().__init__()
         if not HAS_PANDAS:
             raise NameError("The Pandas package is required to use the "
-                            "RandomDataProvider.")
+                            "RandomDataProvider. You can install it with "
+                            "'pip install pandas'.")
         tickers = tickers if tickers is not None else ["TICKER1", "TICKER2"]
         if isinstance(tickers, list):
             self._tickers = tickers

@@ -56,7 +56,8 @@ class WikipediaDataProvider(BaseDataProvider):
         super().__init__()
         if not HAS_QUANDL:
             raise NameError("The Quandl package is required to use the "
-                            "WikipediaDataProvider.")
+                            "WikipediaDataProvider. You can install it with "
+                            "'pip install quandl'.")
         self._tickers = None  # type: Optional[Union[str, List[str]]]
         tickers = tickers if tickers is not None else []
         if isinstance(tickers, list):
