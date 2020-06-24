@@ -265,7 +265,6 @@ jobs:
             - finance37.dep
       before_script:
         - pip install cplex
-        - pip install pandas quandl yfinance
         - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
       script:
         - stestr --test-path test/finance run 2> >(tee /dev/stderr out.txt > /dev/null)
@@ -280,8 +279,6 @@ jobs:
           name: finance38
           paths: finance38.dep
       python: 3.8
-      before_script:
-        - pip install pandas quandl yfinance
       script:
         - stestr --test-path test/finance run 2> >(tee /dev/stderr out.txt > /dev/null)
         - python tools/extract_deprecation.py -file out.txt -output finance38.dep
