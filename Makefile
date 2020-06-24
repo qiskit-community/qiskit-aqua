@@ -40,13 +40,13 @@ SPHINXOPTS    =
 all_check: spell style lint copyright mypy html doctest
 
 lint:
-	pylint -rn --ignore=gauopen qiskit/aqua qiskit/chemistry qiskit/finance qiskit/ml qiskit/optimization test tools
+	pylint -rn --ignore=gauopen qiskit_aqua test tools
 
 mypy:
 	mypy qiskit test tools
 
 style:
-	pycodestyle qiskit/aqua qiskit/chemistry qiskit/finance qiskit/ml qiskit/optimization test tools
+	pycodestyle qiskit_aqua test tools
 
 test:
 	python -m unittest discover -v test
@@ -56,7 +56,7 @@ test_ci:
 	stestr run --concurrency $(CONCURRENCY)
 
 spell:
-	pylint -rn --disable=all --enable=spelling --spelling-dict=en_US --spelling-private-dict-file=.pylintdict --ignore=gauopen qiskit/aqua qiskit/chemistry qiskit/finance qiskit/ml qiskit/optimization test tools
+	pylint -rn --disable=all --enable=spelling --spelling-dict=en_US --spelling-private-dict-file=.pylintdict --ignore=gauopen qiskit_aqua test tools
 
 copyright:
 	python tools/check_copyright_year.py
@@ -68,7 +68,7 @@ doctest:
 	make -C docs doctest SPHINXOPTS=$(SPHINXOPTS)
 	
 coverage:
-	coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* -m unittest discover -s test -q
+	coverage3 run --source qiskit_aqua --omit */gauopen/* -m unittest discover -s test -q
 	coverage3 report
 
 coverage_erase:
