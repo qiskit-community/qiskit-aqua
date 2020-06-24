@@ -38,7 +38,6 @@ Data Provider Types
    :toctree: ../stubs/
    :nosignatures:
 
-    DataType
     StockMarket
 
 Data Providers
@@ -51,17 +50,20 @@ Data Providers
    DataOnDemandProvider
    ExchangeDataProvider
    WikipediaDataProvider
+   YahooDataProvider
    RandomDataProvider
 
 """
 
-from ._base_data_provider import BaseDataProvider, DataType, StockMarket
+from ._base_data_provider import BaseDataProvider, StockMarket
 from .data_on_demand_provider import DataOnDemandProvider
 from .exchange_data_provider import ExchangeDataProvider
 from .wikipedia_data_provider import WikipediaDataProvider
+from .yahoo_data_provider import YahooDataProvider
 from .random_data_provider import RandomDataProvider
 
 __all__ = [
-    'BaseDataProvider', 'DataType', 'StockMarket', 'RandomDataProvider',
-    'DataOnDemandProvider', 'ExchangeDataProvider', 'WikipediaDataProvider'
+    'BaseDataProvider', 'StockMarket', 'RandomDataProvider',
+    'DataOnDemandProvider', 'ExchangeDataProvider', 'WikipediaDataProvider',
+    'YahooDataProvider'
 ]
