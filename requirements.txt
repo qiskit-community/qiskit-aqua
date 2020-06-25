@@ -1,5 +1,5 @@
 qiskit-terra>=0.14.0
-qiskit-ignis>=0.2.0
+qiskit-ignis[cvx]>=0.2.0
 scipy>=1.4
 sympy>=1.3
 numpy>=1.17
