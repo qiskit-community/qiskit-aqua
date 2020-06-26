@@ -62,11 +62,7 @@ class TestQuadraticProgramToNegativeValueOracle(QiskitOptimizationTestCase):
         keys = [bin(i)[2::].rjust(int(np.log2(len(state))), '0')[::-1]
                 for i in range(0, len(state))]
         probs = [np.round(abs(a)*abs(a), 5) for a in state]
-        f_hist = dict(zip(keys, probs))
-        hist = {}
-        for key in f_hist:
-            new_key = key[:n_key] + key[n_key:n_key+n_value][::-1] + key[n_key+n_value:]
-            hist[new_key] = f_hist[key]
+        hist = dict(zip(keys, probs))
         hist = dict(filter(lambda p: p[1] > 0, hist.items()))
         return hist
 

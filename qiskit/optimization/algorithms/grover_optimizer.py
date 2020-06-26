@@ -260,18 +260,13 @@ class GroverOptimizer(OptimizationAlgorithm):
             keys = [bin(i)[2::].rjust(int(np.log2(len(state))), '0')[::-1]
                     for i in range(0, len(state))]
             probs = [np.round(abs(a)*abs(a), 5) for a in state]
-            f_hist = dict(zip(keys, probs))
-            hist = {}
-            for key in f_hist:
-                new_key = key[:n_key] + key[n_key:n_key+n_value][::-1] + key[n_key+n_value:]
-                hist[new_key] = f_hist[key]
+            hist = dict(zip(keys, probs))
         else:
             state = result.get_counts(qc)
             shots = self.quantum_instance.run_config.shots
             hist = {}
             for key in state:
-                hist[key[:n_key] + key[n_key:n_key+n_value][::-1] + key[n_key+n_value:]] = \
-                    state[key] / shots
+                hist[key] = state[key] / shots
         hist = dict(filter(lambda p: p[1] > 0, hist.items()))
 
         return hist
