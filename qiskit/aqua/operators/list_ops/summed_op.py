@@ -177,7 +177,7 @@ class SummedOp(ListOp):
 
         self_reduced = cast(SummedOp, self_reduced)
         other_reduced = cast(SummedOp, other_reduced)
-        if not len(self_reduced.oplist) == len(other_reduced.oplist):
+        if len(self_reduced.oplist) != len(other_reduced.oplist):
             return False
 
         # absorb coeffs into the operators
