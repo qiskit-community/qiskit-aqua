@@ -15,6 +15,7 @@
 """This module implements the abstract base class for data_provider modules the finance module."""
 
 from abc import ABC, abstractmethod
+from typing import Tuple, Optional, List
 import logging
 from enum import Enum
 
@@ -27,26 +28,11 @@ from ..exceptions import QiskitFinanceError
 logger = logging.getLogger(__name__)
 
 
-# Note: Not all DataProviders support all stock markets.
-# Check the DataProvider before use.
 class StockMarket(Enum):
     """ Stock Market enum """
-    NASDAQ = 'NASDAQ'
-    NYSE = 'NYSE'
     LONDON = 'XLON'
     EURONEXT = 'XPAR'
     SINGAPORE = 'XSES'
-    RANDOM = 'RANDOM'
-
-
-# Note: Not all DataProviders support all data types.
-# Check the DataProvider before use.
-class DataType(Enum):
-    """ Data Type Enum """
-    DAILYADJUSTED = 'Daily (adj)'
-    DAILY = 'Daily'
-    BID = 'Bid'
-    ASK = 'Ask'
 
 
 class BaseDataProvider(ABC):
@@ -56,31 +42,31 @@ class BaseDataProvider(ABC):
     Doing so requires that the required driver interface is implemented.
 
     To use the subclasses, please see
-    https://github.com/Qiskit/qiskit-tutorials/qiskit/finance/data_providers/time_series.ipynb
+    https://github.com/Qiskit/qiskit-tutorials/blob/master/legacy_tutorials/aqua/finance/data_providers/time_series.ipynb
 
     """
 
     @abstractmethod
-    def __init__(self):
-        self._data = None
+    def __init__(self) -> None:
+        self._data = None  # type: Optional[List]
         self._n = 0  # pylint: disable=invalid-name
         self.period_return_mean = None
         self.cov = None
         self.period_return_cov = None
-        self.rho = None
+        self.rho = None  # type: Optional[np.ndarray]
         self.mean = None
 
     @abstractmethod
-    def run(self):
+    def run(self) -> None:
         """ Loads data. """
         pass
 
     # it does not have to be overridden in non-abstract derived classes.
-    def get_mean_vector(self):
+    def get_mean_vector(self) -> np.ndarray:
         """ Returns a vector containing the mean value of each asset.
 
         Returns:
-            numpy.ndarray: a per-asset mean vector.
+            a per-asset mean vector.
         Raises:
             QiskitFinanceError: no data loaded
         """
@@ -96,13 +82,22 @@ class BaseDataProvider(ABC):
         self.mean = np.mean(self._data, axis=1)
         return self.mean
 
+    @staticmethod
+    def _divide(val_1, val_2):
+        if val_2 == 0:
+            if val_1 == 0:
+                return 1
+            logger.warning('Division by 0 on values %f and %f', val_1, val_2)
+            return np.nan
+        return val_1 / val_2
+
     # it does not have to be overridden in non-abstract derived classes.
-    def get_period_return_mean_vector(self):
+    def get_period_return_mean_vector(self) -> np.ndarray:
         """
         Returns a vector containing the mean value of each asset.
 
         Returns:
-            numpy.ndarray: a per-asset mean vector.
+            a per-asset mean vector.
         Raises:
             QiskitFinanceError: no data loaded
         """
@@ -115,19 +110,18 @@ class BaseDataProvider(ABC):
             raise QiskitFinanceError(
                 'No data loaded, yet. Please run the method run() first to load the data.'
             )
-
-        period_returns = np.array(self._data)[:, 1:] / np.array(self._data)[:, :-1] - 1
-
+        _div_func = np.vectorize(BaseDataProvider._divide)
+        period_returns = _div_func(np.array(self._data)[:, 1:], np.array(self._data)[:, :-1]) - 1
         self.period_return_mean = np.mean(period_returns, axis=1)
         return self.period_return_mean
 
     # it does not have to be overridden in non-abstract derived classes.
-    def get_covariance_matrix(self):
+    def get_covariance_matrix(self) -> np.ndarray:
         """
         Returns the covariance matrix.
 
         Returns:
-            numpy.ndarray: an asset-to-asset covariance matrix.
+            an asset-to-asset covariance matrix.
         Raises:
             QiskitFinanceError: no data loaded
         """
@@ -144,12 +138,12 @@ class BaseDataProvider(ABC):
         return self.cov
 
     # it does not have to be overridden in non-abstract derived classes.
-    def get_period_return_covariance_matrix(self):
+    def get_period_return_covariance_matrix(self) -> np.ndarray:
         """
         Returns a vector containing the mean value of each asset.
 
         Returns:
-            numpy.ndarray: a per-asset mean vector.
+            a per-asset mean vector.
         Raises:
             QiskitFinanceError: no data loaded
         """
@@ -162,19 +156,18 @@ class BaseDataProvider(ABC):
             raise QiskitFinanceError(
                 'No data loaded, yet. Please run the method run() first to load the data.'
             )
-
-        period_returns = np.array(self._data)[:, 1:] / np.array(self._data)[:, :-1] - 1
-
+        _div_func = np.vectorize(BaseDataProvider._divide)
+        period_returns = _div_func(np.array(self._data)[:, 1:], np.array(self._data)[:, :-1]) - 1
         self.period_return_cov = np.cov(period_returns)
         return self.period_return_cov
 
     # it does not have to be overridden in non-abstract derived classes.
-    def get_similarity_matrix(self):
+    def get_similarity_matrix(self) -> np.ndarray:
         """
         Returns time-series similarity matrix computed using dynamic time warping.
 
         Returns:
-            numpy.ndarray: an asset-to-asset similarity matrix.
+            an asset-to-asset similarity matrix.
         Raises:
             QiskitFinanceError: no data loaded
         """
@@ -199,7 +192,7 @@ class BaseDataProvider(ABC):
 
     # gets coordinates suitable for plotting
     # it does not have to be overridden in non-abstract derived classes.
-    def get_coordinates(self):
+    def get_coordinates(self) -> Tuple[float, float]:
         """ Returns random coordinates for visualisation purposes. """
         # Coordinates for visualisation purposes
         x_c = np.zeros([self._n, 1])
