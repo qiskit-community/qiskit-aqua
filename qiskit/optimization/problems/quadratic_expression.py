@@ -219,4 +219,3 @@ class QuadraticExpression(QuadraticProgramElement):
         if isinstance(x, List):
             x = np.array(x)
         return x
-

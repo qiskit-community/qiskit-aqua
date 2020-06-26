@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 
 # This code is part of Qiskit.
@@ -15,21 +14,18 @@
 
 """The SLSQP optimizer wrapped to be used within Qiskit's optimization module."""
 import logging
+import time
 from typing import Optional, List, cast
 
 import numpy as np
 from scipy.optimize import fmin_slsqp
 from scipy.stats import truncnorm
-import time
 
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
 from ..exceptions import QiskitOptimizationError
-
-from ..problems.quadratic_program import QuadraticProgram
-from ..problems.constraint import Constraint
-
 from ..infinity import INFINITY
-
+from ..problems.constraint import Constraint
+from ..problems.quadratic_program import QuadraticProgram
 
 logger = logging.getLogger(__name__)
 
@@ -51,19 +47,26 @@ class SlsqpOptimizer(OptimizationAlgorithm):
         >>> result = optimizer.solve(problem)
     """
 
-    def __init__(self, iter=100, acc=1.0E-6, iprint=0, shots=1) -> None:
+    # pylint: disable=redefined-builtin
+    def __init__(self, iter: int = 100, acc: float = 1.0E-6, iprint: int = 0, shots: int = 1) \
+            -> None:
         """Initializes the SlsqpOptimizer.
 
         This initializer takes the algorithmic parameters of SLSQP and stores them for later use
-        of ``fmin_cobyla`` when :meth:`solve` is invoked.
+        of ``fmin_slsqp`` when :meth:`solve` is invoked.
         This optimizer can be applied to find a (local) optimum for problems consisting of only
         continuous variables.
 
         Args:
-            iter:  number of iteration
-            acc: accuracy
-            iprint: print option (0,1,2)
-            shots: number of shots for multi-start method
+            iter: The maximum number of iterations.
+            acc: Requested accuracy.
+            iprint: The verbosity of fmin_slsqp :
+
+                - iprint <= 0 : Silent operation
+                - iprint == 1 : Print summary upon completion (default)
+                - iprint >= 2 : Print status of each iterate and summary
+
+            shots: The number of shots for multi-start method.
         """
 
         self._iter = iter
@@ -127,6 +130,7 @@ class SlsqpOptimizer(OptimizationAlgorithm):
             upperbound = variable.upperbound
             slsqp_bounds.append((lowerbound, upperbound))
 
+        # pylint: disable=no-member
         # add linear and quadratic constraints
         for constraint in cast(List[Constraint], problem.linear_constraints) + \
                 cast(List[Constraint], problem.quadratic_constraints):
@@ -149,7 +153,6 @@ class SlsqpOptimizer(OptimizationAlgorithm):
         for shot in range(self._shots):
             x_0 = np.zeros(problem.get_num_vars())
             if shot > 0:
-                # give the zero vector also a chance
                 for i, variable in enumerate(problem.variables):
                     lowerbound = variable.lowerbound
                     upperbound = variable.upperbound
@@ -158,10 +161,10 @@ class SlsqpOptimizer(OptimizationAlgorithm):
             # run optimization
             t_0 = time.time()
             x = fmin_slsqp(objective, x_0, eqcons=slsqp_eq_constraints,
-                            ieqcons=slsqp_ineq_constraints,
-                            bounds=slsqp_bounds, fprime=objective_gradient, iter=self._iter,
-                            acc=self._acc, iprint=self._iprint)
-            self._log.debug("SLSQP done in: %s seconds", str(time.time() - t_0))
+                           ieqcons=slsqp_ineq_constraints,
+                           bounds=slsqp_bounds, fprime=objective_gradient, iter=self._iter,
+                           acc=self._acc, iprint=self._iprint)
+            self._log.debug("fmin_slsqp done in: %s seconds", str(time.time() - t_0))
             fval = problem.objective.sense.value * objective(x)
             if fval < fval_sol:
                 fval_sol = fval
