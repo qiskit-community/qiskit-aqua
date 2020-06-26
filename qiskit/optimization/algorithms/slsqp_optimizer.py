@@ -28,6 +28,8 @@ from ..exceptions import QiskitOptimizationError
 from ..problems.quadratic_program import QuadraticProgram
 from ..problems.constraint import Constraint
 
+from ..infinity import INFINITY
+
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +54,7 @@ class SlsqpOptimizer(OptimizationAlgorithm):
     def __init__(self, iter=100, acc=1.0E-6, iprint=0, shots=1) -> None:
         """Initializes the SlsqpOptimizer.
 
-        This initializer takes the algorithmic parameters of COBYLA and stores them for later use
+        This initializer takes the algorithmic parameters of SLSQP and stores them for later use
         of ``fmin_cobyla`` when :meth:`solve` is invoked.
         This optimizer can be applied to find a (local) optimum for problems consisting of only
         continuous variables.
@@ -140,33 +142,29 @@ class SlsqpOptimizer(OptimizationAlgorithm):
             else:
                 raise QiskitOptimizationError('Unsupported constraint type!')
 
-        shots = self._shots
-        fval = 1e20
-        # todo: we don't need array, we need a variable and var type definition here
-        x = np.zeros(problem.get_num_vars())
+        fval_sol = INFINITY
+        x_sol = None    # type: Optional[np.array]
 
         # Implementation of multi-start SLSQP optimizer
-        for shot in range(shots):
-            x_0 = np.zeros(len(problem.variables))
-            if shot > 0:  # give the zero vector also a chance
+        for shot in range(self._shots):
+            x_0 = np.zeros(problem.get_num_vars())
+            if shot > 0:
+                # give the zero vector also a chance
                 for i, variable in enumerate(problem.variables):
                     lowerbound = variable.lowerbound
                     upperbound = variable.upperbound
                     x_0[i] = truncnorm.rvs(lowerbound, upperbound)
 
             # run optimization
-            t0 = time.time()
-            xs = fmin_slsqp(objective, x_0, eqcons=slsqp_eq_constraints,
+            t_0 = time.time()
+            x = fmin_slsqp(objective, x_0, eqcons=slsqp_eq_constraints,
                             ieqcons=slsqp_ineq_constraints,
                             bounds=slsqp_bounds, fprime=objective_gradient, iter=self._iter,
                             acc=self._acc, iprint=self._iprint)
-            self._log.debug("SLSQP done in: %s seconds", str(time.time() - t0))
-            fvals = problem.objective.sense.value * objective(xs)
-            if fvals < fval:
-                fval = fvals
-                x = xs
+            self._log.debug("SLSQP done in: %s seconds", str(time.time() - t_0))
+            fval = problem.objective.sense.value * objective(x)
+            if fval < fval_sol:
+                fval_sol = fval
+                x_sol = x
 
-        print('Final value: ' + str(fval))
-
-        # return results
-        return OptimizationResult(x, fval, x)
+        return OptimizationResult(x_sol, fval_sol, x_sol)
