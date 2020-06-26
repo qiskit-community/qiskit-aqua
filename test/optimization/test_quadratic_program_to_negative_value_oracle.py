@@ -45,7 +45,7 @@ class TestQuadraticProgramToNegativeValueOracle(QiskitOptimizationTestCase):
         # Run the state preparation operator A and observe results.
         circuit = operator._circuit
         qc = QuantumCircuit() + circuit
-        hist = self._measure(qc, n_key, n_value)
+        hist = self._measure(qc)
 
         # Validate operator A.
         for label in hist:
@@ -54,7 +54,7 @@ class TestQuadraticProgramToNegativeValueOracle(QiskitOptimizationTestCase):
             self.assertEqual(int(solutions[key]), value)
 
     @staticmethod
-    def _measure(qc, n_key, n_value):
+    def _measure(qc):
         backend = Aer.get_backend('statevector_simulator')
         job = execute(qc, backend=backend, shots=1)
         result = job.result()

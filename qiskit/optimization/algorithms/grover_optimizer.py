@@ -178,7 +178,7 @@ class GroverOptimizer(OptimizationAlgorithm):
                     circuit = a_operator._circuit
 
                 # Get the next outcome.
-                outcome = self._measure(circuit, n_key, n_value)
+                outcome = self._measure(circuit)
                 k = int(outcome[0:n_key], 2)
                 v = outcome[n_key:n_key + n_value]
                 int_v = self._bin_to_int(v, n_value) + threshold
@@ -239,9 +239,9 @@ class GroverOptimizer(OptimizationAlgorithm):
 
         return result
 
-    def _measure(self, circuit: QuantumCircuit, n_key: int, n_value: int) -> str:
+    def _measure(self, circuit: QuantumCircuit) -> str:
         """Get probabilities from the given backend, and picks a random outcome."""
-        probs = self._get_probs(n_key, n_value, circuit)
+        probs = self._get_probs(circuit)
         freq = sorted(probs.items(), key=lambda x: x[1], reverse=True)
 
         # Pick a random outcome.
@@ -251,7 +251,7 @@ class GroverOptimizer(OptimizationAlgorithm):
 
         return freq[idx][0]
 
-    def _get_probs(self, n_key: int, n_value: int, qc: QuantumCircuit) -> Dict[str, float]:
+    def _get_probs(self, qc: QuantumCircuit) -> Dict[str, float]:
         """Gets probabilities from a given backend."""
         # Execute job and filter results.
         result = self.quantum_instance.execute(qc)
