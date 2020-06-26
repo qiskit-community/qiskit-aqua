@@ -14,23 +14,26 @@
 
 """ Test Operator construction, including OpPrimitives and singletons. """
 
+
 import unittest
 from test.aqua import QiskitAquaTestCase
 import itertools
 import numpy as np
+from ddt import ddt, data
 
 from qiskit.circuit import QuantumCircuit, QuantumRegister, Instruction
 from qiskit.extensions.exceptions import ExtensionError
 from qiskit.quantum_info.operators import Operator, Pauli
-from qiskit.circuit.library import CZGate
+from qiskit.circuit.library import CZGate, ZGate
 
 from qiskit.aqua.operators import (
-    X, Y, Z, I, CX, T, H, PrimitiveOp, SummedOp, PauliOp, Minus, CircuitOp
+    X, Y, Z, I, CX, T, H, PrimitiveOp, SummedOp, PauliOp, Minus, CircuitOp, MatrixOp
 )
 
 
 # pylint: disable=invalid-name
 
+@ddt
 class TestOpConstruction(QiskitAquaTestCase):
     """Operator Construction tests."""
 
@@ -340,6 +343,14 @@ class TestOpConstruction(QiskitAquaTestCase):
         with self.subTest('commutative'):
             self.assertEqual(X + Z, Z + X)
 
+        with self.subTest('circuit and paulis'):
+            z = CircuitOp(ZGate())
+            self.assertEqual(Z + z, z + Z)
+
+        with self.subTest('matrix op and paulis'):
+            z = MatrixOp([[1, 0], [0, -1]])
+            self.assertEqual(Z + z, z + Z)
+
     def test_circuit_compose_register_independent(self):
         """Test that CircuitOp uses combines circuits independent of the register.
 
@@ -352,13 +363,14 @@ class TestOpConstruction(QiskitAquaTestCase):
 
         self.assertEqual(composed.num_qubits, 2)
 
-    def test_pauli_op_hashing(self):
+    @data(Z, CircuitOp(ZGate()), MatrixOp([[1, 0], [0, -1]]))
+    def test_op_hashing(self, op):
         """Regression test against faulty set comparison.
 
         Set comparisons rely on a hash table which requires identical objects to have identical
-        hashes. Thus, the PauliOp.__hash__ should support this requirement.
+        hashes. Thus, the PrimitiveOp.__hash__ should support this requirement.
         """
-        self.assertEqual(set([2*Z]), set([2*Z]))
+        self.assertEqual(set([2 * op]), set([2 * op]))
 
 
 if __name__ == '__main__':
