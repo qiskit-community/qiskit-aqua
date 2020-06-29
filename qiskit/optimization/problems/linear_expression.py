@@ -155,6 +155,7 @@ class LinearExpression(QuadraticProgramElement):
         # return the result
         return val
 
+    # pylint: disable=unused-argument
     def evaluate_gradient(self, x: Union[ndarray, List, Dict[Union[int, str], float]]) -> ndarray:
         """Evaluate the gradient of the linear expression for given variables.
 

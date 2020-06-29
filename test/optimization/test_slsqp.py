@@ -14,10 +14,12 @@
 
 """ Test SLSQP Optimizer """
 
-import unittest
-from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 import logging
+import unittest
 
+from test.optimization.optimization_test_case import QiskitOptimizationTestCase
+
+import numpy as np
 from qiskit.optimization.algorithms import SlsqpOptimizer
 from qiskit.optimization.problems import QuadraticProgram
 
@@ -29,9 +31,8 @@ class TestSlsqpOptimizer(QiskitOptimizationTestCase):
     """SLSQP Optimizer Tests. """
 
     def test_slsqp_optimizer(self):
-        """ SLSQP Optimizer Test. """
+        """ Generic SLSQP Optimizer Test. """
 
-        # load optimization problem
         problem = QuadraticProgram()
         problem.continuous_var(upperbound=4)
         problem.continuous_var(upperbound=4)
@@ -39,64 +40,97 @@ class TestSlsqpOptimizer(QiskitOptimizationTestCase):
         problem.minimize(linear=[2, 2], quadratic=[[2, 0.25], [0.25, 0.5]])
 
         # solve problem with SLSQP
-        slsqp = SlsqpOptimizer()
+        slsqp = SlsqpOptimizer(shots=3)
         result = slsqp.solve(problem)
 
-        # analyze results
         self.assertAlmostEqual(result.fval, 5.8750)
 
-    # def test_cobyla_optimizer_with_quadratic_constraint(self):
-    #     """ Cobyla Optimizer Test With Quadratic Constraints. """
-    #     # load optimization problem
-    #     problem = QuadraticProgram()
-    #     problem.continuous_var(upperbound=1)
-    #     problem.continuous_var(upperbound=1)
-    #
-    #     problem.minimize(linear=[1, 1])
-    #
-    #     linear = [-1, -1]
-    #     quadratic = [[1, 0], [0, 1]]
-    #     problem.quadratic_constraint(linear=linear, quadratic=quadratic, rhs=-1/2)
-    #
-    #     # solve problem with cobyla
-    #     cobyla = CobylaOptimizer()
-    #     result = cobyla.solve(problem)
-    #
-    #     # analyze results
-    #     self.assertAlmostEqual(result.fval, 1.0, places=2)
-    #
-    # def test_cobyla_optimizer_with_variable_bounds(self):
-    #     """ Cobyla Optimizer Test With Variable Bounds. """
-    #
-    #     # initialize optimizer
-    #     cobyla = CobylaOptimizer()
-    #
-    #     # initialize problem
-    #     problem = QuadraticProgram()
-    #
-    #     # set variables and bounds
-    #     problem.continuous_var(lowerbound=-1, upperbound=1)
-    #     problem.continuous_var(lowerbound=-2, upperbound=2)
-    #
-    #     # set objective and minimize
-    #     problem.minimize(linear=[1, 1])
-    #
-    #     # solve problem with cobyla
-    #     result = cobyla.solve(problem)
-    #
-    #     # analyze results
-    #     self.assertAlmostEqual(result.x[0], -1.0, places=6)
-    #     self.assertAlmostEqual(result.x[1], -2.0, places=6)
-    #
-    #     # set objective and minimize
-    #     problem.maximize(linear=[1, 1])
-    #
-    #     # solve problem with cobyla
-    #     result = cobyla.solve(problem)
-    #
-    #     # analyze results
-    #     self.assertAlmostEqual(result.x[0], 1.0, places=6)
-    #     self.assertAlmostEqual(result.x[1], 2.0, places=6)
+    def test_slsqp_unbounded(self):
+        """Unbounded test for optimization"""
+        problem = QuadraticProgram()
+        problem.continuous_var(name="x")
+        problem.continuous_var(name="y")
+        problem.maximize(linear=[2, 0], quadratic=[[-1, 2], [0, -2]])
+
+        slsqp = SlsqpOptimizer()
+        solution = slsqp.solve(problem)
+
+        self.assertIsNotNone(solution)
+        self.assertIsNotNone(solution.x)
+        np.testing.assert_almost_equal([2., 1.], solution.x, 3)
+        self.assertIsNotNone(solution.fval)
+        np.testing.assert_almost_equal(2., solution.fval, 3)
+
+    def test_slsqp_bounded(self):
+        """Same as above, but a bounded test"""
+        problem = QuadraticProgram()
+        problem.continuous_var(name="x", lowerbound=2.5)
+        problem.continuous_var(name="y", upperbound=0.5)
+        problem.maximize(linear=[2, 0], quadratic=[[-1, 2], [0, -2]])
+
+        slsqp = SlsqpOptimizer()
+        solution = slsqp.solve(problem)
+
+        self.assertIsNotNone(solution)
+        self.assertIsNotNone(solution.x)
+        np.testing.assert_almost_equal([2.5, 0.5], solution.x, 3)
+        self.assertIsNotNone(solution.fval)
+        np.testing.assert_almost_equal(0.75, solution.fval, 3)
+
+    def test_slsqp_equality(self):
+        """A test with equality constraint"""
+        problem = QuadraticProgram()
+        problem.continuous_var(name="x")
+        problem.continuous_var(name="y")
+        problem.linear_constraint(linear=[1, -1], sense='=', rhs=0)
+        problem.maximize(linear=[2, 0], quadratic=[[-1, 2], [0, -2]])
+
+        slsqp = SlsqpOptimizer()
+        solution = slsqp.solve(problem)
+
+        self.assertIsNotNone(solution)
+        self.assertIsNotNone(solution.x)
+        np.testing.assert_almost_equal([1., 1.], solution.x, 3)
+        self.assertIsNotNone(solution.fval)
+        np.testing.assert_almost_equal(1., solution.fval, 3)
+
+    def test_slsqp_inequality(self):
+        """A test with inequality constraint"""
+        problem = QuadraticProgram()
+        problem.continuous_var(name="x")
+        problem.continuous_var(name="y")
+        problem.linear_constraint(linear=[1, -1], sense='>=', rhs=1)
+        problem.maximize(linear=[2, 0], quadratic=[[-1, 2], [0, -2]])
+
+        slsqp = SlsqpOptimizer()
+        solution = slsqp.solve(problem)
+
+        self.assertIsNotNone(solution)
+        self.assertIsNotNone(solution.x)
+        np.testing.assert_almost_equal([2., 1.], solution.x, 3)
+        self.assertIsNotNone(solution.fval)
+        np.testing.assert_almost_equal(2., solution.fval, 3)
+
+    def test_slsqp_optimizer_with_quadratic_constraint(self):
+        """A test with equality constraint"""
+        problem = QuadraticProgram()
+        problem.continuous_var(upperbound=1)
+        problem.continuous_var(upperbound=1)
+
+        problem.minimize(linear=[1, 1])
+
+        linear = [-1, -1]
+        quadratic = [[1, 0], [0, 1]]
+        problem.quadratic_constraint(linear=linear, quadratic=quadratic, rhs=-1/2)
+
+        slsqp = SlsqpOptimizer()
+        solution = slsqp.solve(problem)
+
+        self.assertIsNotNone(solution)
+        self.assertIsNotNone(solution.x)
+        np.testing.assert_almost_equal([0.5, 0.5], solution.x, 3)
+        self.assertIsNotNone(solution.fval)
+        np.testing.assert_almost_equal(1., solution.fval, 3)
 
 
 if __name__ == '__main__':
