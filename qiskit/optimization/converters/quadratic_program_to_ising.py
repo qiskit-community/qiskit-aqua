@@ -117,7 +117,7 @@ class QuadraticProgramToIsing:
         qubit_op = sum(PauliOp(pauli, coeff=coeff) for coeff, pauli in pauli_list)
 
         # qubit_op could be the integer 0, in this case return an identity operator of
-        # appopriate size
+        # appropriate size
         if isinstance(qubit_op, OperatorBase):
             qubit_op = qubit_op.reduce()
         else:
