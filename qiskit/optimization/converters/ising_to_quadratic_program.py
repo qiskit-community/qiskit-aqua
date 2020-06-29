@@ -20,7 +20,7 @@ import copy
 
 import numpy as np
 
-from qiskit.aqua.operators import OperatorBase, WeightedPauliOperator, SummedOp
+from qiskit.aqua.operators import OperatorBase, WeightedPauliOperator, SummedOp, ListOp
 from ..problems.quadratic_program import QuadraticProgram
 from ..exceptions import QiskitOptimizationError
 
@@ -59,10 +59,18 @@ class IsingToQuadraticProgram:
         Raises:
             QiskitOptimizationError: If there are Pauli Xs in any Pauli term
             QiskitOptimizationError: If there are more than 2 Pauli Zs in any Pauli term
+            NotImplementedError: If the input operator is a ListOp
         """
         # Set properties
         if isinstance(qubit_op, WeightedPauliOperator):
             qubit_op = qubit_op.to_opflow()
+
+        # No support for ListOp yet, this can be added in future
+        # pylint: disable=unidiomatic-typecheck
+        if type(qubit_op) == ListOp:
+            raise NotImplementedError('Conversion of a ListOp is not supported, convert each '
+                                      'operator in the ListOp separately.')
+
         self._qubit_op = qubit_op
         self._offset = copy.deepcopy(offset)
         self._num_qubits = qubit_op.num_qubits

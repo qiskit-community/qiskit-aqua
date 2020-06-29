@@ -20,7 +20,7 @@ from typing import Tuple, Optional, Dict
 import numpy as np
 from qiskit.quantum_info import Pauli
 
-from qiskit.aqua.operators import OperatorBase, PauliOp
+from qiskit.aqua.operators import OperatorBase, PauliOp, I
 
 from ..problems.quadratic_program import QuadraticProgram
 from ..exceptions import QiskitOptimizationError
@@ -115,7 +115,12 @@ class QuadraticProgramToIsing:
 
         # Remove paulis whose coefficients are zeros.
         qubit_op = sum(PauliOp(pauli, coeff=coeff) for coeff, pauli in pauli_list)
-        if isinstance(qubit_op, OperatorBase):  # qubit_op could be the integer 0
+
+        # qubit_op could be the integer 0, in this case return an identity operator of
+        # appopriate size
+        if isinstance(qubit_op, OperatorBase):
             qubit_op = qubit_op.reduce()
+        else:
+            qubit_op = I ^ num_nodes
 
         return qubit_op, shift
