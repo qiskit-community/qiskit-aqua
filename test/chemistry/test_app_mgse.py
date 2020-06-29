@@ -181,21 +181,18 @@ class TestAppMGSE(QiskitChemistryTestCase):
 
     def test_mgse_callback_vqe_uccsd_z2_nosymm(self):
         """ This time we reduce the operator so it has symmetries left. Whether z2 symmetry
-            reduction is set to auto, or left turned off, the results should be same """
+            reduction is set to auto, or left turned off, the results should be same. We
+            explicitly check the Z2 symmetry to ensure it empty and use classical solver
+            to ensure the operators via the subsequent result computation are correct. """
+
+        z2_symm = None
 
         def cb_create_solver(num_particles, num_orbitals,
                              qubit_mapping, two_qubit_reduction, z2_symmetries):
-            initial_state = HartreeFock(num_orbitals, num_particles, qubit_mapping,
-                                        two_qubit_reduction, z2_symmetries.sq_list)
-            var_form = UCCSD(num_orbitals=num_orbitals,
-                             num_particles=num_particles,
-                             initial_state=initial_state,
-                             qubit_mapping=qubit_mapping,
-                             two_qubit_reduction=two_qubit_reduction,
-                             z2_symmetries=z2_symmetries)
-            vqe = VQE(var_form=var_form, optimizer=SLSQP(maxiter=500))
-            vqe.quantum_instance = BasicAer.get_backend('statevector_simulator')
-            return vqe
+
+            nonlocal z2_symm
+            z2_symm = z2_symmetries
+            return NumPyMinimumEigensolver()
 
         driver = PySCFDriver(atom='Li .0 .0 -0.8; H .0 .0 0.8')
         mgse = MolecularGroundStateEnergy(driver, qubit_mapping=QubitMappingType.PARITY,
@@ -206,6 +203,7 @@ class TestAppMGSE(QiskitChemistryTestCase):
 
         # Check a couple of values are as expected, energy for main operator and number of
         # particles and dipole from auxiliary operators.
+        self.assertEqual(z2_symm.is_empty(), True)
         self.assertAlmostEqual(result.energy, -7.881, places=3)
         self.assertAlmostEqual(result.num_particles, 2)
         self.assertAlmostEqual(result.total_dipole_moment_in_debye, 4.667, places=3)
@@ -217,6 +215,7 @@ class TestAppMGSE(QiskitChemistryTestCase):
                                            orbital_reduction=[-3, -2])
         result1 = mgse1.compute_energy(cb_create_solver)
 
+        self.assertEqual(z2_symm.is_empty(), True)
         self.assertEqual(str(result), str(result1))  # Compare string form of results
 
 
