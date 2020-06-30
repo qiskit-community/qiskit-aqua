@@ -179,6 +179,45 @@ class TestAppMGSE(QiskitChemistryTestCase):
         result = mgse.compute_energy(cb_create_solver)
         self.assertAlmostEqual(result.energy, -7.882, places=3)
 
+    def test_mgse_callback_vqe_uccsd_z2_nosymm(self):
+        """ This time we reduce the operator so it has symmetries left. Whether z2 symmetry
+            reduction is set to auto, or left turned off, the results should be same. We
+            explicitly check the Z2 symmetry to ensure it empty and use classical solver
+            to ensure the operators via the subsequent result computation are correct. """
+
+        z2_symm = None
+
+        def cb_create_solver(num_particles, num_orbitals,
+                             qubit_mapping, two_qubit_reduction, z2_symmetries):
+
+            nonlocal z2_symm
+            z2_symm = z2_symmetries
+            return NumPyMinimumEigensolver()
+
+        driver = PySCFDriver(atom='Li .0 .0 -0.8; H .0 .0 0.8')
+        mgse = MolecularGroundStateEnergy(driver, qubit_mapping=QubitMappingType.PARITY,
+                                          two_qubit_reduction=True, freeze_core=True,
+                                          orbital_reduction=[-3, -2],
+                                          z2symmetry_reduction='auto')
+        result = mgse.compute_energy(cb_create_solver)
+
+        # Check a couple of values are as expected, energy for main operator and number of
+        # particles and dipole from auxiliary operators.
+        self.assertEqual(z2_symm.is_empty(), True)
+        self.assertAlmostEqual(result.energy, -7.881, places=3)
+        self.assertAlmostEqual(result.num_particles, 2)
+        self.assertAlmostEqual(result.total_dipole_moment_in_debye, 4.667, places=3)
+
+        # Run with no symmetry reduction, which should match the prior result since there
+        # are no symmetries to be found.
+        mgse1 = MolecularGroundStateEnergy(driver, qubit_mapping=QubitMappingType.PARITY,
+                                           two_qubit_reduction=True, freeze_core=True,
+                                           orbital_reduction=[-3, -2])
+        result1 = mgse1.compute_energy(cb_create_solver)
+
+        self.assertEqual(z2_symm.is_empty(), True)
+        self.assertEqual(str(result), str(result1))  # Compare string form of results
+
 
 if __name__ == '__main__':
     unittest.main()
