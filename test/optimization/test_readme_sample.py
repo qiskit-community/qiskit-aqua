@@ -67,7 +67,7 @@ class TestReadmeSample(QiskitOptimizationTestCase):
         problem.linear_constraint([1, 0, 0, 0], '==', 1)
 
         # Run quantum algorithm QAOA on qasm simulator
-        spsa = SPSA(max_trials=250)
+        spsa = SPSA(maxiter=250)
         backend = BasicAer.get_backend('qasm_simulator')
         qaoa = QAOA(optimizer=spsa, p=5, quantum_instance=backend)
         algorithm = MinimumEigenOptimizer(qaoa)
