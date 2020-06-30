@@ -43,8 +43,8 @@ class SlsqpOptimizer(OptimizationAlgorithm):
         >>> from qiskit.optimization.algorithms import SlsqpOptimizer
         >>> problem = QuadraticProgram()
         >>> # specify problem here
-        >>> problem.continuous_var(name="x")
-        >>> problem.continuous_var(name="y")
+        >>> x = problem.continuous_var(name="x")
+        >>> y = problem.continuous_var(name="y")
         >>> problem.maximize(linear=[2, 0], quadratic=[[-1, 2], [0, -2]])
         >>> optimizer = SlsqpOptimizer()
         >>> result = optimizer.solve(problem)
