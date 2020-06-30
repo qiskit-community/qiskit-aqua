@@ -112,10 +112,10 @@ class SlsqpOptimizer(OptimizationAlgorithm):
             raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
 
         # construct quadratic objective function
-        def _objective(x):
+        def objective(x):
             return problem.objective.sense.value * problem.objective.evaluate(x)
 
-        def _objective_gradient(x):
+        def objective_gradient(x):
             return problem.objective.sense.value * problem.objective.evaluate_gradient(x)
 
         # initialize constraints list
@@ -159,12 +159,12 @@ class SlsqpOptimizer(OptimizationAlgorithm):
 
             # run optimization
             t_0 = time.time()
-            x = fmin_slsqp(_objective, x_0, eqcons=slsqp_eq_constraints,
+            x = fmin_slsqp(objective, x_0, eqcons=slsqp_eq_constraints,
                            ieqcons=slsqp_ineq_constraints,
-                           bounds=slsqp_bounds, fprime=_objective_gradient, iter=self._iter,
+                           bounds=slsqp_bounds, fprime=objective_gradient, iter=self._iter,
                            acc=self._acc, iprint=self._iprint)
             logger.debug("fmin_slsqp done in: %s seconds", str(time.time() - t_0))
-            fval = problem.objective.sense.value * _objective(x)
+            fval = problem.objective.sense.value * objective(x)
             if fval < fval_sol:
                 fval_sol = fval
                 x_sol = x
