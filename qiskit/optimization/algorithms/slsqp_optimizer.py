@@ -48,7 +48,7 @@ class SlsqpOptimizer(OptimizationAlgorithm):
     """
 
     # pylint: disable=redefined-builtin
-    def __init__(self, iter: int = 100, acc: float = 1.0E-6, iprint: int = 0, shots: int = 1) \
+    def __init__(self, iter: int = 100, acc: float = 1.0E-6, iprint: int = 0, trials: int = 1) \
             -> None:
         """Initializes the SlsqpOptimizer.
 
@@ -66,14 +66,13 @@ class SlsqpOptimizer(OptimizationAlgorithm):
                 - iprint == 1 : Print summary upon completion (default)
                 - iprint >= 2 : Print status of each iterate and summary
 
-            shots: The number of shots for multi-start method.
+            trials: The number of trials for multi-start method.
         """
 
         self._iter = iter
         self._acc = acc
         self._iprint = iprint
-        self._shots = shots
-        self._log = logging.getLogger(__name__)
+        self._trials = trials
 
     def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
         """Checks whether a given problem can be solved with this optimizer.
@@ -113,10 +112,10 @@ class SlsqpOptimizer(OptimizationAlgorithm):
             raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
 
         # construct quadratic objective function
-        def objective(x):
+        def _objective(x):
             return problem.objective.sense.value * problem.objective.evaluate(x)
 
-        def objective_gradient(x):
+        def _objective_gradient(x):
             return problem.objective.sense.value * problem.objective.evaluate_gradient(x)
 
         # initialize constraints list
@@ -150,9 +149,9 @@ class SlsqpOptimizer(OptimizationAlgorithm):
         x_sol = None    # type: Optional[np.array]
 
         # Implementation of multi-start SLSQP optimizer
-        for shot in range(self._shots):
+        for trial in range(self._trials):
             x_0 = np.zeros(problem.get_num_vars())
-            if shot > 0:
+            if trial > 0:
                 for i, variable in enumerate(problem.variables):
                     lowerbound = variable.lowerbound
                     upperbound = variable.upperbound
@@ -160,12 +159,12 @@ class SlsqpOptimizer(OptimizationAlgorithm):
 
             # run optimization
             t_0 = time.time()
-            x = fmin_slsqp(objective, x_0, eqcons=slsqp_eq_constraints,
+            x = fmin_slsqp(_objective, x_0, eqcons=slsqp_eq_constraints,
                            ieqcons=slsqp_ineq_constraints,
-                           bounds=slsqp_bounds, fprime=objective_gradient, iter=self._iter,
+                           bounds=slsqp_bounds, fprime=_objective_gradient, iter=self._iter,
                            acc=self._acc, iprint=self._iprint)
-            self._log.debug("fmin_slsqp done in: %s seconds", str(time.time() - t_0))
-            fval = problem.objective.sense.value * objective(x)
+            logger.debug("fmin_slsqp done in: %s seconds", str(time.time() - t_0))
+            fval = problem.objective.sense.value * _objective(x)
             if fval < fval_sol:
                 fval_sol = fval
                 x_sol = x

@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -13,8 +13,6 @@
 # that they have been altered from the originals.
 
 """ Test SLSQP Optimizer """
-
-import logging
 import unittest
 
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
@@ -22,9 +20,6 @@ from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 import numpy as np
 from qiskit.optimization.algorithms import SlsqpOptimizer
 from qiskit.optimization.problems import QuadraticProgram
-
-
-logger = logging.getLogger(__name__)
 
 
 class TestSlsqpOptimizer(QiskitOptimizationTestCase):
@@ -40,7 +35,7 @@ class TestSlsqpOptimizer(QiskitOptimizationTestCase):
         problem.minimize(linear=[2, 2], quadratic=[[2, 0.25], [0.25, 0.5]])
 
         # solve problem with SLSQP
-        slsqp = SlsqpOptimizer(shots=3)
+        slsqp = SlsqpOptimizer(trials=3)
         result = slsqp.solve(problem)
 
         self.assertAlmostEqual(result.fval, 5.8750)

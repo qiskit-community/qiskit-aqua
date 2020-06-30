@@ -42,6 +42,7 @@ Algorithms
    GroverOptimizer
    MinimumEigenOptimizer
    RecursiveMinimumEigenOptimizer
+   SlsqpOptimizer
 
 """
 
