@@ -116,7 +116,7 @@ class TestEomVQE(QiskitAquaTestCase):
                          num_particles=num_particles, initial_state=initial_state,
                          qubit_mapping=qubit_mapping, two_qubit_reduction=two_qubit_reduction,
                          z2_symmetries=tapered_op.z2_symmetries)
-        optimizer = SPSA(max_trials=50)
+        optimizer = SPSA(maxiter=50)
 
         eom_vqe = QEomVQE(tapered_op, var_form, optimizer, num_orbitals=num_orbitals,
                           num_particles=num_particles, qubit_mapping=qubit_mapping,
@@ -148,7 +148,7 @@ class TestEomVQE(QiskitAquaTestCase):
         tapered_op = z2_symmetries.taper(qubit_op)[1]
 
         var_form = RealAmplitudes(tapered_op.num_qubits, reps=1)
-        optimizer = SPSA(max_trials=50)
+        optimizer = SPSA(maxiter=50)
 
         eom_vqe = QEomVQE(tapered_op, var_form, optimizer, num_orbitals=num_orbitals,
                           num_particles=num_particles, qubit_mapping=qubit_mapping,
