@@ -13,6 +13,7 @@
 # that they have been altered from the originals.
 
 """An implementation of the ADMM algorithm."""
+import warnings
 import copy
 import logging
 import time
@@ -37,18 +38,27 @@ logger = logging.getLogger(__name__)
 class ADMMParameters:
     """Defines a set of parameters for ADMM optimizer."""
 
-    def __init__(self, rho_initial: float = 10000, factor_c: float = 100000, beta: float = 1000,
-                 max_iter: int = 10, tol: float = 1.e-4, max_time: float = np.inf,
-                 three_block: bool = True, vary_rho: int = UPDATE_RHO_BY_TEN_PERCENT,
-                 tau_incr: float = 2, tau_decr: float = 2, mu_res: float = 10,
-                 mu_merit: float = 1000) -> None:
+    def __init__(self,
+                 rho_initial: float = 10000,
+                 factor_c: float = 100000,
+                 beta: float = 1000,
+                 maxiter: int = 10,
+                 tol: float = 1.e-4,
+                 max_time: float = np.inf,
+                 three_block: bool = True,
+                 vary_rho: int = UPDATE_RHO_BY_TEN_PERCENT,
+                 tau_incr: float = 2,
+                 tau_decr: float = 2,
+                 mu_res: float = 10,
+                 mu_merit: float = 1000,
+                 max_iter: Optional[int] = None) -> None:
         """Defines parameters for ADMM optimizer and their default values.
 
         Args:
             rho_initial: Initial value of rho parameter of ADMM.
             factor_c: Penalizing factor for equality constraints, when mapping to QUBO.
             beta: Penalization for y decision variables.
-            max_iter: Maximum number of iterations for ADMM.
+            maxiter: Maximum number of iterations for ADMM.
             tol: Tolerance for the residual convergence.
             max_time: Maximum running time (in seconds) for ADMM.
             three_block: Boolean flag to select the 3-block ADMM implementation.
@@ -64,8 +74,15 @@ class ADMMParameters:
             tau_decr: Parameter used in the rho update (UPDATE_RHO_BY_RESIDUALS).
             mu_res: Parameter used in the rho update (UPDATE_RHO_BY_RESIDUALS).
             mu_merit: Penalization for constraint residual. Used to compute the merit values.
+            max_iter: Deprecated, use maxiter.
         """
         super().__init__()
+        if max_iter is not None:
+            warnings.warn('The max_iter parameter is deprecated as of '
+                          '0.8.0 and will be removed no sooner than 3 months after the release. '
+                          'You should use maxiter instead.',
+                          DeprecationWarning)
+            maxiter = max_iter
         self.mu_merit = mu_merit
         self.mu_res = mu_res
         self.tau_decr = tau_decr
@@ -74,7 +91,7 @@ class ADMMParameters:
         self.three_block = three_block
         self.max_time = max_time
         self.tol = tol
-        self.max_iter = max_iter
+        self.maxiter = maxiter
         self.factor_c = factor_c
         self.beta = beta
         self.rho_initial = rho_initial
@@ -278,7 +295,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         iteration = 0
         residual = 1.e+2
 
-        while (iteration < self._params.max_iter and residual > self._params.tol) \
+        while (iteration < self._params.maxiter and residual > self._params.tol) \
                 and (elapsed_time < self._params.max_time):
             if self._state.step1_absolute_indices:
                 op1 = self._create_step1_problem()

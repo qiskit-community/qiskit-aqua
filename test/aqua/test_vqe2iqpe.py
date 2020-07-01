@@ -48,7 +48,7 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         num_qbits = self.qubit_op.num_qubits
         wavefunction = TwoLocal(num_qbits, ['ry', 'rz'], 'cz', reps=3, insert_barriers=True)
 
-        optimizer = SPSA(max_trials=10)
+        optimizer = SPSA(maxiter=10)
         algo = VQE(self.qubit_op, wavefunction, optimizer)
 
         quantum_instance = QuantumInstance(backend, seed_simulator=self.seed,
