@@ -77,7 +77,7 @@ class TestGraphPartition(QiskitOptimizationTestCase):
                                       reps=5, entanglement='linear')
         result = VQE(self.qubit_op,
                      wavefunction,
-                     SPSA(max_trials=300),
+                     SPSA(maxiter=300),
                      max_evals_grouped=2).run(
                          QuantumInstance(BasicAer.get_backend('statevector_simulator'),
                                          seed_simulator=aqua_globals.random_seed,
