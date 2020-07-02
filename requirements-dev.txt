@@ -1,6 +1,7 @@
 coverage>=4.4.0
 matplotlib>=2.1
 pycodestyle
+pyenchant
 pylint>=2.4.4
 pylintfileheader>=0.0.2
 stestr>=2.0.0
