@@ -78,7 +78,7 @@ class TestSetPacking(QiskitOptimizationTestCase):
                                 reps=3, entanglement='linear')
         result = VQE(self.qubit_op,
                      wavefunction,
-                     SPSA(max_trials=200),
+                     SPSA(maxiter=200),
                      max_evals_grouped=2).run(
                          QuantumInstance(Aer.get_backend('qasm_simulator'),
                                          seed_simulator=aqua_globals.random_seed,
