@@ -89,7 +89,7 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
 
             admm_params = ADMMParameters(
                 rho_initial=1001, beta=1000, factor_c=900,
-                max_iter=100, three_block=False
+                maxiter=100, three_block=False
             )
 
             solver = ADMMOptimizer(params=admm_params, qubo_optimizer=qubo_optimizer,
@@ -137,7 +137,7 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
 
             admm_params = ADMMParameters(
                 rho_initial=1001, beta=1000, factor_c=900,
-                max_iter=100, three_block=False
+                maxiter=100, three_block=False
             )
 
             solver = ADMMOptimizer(params=admm_params, qubo_optimizer=qubo_optimizer,
@@ -183,7 +183,7 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
 
             admm_params = ADMMParameters(
                 rho_initial=1001, beta=1000, factor_c=900,
-                max_iter=100, three_block=False
+                maxiter=100, three_block=False
             )
 
             solver = ADMMOptimizer(params=admm_params, qubo_optimizer=qubo_optimizer,
@@ -229,7 +229,7 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
 
             admm_params = ADMMParameters(
                 rho_initial=1001, beta=1000, factor_c=900,
-                max_iter=100, three_block=True, tol=1.e-6
+                maxiter=100, three_block=True, tol=1.e-6
             )
 
             solver = ADMMOptimizer(params=admm_params, qubo_optimizer=qubo_optimizer,
@@ -272,7 +272,7 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
 
             admm_params = ADMMParameters(
                 rho_initial=1001, beta=1000, factor_c=900,
-                max_iter=100, three_block=True, tol=1.e-6
+                maxiter=100, three_block=True, tol=1.e-6
             )
 
             solver = ADMMOptimizer(params=admm_params, qubo_optimizer=qubo_optimizer,
@@ -314,7 +314,7 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
 
             admm_params = ADMMParameters(
                 rho_initial=1001, beta=1000, factor_c=900,
-                max_iter=100, three_block=True,
+                maxiter=100, three_block=True,
             )
 
             solver = ADMMOptimizer(params=admm_params, qubo_optimizer=qubo_optimizer,
@@ -355,7 +355,7 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
 
             admm_params = ADMMParameters(
                 rho_initial=1001, beta=1000, factor_c=900,
-                max_iter=100, three_block=True,
+                maxiter=100, three_block=True,
             )
 
             solver = ADMMOptimizer(params=admm_params, qubo_optimizer=qubo_optimizer,
