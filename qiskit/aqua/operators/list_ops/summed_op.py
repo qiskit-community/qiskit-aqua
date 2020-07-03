@@ -154,6 +154,12 @@ class SummedOp(ListOp):
     def equals(self, other: OperatorBase) -> bool:
         """Check if other is equal to self.
 
+        Note:
+            This is not a mathematical check for equality.
+            If ``self`` and ``other`` implement the same operation but differ
+            in the representation (e.g. different type of summands)
+            ``equals`` will evaluate to ``False``.
+
         Args:
             other: The other operator to check for equality.
 
