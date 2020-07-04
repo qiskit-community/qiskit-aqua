@@ -136,10 +136,10 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         while problem_.get_num_vars() > self._min_num_vars:
 
             # solve current problem with optimizer
-            result = self._min_eigen_optimizer.solve(problem_)
+            res = self._min_eigen_optimizer.solve(problem_)
 
             # analyze results to get strongest correlation
-            correlations = result.get_correlations()
+            correlations = res.get_correlations()
             i, j = self._find_strongest_correlation(correlations)
 
             x_i = problem_.variables[i].name
@@ -210,9 +210,9 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
                 find_value(x_i.name, replacements, var_values)
 
         # construct result
-        x = [var_values[x_aux.name] for x_aux in problem_ref.variables]
+        x_v = [var_values[x_aux.name] for x_aux in problem_ref.variables]
         fval = result.fval
-        results = OptimizationResult(x, fval, (replacements, qubo_converter))
+        results = OptimizationResult(x_v, fval, (replacements, qubo_converter))
         results = qubo_converter.decode(results)
         return results
 

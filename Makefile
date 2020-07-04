@@ -35,12 +35,15 @@ endif
 # You can set this variable from the command line.
 SPHINXOPTS    =
 
-.PHONY: lint style test test_ci spell copyright html doctest coverage coverage_erase
+.PHONY: lint mypy style test test_ci spell copyright html doctest coverage coverage_erase
 
-all_check: spell style lint copyright html doctest
+all_check: spell style lint copyright mypy html doctest
 
 lint:
 	pylint -rn --ignore=gauopen qiskit/aqua qiskit/chemistry qiskit/finance qiskit/ml qiskit/optimization test tools
+
+mypy:
+	mypy qiskit test tools
 
 style:
 	pycodestyle qiskit/aqua qiskit/chemistry qiskit/finance qiskit/ml qiskit/optimization test tools

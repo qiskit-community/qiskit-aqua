@@ -15,7 +15,7 @@
 
 import copy
 import math
-from typing import List, Optional
+from typing import List, Optional, Dict, Tuple
 import logging
 
 from ..algorithms.optimization_algorithm import OptimizationResult
@@ -43,9 +43,9 @@ class InequalityToEquality:
     _delimiter = '@'  # users are supposed not to use this character in variable names
 
     def __init__(self) -> None:
-        self._src = None
-        self._dst = None
-        self._conv = {}  # Dict[str, List[Tuple[str, int]]]
+        self._src = None  # type: Optional[QuadraticProgram]
+        self._dst = None  # type: Optional[QuadraticProgram]
+        self._conv = {}  # type: Dict[str, List[Tuple[str, int]]]
         # e.g., self._conv = {'c1': [c1@slack_var]}
 
     def encode(
@@ -103,70 +103,72 @@ class InequalityToEquality:
             self._dst.maximize(constant, linear, quadratic)
 
         # For linear constraints
-        for constraint in self._src.linear_constraints:
-            linear = constraint.linear.to_dict(use_name=True)
-            if constraint.sense == Constraint.Sense.EQ:
+        for l_constraint in self._src.linear_constraints:
+            linear = l_constraint.linear.to_dict(use_name=True)
+            if l_constraint.sense == Constraint.Sense.EQ:
                 self._dst.linear_constraint(
-                    linear, constraint.sense, constraint.rhs, constraint.name
+                    linear, l_constraint.sense, l_constraint.rhs, l_constraint.name
                 )
-            elif constraint.sense == Constraint.Sense.LE or constraint.sense == Constraint.Sense.GE:
+            elif l_constraint.sense == Constraint.Sense.LE or \
+                    l_constraint.sense == Constraint.Sense.GE:
                 if mode == 'integer':
                     self._add_integer_slack_var_linear_constraint(
-                        linear, constraint.sense, constraint.rhs, constraint.name
+                        linear, l_constraint.sense, l_constraint.rhs, l_constraint.name
                     )
                 elif mode == 'continuous':
                     self._add_continuous_slack_var_linear_constraint(
-                        linear, constraint.sense, constraint.rhs, constraint.name
+                        linear, l_constraint.sense, l_constraint.rhs, l_constraint.name
                     )
                 elif mode == 'auto':
                     self._add_auto_slack_var_linear_constraint(
-                        linear, constraint.sense, constraint.rhs, constraint.name
+                        linear, l_constraint.sense, l_constraint.rhs, l_constraint.name
                     )
                 else:
                     raise QiskitOptimizationError('Unsupported mode is selected: {}'.format(mode))
             else:
                 raise QiskitOptimizationError(
-                    'Type of sense in {} is not supported'.format(constraint.name)
+                    'Type of sense in {} is not supported'.format(l_constraint.name)
                 )
 
         # For quadratic constraints
-        for constraint in self._src.quadratic_constraints:
-            linear = constraint.linear.to_dict(use_name=True)
-            quadratic = constraint.quadratic.to_dict(use_name=True)
-            if constraint.sense == Constraint.Sense.EQ:
+        for q_constraint in self._src.quadratic_constraints:
+            linear = q_constraint.linear.to_dict(use_name=True)
+            quadratic = q_constraint.quadratic.to_dict(use_name=True)
+            if q_constraint.sense == Constraint.Sense.EQ:
                 self._dst.quadratic_constraint(
-                    linear, quadratic, constraint.sense, constraint.rhs, constraint.name
+                    linear, quadratic, q_constraint.sense, q_constraint.rhs, q_constraint.name
                 )
-            elif constraint.sense == Constraint.Sense.LE or constraint.sense == Constraint.Sense.GE:
+            elif q_constraint.sense == Constraint.Sense.LE or \
+                    q_constraint.sense == Constraint.Sense.GE:
                 if mode == 'integer':
                     self._add_integer_slack_var_quadratic_constraint(
                         linear,
                         quadratic,
-                        constraint.sense,
-                        constraint.rhs,
-                        constraint.name,
+                        q_constraint.sense,
+                        q_constraint.rhs,
+                        q_constraint.name,
                     )
                 elif mode == 'continuous':
                     self._add_continuous_slack_var_quadratic_constraint(
                         linear,
                         quadratic,
-                        constraint.sense,
-                        constraint.rhs,
-                        constraint.name,
+                        q_constraint.sense,
+                        q_constraint.rhs,
+                        q_constraint.name,
                     )
                 elif mode == 'auto':
                     self._add_auto_slack_var_quadratic_constraint(
                         linear,
                         quadratic,
-                        constraint.sense,
-                        constraint.rhs,
-                        constraint.name,
+                        q_constraint.sense,
+                        q_constraint.rhs,
+                        q_constraint.name,
                     )
                 else:
                     raise QiskitOptimizationError('Unsupported mode is selected: {}'.format(mode))
             else:
                 raise QiskitOptimizationError(
-                    'Type of sense in {} is not supported'.format(constraint.name)
+                    'Type of sense in {} is not supported'.format(q_constraint.name)
                 )
 
         return self._dst
@@ -350,7 +352,7 @@ class InequalityToEquality:
         names = [x.name for x in self._dst.variables]
         vals = result.x
         new_vals = self._decode_var(names, vals)
-        result.x = new_vals
+        result.x = new_vals  # type: ignore
         return result
 
     def _decode_var(self, names, vals) -> List[int]:

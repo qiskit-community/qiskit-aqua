@@ -108,9 +108,9 @@ class QuadraticProgramToNegativeValueOracle:
     def _get_function(linear: np.array, quadratic: np.array, constant: int) -> \
             Dict[Union[int, Tuple[int, int]], int]:
         """Convert the problem to a dictionary format."""
-        func = {-1: int(constant)}
-        for i, v in enumerate(linear):
-            func[i] = int(v)
+        func = {-1: int(constant)}  # type: Dict[Union[int, Tuple[int, int]], int]
+        for idx, val in enumerate(linear):
+            func[idx] = int(val)
         for (i, j), v in quadratic.items():
             if i != j:
                 func[(i, j)] = int(quadratic[(i, j)])

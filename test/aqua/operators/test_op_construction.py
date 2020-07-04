@@ -19,11 +19,14 @@ from test.aqua import QiskitAquaTestCase
 import itertools
 import numpy as np
 
-from qiskit import QuantumCircuit
+from qiskit.circuit import QuantumCircuit, QuantumRegister, Instruction
+from qiskit.extensions.exceptions import ExtensionError
 from qiskit.quantum_info.operators import Operator, Pauli
 from qiskit.circuit.library import CZGate
 
-from qiskit.aqua.operators import X, Y, Z, I, CX, T, H, PrimitiveOp, SummedOp, PauliOp, Minus
+from qiskit.aqua.operators import (
+    X, Y, Z, I, CX, T, H, PrimitiveOp, SummedOp, PauliOp, Minus, CircuitOp
+)
 
 
 # pylint: disable=invalid-name
@@ -182,6 +185,17 @@ class TestOpConstruction(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(
             op6.to_matrix(), op5.to_matrix() + Operator.from_label('+r').data)
 
+    def test_matrix_to_instruction(self):
+        """Test MatrixOp.to_instruction yields an Instruction object."""
+        matop = (H ^ 3).to_matrix_op()
+        with self.subTest('assert to_instruction returns Instruction'):
+            self.assertIsInstance(matop.to_instruction(), Instruction)
+
+        matop = ((H ^ 3) + (Z ^ 3)).to_matrix_op()
+        with self.subTest('matrix operator is not unitary'):
+            with self.assertRaises(ExtensionError):
+                matop.to_instruction()
+
     def test_adjoint(self):
         """ adjoint test """
         gnarly_op = 3 * (H ^ I ^ Y).compose(X ^ X ^ Z).tensor(T ^ Z) + \
@@ -220,6 +234,123 @@ class TestOpConstruction(QiskitAquaTestCase):
         self.assertNotEqual(c_op, c_op_perm)
         c_op_id = c_op_perm.permute(perm)
         self.assertEqual(c_op, c_op_id)
+
+    def test_summed_op(self):
+        """Test SummedOp"""
+        sum_op = (X ^ X * 2) + (Y ^ Y)  # type: SummedOp
+        with self.subTest('SummedOp test 1'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [2, 1])
+
+        sum_op = (X ^ X * 2) + (Y ^ Y)
+        sum_op += Y ^ Y
+        with self.subTest('SummedOp test 2-a'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [2, 1, 1])
+
+        sum_op = sum_op.simplify()
+        with self.subTest('SummedOp test 2-b'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [2, 2])
+
+        sum_op = (X ^ X * 2) + (Y ^ Y)
+        sum_op += (Y ^ Y) + (X ^ X * 2)
+        with self.subTest('SummedOp test 3-a'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY', 'YY', 'XX'])
+            self.assertListEqual([op.coeff for op in sum_op], [2, 1, 1, 2])
+
+        sum_op = sum_op.simplify()
+        with self.subTest('SummedOp test 3-b'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [4, 2])
+
+        sum_op = SummedOp([X ^ X * 2, Y ^ Y], 2)
+        with self.subTest('SummedOp test 4-a'):
+            self.assertEqual(sum_op.coeff, 2)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [2, 1])
+
+        sum_op = sum_op.simplify()
+        with self.subTest('SummedOp test 4-b'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [4, 2])
+
+        sum_op = SummedOp([X ^ X * 2, Y ^ Y], 2)
+        sum_op += Y ^ Y
+        with self.subTest('SummedOp test 5-a'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [4, 2, 1])
+
+        sum_op = sum_op.simplify()
+        with self.subTest('SummedOp test 5-b'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [4, 3])
+
+        sum_op = SummedOp([X ^ X * 2, Y ^ Y], 2)
+        sum_op += (X ^ X) * 2 + (Y ^ Y)
+        with self.subTest('SummedOp test 6-a'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY', 'XX', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [4, 2, 2, 1])
+
+        sum_op = sum_op.simplify()
+        with self.subTest('SummedOp test 6-b'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [6, 3])
+
+        sum_op = SummedOp([X ^ X * 2, Y ^ Y], 2)
+        sum_op += sum_op
+        with self.subTest('SummedOp test 7-a'):
+            self.assertEqual(sum_op.coeff, 4)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [2, 1])
+
+        sum_op = sum_op.simplify()
+        with self.subTest('SummedOp test 7-b'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [8, 4])
+
+        sum_op = SummedOp([X ^ X * 2, Y ^ Y], 2) + SummedOp([X ^ X * 2, Z ^ Z], 3)
+        with self.subTest('SummedOp test 8-a'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY', 'XX', 'ZZ'])
+            self.assertListEqual([op.coeff for op in sum_op], [4, 2, 6, 3])
+
+        sum_op = sum_op.simplify()
+        with self.subTest('SummedOp test 8-b'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY', 'ZZ'])
+            self.assertListEqual([op.coeff for op in sum_op], [10, 2, 3])
+
+    def test_circuit_compose_register_independent(self):
+        """Test that CircuitOp uses combines circuits independent of the register.
+
+        I.e. that is uses ``QuantumCircuit.compose`` over ``combine`` or ``extend``.
+        """
+        op = Z ^ 2
+        qr = QuantumRegister(2, 'my_qr')
+        circuit = QuantumCircuit(qr)
+        composed = op.compose(CircuitOp(circuit))
+
+        self.assertEqual(composed.num_qubits, 2)
+
+    def test_pauli_op_hashing(self):
+        """Regression test against faulty set comparison.
+
+        Set comparisons rely on a hash table which requires identical objects to have identical
+        hashes. Thus, the PauliOp.__hash__ should support this requirement.
+        """
+        self.assertEqual(set([2*Z]), set([2*Z]))
 
 
 if __name__ == '__main__':

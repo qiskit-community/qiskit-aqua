@@ -6,6 +6,7 @@ Qiskit Aqua documentation
   :maxdepth: 2
 
   API References <apidocs/aqua>
+  Release Notes <release_notes>
 
 .. Hiding - Indices and tables
    :ref:`genindex`
