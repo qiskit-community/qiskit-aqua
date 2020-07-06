@@ -281,13 +281,13 @@ class Hamiltonian(ChemistryOperator):
         if z2_symmetries.is_empty():
             logger.debug('No Z2 symmetries found')
             z2_qubit_op = qubit_op
-            z2_aux_ops = []
-            z2_symmetries = None
+            z2_aux_ops = aux_ops
+            z2_symmetries = Z2Symmetries([], [], [], None)
         else:
             logger.debug('%s Z2 symmetries found: %s', len(z2_symmetries.symmetries),
                          ','.join([symm.to_label() for symm in z2_symmetries.symmetries]))
 
-            # Check auxiliary operators commute with man operator's symmetry
+            # Check auxiliary operators commute with main operator's symmetry
             logger.debug('Checking operators commute with symmetry:')
             symmetry_ops = []
             for symmetry in z2_symmetries.symmetries:

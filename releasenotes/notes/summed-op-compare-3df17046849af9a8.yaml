@@ -1,0 +1,5 @@
+---
+features:
+  - |
+    The ``SummedOp`` does a mathematically more correct check for equality, where 
+    expressions such as ``X + X == 2*X`` and ``X + Z == Z + X`` evaluate to ``True``.

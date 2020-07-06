@@ -74,7 +74,7 @@ class TestVertexCover(QiskitOptimizationTestCase):
 
         result = VQE(self.qubit_op,
                      EfficientSU2(reps=3),
-                     SPSA(max_trials=200),
+                     SPSA(maxiter=200),
                      max_evals_grouped=2).run(
                          QuantumInstance(BasicAer.get_backend('qasm_simulator'),
                                          seed_simulator=aqua_globals.random_seed,
