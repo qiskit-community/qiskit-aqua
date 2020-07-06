@@ -52,7 +52,7 @@ class MultiStartOptimizer(OptimizationAlgorithm, ABC):
             The result of the multi start algorithm applied to the problem.
         """
         fval_sol = INFINITY
-        x_sol: Optional[np.array] = None
+        x_sol = None    # type: Optional[np.array]
 
         # Implementation of multi-start optimizer
         for trial in range(trials):
