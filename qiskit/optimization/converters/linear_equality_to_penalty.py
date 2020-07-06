@@ -19,7 +19,8 @@ from typing import Optional, cast, Union, Tuple
 from math import fsum
 import logging
 
-from ..problems.quadratic_program import QuadraticProgram
+from ..algorithms.optimization_algorithm import OptimizationResult, OptimizationResultStatus
+from ..problems.quadratic_program import QuadraticProgram, QuadraticProgramStatus
 from ..problems.variable import Variable
 from ..problems.constraint import Constraint
 from ..problems.quadratic_objective import QuadraticObjective
@@ -31,7 +32,7 @@ logger = logging.getLogger(__name__)
 class LinearEqualityToPenalty:
     """Convert a problem with only equality constraints to unconstrained with penalty terms."""
 
-    def __init__(self, penalty: Optional[float] = None, name: Optional[str] = None):
+    def __init__(self, name: Optional[str] = None, penalty: Optional[float] = None):
         """
         Args:
             penalty: Penalty factor to scale equality constraints that are added to objective.
@@ -40,8 +41,8 @@ class LinearEqualityToPenalty:
         """
         self._src = None
         self._dst = None
-        self._penalty = penalty
         self._dst_name = name
+        self._penalty = penalty
 
     def encode(self, op: QuadraticProgram) -> QuadraticProgram:
         """Convert a problem with equality constraints into an unconstrained problem.
@@ -62,8 +63,9 @@ class LinearEqualityToPenalty:
 
         # If penalty is None, set the penalty coefficient by _auto_define_penalty()
         if self._penalty is None:
-            self._penalty = self._auto_define_penalty()
-        penalty = self._penalty
+            penalty = self._auto_define_penalty()
+        else:
+            penalty = self._penalty
 
         # set problem name
         if self._dst_name is None:
@@ -164,3 +166,59 @@ class LinearEqualityToPenalty:
         penalties.extend(abs(coef) for coef in self._src.objective.quadratic.to_dict().values())
 
         return fsum(penalties)
+
+    def decode(self, result: OptimizationResult) -> OptimizationResult:
+        """Convert the result of the converted problem back to that of the original problem
+        Args:
+            result: The result of the converted problem.
+
+        Returns:
+            The result of the original problem.
+
+        Raises:
+            QiskitOptimizationError: if the number of variables in the result differs from
+                                     that of the original problema.
+        """
+        if len(result.x) != len(self._src.variables):
+            raise QiskitOptimizationError(
+                'The number of variables in the passed result differs from '
+                'that of the original problem.'
+            )
+        # Substitute variables to obtain the function value and feasibility in the original problem
+        substitute_dict = {}
+        variables = self._src.variables
+        for i in range(len(result.x)):
+            substitute_dict[variables[i].name] = result.x[i]
+        substituted_qp = self._src.substitute_variables(substitute_dict)
+
+        new_result = OptimizationResult()
+        new_result.x = result.x
+
+        # Set the new function value
+        new_result.fval = substituted_qp.objective.constant
+
+        # Set the new status of optimization result
+        if substituted_qp.status == QuadraticProgramStatus.VALID:
+            new_result.status = OptimizationResultStatus.SUCCESS
+        else:
+            new_result.status = OptimizationResultStatus.INFEASIBLE
+
+        return new_result
+
+    @property
+    def penalty(self) -> float:
+        """Returns the penalty factor used in conversion.
+
+        Returns:
+            The penalty factor used in conversion.
+        """
+        return self._penalty
+
+    @penalty.setter  # type:ignore
+    def penalty(self, penalty: float) -> None:
+        """Set a new penalty factor.
+
+        Args:
+            penalty: The new penalty factor
+        """
+        self._penalty = penalty
