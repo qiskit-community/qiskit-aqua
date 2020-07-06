@@ -159,7 +159,7 @@ class LinearEqualityToPenalty:
 
         # (upper bound - lower bound) can be calculate as the sum of absolute value of coefficients
         # Firstly, add 1 to guarantee that infeasible answers will be greater than upper bound.
-        penalties = [1]
+        penalties = [1.0]
         # add linear terms of the object function.
         penalties.extend(abs(coef) for coef in self._src.objective.linear.to_dict().values())
         # add quadratic terms of the object function.
