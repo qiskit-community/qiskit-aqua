@@ -30,7 +30,7 @@ from qiskit.optimization.algorithms import OptimizationAlgorithm, OptimizationRe
 logger = logging.getLogger(__name__)
 
 
-# we disable a warning: "Method 'xxx' is abstract in class 'OptimizationAlgorithm' but
+# we disable a warning: "Method 'a method' is abstract in class 'OptimizationAlgorithm' but
 # is not overridden (abstract-method) since this class is not intended for instantiation
 # pylint: disable=W0223
 class MultiStartOptimizer(OptimizationAlgorithm, ABC):
