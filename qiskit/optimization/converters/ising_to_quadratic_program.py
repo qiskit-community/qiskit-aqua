@@ -15,12 +15,12 @@
 
 """The converter from a ```Operator``` to ``QuadraticProgram``."""
 
-from typing import Optional
+from typing import Optional, Union
 import copy
 
 import numpy as np
 
-from qiskit.aqua.operators.legacy import WeightedPauliOperator
+from qiskit.aqua.operators import OperatorBase, WeightedPauliOperator, SummedOp, ListOp
 from ..problems.quadratic_program import QuadraticProgram
 from ..exceptions import QiskitOptimizationError
 
@@ -44,7 +44,8 @@ class IsingToQuadraticProgram:
         self._qp = None  # type: Optional[QuadraticProgram]
         self._linear = linear
 
-    def encode(self, qubit_op: WeightedPauliOperator, offset: float = 0.0) -> QuadraticProgram:
+    def encode(self, qubit_op: Union[OperatorBase, WeightedPauliOperator], offset: float = 0.0
+               ) -> QuadraticProgram:
         """Convert a qubit operator and a shift value into a quadratic program
 
         Args:
@@ -58,8 +59,18 @@ class IsingToQuadraticProgram:
         Raises:
             QiskitOptimizationError: If there are Pauli Xs in any Pauli term
             QiskitOptimizationError: If there are more than 2 Pauli Zs in any Pauli term
+            NotImplementedError: If the input operator is a ListOp
         """
         # Set properties
+        if isinstance(qubit_op, WeightedPauliOperator):
+            qubit_op = qubit_op.to_opflow()
+
+        # No support for ListOp yet, this can be added in future
+        # pylint: disable=unidiomatic-typecheck
+        if type(qubit_op) == ListOp:
+            raise NotImplementedError('Conversion of a ListOp is not supported, convert each '
+                                      'operator in the ListOp separately.')
+
         self._qubit_op = qubit_op
         self._offset = copy.deepcopy(offset)
         self._num_qubits = qubit_op.num_qubits
@@ -134,24 +145,31 @@ class IsingToQuadraticProgram:
         # The other elements in the QUBO matrix is for quadratic terms of the qubit operator
         self._qubo_matrix = np.zeros((self._num_qubits, self._num_qubits))
 
-        for pauli in self._qubit_op.paulis:
+        if not isinstance(self._qubit_op, SummedOp):
+            oplist = [self._qubit_op.to_pauli_op()]
+        else:
+            oplist = self._qubit_op.to_pauli_op().oplist
+
+        for pauli_op in oplist:
+            pauli = pauli_op.primitive
+            coeff = pauli_op.coeff
             # Count the number of Pauli Zs in a Pauli term
-            lst_z = pauli[1].z.tolist()
+            lst_z = pauli.z.tolist()
             z_index = [i for i, z in enumerate(lst_z) if z is True]
             num_z = len(z_index)
 
             # Add its weight of the Pauli term to the corresponding element of QUBO matrix
             if num_z == 1:
-                self._qubo_matrix[z_index[0], z_index[0]] = pauli[0].real
+                self._qubo_matrix[z_index[0], z_index[0]] = coeff.real
             elif num_z == 2:
-                self._qubo_matrix[z_index[0], z_index[1]] = pauli[0].real
+                self._qubo_matrix[z_index[0], z_index[1]] = coeff.real
             else:
                 raise QiskitOptimizationError(
-                    'There are more than 2 Pauli Zs in the Pauli term {}'.format(pauli[1].z)
+                    'There are more than 2 Pauli Zs in the Pauli term {}'.format(pauli.z)
                 )
 
             # If there are Pauli Xs in the Pauli term, raise an error
-            lst_x = pauli[1].x.tolist()
+            lst_x = pauli.x.tolist()
             x_index = [i for i, x in enumerate(lst_x) if x is True]
             if len(x_index) > 0:
-                raise QiskitOptimizationError('Pauli Xs exist in the Pauli {}'.format(pauli[1].x))
+                raise QiskitOptimizationError('Pauli Xs exist in the Pauli {}'.format(pauli.x))
