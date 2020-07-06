@@ -25,7 +25,6 @@ from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
 from ..problems.quadratic_program import QuadraticProgram
 from ..converters.quadratic_program_to_ising import QuadraticProgramToIsing
 from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
-from ..exceptions import QiskitOptimizationError
 
 
 class MinimumEigenOptimizerResult(OptimizationResult):
@@ -138,10 +137,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         Raises:
             QiskitOptimizationError: If problem not compatible.
         """
-        # check compatibility and raise exception if incompatible
-        msg = self.get_compatibility_msg(problem)
-        if len(msg) > 0:
-            raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
+        self._verify_compatibility(problem)
 
         # convert problem to QUBO
         qubo_converter = QuadraticProgramToQubo()

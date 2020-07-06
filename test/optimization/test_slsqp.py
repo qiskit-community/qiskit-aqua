@@ -18,6 +18,8 @@ import unittest
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 
 import numpy as np
+
+from qiskit.optimization import INFINITY
 from qiskit.optimization.algorithms import SlsqpOptimizer
 from qiskit.optimization.problems import QuadraticProgram
 
@@ -48,6 +50,22 @@ class TestSlsqpOptimizer(QiskitOptimizationTestCase):
         problem.maximize(linear=[2, 0], quadratic=[[-1, 2], [0, -2]])
 
         slsqp = SlsqpOptimizer()
+        solution = slsqp.solve(problem)
+
+        self.assertIsNotNone(solution)
+        self.assertIsNotNone(solution.x)
+        np.testing.assert_almost_equal([2., 1.], solution.x, 3)
+        self.assertIsNotNone(solution.fval)
+        np.testing.assert_almost_equal(2., solution.fval, 3)
+
+    def test_slsqp_unbounded_with_trials(self):
+        """Unbounded test for optimization"""
+        problem = QuadraticProgram()
+        problem.continuous_var(name="x", lowerbound=-INFINITY, upperbound=INFINITY)
+        problem.continuous_var(name="y", lowerbound=-INFINITY, upperbound=INFINITY)
+        problem.maximize(linear=[2, 0], quadratic=[[-1, 2], [0, -2]])
+
+        slsqp = SlsqpOptimizer(trials=3)
         solution = slsqp.solve(problem)
 
         self.assertIsNotNone(solution)

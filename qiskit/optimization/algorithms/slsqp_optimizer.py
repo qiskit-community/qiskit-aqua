@@ -14,23 +14,21 @@
 
 """The SLSQP optimizer wrapped to be used within Qiskit's optimization module."""
 import logging
-import time
-from typing import Optional, List, cast
+from typing import List, cast
 
 import numpy as np
 from scipy.optimize import fmin_slsqp
-from scipy.stats import truncnorm
 
-from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
+from .multistart_optimizer import MultiStartOptimizer
+from .optimization_algorithm import OptimizationResult
 from ..exceptions import QiskitOptimizationError
-from ..infinity import INFINITY
 from ..problems.constraint import Constraint
 from ..problems.quadratic_program import QuadraticProgram
 
 logger = logging.getLogger(__name__)
 
 
-class SlsqpOptimizer(OptimizationAlgorithm):
+class SlsqpOptimizer(MultiStartOptimizer):
     """The SciPy SLSQP optimizer wrapped as an Qiskit :class:`OptimizationAlgorithm`.
 
     This class provides a wrapper for ``scipy.optimize.fmin_slsqp``
@@ -51,8 +49,8 @@ class SlsqpOptimizer(OptimizationAlgorithm):
     """
 
     # pylint: disable=redefined-builtin
-    def __init__(self, iter: int = 100, acc: float = 1.0E-6, iprint: int = 0, trials: int = 1) \
-            -> None:
+    def __init__(self, iter: int = 100, acc: float = 1.0E-6, iprint: int = 0, trials: int = 1,
+                 clip: float = 100.) -> None:
         """Initializes the SlsqpOptimizer.
 
         This initializer takes the algorithmic parameters of SLSQP and stores them for later use
@@ -69,13 +67,20 @@ class SlsqpOptimizer(OptimizationAlgorithm):
                 - iprint == 1 : Print summary upon completion (default)
                 - iprint >= 2 : Print status of each iterate and summary
 
-            trials: The number of trials for multi-start method.
+            trials: The number of trials for multi-start method. The first trial is solved with
+                the initial guess of zero. If more than one trial is specified then
+                initial guesses are uniformly drawn from ``[lowerbound, upperbound]``
+                with potential clipping.
+            clip: Clipping parameter for the initial guesses in the multi-start method.
+                If a variable is unbounded then the lower bound and/or upper bound are replaced
+                with the ``-clip`` or ``clip`` values correspondingly for the initial guesses.
         """
 
         self._iter = iter
         self._acc = acc
         self._iprint = iprint
         self._trials = trials
+        self._clip = clip
 
     def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
         """Checks whether a given problem can be solved with this optimizer.
@@ -109,10 +114,7 @@ class SlsqpOptimizer(OptimizationAlgorithm):
         Raises:
             QiskitOptimizationError: If the problem is incompatible with the optimizer.
         """
-        # check compatibility and raise exception if incompatible
-        msg = self.get_compatibility_msg(problem)
-        if len(msg) > 0:
-            raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
+        self._verify_compatibility(problem)
 
         # construct quadratic objective function
         def _objective(x):
@@ -121,7 +123,7 @@ class SlsqpOptimizer(OptimizationAlgorithm):
         def _objective_gradient(x):
             return problem.objective.sense.value * problem.objective.evaluate_gradient(x)
 
-        # initialize constraints list
+        # initialize constraints and bounds
         slsqp_bounds = []
         slsqp_eq_constraints = []
         slsqp_ineq_constraints = []
@@ -148,28 +150,11 @@ class SlsqpOptimizer(OptimizationAlgorithm):
             else:
                 raise QiskitOptimizationError('Unsupported constraint type!')
 
-        fval_sol = INFINITY
-        x_sol = None    # type: Optional[np.array]
+        # actual minimization function to be called by multi_start_solve
+        def _minimize(x_0: np.array) -> np.array:
+            return fmin_slsqp(_objective, x_0, eqcons=slsqp_eq_constraints,
+                              ieqcons=slsqp_ineq_constraints, bounds=slsqp_bounds,
+                              fprime=_objective_gradient, iter=self._iter, acc=self._acc,
+                              iprint=self._iprint)
 
-        # Implementation of multi-start SLSQP optimizer
-        for trial in range(self._trials):
-            x_0 = np.zeros(problem.get_num_vars())
-            if trial > 0:
-                for i, variable in enumerate(problem.variables):
-                    lowerbound = variable.lowerbound
-                    upperbound = variable.upperbound
-                    x_0[i] = truncnorm.rvs(lowerbound, upperbound)
-
-            # run optimization
-            t_0 = time.time()
-            x = fmin_slsqp(_objective, x_0, eqcons=slsqp_eq_constraints,
-                           ieqcons=slsqp_ineq_constraints,
-                           bounds=slsqp_bounds, fprime=_objective_gradient, iter=self._iter,
-                           acc=self._acc, iprint=self._iprint)
-            logger.debug("fmin_slsqp done in: %s seconds", str(time.time() - t_0))
-            fval = problem.objective.sense.value * _objective(x)
-            if fval < fval_sol:
-                fval_sol = fval
-                x_sol = x
-
-        return OptimizationResult(x_sol, fval_sol, x_sol)
+        return self.multi_start_solve(_minimize, problem, self._trials, self._clip)
