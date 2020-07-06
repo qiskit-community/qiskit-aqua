@@ -122,7 +122,7 @@ def get_controlled_circuit(circuit, ctl_qubit, tgt_circuit=None, use_basis_gates
         elif op[0].name == 'u3':
             apply_cu3(qc, *op[0].params, ctl_qubit, op[1][0], use_basis_gates=use_basis_gates)
         elif op[0].name == 'cx':
-            apply_ccx(qc, ctl_qubit, *op[1], use_basis_gates=use_basis_gates)
+            apply_ccx(qc, ctl_qubit, op[1][0], op[1][1], use_basis_gates=use_basis_gates)
         elif op[0].name == 'measure':
             qc.measure(op[1], op[2])
         elif op[0].name == 'barrier':
