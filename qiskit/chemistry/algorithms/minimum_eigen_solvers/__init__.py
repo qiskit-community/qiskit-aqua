@@ -15,5 +15,6 @@
 """ Minimum Eigen Solvers Package for Chemistry """
 
 from .vqe_adapt import VQEAdapt, VQEAdaptResult
+from .oovqe import OOVQE, OrbitalRotation
 
-__all__ = ['VQEAdapt', 'VQEAdaptResult']
+__all__ = ['VQEAdapt', 'VQEAdaptResult', 'OOVQE', 'OrbitalRotation']

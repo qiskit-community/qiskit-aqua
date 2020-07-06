@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2019.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -29,6 +29,7 @@ try:
     from pyscf.lib import param
     from pyscf.lib import logger as pylogger
     from pyscf.tools import dump_mat
+    import copy
 except ImportError:
     logger.info("PySCF is not installed. See https://sunqm.github.io/pyscf/install.html")
 
@@ -42,48 +43,52 @@ def compute_integrals(atom,
                       conv_tol=1e-9,
                       max_cycle=50,
                       init_guess='minao',
+                      coef_rot_matrix=None,
                       max_memory=None):
-    """ compute integrals """
+    """Compute integrals"""
+
     # Get config from input parameters
     # molecule is in PySCF atom string format e.g. "H .0 .0 .0; H .0 .0 0.2"
     #          or in Z-Matrix format e.g. "H; O 1 1.08; H 2 1.08 1 107.5"
     # other parameters are as per PySCF got.Mole format
 
-    atom = _check_molecule_format(atom)
-    hf_method = hf_method.lower()
-    if max_memory is None:
-        max_memory = param.MAX_MEMORY
+    m_f, ehf, enuke, mol = _create_mol_and_run_scf(atom, unit, charge, spin, basis,
+                                                   hf_method=hf_method, conv_tol=conv_tol,
+                                                   max_cycle=max_cycle, init_guess=init_guess,
+                                                   max_memory=max_memory)
 
-    try:
-        verbose = pylogger.QUIET
-        output = None
-        if logger.isEnabledFor(logging.DEBUG):
-            verbose = pylogger.INFO
-            file, output = tempfile.mkstemp(suffix='.log')
-            os.close(file)
-
-        mol = gto.Mole(atom=atom, unit=unit, basis=basis,
-                       max_memory=max_memory, verbose=verbose, output=output)
-        mol.symmetry = False
-        mol.charge = charge
-        mol.spin = spin
-        mol.build(parse_arg=False)
-        q_mol = _calculate_integrals(mol, hf_method, conv_tol, max_cycle, init_guess)
-        if output is not None:
-            _process_pyscf_log(output)
-            try:
-                os.remove(output)
-            except Exception:  # pylint: disable=broad-except
-                pass
-
-    except Exception as exc:
-        raise QiskitChemistryError('Failed electronic structure computation') from exc
+    q_mol = _calculate_integrals_from_scf(m_f, ehf, enuke, mol, hf_method=hf_method,
+                                          coef_rot_matrix=coef_rot_matrix)
 
     return q_mol
 
 
+def _scf_calculation(mol, hf_method='rhf', conv_tol=1e-9, max_cycle=200, init_guess='minao'):
+    """Run SCF calculation"""
+
+    enuke = gto.mole.energy_nuc(mol)
+
+    if hf_method == 'rhf':
+        m_f = scf.RHF(mol)
+    elif hf_method == 'rohf':
+        m_f = scf.ROHF(mol)
+    elif hf_method == 'uhf':
+        m_f = scf.UHF(mol)
+    else:
+        raise QiskitChemistryError('Invalid hf_method type: {}'.format(hf_method))
+
+    m_f.conv_tol = conv_tol
+    m_f.max_cycle = max_cycle
+    m_f.init_guess = init_guess
+    ehf = m_f.kernel()
+    logger.info('PySCF kernel() converged: %s, e(hf): %s', m_f.converged, m_f.e_tot)
+
+    return m_f, ehf, enuke
+
+
 def _check_molecule_format(val):
     """If it seems to be zmatrix rather than xyz format we convert before returning"""
+
     atoms = [x.strip() for x in val.split(';')]
     if atoms is None or len(atoms) < 1:  # pylint: disable=len-as-condition
         raise QiskitChemistryError('Molecule format error: ' + val)
@@ -104,36 +109,40 @@ def _check_molecule_format(val):
     return val
 
 
-def _calculate_integrals(mol, hf_method='rhf', conv_tol=1e-9, max_cycle=50, init_guess='minao'):
-    """Function to calculate the one and two electron terms. Perform a Hartree-Fock calculation in
-        the given basis.
-    Args:
-        mol (gto.Mole) : A PySCF gto.Mole object.
-        hf_method (str): rhf, uhf, rohf
-        conv_tol (float): Convergence tolerance
-        max_cycle (int): Max convergence cycles
-        init_guess (str): Initial guess for SCF
-    Returns:
-        QMolecule: QMolecule populated with driver integrals etc
-    Raises:
-        QiskitChemistryError: Invalid hf method type
-    """
-    enuke = gto.mole.energy_nuc(mol)
+def _create_mol_and_run_scf(atom, unit, charge, spin, basis, hf_method='rhf', conv_tol=1e-9,
+                            max_cycle=50, init_guess='minao', max_memory=None):
+    """Create molecule and run SCF calculation"""
 
-    if hf_method == 'rhf':
-        m_f = scf.RHF(mol)
-    elif hf_method == 'rohf':
-        m_f = scf.ROHF(mol)
-    elif hf_method == 'uhf':
-        m_f = scf.UHF(mol)
-    else:
-        raise QiskitChemistryError('Invalid hf_method type: {}'.format(hf_method))
+    atom = _check_molecule_format(atom)
+    hf_method = hf_method.lower()
+    if max_memory is None:
+        max_memory = param.MAX_MEMORY
 
-    m_f.conv_tol = conv_tol
-    m_f.max_cycle = max_cycle
-    m_f.init_guess = init_guess
-    ehf = m_f.kernel()
-    logger.info('PySCF kernel() converged: %s, e(hf): %s', m_f.converged, m_f.e_tot)
+    try:
+        verbose = pylogger.QUIET
+        output = None
+        if logger.isEnabledFor(logging.DEBUG):
+            verbose = pylogger.INFO
+            file, output = tempfile.mkstemp(suffix='.log')
+            os.close(file)
+
+        mol = gto.Mole(atom=atom, unit=unit, basis=basis,
+                       max_memory=max_memory, verbose=verbose, output=output)
+        mol.symmetry = False
+        mol.charge = charge
+        mol.spin = spin
+        mol.build(parse_arg=False)
+        mf, ehf, enuke = _scf_calculation(mol, hf_method=hf_method, conv_tol=conv_tol,
+                                          max_cycle=max_cycle, init_guess=init_guess)
+    except Exception as exc:
+        raise QiskitChemistryError('Failed electronic structure computation') from exc
+
+    return mf, ehf, enuke, mol
+
+
+def _calculate_integrals_from_scf(m_f, ehf, enuke, mol, hf_method='rhf', coef_rot_matrix=None):
+    """Create QMolecule object containing the integrals from a run of SCF calculation"""
+
     if isinstance(m_f.mo_coeff, tuple):
         mo_coeff = m_f.mo_coeff[0]
         mo_coeff_b = m_f.mo_coeff[1]
@@ -153,6 +162,13 @@ def _calculate_integrals(mol, hf_method='rhf', conv_tol=1e-9, max_cycle=50, init
             # mo_occ   = mf.mo_occ
             # mo_occ_b = None
     norbs = mo_coeff.shape[0]
+
+    if coef_rot_matrix is not None:
+        coef_rot_matrix_a = coef_rot_matrix[0]
+        coef_rot_matrix_b = coef_rot_matrix[1]
+        mo_coeff = np.matmul(mo_coeff, coef_rot_matrix_a)
+        if mo_coeff_b is not None:
+            mo_coeff_b = np.matmul(mo_coeff_b, coef_rot_matrix_b)
 
     if isinstance(m_f.mo_energy, tuple):
         orbs_energy = m_f.mo_energy[0]
@@ -214,7 +230,7 @@ def _calculate_integrals(mol, hf_method='rhf', conv_tol=1e-9, max_cycle=50, init
     nucl_dip = np.round(nucl_dip, decimals=8)
     logger.info("HF Electronic dipole moment: %s", elec_dip)
     logger.info("Nuclear dipole moment: %s", nucl_dip)
-    logger.info("Total dipole moment: %s", nucl_dip + elec_dip)
+    logger.info("Total dipole moment: %s", nucl_dip+elec_dip)
 
     # Create driver level molecule object and populate
     _q_ = QMolecule()

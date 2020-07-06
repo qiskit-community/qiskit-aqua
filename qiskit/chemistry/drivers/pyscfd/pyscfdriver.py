@@ -20,8 +20,12 @@ from enum import Enum
 import logging
 from qiskit.aqua.utils.validation import validate_min
 from qiskit.chemistry.drivers import BaseDriver, UnitsType, HFMethodType
-from qiskit.chemistry import QiskitChemistryError, QMolecule
+from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers.pyscfd.integrals import compute_integrals
+from qiskit.chemistry.drivers.pyscfd.integrals import _create_mol_and_run_scf
+from qiskit.chemistry.drivers.pyscfd.integrals import _calculate_integrals_from_scf
+
+
 
 logger = logging.getLogger(__name__)
 
@@ -35,11 +39,7 @@ class InitialGuess(Enum):
 
 
 class PySCFDriver(BaseDriver):
-    """
-    Qiskit chemistry driver using the PySCF library.
-
-    See https://sunqm.github.io/pyscf/
-    """
+    """Python implementation of a PySCF driver."""
 
     def __init__(self,
                  atom: Union[str, List[str]] = 'H 0.0 0.0 0.0; H 0.0 0.0 0.735',
@@ -51,8 +51,13 @@ class PySCFDriver(BaseDriver):
                  conv_tol: float = 1e-9,
                  max_cycle: int = 50,
                  init_guess: InitialGuess = InitialGuess.MINAO,
-                 max_memory: Optional[int] = None) -> None:
+                 max_memory: Optional[int] = None,
+                 coef_rot_matrix: bool = None
+                 ) -> None:
+
         """
+        Initializer
+
         Args:
             atom: atom list or string separated by semicolons or line breaks
             unit: angstrom or bohr
@@ -65,6 +70,8 @@ class PySCFDriver(BaseDriver):
                        has a min. value of 1.
             init_guess: See PySCF pyscf/scf/hf.py init_guess_by_minao/1e/atom methods
             max_memory: maximum memory
+            coef_rot_matrix: list of two unitary matrices U_a (U_b) that are applied on molecular
+                             coefficients C for orbital rotation, C_a = C_a U_a.
 
         Raises:
             QiskitChemistryError: Invalid Input
@@ -93,6 +100,14 @@ class PySCFDriver(BaseDriver):
         self._max_cycle = max_cycle
         self._init_guess = init_guess
         self._max_memory = max_memory
+        self._coef_rot_matrix = coef_rot_matrix
+
+        self._q_mol = None
+        self._m_f = None
+        self._ehf = None
+        self._enuke = None
+        self._mol = None
+        
 
     @staticmethod
     def _check_valid():
@@ -107,19 +122,23 @@ class PySCFDriver(BaseDriver):
 
         raise QiskitChemistryError(err_msg)
 
-    def run(self) -> QMolecule:
-        q_mol = compute_integrals(atom=self._atom,
-                                  unit=self._unit,
-                                  charge=self._charge,
-                                  spin=self._spin,
-                                  basis=self._basis,
-                                  hf_method=self._hf_method,
-                                  conv_tol=self._conv_tol,
-                                  max_cycle=self._max_cycle,
-                                  init_guess=self._init_guess,
-                                  max_memory=self._max_memory)
+    def run(self, orbital_rotation_only=False):
+        """Perform SCF calculation and orbital rotation"""
+        if orbital_rotation_only is False:
+            print('Performing ful calcualation')
+            self._m_f, self._ehf, self._enuke, self._mol \
+                = _create_mol_and_run_scf(self._atom, self._unit, self._charge, self._spin, self._basis,
+                                          hf_method=self._hf_method,
+                                          conv_tol=self._conv_tol,
+                                          max_cycle=self._max_cycle,
+                                          init_guess=self._init_guess,
+                                          max_memory=self._max_memory)
+        
+        self._q_mol = _calculate_integrals_from_scf(self._m_f, self._ehf, self._enuke, self._mol,
+                                                    hf_method=self._hf_method,
+                                                    coef_rot_matrix=self._coef_rot_matrix)
 
-        q_mol.origin_driver_name = 'PYSCF'
+        self._q_mol.origin_driver_name = 'PYSCF'
         cfg = ['atom={}'.format(self._atom),
                'unit={}'.format(self._unit),
                'charge={}'.format(self._charge),
@@ -130,7 +149,7 @@ class PySCFDriver(BaseDriver):
                'max_cycle={}'.format(self._max_cycle),
                'init_guess={}'.format(self._init_guess),
                'max_memory={}'.format(self._max_memory),
-               '']
-        q_mol.origin_driver_config = '\n'.join(cfg)
+               'coef_rot_matrix={}'.format(self._coef_rot_matrix)]
+        self._q_mol.origin_driver_config = '\n'.join(cfg)
 
-        return q_mol
+        return self._q_mol
