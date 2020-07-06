@@ -89,7 +89,55 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
 
             admm_params = ADMMParameters(
                 rho_initial=1001, beta=1000, factor_c=900,
-                max_iter=100, three_block=False
+                maxiter=100, three_block=False
+            )
+
+            solver = ADMMOptimizer(params=admm_params, qubo_optimizer=qubo_optimizer,
+                                   continuous_optimizer=continuous_optimizer, )
+            solution = solver.solve(op)
+            self.assertIsNotNone(solution)
+            self.assertIsInstance(solution, ADMMOptimizationResult)
+            self.assertIsNotNone(solution.x)
+            np.testing.assert_almost_equal([1., 0., 1.], solution.x, 3)
+            self.assertIsNotNone(solution.fval)
+            np.testing.assert_almost_equal(2., solution.fval, 3)
+            self.assertIsNotNone(solution.state)
+            self.assertIsInstance(solution.state, ADMMState)
+
+        except NameError as ex:
+            self.skipTest(str(ex))
+
+    def test_admm_ex4_no_bin_var_in_objective(self):
+        """Modified Example 4 as a unit test. See the description of the previous test.
+        This test differs from the previous in the objective: one binary variable
+        is omitted in objective to test a problem when a binary variable defined but is used only
+        in constraints.
+        """
+        try:
+            mdl = Model('ex4')
+
+            v = mdl.binary_var(name='v')
+            w = mdl.binary_var(name='w')
+            # pylint:disable=invalid-name
+            t = mdl.binary_var(name='t')
+
+            # b = 1
+            b = 2
+
+            mdl.minimize(v + t)
+            mdl.add_constraint(2 * v + 10 * w + t <= 3, "cons1")
+            mdl.add_constraint(v + w + t >= b, "cons2")
+
+            op = QuadraticProgram()
+            op.from_docplex(mdl)
+
+            # qubo_optimizer = MinimumEigenOptimizer(NumPyMinimumEigensolver())
+            qubo_optimizer = CplexOptimizer()
+            continuous_optimizer = CplexOptimizer()
+
+            admm_params = ADMMParameters(
+                rho_initial=1001, beta=1000, factor_c=900,
+                maxiter=100, three_block=False
             )
 
             solver = ADMMOptimizer(params=admm_params, qubo_optimizer=qubo_optimizer,
@@ -135,7 +183,7 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
 
             admm_params = ADMMParameters(
                 rho_initial=1001, beta=1000, factor_c=900,
-                max_iter=100, three_block=False
+                maxiter=100, three_block=False
             )
 
             solver = ADMMOptimizer(params=admm_params, qubo_optimizer=qubo_optimizer,
@@ -181,7 +229,7 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
 
             admm_params = ADMMParameters(
                 rho_initial=1001, beta=1000, factor_c=900,
-                max_iter=100, three_block=True, tol=1.e-6
+                maxiter=100, three_block=True, tol=1.e-6
             )
 
             solver = ADMMOptimizer(params=admm_params, qubo_optimizer=qubo_optimizer,
@@ -224,7 +272,7 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
 
             admm_params = ADMMParameters(
                 rho_initial=1001, beta=1000, factor_c=900,
-                max_iter=100, three_block=True, tol=1.e-6
+                maxiter=100, three_block=True, tol=1.e-6
             )
 
             solver = ADMMOptimizer(params=admm_params, qubo_optimizer=qubo_optimizer,
@@ -266,7 +314,7 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
 
             admm_params = ADMMParameters(
                 rho_initial=1001, beta=1000, factor_c=900,
-                max_iter=100, three_block=True,
+                maxiter=100, three_block=True,
             )
 
             solver = ADMMOptimizer(params=admm_params, qubo_optimizer=qubo_optimizer,
@@ -307,7 +355,7 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
 
             admm_params = ADMMParameters(
                 rho_initial=1001, beta=1000, factor_c=900,
-                max_iter=100, three_block=True,
+                maxiter=100, three_block=True,
             )
 
             solver = ADMMOptimizer(params=admm_params, qubo_optimizer=qubo_optimizer,
