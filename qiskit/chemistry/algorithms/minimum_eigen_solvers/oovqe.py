@@ -45,18 +45,18 @@ set_qiskit_aqua_logging(logging.INFO)
 class OOVQE(VQE):
     r"""
     The Variational Quantum Eigensolver algorithm enhanced with the Orbital Optimization.
-    The core of this approach resides in the optimization of orbitals through the
-    AO-to-MO coefficients matrix C. In the conventional VQE, the latter remains constant throughout
+    The core of the approach resides in the optimization of orbitals through the
+    AO-to-MO coefficients matrix C. In the usual VQE, the latter remains constant throughout
     the simulation. Here, its elements are modified according to C=Ce^(-kappa) where kappa is
     an anti-hermitian matrix. This transformation preserves the spectrum but modifies the
-    amplitudes of the ground state of given operator such that the given circuit ansatz
-    can better represent that ground state, producing larger overlap and lower eigenvalue than
-    normal VQE.
+    amplitudes, for instance, of the ground state of given operator such that the given ansatz
+    can be closest to that ground state, producing larger overlap and lower eigenvalue than
+    conventional VQE.
     Kappa is parametrized and optimized inside the VQE in the same way as
     the gate angles. Therefore, at each step of OOVQE the coefficient matrix C is modified and
     the operator is recomputed, unlike usual VQE where operator remains constant.
     Iterative OO refers to optimization in two steps, first the wavefunction and then the
-    orbitals. It may help to use the iterative method in noisy simulations/hardware to facilitate
+    orbitals. It is recommended to use the iterative method when the noise is present to facilitate
     the convergence of a classical optimizer. For more details of this method refer to:
     https://aip.scitation.org/doi/10.1063/1.5141835
     """
@@ -159,13 +159,12 @@ class OOVQE(VQE):
         if orbital_rotation is None:
             self.orbital_rotation = OrbitalRotation(num_qubits=self.var_form.num_qubits,
                                                     core=self.core, qmolecule=self.qmolecule)
-
-        self.iterative_oo = iterative_oo
-        self.iterative_oo_iterations = iterative_oo_iterations
-
         self.bounds = bounds
         if self.bounds is None:
             self.set_bounds(self.orbital_rotation.parameter_bound_value)
+
+        self.iterative_oo = iterative_oo
+        self.iterative_oo_iterations = iterative_oo_iterations
 
     def _run(self) -> 'VQEResult':
         """Run the algorithm to compute the minimum eigenvalue.
@@ -201,10 +200,8 @@ class OOVQE(VQE):
                 repr(self.orbital_rotation.matrix_b)))
 
         self.var_form_num_parameters = copy.copy(self.var_form._num_parameters)
-        self.var_form_bounds = copy.copy(self.var_form._bounds)
-
-        # self.var_form._bounds = self.bounds
         if self.iterative_oo:
+            self.var_form_bounds = copy.copy(self.var_form._bounds)
             for i in range(self.iterative_oo_iterations):
                 self.var_form._num_parameters = self.var_form_num_parameters
 
@@ -228,6 +225,7 @@ class OOVQE(VQE):
                                              optimizer=self.optimizer)
                 self.initial_point[self.var_form_num_parameters:] = vqresult.optimal_point
         else:
+            self.var_form._num_parameters += self.orbital_rotation.num_parameters
             self.var_form._bounds = self.bounds
 
             vqresult = self.find_minimum(initial_point=self.initial_point,
@@ -289,8 +287,7 @@ class OOVQE(VQE):
         """
         self.bounds = []
         bounds_var_form = [bounds_var_form_val for _ in range(self.var_form.num_parameters)]
-        if self.iterative_oo:
-            self.bound_oo = [bounds_oo_val for _ in range(self.orbital_rotation.num_parameters)]
+        self.bound_oo = [bounds_oo_val for _ in range(self.orbital_rotation.num_parameters)]
         self.bounds = bounds_var_form + self.bound_oo
         self.bounds = np.array(self.bounds)
 
@@ -339,10 +336,9 @@ class OOVQE(VQE):
 
         return mean_energy
 
-
 class OrbitalRotation:
     r"""
-    Class that regroups methods for the creation of matrices that rotate the MOs.
+    Class that regroups methods for creation of matrices that rotate the MOs.
 
     """
 
