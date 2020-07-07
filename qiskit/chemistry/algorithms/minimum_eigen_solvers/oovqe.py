@@ -17,30 +17,29 @@
 See https://arxiv.org/abs/1304.3061
 """
 
-from typing import Optional, List, Callable, Union, Dict, Any
+from typing import Optional, List, Callable, Union, Tuple
 import logging
-import warnings
-from time import time
+import copy
+from scipy.linalg import expm
 import numpy as np
 
 from qiskit import QuantumCircuit
 from qiskit.providers import BaseBackend
-from qiskit.aqua import QuantumInstance, AquaError
+from qiskit.aqua import QuantumInstance, AquaError, set_qiskit_aqua_logging
 from qiskit.aqua.operators import (OperatorBase, ExpectationBase, LegacyBaseOperator)
 from qiskit.aqua.components.optimizers import Optimizer
 from qiskit.aqua.components.variational_forms import VariationalForm
 from qiskit.aqua.algorithms.minimum_eigen_solvers.vqe import VQE, VQEResult
 from qiskit.chemistry.drivers import BaseDriver
-from scipy.linalg import expm
-import copy
 
 # logger = logging.getLogger(__name__)
 logger = logging.getLogger('qiskit.aqua')
-from qiskit.aqua import set_qiskit_aqua_logging
+
 set_qiskit_aqua_logging(logging.INFO)
 
 # disable check for var_forms, optimizer setter because of pylint bug
 # pylint: disable=no-member
+
 
 class OOVQE(VQE):
     r"""
@@ -89,7 +88,9 @@ class OOVQE(VQE):
             initial_point: An optional initial point (i.e. initial parameter values)
                 for the optimizer. If ``None`` then VQE will look to the variational form for a
                 preferred point and if not will simply compute a random one.
-            max_evals_grouped: Max number of evaluations performed simultaneousaneously. Signals the
+            expectation: expectation
+            include_custom: include custom
+            max_evals_grouped: Max number of evaluations performed simultaneously. Signals the
                 given optimizer that more than one set of parameters can be supplied so that
                 potentially the expectation values can be computed in parallel. Typically this is
                 possible when a finite difference gradient is used by the optimizer such that
@@ -104,16 +105,6 @@ class OOVQE(VQE):
                 by the optimizer for its current set of parameters as it works towards the minimum.
                 These are: the evaluation count, the optimizer parameters for the
                 variational form, the evaluated mean and the evaluated standard deviation.
-            auto_conversion: When ``True`` allows an automatic conversion for operator and
-                aux_operators into the type which is most suitable for the backend on which the
-                algorithm is run.
-
-                - for *non-Aer statevector simulator:*
-                  :class:`~qiskit.aqua.operators.MatrixOperator`
-                - for *Aer statevector simulator:*
-                  :class:`~qiskit.aqua.operators.WeightedPauliOperator`
-                - for *qasm simulator or real backend:*
-                  :class:`~qiskit.aqua.operators.TPBGroupedWeightedPauliOperator`
             quantum_instance: Quantum Instance or Backend.
             orbital_rotation: OrbitalRotation instance that creates the matrices that
                               rotate the orbitals.
@@ -121,6 +112,7 @@ class OOVQE(VQE):
                     orbital rotation.
             core: instance of the Hamiltonian class to make new qubit operator after orbital
                   rotation.
+            qmolecule: qmolecule
             bounds: array of bounds for wavefunction and OO parameters.
             iterative_oo: when True you optimize first the state and then the orbitals, iteratively.
             iterative_oo_iterations: number of iterations in iterative oo.
@@ -165,6 +157,10 @@ class OOVQE(VQE):
 
         self.iterative_oo = iterative_oo
         self.iterative_oo_iterations = iterative_oo_iterations
+        self.var_form_num_parameters = None
+        self.var_form_bounds = None
+        self.fixed_wavefunction_params = None
+        self.bound_oo = None  # type: Optional[List]
 
     def _run(self) -> 'VQEResult':
         """Run the algorithm to compute the minimum eigenvalue.
@@ -175,7 +171,7 @@ class OOVQE(VQE):
         Raises:
             AquaError: Wrong setting of operator and backend.
         """
-        if self.operator is None:
+        if self.operator is None:  # type: ignore
             raise AquaError("The operator was never provided.")
 
         self._check_operator_varform()
@@ -194,35 +190,35 @@ class OOVQE(VQE):
             self._operator = algo_input[0]
             logger.info(
                 '\n\nSetting the initial value for OO matrices and rotating Hamiltonian \n')
-            logger.info('Optimising  Orbital Coefficient Rotation Alpha: \n{}'.format(
-                repr(self.orbital_rotation.matrix_a)))
-            logger.info('Optimising  Orbital Coefficient Rotation Beta: \n{}'.format(
-                repr(self.orbital_rotation.matrix_b)))
+            logger.info('Optimising  Orbital Coefficient Rotation Alpha: \n%s',
+                        repr(self.orbital_rotation.matrix_a))
+            logger.info('Optimising  Orbital Coefficient Rotation Beta: \n%s',
+                        repr(self.orbital_rotation.matrix_b))
 
         self.var_form_num_parameters = copy.copy(self.var_form._num_parameters)
         if self.iterative_oo:
             self.var_form_bounds = copy.copy(self.var_form._bounds)
-            for i in range(self.iterative_oo_iterations):
+            for _ in range(self.iterative_oo_iterations):
                 self.var_form._num_parameters = self.var_form_num_parameters
 
-                if isinstance(self.operator, LegacyBaseOperator):
-                    self.operator = self.operator.to_opflow()
+                if isinstance(self.operator, LegacyBaseOperator):  # type: ignore
+                    self.operator = self.operator.to_opflow()  # type: ignore
                 self.var_form._bounds = self.var_form_bounds
-                vqresult_wavefun = self.find_minimum(initial_point=self.initial_point[
-                                                            :self.var_form_num_parameters],
-                                             var_form=self.var_form,
-                                             cost_fn=self._energy_evaluation,
-                                             optimizer=self.optimizer)
+                vqresult_wavefun = self.find_minimum(
+                    initial_point=self.initial_point[:self.var_form_num_parameters],
+                    var_form=self.var_form,
+                    cost_fn=self._energy_evaluation,
+                    optimizer=self.optimizer)
                 self.initial_point[:self.var_form_num_parameters] = vqresult_wavefun.optimal_point
 
                 self.var_form._bounds = self.bound_oo
                 self.var_form._num_parameters = self.orbital_rotation.num_parameters
                 self.fixed_wavefunction_params = vqresult_wavefun.optimal_point
-                vqresult = self.find_minimum(initial_point=self.initial_point[
-                                                           self.var_form_num_parameters:],
-                                             var_form=self.var_form,
-                                             cost_fn=self._energy_evaluation_oo,
-                                             optimizer=self.optimizer)
+                vqresult = self.find_minimum(
+                    initial_point=self.initial_point[self.var_form_num_parameters:],
+                    var_form=self.var_form,
+                    cost_fn=self._energy_evaluation_oo,
+                    optimizer=self.optimizer)
                 self.initial_point[self.var_form_num_parameters:] = vqresult.optimal_point
         else:
             self.var_form._num_parameters += self.orbital_rotation.num_parameters
@@ -276,9 +272,9 @@ class OOVQE(VQE):
         return result
 
     def set_bounds(self,
-                   bounds_var_form_val: tuple = (-2*np.pi, 2*np.pi),
-                   bounds_oo_val: tuple = (-2*np.pi, 2*np.pi)):
-        """ Initialize the array of bounds of wavefunciton and OO parameters.
+                   bounds_var_form_val: Tuple[float, float] = (-2*np.pi, 2*np.pi),
+                   bounds_oo_val: Tuple[float, float] = (-2*np.pi, 2*np.pi)):
+        """ Initialize the array of bounds of wavefunction and OO parameters.
         Args:
             bounds_var_form_val: pair of bounds between which the optimizer confines the
                                  values of wavefunction parameters.
@@ -291,16 +287,19 @@ class OOVQE(VQE):
         self.bounds = bounds_var_form + self.bound_oo
         self.bounds = np.array(self.bounds)
 
-    def _energy_evaluation_oo(self, parameters):
+    def _energy_evaluation_oo(self, parameters: np.ndarray) -> Union[float, List[float]]:
         """
         Evaluate energy at given parameters for the variational form and parameters for
         given rotation of orbitals.
 
         Args:
-            parameters (numpy.ndarray): parameters for variational form.
+            parameters: parameters for variational form.
 
         Returns:
-            float or list of float: energy of the hamiltonian of each parameter.
+            energy of the hamiltonian of each parameter.
+
+        Raises:
+            AquaError: Missing orbital_rotation argument
         """
         # slice parameter lists
         if self.iterative_oo:
@@ -310,24 +309,24 @@ class OOVQE(VQE):
             parameters_var_form = parameters[:self.var_form_num_parameters]
             parameters_orb_rot = parameters[self.var_form_num_parameters:]
 
-        logger.info('Parameters of wavefunction are: \n{}'.format(repr(parameters_var_form)))
-        logger.info('Parameters of orbital rotation are: \n{}'.format(repr(parameters_orb_rot)))
+        logger.info('Parameters of wavefunction are: \n%s', repr(parameters_var_form))
+        logger.info('Parameters of orbital rotation are: \n%s', repr(parameters_orb_rot))
 
         # rotate the orbitals
         if self.orbital_rotation is None:
             raise AquaError('Instantiate OrbitalRotation class and provide it to the '
                             'orbital_rotation keyword argument')
-        else:
-            coef_orbital_rotation_a, coef_orbital_rotation_b = \
-                self.orbital_rotation.orbital_rotation_matrix(parameters_orb_rot)
+
+        coef_orbital_rotation_a, coef_orbital_rotation_b = \
+            self.orbital_rotation.orbital_rotation_matrix(parameters_orb_rot)
         self.driver._coef_rot_matrix = [coef_orbital_rotation_a, coef_orbital_rotation_b]
         self.qmolecule = self.driver.run(orbital_rotation_only=True)
         algo_input = self.core.run(self.qmolecule)
         self.operator = algo_input[0]
         if isinstance(self.operator, LegacyBaseOperator):
             self.operator = self.operator.to_opflow()
-        logger.debug('Orbital rotation parameters of matrix U at evaluation {} returned'
-                     '\n {}'.format(self._eval_count, repr(coef_orbital_rotation_a)))
+        logger.debug('Orbital rotation parameters of matrix U at evaluation %d returned'
+                     '\n %s', self._eval_count, repr(coef_orbital_rotation_a))
 
         self.var_form._num_parameters = self.var_form_num_parameters
 
@@ -336,17 +335,23 @@ class OOVQE(VQE):
 
         return mean_energy
 
+
 class OrbitalRotation:
     r"""
     Class that regroups methods for creation of matrices that rotate the MOs.
 
     """
 
-    def __init__(self, num_qubits, core=None, qmolecule=None, orbital_rotations=None,
-                 orbital_rotations_beta=None, parameters=None,
-                 parameter_bounds=None, parameter_initial_value=0.1,
-                 parameter_bound_value=(-2 * np.pi, 2 * np.pi)):
-
+    def __init__(self,
+                 num_qubits: int,
+                 core: Optional[LegacyBaseOperator] = None,
+                 qmolecule: Optional[LegacyBaseOperator] = None,
+                 orbital_rotations: Optional[List[int]] = None,
+                 orbital_rotations_beta: Optional[List[int]] = None,
+                 parameters: Optional[List[np.ndarray]] = None,
+                 parameter_bounds: Optional[List[np.ndarray]] = None,
+                 parameter_initial_value: float = 0.1,
+                 parameter_bound_value: Tuple[float, float] = (-2 * np.pi, 2 * np.pi)) -> None:
         """
 
         Args:
@@ -356,6 +361,7 @@ class OrbitalRotation:
             orbital_rotations: list of alpha orbitals that are rotated.
             orbital_rotations_beta: list of beta orbitals that are rotated.
             parameters: parameter list of matrix elements that rotate the MOs.
+            parameter_bounds: parameter bounds
             parameter_initial_value: initial value for all the VQE parameters.
             parameter_bound_value: value for the bounds on all the VQE parameters
 
@@ -422,7 +428,7 @@ class OrbitalRotation:
                                     'the orbital rotation matrix dimensions {}'.format(exc[1]))
 
     def create_parameter_list(self):
-        """ Initialise the entries of matrix kappa and the initial values. """
+        """ Initialize the entries of matrix kappa and the initial values. """
 
         if self.core._two_qubit_reduction:
             half_as = int((self.num_qubits + 2) / 2)
@@ -446,7 +452,7 @@ class OrbitalRotation:
         """ Create bounds for parameters. """
         if self.num_parameters is not None:
             self.parameter_bounds = []
-            for r in range(self.num_parameters):
+            for _ in range(self.num_parameters):
                 self.parameter_bounds.append(self.parameter_bound_value)
 
     def orbital_rotation_matrix(self, parameters):

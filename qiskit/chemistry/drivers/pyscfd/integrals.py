@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -29,7 +29,6 @@ try:
     from pyscf.lib import param
     from pyscf.lib import logger as pylogger
     from pyscf.tools import dump_mat
-    import copy
 except ImportError:
     logger.info("PySCF is not installed. See https://sunqm.github.io/pyscf/install.html")
 
@@ -132,12 +131,12 @@ def _create_mol_and_run_scf(atom, unit, charge, spin, basis, hf_method='rhf', co
         mol.charge = charge
         mol.spin = spin
         mol.build(parse_arg=False)
-        mf, ehf, enuke = _scf_calculation(mol, hf_method=hf_method, conv_tol=conv_tol,
-                                          max_cycle=max_cycle, init_guess=init_guess)
+        m_f, ehf, enuke = _scf_calculation(mol, hf_method=hf_method, conv_tol=conv_tol,
+                                           max_cycle=max_cycle, init_guess=init_guess)
     except Exception as exc:
         raise QiskitChemistryError('Failed electronic structure computation') from exc
 
-    return mf, ehf, enuke, mol
+    return m_f, ehf, enuke, mol
 
 
 def _calculate_integrals_from_scf(m_f, ehf, enuke, mol, hf_method='rhf', coef_rot_matrix=None):

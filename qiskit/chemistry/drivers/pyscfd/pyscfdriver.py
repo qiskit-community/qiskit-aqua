@@ -20,12 +20,9 @@ from enum import Enum
 import logging
 from qiskit.aqua.utils.validation import validate_min
 from qiskit.chemistry.drivers import BaseDriver, UnitsType, HFMethodType
-from qiskit.chemistry import QiskitChemistryError
-from qiskit.chemistry.drivers.pyscfd.integrals import compute_integrals
+from qiskit.chemistry import QiskitChemistryError, QMolecule
 from qiskit.chemistry.drivers.pyscfd.integrals import _create_mol_and_run_scf
 from qiskit.chemistry.drivers.pyscfd.integrals import _calculate_integrals_from_scf
-
-
 
 logger = logging.getLogger(__name__)
 
@@ -102,12 +99,11 @@ class PySCFDriver(BaseDriver):
         self._max_memory = max_memory
         self._coef_rot_matrix = coef_rot_matrix
 
-        self._q_mol = None
+        self._q_mol = None  # type: Optional[QMolecule]
         self._m_f = None
         self._ehf = None
         self._enuke = None
         self._mol = None
-        
 
     @staticmethod
     def _check_valid():
@@ -122,18 +118,19 @@ class PySCFDriver(BaseDriver):
 
         raise QiskitChemistryError(err_msg)
 
-    def run(self, orbital_rotation_only=False):
+    def run(self, orbital_rotation_only=False) -> QMolecule:  # pylint: disable=arguments-differ
         """Perform SCF calculation and orbital rotation"""
         if orbital_rotation_only is False:
             print('Performing ful calcualation')
             self._m_f, self._ehf, self._enuke, self._mol \
-                = _create_mol_and_run_scf(self._atom, self._unit, self._charge, self._spin, self._basis,
+                = _create_mol_and_run_scf(self._atom,
+                                          self._unit, self._charge, self._spin, self._basis,
                                           hf_method=self._hf_method,
                                           conv_tol=self._conv_tol,
                                           max_cycle=self._max_cycle,
                                           init_guess=self._init_guess,
                                           max_memory=self._max_memory)
-        
+
         self._q_mol = _calculate_integrals_from_scf(self._m_f, self._ehf, self._enuke, self._mol,
                                                     hf_method=self._hf_method,
                                                     coef_rot_matrix=self._coef_rot_matrix)
