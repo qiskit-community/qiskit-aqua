@@ -121,7 +121,7 @@ class MultiStartOptimizer(OptimizationAlgorithm, ABC):
         return self._clip
 
     @clip.setter
-    def clip(self, clip: int) -> None:
+    def clip(self, clip: float) -> None:
         """Sets the clip value.
 
         Args:
