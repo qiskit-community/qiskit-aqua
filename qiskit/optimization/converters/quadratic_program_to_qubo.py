@@ -19,7 +19,6 @@ from typing import Optional
 from ..algorithms.optimization_algorithm import OptimizationResult
 from ..problems.quadratic_program import QuadraticProgram
 from ..problems.constraint import Constraint
-from ..converters.linear_equality_to_penalty import LinearEqualityToPenalty
 from ..exceptions import QiskitOptimizationError
 
 
@@ -42,6 +41,8 @@ class QuadraticProgramToQubo:
                      If None is passed, penalty factor will be automatically calculated.
         """
         from ..converters.integer_to_binary import IntegerToBinary
+        from ..converters.linear_equality_to_penalty import LinearEqualityToPenalty
+
         self._int_to_bin = IntegerToBinary()
         self._penalize_lin_eq_constraints = LinearEqualityToPenalty(penalty)
         self._penalty = penalty
