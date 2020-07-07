@@ -92,7 +92,7 @@ class ORBIT(Optimizer):
 
     def optimize(self, num_vars, objective_function, gradient_function=None, variable_bounds=None, initial_point=None):
         super().optimize(num_vars, objective_function, gradient_function, variable_bounds, initial_point)
-        logger.warning("ORBIT is supported only in Python3."
+        logger.warning("ORBIT is supported only in Python3. If it does not run."
                      "Install R language then its packages, easiest way is to install: "
                      "RStudio App and go to Tools -> Install Packages."
                      "Packages: Rcpp, tgp, laGP, hetGP, DiceDesign are needed with 'R CMD INSTALL "
