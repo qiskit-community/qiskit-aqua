@@ -167,12 +167,9 @@ class QuadraticProgramToNegativeValueOracle:
                     circuit.mcu1(1 / 2 ** self._num_value * 2 * np.pi * 2 ** i * v,
                                  a_v, b_v)
 
-        # Add IQFT. Adding swaps at the end of the IQFT, not the beginning.
+        # Add IQFT.
         iqft = QFT(self._num_value, do_swaps=False).inverse()
         value = [key_val[v] for v in range(self._num_key, self._num_key + self._num_value)]
         circuit.compose(iqft, qubits=value, inplace=True)
-
-        for i in range(len(value) // 2):
-            circuit.swap(value[i], value[-(i + 1)])
 
         return circuit
