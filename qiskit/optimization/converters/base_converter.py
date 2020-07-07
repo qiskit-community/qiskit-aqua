@@ -21,14 +21,15 @@ from ..problems.quadratic_program import QuadraticProgram
 
 
 class BaseConverter(ABC):
-    """ An abstract class for converters of quadratic programs in Qiskit's optimization module."""
+    """
+    An abstract class for converters of quadratic programs in Qiskit's optimization module.
+    """
 
-    @abstractmethod
     def __init__(param):
         self._param = param
 
     @abstractmethod
-    def convert(prog: QuadraticProgram) -> QuadraticProgram:
+    def convert(problem: QuadraticProgram) -> QuadraticProgram:
         pass
 
     @abstractmethod
