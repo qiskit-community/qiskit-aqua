@@ -20,6 +20,7 @@ from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
+from .base_converter import BaseConverter
 from ..algorithms.optimization_algorithm import OptimizationResult
 from ..exceptions import QiskitOptimizationError
 from ..problems.quadratic_objective import QuadraticObjective
@@ -29,7 +30,7 @@ from ..problems.variable import Variable
 logger = logging.getLogger(__name__)
 
 
-class IntegerToBinary:
+class IntegerToBinary(BaseConverter):
     """Convert a :class:`~qiskit.optimization.problems.QuadraticProgram` into new one by encoding
     integer with binary variables.
 
@@ -63,7 +64,7 @@ class IntegerToBinary:
 
         # e.g., self._conv = {x: [('x@1', 1), ('x@2', 2)]}
 
-    def encode(self, op: QuadraticProgram) -> QuadraticProgram:
+    def convert(self, op: QuadraticProgram) -> QuadraticProgram:
         """Convert an integer problem into a new problem with binary variables.
 
         Args:
@@ -211,7 +212,7 @@ class IntegerToBinary:
             self._dst.quadratic_constraint(linear, quadratic, constraint.sense,
                                            constraint.rhs - constant, constraint.name)
 
-    def decode(self, result: OptimizationResult) -> OptimizationResult:
+    def interpret(self, result: OptimizationResult) -> OptimizationResult:
         """Convert the encoded problem (binary variables) back to the original (integer variables).
 
         Args:

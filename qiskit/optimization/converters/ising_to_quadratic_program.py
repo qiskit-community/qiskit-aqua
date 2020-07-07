@@ -44,7 +44,7 @@ class IsingToQuadraticProgram:
         self._qp = None  # type: Optional[QuadraticProgram]
         self._linear = linear
 
-    def encode(self, qubit_op: Union[OperatorBase, WeightedPauliOperator], offset: float = 0.0
+    def convert(self, qubit_op: Union[OperatorBase, WeightedPauliOperator], offset: float = 0.0
                ) -> QuadraticProgram:
         """Convert a qubit operator and a shift value into a quadratic program
 

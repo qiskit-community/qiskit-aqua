@@ -69,7 +69,7 @@ class QuadraticProgramToQubo:
         problem_ = self._ineq_to_eq.convert(problem)
 
         # map integer variables to binary variables
-        problem_ = self._int_to_bin.encode(problem_)
+        problem_ = self._int_to_bin.convert(problem_)
 
         # penalize linear equality constraints with only binary variables
         if self._penalty is None:
@@ -91,7 +91,7 @@ class QuadraticProgramToQubo:
             Returns:
                 The result of the original problem.
         """
-        return self._int_to_bin.decode(result)
+        return self._int_to_bin.interpret(result)
 
     @staticmethod
     def get_compatibility_msg(problem: QuadraticProgram) -> str:
@@ -109,7 +109,7 @@ class QuadraticProgramToQubo:
 
         # initialize message
         msg = ''
-
+        print(problem)
         # check whether there are incompatible variable types
         if problem.get_num_continuous_vars() > 0:
             msg += 'Continuous variables are not supported! '
@@ -122,7 +122,7 @@ class QuadraticProgramToQubo:
             msg += 'Quadratic constraints are not supported. '
         # check whether there are float coefficients in constraints
         ineq_to_eq = InequalityToEquality()
-        if ineq_to_eq.is_compatible_with_integer_slack(problem):
+        if not ineq_to_eq.is_compatible_with_integer_slack(problem):
             msg += 'Float coefficients are in constraints.'
 
         # if an error occurred, return error message, otherwise, return None

@@ -59,7 +59,7 @@ class TestConverters(QiskitOptimizationTestCase):
         conv = InequalityToEquality()
         op = conv.convert(op)
         conv = IntegerToBinary()
-        op = conv.encode(op)
+        op = conv.convert(op)
         conv = LinearEqualityToPenalty()
         op = conv.encode(op)
         conv = QuadraticProgramToIsing()
@@ -378,7 +378,7 @@ class TestConverters(QiskitOptimizationTestCase):
             linear[x.name] = i + 1
         op.maximize(0, linear, {})
         conv = IntegerToBinary()
-        op2 = conv.encode(op)
+        op2 = conv.convert(op)
         for x in op2.variables:
             self.assertEqual(x.vartype, Variable.Type.BINARY)
         dct = op2.objective.linear.to_dict()
@@ -402,9 +402,9 @@ class TestConverters(QiskitOptimizationTestCase):
             linear[x.name] = 1
         op.linear_constraint(linear, Constraint.Sense.EQ, 6, 'x0x1x2')
         conv = IntegerToBinary()
-        _ = conv.encode(op)
+        _ = conv.convert(op)
         result = OptimizationResult(x=[0, 1, 1, 1, 1], fval=17)
-        new_result = conv.decode(result)
+        new_result = conv.interpret(result)
         self.assertListEqual(new_result.x, [0, 1, 5])
         self.assertEqual(new_result.fval, 17)
 
@@ -435,7 +435,7 @@ class TestConverters(QiskitOptimizationTestCase):
         offset = OFFSET_MAXIMIZE_SAMPLE
 
         op2qp = IsingToQuadraticProgram(linear=True)
-        quadratic = op2qp.encode(op, offset)
+        quadratic = op2qp.convert(op, offset)
 
         self.assertEqual(len(quadratic.variables), 4)
         self.assertEqual(len(quadratic.linear_constraints), 0)
@@ -468,7 +468,7 @@ class TestConverters(QiskitOptimizationTestCase):
         offset = OFFSET_MAXIMIZE_SAMPLE
 
         op2qp = IsingToQuadraticProgram(linear=False)
-        quadratic = op2qp.encode(op, offset)
+        quadratic = op2qp.convert(op, offset)
 
         self.assertEqual(len(quadratic.variables), 4)
         self.assertEqual(len(quadratic.linear_constraints), 0)
@@ -501,7 +501,7 @@ class TestConverters(QiskitOptimizationTestCase):
             op = QuadraticProgram()
             op.from_docplex(mdl)
             converter = IntegerToBinary()
-            op = converter.encode(op)
+            op = converter.convert(op)
             admm_params = ADMMParameters()
             qubo_optimizer = MinimumEigenOptimizer(NumPyMinimumEigensolver())
             continuous_optimizer = CplexOptimizer()
@@ -511,7 +511,7 @@ class TestConverters(QiskitOptimizationTestCase):
                 params=admm_params,
             )
             solution = solver.solve(op)
-            solution = converter.decode(solution)
+            solution = converter.interpret(solution)
             self.assertEqual(solution.x[0], 10.9)
         except NameError as ex:
             self.skipTest(str(ex))
