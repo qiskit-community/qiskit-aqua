@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 # pylint: disable=W0223
 class MultiStartOptimizer(OptimizationAlgorithm, ABC):
     """
-    An abstract class that implements multi start optimization and should be subclassed by
+    An abstract class that implements multi start optimization and should be sub-classed by
     other optimizers.
     """
 
