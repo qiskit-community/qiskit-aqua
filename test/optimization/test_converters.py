@@ -57,7 +57,7 @@ class TestConverters(QiskitOptimizationTestCase):
         """ Test empty problem """
         op = QuadraticProgram()
         conv = InequalityToEquality()
-        op = conv.encode(op)
+        op = conv.convert(op)
         conv = IntegerToBinary()
         op = conv.encode(op)
         conv = LinearEqualityToPenalty()
@@ -110,7 +110,7 @@ class TestConverters(QiskitOptimizationTestCase):
         op.quadratic_constraint({}, quadratic, Constraint.Sense.GE, 3, 'x0x1_x1x2GE')
         # Convert inequality constraints into equality constraints
         conv = InequalityToEquality()
-        op2 = conv.encode(op)
+        op2 = conv.convert(op)
         # Check names and objective senses
         self.assertEqual(op.name, op2.name)
         self.assertEqual(op.objective.sense, op2.objective.sense)
@@ -185,7 +185,7 @@ class TestConverters(QiskitOptimizationTestCase):
         quadratic[('x1', 'x2')] = 4
         op.quadratic_constraint({}, quadratic, Constraint.Sense.GE, 3, 'x0x1_x1x2GE')
         conv = InequalityToEquality()
-        op2 = conv.encode(op)
+        op2 = conv.convert(op)
         # For linear constraints
         lst = [
             op2.linear_constraints[0].linear.to_dict()[0],
@@ -248,7 +248,7 @@ class TestConverters(QiskitOptimizationTestCase):
         linear_constraint['x2'] = 3
         op.linear_constraint(linear_constraint, Constraint.Sense.GE, 2, 'x0x2')
         conv = InequalityToEquality(mode='integer')
-        op2 = conv.encode(op)
+        op2 = conv.convert(op)
         lst = [op2.variables[3].vartype, op2.variables[4].vartype]
         self.assertListEqual(lst, [Variable.Type.INTEGER, Variable.Type.INTEGER])
 
@@ -271,7 +271,7 @@ class TestConverters(QiskitOptimizationTestCase):
         linear_constraint['x2'] = 3
         op.linear_constraint(linear_constraint, Constraint.Sense.GE, 2, 'x0x2')
         conv = InequalityToEquality(mode='continuous')
-        op2 = conv.encode(op)
+        op2 = conv.convert(op)
         lst = [op2.variables[3].vartype, op2.variables[4].vartype]
         self.assertListEqual(lst, [Variable.Type.CONTINUOUS, Variable.Type.CONTINUOUS])
 
@@ -294,7 +294,7 @@ class TestConverters(QiskitOptimizationTestCase):
         linear_constraint['x2'] = 2.2
         op.linear_constraint(linear_constraint, Constraint.Sense.GE, 3.3, 'x0x2')
         conv = InequalityToEquality(mode='auto')
-        op2 = conv.encode(op)
+        op2 = conv.convert(op)
         lst = [op2.variables[3].vartype, op2.variables[4].vartype]
         self.assertListEqual(lst, [Variable.Type.INTEGER, Variable.Type.CONTINUOUS])
 

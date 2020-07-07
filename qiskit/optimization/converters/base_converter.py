@@ -25,13 +25,12 @@ class BaseConverter(ABC):
     An abstract class for converters of quadratic programs in Qiskit's optimization module.
     """
 
-    def __init__(param):
-        self._param = param
+    @abstractmethod
+    def convert(self, problem: QuadraticProgram) -> QuadraticProgram:
+        """ convert an QuadratciProgram into an QuadraticProgram with a specific form"""
+        raise NotImplementedError
 
     @abstractmethod
-    def convert(problem: QuadraticProgram) -> QuadraticProgram:
-        pass
-
-    @abstractmethod
-    def interpret(result: OptimizationResult) -> OptimizationResult:
-        pass
+    def interpret(self, result: OptimizationResult) -> OptimizationResult:
+        """ interpret an OptimizationResult based on the original QuadraticProgram"""
+        raise NotImplementedError

@@ -18,6 +18,7 @@ import math
 from typing import List, Optional, Dict, Tuple
 import logging
 
+from .base_converter import BaseConverter
 from ..algorithms.optimization_algorithm import OptimizationResult
 from ..problems.quadratic_program import QuadraticProgram
 from ..problems.quadratic_objective import QuadraticObjective
@@ -28,7 +29,7 @@ from ..exceptions import QiskitOptimizationError
 logger = logging.getLogger(__name__)
 
 
-class InequalityToEquality:
+class InequalityToEquality(BaseConverter):
     """Convert inequality constraints into equality constraints by introducing slack variables.
 
     Examples:
@@ -61,11 +62,11 @@ class InequalityToEquality:
         self._conv = {}  # type: Dict[str, List[Tuple[str, int]]]
         # e.g., self._conv = {'c1': [c1@slack_var]}
 
-    def encode(self, op: QuadraticProgram) -> QuadraticProgram:
+    def convert(self, problem: QuadraticProgram) -> QuadraticProgram:
         """Convert a problem with inequality constraints into one with only equality constraints.
 
         Args:
-            op: The problem to be solved, that may contain inequality constraints.
+            problem: The problem to be solved, that may contain inequality constraints.
 
         Returns:
             The converted problem, that contain only equality constraints.
@@ -75,7 +76,7 @@ class InequalityToEquality:
             QiskitOptimizationError: If an unsupported mode is selected.
             QiskitOptimizationError: If an unsupported sense is specified.
         """
-        self._src = copy.deepcopy(op)
+        self._src = copy.deepcopy(problem)
         self._dst = QuadraticProgram()
 
         # set a problem name
@@ -340,7 +341,7 @@ class InequalityToEquality:
             )
         return lhs_lb, lhs_ub
 
-    def decode(self, result: OptimizationResult) -> OptimizationResult:
+    def interpret(self, result: OptimizationResult) -> OptimizationResult:
         """Convert a result of a converted problem into that of the original problem.
 
         Args:

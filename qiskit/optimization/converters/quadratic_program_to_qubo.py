@@ -66,7 +66,7 @@ class QuadraticProgramToQubo:
             raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
 
         # convert inequality constraints into equality constraints by adding slack variables
-        problem_ = self._ineq_to_eq.encode(problem)
+        problem_ = self._ineq_to_eq.convert(problem)
 
         # map integer variables to binary variables
         problem_ = self._int_to_bin.encode(problem_)
