@@ -19,8 +19,9 @@ from typing import Optional
 from ..algorithms.optimization_algorithm import OptimizationResult
 from ..problems.quadratic_program import QuadraticProgram
 from ..problems.constraint import Constraint
-from ..converters.linear_equality_to_penalty import LinearEqualityToPenalty
 from ..exceptions import QiskitOptimizationError
+from ..converters.inequality_to_equality import InequalityToEquality
+from ..converters.linear_equality_to_penalty import LinearEqualityToPenalty
 
 
 class QuadraticProgramToQubo:
@@ -35,13 +36,14 @@ class QuadraticProgramToQubo:
             >>> problem2 = conv.encode(problem)
     """
 
-    def __init__(self, penalty: Optional[float] = None) -> None:
+    def __init__(self, penalty: Optional[float] = None, mode: str = 'auto') -> None:
         """
         Args:
             penalty: Penalty factor to scale equality constraints that are added to objective.
         """
         from ..converters.integer_to_binary import IntegerToBinary
         self._int_to_bin = IntegerToBinary()
+        self._ineq_to_eq = InequalityToEquality(mode='int')
         self._penalize_lin_eq_constraints = LinearEqualityToPenalty()
         self._penalty = penalty
 
@@ -62,6 +64,8 @@ class QuadraticProgramToQubo:
         msg = self.get_compatibility_msg(problem)
         if len(msg) > 0:
             raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
+
+
 
         # map integer variables to binary variables
         problem_ = self._int_to_bin.encode(problem)
@@ -115,6 +119,10 @@ class QuadraticProgramToQubo:
             msg += 'Only linear equality constraints are supported.'
         if len(problem.quadratic_constraints) > 0:
             msg += 'Quadratic constraints are not supported. '
+        # check whether there are float coefficients in constraints
+        ineq_to_eq = InequalityToEquality()
+        if ineq_to_eq.is_compatible_with_integer_slack(problem):
+            msg += 'Float coefficients are in constraints.'
 
         # if an error occurred, return error message, otherwise, return None
         return msg

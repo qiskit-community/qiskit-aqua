@@ -243,12 +243,11 @@ class InequalityToEquality:
             self._add_integer_slack_var_linear_constraint(linear, sense, rhs, name)
 
     def _add_integer_slack_var_quadratic_constraint(self, linear, quadratic, sense, rhs, name):
-        # If a coefficient that is not integer exist, raise an error
+        # If a coefficient that is not integer exist, raise error
         if any(
                 isinstance(coef, float) and not coef.is_integer() for coef in quadratic.values()
         ) or any(isinstance(coef, float) and not coef.is_integer() for coef in linear.values()):
             raise QiskitOptimizationError('Can not use a slack variable for ' + name)
-
         # If rhs is float number, round up/down to the nearest integer.
         new_rhs = rhs
         if sense == Constraint.Sense.LE:
@@ -277,12 +276,6 @@ class InequalityToEquality:
         self._dst.quadratic_constraint(new_linear, quadratic, "==", new_rhs, name)
 
     def _add_continuous_slack_var_quadratic_constraint(self, linear, quadratic, sense, rhs, name):
-        # If a coefficient that is not integer exist, raise error
-        if any(
-                isinstance(coef, float) and not coef.is_integer() for coef in quadratic.values()
-        ) or any(isinstance(coef, float) and not coef.is_integer() for coef in linear.values()):
-            raise QiskitOptimizationError('Can not use a slack variable for ' + name)
-
         # Add a new continuous variable.
         slack_name = name + self._delimiter + 'continuous_slack'
         self._conv[name] = slack_name
@@ -372,3 +365,28 @@ class InequalityToEquality:
         for x in self._src.variables:
             new_vals.append(sol[x.name])
         return new_vals
+
+    def is_compatible_with_integer_slack(self, prog: QuadraticProgram) -> bool:
+        """Checks whether the integer slack mdoe can be used for a given problem.
+        Args:
+            prog: The optimization problem to check compatibility.
+
+        Returns:
+            Returns True if the problem is compatible, False otherwise.
+        """
+        compatible=True
+
+        # If a coefficient that is not integer exist, set compatible False
+        for l_constraint in prog.linear_constraints:
+            linear = l_constraint.linear.to_dict()
+            if any(isinstance(coef, float) and not coef.is_integer() for coef in linear.values()):
+                compatible = False
+        for q_constraint in prog.quadratic_constraints:
+            linear = q_constraint.linear.to_dict()
+            quadratic = q_constraint.quadratic.to_dict()
+            if any(
+                isinstance(coef, float) and not coef.is_integer() for coef in quadratic.values()
+        ) or any(isinstance(coef, float) and not coef.is_integer() for coef in linear.values()):
+                compatible = False
+
+        return compatible
