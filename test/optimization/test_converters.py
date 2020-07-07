@@ -562,14 +562,14 @@ class TestConverters(QiskitOptimizationTestCase):
 
     def test_linear_equality_to_penalty_decode(self):
         """ Test decode func of LinearEqualityToPenalty"""
-        qp = QuadraticProgram()
-        qp.binary_var('x')
-        qp.binary_var('y')
-        qp.binary_var('z')
-        qp.maximize(linear={'x': 3, 'y': 1, 'z': 1})
-        qp.linear_constraint(linear={'x': 1, 'y': 1, 'z': 1}, sense='EQ', rhs=2, name='xyz_eq')
+        qprog = QuadraticProgram()
+        qprog .binary_var('x')
+        qprog .binary_var('y')
+        qprog .binary_var('z')
+        qprog .maximize(linear={'x': 3, 'y': 1, 'z': 1})
+        qprog .linear_constraint(linear={'x': 1, 'y': 1, 'z': 1}, sense='EQ', rhs=2, name='xyz_eq')
         lineq2penalty = LinearEqualityToPenalty()
-        qubo = lineq2penalty.encode(qp)
+        qubo = lineq2penalty.encode(qprog)
         exact_mes = NumPyMinimumEigensolver()
         exact = MinimumEigenOptimizer(exact_mes)
         result = exact.solve(qubo)
