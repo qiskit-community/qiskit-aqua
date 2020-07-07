@@ -92,3 +92,39 @@ class MultiStartOptimizer(OptimizationAlgorithm, ABC):
                 x_sol = x
 
         return OptimizationResult(x_sol, fval_sol, x_sol)
+
+    @property
+    def trials(self) -> int:
+        """ Returns the number of trials for this optimizer.
+
+        Returns:
+            The number of trials.
+        """
+        return self._trials
+
+    @trials.setter
+    def trials(self, trials: int) -> None:
+        """Sets the number of trials.
+
+        Args:
+            trials: The number of trials to set.
+        """
+        self._trials = trials
+
+    @property
+    def clip(self) -> float:
+        """ Returns the clip value for this optimizer.
+
+        Returns:
+            The clip value.
+        """
+        return self._clip
+
+    @clip.setter
+    def clip(self, clip: int) -> None:
+        """Sets the clip value.
+
+        Args:
+            clip: The clip value to set.
+        """
+        self._clip = clip

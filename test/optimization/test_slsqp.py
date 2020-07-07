@@ -145,6 +145,25 @@ class TestSlsqpOptimizer(QiskitOptimizationTestCase):
         self.assertIsNotNone(solution.fval)
         np.testing.assert_almost_equal(1., solution.fval, 3)
 
+    def test_multistart_properties(self):
+        """
+        Tests properties of MultiStartOptimizer.
+        Since it is an abstract class, the test is here.
+        """
+        trials = 5
+        clip = 200.
+
+        slsqp = SlsqpOptimizer(trials=trials, clip=clip)
+        self.assertEqual(trials, slsqp.trials)
+        self.assertAlmostEqual(clip, slsqp.clip)
+
+        trials = 6
+        clip = 300.
+        slsqp.trials = trials
+        slsqp.clip = clip
+        self.assertEqual(trials, slsqp.trials)
+        self.assertAlmostEqual(clip, slsqp.clip)
+
 
 if __name__ == '__main__':
     unittest.main()
