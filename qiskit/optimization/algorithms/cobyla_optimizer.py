@@ -71,13 +71,12 @@ class CobylaOptimizer(MultiStartOptimizer):
                 with the ``-clip`` or ``clip`` values correspondingly for the initial guesses.
         """
 
+        super().__init__(trials, clip)
         self._rhobeg = rhobeg
         self._rhoend = rhoend
         self._maxfun = maxfun
         self._disp = disp
         self._catol = catol
-        self._trials = trials
-        self._clip = clip
 
     def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
         """Checks whether a given problem can be solved with this optimizer.
@@ -158,4 +157,4 @@ class CobylaOptimizer(MultiStartOptimizer):
                                rhoend=self._rhoend, maxfun=self._maxfun, disp=self._disp,
                                catol=self._catol)
 
-        return self.multi_start_solve(_minimize, problem, self._trials, self._clip)
+        return self.multi_start_solve(_minimize, problem)

@@ -76,6 +76,7 @@ class SlsqpOptimizer(MultiStartOptimizer):
                 with the ``-clip`` or ``clip`` values correspondingly for the initial guesses.
         """
 
+        super().__init__(trials, clip)
         self._iter = iter
         self._acc = acc
         self._iprint = iprint
@@ -157,4 +158,4 @@ class SlsqpOptimizer(MultiStartOptimizer):
                               fprime=_objective_gradient, iter=self._iter, acc=self._acc,
                               iprint=self._iprint)
 
-        return self.multi_start_solve(_minimize, problem, self._trials, self._clip)
+        return self.multi_start_solve(_minimize, problem)
