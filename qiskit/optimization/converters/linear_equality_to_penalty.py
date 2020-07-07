@@ -32,17 +32,17 @@ logger = logging.getLogger(__name__)
 class LinearEqualityToPenalty:
     """Convert a problem with only equality constraints to unconstrained with penalty terms."""
 
-    def __init__(self, name: Optional[str] = None, penalty: Optional[float] = None):
+    def __init__(self, penalty: Optional[float] = None, name: Optional[str] = None):
         """
         Args:
             penalty: Penalty factor to scale equality constraints that are added to objective.
                      If None is passed, penalty factor will be automatically calculated.
             name: The name of the converted problem.
         """
-        self._src = None
-        self._dst = None
-        self._dst_name = name
-        self._penalty = penalty
+        self._src = None # type: Optional[QuadraticProgram]
+        self._dst = None # type: Optional[QuadraticProgram]
+        self._dst_name = name # type: Optional[str]
+        self._penalty = penalty # type: Optional[float]
 
     def encode(self, op: QuadraticProgram) -> QuadraticProgram:
         """Convert a problem with equality constraints into an unconstrained problem.
@@ -177,7 +177,7 @@ class LinearEqualityToPenalty:
 
         Raises:
             QiskitOptimizationError: if the number of variables in the result differs from
-                                     that of the original problema.
+                                     that of the original problem.
         """
         if len(result.x) != len(self._src.variables):
             raise QiskitOptimizationError(
