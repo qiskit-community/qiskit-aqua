@@ -495,7 +495,7 @@ class OrbitalRotation:
 
         if self._freeze_core:
             # rotating only non-frozen part of orbitals
-            dim_full_k = k_matrix_alpha_full.shape[0]
+            dim_full_k = k_matrix_alpha_full.shape[0]  # pylint: disable=unsubscriptable-object
             if self.core_list is None:
                 raise AquaError('Give core_list, the list of molecular spatial orbitals that are '
                                 'frozen (e.g. [0] for the 1s or [0,1] for respectively Li2 or N2 '
