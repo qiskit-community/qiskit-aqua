@@ -39,10 +39,10 @@ class LinearEqualityToPenalty:
                      If None is passed, penalty factor will be automatically calculated.
             name: The name of the converted problem.
         """
-        self._src = None # type: Optional[QuadraticProgram]
-        self._dst = None # type: Optional[QuadraticProgram]
-        self._dst_name = name # type: Optional[str]
-        self._penalty = penalty # type: Optional[float]
+        self._src = None  # type: Optional[QuadraticProgram]
+        self._dst = None  # type: Optional[QuadraticProgram]
+        self._dst_name = name  # type: Optional[str]
+        self._penalty = penalty  # type: Optional[float]
 
     def encode(self, op: QuadraticProgram) -> QuadraticProgram:
         """Convert a problem with equality constraints into an unconstrained problem.
