@@ -239,9 +239,7 @@ class IntegerToBinary(QuadraticProgramConverter):
             The result of the original problem.
         """
         # copy fval and status of the result of the converted problem
-        new_result = OptimizationResult()
-        new_result.fval = result.fval
-        new_result.Status = result.Status
+        new_result = copy.deepcopy(result)
         # convert back additional binary variables into integer variables
         vals = result.x
         new_result.x = self._interpret_var(vals)  # type: ignore

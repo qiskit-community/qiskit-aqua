@@ -18,7 +18,6 @@ from typing import Optional
 
 from ..algorithms.optimization_algorithm import OptimizationResult
 from ..exceptions import QiskitOptimizationError
-from ..problems.constraint import Constraint
 from ..problems.quadratic_program import QuadraticProgram
 from .quadratic_program_converter import QuadraticProgramConverter
 
@@ -48,7 +47,7 @@ class QuadraticProgramToQubo(QuadraticProgramConverter):
         from ..converters.linear_equality_to_penalty import LinearEqualityToPenalty
 
         self._int_to_bin = IntegerToBinary()
-        self._ineq_to_eq = InequalityToEquality(mode='int')
+        self._ineq_to_eq = InequalityToEquality(mode='integer')
         self._penalize_lin_eq_constraints = LinearEqualityToPenalty()
         self._penalty = penalty
         self._dst_name = name
@@ -124,11 +123,6 @@ class QuadraticProgramToQubo(QuadraticProgramConverter):
             msg += 'Continuous variables are not supported! '
 
         # check whether there are incompatible constraint types
-        if not all(
-                constraint.sense == Constraint.Sense.EQ
-                for constraint in problem.linear_constraints
-        ):
-            msg += 'Only linear equality constraints are supported.'
         if len(problem.quadratic_constraints) > 0:
             msg += 'Quadratic constraints are not supported. '
         # check whether there are float coefficients in constraints
@@ -148,7 +142,8 @@ class QuadraticProgramToQubo(QuadraticProgramConverter):
             ):
                 compatible_with_integer_slack = False
         if not compatible_with_integer_slack:
-            msg += 'Float coefficients are in constraints. '
+            msg += 'Can not convert inequality constraints to equality constraint because \
+                    float coefficients are in constraints. '
 
         # if an error occurred, return error message, otherwise, return None
         return msg

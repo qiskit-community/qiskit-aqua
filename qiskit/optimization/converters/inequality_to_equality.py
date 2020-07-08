@@ -345,9 +345,7 @@ class InequalityToEquality(QuadraticProgramConverter):
             The result of the original problem.
         """
         # copy fval and status of the result of the converted problem
-        new_result = OptimizationResult()
-        new_result.fval = result.fval
-        new_result.Status = result.Status
+        new_result = copy.deepcopy(result)
         # convert back the optimization result into that of the original problem
         names = [x.name for x in self._dst.variables]
         vals = result.x
