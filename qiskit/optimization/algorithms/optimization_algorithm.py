@@ -18,6 +18,7 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any, Optional
 
+from .. import QiskitOptimizationError
 from ..problems.quadratic_program import QuadraticProgram
 
 
@@ -62,6 +63,26 @@ class OptimizationAlgorithm(ABC):
             QiskitOptimizationError: If the problem is incompatible with the optimizer.
         """
         raise NotImplementedError
+
+    def _verify_compatibility(self, problem: QuadraticProgram) -> None:
+        """Verifies that the problem is suitable for this optimizer. If the problem is not
+        compatible then an exception is raised. This method is for convenience for concrete
+        optimizers and is not intended to be used by end user.
+
+        Args:
+            problem: Problem to verify.
+
+        Returns:
+            None
+
+        Raises:
+            QiskitOptimizationError: If the problem is incompatible with the optimizer.
+
+        """
+        # check compatibility and raise exception if incompatible
+        msg = self.get_compatibility_msg(problem)
+        if msg:
+            raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
 
 
 class OptimizationResultStatus(Enum):

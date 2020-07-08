@@ -181,7 +181,34 @@ class QuadraticExpression(QuadraticProgramElement):
         Returns:
             The value of the quadratic expression given the variable values.
         """
-        # cast input to dok_matrix if it is a dictionary
+        x = self._cast_as_array(x)
+
+        # compute x * Q * x for the quadratic expression
+        val = x @ self.coefficients @ x
+
+        # return the result
+        return val
+
+    def evaluate_gradient(self, x: Union[ndarray, List, Dict[Union[int, str], float]]) -> ndarray:
+        """Evaluate the gradient of the quadratic expression for given variables.
+
+        Args:
+            x: The values of the variables to be evaluated.
+
+        Returns:
+            The value of the gradient quadratic expression given the variable values.
+        """
+        x = self._cast_as_array(x)
+
+        # compute (Q' + Q) * x for the quadratic expression
+        val = (self.coefficients.transpose() + self.coefficients) @ x
+
+        # return the result
+        return val
+
+    def _cast_as_array(self, x: Union[ndarray, List, Dict[Union[int, str], float]]) -> \
+            Union[dok_matrix, np.ndarray]:
+        """Converts input to an array if it is a dictionary or list."""
         if isinstance(x, dict):
             x_aux = np.zeros(self.quadratic_program.get_num_vars())
             for i, v in x.items():
@@ -189,11 +216,6 @@ class QuadraticExpression(QuadraticProgramElement):
                     i = self.quadratic_program.variables_index[i]
                 x_aux[i] = v
             x = x_aux
-        if isinstance(x, list):
+        if isinstance(x, List):
             x = np.array(x)
-
-        # compute x * Q * x for the quadratic expression
-        val = x @ self.coefficients @ x
-
-        # return the result
-        return val
+        return x
