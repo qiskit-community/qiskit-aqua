@@ -14,17 +14,17 @@
 """The inequality to equality converter."""
 
 import copy
-import math
-from typing import List, Optional, Dict, Tuple
 import logging
+import math
+from typing import Dict, List, Optional, Tuple
 
-from .base_converter import BaseConverter
 from ..algorithms.optimization_algorithm import OptimizationResult
-from ..problems.quadratic_program import QuadraticProgram
-from ..problems.quadratic_objective import QuadraticObjective
-from ..problems.constraint import Constraint
-from ..problems.variable import Variable
 from ..exceptions import QiskitOptimizationError
+from ..problems.constraint import Constraint
+from ..problems.quadratic_objective import QuadraticObjective
+from ..problems.quadratic_program import QuadraticProgram
+from ..problems.variable import Variable
+from .base_converter import BaseConverter
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +38,7 @@ class InequalityToEquality(BaseConverter):
         >>> problem = QuadraticProgram()
         >>> # define a problem
         >>> conv = InequalityToEquality()
-        >>> problem2 = conv.encode(problem)
+        >>> problem2 = conv.convert(problem)
     """
 
     _delimiter = '@'  # users are supposed not to use this character in variable names
@@ -119,8 +119,10 @@ class InequalityToEquality(BaseConverter):
                 self._dst.linear_constraint(
                     linear, l_constraint.sense, l_constraint.rhs, l_constraint.name
                 )
-            elif l_constraint.sense == Constraint.Sense.LE or \
-                    l_constraint.sense == Constraint.Sense.GE:
+            elif (
+                l_constraint.sense == Constraint.Sense.LE
+                or l_constraint.sense == Constraint.Sense.GE
+            ):
                 if mode == 'integer':
                     self._add_integer_slack_var_linear_constraint(
                         linear, l_constraint.sense, l_constraint.rhs, l_constraint.name
@@ -148,31 +150,21 @@ class InequalityToEquality(BaseConverter):
                 self._dst.quadratic_constraint(
                     linear, quadratic, q_constraint.sense, q_constraint.rhs, q_constraint.name
                 )
-            elif q_constraint.sense == Constraint.Sense.LE or \
-                    q_constraint.sense == Constraint.Sense.GE:
+            elif (
+                q_constraint.sense == Constraint.Sense.LE
+                or q_constraint.sense == Constraint.Sense.GE
+            ):
                 if mode == 'integer':
                     self._add_integer_slack_var_quadratic_constraint(
-                        linear,
-                        quadratic,
-                        q_constraint.sense,
-                        q_constraint.rhs,
-                        q_constraint.name,
+                        linear, quadratic, q_constraint.sense, q_constraint.rhs, q_constraint.name,
                     )
                 elif mode == 'continuous':
                     self._add_continuous_slack_var_quadratic_constraint(
-                        linear,
-                        quadratic,
-                        q_constraint.sense,
-                        q_constraint.rhs,
-                        q_constraint.name,
+                        linear, quadratic, q_constraint.sense, q_constraint.rhs, q_constraint.name,
                     )
                 elif mode == 'auto':
                     self._add_auto_slack_var_quadratic_constraint(
-                        linear,
-                        quadratic,
-                        q_constraint.sense,
-                        q_constraint.rhs,
-                        q_constraint.name,
+                        linear, quadratic, q_constraint.sense, q_constraint.rhs, q_constraint.name,
                     )
                 else:
                     raise QiskitOptimizationError('Unsupported mode is selected: {}'.format(mode))
@@ -246,7 +238,7 @@ class InequalityToEquality(BaseConverter):
     def _add_integer_slack_var_quadratic_constraint(self, linear, quadratic, sense, rhs, name):
         # If a coefficient that is not integer exist, raise error
         if any(
-                isinstance(coef, float) and not coef.is_integer() for coef in quadratic.values()
+            isinstance(coef, float) and not coef.is_integer() for coef in quadratic.values()
         ) or any(isinstance(coef, float) and not coef.is_integer() for coef in linear.values()):
             raise QiskitOptimizationError('Can not use a slack variable for ' + name)
         # If rhs is float number, round up/down to the nearest integer.
@@ -300,9 +292,11 @@ class InequalityToEquality(BaseConverter):
     def _add_auto_slack_var_quadratic_constraint(self, linear, quadratic, sense, rhs, name):
         # If a coefficient that is not integer exist, use a continuous slack variable
         if any(
-                isinstance(coef, float) and not coef.is_integer() for coef in quadratic.values()
+            isinstance(coef, float) and not coef.is_integer() for coef in quadratic.values()
         ) or any(isinstance(coef, float) and not coef.is_integer() for coef in linear.values()):
-            self._add_continuous_slack_var_quadratic_constraint(linear, quadratic, sense, rhs, name)
+            self._add_continuous_slack_var_quadratic_constraint(
+                linear, quadratic, sense, rhs, name
+            )
         # Else use an integer slack variable
         else:
             self._add_integer_slack_var_quadratic_constraint(linear, quadratic, sense, rhs, name)
@@ -350,16 +344,18 @@ class InequalityToEquality(BaseConverter):
         Returns:
             The result of the original problem.
         """
-
-        # convert the optimization result into that of the original problem
+        # copy fval and status of the result of the converted problem
+        new_result = OptimizationResult()
+        new_result.fval = result.fval
+        new_result.Status = result.Status
+        # convert back the optimization result into that of the original problem
         names = [x.name for x in self._dst.variables]
         vals = result.x
-        new_vals = self._decode_var(names, vals)
-        result.x = new_vals  # type: ignore
-        return result
+        new_result.x = self._interpret_var(names, vals)  # type: ignore
+        return new_result
 
-    def _decode_var(self, names, vals) -> List[int]:
-        # decode slack variables
+    def _interpret_var(self, names, vals) -> List[int]:
+        # interpret slack variables
         sol = {name: vals[i] for i, name in enumerate(names)}
 
         new_vals = []
@@ -375,7 +371,7 @@ class InequalityToEquality(BaseConverter):
         Returns:
             Returns True if the problem is compatible, False otherwise.
         """
-        compatible=True
+        compatible = True
 
         # If a coefficient that is not integer exist, set compatible False
         for l_constraint in prog.linear_constraints:
@@ -387,7 +383,46 @@ class InequalityToEquality(BaseConverter):
             quadratic = q_constraint.quadratic.to_dict()
             if any(
                 isinstance(coef, float) and not coef.is_integer() for coef in quadratic.values()
-        ) or any(isinstance(coef, float) and not coef.is_integer() for coef in linear.values()):
+            ) or any(
+                isinstance(coef, float) and not coef.is_integer() for coef in linear.values()
+            ):
                 compatible = False
 
         return compatible
+
+    @property
+    def mode(self) -> str:
+        """Returns the mode of the converter
+
+        Returns:
+            The mode of the converter used for additional slack variables
+        """
+        return self._mode
+
+    @mode.setter  # type:ignore
+    def mode(self, mode: str) -> None:
+        """Set a new mode for the converter
+
+        Args:
+            mode: The new mode for the converter
+        """
+        self._mode = mode
+
+    @property
+    def name(self) -> Optional[str]:
+        """Returns the name of the converted problem
+
+        Returns:
+            The name of the converted problem
+        """
+        return self._dst_name
+
+    @name.setter  # type:ignore
+    def name(self, name: Optional[str]) -> None:
+        """Set a name for a converted problem
+
+        Args:
+            name: A name for a converted problem. If not provided, the name of the input
+                  problem is used.
+        """
+        self._dst_name = name

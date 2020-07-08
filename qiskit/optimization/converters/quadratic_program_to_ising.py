@@ -33,11 +33,11 @@ class QuadraticProgramToIsing:
         """Initialize the internal data structure."""
         self._src = None  # type: Optional[QuadraticProgram]
 
-    def encode(self, op: QuadraticProgram) -> Tuple[OperatorBase, float]:
+    def convert(self, problem: QuadraticProgram) -> Tuple[OperatorBase, float]:
         """Convert a problem into a qubit operator
 
         Args:
-            op: The optimization problem to be converted. Must be an unconstrained problem with
+            problem: The optimization problem to be converted. Must be an unconstrained problem with
                 binary variables only.
 
         Returns:
@@ -48,8 +48,8 @@ class QuadraticProgramToIsing:
             QiskitOptimizationError: If constraints exist in the problem.
         """
 
-        self._src = op
-        # if op has variables that are not binary, raise an error
+        self._src = problem
+        # if problem has variables that are not binary, raise an error
         if self._src.get_num_vars() > self._src.get_num_binary_vars():
             raise QiskitOptimizationError('The type of variable must be a binary variable.')
 

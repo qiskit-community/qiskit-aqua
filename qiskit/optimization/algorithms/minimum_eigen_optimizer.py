@@ -149,7 +149,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
 
         # construct operator and offset
         operator_converter = QuadraticProgramToIsing()
-        operator, offset = operator_converter.encode(problem_)
+        operator, offset = operator_converter.convert(problem_)
 
         # only try to solve non-empty Ising Hamiltonians
         x = None  # type: Optional[Any]

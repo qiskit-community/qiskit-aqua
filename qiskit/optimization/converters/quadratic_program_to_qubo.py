@@ -20,9 +20,6 @@ from ..algorithms.optimization_algorithm import OptimizationResult
 from ..problems.quadratic_program import QuadraticProgram
 from ..problems.constraint import Constraint
 from ..exceptions import QiskitOptimizationError
-from ..converters.inequality_to_equality import InequalityToEquality
-from ..converters.linear_equality_to_penalty import LinearEqualityToPenalty
-
 
 class QuadraticProgramToQubo:
     """Convert a given optimization problem to a new problem that is a QUBO.
@@ -36,12 +33,14 @@ class QuadraticProgramToQubo:
             >>> problem2 = conv.encode(problem)
     """
 
-    def __init__(self, penalty: Optional[float] = None, mode: str = 'auto') -> None:
+    def __init__(self, penalty: Optional[float] = None) -> None:
         """
         Args:
             penalty: Penalty factor to scale equality constraints that are added to objective.
         """
         from ..converters.integer_to_binary import IntegerToBinary
+        from ..converters.inequality_to_equality import InequalityToEquality
+        from ..converters.linear_equality_to_penalty import LinearEqualityToPenalty
         self._int_to_bin = IntegerToBinary()
         self._ineq_to_eq = InequalityToEquality(mode='int')
         self._penalize_lin_eq_constraints = LinearEqualityToPenalty()

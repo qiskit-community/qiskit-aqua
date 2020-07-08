@@ -28,7 +28,7 @@ from ..exceptions import QiskitOptimizationError
 class IsingToQuadraticProgram:
     """Convert a qubit operator into a quadratic program"""
 
-    def __init__(self, linear: bool = False) -> None:
+    def __init__(self, linear: bool = False, name: str = '') -> None:
         r"""
 
         Args:
@@ -43,6 +43,7 @@ class IsingToQuadraticProgram:
         self._qubo_matrix = None  # type: Optional[np.ndarray]
         self._qp = None  # type: Optional[QuadraticProgram]
         self._linear = linear
+        self._name = name
 
     def convert(self, qubit_op: Union[OperatorBase, WeightedPauliOperator], offset: float = 0.0
                ) -> QuadraticProgram:
@@ -76,7 +77,7 @@ class IsingToQuadraticProgram:
         self._num_qubits = qubit_op.num_qubits
 
         # Create `QuadraticProgram`
-        self._qp = QuadraticProgram()
+        self._qp = QuadraticProgram(name=self._name)
         for i in range(self._num_qubits):
             self._qp.binary_var(name='x_{0}'.format(i))
         # Create QUBO matrix
@@ -173,3 +174,21 @@ class IsingToQuadraticProgram:
             x_index = [i for i, x in enumerate(lst_x) if x is True]
             if len(x_index) > 0:
                 raise QiskitOptimizationError('Pauli Xs exist in the Pauli {}'.format(pauli.x))
+
+    @property
+    def name(self) -> str:
+        """Returns the name of the converted problem
+
+        Returns:
+            The name of the converted problem
+        """
+        return self._name
+
+    @name.setter  # type:ignore
+    def name(self, name: Optional[str]) -> None:
+        """Set a name for a created QuadraticProgram
+
+        Args:
+            name: A name for a created QuadraticProgram
+        """
+        self._name = name
