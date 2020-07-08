@@ -180,6 +180,27 @@ class IsingToQuadraticProgram:
                 raise QiskitOptimizationError('Pauli Xs exist in the Pauli {}'.format(pauli.x))
 
     @property
+    def linear(self) -> bool:
+        r"""
+        Returns the conversion mode for quadratic terms
+
+        Returns:
+            If it's True :math:`x^2` is treated as a linear term.
+            Else, :math:`x^2` is treated as a quadratic term.
+        """
+        return self._linear
+
+    @linear.setter  # type:ignore
+    def linear(self, linear: bool) -> None:
+        """Set a conversion mode for quadratic terms
+
+        Args:
+            linear: If it's True :math:`x^2` is treated as a linear term.
+                Else, :math:`x^2` is treated as a quadratic term.
+        """
+        self._linear = linear
+
+    @property
     def name(self) -> str:
         """Returns the name of the converted problem
 
