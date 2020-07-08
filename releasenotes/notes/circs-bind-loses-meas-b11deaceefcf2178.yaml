@@ -1,0 +1,6 @@
+---
+fixes:
+  - |
+    Binding parameters in the ``CircuitStateFn`` did not copy
+    the value of ``is_measurement`` and always set ``is_measurement=False``.
+    This has been fixed.

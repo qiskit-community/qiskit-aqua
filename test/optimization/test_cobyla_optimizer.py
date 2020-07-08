@@ -97,6 +97,23 @@ class TestCobylaOptimizer(QiskitOptimizationTestCase):
         self.assertAlmostEqual(result.x[0], 1.0, places=6)
         self.assertAlmostEqual(result.x[1], 2.0, places=6)
 
+    def test_cobyla_optimizer_with_trials(self):
+        """ Cobyla Optimizer Test. """
+
+        # load optimization problem
+        problem = QuadraticProgram()
+        problem.continuous_var(upperbound=4)
+        problem.continuous_var(upperbound=4)
+        problem.linear_constraint(linear=[1, 1], sense='=', rhs=2)
+        problem.minimize(linear=[2, 2], quadratic=[[2, 0.25], [0.25, 0.5]])
+
+        # solve problem with cobyla
+        cobyla = CobylaOptimizer(trials=3)
+        result = cobyla.solve(problem)
+
+        # analyze results
+        self.assertAlmostEqual(result.fval, 5.8750)
+
 
 if __name__ == '__main__':
     unittest.main()

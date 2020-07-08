@@ -151,3 +151,14 @@ class QuadraticObjective(QuadraticProgramElement):
             The value of the quadratic objective given the variable values.
         """
         return self.constant + self.linear.evaluate(x) + self.quadratic.evaluate(x)
+
+    def evaluate_gradient(self, x: Union[ndarray, List, Dict[Union[int, str], float]]) -> ndarray:
+        """Evaluate the gradient of the quadratic objective for given variable values.
+
+        Args:
+            x: The values of the variables to be evaluated.
+
+        Returns:
+            The value of the gradient of the quadratic objective given the variable values.
+        """
+        return self.linear.evaluate_gradient(x) + self.quadratic.evaluate_gradient(x)

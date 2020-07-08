@@ -26,7 +26,7 @@ from qiskit.optimization.applications.ising.common import sample_most_likely
 from qiskit.aqua.components.optimizers import COBYLA
 from qiskit.aqua.algorithms import QAOA
 from qiskit.aqua import QuantumInstance, aqua_globals
-from qiskit.aqua.operators import WeightedPauliOperator, X, Z
+from qiskit.aqua.operators import X, Z, I
 
 W1 = np.array([
     [0, 1, 0, 1],
@@ -35,11 +35,7 @@ W1 = np.array([
     [1, 0, 1, 0]
 ])
 P1 = 1
-M1 = WeightedPauliOperator.from_dict({'paulis': [{'label': 'IIIX', 'coeff': {'real': 1}},
-                                                 {'label': 'IIXI', 'coeff': {'real': 1}},
-                                                 {'label': 'IXII', 'coeff': {'real': 1}},
-                                                 {'label': 'XIII', 'coeff': {'real': 1}}]
-                                      }).to_opflow()
+M1 = (I ^ I ^ I ^ X) + (I ^ I ^ X ^ I) + (I ^ X ^ I ^ I) + (X ^ I ^ I ^ I)
 S1 = {'0101', '1010'}
 
 
