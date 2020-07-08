@@ -15,7 +15,7 @@
 """Converter to convert a problem with equality constraints to unconstrained with penalty terms."""
 
 import copy
-from typing import Optional, cast, Union, Tuple
+from typing import Optional, cast, Union, Tuple, Dict
 from math import fsum
 import logging
 
@@ -185,7 +185,7 @@ class LinearEqualityToPenalty:
                 'that of the original problem.'
             )
         # Substitute variables to obtain the function value and feasibility in the original problem
-        substitute_dict = {}
+        substitute_dict = {}  # type: Dict[Union[str, int], float]
         variables = self._src.variables
         for i in range(len(result.x)):
             substitute_dict[variables[i].name] = result.x[i]
@@ -206,7 +206,7 @@ class LinearEqualityToPenalty:
         return new_result
 
     @property
-    def penalty(self) -> float:
+    def penalty(self) -> Optional[float]:
         """Returns the penalty factor used in conversion.
 
         Returns:
@@ -215,10 +215,11 @@ class LinearEqualityToPenalty:
         return self._penalty
 
     @penalty.setter  # type:ignore
-    def penalty(self, penalty: float) -> None:
+    def penalty(self, penalty: Optional[float]) -> None:
         """Set a new penalty factor.
 
         Args:
-            penalty: The new penalty factor
+            penalty: The new penalty factor.
+                     If None is passed, penalty factor will be automatically calculated.
         """
         self._penalty = penalty
