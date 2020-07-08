@@ -36,6 +36,7 @@ class IsingToQuadraticProgram:
                 since :math:`x^2 = x` for :math:`x \in \{0,1\}`.
                 Else, :math:`x^2` is treat as a quadratic term.
                 The default value is False.
+            name: A name for the created QuadraticProgram
         """
         self._qubit_op = None
         self._offset = 0.0
@@ -45,8 +46,9 @@ class IsingToQuadraticProgram:
         self._linear = linear
         self._name = name
 
-    def convert(self, qubit_op: Union[OperatorBase, WeightedPauliOperator], offset: float = 0.0
-               ) -> QuadraticProgram:
+    def convert(self,
+                qubit_op: Union[OperatorBase, WeightedPauliOperator],
+                offset: float = 0.0) -> QuadraticProgram:
         """Convert a qubit operator and a shift value into a quadratic program
 
         Args:
@@ -69,8 +71,10 @@ class IsingToQuadraticProgram:
         # No support for ListOp yet, this can be added in future
         # pylint: disable=unidiomatic-typecheck
         if type(qubit_op) == ListOp:
-            raise NotImplementedError('Conversion of a ListOp is not supported, convert each '
-                                      'operator in the ListOp separately.')
+            raise NotImplementedError(
+                'Conversion of a ListOp is not supported, convert each '
+                'operator in the ListOp separately.'
+            )
 
         self._qubit_op = qubit_op
         self._offset = copy.deepcopy(offset)

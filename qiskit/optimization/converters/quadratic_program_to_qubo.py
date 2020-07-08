@@ -17,11 +17,13 @@
 from typing import Optional
 
 from ..algorithms.optimization_algorithm import OptimizationResult
-from ..problems.quadratic_program import QuadraticProgram
-from ..problems.constraint import Constraint
 from ..exceptions import QiskitOptimizationError
+from ..problems.constraint import Constraint
+from ..problems.quadratic_program import QuadraticProgram
+from .quadratic_program_converter import QuadraticProgramConverter
 
-class QuadraticProgramToQubo:
+
+class QuadraticProgramToQubo(QuadraticProgramConverter):
     """Convert a given optimization problem to a new problem that is a QUBO.
 
         Examples:
@@ -30,23 +32,28 @@ class QuadraticProgramToQubo:
             >>> problem = QuadraticProgram()
             >>> # define a problem
             >>> conv = QuadraticProgramToQubo()
-            >>> problem2 = conv.encode(problem)
+            >>> problem2 = conv.convert(problem)
     """
 
-    def __init__(self, penalty: Optional[float] = None) -> None:
+    def __init__(self, penalty: Optional[float] = None, name: Optional[str] = None) -> None:
         """
         Args:
             penalty: Penalty factor to scale equality constraints that are added to objective.
+
+            name: The name of the converted problem. If not provided, the name of the input
+                  problem is used.
         """
         from ..converters.integer_to_binary import IntegerToBinary
         from ..converters.inequality_to_equality import InequalityToEquality
         from ..converters.linear_equality_to_penalty import LinearEqualityToPenalty
+
         self._int_to_bin = IntegerToBinary()
         self._ineq_to_eq = InequalityToEquality(mode='int')
         self._penalize_lin_eq_constraints = LinearEqualityToPenalty()
         self._penalty = penalty
+        self._dst_name = name
 
-    def encode(self, problem: QuadraticProgram) -> QuadraticProgram:
+    def convert(self, problem: QuadraticProgram) -> QuadraticProgram:
         """Convert a problem with linear equality constraints into new one with a QUBO form.
 
         Args:
@@ -65,9 +72,11 @@ class QuadraticProgramToQubo:
             raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
 
         # convert inequality constraints into equality constraints by adding slack variables
+        self._ineq_to_eq.name = self._dst_name
         problem_ = self._ineq_to_eq.convert(problem)
 
         # map integer variables to binary variables
+        self._int_to_bin.name = self._dst_name
         problem_ = self._int_to_bin.convert(problem_)
 
         # penalize linear equality constraints with only binary variables
@@ -76,12 +85,12 @@ class QuadraticProgramToQubo:
             penalty = 1e5
         else:
             penalty = self._penalty
-        problem_ = self._penalize_lin_eq_constraints.encode(problem_, penalty_factor=penalty)
+        problem_ = self._penalize_lin_eq_constraints.convert(problem_, penalty_factor=penalty)
 
         # return QUBO
         return problem_
 
-    def decode(self, result: OptimizationResult) -> OptimizationResult:
+    def interpret(self, result: OptimizationResult) -> OptimizationResult:
         """ Convert a result of a converted problem into that of the original problem.
 
             Args:
@@ -90,7 +99,9 @@ class QuadraticProgramToQubo:
             Returns:
                 The result of the original problem.
         """
-        return self._int_to_bin.interpret(result)
+        result_ = self._int_to_bin.interpret(result)
+        result_ = self._ineq_to_eq.interpret(result_)
+        return result_
 
     @staticmethod
     def get_compatibility_msg(problem: QuadraticProgram) -> str:
@@ -108,21 +119,36 @@ class QuadraticProgramToQubo:
 
         # initialize message
         msg = ''
-        print(problem)
         # check whether there are incompatible variable types
         if problem.get_num_continuous_vars() > 0:
             msg += 'Continuous variables are not supported! '
 
         # check whether there are incompatible constraint types
-        if not all(constraint.sense == Constraint.Sense.EQ
-                   for constraint in problem.linear_constraints):
+        if not all(
+                constraint.sense == Constraint.Sense.EQ
+                for constraint in problem.linear_constraints
+        ):
             msg += 'Only linear equality constraints are supported.'
         if len(problem.quadratic_constraints) > 0:
             msg += 'Quadratic constraints are not supported. '
         # check whether there are float coefficients in constraints
-        ineq_to_eq = InequalityToEquality()
-        if not ineq_to_eq.is_compatible_with_integer_slack(problem):
-            msg += 'Float coefficients are in constraints.'
+        compatible_with_integer_slack = True
+        for l_constraint in problem.linear_constraints:
+            linear = l_constraint.linear.to_dict()
+            if any(isinstance(coef, float) and not coef.is_integer() for coef in linear.values()):
+                compatible_with_integer_slack = False
+        for q_constraint in problem.quadratic_constraints:
+            linear = q_constraint.linear.to_dict()
+            quadratic = q_constraint.quadratic.to_dict()
+            if any(
+                    isinstance(coef, float) and not coef.is_integer()
+                    for coef in quadratic.values()
+            ) or any(
+                isinstance(coef, float) and not coef.is_integer() for coef in linear.values()
+            ):
+                compatible_with_integer_slack = False
+        if not compatible_with_integer_slack:
+            msg += 'Float coefficients are in constraints. '
 
         # if an error occurred, return error message, otherwise, return None
         return msg
@@ -137,3 +163,22 @@ class QuadraticProgramToQubo:
             Returns True if the problem is compatible, False otherwise.
         """
         return len(self.get_compatibility_msg(problem)) == 0
+
+    @property
+    def name(self) -> Optional[str]:
+        """Returns the name of the converted problem
+
+        Returns:
+            The name of the converted problem
+        """
+        return self._dst_name
+
+    @name.setter  # type:ignore
+    def name(self, name: Optional[str]) -> None:
+        """Set a name for a converted problem
+
+        Args:
+            name: A name for a converted problem. If not provided, the name of the input
+                  problem is used.
+        """
+        self._dst_name = name

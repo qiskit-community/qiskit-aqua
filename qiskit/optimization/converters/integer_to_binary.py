@@ -20,17 +20,17 @@ from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
-from .base_converter import BaseConverter
 from ..algorithms.optimization_algorithm import OptimizationResult
 from ..exceptions import QiskitOptimizationError
 from ..problems.quadratic_objective import QuadraticObjective
 from ..problems.quadratic_program import QuadraticProgram
 from ..problems.variable import Variable
+from .quadratic_program_converter import QuadraticProgramConverter
 
 logger = logging.getLogger(__name__)
 
 
-class IntegerToBinary(BaseConverter):
+class IntegerToBinary(QuadraticProgramConverter):
     """Convert a :class:`~qiskit.optimization.problems.QuadraticProgram` into new one by encoding
     integer with binary variables.
 
@@ -117,7 +117,7 @@ class IntegerToBinary(BaseConverter):
         return self._dst
 
     def _convert_var(
-        self, name: str, lowerbound: float, upperbound: float
+            self, name: str, lowerbound: float, upperbound: float
     ) -> List[Tuple[str, int]]:
         var_range = upperbound - lowerbound
         power = int(np.log2(var_range))
@@ -127,7 +127,7 @@ class IntegerToBinary(BaseConverter):
         return [(name + self._delimiter + str(i), coef) for i, coef in enumerate(coeffs)]
 
     def _convert_linear_coefficients_dict(
-        self, coefficients: Dict[str, float]
+            self, coefficients: Dict[str, float]
     ) -> Tuple[Dict[str, float], float]:
         constant = 0.0
         linear = {}  # type: Dict[str, float]
@@ -143,7 +143,7 @@ class IntegerToBinary(BaseConverter):
         return linear, constant
 
     def _convert_quadratic_coefficients_dict(
-        self, coefficients: Dict[Tuple[str, str], float]
+            self, coefficients: Dict[Tuple[str, str], float]
     ) -> Tuple[Dict[Tuple[str, str], float], Dict[str, float], float]:
         constant = 0.0
         linear = {}  # type: Dict[str, float]
@@ -185,7 +185,11 @@ class IntegerToBinary(BaseConverter):
         linear, linear_constant = self._convert_linear_coefficients_dict(
             self._src.objective.linear.to_dict(use_name=True)
         )
-        quadratic, quadratic_linear, quadratic_constant = self._convert_quadratic_coefficients_dict(
+        (
+            quadratic,
+            quadratic_linear,
+            quadratic_constant,
+        ) = self._convert_quadratic_coefficients_dict(
             self._src.objective.quadratic.to_dict(use_name=True)
         )
 
@@ -225,7 +229,8 @@ class IntegerToBinary(BaseConverter):
             )
 
     def interpret(self, result: OptimizationResult) -> OptimizationResult:
-        """Convert back the converted problem (binary variables) back to the original (integer variables).
+        """
+        Convert back the converted problem (binary variables) to the original (integer variables).
 
         Args:
             result: The result of the converted problem.

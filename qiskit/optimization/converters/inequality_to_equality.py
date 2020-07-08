@@ -24,12 +24,12 @@ from ..problems.constraint import Constraint
 from ..problems.quadratic_objective import QuadraticObjective
 from ..problems.quadratic_program import QuadraticProgram
 from ..problems.variable import Variable
-from .base_converter import BaseConverter
+from .quadratic_program_converter import QuadraticProgramConverter
 
 logger = logging.getLogger(__name__)
 
 
-class InequalityToEquality(BaseConverter):
+class InequalityToEquality(QuadraticProgramConverter):
     """Convert inequality constraints into equality constraints by introducing slack variables.
 
     Examples:
@@ -43,17 +43,17 @@ class InequalityToEquality(BaseConverter):
 
     _delimiter = '@'  # users are supposed not to use this character in variable names
 
-    def __init__(self, name: Optional[str] = None, mode: str = 'auto') -> None:
+    def __init__(self, mode: str = 'auto', name: Optional[str] = None) -> None:
         """
         Args:
-            name: The name of the converted problem. If not provided, the name of the input
-                  problem is used.
             mode: To chose the type of slack variables. There are 3 options for mode.
 
                 - 'integer': All slack variables will be integer variables.
                 - 'continuous': All slack variables will be continuous variables
                 - 'auto': Try to use integer variables but if it's not possible,
                    use continuous variables
+            name: The name of the converted problem. If not provided, the name of the input
+                  problem is used.
         """
         self._src = None  # type: Optional[QuadraticProgram]
         self._dst = None  # type: Optional[QuadraticProgram]
@@ -120,8 +120,8 @@ class InequalityToEquality(BaseConverter):
                     linear, l_constraint.sense, l_constraint.rhs, l_constraint.name
                 )
             elif (
-                l_constraint.sense == Constraint.Sense.LE
-                or l_constraint.sense == Constraint.Sense.GE
+                    l_constraint.sense == Constraint.Sense.LE
+                    or l_constraint.sense == Constraint.Sense.GE
             ):
                 if mode == 'integer':
                     self._add_integer_slack_var_linear_constraint(
@@ -151,8 +151,8 @@ class InequalityToEquality(BaseConverter):
                     linear, quadratic, q_constraint.sense, q_constraint.rhs, q_constraint.name
                 )
             elif (
-                q_constraint.sense == Constraint.Sense.LE
-                or q_constraint.sense == Constraint.Sense.GE
+                    q_constraint.sense == Constraint.Sense.LE
+                    or q_constraint.sense == Constraint.Sense.GE
             ):
                 if mode == 'integer':
                     self._add_integer_slack_var_quadratic_constraint(
@@ -238,7 +238,7 @@ class InequalityToEquality(BaseConverter):
     def _add_integer_slack_var_quadratic_constraint(self, linear, quadratic, sense, rhs, name):
         # If a coefficient that is not integer exist, raise error
         if any(
-            isinstance(coef, float) and not coef.is_integer() for coef in quadratic.values()
+                isinstance(coef, float) and not coef.is_integer() for coef in quadratic.values()
         ) or any(isinstance(coef, float) and not coef.is_integer() for coef in linear.values()):
             raise QiskitOptimizationError('Can not use a slack variable for ' + name)
         # If rhs is float number, round up/down to the nearest integer.
@@ -292,7 +292,7 @@ class InequalityToEquality(BaseConverter):
     def _add_auto_slack_var_quadratic_constraint(self, linear, quadratic, sense, rhs, name):
         # If a coefficient that is not integer exist, use a continuous slack variable
         if any(
-            isinstance(coef, float) and not coef.is_integer() for coef in quadratic.values()
+                isinstance(coef, float) and not coef.is_integer() for coef in quadratic.values()
         ) or any(isinstance(coef, float) and not coef.is_integer() for coef in linear.values()):
             self._add_continuous_slack_var_quadratic_constraint(
                 linear, quadratic, sense, rhs, name
@@ -363,10 +363,10 @@ class InequalityToEquality(BaseConverter):
             new_vals.append(sol[x.name])
         return new_vals
 
-    def is_compatible_with_integer_slack(self, prog: QuadraticProgram) -> bool:
-        """Checks whether the integer slack mdoe can be used for a given problem.
+    def is_compatible_with_integer_slack(self, problem: QuadraticProgram) -> bool:
+        """Checks whether the integer slack mode can be used for a given problem.
         Args:
-            prog: The optimization problem to check compatibility.
+            problem: The optimization problem to check compatibility.
 
         Returns:
             Returns True if the problem is compatible, False otherwise.
@@ -374,15 +374,15 @@ class InequalityToEquality(BaseConverter):
         compatible = True
 
         # If a coefficient that is not integer exist, set compatible False
-        for l_constraint in prog.linear_constraints:
+        for l_constraint in problem.linear_constraints:
             linear = l_constraint.linear.to_dict()
             if any(isinstance(coef, float) and not coef.is_integer() for coef in linear.values()):
                 compatible = False
-        for q_constraint in prog.quadratic_constraints:
+        for q_constraint in problem.quadratic_constraints:
             linear = q_constraint.linear.to_dict()
             quadratic = q_constraint.quadratic.to_dict()
             if any(
-                isinstance(coef, float) and not coef.is_integer() for coef in quadratic.values()
+                    isinstance(coef, float) and not coef.is_integer() for coef in quadratic.values()
             ) or any(
                 isinstance(coef, float) and not coef.is_integer() for coef in linear.values()
             ):

@@ -31,7 +31,7 @@ class LinearEqualityToPenalty:
         self._src = None
         self._dst = None
 
-    def encode(self, op: QuadraticProgram, penalty_factor: float = 1e5,
+    def convert(self, op: QuadraticProgram, penalty_factor: float = 1e5,
                name: Optional[str] = None) -> QuadraticProgram:
         """Convert a problem with equality constraints into an unconstrained problem.
 

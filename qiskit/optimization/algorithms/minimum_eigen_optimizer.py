@@ -145,7 +145,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
 
         # convert problem to QUBO
         qubo_converter = QuadraticProgramToQubo()
-        problem_ = qubo_converter.encode(problem)
+        problem_ = qubo_converter.convert(problem)
 
         # construct operator and offset
         operator_converter = QuadraticProgramToIsing()
@@ -177,7 +177,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
 
         # translate result back to integers
         opt_res = MinimumEigenOptimizerResult(x, fval, samples, qubo_converter)
-        opt_res = cast(MinimumEigenOptimizerResult, qubo_converter.decode(opt_res))
+        opt_res = cast(MinimumEigenOptimizerResult, qubo_converter.interpret(opt_res))
 
         # translate results back to original problem
         return opt_res

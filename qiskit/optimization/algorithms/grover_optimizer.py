@@ -113,7 +113,7 @@ class GroverOptimizer(OptimizationAlgorithm):
 
         # convert problem to QUBO
         qubo_converter = QuadraticProgramToQubo()
-        problem_ = qubo_converter.encode(problem)
+        problem_ = qubo_converter.convert(problem)
 
         # convert to minimization problem
         sense = problem_.objective.sense
@@ -235,7 +235,7 @@ class GroverOptimizer(OptimizationAlgorithm):
                                              "qubo_converter": qubo_converter})
 
         # cast binaries back to integers
-        result = qubo_converter.decode(result)
+        result = qubo_converter.interpret(result)
 
         return result
 

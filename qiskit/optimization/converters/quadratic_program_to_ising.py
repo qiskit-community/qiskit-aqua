@@ -15,15 +15,14 @@
 
 """The converter from an ```QuadraticProgram``` to ``Operator``."""
 
-from typing import Tuple, Optional, Dict
+from typing import Dict, Optional, Tuple
 
 import numpy as np
+
+from qiskit.aqua.operators import I, OperatorBase, PauliOp
 from qiskit.quantum_info import Pauli
-
-from qiskit.aqua.operators import OperatorBase, PauliOp, I
-
-from ..problems.quadratic_program import QuadraticProgram
 from ..exceptions import QiskitOptimizationError
+from ..problems.quadratic_program import QuadraticProgram
 
 
 class QuadraticProgramToIsing:

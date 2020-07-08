@@ -20,17 +20,20 @@ from ..algorithms.optimization_algorithm import OptimizationResult
 from ..problems.quadratic_program import QuadraticProgram
 
 
-class BaseConverter(ABC):
+class QuadraticProgramConverter(ABC):
     """
     An abstract class for converters of quadratic programs in Qiskit's optimization module.
     """
 
     @abstractmethod
     def convert(self, problem: QuadraticProgram) -> QuadraticProgram:
-        """ convert an QuadratciProgram into an QuadraticProgram with a specific form"""
+        """
+        convert an QuadratciProgram into another form
+        and keep the information required to interpret the result
+        """
         raise NotImplementedError
 
     @abstractmethod
     def interpret(self, result: OptimizationResult) -> OptimizationResult:
-        """ interpret an OptimizationResult based on the original QuadraticProgram"""
+        """ interpret a result into another form using the information of conversion"""
         raise NotImplementedError

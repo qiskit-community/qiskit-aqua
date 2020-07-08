@@ -60,7 +60,7 @@ class TestConverters(QiskitOptimizationTestCase):
         op = conv.convert(op)
         conv = IntegerToBinary()
         op = conv.convert(op)
-        convert= LinearEqualityToPenalty()
+        conv = LinearEqualityToPenalty()
         op = conv.convert(op)
         conv = QuadraticProgramToIsing()
         _, shift = conv.convert(op)
@@ -319,7 +319,7 @@ class TestConverters(QiskitOptimizationTestCase):
         self.assertEqual(len(op.linear_constraints), 3)
         conv = LinearEqualityToPenalty()
         with self.assertRaises(QiskitOptimizationError):
-            conv.encode(op)
+            conv.convert(op)
 
     def test_penalize_binary(self):
         """ Test PenalizeLinearEqualityConstraints with binary variables """
@@ -341,7 +341,7 @@ class TestConverters(QiskitOptimizationTestCase):
         op.linear_constraint(linear_constraint, Constraint.Sense.EQ, 2, 'x0x2')
         self.assertEqual(len(op.linear_constraints), 3)
         conv = LinearEqualityToPenalty()
-        op2 = conv.encode(op)
+        op2 = conv.convert(op)
         self.assertEqual(len(op2.linear_constraints), 0)
 
     def test_penalize_integer(self):
@@ -364,7 +364,7 @@ class TestConverters(QiskitOptimizationTestCase):
         op.linear_constraint(linear_constraint, Constraint.Sense.EQ, 2, 'x0x2')
         self.assertEqual(len(op.linear_constraints), 3)
         conv = LinearEqualityToPenalty()
-        op2 = conv.encode(op)
+        op2 = conv.convert(op)
         self.assertEqual(len(op2.linear_constraints), 0)
 
     def test_integer_to_binary(self):
@@ -423,7 +423,7 @@ class TestConverters(QiskitOptimizationTestCase):
         op.linear_constraint(linear, Constraint.Sense.EQ, 3, 'sum1')
         penalize = LinearEqualityToPenalty()
         op2ope = QuadraticProgramToIsing()
-        op2 = penalize.encode(op)
+        op2 = penalize.convert(op)
         qubitop, offset = op2ope.convert(op2)
 
         self.assertEqual(qubitop, QUBIT_OP_MAXIMIZE_SAMPLE)

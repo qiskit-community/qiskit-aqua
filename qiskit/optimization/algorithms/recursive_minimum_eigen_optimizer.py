@@ -128,7 +128,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
 
         # convert problem to QUBO, this implicitly checks if the problem is compatible
         qubo_converter = QuadraticProgramToQubo()
-        problem_ = qubo_converter.encode(problem)
+        problem_ = qubo_converter.convert(problem)
         problem_ref = deepcopy(problem_)
 
         # run recursive optimization until the resulting problem is small enough
@@ -213,7 +213,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         x_v = [var_values[x_aux.name] for x_aux in problem_ref.variables]
         fval = result.fval
         results = OptimizationResult(x_v, fval, (replacements, qubo_converter))
-        results = qubo_converter.decode(results)
+        results = qubo_converter.interpret(results)
         return results
 
     def _find_strongest_correlation(self, correlations):
