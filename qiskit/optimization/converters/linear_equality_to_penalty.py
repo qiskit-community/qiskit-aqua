@@ -223,3 +223,22 @@ class LinearEqualityToPenalty:
                      If None is passed, penalty factor will be automatically calculated.
         """
         self._penalty = penalty
+
+    @property
+    def name(self) -> Optional[str]:
+        """Returns the name of the converted problem
+
+        Returns:
+            The name of the converted problem
+        """
+        return self._dst_name
+
+    @name.setter  # type:ignore
+    def name(self, name: Optional[str]) -> None:
+        """Set a name for a converted problem
+
+        Args:
+            name: A name for a converted problem. If not provided, the name of the input
+                  problem is used.
+        """
+        self._dst_name = name
