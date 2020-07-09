@@ -1,5 +1,6 @@
 abelian
 abstractmethod
+acc
 adag
 adam
 adjoint
@@ -292,6 +293,7 @@ iso
 isometry
 isub
 isym
+iter
 iteratively
 izaac
 jac
