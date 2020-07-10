@@ -45,11 +45,11 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
         self._dst_name = name  # type: Optional[str]
         self._penalty = penalty  # type: Optional[float]
 
-    def convert(self, op: QuadraticProgram) -> QuadraticProgram:
+    def convert(self, problem: QuadraticProgram) -> QuadraticProgram:
         """Convert a problem with equality constraints into an unconstrained problem.
 
         Args:
-            op: The problem to be solved, that does not contain inequality constraints.
+            problem: The problem to be solved, that does not contain inequality constraints.
 
         Returns:
             The converted problem, that is an unconstrained problem.
@@ -59,7 +59,7 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
         """
 
         # create empty QuadraticProgram model
-        self._src = copy.deepcopy(op)  # deep copy
+        self._src = copy.deepcopy(problem)  # deep copy
         self._dst = QuadraticProgram()
 
         # If penalty is None, set the penalty coefficient by _auto_define_penalty()
@@ -192,7 +192,7 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
             substitute_dict[variables[i].name] = float(result.x[i])
         substituted_qp = self._src.substitute_variables(substitute_dict)
 
-        new_result = OptimizationResult()
+        new_result = copy.deepcopy(result)
         new_result.x = result.x
 
         # Set the new function value

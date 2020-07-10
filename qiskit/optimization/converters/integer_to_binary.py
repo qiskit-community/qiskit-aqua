@@ -117,7 +117,7 @@ class IntegerToBinary(QuadraticProgramConverter):
         return self._dst
 
     def _convert_var(
-        self, name: str, lowerbound: float, upperbound: float
+            self, name: str, lowerbound: float, upperbound: float
     ) -> List[Tuple[str, int]]:
         var_range = upperbound - lowerbound
         power = int(np.log2(var_range))
@@ -127,7 +127,7 @@ class IntegerToBinary(QuadraticProgramConverter):
         return [(name + self._delimiter + str(i), coef) for i, coef in enumerate(coeffs)]
 
     def _convert_linear_coefficients_dict(
-        self, coefficients: Dict[str, float]
+            self, coefficients: Dict[str, float]
     ) -> Tuple[Dict[str, float], float]:
         constant = 0.0
         linear = {}  # type: Dict[str, float]
@@ -143,7 +143,7 @@ class IntegerToBinary(QuadraticProgramConverter):
         return linear, constant
 
     def _convert_quadratic_coefficients_dict(
-        self, coefficients: Dict[Tuple[str, str], float]
+            self, coefficients: Dict[Tuple[str, str], float]
     ) -> Tuple[Dict[Tuple[str, str], float], Dict[str, float], float]:
         constant = 0.0
         linear = {}  # type: Dict[str, float]
