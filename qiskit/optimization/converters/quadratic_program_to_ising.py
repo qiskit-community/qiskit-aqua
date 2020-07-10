@@ -50,13 +50,23 @@ class QuadraticProgramToIsing:
         self._src = problem
         # if problem has variables that are not binary, raise an error
         if self._src.get_num_vars() > self._src.get_num_binary_vars():
-            raise QiskitOptimizationError('The type of variable must be a binary variable.')
+            raise QiskitOptimizationError('The type of variable must be a binary variable. '
+                                          'Use a QuadraticProgramToQubo converter to convert '
+                                          'integer variables to binary variables. '
+                                          'If the problem contains continuous variables, '
+                                          'currently we can not apply VQE/QAOA directly. '
+                                          'you might want to use an ADMM optimizer '
+                                          'for the problem. ')
 
         # if constraints exist, raise an error
         if self._src.linear_constraints \
                 or self._src.quadratic_constraints:
             raise QiskitOptimizationError('An constraint exists. '
-                                          'The method supports only model with no constraints.')
+                                          'The method supports only model with no constraints. '
+                                          'Use a QuadraticProgramToQubo converter. '
+                                          'It converters inequality constraints to equality '
+                                          'constraints, and then, it converters equality '
+                                          'constraints to penalty terms of the object function.')
 
         # initialize Hamiltonian.
         num_nodes = self._src.get_num_vars()

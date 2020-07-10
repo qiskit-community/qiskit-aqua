@@ -38,9 +38,9 @@ class QuadraticProgramToQubo(QuadraticProgramConverter):
         """
         Args:
             penalty: Penalty factor to scale equality constraints that are added to objective.
-
+                If None is passed, penalty factor will be automatically calculated.
             name: The name of the converted problem. If not provided, the name of the input
-                  problem is used.
+                problem is used.
         """
         from ..converters.integer_to_binary import IntegerToBinary
         from ..converters.inequality_to_equality import InequalityToEquality
@@ -79,12 +79,7 @@ class QuadraticProgramToQubo(QuadraticProgramConverter):
         problem_ = self._int_to_bin.convert(problem_)
 
         # penalize linear equality constraints with only binary variables
-        if self._penalty is None:
-            # TODO: should be derived from problem
-            penalty = 1e5
-        else:
-            penalty = self._penalty
-        problem_ = self._penalize_lin_eq_constraints.convert(problem_, penalty_factor=penalty)
+        problem_ = self._penalize_lin_eq_constraints.convert(problem_)
 
         # return QUBO
         return problem_
@@ -98,7 +93,8 @@ class QuadraticProgramToQubo(QuadraticProgramConverter):
             Returns:
                 The result of the original problem.
         """
-        result_ = self._int_to_bin.interpret(result)
+        result_ = self._penalize_lin_eq_constraints.interpret(result)
+        result_ = self._int_to_bin.interpret(result_)
         result_ = self._ineq_to_eq.interpret(result_)
         return result_
 
@@ -158,6 +154,25 @@ class QuadraticProgramToQubo(QuadraticProgramConverter):
             Returns True if the problem is compatible, False otherwise.
         """
         return len(self.get_compatibility_msg(problem)) == 0
+
+    @property
+    def penalty(self) -> Optional[float]:
+        """Returns the penalty factor used in conversion.
+
+        Returns:
+            The penalty factor used in conversion.
+        """
+        return self._penalty
+
+    @penalty.setter  # type:ignore
+    def penalty(self, penalty: Optional[float]) -> None:
+        """Set a new penalty factor.
+
+        Args:
+            penalty: The new penalty factor.
+                     If None is passed, penalty factor will be automatically calculated.
+        """
+        self._penalty = penalty
 
     @property
     def name(self) -> Optional[str]:

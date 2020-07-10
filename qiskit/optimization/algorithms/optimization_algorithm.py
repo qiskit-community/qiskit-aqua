@@ -132,6 +132,15 @@ class OptimizationResult:
         """
         return self._val
 
+    @x.setter  # type: ignore
+    def x(self, x: Any) -> None:
+        """Set a new optimal value.
+
+        Args:
+            x: The new optimal value.
+        """
+        self._val = x
+
     @property
     def fval(self) -> Any:
         """Returns the optimal function value.
@@ -140,6 +149,15 @@ class OptimizationResult:
             The function value corresponding to the optimal value found in the optimization.
         """
         return self._fval
+
+    @fval.setter  # type: ignore
+    def fval(self, fval: Any) -> None:
+        """Set a new optimal function value.
+
+        Args:
+            fval: The new optimal function value.
+        """
+        self._fval = fval
 
     @property
     def results(self) -> Any:
@@ -152,33 +170,6 @@ class OptimizationResult:
         """
         return self._results
 
-    @property
-    def status(self) -> OptimizationResultStatus:
-        """Return the termination status of the algorithm.
-
-        Returns:
-            The termination status of the algorithm.
-        """
-        return self._status
-
-    @x.setter  # type: ignore
-    def x(self, x: Any) -> None:
-        """Set a new optimal value.
-
-        Args:
-            x: The new optimal value.
-        """
-        self._val = x
-
-    @fval.setter  # type: ignore
-    def fval(self, fval: Any) -> None:
-        """Set a new optimal function value.
-
-        Args:
-            fval: The new optimal function value.
-        """
-        self._fval = fval
-
     @results.setter  # type: ignore
     def results(self, results: Any) -> None:
         """Set results.
@@ -187,6 +178,15 @@ class OptimizationResult:
             results: The new additional results of the optimization.
         """
         self._results = results
+
+    @property
+    def status(self) -> OptimizationResultStatus:
+        """Return the termination status of the algorithm.
+
+        Returns:
+            The termination status of the algorithm.
+        """
+        return self._status
 
     @status.setter  # type: ignore
     def status(self, status: OptimizationResultStatus) -> None:

@@ -59,8 +59,6 @@ class InequalityToEquality(QuadraticProgramConverter):
         self._dst = None  # type: Optional[QuadraticProgram]
         self._dst_name = name
         self._mode = mode
-        self._conv = {}  # type: Dict[str, List[Tuple[str, int]]]
-        # e.g., self._conv = {'c1': [c1@slack_var]}
 
     def convert(self, problem: QuadraticProgram) -> QuadraticProgram:
         """Convert a problem with inequality constraints into one with only equality constraints.
@@ -189,7 +187,6 @@ class InequalityToEquality(QuadraticProgramConverter):
 
         # Add a new integer variable.
         slack_name = name + self._delimiter + 'int_slack'
-        self._conv[name] = slack_name
 
         lhs_lb, lhs_ub = self._calc_linear_bounds(linear)
 
@@ -209,7 +206,6 @@ class InequalityToEquality(QuadraticProgramConverter):
 
     def _add_continuous_slack_var_linear_constraint(self, linear, sense, rhs, name):
         slack_name = name + self._delimiter + 'continuous_slack'
-        self._conv[name] = slack_name
 
         lhs_lb, lhs_ub = self._calc_linear_bounds(linear)
 
@@ -250,7 +246,6 @@ class InequalityToEquality(QuadraticProgramConverter):
 
         # Add a new integer variable.
         slack_name = name + self._delimiter + 'int_slack'
-        self._conv[name] = slack_name
 
         lhs_lb, lhs_ub = self._calc_quadratic_bounds(linear, quadratic)
 
@@ -271,7 +266,6 @@ class InequalityToEquality(QuadraticProgramConverter):
     def _add_continuous_slack_var_quadratic_constraint(self, linear, quadratic, sense, rhs, name):
         # Add a new continuous variable.
         slack_name = name + self._delimiter + 'continuous_slack'
-        self._conv[name] = slack_name
 
         lhs_lb, lhs_ub = self._calc_quadratic_bounds(linear, quadratic)
 
