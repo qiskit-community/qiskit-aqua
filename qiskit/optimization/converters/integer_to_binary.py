@@ -117,7 +117,7 @@ class IntegerToBinary(QuadraticProgramConverter):
         return self._dst
 
     def _convert_var(
-            self, name: str, lowerbound: float, upperbound: float
+        self, name: str, lowerbound: float, upperbound: float
     ) -> List[Tuple[str, int]]:
         var_range = upperbound - lowerbound
         power = int(np.log2(var_range))
@@ -127,7 +127,7 @@ class IntegerToBinary(QuadraticProgramConverter):
         return [(name + self._delimiter + str(i), coef) for i, coef in enumerate(coeffs)]
 
     def _convert_linear_coefficients_dict(
-            self, coefficients: Dict[str, float]
+        self, coefficients: Dict[str, float]
     ) -> Tuple[Dict[str, float], float]:
         constant = 0.0
         linear = {}  # type: Dict[str, float]
@@ -143,7 +143,7 @@ class IntegerToBinary(QuadraticProgramConverter):
         return linear, constant
 
     def _convert_quadratic_coefficients_dict(
-            self, coefficients: Dict[Tuple[str, str], float]
+        self, coefficients: Dict[Tuple[str, str], float]
     ) -> Tuple[Dict[Tuple[str, str], float], Dict[str, float], float]:
         constant = 0.0
         linear = {}  # type: Dict[str, float]
@@ -185,16 +185,12 @@ class IntegerToBinary(QuadraticProgramConverter):
         linear, linear_constant = self._convert_linear_coefficients_dict(
             self._src.objective.linear.to_dict(use_name=True)
         )
-        (
-            quadratic,
-            quadratic_linear,
-            quadratic_constant,
-        ) = self._convert_quadratic_coefficients_dict(
+        quadratic, q_linear, q_constant, = self._convert_quadratic_coefficients_dict(
             self._src.objective.quadratic.to_dict(use_name=True)
         )
 
-        constant = self._src.objective.constant + linear_constant + quadratic_constant
-        for i, v in quadratic_linear.items():
+        constant = self._src.objective.constant + linear_constant + q_constant
+        for i, v in q_linear.items():
             linear[i] = linear.get(i, 0) + v
 
         if self._src.objective.sense == QuadraticObjective.Sense.MINIMIZE:
@@ -214,14 +210,12 @@ class IntegerToBinary(QuadraticProgramConverter):
             linear, linear_constant = self._convert_linear_coefficients_dict(
                 constraint.linear.to_dict()
             )
-            (
-                quadratic,
-                quadratic_linear,
-                quadratic_constant,
-            ) = self._convert_quadratic_coefficients_dict(constraint.quadratic.to_dict())
+            quadratic, q_linear, q_constant = self._convert_quadratic_coefficients_dict(
+                constraint.quadratic.to_dict()
+            )
 
-            constant = linear_constant + quadratic_constant
-            for i, v in quadratic_linear.items():
+            constant = linear_constant + q_constant
+            for i, v in q_linear.items():
                 linear[i] = linear.get(i, 0) + v
 
             self._dst.quadratic_constraint(

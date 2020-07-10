@@ -25,11 +25,12 @@ from ..problems.variable import Variable
 from ..problems.constraint import Constraint
 from ..problems.quadratic_objective import QuadraticObjective
 from ..exceptions import QiskitOptimizationError
+from .quadratic_program_converter import QuadraticProgramConverter
 
 logger = logging.getLogger(__name__)
 
 
-class LinearEqualityToPenalty:
+class LinearEqualityToPenalty(QuadraticProgramConverter):
     """Convert a problem with only equality constraints to unconstrained with penalty terms."""
 
     def __init__(self, penalty: Optional[float] = None, name: Optional[str] = None):
