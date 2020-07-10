@@ -386,7 +386,7 @@ class InequalityToEquality(QuadraticProgramConverter):
         Returns:
             bool: If the constraint contains float coefficients, this returns True, else False.
         """
-        return any(isinstance(val, float) and not val.is_integer() for val in values)  #type: ignore
+        return any(isinstance(v, float) and not v.is_integer() for v in values)  # type: ignore
 
     @property
     def mode(self) -> str:
