@@ -23,7 +23,7 @@ class GroverOperator(QuantumCircuit):
     """The Grover operator."""
 
     def __init__(self, oracle: QuantumCircuit,
-                 a_operator: Optional[QuantumCircuit] = None,
+                 state_in: Optional[QuantumCircuit] = None,
                  zero_reflection: Optional[QuantumCircuit] = None,
                  idle_qubits: Optional[List[int]] = None,
                  insert_barriers: bool = False,
@@ -32,7 +32,7 @@ class GroverOperator(QuantumCircuit):
         """
         Args:
             oracle: The oracle implementing a reflection about the bad state.
-            a_operator: The operator preparing the good and bad state. For Grover's algorithm,
+            state_in: The operator preparing the good and bad state. For Grover's algorithm,
                 this is a n-qubit Hadamard gate and for Amplitude Amplification or Estimation
                 the operator A.
             zero_reflection: The reflection about the zero state.
@@ -43,7 +43,7 @@ class GroverOperator(QuantumCircuit):
         """
         super().__init__(name=name)
         self._oracle = oracle
-        self._a_operator = a_operator
+        self._state_in = state_in
         self._zero_reflection = zero_reflection
         self._idle_qubits = idle_qubits
         self._insert_barriers = insert_barriers
@@ -71,10 +71,10 @@ class GroverOperator(QuantumCircuit):
         elif self._oracle.num_qubits - len(self.idle_qubits) > 1:
             max_num_ancillas = 1
 
-        if self._a_operator and hasattr(self._a_operator, 'num_ancilla_qubits'):
-            max_num_ancillas = max(max_num_ancillas, self._a_operator.num_ancilla_qubits)
+        if self._state_in and hasattr(self._state_in, 'num_ancilla_qubits'):
+            max_num_ancillas = max(max_num_ancillas, self._state_in.num_ancilla_qubits)
 
-        if hasattr(self._a_operator, 'num_ancilla_qubits'):
+        if hasattr(self._state_in, 'num_ancilla_qubits'):
             max_num_ancillas = max(max_num_ancillas, self._oracle.num_ancilla_qubits)
 
         return max_num_ancillas
@@ -102,10 +102,10 @@ class GroverOperator(QuantumCircuit):
         return zero_reflection
 
     @property
-    def a_operator(self) -> QuantumCircuit:
+    def state_in(self) -> QuantumCircuit:
         """The subcircuit implementing the A operator or Hadamards."""
-        if self._a_operator:
-            return self._a_operator
+        if self._state_in:
+            return self._state_in
 
         qubits = [i for i in range(self.num_state_qubits) if i not in self.idle_qubits]
         hadamards = QuantumCircuit(self.num_state_qubits, name='H')
@@ -125,13 +125,13 @@ class GroverOperator(QuantumCircuit):
         _append(self, self.oracle)
         if self._insert_barriers:
             self.barrier()
-        _append(self, self.a_operator.inverse())
+        _append(self, self.state_in.inverse())
         if self._insert_barriers:
             self.barrier()
         _append(self, self.zero_reflection)
         if self._insert_barriers:
             self.barrier()
-        _append(self, self.a_operator)
+        _append(self, self.state_in)
 
 
 def _append(target, other, qubits=None, ancillas=None):
