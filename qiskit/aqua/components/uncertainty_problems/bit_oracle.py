@@ -57,7 +57,10 @@ class BitOracle(QuantumCircuit):
         else:
             self.x(objective_qubits)
             self.h(objective_qubits[-1])
-            self.mcx(objective_qubits[:-1], objective_qubits[-1], ancilla_qubits, mode=mcx)
+            if len(objective_qubits) == 1:
+                self.x(objective_qubits[0])
+            else:
+                self.mcx(objective_qubits[:-1], objective_qubits[-1], ancilla_qubits, mode=mcx)
             self.h(objective_qubits[-1])
             self.x(objective_qubits)
 
