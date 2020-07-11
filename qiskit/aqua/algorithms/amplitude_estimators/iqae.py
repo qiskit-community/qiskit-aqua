@@ -22,7 +22,6 @@ from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.utils.circuit_factory import CircuitFactory
 from qiskit.aqua.utils.validation import validate_range, validate_in_set
-from qiskit.aqua.components.uncertainty_problems.grover_operator import _append
 
 from .ae_algorithm import AmplitudeEstimationAlgorithm
 
@@ -200,24 +199,11 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             if k != 0:
                 self.q_factory.build_power(circuit, q, k, q_aux)
         else:  # circuit
-            q = QuantumRegister(self.a_factory.num_qubits, 'q')
-            circuit = QuantumCircuit(q, name='circuit')
+            num_qubits = max(self.a_factory.num_qubits, self.q_factory.num_qubits)
+            circuit = QuantumCircuit(num_qubits, name='circuit')
 
             if self._initial_state is not None:
                 circuit.compose(self._initial_state, inplace=True)
-
-            # get number of ancillas and add register if needed
-            num_ancillas = 0
-            if hasattr(self.a_factory, 'num_ancilla_qubits'):
-                num_ancillas = self.a_factory.num_ancilla_qubits
-            if hasattr(self.q_factory, 'num_ancilla_qubits'):
-                num_ancillas = max(num_ancillas, self.q_factory.num_ancilla_qubits)
-
-            q_aux = None
-            # pylint: disable=comparison-with-callable
-            if num_ancillas > 0:
-                q_aux = QuantumRegister(num_ancillas, 'aux')
-                circuit.add_register(q_aux)
 
             # add classical register if needed
             if measurement:
@@ -225,24 +211,18 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 circuit.add_register(c)
 
             # add A operator
-            _append(circuit, self.a_factory, q, q_aux)
+            circuit.compose(self.a_factory, inplace=True)
 
             # add Q^k
             if k != 0:
-                repeated = self.q_factory.repeat(k)
-                if hasattr(self.q_factory, 'num_state_qubits'):
-                    repeated.num_state_qubits = self.q_factory.num_state_qubits
-                if hasattr(self.q_factory, 'num_ancilla_qubits'):
-                    repeated.num_ancilla_qubits = self.q_factory.num_ancilla_qubits
-
-                _append(circuit, repeated, q, q_aux)
+                circuit.compose(self.q_factory.repeat(k), inplace=True)
 
             # add optional measurement
         if measurement:
             # real hardware can currently not handle operations after measurements, which might
             # happen if the circuit gets transpiled, hence we're adding a safeguard-barrier
             circuit.barrier()
-            circuit.measure(q[self.i_objective], c[0])
+            circuit.measure(self.i_objective, 0)
 
         return circuit
 
