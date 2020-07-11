@@ -19,7 +19,7 @@ import numpy as np
 from scipy.stats import chi2, norm
 from scipy.optimize import bisect
 
-from qiskit import QuantumCircuit
+from qiskit import QuantumCircuit, ClassicalRegister
 from qiskit.circuit.library import QFT
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance, AquaError
@@ -74,7 +74,14 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         # get parameters
         self._m = num_eval_qubits
         self._M = 2 ** num_eval_qubits
-        self._iqft = iqft or QFT(self._m).inverse()
+
+        if isinstance(iqft, IQFT):
+            warnings.warn('The qiskit.aqua.components.iqfts.IQFT module is deprecated as of 0.7.0 '
+                          'and will be removed no earlier than 3 months after the release. '
+                          'You should pass a QuantumCircuit instead, see '
+                          'qiskit.circuit.library.QFT and the .inverse() method.',
+                          DeprecationWarning, stacklevel=2)
+        self._iqft = iqft or QFT(self._m, do_swaps=False).inverse()
         self._initial_state = initial_state
         self._circuit = None
         self._ret = {}  # type: Dict[str, Any]
@@ -121,13 +128,24 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         else:
             state_in = self.a_factory
 
-        pec = PhaseEstimationCircuit(
-            iqft=self._iqft, num_ancillae=self._m,
-            state_in_circuit_factory=state_in,
-            unitary_circuit_factory=self.q_factory
-        )
-
-        self._circuit = pec.construct_circuit(measurement=measurement)
+        if isinstance(state_in, QuantumCircuit) and isinstance(self.q_factory, QuantumCircuit):
+            from qiskit.circuit.library import PhaseEstimation
+            pec = PhaseEstimation(self._m, self.q_factory, self._iqft)
+            self._circuit = QuantumCircuit(*pec.qregs)
+            self._circuit.compose(state_in, list(range(self._m, self._m + state_in.num_qubits)),
+                                  inplace=True)
+            self._circuit.compose(pec, inplace=True)
+            if measurement:
+                cr = ClassicalRegister(self._m)
+                self._circuit.add_register(cr)
+                self._circuit.measure(list(range(self._m)), list(range(self._m)))
+        else:
+            pec = PhaseEstimationCircuit(
+                iqft=self._iqft, num_ancillae=self._m,
+                state_in_circuit_factory=state_in,
+                unitary_circuit_factory=self.q_factory
+            )
+            self._circuit = pec.construct_circuit(measurement=measurement)
         return self._circuit
 
     def _evaluate_statevector_results(self, probabilities: Union[List[float], np.ndarray]

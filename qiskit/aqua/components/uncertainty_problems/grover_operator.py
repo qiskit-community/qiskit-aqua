@@ -15,7 +15,8 @@
 """The Grover operator."""
 
 from typing import List, Optional
-from qiskit.circuit import QuantumCircuit, QuantumRegister
+import numpy
+from qiskit.circuit import QuantumCircuit, QuantumRegister, AncillaRegister
 from .bit_oracle import BitOracle
 
 
@@ -42,6 +43,8 @@ class GroverOperator(QuantumCircuit):
             name: The name of the circuit.
         """
         super().__init__(name=name)
+
+        # store inputs
         self._oracle = oracle
         self._state_in = state_in
         self._zero_reflection = zero_reflection
@@ -49,6 +52,7 @@ class GroverOperator(QuantumCircuit):
         self._insert_barriers = insert_barriers
         self._mcx = mcx
 
+        # build circuit
         self._build()
 
     @property
@@ -59,27 +63,6 @@ class GroverOperator(QuantumCircuit):
         return self._oracle.num_qubits
 
     @property
-    def num_ancilla_qubits(self) -> int:
-        """The number of ancilla qubits.
-
-        Returns:
-            The number of ancilla qubits in the circuit.
-        """
-        max_num_ancillas = 0
-        if self._zero_reflection:
-            max_num_ancillas = self._zero_reflection.num_ancilla_qubits
-        elif self._oracle.num_qubits - len(self.idle_qubits) > 1:
-            max_num_ancillas = 1
-
-        if self._state_in and hasattr(self._state_in, 'num_ancilla_qubits'):
-            max_num_ancillas = max(max_num_ancillas, self._state_in.num_ancilla_qubits)
-
-        if hasattr(self._state_in, 'num_ancilla_qubits'):
-            max_num_ancillas = max(max_num_ancillas, self._oracle.num_ancilla_qubits)
-
-        return max_num_ancillas
-
-    @property
     def idle_qubits(self):
         """Idle qubits, on which S0 is not applied."""
         if self._idle_qubits is None:
@@ -87,18 +70,14 @@ class GroverOperator(QuantumCircuit):
         return self._idle_qubits
 
     @property
-    def num_qubits(self):
-        """The number of qubits in the Grover operator."""
-        return self.num_state_qubits + self.num_ancilla_qubits
-
-    @property
     def zero_reflection(self) -> QuantumCircuit:
         """The subcircuit implementing the reflection about 0."""
         if self._zero_reflection is not None:
             return self._zero_reflection
 
-        qubits = [i for i in range(self.num_state_qubits) if i not in self.idle_qubits]
-        zero_reflection = BitOracle(self.num_state_qubits, qubits, mcx=self._mcx)
+        num_state_qubits = self.oracle.num_qubits - self.oracle.num_ancillas
+        qubits = [i for i in range(num_state_qubits) if i not in self.idle_qubits]
+        zero_reflection = BitOracle(num_state_qubits, qubits, mcx=self._mcx)
         return zero_reflection
 
     @property
@@ -107,8 +86,9 @@ class GroverOperator(QuantumCircuit):
         if self._state_in:
             return self._state_in
 
-        qubits = [i for i in range(self.num_state_qubits) if i not in self.idle_qubits]
-        hadamards = QuantumCircuit(self.num_state_qubits, name='H')
+        num_state_qubits = self.oracle.num_qubits - self.oracle.num_ancillas
+        qubits = [i for i in range(num_state_qubits) if i not in self.idle_qubits]
+        hadamards = QuantumCircuit(num_state_qubits, name='H')
         hadamards.h(qubits)
         return hadamards
 
@@ -118,20 +98,25 @@ class GroverOperator(QuantumCircuit):
         return self._oracle
 
     def _build(self):
-        self.qregs = [QuantumRegister(self.num_state_qubits, name='state')]
-        if self.num_ancilla_qubits > 0:
-            self.qregs += [QuantumRegister(self.num_ancilla_qubits, name='ancilla')]
+        num_state_qubits = self.oracle.num_qubits - self.oracle.num_ancillas
+        self.qregs = [QuantumRegister(num_state_qubits, name='state')]
+        num_ancillas = numpy.max([self.oracle.num_ancillas,
+                                  self.zero_reflection.num_ancillas,
+                                  self.state_in.num_ancillas])
+        if num_ancillas > 0:
+            self.qregs += [AncillaRegister(num_ancillas, name='ancilla')]
 
-        _append(self, self.oracle)
+        self.compose(self.oracle, list(range(self.oracle.num_qubits)), inplace=True)
         if self._insert_barriers:
             self.barrier()
-        _append(self, self.state_in.inverse())
+        self.compose(self.state_in.inverse(), list(range(self.state_in.num_qubits)), inplace=True)
         if self._insert_barriers:
             self.barrier()
-        _append(self, self.zero_reflection)
+        self.compose(self.zero_reflection, list(range(self.zero_reflection.num_qubits)),
+                     inplace=True)
         if self._insert_barriers:
             self.barrier()
-        _append(self, self.state_in)
+        self.compose(self.state_in, list(range(self.state_in.num_qubits)), inplace=True)
 
 
 def _append(target, other, qubits=None, ancillas=None):

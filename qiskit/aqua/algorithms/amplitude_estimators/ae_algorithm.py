@@ -147,11 +147,14 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
         if self._i_objective is not None:
             return self._i_objective
 
-        if self._q_factory is not None:
+        if self._q_factory is not None and hasattr(self._q_factory, 'i_objective'):
             return self._q_factory.i_objective
 
         if self._a_factory is not None:
-            return self.a_factory.num_target_qubits - 1
+            if isinstance(self._a_factory, CircuitFactory):
+                return self._a_factory.num_target_qubits - 1
+            else:
+                return (self._a_factory.num_qubits - self._a_factory.num_ancillas) - 1
 
         return None
 
