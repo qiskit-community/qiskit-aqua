@@ -360,6 +360,11 @@ class TestOpConstruction(QiskitAquaTestCase):
             z = MatrixOp([[1, 0], [0, -1]])
             self.assertEqual(expr * z, expr * z)
 
+        with self.subTest('different coefficient types'):
+            expr = Parameter('theta')
+            z = MatrixOp([[1, 0], [0, -1]])
+            self.assertNotEqual(expr * z, 2 * z)
+
     def test_circuit_compose_register_independent(self):
         """Test that CircuitOp uses combines circuits independent of the register.
 
