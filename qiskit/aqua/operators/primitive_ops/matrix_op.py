@@ -97,7 +97,7 @@ class MatrixOp(PrimitiveOp):
     def equals(self, other: OperatorBase) -> bool:
         if not isinstance(other, MatrixOp):
             return False
-        return self.coeff * self.primitive == other.coeff * other.primitive
+        return self.coeff * self.primitive == other.coeff * other.primitive  # type: ignore
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
         if isinstance(other.primitive, Operator):  # type: ignore
