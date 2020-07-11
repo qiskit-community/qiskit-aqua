@@ -95,10 +95,9 @@ class MatrixOp(PrimitiveOp):
                         coeff=np.conj(self.coeff))
 
     def equals(self, other: OperatorBase) -> bool:
-        if not isinstance(other, MatrixOp) or not self.coeff == other.coeff:
+        if not isinstance(other, MatrixOp):
             return False
-
-        return self.primitive == other.primitive
+        return self.coeff * self.primitive == other.coeff * other.primitive
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
         if isinstance(other.primitive, Operator):  # type: ignore
