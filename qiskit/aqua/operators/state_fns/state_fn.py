@@ -271,16 +271,21 @@ class StateFn(OperatorBase):
         """
         raise ValueError('Composition power over Statefunctions or Measurements is not defined.')
 
-    def __str__(self) -> str:
+    def _indented_str(self, indent: int = 0) -> str:
+        indentation = indent * "\t"
         prim_str = str(self.primitive)
         if self.coeff == 1.0:
-            return "{}({})".format('StateFunction' if not self.is_measurement
-                                   else 'Measurement', self.coeff)
+            return "{}{}({})".format(indentation,
+                                     'StateFunction' if not self.is_measurement else 'Measurement',
+                                     self.coeff)
         else:
-            return "{}({}) * {}".format('StateFunction' if not self.is_measurement
-                                        else 'Measurement',
-                                        self.coeff,
-                                        prim_str)
+            return "{}{}({}) * {}".format(indentation,
+                                          'StateFunction' if not self.is_measurement else 'Measurement',
+                                          self.coeff,
+                                          prim_str)
+
+    def __str__(self) -> str:
+        return self._indented_str()
 
     def __repr__(self) -> str:
         return "{}({}, coeff={}, is_measurement={})".format(self.__class__.__name__,

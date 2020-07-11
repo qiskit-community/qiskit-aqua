@@ -166,16 +166,21 @@ class OperatorStateFn(StateFn):
         inefficient, e.g. splitting one Stabilizer measurement into hundreds of 1 qubit Paulis."""
         raise NotImplementedError
 
-    def __str__(self) -> str:
+    def _indented_str(self, indent: int = 0) -> str:
+        indentation = indent * "\t"
         prim_str = str(self.primitive)
         if self.coeff == 1.0:
-            return "{}({})".format('OperatorStateFn' if not self.is_measurement
-                                   else 'OperatorMeasurement', prim_str)
+            return "{}{}({})".format(indentation,
+                                     'OperatorStateFn' if not self.is_measurement else 'OperatorMeasurement',
+                                     prim_str)
         else:
-            return "{}({}) * {}".format(
-                'OperatorStateFn' if not self.is_measurement else 'OperatorMeasurement',
-                prim_str,
-                self.coeff)
+            return "{}{}({}) * {}".format(indentation,
+                                          'OperatorStateFn' if not self.is_measurement else 'OperatorMeasurement',
+                                          prim_str,
+                                          self.coeff)
+
+    def __str__(self) -> str:
+        return self._indented_str()
 
     # pylint: disable=too-many-return-statements
     def eval(self,
