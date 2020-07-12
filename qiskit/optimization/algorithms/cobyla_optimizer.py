@@ -163,4 +163,4 @@ class CobylaOptimizer(OptimizationAlgorithm):
         fval = problem.objective.sense.value * objective(x)
 
         # return results
-        return OptimizationResult(x, fval, x)
+        return OptimizationResult(x=x, x_name=problem.variables, fval=fval, results=x)

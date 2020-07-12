@@ -89,18 +89,27 @@ class OptimizationResult:
 
     def __init__(self, x: Optional[Any] = None, fval: Optional[Any] = None,
                  results: Optional[Any] = None,
-                 status: OptimizationResultStatus = OptimizationResultStatus.SUCCESS) -> None:
-        self._val = x
-        self._fval = fval
-        self._results = results
-        self._status = status
+                 status: OptimizationResultStatus = OptimizationResultStatus.SUCCESS,
+                 x_name: Optional[Any] = None) -> None:
+        self.x = x
+        self.x_name = x_name
+        self.fval = fval
+        self.results = results
+        self.status = status
 
     def __repr__(self):
         return '([{}] / {} / {})'.format(','.join([str(x_) for x_ in self.x]), self.fval,
                                          self.status)
 
-    def __str__(self):
-        return 'x=[{}], fval={}'.format(','.join([str(x_) for x_ in self.x]), self.fval)
+    @property
+    def var_dict(self) -> Any:
+        if self.x is not None and self.x_name is not None and len(self.x) == len(self.x_name):
+            return dict(zip(self.x_name, self.x))
+        return None
+
+    @property
+    def x_name(self) -> Any:
+        return self._x_name
 
     @property
     def x(self) -> Any:
@@ -109,7 +118,7 @@ class OptimizationResult:
         Returns:
             The optimal value found in the optimization.
         """
-        return self._val
+        return self._x
 
     @property
     def fval(self) -> Any:
@@ -147,7 +156,16 @@ class OptimizationResult:
         Args:
             x: The new optimal value.
         """
-        self._val = x
+        self._x = x
+
+    @x_name.setter  # type: ignore
+    def x_name(self, x_name: Any) -> None:
+        """Set a new optimal value.
+
+        Args:
+            x: The new optimal value.
+        """
+        self._x_name = x_name
 
     @fval.setter  # type: ignore
     def fval(self, fval: Any) -> None:

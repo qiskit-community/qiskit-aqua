@@ -32,8 +32,9 @@ class MinimumEigenOptimizerResult(OptimizationResult):
     """ Minimum Eigen Optimizer Result."""
 
     def __init__(self, x: Optional[Any] = None, fval: Optional[Any] = None,
-                 samples: Optional[Any] = None, results: Optional[Any] = None) -> None:
-        super().__init__(x, fval, results)
+                 samples: Optional[Any] = None, results: Optional[Any] = None,
+                 x_name: Optional[Any] = None) -> None:
+        super().__init__(x, fval, results, x_name=x_name)
         self._samples = samples
 
     @property
@@ -176,7 +177,8 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
             samples = [(x_str, offset, 1.0)]
 
         # translate result back to integers
-        opt_res = MinimumEigenOptimizerResult(x, fval, samples, qubo_converter)
+        opt_res = MinimumEigenOptimizerResult(x, fval, samples, qubo_converter,
+                                              x_name=problem.variables)
         opt_res = cast(MinimumEigenOptimizerResult, qubo_converter.decode(opt_res))
 
         # translate results back to original problem
