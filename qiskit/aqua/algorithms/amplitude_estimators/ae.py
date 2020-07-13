@@ -50,23 +50,40 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
     """
 
     def __init__(self, num_eval_qubits: int,
-                 a_factory: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
-                 q_factory: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
+                 state_in: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
+                 grover_operator: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
+                 is_good_state: Optional[Union[callable, List[int]]] = None,
+                 pec: Optional[QuantumCircuit] = None,
+                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None,
+                 a_factory: Optional[CircuitFactory] = None,
+                 q_factory: Optional[CircuitFactory] = None,
                  i_objective: Optional[int] = None,
-                 iqft: Optional[Union[QuantumCircuit, IQFT]] = None,
-                 initial_state: Optional[QuantumCircuit] = None,
-                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
+                 iqft: Optional[IQFT] = None,
+                 ) -> None:
         r"""
         Args:
             num_eval_qubits: Number of evaluation qubits, has a min. value of 1.
-            a_factory: The CircuitFactory subclass object representing the problem unitary.
-            q_factory: The CircuitFactory subclass object representing an amplitude estimation
+            state_in: A circuit preparing the input state, referred to as :math:`\mathcal{A}`.
+            grover_operator: The Grover operator :math:`\mathcal{Q}` used as unitary in the
+                phase estimation circuit.
+            is_good_state: A function to determine if a measurement is part of the 'good' state
+                or 'bad' state. If a list of integers indices is passed, a state is marked as good
+                if the qubits at these indices are :math:`|1\rangle`.
+            pec: The phase estimation circuit used to run the algorithm. Defaults to the standard
+                phase estimation circuit from the circuit library,
+                `qiskit.circuit.library.PhaseEstimation`.
+            quantum_instance: The backend (or `QuantumInstance`) to execute the circuits on.
+            a_factory: Deprecated, use ``state_in``.
+                The CircuitFactory subclass object representing the problem unitary.
+            q_factory: Deprecated, use ``grover_operator``.
+                The CircuitFactory subclass object representing an amplitude estimation
                 sample (based on a_factory).
-            i_objective: The index of the objective qubit, i.e. the qubit marking 'good' solutions
+            i_objective: Deprecated, use ``is_good_state``.
+                The index of the objective qubit, i.e. the qubit marking 'good' solutions
                 with the state \|1> and 'bad' solutions with the state \|0>.
-            iqft: The Inverse Quantum Fourier Transform component, defaults to using a standard IQFT
+            iqft: Deprecated, pass full phase estimation circuit if custom QFT is required.
+                The Inverse Quantum Fourier Transform component, defaults to using a standard IQFT
                 when None
-            quantum_instance: Quantum Instance or Backend
         """
         validate_min('num_eval_qubits', num_eval_qubits, 1)
         super().__init__(a_factory, q_factory, i_objective, quantum_instance)
