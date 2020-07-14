@@ -12,7 +12,8 @@
 
 """The Quantum Phase Estimation-based Amplitude Estimation algorithm."""
 
-from typing import Optional, Union, List, Tuple, Dict, Any
+from typing import Optional, Union, List, Tuple, Callable
+import warnings
 import logging
 from collections import OrderedDict
 import numpy as np
@@ -53,6 +54,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
                  state_in: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
                  grover_operator: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
                  is_good_state: Optional[Union[callable, List[int]]] = None,
+                 post_processing: Optional[Callable[[float], float]] = None,
                  pec: Optional[QuantumCircuit] = None,
                  quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None,
                  a_factory: Optional[CircuitFactory] = None,
@@ -69,9 +71,13 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
             is_good_state: A function to determine if a measurement is part of the 'good' state
                 or 'bad' state. If a list of integers indices is passed, a state is marked as good
                 if the qubits at these indices are :math:`|1\rangle`.
+            post_processing: A mapping applied to the estimate of :math:`0 \leq a \leq 1`,
+                usually used to map the estimate to a target interval.
             pec: The phase estimation circuit used to run the algorithm. Defaults to the standard
                 phase estimation circuit from the circuit library,
                 `qiskit.circuit.library.PhaseEstimation`.
+            iqft: The inverse quantum Fourier transform component, defaults to using a standard
+                implementation from `qiskit.circuit.library.QFT` when None.
             quantum_instance: The backend (or `QuantumInstance`) to execute the circuits on.
             a_factory: Deprecated, use ``state_in``.
                 The CircuitFactory subclass object representing the problem unitary.
@@ -81,55 +87,56 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
             i_objective: Deprecated, use ``is_good_state``.
                 The index of the objective qubit, i.e. the qubit marking 'good' solutions
                 with the state \|1> and 'bad' solutions with the state \|0>.
-            iqft: Deprecated, pass full phase estimation circuit if custom QFT is required.
-                The Inverse Quantum Fourier Transform component, defaults to using a standard IQFT
-                when None
         """
         validate_min('num_eval_qubits', num_eval_qubits, 1)
-        super().__init__(a_factory, q_factory, i_objective, quantum_instance)
+        super().__init__(state_in=state_in,
+                         grover_operator=grover_operator,
+                         is_good_state=is_good_state,
+                         post_processing=post_processing,
+                         quantum_instance=quantum_instance,
+                         a_factory=a_factory,
+                         q_factory=q_factory,
+                         i_objective=i_objective)
 
         # get parameters
         self._m = num_eval_qubits
         self._M = 2 ** num_eval_qubits
 
-        if isinstance(iqft, IQFT):
-            warnings.warn('The qiskit.aqua.components.iqfts.IQFT module is deprecated as of 0.7.0 '
-                          'and will be removed no earlier than 3 months after the release. '
-                          'You should pass a QuantumCircuit instead, see '
-                          'qiskit.circuit.library.QFT and the .inverse() method.',
-                          DeprecationWarning, stacklevel=2)
-        self._iqft = iqft or QFT(self._m, do_swaps=False).inverse()
-        self._initial_state = initial_state
+        # NOTE removed deprecation warnings from IQFT, support removed as of August, 1st 2020
+        self._iqft = iqft
+        self._pec = pec
         self._circuit = None
         self._ret = {}  # type: Dict[str, Any]
 
-    @property
-    def _num_qubits(self) -> int:
-        """Return the number of qubits needed in the circuit.
+    # was only needed in evaluate result but then the circuit is already constructed so we
+    # can just use circuit.num_qubits instead of this method here
+    # @property
+    # def _num_qubits(self) -> int:
+    #     """Return the number of qubits needed in the circuit.
 
-        Returns:
-            The total number of qubits.
-        """
-        if self.a_factory is None:  # if A factory is not set, no qubits are specified
-            return 0
+    #     Returns:
+    #         The total number of qubits.
+    #     """
+    #     if self._a_factory is None:  # if A factory is not set, no qubits are specified
+    #         return 0
 
-        if isinstance(self.q_factory, CircuitFactory):
-            num_ancillas = self.q_factory.required_ancillas_controlled()
-        elif hasattr(self.q_factory, 'num_ancilla_qubits'):
-            num_ancillas = self.q_factory.num_ancilla_qubits
-        else:
-            num_ancillas = 0
+    #     if isinstance(self.q_factory, CircuitFactory):
+    #         num_ancillas = self.q_factory.required_ancillas_controlled()
+    #     elif hasattr(self.q_factory, 'num_ancilla_qubits'):
+    #         num_ancillas = self.q_factory.num_ancilla_qubits
+    #     else:
+    #         num_ancillas = 0
 
-        if isinstance(self.a_factory, CircuitFactory):
-            num_target_qubits = self.a_factory.num_target_qubits
-        elif hasattr(self.a_factory, 'num_state_qubits'):
-            num_target_qubits = self.a_factory.num_state_qubits
-        else:
-            num_target_qubits = self.a_factory.num_qubits
+    #     if isinstance(self.a_factory, CircuitFactory):
+    #         num_target_qubits = self.a_factory.num_target_qubits
+    #     elif hasattr(self.a_factory, 'num_state_qubits'):
+    #         num_target_qubits = self.a_factory.num_state_qubits
+    #     else:
+    #         num_target_qubits = self.a_factory.num_qubits
 
-        num_qubits = num_target_qubits + self._m + num_ancillas
+    #     num_qubits = num_target_qubits + self._m + num_ancillas
 
-        return num_qubits
+    #     return num_qubits
 
     def construct_circuit(self, measurement: bool = False) -> QuantumCircuit:
         """Construct the Amplitude Estimation quantum circuit.
@@ -140,29 +147,33 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         Returns:
             The QuantumCircuit object for the constructed circuit.
         """
-        if self._initial_state is not None:
-            state_in = self._initial_state.compose(self.a_factory)
+        if self.state_in is None:  # circuit factories
+            # TODO deprecate this and only use circuits
+            iqft = QFT(self._m, do_swaps=False, inverse=True) if self._iqft is None else self._iqft
+            pec = PhaseEstimationCircuit(
+                iqft=iqft, num_ancillae=self._m,
+                state_in_circuit_factory=self.a_factory,
+                unitary_circuit_factory=self.q_factory
+            )
+            self._circuit = pec.construct_circuit(measurement=measurement)
         else:
-            state_in = self.a_factory
+            if self._pec is not None:
+                pec = self._pec
+            else:
+                from qiskit.circuit.library import PhaseEstimation
+                pec = PhaseEstimation(self._m, self.grover_operator, iqft=self._iqft)
 
-        if isinstance(state_in, QuantumCircuit) and isinstance(self.q_factory, QuantumCircuit):
-            from qiskit.circuit.library import PhaseEstimation
-            pec = PhaseEstimation(self._m, self.q_factory, self._iqft)
             self._circuit = QuantumCircuit(*pec.qregs)
-            self._circuit.compose(state_in, list(range(self._m, self._m + state_in.num_qubits)),
+            self._circuit.compose(self.state_in,
+                                  list(range(self._m, self._m + self.state_in.num_qubits)),
                                   inplace=True)
             self._circuit.compose(pec, inplace=True)
+
             if measurement:
                 cr = ClassicalRegister(self._m)
                 self._circuit.add_register(cr)
                 self._circuit.measure(list(range(self._m)), list(range(self._m)))
-        else:
-            pec = PhaseEstimationCircuit(
-                iqft=self._iqft, num_ancillae=self._m,
-                state_in_circuit_factory=state_in,
-                unitary_circuit_factory=self.q_factory
-            )
-            self._circuit = pec.construct_circuit(measurement=measurement)
+
         return self._circuit
 
     def _evaluate_statevector_results(self, probabilities: Union[List[float], np.ndarray]
@@ -176,14 +187,21 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
             probabilities: The probabilities obtained from the statevector simulation,
                 i.e. real(statevector * statevector.conj())[0]
 
+        Raises:
+            AquaError: If `self._circuit` is not set.
+
         Returns:
             Dictionaries containing the a gridpoints with respective probabilities and
                 y measurements with respective probabilities, in this order.
         """
+        if self._circuit is None:
+            raise AquaError('Before calling _evaluate_statevector_results, _circuit must be set. '
+                            'Therefore call construct_circuit() first.')
+
         # map measured results to estimates
         y_probabilities = OrderedDict()  # type: OrderedDict
         for i, probability in enumerate(probabilities):
-            b = '{0:b}'.format(i).rjust(self._num_qubits, '0')[::-1]
+            b = '{0:b}'.format(i).rjust(self._circuit.num_qubits, '0')[::-1]
             y = int(b[:self._m], 2)
             y_probabilities[y] = y_probabilities.get(y, 0) + probability
 
@@ -192,8 +210,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
             if y >= int(self._M / 2):
                 y = self._M - y
             # due to the finite accuracy of the sine, we round the result to 7 decimals
-            a = np.round(np.power(np.sin(y * np.pi / 2 ** self._m), 2),
-                         decimals=7)
+            a = np.round(np.power(np.sin(y * np.pi / 2 ** self._m), 2), decimals=7)
             a_probabilities[a] = a_probabilities.get(a, 0) + probability
 
         return a_probabilities, y_probabilities
@@ -247,7 +264,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         ci = mle + norm.ppf(1 - alpha / 2) / std * np.array([-1, 1])
 
         # transform the confidence interval from [0, 1] to the target interval
-        return [self.a_factory.value_to_estimation(bound) for bound in ci]
+        return [self.post_processing(bound) for bound in ci]
 
     def _likelihood_ratio_confint(self, alpha: float) -> List[float]:
         """Compute the likelihood ratio confidence interval for the MLE of the previous run.
@@ -318,7 +335,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
         # Put together CI
         ci = [lower, upper]
-        return [self.a_factory.value_to_estimation(bound) for bound in ci]
+        return [self.post_processing(bound) for bound in ci]
 
     def confidence_interval(self, alpha: float, kind: str = 'likelihood_ratio') -> List[float]:
         """Compute the (1 - alpha) confidence interval.
@@ -405,16 +422,17 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 loglik_opt = val
 
         # Convert the value to an estimation
-        val_opt = self.a_factory.value_to_estimation(a_opt)
+        val_opt = self.post_processing(a_opt)
 
         # Store MLE and the MLE mapped to an estimation
         self._ret['ml_value'] = a_opt
         self._ret['mle'] = val_opt
 
     def _run(self) -> dict:
-        # check if A factory has been set
-        if self.a_factory is None:
-            raise AquaError("a_factory must be set!")
+        # check if A factory or state_in has been set
+        if self.state_in is None:
+            if self.a_factory is None:  # getter emits deprecation warnings, therefore nest
+                raise AquaError('The A operator must be set!')
 
         if self._quantum_instance.is_statevector:
             self.construct_circuit(measurement=False)
@@ -424,8 +442,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
             self._ret['statevector'] = state_vector
 
             # get state probabilities
-            state_probabilities = np.real(
-                state_vector.conj() * state_vector)[0]
+            state_probabilities = np.real(state_vector.conj() * state_vector)[0]
 
             # evaluate results
             a_probabilities, y_probabilities = self._evaluate_statevector_results(
@@ -469,7 +486,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         self._ret['y_items'] = y_items
 
         # map estimated values to original range and extract probabilities
-        self._ret['mapped_values'] = [self.a_factory.value_to_estimation(
+        self._ret['mapped_values'] = [self.post_processing(
             a_item[0]) for a_item in self._ret['a_items']]
         self._ret['values'] = [a_item[0] for a_item in self._ret['a_items']]
         self._ret['y_values'] = [y_item[0] for y_item in y_items]

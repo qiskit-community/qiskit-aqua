@@ -76,7 +76,8 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         validate_range('alpha', alpha, 0, 1)
         validate_in_set('confint_method', confint_method, {'chernoff', 'beta'})
 
-        super().__init__(a_factory, q_factory, i_objective, quantum_instance)
+        super().__init__(a_factory=a_factory, q_factory=q_factory, i_objective=i_objective,
+                         quantum_instance=quantum_instance)
 
         # store parameters
         self._epsilon = epsilon

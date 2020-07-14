@@ -120,6 +120,7 @@ class TestBernoulli(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
+        warnings.filterwarnings(action="ignore", category=DeprecationWarning)
 
         self._statevector = QuantumInstance(backend=BasicAer.get_backend('statevector_simulator'),
                                             seed_simulator=2, seed_transpiler=2)
@@ -325,6 +326,7 @@ class TestProblemSetting(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
+        warnings.filterwarnings(action="ignore", category=DeprecationWarning)
         self.a_bernoulli = BernoulliAFactory(0)
         self.q_bernoulli = BernoulliQFactory(self.a_bernoulli)
         self.i_bernoulli = 0
@@ -334,11 +336,16 @@ class TestProblemSetting(QiskitAquaTestCase):
         self.q_intergal = QFactory(self.a_integral, num_qubits)
         self.i_intergal = num_qubits
 
-    @data(
-        AmplitudeEstimation(2),
-        IterativeAmplitudeEstimation(0.1, 0.001),
-        MaximumLikelihoodAmplitudeEstimation(3),
-    )
+    def tearDown(self):
+        super().tearDown()
+        warnings.filterwarnings(action="always", category=DeprecationWarning)
+
+    @idata([
+        [AmplitudeEstimation(2)],
+        [IterativeAmplitudeEstimation(0.1, 0.001)],
+        [MaximumLikelihoodAmplitudeEstimation(3)],
+    ])
+    @unpack
     def test_operators(self, qae):
         """ Test if A/Q operator + i_objective set correctly """
         self.assertIsNone(qae.a_factory)
@@ -413,6 +420,7 @@ class TestSineIntegral(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
+        warnings.filterwarnings(action="ignore", category=DeprecationWarning)
 
         self._statevector = QuantumInstance(backend=BasicAer.get_backend('statevector_simulator'),
                                             seed_simulator=123,
@@ -423,6 +431,10 @@ class TestSineIntegral(QiskitAquaTestCase):
                                    seed_simulator=7192, seed_transpiler=90000)
 
         self._qasm = qasm
+
+    def tearDown(self):
+        super().tearDown()
+        warnings.filterwarnings(action="always", category=DeprecationWarning)
 
     @idata([
         [2, AmplitudeEstimation(2), {'estimation': 0.5, 'mle': 0.270290}],
@@ -518,6 +530,14 @@ class TestSineIntegral(QiskitAquaTestCase):
 @ddt
 class TestCreditRiskAnalysis(QiskitAquaTestCase):
     """Test a more difficult example, motived from Credit Risk Analysis."""
+
+    def setUp(self):
+        super().setUp()
+        warnings.filterwarnings(action="ignore", category=DeprecationWarning)
+
+    def tearDown(self):
+        super().tearDown()
+        warnings.filterwarnings(action="always", category=DeprecationWarning)
 
     @data('statevector_simulator')
     def test_conditional_value_at_risk(self, simulator):

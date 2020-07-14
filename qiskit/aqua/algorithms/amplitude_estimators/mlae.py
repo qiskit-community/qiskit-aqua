@@ -63,7 +63,8 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             quantum_instance: Quantum Instance or Backend
         """
         validate_min('num_oracle_circuits', num_oracle_circuits, 1)
-        super().__init__(a_factory, q_factory, i_objective, quantum_instance)
+        super().__init__(a_factory=a_factory, q_factory=q_factory, i_objective=i_objective,
+                         quantum_instance=quantum_instance)
 
         # get parameters
         self._evaluation_schedule = [0] + [2**j for j in range(num_oracle_circuits)]

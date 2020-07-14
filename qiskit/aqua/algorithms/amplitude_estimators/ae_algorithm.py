@@ -12,7 +12,7 @@
 
 """The Amplitude Estimation Algorithm."""
 
-from typing import Optional, Union, List
+from typing import Optional, Union, List, Callable
 import logging
 import warnings
 from abc import abstractmethod
@@ -63,6 +63,7 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
                  state_in: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
                  grover_operator: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
                  is_good_state: Optional[Union[callable, List[int]]] = None,
+                 post_processing: Optional[Callable[[float], float]] = None,
                  quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None,
                  a_factory: Optional[CircuitFactory] = None,
                  q_factory: Optional[CircuitFactory] = None,
@@ -82,6 +83,12 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
             i_objective: Deprecated use ``is_good_state``.
                 Index of the objective qubit, that marks the 'good/bad' states
         """
+        # self._a_factory = state_in
+        # self._q_factory = grover_operator
+        self._a_factory = None
+        self._q_factory = None
+        self._i_objective = None
+
         if isinstance(state_in, CircuitFactory) or a_factory is not None:
             warnings.warn('Passing a CircuitFactory as A operator is deprecated as of 0.8.0, '
                           'this feature will be removed no earlier than 3 months after the release.'
@@ -89,8 +96,6 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
                           DeprecationWarning, stacklevel=2)
             if a_factory is not None:
                 self._a_factory = a_factory
-            else:
-                self._a_factory = state_in
 
         if isinstance(grover_operator, CircuitFactory) or q_factory is not None:
             warnings.warn('Passing a CircuitFactory as Q operator is deprecated as of 0.8.0, '
@@ -99,19 +104,19 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
                           DeprecationWarning, stacklevel=2)
             if q_factory is not None:
                 self._q_factory = q_factory
-            else:
-                self._q_factory = grover_operator
 
-        if self._i_objective is not None:
+        if i_objective is not None:
             warnings.warn('The i_objective argument is deprecated as of 0.8.0 and will be removed '
                           'no earlier than 3 months after the release. You should use the '
                           'is_good_state argument instead.', DeprecationWarning, stacklevel=2)
+            self._i_objective = i_objective
             self._is_good_state = [i_objective]
         else:
             self._is_good_state = is_good_state
 
         self._state_in = state_in
         self._grover_operator = grover_operator
+        self._post_processing = (lambda x: x) if post_processing is None else post_processing
 
         super().__init__(quantum_instance)
 
@@ -313,3 +318,17 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
                       'setter instead, which takes a List[int] instead of an int.',
                       DeprecationWarning, stacklevel=2)
         self._i_objective = i_objective
+
+    def post_processing(self, value: float) -> float:
+        r"""Post processing of the raw amplitude estimation output :math:`0 \leq a \leq 1`.
+
+        Args:
+            value: The estimation value :math:`a`.
+
+        Returns:
+            The value after post processing, usually mapping the interval :math:`[0, 1]`
+            to the target interval.
+        """
+        # if self.a_factory is not None:
+        #     return self.a_factory.value_to_estimation(value)
+        return self._post_processing(value)
