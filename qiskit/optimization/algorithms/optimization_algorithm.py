@@ -104,6 +104,11 @@ class OptimizationResult:
 
     @property
     def var_dict(self) -> Any:
+        """Returns the pairs of variable names and values under optimization.
+
+        Returns:
+            The pairs of variable names and values under optimization.
+        """
         if self.x is not None and self.x_name is not None and len(self.x) == len(self.x_name):
             return dict(zip(self.x_name, self.x))
         return None
