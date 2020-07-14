@@ -83,6 +83,7 @@ class OptimizationResult:
         results: The original results object returned from the optimization algorithm. This can
             contain more information than only the optimal value and function value.
         status: The termination status of the algorithm.
+        x_name: The name of the variable under optimization.
     """
 
     Status = OptimizationResultStatus
@@ -109,6 +110,11 @@ class OptimizationResult:
 
     @property
     def x_name(self) -> Any:
+        """Returns the name of the variable under optimization.
+
+        Returns:
+            The name of the variable under optimization.
+        """
         return self._x_name
 
     @property
