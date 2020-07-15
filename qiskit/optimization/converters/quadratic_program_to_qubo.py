@@ -19,7 +19,6 @@ from typing import Optional
 from ..algorithms.optimization_algorithm import OptimizationResult
 from ..problems.quadratic_program import QuadraticProgram
 from ..problems.constraint import Constraint
-from ..converters.linear_equality_to_penalty import LinearEqualityToPenalty
 from ..exceptions import QiskitOptimizationError
 
 
@@ -39,10 +38,13 @@ class QuadraticProgramToQubo:
         """
         Args:
             penalty: Penalty factor to scale equality constraints that are added to objective.
+                     If None is passed, penalty factor will be automatically calculated.
         """
         from ..converters.integer_to_binary import IntegerToBinary
+        from ..converters.linear_equality_to_penalty import LinearEqualityToPenalty
+
         self._int_to_bin = IntegerToBinary()
-        self._penalize_lin_eq_constraints = LinearEqualityToPenalty()
+        self._penalize_lin_eq_constraints = LinearEqualityToPenalty(penalty)
         self._penalty = penalty
 
     def encode(self, problem: QuadraticProgram) -> QuadraticProgram:
@@ -67,12 +69,7 @@ class QuadraticProgramToQubo:
         problem_ = self._int_to_bin.encode(problem)
 
         # penalize linear equality constraints with only binary variables
-        if self._penalty is None:
-            # TODO: should be derived from problem
-            penalty = 1e5
-        else:
-            penalty = self._penalty
-        problem_ = self._penalize_lin_eq_constraints.encode(problem_, penalty_factor=penalty)
+        problem_ = self._penalize_lin_eq_constraints.encode(problem_)
 
         # return QUBO
         return problem_
