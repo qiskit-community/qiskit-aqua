@@ -15,6 +15,7 @@
 """An abstract class for optimization algorithms in Qiskit's optimization module."""
 
 from abc import ABC, abstractmethod
+from typing import Optional
 
 from ..algorithms.optimization_algorithm import OptimizationResult
 from ..problems.quadratic_program import QuadraticProgram
@@ -26,14 +27,14 @@ class QuadraticProgramConverter(ABC):
     """
 
     @abstractmethod
-    def convert(self, problem: QuadraticProgram) -> QuadraticProgram:
+    def convert(self, problem: QuadraticProgram, name: Optional[str]) -> QuadraticProgram:
         """
-        convert an QuadratciProgram into another form
+        Convert an QuadratciProgram into another form
         and keep the information required to interpret the result
         """
         raise NotImplementedError
 
     @abstractmethod
     def interpret(self, result: OptimizationResult) -> OptimizationResult:
-        """ interpret a result into another form using the information of conversion"""
+        """ Interpret a result into another form using the information of conversion"""
         raise NotImplementedError

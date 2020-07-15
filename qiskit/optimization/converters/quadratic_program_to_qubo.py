@@ -34,13 +34,11 @@ class QuadraticProgramToQubo(QuadraticProgramConverter):
             >>> problem2 = conv.convert(problem)
     """
 
-    def __init__(self, penalty: Optional[float] = None, name: Optional[str] = None) -> None:
+    def __init__(self, penalty: Optional[float] = None) -> None:
         """
         Args:
             penalty: Penalty factor to scale equality constraints that are added to objective.
                 If None is passed, penalty factor will be automatically calculated.
-            name: The name of the converted problem. If not provided, the name of the input
-                problem is used.
         """
         from ..converters.integer_to_binary import IntegerToBinary
         from ..converters.inequality_to_equality import InequalityToEquality
@@ -50,13 +48,14 @@ class QuadraticProgramToQubo(QuadraticProgramConverter):
         self._ineq_to_eq = InequalityToEquality(mode='integer')
         self._penalize_lin_eq_constraints = LinearEqualityToPenalty()
         self._penalty = penalty
-        self._dst_name = name
 
-    def convert(self, problem: QuadraticProgram) -> QuadraticProgram:
+    def convert(self, problem: QuadraticProgram, name: Optional[str] = None) -> QuadraticProgram:
         """Convert a problem with linear equality constraints into new one with a QUBO form.
 
         Args:
             problem: The problem with linear equality constraints to be solved.
+            name: The name of the converted problem. If not provided, the name of the input
+                  problem is used.
 
         Returns:
             The problem converted in QUBO format.
@@ -70,18 +69,16 @@ class QuadraticProgramToQubo(QuadraticProgramConverter):
         if len(msg) > 0:
             raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
 
-        # convert inequality constraints into equality constraints by adding slack variables
-        self._ineq_to_eq.name = self._dst_name
-        problem_ = self._ineq_to_eq.convert(problem)
+        # Convert inequality constraints into equality constraints by adding slack variables
+        problem_ = self._ineq_to_eq.convert(problem, name)
 
-        # map integer variables to binary variables
-        self._int_to_bin.name = self._dst_name
-        problem_ = self._int_to_bin.convert(problem_)
+        # Map integer variables to binary variables
+        problem_ = self._int_to_bin.convert(problem_, name)
 
-        # penalize linear equality constraints with only binary variables
-        problem_ = self._penalize_lin_eq_constraints.convert(problem_)
+        # Penalize linear equality constraints with only binary variables
+        problem_ = self._penalize_lin_eq_constraints.convert(problem_, name)
 
-        # return QUBO
+        # Return QUBO
         return problem_
 
     def interpret(self, result: OptimizationResult) -> OptimizationResult:
@@ -173,22 +170,3 @@ class QuadraticProgramToQubo(QuadraticProgramConverter):
                      If None is passed, penalty factor will be automatically calculated.
         """
         self._penalty = penalty
-
-    @property
-    def name(self) -> Optional[str]:
-        """Returns the name of the converted problem
-
-        Returns:
-            The name of the converted problem
-        """
-        return self._dst_name
-
-    @name.setter  # type:ignore
-    def name(self, name: Optional[str]) -> None:
-        """Set a name for a converted problem
-
-        Args:
-            name: A name for a converted problem. If not provided, the name of the input
-                  problem is used.
-        """
-        self._dst_name = name

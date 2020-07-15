@@ -43,7 +43,7 @@ class InequalityToEquality(QuadraticProgramConverter):
 
     _delimiter = '@'  # users are supposed not to use this character in variable names
 
-    def __init__(self, mode: str = 'auto', name: Optional[str] = None) -> None:
+    def __init__(self, mode: str = 'auto') -> None:
         """
         Args:
             mode: To chose the type of slack variables. There are 3 options for mode.
@@ -52,20 +52,18 @@ class InequalityToEquality(QuadraticProgramConverter):
                 - 'continuous': All slack variables will be continuous variables
                 - 'auto': Try to use integer variables but if it's not possible,
                    use continuous variables
-            name: The name of the converted problem. If not provided, the name of the input
-                  problem is used.
         """
         self._src = None  # type: Optional[QuadraticProgram]
         self._dst = None  # type: Optional[QuadraticProgram]
-        self._dst_name = name
         self._mode = mode
 
-    def convert(self, problem: QuadraticProgram) -> QuadraticProgram:
+    def convert(self, problem: QuadraticProgram, name: Optional[str] = None) -> QuadraticProgram:
         """Convert a problem with inequality constraints into one with only equality constraints.
 
         Args:
             problem: The problem to be solved, that may contain inequality constraints.
-
+            name: The name of the converted problem. If not provided, the name of the input
+                  problem is used.
         Returns:
             The converted problem, that contain only equality constraints.
 
@@ -78,10 +76,10 @@ class InequalityToEquality(QuadraticProgramConverter):
         self._dst = QuadraticProgram()
 
         # set a problem name
-        if self._dst_name is None:
-            self._dst.name = self._src.name
+        if name:
+            self._dst.name = name
         else:
-            self._dst.name = self._dst_name
+            self._dst.name = self._src.name
 
         # set a converting mode
         mode = self._mode
@@ -405,22 +403,3 @@ class InequalityToEquality(QuadraticProgramConverter):
             mode: The new mode for the converter
         """
         self._mode = mode
-
-    @property
-    def name(self) -> Optional[str]:
-        """Returns the name of the converted problem
-
-        Returns:
-            The name of the converted problem
-        """
-        return self._dst_name
-
-    @name.setter  # type:ignore
-    def name(self, name: Optional[str]) -> None:
-        """Set a name for a converted problem
-
-        Args:
-            name: A name for a converted problem. If not provided, the name of the input
-                  problem is used.
-        """
-        self._dst_name = name

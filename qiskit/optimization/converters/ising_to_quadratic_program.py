@@ -28,7 +28,7 @@ from ..exceptions import QiskitOptimizationError
 class IsingToQuadraticProgram:
     """Convert a qubit operator into a quadratic program"""
 
-    def __init__(self, linear: bool = False, name: str = '') -> None:
+    def __init__(self, linear: bool = False) -> None:
         r"""
 
         Args:
@@ -36,7 +36,6 @@ class IsingToQuadraticProgram:
                 since :math:`x^2 = x` for :math:`x \in \{0,1\}`.
                 Else, :math:`x^2` is treat as a quadratic term.
                 The default value is False.
-            name: A name for the created QuadraticProgram
         """
         self._qubit_op = None
         self._offset = 0.0
@@ -44,17 +43,17 @@ class IsingToQuadraticProgram:
         self._qubo_matrix = None  # type: Optional[np.ndarray]
         self._qp = None  # type: Optional[QuadraticProgram]
         self._linear = linear
-        self._name = name
 
     def convert(self,
                 qubit_op: Union[OperatorBase, WeightedPauliOperator],
-                offset: float = 0.0) -> QuadraticProgram:
+                offset: float = 0.0, name: str = '') -> QuadraticProgram:
         """Convert a qubit operator and a shift value into a quadratic program
 
         Args:
             qubit_op: The qubit operator to be converted into a
                 :class:`~qiskit.optimization.problems.quadratic_program.QuadraticProgram`
             offset: The shift value of the qubit operator
+            name: The name of the converted problem.
 
         Returns:
             QuadraticProgram converted from the input qubit operator and the shift value
@@ -70,7 +69,7 @@ class IsingToQuadraticProgram:
 
         # No support for ListOp yet, this can be added in future
         # pylint: disable=unidiomatic-typecheck
-        if type(qubit_op) == ListOp:
+        if isinstance(qubit_op, ListOp):
             raise NotImplementedError(
                 'Conversion of a ListOp is not supported, convert each '
                 'operator in the ListOp separately.'
@@ -81,7 +80,7 @@ class IsingToQuadraticProgram:
         self._num_qubits = qubit_op.num_qubits
 
         # Create `QuadraticProgram`
-        self._qp = QuadraticProgram(name=self._name)
+        self._qp = QuadraticProgram(name=name)
         for i in range(self._num_qubits):
             self._qp.binary_var(name='x_{0}'.format(i))
         # Create QUBO matrix
@@ -199,21 +198,3 @@ class IsingToQuadraticProgram:
                 Else, :math:`x^2` is treated as a quadratic term.
         """
         self._linear = linear
-
-    @property
-    def name(self) -> str:
-        """Returns the name of the converted problem
-
-        Returns:
-            The name of the converted problem
-        """
-        return self._name
-
-    @name.setter  # type:ignore
-    def name(self, name: Optional[str]) -> None:
-        """Set a name for a created QuadraticProgram
-
-        Args:
-            name: A name for a created QuadraticProgram
-        """
-        self._name = name

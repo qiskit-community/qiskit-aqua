@@ -51,24 +51,20 @@ class IntegerToBinary(QuadraticProgramConverter):
 
     _delimiter = '@'  # users are supposed not to use this character in variable names
 
-    def __init__(self, name: Optional[str] = None) -> None:
-        """
-        Args:
-            name: The name of the converted problem. If not provided, the name of the input
-                  problem is used.
-        """
+    def __init__(self) -> None:
         self._src = None  # type: Optional[QuadraticProgram]
         self._dst = None  # type: Optional[QuadraticProgram]
-        self._dst_name = name
         self._conv = {}  # type: Dict[Variable, List[Tuple[str, int]]]
 
         # e.g., self._conv = {x: [('x@1', 1), ('x@2', 2)]}
 
-    def convert(self, problem: QuadraticProgram) -> QuadraticProgram:
+    def convert(self, problem: QuadraticProgram, name: Optional[str] = None) -> QuadraticProgram:
         """Convert an integer problem into a new problem with binary variables.
 
         Args:
             problem: The problem to be solved, that may contain integer variables.
+            name: The name of the converted problem. If not provided, the name of the input
+                  problem is used.
 
         Returns:
             The converted problem, that contains no integer variables.
@@ -77,15 +73,15 @@ class IntegerToBinary(QuadraticProgramConverter):
             QiskitOptimizationError: if variable or constraint type is not supported.
         """
 
-        # copy original QP as reference.
+        # Copy original QP as reference.
         self._src = copy.deepcopy(problem)
 
         if self._src.get_num_integer_vars() > 0:
 
-            # initialize new QP
+            # Initialize new QP
             self._dst = QuadraticProgram()
 
-            # declare variables
+            # Declare variables
             for x in self._src.variables:
                 if x.vartype == Variable.Type.INTEGER:
                     new_vars = self._convert_var(x.name, x.lowerbound, x.upperbound)
@@ -108,11 +104,11 @@ class IntegerToBinary(QuadraticProgramConverter):
             # just copy the problem if no integer variables exist
             self._dst = copy.deepcopy(problem)
 
-        # adjust name of resulting problem if necessary
-        if self._dst.name is None:
-            self._dst.name = self._src.name
+        # Set a problem name
+        if name:
+            self._dst.name = name
         else:
-            self._dst.name = self._dst_name
+            self._dst.name = self._src.name
 
         return self._dst
 
@@ -250,22 +246,3 @@ class IntegerToBinary(QuadraticProgramConverter):
             else:
                 new_vals.append(sol[x.name])
         return new_vals
-
-    @property
-    def name(self) -> Optional[str]:
-        """Returns the name of the converted problem
-
-        Returns:
-            The name of the converted problem
-        """
-        return self._dst_name
-
-    @name.setter  # type:ignore
-    def name(self, name: Optional[str]) -> None:
-        """Set a name for a converted problem
-
-        Args:
-            name: A name for a converted problem. If not provided, the name of the input
-                  problem is used.
-        """
-        self._dst_name = name

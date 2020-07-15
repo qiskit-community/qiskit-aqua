@@ -33,24 +33,23 @@ logger = logging.getLogger(__name__)
 class LinearEqualityToPenalty(QuadraticProgramConverter):
     """Convert a problem with only equality constraints to unconstrained with penalty terms."""
 
-    def __init__(self, penalty: Optional[float] = None, name: Optional[str] = None):
+    def __init__(self, penalty: Optional[float] = None):
         """
         Args:
             penalty: Penalty factor to scale equality constraints that are added to objective.
                      If None is passed, penalty factor will be automatically calculated.
-            name: The name of the converted problem.
         """
         self._src = None  # type: Optional[QuadraticProgram]
         self._dst = None  # type: Optional[QuadraticProgram]
-        self._dst_name = name  # type: Optional[str]
         self._penalty = penalty  # type: Optional[float]
 
-    def convert(self, problem: QuadraticProgram) -> QuadraticProgram:
+    def convert(self, problem: QuadraticProgram, name: Optional[str] = None) -> QuadraticProgram:
         """Convert a problem with equality constraints into an unconstrained problem.
 
         Args:
             problem: The problem to be solved, that does not contain inequality constraints.
-
+            name: The name of the converted problem. If not provided, the name of the input
+                  problem is used.
         Returns:
             The converted problem, that is an unconstrained problem.
 
@@ -68,13 +67,13 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
         else:
             penalty = self._penalty
 
-        # set problem name
-        if self._dst_name is None:
-            self._dst.name = self._src.name
+        # Set a problem name
+        if name:
+            self._dst.name = name
         else:
-            self._dst.name = self._dst_name
+            self._dst.name = self._src.name
 
-        # set variables
+        # Set variables
         for x in self._src.variables:
             if x.vartype == Variable.Type.CONTINUOUS:
                 self._dst.continuous_var(x.lowerbound, x.upperbound, x.name)
@@ -224,22 +223,3 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
                      If None is passed, penalty factor will be automatically calculated.
         """
         self._penalty = penalty
-
-    @property
-    def name(self) -> Optional[str]:
-        """Returns the name of the converted problem
-
-        Returns:
-            The name of the converted problem
-        """
-        return self._dst_name
-
-    @name.setter  # type:ignore
-    def name(self, name: Optional[str]) -> None:
-        """Set a name for a converted problem
-
-        Args:
-            name: A name for a converted problem. If not provided, the name of the input
-                  problem is used.
-        """
-        self._dst_name = name

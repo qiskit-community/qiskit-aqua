@@ -64,7 +64,7 @@ class QuadraticProgramToIsing:
             raise QiskitOptimizationError('An constraint exists. '
                                           'The method supports only model with no constraints. '
                                           'Use a QuadraticProgramToQubo converter. '
-                                          'It converters inequality constraints to equality '
+                                          'It converts inequality constraints to equality '
                                           'constraints, and then, it converters equality '
                                           'constraints to penalty terms of the object function.')
 
