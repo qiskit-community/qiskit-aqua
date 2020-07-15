@@ -30,27 +30,27 @@ class BosonicOperator(object):
     A set of functions to map bosonic Hamiltonians to qubit Hamiltonians.
 
     References:
-        1. Veis Libor, et al., International Journal of Quantum Chemistry 116.18 (2016): 1328-1336.
-        2. McArdle Sam, et al., Chemical science 10.22 (2019): 5725-5735.
-        3. Ollitrault Pauline J., Chemical science 11 (2020): 6842-6855.
+        - *Veis Libor, et al., International Journal of Quantum Chemistry 116.18 (2016): 1328-1336.*
+        - *McArdle Sam, et al., Chemical science 10.22 (2019): 5725-5735.*
+        - *Ollitrault Pauline J., Chemical science 11 (2020): 6842-6855.*
     """
 
-    def __init__(self, h, basis):
+    def __init__(self, h: np.ndarray, basis: list):
         """
         | The Bosonic operator in this class is written in the n-mode second quantization format
-        | (Eq. 10 in Ref. 3)
+        | (Eq. 10 in Ref. Ollitrault Pauline J., Chemical science 11 (2020): 6842-6855.)
         | The second quantization operators act on a given modal in a given mode.
         | self._degree is the truncation degree of the expansion (n).
 
         Args:
-        h (numpy.ndarray): Matrix elements for the n-body expansion. The format is as follows:
+        h: Matrix elements for the n-body expansion. The format is as follows:
             h is a self._degree (n) dimensional array.
             For each degree n, h[n] contains the list [[indices,coef]_0, [indices, coef]_1, ...]
             where the indices is a n-entry list and each entry is of the shape [mode, modal1, modal2]
             which define the indices of the corresponding raising (mode, modal1) and
             lowering (mode, modal2) operators.
 
-        basis (list): Is a list defining the number of modals per mode. E.g. for a 3 modes system
+        basis: Is a list defining the number of modals per mode. E.g. for a 3 modes system
             with 4 modals per mode basis = [4,4,4].
         """
 
@@ -63,14 +63,17 @@ class BosonicOperator(object):
         self._num_qubits = self.count_qubits(basis)
 
 
-    def count_qubits(self, basis:List):
+    def count_qubits(self, basis: list):
 
         """
 
-        Args:
-            basis:
+        Number of qubits counter
 
-        Returns:
+        Args:
+            basis: Is a list defining the number of modals per mode. E.g. for a 3 modes system
+            with 4 modals per mode basis = [4,4,4].
+
+        Returns: the number of qubits (int)
 
         """
 
@@ -81,10 +84,17 @@ class BosonicOperator(object):
         return num_qubits
 
 
-    def direct_mapping(self, n):
+    def direct_mapping(self, n: int):
 
         """
-        a[i] = IIXIII +- iIIYIII
+
+        performs the transformation: a[i] = IIXIII +- iIIYIII
+
+        Args:
+            n: number of qubits
+
+        Returns: a list of pauli operators
+
         """
 
         a = []
@@ -102,12 +112,12 @@ class BosonicOperator(object):
         return a
 
 
-    def one_body_mapping(self, h1_ij_aij):
+    def one_body_mapping(self, h1_ij_aij: list):
         """
         Subroutine for one body mapping.
 
         Args:
-            h1_ij_aij (list): value of h1 at index (i,j), pauli at index i, pauli at index j
+            h1_ij_aij: value of h1 at index (i,j), pauli at index i, pauli at index j
 
         Returns:
             Operator: Operator for those paulis
@@ -127,7 +137,19 @@ class BosonicOperator(object):
         return op
 
 
-    def extend(self, list1, list2):
+    def extend(self, list1: list, list2: list):
+
+        """
+
+        concatenates the paulis for different modes together
+
+        Args:
+            list1: list of paulis for the first mode
+            list2: list of paulis for the second mode
+
+        Returns: the list of concatenated paulis
+
+        """
 
         final_list = []
         for pauli1 in list1:
@@ -141,7 +163,20 @@ class BosonicOperator(object):
         return final_list
 
 
-    def combine(self, modes, paulis, coef):
+    def combine(self, modes: list, paulis: list, coef: float):
+
+        """
+
+        Combines the paulis of each mode together in one WeightedPauliOperator
+
+        Args:
+            modes: list with the indices of the modes to be combined
+            paulis: list containing the list of paulis for each mode
+            coef: coefficient multiplying the term
+
+        Returns: a WeightedPauliOperator acting on the modes given in argument
+
+        """
 
         m=0
         idx = 0
@@ -170,7 +205,17 @@ class BosonicOperator(object):
         return WeightedPauliOperator(pauli_list)
 
 
-    def mapping(self, qubit_mapping, threshold = 1e-7):
+    def mapping(self, qubit_mapping: str, threshold:float = 1e-7):
+
+        """
+        Maps a bosonic operator into a qubit operator
+        Args:
+            qubit_mapping: a string giving the type of mapping (only the direct mapping in implemented at this point)
+            threshold: threshold to chop the low contribution paulis
+
+        Returns: a qubit operator
+
+        """
 
         qubit_op = WeightedPauliOperator([])
 
