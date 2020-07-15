@@ -1,0 +1,9 @@
+features:
+  - |
+    Redesigned converters of the optimization stack for their ease of use.
+    - Introduced ``QuadraticProgramConverter`` which is an abstract class for converters.
+    - Renamed ``encode``/``decode`` methods to ``convert``/``interpret`` for converters
+    - Moved all parameters from ``convert`` to constructor except ``name``
+    - Created setter/getter for converter parameters.
+    - Added ``auto_define_penalty`` and ``interpret`` for``LinearEqualityToPenalty``
+    - Now error messages of converters are more informative.
