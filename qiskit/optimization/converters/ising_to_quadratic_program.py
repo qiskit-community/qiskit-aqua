@@ -46,14 +46,13 @@ class IsingToQuadraticProgram:
 
     def convert(self,
                 qubit_op: Union[OperatorBase, WeightedPauliOperator],
-                offset: float = 0.0, name: str = '') -> QuadraticProgram:
+                offset: float = 0.0) -> QuadraticProgram:
         """Convert a qubit operator and a shift value into a quadratic program
 
         Args:
             qubit_op: The qubit operator to be converted into a
                 :class:`~qiskit.optimization.problems.quadratic_program.QuadraticProgram`
             offset: The shift value of the qubit operator
-            name: The name of the converted problem.
 
         Returns:
             QuadraticProgram converted from the input qubit operator and the shift value
@@ -80,7 +79,7 @@ class IsingToQuadraticProgram:
         self._num_qubits = qubit_op.num_qubits
 
         # Create `QuadraticProgram`
-        self._qp = QuadraticProgram(name=name)
+        self._qp = QuadraticProgram()
         for i in range(self._num_qubits):
             self._qp.binary_var(name='x_{0}'.format(i))
         # Create QUBO matrix

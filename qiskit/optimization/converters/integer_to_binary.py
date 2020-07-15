@@ -58,13 +58,11 @@ class IntegerToBinary(QuadraticProgramConverter):
 
         # e.g., self._conv = {x: [('x@1', 1), ('x@2', 2)]}
 
-    def convert(self, problem: QuadraticProgram, name: Optional[str] = None) -> QuadraticProgram:
+    def convert(self, problem: QuadraticProgram) -> QuadraticProgram:
         """Convert an integer problem into a new problem with binary variables.
 
         Args:
             problem: The problem to be solved, that may contain integer variables.
-            name: The name of the converted problem. If not provided, the name of the input
-                  problem is used.
 
         Returns:
             The converted problem, that contains no integer variables.
@@ -103,12 +101,6 @@ class IntegerToBinary(QuadraticProgramConverter):
         else:
             # just copy the problem if no integer variables exist
             self._dst = copy.deepcopy(problem)
-
-        # Set a problem name
-        if name:
-            self._dst.name = name
-        else:
-            self._dst.name = self._src.name
 
         return self._dst
 

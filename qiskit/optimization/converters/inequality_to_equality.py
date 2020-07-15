@@ -57,13 +57,11 @@ class InequalityToEquality(QuadraticProgramConverter):
         self._dst = None  # type: Optional[QuadraticProgram]
         self._mode = mode
 
-    def convert(self, problem: QuadraticProgram, name: Optional[str] = None) -> QuadraticProgram:
+    def convert(self, problem: QuadraticProgram) -> QuadraticProgram:
         """Convert a problem with inequality constraints into one with only equality constraints.
 
         Args:
             problem: The problem to be solved, that may contain inequality constraints.
-            name: The name of the converted problem. If not provided, the name of the input
-                  problem is used.
         Returns:
             The converted problem, that contain only equality constraints.
 
@@ -74,12 +72,6 @@ class InequalityToEquality(QuadraticProgramConverter):
         """
         self._src = copy.deepcopy(problem)
         self._dst = QuadraticProgram()
-
-        # set a problem name
-        if name:
-            self._dst.name = name
-        else:
-            self._dst.name = self._src.name
 
         # set a converting mode
         mode = self._mode
