@@ -20,11 +20,12 @@ import logging
 import numpy as np
 from docplex.mp.model import Model
 
-from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.aqua.operators import Z, I
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.optimization import QuadraticProgram, QiskitOptimizationError
 from qiskit.optimization.problems import Constraint, Variable
 from qiskit.optimization.algorithms import OptimizationResult
+from qiskit.optimization.algorithms.optimization_algorithm import OptimizationResultStatus
 from qiskit.optimization.converters import (
     InequalityToEquality,
     QuadraticProgramToIsing,
@@ -34,24 +35,20 @@ from qiskit.optimization.converters import (
 )
 from qiskit.optimization.algorithms import MinimumEigenOptimizer, CplexOptimizer, ADMMOptimizer
 from qiskit.optimization.algorithms.admm_optimizer import ADMMParameters
-from qiskit.quantum_info import Pauli
 
 logger = logging.getLogger(__name__)
 
-
-QUBIT_OP_MAXIMIZE_SAMPLE = WeightedPauliOperator(
-    paulis=[
-        [(-199999.5 + 0j), Pauli(z=[True, False, False, False], x=[False, False, False, False])],
-        [(-399999.5 + 0j), Pauli(z=[False, True, False, False], x=[False, False, False, False])],
-        [(-599999.5 + 0j), Pauli(z=[False, False, True, False], x=[False, False, False, False])],
-        [(-799999.5 + 0j), Pauli(z=[False, False, False, True], x=[False, False, False, False])],
-        [(100000 + 0j), Pauli(z=[True, True, False, False], x=[False, False, False, False])],
-        [(150000 + 0j), Pauli(z=[True, False, True, False], x=[False, False, False, False])],
-        [(300000 + 0j), Pauli(z=[False, True, True, False], x=[False, False, False, False])],
-        [(200000 + 0j), Pauli(z=[True, False, False, True], x=[False, False, False, False])],
-        [(400000 + 0j), Pauli(z=[False, True, False, True], x=[False, False, False, False])],
-        [(600000 + 0j), Pauli(z=[False, False, True, True], x=[False, False, False, False])],
-    ]
+QUBIT_OP_MAXIMIZE_SAMPLE = (
+    -199999.5 * (I ^ I ^ I ^ Z)
+    + -399999.5 * (I ^ I ^ Z ^ I)
+    + -599999.5 * (I ^ Z ^ I ^ I)
+    + -799999.5 * (Z ^ I ^ I ^ I)
+    + 100000 * (I ^ I ^ Z ^ Z)
+    + 150000 * (I ^ Z ^ I ^ Z)
+    + 300000 * (I ^ Z ^ Z ^ I)
+    + 200000 * (Z ^ I ^ I ^ Z)
+    + 400000 * (Z ^ I ^ Z ^ I)
+    + 600000 * (Z ^ Z ^ I ^ I)
 )
 OFFSET_MAXIMIZE_SAMPLE = 1149998
 
@@ -427,17 +424,12 @@ class TestConverters(QiskitOptimizationTestCase):
         for i, x in enumerate(op.variables):
             linear[x.name] = i + 1
         op.linear_constraint(linear, Constraint.Sense.EQ, 3, 'sum1')
-        penalize = LinearEqualityToPenalty()
+        penalize = LinearEqualityToPenalty(penalty=1e5)
         op2ope = QuadraticProgramToIsing()
         op2 = penalize.encode(op)
         qubitop, offset = op2ope.encode(op2)
 
-        # the encoder uses a dictionary, in which the order of items in Python 3.5 is not
-        # maintained, therefore don't do a list compare but dictionary compare
-        qubit_op_as_dict = dict(qubitop.paulis)
-        for coeff, paulis in QUBIT_OP_MAXIMIZE_SAMPLE.paulis:
-            self.assertEqual(paulis, qubit_op_as_dict[coeff])
-
+        self.assertEqual(qubitop, QUBIT_OP_MAXIMIZE_SAMPLE)
         self.assertEqual(offset, OFFSET_MAXIMIZE_SAMPLE)
 
     def test_ising_to_quadraticprogram_linear(self):
@@ -468,10 +460,12 @@ class TestConverters(QiskitOptimizationTestCase):
         quadratic_matrix[1, 3] = 1600000
         quadratic_matrix[2, 3] = 2400000
 
-        np.testing.assert_array_almost_equal(quadratic.objective.linear.coefficients.toarray(),
-                                             linear_matrix)
-        np.testing.assert_array_almost_equal(quadratic.objective.quadratic.coefficients.toarray(),
-                                             quadratic_matrix)
+        np.testing.assert_array_almost_equal(
+            quadratic.objective.linear.coefficients.toarray(), linear_matrix
+        )
+        np.testing.assert_array_almost_equal(
+            quadratic.objective.quadratic.coefficients.toarray(), quadratic_matrix
+        )
 
     def test_ising_to_quadraticprogram_quadratic(self):
         """ Test optimization problem to operators with linear=False"""
@@ -499,8 +493,9 @@ class TestConverters(QiskitOptimizationTestCase):
         quadratic_matrix[2, 3] = 2400000
         quadratic_matrix[3, 3] = -800001
 
-        np.testing.assert_array_almost_equal(quadratic.objective.quadratic.coefficients.toarray(),
-                                             quadratic_matrix)
+        np.testing.assert_array_almost_equal(
+            quadratic.objective.quadratic.coefficients.toarray(), quadratic_matrix
+        )
 
     def test_continuous_variable_decode(self):
         """ Test decode func of IntegerToBinaryConverter for continuous variables"""
@@ -526,6 +521,67 @@ class TestConverters(QiskitOptimizationTestCase):
             self.assertEqual(solution.x[0], 10.9)
         except NameError as ex:
             self.skipTest(str(ex))
+
+    def test_auto_penalty(self):
+        """ Test auto penalty function"""
+        op = QuadraticProgram()
+        op.binary_var('x')
+        op.binary_var('y')
+        op.binary_var('z')
+        op.minimize(constant=3, linear={'x': 1}, quadratic={('x', 'y'): 2})
+        op.linear_constraint(linear={'x': 1, 'y': 1, 'z': 1}, sense='EQ', rhs=2, name='xyz_eq')
+        lineq2penalty = LinearEqualityToPenalty(penalty=1e5)
+        lineq2penalty_auto = LinearEqualityToPenalty()
+        qubo = lineq2penalty.encode(op)
+        qubo_auto = lineq2penalty_auto.encode(op)
+        exact_mes = NumPyMinimumEigensolver()
+        exact = MinimumEigenOptimizer(exact_mes)
+        result = exact.solve(qubo)
+        result_auto = exact.solve(qubo_auto)
+        self.assertEqual(result.fval, result_auto.fval)
+        self.assertListEqual(result.x, result_auto.x)
+
+    def test_auto_penalty_warning(self):
+        """ Test warnings of auto penalty function"""
+        op = QuadraticProgram()
+        op.binary_var('x')
+        op.binary_var('y')
+        op.binary_var('z')
+        op.minimize(linear={'x': 1, 'y': 2})
+        op.linear_constraint(linear={'x': 0.5, 'y': 0.5, 'z': 0.5}, sense='EQ', rhs=1, name='xyz')
+        with self.assertLogs('qiskit.optimization', level='WARNING') as log:
+            lineq2penalty = LinearEqualityToPenalty()
+            _ = lineq2penalty.encode(op)
+        warning = (
+            'WARNING:qiskit.optimization.converters.linear_equality_to_penalty:'
+            + 'Warning: Using 100000.000000 for the penalty coefficient because a float '
+            + 'coefficient exists in constraints. \nThe value could be too small. If so, '
+            + 'set the penalty coefficient manually.'
+        )
+        self.assertIn(warning, log.output)
+
+    def test_linear_equality_to_penalty_decode(self):
+        """ Test decode func of LinearEqualityToPenalty"""
+        qprog = QuadraticProgram()
+        qprog .binary_var('x')
+        qprog .binary_var('y')
+        qprog .binary_var('z')
+        qprog .maximize(linear={'x': 3, 'y': 1, 'z': 1})
+        qprog .linear_constraint(linear={'x': 1, 'y': 1, 'z': 1}, sense='EQ', rhs=2, name='xyz_eq')
+        lineq2penalty = LinearEqualityToPenalty()
+        qubo = lineq2penalty.encode(qprog)
+        exact_mes = NumPyMinimumEigensolver()
+        exact = MinimumEigenOptimizer(exact_mes)
+        result = exact.solve(qubo)
+        decoded_result = lineq2penalty.decode(result)
+        self.assertEqual(decoded_result.fval, 4)
+        self.assertListEqual(decoded_result.x, [1, 1, 0])
+        self.assertEqual(decoded_result.status, OptimizationResultStatus.SUCCESS)
+        infeasible_result = OptimizationResult(x=[1, 1, 1])
+        decoded_infeasible_result = lineq2penalty.decode(infeasible_result)
+        self.assertEqual(decoded_infeasible_result.fval, 5)
+        self.assertListEqual(decoded_infeasible_result.x, [1, 1, 1])
+        self.assertEqual(decoded_infeasible_result.status, OptimizationResultStatus.INFEASIBLE)
 
 
 if __name__ == '__main__':

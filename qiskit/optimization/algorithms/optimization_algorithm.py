@@ -18,6 +18,7 @@ from abc import ABC, abstractmethod
 from enum import Enum
 from typing import Any, Optional
 
+from .. import QiskitOptimizationError
 from ..problems.quadratic_program import QuadraticProgram
 
 
@@ -62,6 +63,26 @@ class OptimizationAlgorithm(ABC):
             QiskitOptimizationError: If the problem is incompatible with the optimizer.
         """
         raise NotImplementedError
+
+    def _verify_compatibility(self, problem: QuadraticProgram) -> None:
+        """Verifies that the problem is suitable for this optimizer. If the problem is not
+        compatible then an exception is raised. This method is for convenience for concrete
+        optimizers and is not intended to be used by end user.
+
+        Args:
+            problem: Problem to verify.
+
+        Returns:
+            None
+
+        Raises:
+            QiskitOptimizationError: If the problem is incompatible with the optimizer.
+
+        """
+        # check compatibility and raise exception if incompatible
+        msg = self.get_compatibility_msg(problem)
+        if msg:
+            raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
 
 
 class OptimizationResultStatus(Enum):
@@ -122,6 +143,15 @@ class OptimizationResult:
         """
         return self._x_name
 
+    @x_name.setter  # type: ignore
+    def x_name(self, x_name: Any) -> None:
+        """Set a new optimal value.
+
+        Args:
+            x: The new optimal value.
+        """
+        self._x_name = x_name
+
     @property
     def x(self) -> Any:
         """Returns the optimal value found in the optimization.
@@ -131,6 +161,15 @@ class OptimizationResult:
         """
         return self._x
 
+    @x.setter  # type: ignore
+    def x(self, x: Any) -> None:
+        """Set a new optimal value.
+
+        Args:
+            x: The new optimal value.
+        """
+        self._val = x
+
     @property
     def fval(self) -> Any:
         """Returns the optimal function value.
@@ -139,6 +178,15 @@ class OptimizationResult:
             The function value corresponding to the optimal value found in the optimization.
         """
         return self._fval
+
+    @fval.setter  # type: ignore
+    def fval(self, fval: Any) -> None:
+        """Set a new optimal function value.
+
+        Args:
+            fval: The new optimal function value.
+        """
+        self._fval = fval
 
     @property
     def results(self) -> Any:
@@ -151,42 +199,6 @@ class OptimizationResult:
         """
         return self._results
 
-    @property
-    def status(self) -> OptimizationResultStatus:
-        """Return the termination status of the algorithm.
-
-        Returns:
-            The termination status of the algorithm.
-        """
-        return self._status
-
-    @x.setter  # type: ignore
-    def x(self, x: Any) -> None:
-        """Set a new optimal value.
-
-        Args:
-            x: The new optimal value.
-        """
-        self._x = x
-
-    @x_name.setter  # type: ignore
-    def x_name(self, x_name: Any) -> None:
-        """Set a new optimal value.
-
-        Args:
-            x: The new optimal value.
-        """
-        self._x_name = x_name
-
-    @fval.setter  # type: ignore
-    def fval(self, fval: Any) -> None:
-        """Set a new optimal function value.
-
-        Args:
-            fval: The new optimal function value.
-        """
-        self._fval = fval
-
     @results.setter  # type: ignore
     def results(self, results: Any) -> None:
         """Set results.
@@ -195,6 +207,15 @@ class OptimizationResult:
             results: The new additional results of the optimization.
         """
         self._results = results
+
+    @property
+    def status(self) -> OptimizationResultStatus:
+        """Return the termination status of the algorithm.
+
+        Returns:
+            The termination status of the algorithm.
+        """
+        return self._status
 
     @status.setter  # type: ignore
     def status(self, status: OptimizationResultStatus) -> None:
