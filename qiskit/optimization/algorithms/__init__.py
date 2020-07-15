@@ -42,6 +42,7 @@ Algorithms
    GroverOptimizer
    MinimumEigenOptimizer
    RecursiveMinimumEigenOptimizer
+   SlsqpOptimizer
 
 """
 
@@ -53,7 +54,8 @@ from .cobyla_optimizer import CobylaOptimizer
 from .minimum_eigen_optimizer import MinimumEigenOptimizer
 from .recursive_minimum_eigen_optimizer import RecursiveMinimumEigenOptimizer
 from .grover_optimizer import GroverOptimizer, GroverOptimizationResults
+from .slsqp_optimizer import SlsqpOptimizer
 
 __all__ = ["ADMMOptimizer", "OptimizationAlgorithm", "OptimizationResult", "CplexOptimizer",
            "CobylaOptimizer", "MinimumEigenOptimizer", "RecursiveMinimumEigenOptimizer",
-           "GroverOptimizer", "GroverOptimizationResults"]
+           "GroverOptimizer", "GroverOptimizationResults", "SlsqpOptimizer"]

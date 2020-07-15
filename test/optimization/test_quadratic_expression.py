@@ -126,6 +126,27 @@ class TestQuadraticExpression(QiskitOptimizationTestCase):
         for values in [values_list, values_array, values_dict_int, values_dict_str]:
             self.assertEqual(quadratic.evaluate(values), 900)
 
+    def test_evaluate_gradient(self):
+        """ test evaluate gradient. """
+
+        quadratic_program = QuadraticProgram()
+        x = [quadratic_program.continuous_var() for _ in range(5)]
+
+        coefficients_list = [[0 for _ in range(5)] for _ in range(5)]
+        for i, v in enumerate(coefficients_list):
+            for j, _ in enumerate(v):
+                coefficients_list[min(i, j)][max(i, j)] += i * j
+        quadratic = QuadraticExpression(quadratic_program, coefficients_list)
+
+        values_list = list(range(len(x)))
+        values_array = np.array(values_list)
+        values_dict_int = {i: i for i in range(len(x))}
+        values_dict_str = {'x{}'.format(i): i for i in range(len(x))}
+
+        grad_values = [0., 60., 120., 180., 240.]
+        for values in [values_list, values_array, values_dict_int, values_dict_str]:
+            np.testing.assert_almost_equal(quadratic.evaluate_gradient(values), grad_values)
+
     def test_symmetric_set(self):
         """ test symmetric set """
         q_p = QuadraticProgram()

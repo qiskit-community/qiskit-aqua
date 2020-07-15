@@ -121,10 +121,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
             QiskitOptimizationError: Incompatible problem.
             QiskitOptimizationError: Infeasible due to variable substitution
         """
-        # check compatibility and raise exception if incompatible
-        msg = self.get_compatibility_msg(problem)
-        if len(msg) > 0:
-            raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
+        self._verify_compatibility(problem)
 
         # convert problem to QUBO, this implicitly checks if the problem is compatible
         qubo_converter = QuadraticProgramToQubo()

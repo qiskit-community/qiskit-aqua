@@ -20,7 +20,6 @@ import time
 from typing import List, Optional, Any, Tuple, cast
 
 import numpy as np
-from ..exceptions import QiskitOptimizationError
 from .cplex_optimizer import CplexOptimizer
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
 from ..problems.quadratic_program import QuadraticProgram
@@ -261,10 +260,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         Raises:
             QiskitOptimizationError: If the problem is not compatible with the ADMM optimizer.
         """
-        # check compatibility and raise exception if incompatible
-        msg = self.get_compatibility_msg(problem)
-        if len(msg) > 0:
-            raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
+        self._verify_compatibility(problem)
 
         # debug
         self._log.debug("Initial problem: %s", problem.export_as_lp_string())

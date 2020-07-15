@@ -22,7 +22,6 @@ from qiskit import QuantumCircuit
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms.amplitude_amplifiers.grover import Grover
-from ..exceptions import QiskitOptimizationError
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
 from ..problems.quadratic_program import QuadraticProgram
 from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
@@ -106,10 +105,7 @@ class GroverOptimizer(OptimizationAlgorithm):
         if self.quantum_instance is None:
             raise AttributeError('The quantum instance or backend has not been set.')
 
-        # check compatibility and raise exception if incompatible
-        msg = self.get_compatibility_msg(problem)
-        if len(msg) > 0:
-            raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
+        self._verify_compatibility(problem)
 
         # convert problem to QUBO
         qubo_converter = QuadraticProgramToQubo()
@@ -178,7 +174,7 @@ class GroverOptimizer(OptimizationAlgorithm):
                     circuit = a_operator._circuit
 
                 # Get the next outcome.
-                outcome = self._measure(circuit, n_key, n_value)
+                outcome = self._measure(circuit)
                 k = int(outcome[0:n_key], 2)
                 v = outcome[n_key:n_key + n_value]
                 int_v = self._bin_to_int(v, n_value) + threshold
@@ -239,9 +235,9 @@ class GroverOptimizer(OptimizationAlgorithm):
 
         return result
 
-    def _measure(self, circuit: QuantumCircuit, n_key: int, n_value: int) -> str:
+    def _measure(self, circuit: QuantumCircuit) -> str:
         """Get probabilities from the given backend, and picks a random outcome."""
-        probs = self._get_probs(n_key, n_value, circuit)
+        probs = self._get_probs(circuit)
         freq = sorted(probs.items(), key=lambda x: x[1], reverse=True)
 
         # Pick a random outcome.
@@ -251,7 +247,7 @@ class GroverOptimizer(OptimizationAlgorithm):
 
         return freq[idx][0]
 
-    def _get_probs(self, n_key: int, n_value: int, qc: QuantumCircuit) -> Dict[str, float]:
+    def _get_probs(self, qc: QuantumCircuit) -> Dict[str, float]:
         """Gets probabilities from a given backend."""
         # Execute job and filter results.
         result = self.quantum_instance.execute(qc)
@@ -260,18 +256,13 @@ class GroverOptimizer(OptimizationAlgorithm):
             keys = [bin(i)[2::].rjust(int(np.log2(len(state))), '0')[::-1]
                     for i in range(0, len(state))]
             probs = [np.round(abs(a)*abs(a), 5) for a in state]
-            f_hist = dict(zip(keys, probs))
-            hist = {}
-            for key in f_hist:
-                new_key = key[:n_key] + key[n_key:n_key+n_value][::-1] + key[n_key+n_value:]
-                hist[new_key] = f_hist[key]
+            hist = dict(zip(keys, probs))
         else:
             state = result.get_counts(qc)
             shots = self.quantum_instance.run_config.shots
             hist = {}
             for key in state:
-                hist[key[:n_key] + key[n_key:n_key+n_value][::-1] + key[n_key+n_value:]] = \
-                    state[key] / shots
+                hist[key] = state[key] / shots
         hist = dict(filter(lambda p: p[1] > 0, hist.items()))
 
         return hist
