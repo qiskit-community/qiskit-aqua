@@ -131,12 +131,13 @@ Chemistry Error
    QiskitChemistryError
 
 Chemistry Classes
-==================
+=================
 
 .. autosummary::
    :toctree: ../stubs/
    :nosignatures:
 
+   BosonicOperator
    FermionicOperator
    QMolecule
    MP2Info
@@ -157,6 +158,7 @@ Submodules
 
 from .qiskit_chemistry_error import QiskitChemistryError
 from .qmolecule import QMolecule
+from .bosonic_operator import BosonicOperator
 from .fermionic_operator import FermionicOperator
 from .mp2info import MP2Info
 from ._logging import (get_qiskit_chemistry_logging,
@@ -164,6 +166,7 @@ from ._logging import (get_qiskit_chemistry_logging,
 
 __all__ = ['QiskitChemistryError',
            'QMolecule',
+           'BosonicOperator',
            'FermionicOperator',
            'MP2Info',
            'get_qiskit_chemistry_logging',
