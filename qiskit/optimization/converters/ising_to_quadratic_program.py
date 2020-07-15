@@ -69,7 +69,7 @@ class IsingToQuadraticProgram:
 
         # No support for ListOp yet, this can be added in future
         # pylint: disable=unidiomatic-typecheck
-        if isinstance(qubit_op, ListOp):
+        if type(qubit_op) == ListOp:
             raise NotImplementedError(
                 'Conversion of a ListOp is not supported, convert each '
                 'operator in the ListOp separately.'
