@@ -27,7 +27,7 @@ class QuadraticProgramConverter(ABC):
     """
 
     @abstractmethod
-    def convert(self, problem: QuadraticProgram, name: Optional[str]) -> QuadraticProgram:
+    def convert(self, problem: QuadraticProgram) -> QuadraticProgram:
         """
         Convert an QuadratciProgram into another form
         and keep the information required to interpret the result
