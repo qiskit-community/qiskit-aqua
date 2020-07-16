@@ -18,7 +18,7 @@ import unittest
 from test.aqua import QiskitAquaTestCase
 import numpy as np
 from ddt import ddt, idata, data, unpack
-from qiskit import QuantumRegister, QuantumCircuit, objective_qubits
+from qiskit import QuantumRegister, QuantumCircuit, BasicAer
 from qiskit.circuit.library import QFT
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import (AmplitudeEstimation, MaximumLikelihoodAmplitudeEstimation,
