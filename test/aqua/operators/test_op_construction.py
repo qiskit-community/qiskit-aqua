@@ -365,6 +365,15 @@ class TestOpConstruction(QiskitAquaTestCase):
             z = MatrixOp([[1, 0], [0, -1]])
             self.assertNotEqual(expr * z, 2 * z)
 
+        with self.subTest('additions aggregation'):
+            z = MatrixOp([[1, 0], [0, -1]])
+            a = z + z + Z
+            b = 2 * z + Z
+            c = z + Z + z
+            self.assertEqual(a, b)
+            self.assertEqual(b, c)
+            self.assertEqual(a, c)
+
     def test_circuit_compose_register_independent(self):
         """Test that CircuitOp uses combines circuits independent of the register.
 
