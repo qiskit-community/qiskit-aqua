@@ -282,7 +282,9 @@ class QGAN(QuantumAlgorithm):
                 writer.writeheader()
 
         if len(self._data) < self._batch_size:
-            raise AquaError('Please reduce the batch size.')
+            raise AquaError(
+                'The batch size needs to be less than the '
+                'truncated data size of {}'.format(len(self._data)))
 
         for e in range(self._num_epochs):
             aqua_globals.random.shuffle(self._data)
