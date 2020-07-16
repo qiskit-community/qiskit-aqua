@@ -16,7 +16,6 @@
 """The converter from a ```Operator``` to ``QuadraticProgram``."""
 
 from typing import Optional, Union
-import copy
 
 import numpy as np
 
@@ -75,7 +74,7 @@ class IsingToQuadraticProgram:
             )
 
         self._qubit_op = qubit_op
-        self._offset = copy.deepcopy(offset)
+        self._offset = offset
         self._num_qubits = qubit_op.num_qubits
 
         # Create `QuadraticProgram`
@@ -188,7 +187,7 @@ class IsingToQuadraticProgram:
         """
         return self._linear
 
-    @linear.setter  # type:ignore
+    @linear.setter
     def linear(self, linear: bool) -> None:
         """Set a conversion mode for quadratic terms
 

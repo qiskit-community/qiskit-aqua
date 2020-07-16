@@ -28,7 +28,7 @@ class QuadraticProgramConverter(ABC):
     @abstractmethod
     def convert(self, problem: QuadraticProgram) -> QuadraticProgram:
         """
-        Convert a QuadratciProgram into another form
+        Convert a QuadraticProgram into another form
         and keep the information required to interpret the result
         """
         raise NotImplementedError

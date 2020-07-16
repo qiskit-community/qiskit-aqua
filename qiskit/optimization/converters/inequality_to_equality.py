@@ -387,7 +387,7 @@ class InequalityToEquality(QuadraticProgramConverter):
         """
         return self._mode
 
-    @mode.setter  # type:ignore
+    @mode.setter
     def mode(self, mode: str) -> None:
         """Set a new mode for the converter
 

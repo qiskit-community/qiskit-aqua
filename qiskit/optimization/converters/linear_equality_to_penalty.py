@@ -206,7 +206,7 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
         """
         return self._penalty
 
-    @penalty.setter  # type:ignore
+    @penalty.setter
     def penalty(self, penalty: Optional[float]) -> None:
         """Set a new penalty factor.
 
