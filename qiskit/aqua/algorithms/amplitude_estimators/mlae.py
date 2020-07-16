@@ -44,7 +44,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
     def __init__(self, num_oracle_circuits: int,
                  state_in: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
                  grover_operator: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
-                 is_good_state: Optional[Union[callable, List[int]]] = None,
+                 objective_qubits: Optional[List[int]] = None,
                  post_processing: Optional[Callable[[float], float]] = None,
                  a_factory: Optional[CircuitFactory] = None,
                  q_factory: Optional[CircuitFactory] = None,
@@ -78,13 +78,13 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             q_factory = grover_operator
             grover_operator = None
 
-        if isinstance(is_good_state, int):
-            i_objective = is_good_state
-            is_good_state = None
+        if isinstance(objective_qubits, int):
+            i_objective = objective_qubits
+            objective_qubits = None
 
         super().__init__(state_in=state_in,
                          grover_operator=grover_operator,
-                         is_good_state=is_good_state,
+                         objective_qubits=objective_qubits,
                          post_processing=post_processing,
                          a_factory=a_factory,
                          q_factory=q_factory,
@@ -139,7 +139,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
             # add classical register if needed
             if measurement:
-                c = ClassicalRegister(len(self.is_good_state))
+                c = ClassicalRegister(len(self.objective_qubits))
                 qc_0.add_register(c)
 
             qc_0.compose(self.state_in, inplace=True)
@@ -155,7 +155,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                     # which might happen if the circuit gets transpiled, hence we're adding
                     # a safeguard-barrier
                     qc_k.barrier()
-                    qc_k.measure(self.is_good_state, *c)
+                    qc_k.measure(self.objective_qubits, *c)
 
                 self._circuits += [qc_k]
         else:  # using deprecated CircuitFactory
@@ -217,7 +217,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         num_qubits = self._circuits[0].num_qubits
 
         if self.state_in is not None:
-            objective_qubits = self.is_good_state
+            objective_qubits = self.objective_qubits
         else:
             objective_qubits = [self.i_objective]
 
@@ -226,8 +226,8 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             p_k = 0.0
             for i, a in enumerate(sv):
                 p = np.abs(a)**2
-                b = ('{0:%sb}' % num_qubits).format(i)[::-1]
-                if all(b[index] == '1' for index in objective_qubits):
+                bitstr = ('{:0%db}' % num_qubits).format(i)[::-1]
+                if self.is_good_state(bitstr):
                     p_k += p
             probabilities += [p_k]
 

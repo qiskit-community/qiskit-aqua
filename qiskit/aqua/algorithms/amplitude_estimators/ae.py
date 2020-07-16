@@ -53,7 +53,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
     def __init__(self, num_eval_qubits: int,
                  state_in: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
                  grover_operator: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
-                 is_good_state: Optional[Union[callable, List[int]]] = None,
+                 objective_qubits: Optional[List[int]] = None,
                  post_processing: Optional[Callable[[float], float]] = None,
                  pec: Optional[QuantumCircuit] = None,
                  quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None,
@@ -68,7 +68,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
             state_in: A circuit preparing the input state, referred to as :math:`\mathcal{A}`.
             grover_operator: The Grover operator :math:`\mathcal{Q}` used as unitary in the
                 phase estimation circuit.
-            is_good_state: A function to determine if a measurement is part of the 'good' state
+            objective_qubits: A function to determine if a measurement is part of the 'good' state
                 or 'bad' state. If a list of integers indices is passed, a state is marked as good
                 if the qubits at these indices are :math:`|1\rangle`.
             post_processing: A mapping applied to the estimate of :math:`0 \leq a \leq 1`,
@@ -84,7 +84,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
             q_factory: Deprecated, use ``grover_operator``.
                 The CircuitFactory subclass object representing an amplitude estimation
                 sample (based on a_factory).
-            i_objective: Deprecated, use ``is_good_state``.
+            i_objective: Deprecated, use ``objective_qubits``.
                 The index of the objective qubit, i.e. the qubit marking 'good' solutions
                 with the state \|1> and 'bad' solutions with the state \|0>.
         """
@@ -99,13 +99,13 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
             q_factory = grover_operator
             grover_operator = None
 
-        if isinstance(is_good_state, int):
-            i_objective = is_good_state
-            is_good_state = None
+        if isinstance(objective_qubits, int):
+            i_objective = objective_qubits
+            objective_qubits = None
 
         super().__init__(state_in=state_in,
                          grover_operator=grover_operator,
-                         is_good_state=is_good_state,
+                         objective_qubits=objective_qubits,
                          post_processing=post_processing,
                          quantum_instance=quantum_instance,
                          a_factory=a_factory,

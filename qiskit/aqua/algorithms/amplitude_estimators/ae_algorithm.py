@@ -62,7 +62,7 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
     def __init__(self,
                  state_in: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
                  grover_operator: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
-                 is_good_state: Optional[Union[callable, List[int]]] = None,
+                 objective_qubits: Optional[Union[callable, List[int]]] = None,
                  post_processing: Optional[Callable[[float], float]] = None,
                  quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None,
                  a_factory: Optional[CircuitFactory] = None,
@@ -73,14 +73,14 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
             state_in: The :math:`\mathcal{A}` operator, specifying the QAE problem.
             grover_operator: The :math:`\mathcal{Q}` operator (Grover operator), constructed from
                 the :math:`\mathcal{A}` operator.
-            is_good_state: A function to determine if a measurement is part of the 'good' state
+            objective_qubits: A function to determine if a measurement is part of the 'good' state
                 or 'bad' state. If a list of integers indices is passed, a state is marked as good
                 if the qubits at these indices are :math:`|1\rangle`.
             quantum_instance: The backend (or `QuantumInstance`) to execute the circuits on.
             a_factory: Deprecated, use ``state_in``. The A operator, specifying the QAE problem.
             q_factory: Deprecated, use ``grover_operator``.
                 The Q operator (Grover operator), constructed from the A operator.
-            i_objective: Deprecated use ``is_good_state``.
+            i_objective: Deprecated use ``objective_qubits``.
                 Index of the objective qubit, that marks the 'good/bad' states
         """
         # self._a_factory = state_in
@@ -108,11 +108,11 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
         if i_objective is not None:
             warnings.warn('The i_objective argument is deprecated as of 0.8.0 and will be removed '
                           'no earlier than 3 months after the release. You should use the '
-                          'is_good_state argument instead.', DeprecationWarning, stacklevel=2)
+                          'objective_qubits argument instead.', DeprecationWarning, stacklevel=2)
             self._i_objective = i_objective
-            self._is_good_state = [i_objective]
+            self._objective_qubits = [i_objective]
         else:
-            self._is_good_state = is_good_state
+            self._objective_qubits = objective_qubits
 
         self._state_in = state_in
         self._grover_operator = grover_operator
@@ -143,7 +143,7 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
         r"""Get the :math:`\mathcal{Q}` operator, or Grover operator.
 
         If the Grover operator is not set, we try to build it from the :math:`\mathcal{A}` operator
-        and `is_good_state`. This only works if `is_good_state` is a list of integers.
+        and `objective_qubits`. This only works if `objective_qubits` is a list of integers.
 
         Returns:
             The Grover operator, or None if neither the Grover operator nor the
@@ -152,13 +152,13 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
         if self._grover_operator is not None:
             return self._grover_operator
 
-        if self.state_in is not None and isinstance(self.is_good_state, list):
+        if self.state_in is not None and isinstance(self.objective_qubits, list):
             from qiskit.aqua.components.uncertainty_problems.bit_oracle import BitOracle
             from qiskit.aqua.components.uncertainty_problems.grover_operator import GroverOperator
 
             # build the reflection about the bad state
             num_state_qubits = self.state_in.num_qubits - self.state_in.num_ancillas
-            oracle = BitOracle(num_state_qubits, objective_qubits=self.is_good_state)
+            oracle = BitOracle(num_state_qubits, objective_qubits=self.objective_qubits)
 
             # construct the grover operator
             return GroverOperator(oracle, self.state_in)
@@ -175,14 +175,14 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
         self._grover_operator = grover_operator
 
     @property
-    def is_good_state(self) -> Union[callable, List[int]]:
+    def objective_qubits(self) -> Union[callable, List[int]]:
         """Get the criterion for a measurement outcome to be in a 'good' state.
 
         Returns:
             The criterion as callable of list of qubit indices.
         """
-        if self._is_good_state is not None:
-            return self._is_good_state
+        if self._objective_qubits is not None:
+            return self._objective_qubits
 
         # by default the last qubit of the input state is the objective qubit
         if self._state_in is not None:
@@ -190,14 +190,25 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
 
         return None
 
-    @is_good_state.setter
-    def is_good_state(self, is_good_state: Union[callable, List[int]]):
+    @objective_qubits.setter
+    def objective_qubits(self, objective_qubits: Union[callable, List[int]]):
         """Set the criterion for a measurement outcome to be in a 'good' state.
 
         Args:
-            is_good_state: The criterion as callable of list of qubit indices.
+            objective_qubits: The criterion as callable of list of qubit indices.
         """
-        self._is_good_state = is_good_state
+        self._objective_qubits = objective_qubits
+
+    def is_good_state(self, measurement: str) -> bool:
+        """Determine whether a given state is a good state.
+
+        Args:
+            measurement: A measurement as bitstring, e.g. '01100'.
+
+        Returns:
+            True if the measurement corresponds to a good state, False otherwise.
+        """
+        return all(measurement[objective] == '1' for objective in self.objective_qubits)
 
     @property
     def a_factory(self):
@@ -291,7 +302,7 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
             int: the index of the objective qubit
         """
         warnings.warn('The i_objective property is deprecated as of 0.8.0 and will be removed no '
-                      'earlier than 3 months after the release. You should use the is_good_state '
+                      'earlier than 3 months after the release. You should use the objective_qubits '
                       'property instead.', DeprecationWarning, stacklevel=2)
 
         if self._i_objective is not None:
@@ -321,7 +332,7 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
             be set before the A/Q operators and in that case checks cannot be done.
         """
         warnings.warn('The i_objective setter is deprecated as of 0.8.0 and will be removed no '
-                      'earlier than 3 months after the release. You should use the is_good_state '
+                      'earlier than 3 months after the release. You should use the objective_qubits '
                       'setter instead, which takes a List[int] instead of an int.',
                       DeprecationWarning, stacklevel=2)
         self._i_objective = i_objective

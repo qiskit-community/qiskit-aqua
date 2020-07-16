@@ -111,16 +111,10 @@ class TestBernoulli(QiskitAquaTestCase):
 
     @idata([
         [0.2, AmplitudeEstimation(2), {'estimation': 0.5, 'mle': 0.2}],
-        [0.4, AmplitudeEstimation(4), {'estimation': 0.30866, 'mle': 0.4}],
-        [0.82, AmplitudeEstimation(5), {'estimation': 0.85355, 'mle': 0.82}],
         [0.49, AmplitudeEstimation(3), {'estimation': 0.5, 'mle': 0.49}],
         [0.2, MaximumLikelihoodAmplitudeEstimation(2), {'estimation': 0.2}],
-        [0.4, MaximumLikelihoodAmplitudeEstimation(4), {'estimation': 0.4}],
-        [0.82, MaximumLikelihoodAmplitudeEstimation(5), {'estimation': 0.82}],
         [0.49, MaximumLikelihoodAmplitudeEstimation(3), {'estimation': 0.49}],
         [0.2, IterativeAmplitudeEstimation(0.1, 0.1), {'estimation': 0.2}],
-        [0.4, IterativeAmplitudeEstimation(0.00001, 0.01), {'estimation': 0.4}],
-        [0.82, IterativeAmplitudeEstimation(0.00001, 0.05), {'estimation': 0.82}],
         [0.49, IterativeAmplitudeEstimation(0.001, 0.01), {'estimation': 0.49}]
     ])
     @unpack
@@ -139,12 +133,7 @@ class TestBernoulli(QiskitAquaTestCase):
     @idata([
         [0.2, 100, AmplitudeEstimation(4), {'estimation': 0.14644, 'mle': 0.193888}],
         [0.0, 1000, AmplitudeEstimation(2), {'estimation': 0.0, 'mle': 0.0}],
-        [0.8, 10, AmplitudeEstimation(7), {'estimation': 0.79784, 'mle': 0.801612}],
         [0.2, 100, MaximumLikelihoodAmplitudeEstimation(4), {'estimation': 0.199606}],
-        [0.4, 1000, MaximumLikelihoodAmplitudeEstimation(6), {'estimation': 0.399488}],
-        # [0.8, 10, MaximumLikelihoodAmplitudeEstimation(7), {'estimation': 0.800926}],
-        [0.2, 100, IterativeAmplitudeEstimation(0.0001, 0.01), {'estimation': 0.199987}],
-        [0.4, 1000, IterativeAmplitudeEstimation(0.001, 0.05), {'estimation': 0.400071}],
         [0.8, 10, IterativeAmplitudeEstimation(0.1, 0.05), {'estimation': 0.811711}]
     ])
     @unpack
@@ -311,34 +300,34 @@ class TestProblemSetting(QiskitAquaTestCase):
         """ Test if A/Q operator + i_objective set correctly """
         self.assertIsNone(qae.state_in)
         self.assertIsNone(qae.grover_operator)
-        self.assertIsNone(qae.is_good_state)
+        self.assertIsNone(qae.objective_qubits)
         self.assertIsNone(qae._state_in)
         self.assertIsNone(qae._grover_operator)
-        self.assertIsNone(qae._is_good_state)
+        self.assertIsNone(qae._objective_qubits)
 
         qae.state_in = self.a_bernoulli
         self.assertIsNotNone(qae.state_in)
         self.assertIsNotNone(qae.grover_operator)
-        self.assertIsNotNone(qae.is_good_state)
+        self.assertIsNotNone(qae.objective_qubits)
         self.assertIsNotNone(qae._state_in)
         self.assertIsNone(qae._grover_operator)
-        self.assertIsNone(qae._is_good_state)
+        self.assertIsNone(qae._objective_qubits)
 
         qae.grover_operator = self.q_bernoulli
         self.assertIsNotNone(qae.state_in)
         self.assertIsNotNone(qae.grover_operator)
-        self.assertIsNotNone(qae.is_good_state)
+        self.assertIsNotNone(qae.objective_qubits)
         self.assertIsNotNone(qae._state_in)
         self.assertIsNotNone(qae._grover_operator)
-        self.assertIsNone(qae._is_good_state)
+        self.assertIsNone(qae._objective_qubits)
 
-        qae.is_good_state = self.i_bernoulli
+        qae.objective_qubits = self.i_bernoulli
         self.assertIsNotNone(qae.state_in)
         self.assertIsNotNone(qae.grover_operator)
-        self.assertIsNotNone(qae.is_good_state)
+        self.assertIsNotNone(qae.objective_qubits)
         self.assertIsNotNone(qae._state_in)
         self.assertIsNotNone(qae._grover_operator)
-        self.assertIsNotNone(qae._is_good_state)
+        self.assertIsNotNone(qae._objective_qubits)
 
     # @idata([
     #     [AmplitudeEstimation(2)],
@@ -396,7 +385,6 @@ class TestSineIntegral(QiskitAquaTestCase):
         """ Statevector end-to-end test """
         # construct factories for A and Q
         qae.state_in = SineIntegral(n)
-        # qae.is_good_state = [n]
 
         result = qae.run(self._statevector)
 
@@ -414,7 +402,6 @@ class TestSineIntegral(QiskitAquaTestCase):
         """QASM simulator end-to-end test."""
         # construct factories for A and Q
         qae.state_in = SineIntegral(n)
-        # qae.is_good_state = [n]
 
         result = qae.run(self._qasm(shots))
 
@@ -438,7 +425,6 @@ class TestSineIntegral(QiskitAquaTestCase):
         """End-to-end test for all confidence intervals."""
         n = 3
         qae.state_in = SineIntegral(n)
-        # qae.is_good_state = [n]
 
         # statevector simulator
         result = qae.run(self._statevector)

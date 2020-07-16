@@ -46,7 +46,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                  confint_method: str = 'beta', min_ratio: float = 2,
                  state_in: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
                  grover_operator: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
-                 is_good_state: Optional[Union[callable, List[int]]] = None,
+                 objective_qubits: Optional[List[int]] = None,
                  post_processing: Optional[Callable[[float], float]] = None,
                  a_factory: Optional[CircuitFactory] = None,
                  q_factory: Optional[CircuitFactory] = None,
@@ -89,13 +89,13 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             q_factory = grover_operator
             grover_operator = None
 
-        if isinstance(is_good_state, int):
-            i_objective = is_good_state
-            is_good_state = None
+        if isinstance(objective_qubits, int):
+            i_objective = objective_qubits
+            objective_qubits = None
 
         super().__init__(state_in=state_in,
                          grover_operator=grover_operator,
-                         is_good_state=is_good_state,
+                         objective_qubits=objective_qubits,
                          post_processing=post_processing,
                          a_factory=a_factory,
                          q_factory=q_factory,
@@ -204,7 +204,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
             # add classical register if needed
             if measurement:
-                c = ClassicalRegister(len(self.is_good_state))
+                c = ClassicalRegister(len(self.objective_qubits))
                 circuit.add_register(c)
 
             # add A operator
@@ -244,7 +244,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             # real hardware can currently not handle operations after measurements, which might
             # happen if the circuit gets transpiled, hence we're adding a safeguard-barrier
             circuit.barrier()
-            circuit.measure(self.is_good_state, *c)
+            circuit.measure(self.objective_qubits, *c)
 
         return circuit
 
@@ -263,7 +263,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         """
         if self.state_in is not None:
             num_qubits = self.state_in.num_qubits - self.state_in.num_ancillas
-            objective_qubits = self.is_good_state
+            objective_qubits = self.objective_qubits
         else:
             num_qubits = self.a_factory.num_target_qubits
             objective_qubits = [self.i_objective]
@@ -277,8 +277,8 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             # sum over all amplitudes where the objective qubit is 1
             prob = 0
             for i, amplitude in enumerate(statevector):
-                bitstr = ('{:0%db}' % num_qubits).format(i)
-                if all(bitstr[-(1 + index)] == '1' for index in objective_qubits):
+                bitstr = ('{:0%db}' % num_qubits).format(i)[::-1]
+                if self.is_good_state(bitstr):
                     prob = prob + np.abs(amplitude)**2
 
             return prob
