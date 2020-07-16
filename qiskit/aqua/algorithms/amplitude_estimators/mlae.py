@@ -58,6 +58,14 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 `[id, Q^2^0, ..., Q^2^{num_oracle_circuits-1}] A |0>`, where A is the problem
                 unitary encoded in the argument `a_factory`.
                 Has a minimum value of 1.
+            state_in: A circuit preparing the input state, referred to as :math:`\mathcal{A}`.
+            grover_operator: The Grover operator :math:`\mathcal{Q}` used as unitary in the
+                phase estimation circuit.
+            objective_qubits: A list of qubit indices. A measurement outcome is classified as
+                'good' state if all objective qubits are in state :math:`|1\rangle`, otherwise it
+                is classified as 'bad'.
+            post_processing: A mapping applied to the estimate of :math:`0 \leq a \leq 1`,
+                usually used to map the estimate to a target interval.
             a_factory: The CircuitFactory subclass object representing the problem unitary.
             q_factory: The CircuitFactory subclass object representing.
                 an amplitude estimation sample (based on a_factory)
@@ -215,11 +223,6 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             raise AquaError('Before calling _evaluate_statevector_results, _circuits must be set. '
                             'Therefore call construct_circuit() first.')
         num_qubits = self._circuits[0].num_qubits
-
-        if self.state_in is not None:
-            objective_qubits = self.objective_qubits
-        else:
-            objective_qubits = [self.i_objective]
 
         probabilities = []
         for sv in statevectors:

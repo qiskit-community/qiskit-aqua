@@ -53,7 +53,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                  i_objective: Optional[int] = None,
                  initial_state: Optional[QuantumCircuit] = None,
                  quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
-        """
+        r"""
         The output of the algorithm is an estimate for the amplitude `a`, that with at least
         probability 1 - alpha has an error of epsilon. The number of A operator calls scales
         linearly in 1/epsilon (up to a logarithmic factor).
@@ -65,6 +65,14 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 each iteration, can be 'chernoff' for the Chernoff intervals or 'beta' for the
                 Clopper-Pearson intervals (default)
             min_ratio: Minimal q-ratio (K_{i+1} / K_i) for FindNextK
+            state_in: A circuit preparing the input state, referred to as :math:`\mathcal{A}`.
+            grover_operator: The Grover operator :math:`\mathcal{Q}` used as unitary in the
+                phase estimation circuit.
+            objective_qubits: A list of qubit indices. A measurement outcome is classified as
+                'good' state if all objective qubits are in state :math:`|1\rangle`, otherwise it
+                is classified as 'bad'.
+            post_processing: A mapping applied to the estimate of :math:`0 \leq a \leq 1`,
+                usually used to map the estimate to a target interval.
             a_factory: The A operator, specifying the QAE problem
             q_factory: The Q operator (Grover operator), constructed from the
                 A operator
@@ -263,13 +271,11 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         """
         if self.state_in is not None:
             num_qubits = self.state_in.num_qubits - self.state_in.num_ancillas
-            objective_qubits = self.objective_qubits
         else:
             num_qubits = self.a_factory.num_target_qubits
-            objective_qubits = [self.i_objective]
 
         if isinstance(counts_or_statevector, dict):
-            one_counts = counts_or_statevector.get('1' * len(objective_qubits), 0)
+            one_counts = counts_or_statevector.get('1' * len(self.objective_qubits), 0)
             return int(one_counts), one_counts / sum(counts_or_statevector.values())
         else:
             statevector = counts_or_statevector

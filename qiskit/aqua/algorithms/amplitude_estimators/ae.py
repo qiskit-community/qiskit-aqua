@@ -13,7 +13,6 @@
 """The Quantum Phase Estimation-based Amplitude Estimation algorithm."""
 
 from typing import Optional, Union, List, Tuple, Callable
-import warnings
 import logging
 from collections import OrderedDict
 import numpy as np
@@ -68,9 +67,9 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
             state_in: A circuit preparing the input state, referred to as :math:`\mathcal{A}`.
             grover_operator: The Grover operator :math:`\mathcal{Q}` used as unitary in the
                 phase estimation circuit.
-            objective_qubits: A function to determine if a measurement is part of the 'good' state
-                or 'bad' state. If a list of integers indices is passed, a state is marked as good
-                if the qubits at these indices are :math:`|1\rangle`.
+            objective_qubits: A list of qubit indices. A measurement outcome is classified as
+                'good' state if all objective qubits are in state :math:`|1\rangle`, otherwise it
+                is classified as 'bad'.
             post_processing: A mapping applied to the estimate of :math:`0 \leq a \leq 1`,
                 usually used to map the estimate to a target interval.
             pec: The phase estimation circuit used to run the algorithm. Defaults to the standard
@@ -86,7 +85,8 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 sample (based on a_factory).
             i_objective: Deprecated, use ``objective_qubits``.
                 The index of the objective qubit, i.e. the qubit marking 'good' solutions
-                with the state \|1> and 'bad' solutions with the state \|0>.
+                with the state :math:`|1\rangle` and 'bad' solutions with the state
+                :math:`0\rangle`.
         """
         validate_min('num_eval_qubits', num_eval_qubits, 1)
 

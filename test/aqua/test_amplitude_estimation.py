@@ -14,25 +14,15 @@
 
 """Test the quantum amplitude estimation algorithm."""
 
-import warnings
 import unittest
 from test.aqua import QiskitAquaTestCase
-from itertools import product
 import numpy as np
 from ddt import ddt, idata, data, unpack
-from qiskit import QuantumRegister, QuantumCircuit, BasicAer, execute
+from qiskit import QuantumRegister, QuantumCircuit, objective_qubits
 from qiskit.circuit.library import QFT
 from qiskit.aqua import QuantumInstance
-from qiskit.aqua.components.iqfts import Standard
-from qiskit.aqua.components.uncertainty_models import GaussianConditionalIndependenceModel as GCI
-from qiskit.aqua.components.uncertainty_problems import \
-    UnivariatePiecewiseLinearObjective as PwlObjective
-from qiskit.aqua.components.uncertainty_problems import (MultivariateProblem,
-                                                         UncertaintyProblem)
-from qiskit.aqua.circuits import WeightedSumOperator
 from qiskit.aqua.algorithms import (AmplitudeEstimation, MaximumLikelihoodAmplitudeEstimation,
                                     IterativeAmplitudeEstimation)
-from qiskit.aqua.algorithms.amplitude_estimators.q_factory import QFactory
 
 from qiskit.quantum_info import Operator
 from qiskit.aqua.components.uncertainty_problems.grover_operator import GroverOperator

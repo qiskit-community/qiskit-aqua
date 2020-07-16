@@ -73,9 +73,11 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
             state_in: The :math:`\mathcal{A}` operator, specifying the QAE problem.
             grover_operator: The :math:`\mathcal{Q}` operator (Grover operator), constructed from
                 the :math:`\mathcal{A}` operator.
-            objective_qubits: A function to determine if a measurement is part of the 'good' state
-                or 'bad' state. If a list of integers indices is passed, a state is marked as good
-                if the qubits at these indices are :math:`|1\rangle`.
+            objective_qubits: A list of qubit indices. A measurement outcome is classified as
+                'good' state if all objective qubits are in state :math:`|1\rangle`, otherwise it
+                is classified as 'bad'.
+            post_processing: A mapping applied to the estimate of :math:`0 \leq a \leq 1`,
+                usually used to map the estimate to a target interval.
             quantum_instance: The backend (or `QuantumInstance`) to execute the circuits on.
             a_factory: Deprecated, use ``state_in``. The A operator, specifying the QAE problem.
             q_factory: Deprecated, use ``grover_operator``.
@@ -110,7 +112,6 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
                           'no earlier than 3 months after the release. You should use the '
                           'objective_qubits argument instead.', DeprecationWarning, stacklevel=2)
             self._i_objective = i_objective
-            self._objective_qubits = [i_objective]
         else:
             self._objective_qubits = objective_qubits
 
@@ -181,6 +182,10 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
         Returns:
             The criterion as callable of list of qubit indices.
         """
+        # check deprecated argument
+        if self._i_objective is not None:
+            return [self._i_objective]
+
         if self._objective_qubits is not None:
             return self._objective_qubits
 
@@ -302,8 +307,8 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
             int: the index of the objective qubit
         """
         warnings.warn('The i_objective property is deprecated as of 0.8.0 and will be removed no '
-                      'earlier than 3 months after the release. You should use the objective_qubits '
-                      'property instead.', DeprecationWarning, stacklevel=2)
+                      'earlier than 3 months after the release. You should use the '
+                      'objective_qubits property instead.', DeprecationWarning, stacklevel=2)
 
         if self._i_objective is not None:
             return self._i_objective
@@ -332,8 +337,8 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
             be set before the A/Q operators and in that case checks cannot be done.
         """
         warnings.warn('The i_objective setter is deprecated as of 0.8.0 and will be removed no '
-                      'earlier than 3 months after the release. You should use the objective_qubits '
-                      'setter instead, which takes a List[int] instead of an int.',
+                      'earlier than 3 months after the release. You should use the '
+                      'objective_qubits setter instead, which takes a List[int] instead of an int.',
                       DeprecationWarning, stacklevel=2)
         self._i_objective = i_objective
 
