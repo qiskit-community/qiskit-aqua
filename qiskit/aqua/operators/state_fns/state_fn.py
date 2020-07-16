@@ -190,18 +190,33 @@ class StateFn(OperatorBase):
             temp = temp.tensor(self)
         return temp
 
+    @staticmethod
+    def _check_same_num_qubits(object):
+        n_qubits = object.num_qubits
+        if isinstance(n_qubits, list):
+            n_qubits0 = n_qubits[0]
+            if not all(n_qubits1 == n_qubits0 for n_qubits1 in n_qubits):
+                raise ValueError('All operators in ListOp must have the same number of qubits for the requested operation.')
+            n_qubits = n_qubits0
+
+        return n_qubits
+
     def _check_zero_for_composition_and_expand(self, other: OperatorBase) \
             -> Tuple[OperatorBase, OperatorBase]:
+        from qiskit.aqua.operators import ListOp
+        other_num_qubits = StateFn._check_same_num_qubits(other)
+        self_num_qubits = StateFn._check_same_num_qubits(self)
+
         new_self = self
         # pylint: disable=import-outside-toplevel
-        if not self.num_qubits == other.num_qubits:
+        if not self_num_qubits == other_num_qubits:
             from qiskit.aqua.operators import Zero
             if self == StateFn({'0': 1}, is_measurement=True):
                 # Zero is special - we'll expand it to the correct qubit number.
-                new_self = StateFn('0' * self.num_qubits, is_measurement=True)
+                new_self = StateFn('0' * self_num_qubits, is_measurement=True)
             elif other == Zero:
                 # Zero is special - we'll expand it to the correct qubit number.
-                other = StateFn('0' * self.num_qubits)
+                other = StateFn('0' * self_num_qubits)
             else:
                 raise ValueError(
                     'Composition is not defined over Operators of different dimensions, {} and {}, '
@@ -252,7 +267,8 @@ class StateFn(OperatorBase):
         # pylint: disable=import-outside-toplevel
         from qiskit.aqua.operators import CircuitOp
 
-        if self.primitive == {'0' * self.num_qubits: 1.0} and isinstance(other, CircuitOp):
+        self_num_qubits = StateFn._check_same_num_qubits(self)
+        if self.primitive == {'0' * self_num_qubits: 1.0} and isinstance(other, CircuitOp):
             # Returning CircuitStateFn
             return StateFn(other.primitive, is_measurement=self.is_measurement,
                            coeff=self.coeff * other.coeff)

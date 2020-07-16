@@ -128,8 +128,8 @@ class ListOp(OperatorBase):
         return reduce(set.union, [op.primitive_strings() for op in self.oplist])
 
     @property
-    def num_qubits(self) -> int:
-        return self.oplist[0].num_qubits
+    def num_qubits(self) -> List[int]:
+        return [op.num_qubits for op in self.oplist]
 
     def add(self, other: OperatorBase) -> OperatorBase:
         if self == other:
@@ -207,7 +207,10 @@ class ListOp(OperatorBase):
         return ComposedOp([self] * exponent)
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
-        if self.num_qubits > 16 and not massive:
+        self_num_qubits = self.num_qubits
+        if isinstance(self_num_qubits, list):
+            self_num_qubits = max(self_num_qubits)
+        if self_num_qubits > 16 and not massive:
             raise ValueError(
                 'to_matrix will return an exponentially large matrix, '
                 'in this case {0}x{0} elements.'
