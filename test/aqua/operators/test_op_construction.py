@@ -28,7 +28,7 @@ from qiskit.circuit.library import CZGate, ZGate
 
 from qiskit.aqua.operators import (
     X, Y, Z, I, CX, T, H, PrimitiveOp, SummedOp, PauliOp, Minus, CircuitOp, MatrixOp,
-    OperatorBase)
+)
 
 
 # pylint: disable=invalid-name
