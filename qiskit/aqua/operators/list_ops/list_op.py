@@ -297,9 +297,16 @@ class ListOp(OperatorBase):
 
         return self.to_matrix_op(massive=massive).log_i(massive=massive)  # type: ignore
 
-    def __str__(self) -> str:
-        main_string = "{}(\n[{}])".format(self.__class__.__name__, ',\n'.join(
-            [str(op) for op in self.oplist]))
+    @staticmethod
+    def _indent(lines: str, indentation: str = "  ") -> str:
+        """ Indented representation to allow pretty representation of nested operators. """
+        return indentation + lines.replace("\n", f"\n{indentation}").rstrip(indentation)
+
+    def __str__(self, indentation: str = "  ") -> str:
+        content_string = ',\n'.join([str(op) for op in self.oplist])
+        main_string = "{}([\n{}\n])".format(
+            self.__class__.__name__,
+            self._indent(content_string, indentation=indentation))
         if self.abelian:
             main_string = 'Abelian' + main_string
         if self.coeff != 1.0:

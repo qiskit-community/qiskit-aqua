@@ -542,8 +542,3 @@ class OperatorBase(ABC):
     @abstractmethod
     def __str__(self) -> str:
         raise NotImplementedError
-
-    @staticmethod
-    def indent(lines: str, indentation: str="\t") -> str:
-        """ Indented representation to allow pretty representation of nested operators. """
-        return indentation + lines.replace("\n", f"\n{indentation}").rstrip(indentation)
