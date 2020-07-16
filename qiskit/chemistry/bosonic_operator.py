@@ -144,7 +144,7 @@ class BosonicOperator:
 
         return final_list
 
-    def combine(self, modes: List[int], paulis: List[Pauli], coeff: float) -> WeightedPauliOperator:
+    def combine(self, modes: List[int], paulis: List[List[Tuple[float, Pauli]]], coeff: float) -> WeightedPauliOperator:
         """ Combines the paulis of each mode together in one WeightedPauliOperator.
 
         Args:
