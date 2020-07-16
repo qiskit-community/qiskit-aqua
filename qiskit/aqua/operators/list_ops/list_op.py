@@ -297,18 +297,14 @@ class ListOp(OperatorBase):
 
         return self.to_matrix_op(massive=massive).log_i(massive=massive)  # type: ignore
 
-    def _indented_str(self, indent=0) -> str:
-        indentation = indent * "\t"
-        main_string = "{}([\n{}\n{}])".format(self.__class__.__name__, ',\n'.format(indentation).join(
-            [op._indented_str(indent=indent + 1) for op in self.oplist]), indentation)
+    def __str__(self) -> str:
+        main_string = "{}(\n[{}])".format(self.__class__.__name__, ',\n'.join(
+            [str(op) for op in self.oplist]))
         if self.abelian:
             main_string = 'Abelian' + main_string
         if self.coeff != 1.0:
             main_string = '{} * '.format(self.coeff) + main_string
-        return indentation + main_string
-
-    def __str__(self) -> str:
-        return self._indented_str()
+        return main_string
 
     def __repr__(self) -> str:
         return "{}({}, coeff={}, abelian={})".format(self.__class__.__name__,
