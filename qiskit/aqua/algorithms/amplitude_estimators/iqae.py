@@ -12,7 +12,7 @@
 # that they have been altered from the originals.
 """The Iterative Quantum Amplitude Estimation Algorithm."""
 
-from typing import Optional, Union, List, Tuple, Dict, Any
+from typing import Optional, Union, List, Tuple, Callable
 import logging
 import numpy as np
 from scipy.stats import beta
@@ -44,8 +44,12 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
     def __init__(self, epsilon: float, alpha: float,
                  confint_method: str = 'beta', min_ratio: float = 2,
-                 a_factory: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
-                 q_factory: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
+                 state_in: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
+                 grover_operator: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
+                 is_good_state: Optional[Union[callable, List[int]]] = None,
+                 post_processing: Optional[Callable[[float], float]] = None,
+                 a_factory: Optional[CircuitFactory] = None,
+                 q_factory: Optional[CircuitFactory] = None,
                  i_objective: Optional[int] = None,
                  initial_state: Optional[QuantumCircuit] = None,
                  quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
@@ -76,7 +80,26 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         validate_range('alpha', alpha, 0, 1)
         validate_in_set('confint_method', confint_method, {'chernoff', 'beta'})
 
-        super().__init__(a_factory=a_factory, q_factory=q_factory, i_objective=i_objective,
+        # support legacy input if passed as positional arguments
+        if isinstance(state_in, CircuitFactory):
+            a_factory = state_in
+            state_in = None
+
+        if isinstance(grover_operator, CircuitFactory):
+            q_factory = grover_operator
+            grover_operator = None
+
+        if isinstance(is_good_state, int):
+            i_objective = is_good_state
+            is_good_state = None
+
+        super().__init__(state_in=state_in,
+                         grover_operator=grover_operator,
+                         is_good_state=is_good_state,
+                         post_processing=post_processing,
+                         a_factory=a_factory,
+                         q_factory=q_factory,
+                         i_objective=i_objective,
                          quantum_instance=quantum_instance)
 
         # store parameters
@@ -172,9 +195,25 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         Returns:
             The circuit Q^k A \|0>.
         """
-        # set up circuit
-        if isinstance(self.a_factory, CircuitFactory) and \
-                isinstance(self.q_factory, CircuitFactory):
+        if self.state_in is not None:   # using circuits, not CircuitFactory
+            num_qubits = max(self.state_in.num_qubits, self.grover_operator.num_qubits)
+            circuit = QuantumCircuit(num_qubits, name='circuit')
+
+            if self._initial_state is not None:
+                circuit.compose(self._initial_state, inplace=True)
+
+            # add classical register if needed
+            if measurement:
+                c = ClassicalRegister(len(self.is_good_state))
+                circuit.add_register(c)
+
+            # add A operator
+            circuit.compose(self.state_in, inplace=True)
+
+            # add Q^k
+            if k != 0:
+                circuit.compose(self.grover_operator.power(k), inplace=True)
+        else:  # deprecated CircuitFactory
             q = QuantumRegister(self.a_factory.num_target_qubits, 'q')
             circuit = QuantumCircuit(q, name='circuit')
 
@@ -199,31 +238,13 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             # add Q^k
             if k != 0:
                 self.q_factory.build_power(circuit, q, k, q_aux)
-        else:  # circuit
-            num_qubits = max(self.a_factory.num_qubits, self.q_factory.num_qubits)
-            circuit = QuantumCircuit(num_qubits, name='circuit')
-
-            if self._initial_state is not None:
-                circuit.compose(self._initial_state, inplace=True)
-
-            # add classical register if needed
-            if measurement:
-                c = ClassicalRegister(1)
-                circuit.add_register(c)
-
-            # add A operator
-            circuit.compose(self.a_factory, inplace=True)
-
-            # add Q^k
-            if k != 0:
-                circuit.compose(self.q_factory.repeat(k), inplace=True)
 
             # add optional measurement
         if measurement:
             # real hardware can currently not handle operations after measurements, which might
             # happen if the circuit gets transpiled, hence we're adding a safeguard-barrier
             circuit.barrier()
-            circuit.measure(self.i_objective, 0)
+            circuit.measure(self.is_good_state, *c)
 
         return circuit
 
@@ -240,20 +261,24 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             If a dict is given, return (#one-counts, #one-counts/#all-counts),
             otherwise Pr(measure '1' in the last qubit).
         """
+        if self.state_in is not None:
+            num_qubits = self.state_in.num_qubits - self.state_in.num_ancillas
+            objective_qubits = self.is_good_state
+        else:
+            num_qubits = self.a_factory.num_target_qubits
+            objective_qubits = [self.i_objective]
+
         if isinstance(counts_or_statevector, dict):
-            one_counts = counts_or_statevector.get('1', 0)
+            one_counts = counts_or_statevector.get('1' * len(objective_qubits), 0)
             return int(one_counts), one_counts / sum(counts_or_statevector.values())
         else:
             statevector = counts_or_statevector
-            if isinstance(self.a_factory, CircuitFactory):
-                num_qubits = self.a_factory.num_target_qubits
-            else:
-                num_qubits = self.a_factory.num_qubits
 
             # sum over all amplitudes where the objective qubit is 1
             prob = 0
             for i, amplitude in enumerate(statevector):
-                if ('{:0%db}' % num_qubits).format(i)[-(1 + self.i_objective)] == '1':
+                bitstr = ('{:0%db}' % num_qubits).format(i)
+                if all(bitstr[-(1 + index)] == '1' for index in objective_qubits):
                     prob = prob + np.abs(amplitude)**2
 
             return prob
@@ -307,9 +332,10 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         return lower, upper
 
     def _run(self) -> dict:
-        # check if A factory has been set
-        if self.a_factory is None:
-            raise AquaError("a_factory must be set!")
+        # check if A factory or state_in has been set
+        if self.state_in is None:
+            if self.a_factory is None:  # getter emits deprecation warnings, therefore nest
+                raise AquaError('The A operator must be set!')
 
         # initialize memory variables
         powers = [0]  # list of powers k: Q^k, (called 'k' in paper)
@@ -421,8 +447,8 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         value = np.mean(a_confidence_interval)
 
         # transform to estimate
-        estimation = self.a_factory.value_to_estimation(value)
-        confidence_interval = [self.a_factory.value_to_estimation(x) for x in a_confidence_interval]
+        estimation = self.post_processing(value)
+        confidence_interval = [self.post_processing(x) for x in a_confidence_interval]
 
         # add result items to the results dictionary
         self._ret = {

@@ -9,9 +9,10 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
 """The Maximum Likelihood Amplitude Estimation algorithm."""
 
-from typing import Optional, List, Union, Tuple, Dict, Any
+from typing import Optional, List, Union, Tuple, Callable
 import logging
 import numpy as np
 from scipy.optimize import brute
@@ -41,6 +42,10 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
     """
 
     def __init__(self, num_oracle_circuits: int,
+                 state_in: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
+                 grover_operator: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
+                 is_good_state: Optional[Union[callable, List[int]]] = None,
+                 post_processing: Optional[Callable[[float], float]] = None,
                  a_factory: Optional[CircuitFactory] = None,
                  q_factory: Optional[CircuitFactory] = None,
                  i_objective: Optional[int] = None,
@@ -63,7 +68,27 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             quantum_instance: Quantum Instance or Backend
         """
         validate_min('num_oracle_circuits', num_oracle_circuits, 1)
-        super().__init__(a_factory=a_factory, q_factory=q_factory, i_objective=i_objective,
+
+        # support legacy input if passed as positional arguments
+        if isinstance(state_in, CircuitFactory):
+            a_factory = state_in
+            state_in = None
+
+        if isinstance(grover_operator, CircuitFactory):
+            q_factory = grover_operator
+            grover_operator = None
+
+        if isinstance(is_good_state, int):
+            i_objective = is_good_state
+            is_good_state = None
+
+        super().__init__(state_in=state_in,
+                         grover_operator=grover_operator,
+                         is_good_state=is_good_state,
+                         post_processing=post_processing,
+                         a_factory=a_factory,
+                         q_factory=q_factory,
+                         i_objective=i_objective,
                          quantum_instance=quantum_instance)
 
         # get parameters
@@ -79,20 +104,20 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         self._circuits = []  # type: List[QuantumCircuit]
         self._ret = {}  # type: Dict[str, Any]
 
-    @property
-    def _num_qubits(self) -> int:
-        """Return the number of qubits needed in the circuit.
+    # @property
+    # def _num_qubits(self) -> int:
+    #     """Return the number of qubits needed in the circuit.
 
-        Returns:
-            The total number of qubits.
-        """
-        if self.a_factory is None:  # if A factory is not set, no qubits are specified
-            return 0
+    #     Returns:
+    #         The total number of qubits.
+    #     """
+    #     if self.a_factory is None:  # if A factory is not set, no qubits are specified
+    #         return 0
 
-        num_ancillas = self.q_factory.required_ancillas()
-        num_qubits = self.a_factory.num_target_qubits + num_ancillas
+    #     num_ancillas = self.q_factory.required_ancillas()
+    #     num_qubits = self.a_factory.num_target_qubits + num_ancillas
 
-        return num_qubits
+    #     return num_qubits
 
     def construct_circuits(self, measurement: bool = False) -> List[QuantumCircuit]:
         """Construct the Amplitude Estimation w/o QPE quantum circuits.
@@ -105,42 +130,70 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         """
         # keep track of the Q-oracle queries
         self._ret['num_oracle_queries'] = 0
-
-        # construct first part of circuit
-        q = QuantumRegister(self.a_factory.num_target_qubits, 'q')
-        qc_0 = QuantumCircuit(q, name='qc_a')  # 0 applications of Q, only a single A operator
-
-        # get number of ancillas
-        num_ancillas = np.maximum(self.a_factory.required_ancillas(),
-                                  self.q_factory.required_ancillas())
-
-        q_aux = None
-        # pylint: disable=comparison-with-callable
-        if num_ancillas > 0:
-            q_aux = QuantumRegister(num_ancillas, 'aux')
-            qc_0.add_register(q_aux)
-
-        # add classical register if needed
-        if measurement:
-            c = ClassicalRegister(1)
-            qc_0.add_register(c)
-
-        self.a_factory.build(qc_0, q, q_aux)
-
         self._circuits = []
-        for k in self._evaluation_schedule:
-            qc_k = qc_0.copy(name='qc_a_q_%s' % k)
 
-            if k != 0:
-                self.q_factory.build_power(qc_k, q, k, q_aux)
+        if self.state_in is not None:   # using circuits, not CircuitFactory
+            num_qubits = max(self.state_in.num_qubits, self.grover_operator.num_qubits)
+            q = QuantumRegister(num_qubits, 'q')
+            qc_0 = QuantumCircuit(q, name='qc_a')  # 0 applications of Q, only a single A operator
 
+            # add classical register if needed
             if measurement:
-                # real hardware can currently not handle operations after measurements, which might
-                # happen if the circuit gets transpiled, hence we're adding a safeguard-barrier
-                qc_k.barrier()
-                qc_k.measure(q[self.i_objective], c[0])
+                c = ClassicalRegister(len(self.is_good_state))
+                qc_0.add_register(c)
 
-            self._circuits += [qc_k]
+            qc_0.compose(self.state_in, inplace=True)
+
+            for k in self._evaluation_schedule:
+                qc_k = qc_0.copy(name='qc_a_q_%s' % k)
+
+                if k != 0:
+                    qc_k.compose(self.grover_operator.power(k), inplace=True)
+
+                if measurement:
+                    # real hardware can currently not handle operations after measurements,
+                    # which might happen if the circuit gets transpiled, hence we're adding
+                    # a safeguard-barrier
+                    qc_k.barrier()
+                    qc_k.measure(self.is_good_state, *c)
+
+                self._circuits += [qc_k]
+        else:  # using deprecated CircuitFactory
+            # construct first part of circuit
+            q = QuantumRegister(self.a_factory.num_target_qubits, 'q')
+            qc_0 = QuantumCircuit(q, name='qc_a')  # 0 applications of Q, only a single A operator
+
+            # get number of ancillas
+            num_ancillas = np.maximum(self.a_factory.required_ancillas(),
+                                      self.q_factory.required_ancillas())
+
+            q_aux = None
+            # pylint: disable=comparison-with-callable
+            if num_ancillas > 0:
+                q_aux = QuantumRegister(num_ancillas, 'aux')
+                qc_0.add_register(q_aux)
+
+            # add classical register if needed
+            if measurement:
+                c = ClassicalRegister(1)
+                qc_0.add_register(c)
+
+            self.a_factory.build(qc_0, q, q_aux)
+
+            for k in self._evaluation_schedule:
+                qc_k = qc_0.copy(name='qc_a_q_%s' % k)
+
+                if k != 0:
+                    self.q_factory.build_power(qc_k, q, k, q_aux)
+
+                if measurement:
+                    # real hardware can currently not handle operations after measurements,
+                    # which might happen if the circuit gets transpiled, hence we're adding
+                    # a safeguard-barrier
+                    qc_k.barrier()
+                    qc_k.measure(q[self.i_objective], c[0])
+
+                self._circuits += [qc_k]
 
         return self._circuits
 
@@ -152,16 +205,29 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         Args:
             statevectors: A list of statevectors.
 
+        Raises:
+            AquaError: If self._circuits is None.
+
         Returns:
             The corresponding probabilities.
         """
+        if self._circuits is None:
+            raise AquaError('Before calling _evaluate_statevector_results, _circuits must be set. '
+                            'Therefore call construct_circuit() first.')
+        num_qubits = self._circuits[0].num_qubits
+
+        if self.state_in is not None:
+            objective_qubits = self.is_good_state
+        else:
+            objective_qubits = [self.i_objective]
+
         probabilities = []
         for sv in statevectors:
             p_k = 0.0
             for i, a in enumerate(sv):
                 p = np.abs(a)**2
-                b = ('{0:%sb}' % self._num_qubits).format(i)[::-1]
-                if b[self.i_objective] == '1':
+                b = ('{0:%sb}' % num_qubits).format(i)[::-1]
+                if all(b[index] == '1' for index in objective_qubits):
                     p_k += p
             probabilities += [p_k]
 
@@ -183,7 +249,6 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 probabilities = self._evaluate_statevectors(self._ret['statevectors'])
                 one_hits = probabilities
                 all_hits = np.ones_like(one_hits)
-
             else:
                 for c in self._ret['counts']:
                     one_hits += [c.get('1', 0)]  # return 0 if no key '1' found
@@ -287,7 +352,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         normal_quantile = norm.ppf(1 - alpha / 2)
         confint = np.real(self._ret['value']) + \
             normal_quantile / np.sqrt(fisher_information) * np.array([-1, 1])
-        mapped_confint = [self.a_factory.value_to_estimation(bound) for bound in confint]
+        mapped_confint = [self.post_processing(bound) for bound in confint]
         return mapped_confint
 
     def _likelihood_ratio_confint(self, alpha: float = 0.05,
@@ -332,7 +397,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         # then yield [0, pi/2]
         confint = [self._safe_min(above_thres, default=0),
                    self._safe_max(above_thres, default=(np.pi / 2))]
-        mapped_confint = [self.a_factory.value_to_estimation(np.sin(bound)**2) for bound in confint]
+        mapped_confint = [self.post_processing(np.sin(bound)**2) for bound in confint]
 
         return mapped_confint
 
@@ -407,9 +472,10 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         return self._compute_mle_safe()
 
     def _run(self) -> dict:
-        # check if A factory has been set
-        if self.a_factory is None:
-            raise AquaError("a_factory must be set!")
+        # check if A factory or state_in has been set
+        if self.state_in is None:
+            if self.a_factory is None:  # getter emits deprecation warnings, therefore nest
+                raise AquaError('The A operator must be set!')
 
         if self._quantum_instance.is_statevector:
 
@@ -438,7 +504,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         # run maximum likelihood estimation and construct results
         self._ret['theta'] = self._run_mle()
         self._ret['value'] = np.sin(self._ret['theta'])**2
-        self._ret['estimation'] = self.a_factory.value_to_estimation(self._ret['value'])
+        self._ret['estimation'] = self.post_processing(self._ret['value'])
         self._ret['fisher_information'] = self._compute_fisher_information()
         self._ret['num_oracle_queries'] = shots * sum(k for k in self._evaluation_schedule)
 

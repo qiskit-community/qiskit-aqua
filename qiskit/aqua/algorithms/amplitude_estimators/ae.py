@@ -89,6 +89,20 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 with the state \|1> and 'bad' solutions with the state \|0>.
         """
         validate_min('num_eval_qubits', num_eval_qubits, 1)
+
+        # support legacy input if passed as positional arguments
+        if isinstance(state_in, CircuitFactory):
+            a_factory = state_in
+            state_in = None
+
+        if isinstance(grover_operator, CircuitFactory):
+            q_factory = grover_operator
+            grover_operator = None
+
+        if isinstance(is_good_state, int):
+            i_objective = is_good_state
+            is_good_state = None
+
         super().__init__(state_in=state_in,
                          grover_operator=grover_operator,
                          is_good_state=is_good_state,

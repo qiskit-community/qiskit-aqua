@@ -152,16 +152,16 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
         if self._grover_operator is not None:
             return self._grover_operator
 
-        if self._state_in is not None and isinstance(self._is_good_state, list):
+        if self.state_in is not None and isinstance(self.is_good_state, list):
             from qiskit.aqua.components.uncertainty_problems.bit_oracle import BitOracle
             from qiskit.aqua.components.uncertainty_problems.grover_operator import GroverOperator
 
             # build the reflection about the bad state
-            num_state_qubits = self._state_in.num_qubits - self._state_in.num_ancillas
-            oracle = BitOracle(num_state_qubits, objective_qubits=self._is_good_state)
+            num_state_qubits = self.state_in.num_qubits - self.state_in.num_ancillas
+            oracle = BitOracle(num_state_qubits, objective_qubits=self.is_good_state)
 
             # construct the grover operator
-            return GroverOperator(oracle, self._state_in)
+            return GroverOperator(oracle, self.state_in)
 
         return None
 
@@ -181,7 +181,14 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
         Returns:
             The criterion as callable of list of qubit indices.
         """
-        return self._is_good_state
+        if self._is_good_state is not None:
+            return self._is_good_state
+
+        # by default the last qubit of the input state is the objective qubit
+        if self._state_in is not None:
+            return [self._state_in.num_qubits - 1]
+
+        return None
 
     @is_good_state.setter
     def is_good_state(self, is_good_state: Union[callable, List[int]]):
