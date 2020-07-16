@@ -272,7 +272,7 @@ class QGAN(QuantumAlgorithm):
         Train the qGAN
 
         Raises:
-            AquaError: Batch size bigger than the number of items in the data set, e.g., bc of truncation to bounds
+            AquaError: Batch size bigger than the number of items in the truncated data set
         """
         if self._snapshot_dir is not None:
             with open(os.path.join(self._snapshot_dir, 'output.csv'), mode='w') as csv_file:
