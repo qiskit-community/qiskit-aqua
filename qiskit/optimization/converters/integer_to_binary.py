@@ -77,7 +77,7 @@ class IntegerToBinary(QuadraticProgramConverter):
         if self._src.get_num_integer_vars() > 0:
 
             # Initialize new QP
-            self._dst = QuadraticProgram()
+            self._dst = QuadraticProgram(name=problem.name)
 
             # Declare variables
             for x in self._src.variables:

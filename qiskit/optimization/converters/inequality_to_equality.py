@@ -71,7 +71,7 @@ class InequalityToEquality(QuadraticProgramConverter):
             QiskitOptimizationError: If an unsupported sense is specified.
         """
         self._src = copy.deepcopy(problem)
-        self._dst = QuadraticProgram()
+        self._dst = QuadraticProgram(name=problem.name)
 
         # set a converting mode
         mode = self._mode

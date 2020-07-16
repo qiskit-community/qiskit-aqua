@@ -57,7 +57,7 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
 
         # create empty QuadraticProgram model
         self._src = copy.deepcopy(problem)  # deep copy
-        self._dst = QuadraticProgram()
+        self._dst = QuadraticProgram(name=problem.name)
 
         # If penalty is None, set the penalty coefficient by _auto_define_penalty()
         if self._penalty is None:
