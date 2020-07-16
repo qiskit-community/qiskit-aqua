@@ -27,7 +27,7 @@ from qiskit.quantum_info.operators import Operator, Pauli
 from qiskit.circuit.library import CZGate, ZGate
 
 from qiskit.aqua.operators import (
-    X, Y, Z, I, CX, T, H, PrimitiveOp, SummedOp, PauliOp, Minus, CircuitOp, MatrixOp,
+    X, Y, Z, I, CX, T, H, PrimitiveOp, SummedOp, PauliOp, Minus, CircuitOp, MatrixOp
 )
 
 
