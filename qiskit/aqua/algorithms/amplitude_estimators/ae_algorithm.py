@@ -176,22 +176,28 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
         self._grover_operator = grover_operator
 
     @property
-    def objective_qubits(self) -> Union[callable, List[int]]:
+    def objective_qubits(self) -> List[int]:
         """Get the criterion for a measurement outcome to be in a 'good' state.
 
         Returns:
-            The criterion as callable of list of qubit indices.
+            The criterion as list of qubit indices.
         """
-        # check deprecated argument
-        if self._i_objective is not None:
-            return [self._i_objective]
-
         if self._objective_qubits is not None:
             return self._objective_qubits
 
         # by default the last qubit of the input state is the objective qubit
         if self._state_in is not None:
             return [self._state_in.num_qubits - 1]
+
+        # check the deprecated locations (cannot use property since this emits a warning)
+        if self._i_objective is not None:
+            return [self._i_objective]
+
+        if self._q_factory is not None:
+            return [self._q_factory.i_objective]
+
+        if self._a_factory is not None:
+            return [self._a_factory.num_target_qubits - 1]
 
         return None
 
@@ -313,14 +319,11 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
         if self._i_objective is not None:
             return self._i_objective
 
-        if self._q_factory is not None and hasattr(self._q_factory, 'i_objective'):
+        if self._q_factory is not None:
             return self._q_factory.i_objective
 
         if self._a_factory is not None:
-            if isinstance(self._a_factory, CircuitFactory):
-                return self._a_factory.num_target_qubits - 1
-            else:
-                return (self._a_factory.num_qubits - self._a_factory.num_ancillas) - 1
+            return self._a_factory.num_target_qubits - 1
 
         return None
 

@@ -15,7 +15,7 @@
 """The Bit oracle."""
 
 from typing import List
-from qiskit.circuit import QuantumCircuit
+from qiskit.circuit import QuantumCircuit, QuantumRegister, AncillaRegister
 from qiskit.circuit.library import MCXGate
 
 
@@ -39,16 +39,19 @@ class BitOracle(QuantumCircuit):
         Raises:
             ValueError: If ``objective_qubits`` contains an invalid index.
         """
-        self._num_ancilla_qubits = MCXGate.get_num_ancilla_qubits(len(objective_qubits) - 1, mcx)
-        super().__init__(num_state_qubits + self._num_ancilla_qubits, name=name)
+        qr_state = QuantumRegister(num_state_qubits, 'state')
+        super().__init__(qr_state, name=name)
+
+        num_ancillas = MCXGate.get_num_ancilla_qubits(len(objective_qubits) - 1, mcx)
+        if num_ancillas > 0:
+            qr_ancilla = AncillaRegister(num_ancillas, 'ancilla')
+            self.add_register(qr_ancilla)
+        else:
+            qr_ancilla = []
 
         if any(qubit >= num_state_qubits for qubit in objective_qubits):
             raise ValueError('Qubit index out of range, max {}, provided {}'.format(
-                num_state_qubits, objective_qubits
-                )
-            )
-
-        ancilla_qubits = list(range(num_state_qubits, num_state_qubits + self._num_ancilla_qubits))
+                num_state_qubits, objective_qubits))
 
         if num_state_qubits == 1:
             self.x(0)
@@ -60,11 +63,6 @@ class BitOracle(QuantumCircuit):
             if len(objective_qubits) == 1:
                 self.x(objective_qubits[0])
             else:
-                self.mcx(objective_qubits[:-1], objective_qubits[-1], ancilla_qubits, mode=mcx)
+                self.mcx(objective_qubits[:-1], objective_qubits[-1], qr_ancilla[:], mode=mcx)
             self.h(objective_qubits[-1])
             self.x(objective_qubits)
-
-    @property
-    def num_ancilla_qubits(self) -> int:
-        """The number of ancilla qubits."""
-        return self._num_ancilla_qubits

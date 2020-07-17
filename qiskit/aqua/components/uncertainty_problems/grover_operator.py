@@ -117,25 +117,3 @@ class GroverOperator(QuantumCircuit):
         if self._insert_barriers:
             self.barrier()
         self.compose(self.state_in, list(range(self.state_in.num_qubits)), inplace=True)
-
-
-def _append(target, other, qubits=None, ancillas=None):
-    if hasattr(other, 'num_state_qubits') and hasattr(other, 'num_ancilla_qubits'):
-        num_state_qubits = other.num_state_qubits
-        num_ancilla_qubits = other.num_ancilla_qubits
-    else:
-        num_state_qubits = other.num_qubits
-        num_ancilla_qubits = 0
-
-    if qubits is None:
-        qubits = list(range(num_state_qubits))
-    elif isinstance(qubits, QuantumRegister):
-        qubits = qubits[:]
-
-    if num_ancilla_qubits > 0:
-        if ancillas is None:
-            qubits += list(range(num_state_qubits, num_state_qubits + num_ancilla_qubits))
-        else:
-            qubits += ancillas[:num_ancilla_qubits]
-
-    target.append(other.to_gate(), qubits)
