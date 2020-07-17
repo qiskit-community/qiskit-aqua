@@ -321,10 +321,12 @@ class Hamiltonian(ChemistryOperator):
                 z2_symmetries.tapering_values = self._z2symmetry_reduction
 
             logger.debug('Apply symmetry with tapering values %s', z2_symmetries.tapering_values)
-            z2_qubit_op = z2_symmetries.taper(qubit_op)
+            chop_to = 0.00000001  # Use same threshold as qubit mapping to chop tapered operator
+            z2_qubit_op = z2_symmetries.taper(qubit_op).chop(chop_to)
             z2_aux_ops = []
             for aux_op in aux_ops:
-                z2_aux_ops.append(z2_symmetries.taper(aux_op) if aux_op is not None else None)
+                z2_aux_ops.append(z2_symmetries.taper(aux_op).chop(chop_to) if aux_op is not None
+                                  else None)
 
         return z2_qubit_op, z2_aux_ops, z2_symmetries
 
