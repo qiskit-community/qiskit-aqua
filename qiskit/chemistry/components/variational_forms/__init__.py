@@ -32,5 +32,6 @@ Variational Forms
 
 """
 from .uccsd import UCCSD
+from .uvcc import UVCC
 
-__all__ = ['UCCSD']
+__all__ = ['UCCSD', 'UVCC']
