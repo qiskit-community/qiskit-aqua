@@ -16,10 +16,10 @@
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any, Optional
+from typing import Any, Optional, Union, List
 
 from .. import QiskitOptimizationError
-from ..problems.quadratic_program import QuadraticProgram
+from ..problems.quadratic_program import QuadraticProgram, Variable
 
 
 class OptimizationAlgorithm(ABC):
@@ -104,7 +104,7 @@ class OptimizationResult:
         results: The original results object returned from the optimization algorithm. This can
             contain more information than only the optimal value and function value.
         status: The termination status of the algorithm.
-        x_name: The name of the variable under optimization.
+        variables: The list of variables under optimization.
     """
 
     Status = OptimizationResultStatus
@@ -112,16 +112,23 @@ class OptimizationResult:
     def __init__(self, x: Optional[Any] = None, fval: Optional[Any] = None,
                  results: Optional[Any] = None,
                  status: OptimizationResultStatus = OptimizationResultStatus.SUCCESS,
-                 x_name: Optional[Any] = None) -> None:
+                 variables: Optional[List[Variable]] = None) -> None:
         self.x = x
-        self.x_name = x_name
+        self.variables = variables
         self.fval = fval
         self.results = results
         self.status = status
 
     def __repr__(self):
-        return '([{}] / {} / {})'.format(','.join([str(x_) for x_ in self.x]), self.fval,
-                                         self.status)
+        return 'optimal variables: [{}]\noptimal function value: {}\nstatus: {}'\
+            .format(','.join([str(x_) for x_ in self.x]), self.fval, self.status.name)
+
+    def __getitem__(self, item: Union[int, str]):
+        if isinstance(item, int):
+            return self.x[item]
+        if isinstance(item, str):
+            return self.var_dict[item]
+        raise QiskitOptimizationError("Integer or string parameter required.")
 
     @property
     def var_dict(self) -> Any:
@@ -130,27 +137,18 @@ class OptimizationResult:
         Returns:
             The pairs of variable names and values under optimization.
         """
-        if self.x is not None and self.x_name is not None and len(self.x) == len(self.x_name):
-            return dict(zip(self.x_name, self.x))
+        if self.x is not None and self.variables is not None and len(self.x) == len(self.x_names):
+            return dict(zip(self.x_names, self.x))
         return None
 
     @property
-    def x_name(self) -> Any:
-        """Returns the name of the variable under optimization.
+    def x_names(self) -> Any:
+        """Returns the list of variable names under optimization.
 
         Returns:
-            The name of the variable under optimization.
+            The list of variable names under optimization.
         """
-        return self._x_name
-
-    @x_name.setter  # type: ignore
-    def x_name(self, x_name: Any) -> None:
-        """Set a new optimal value.
-
-        Args:
-            x: The new optimal value.
-        """
-        self._x_name = x_name
+        return [variable.name for variable in self.variables]
 
     @property
     def x(self) -> Any:
@@ -168,7 +166,7 @@ class OptimizationResult:
         Args:
             x: The new optimal value.
         """
-        self._val = x
+        self._x = x
 
     @property
     def fval(self) -> Any:

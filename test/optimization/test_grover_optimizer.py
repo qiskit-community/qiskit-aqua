@@ -57,6 +57,7 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
         # Will not find a negative, should return 0.
         gmf = GroverOptimizer(1, num_iterations=1, quantum_instance=self.q_instance)
         results = gmf.solve(op)
+        print(results)
         self.assertEqual(results.x, [0, 0])
         self.assertEqual(results.fval, 0.0)
 
