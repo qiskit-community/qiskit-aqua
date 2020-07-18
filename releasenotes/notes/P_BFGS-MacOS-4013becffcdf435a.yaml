@@ -6,4 +6,4 @@ fixes:
     lead to crashes in subprocesses.
     However P_BFGS doesn't support spawn, so we revert to single process.
     Refer to
-        `#1109 <https://github.com/Qiskit/qiskit-aqua/issues/1109>` for more details.
+    `#1109 <https://github.com/Qiskit/qiskit-aqua/issues/1109>` for more details.
