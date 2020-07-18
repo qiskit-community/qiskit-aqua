@@ -122,36 +122,6 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         self._circuit = None
         self._ret = {}  # type: Dict[str, Any]
 
-    # was only needed in evaluate result but then the circuit is already constructed so we
-    # can just use circuit.num_qubits instead of this method here
-    # @property
-    # def _num_qubits(self) -> int:
-    #     """Return the number of qubits needed in the circuit.
-
-    #     Returns:
-    #         The total number of qubits.
-    #     """
-    #     if self._a_factory is None:  # if A factory is not set, no qubits are specified
-    #         return 0
-
-    #     if isinstance(self.q_factory, CircuitFactory):
-    #         num_ancillas = self.q_factory.required_ancillas_controlled()
-    #     elif hasattr(self.q_factory, 'num_ancilla_qubits'):
-    #         num_ancillas = self.q_factory.num_ancilla_qubits
-    #     else:
-    #         num_ancillas = 0
-
-    #     if isinstance(self.a_factory, CircuitFactory):
-    #         num_target_qubits = self.a_factory.num_target_qubits
-    #     elif hasattr(self.a_factory, 'num_state_qubits'):
-    #         num_target_qubits = self.a_factory.num_state_qubits
-    #     else:
-    #         num_target_qubits = self.a_factory.num_qubits
-
-    #     num_qubits = num_target_qubits + self._m + num_ancillas
-
-    #     return num_qubits
-
     def construct_circuit(self, measurement: bool = False) -> QuantumCircuit:
         """Construct the Amplitude Estimation quantum circuit.
 
@@ -162,7 +132,6 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
             The QuantumCircuit object for the constructed circuit.
         """
         if self.state_in is None:  # circuit factories
-            # TODO deprecate this and only use circuits
             iqft = QFT(self._m, do_swaps=False, inverse=True) if self._iqft is None else self._iqft
             pec = PhaseEstimationCircuit(
                 iqft=iqft, num_ancillae=self._m,
