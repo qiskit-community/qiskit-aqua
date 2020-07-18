@@ -113,14 +113,14 @@ class OptimizationResult:
                  results: Optional[Any] = None,
                  status: OptimizationResultStatus = OptimizationResultStatus.SUCCESS,
                  variables: Optional[List[Variable]] = None) -> None:
-        self._x = x
+        self._x = x  # pylint: disable=invalid-name
         self._variables = variables
         self._fval = fval
         self._results = results
         self._status = status
 
     def __repr__(self):
-        return 'optimal variables: [{}]\noptimal function value: {}\nstatus: {}'\
+        return 'optimal variables: [{}]\noptimal function value: {}\nstatus: {}' \
             .format(','.join([str(x_) for x_ in self.x]), self.fval, self.status.name)
 
     def __getitem__(self, item: Union[int, str]):
