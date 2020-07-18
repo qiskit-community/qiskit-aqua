@@ -16,7 +16,7 @@
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any, Optional, Union, List
+from typing import Any, Optional, Union, List, Dict
 
 from .. import QiskitOptimizationError
 from ..problems.quadratic_program import QuadraticProgram, Variable
@@ -113,11 +113,11 @@ class OptimizationResult:
                  results: Optional[Any] = None,
                  status: OptimizationResultStatus = OptimizationResultStatus.SUCCESS,
                  variables: Optional[List[Variable]] = None) -> None:
-        self.x = x
-        self.variables = variables
-        self.fval = fval
-        self.results = results
-        self.status = status
+        self._x = x
+        self._variables = variables
+        self._fval = fval
+        self._results = results
+        self._status = status
 
     def __repr__(self):
         return 'optimal variables: [{}]\noptimal function value: {}\nstatus: {}'\
@@ -128,10 +128,11 @@ class OptimizationResult:
             return self.x[item]
         if isinstance(item, str):
             return self.var_dict[item]
-        raise QiskitOptimizationError("Integer or string parameter required.")
+        raise QiskitOptimizationError("Integer or string parameter required, instead "
+                                      + type(item).__name__ + " provided.")
 
     @property
-    def var_dict(self) -> Any:
+    def variables(self) -> Optional[Dict[str, int]]:
         """Returns the pairs of variable names and values under optimization.
 
         Returns:
@@ -142,13 +143,15 @@ class OptimizationResult:
         return None
 
     @property
-    def x_names(self) -> Any:
+    def x_names(self) -> Optional[List[str]]:
         """Returns the list of variable names under optimization.
 
         Returns:
             The list of variable names under optimization.
         """
-        return [variable.name for variable in self.variables]
+        if self._variables is None:
+            return None
+        return [variable.name for variable in self._variables]
 
     @property
     def x(self) -> Any:

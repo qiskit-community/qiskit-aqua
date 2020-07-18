@@ -174,17 +174,12 @@ class ADMMOptimizationResult(OptimizationResult):
                          variables=variables,
                          fval=fval,
                          results=results or state)
-        self.state = state
+        self._state = state
 
     @property
     def state(self) -> Optional[ADMMState]:
         """ returns state """
         return self._state
-
-    @state.setter
-    def state(self, state: Optional[ADMMState]):
-        """ set state """
-        self._state = state
 
 
 class ADMMOptimizer(OptimizationAlgorithm):
