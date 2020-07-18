@@ -1,19 +1,3 @@
-# -*- coding: utf-8 -*-
-
-# This code is part of Qiskit.
-#
-# (C) Copyright IBM 2020.
-#
-# This code is licensed under the Apache License, Version 2.0. You may
-# obtain a copy of this license in the LICENSE.txt file in the root directory
-# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
-#
-# Any modifications or derivative works of this code must retain this
-# copyright notice, and modified files need to carry a notice indicating
-# that they have been altered from the originals.
-
-""" Bosonic Operator. """
-
 import copy
 import logging
 from typing import List, Tuple
@@ -206,3 +190,33 @@ class BosonicOperator:
             raise ValueError('Only the direct mapping is implemented')
 
         return qubit_op
+
+    def print_exact_states(self, vecs:np.ndarray, energies:np.ndarray, threshold:float=1e-3):
+
+        for v in range(len(vecs)):
+            vec = vecs[v]
+            new_vec = np.zeros(len(vec), dtype=np.complex64)
+            for i in range(len(vec)):
+                if np.real(np.conj(vec[i]) * vec[i]) > threshold:
+                    new_vec[i] = vec[i]
+
+            indices = np.nonzero(new_vec)[0]
+            printmsg = True
+            for i in indices:
+                bin_i = np.frombuffer(np.binary_repr(i, width=sum(self._basis)).encode('utf-8'), dtype='S1').astype(int)
+                count = 0
+                nq = 0
+                for m in range(self._num_modes):
+                    sub_bin = bin_i[nq:nq + self._basis[m]]
+                    occ_i = 0
+                    for idx_i in sub_bin:
+                        occ_i += idx_i
+                    if occ_i != 1:
+                        break
+                    count += 1
+                    nq += self._basis[m]
+                if count == self._num_modes:
+                    if printmsg:
+                        print('\n -', v, energies[v])
+                        printmsg = False
+                    print(vec[i], np.binary_repr(i, width=sum(self._basis)))
