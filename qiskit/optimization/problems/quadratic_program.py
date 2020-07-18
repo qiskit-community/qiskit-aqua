@@ -806,7 +806,7 @@ class QuadraticProgram:
             return model_name
 
         model_reader = ModelReader()
-        model = model_reader.read(pathname=filename, model_name=_parse_problem_name(filename))
+        model = model_reader.read(filename, model_name=_parse_problem_name(filename))
         self.from_docplex(model)
 
     def write_to_lp_file(self, filename: str) -> None:
