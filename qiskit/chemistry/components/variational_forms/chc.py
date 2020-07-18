@@ -52,6 +52,7 @@ class CHC(VariationalForm):
         else:
             self._entangler_map = VariationalForm.validate_entangler_map(entangler_map, num_qubits)
         self._initial_state = initial_state
+        self._support_parameterized_circuit = False
 
     def construct_circuit(self, parameters: np.ndarray, q:QuantumRegister=None):
         """

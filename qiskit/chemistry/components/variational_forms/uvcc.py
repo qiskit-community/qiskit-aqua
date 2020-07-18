@@ -85,7 +85,7 @@ class UVCC(VariationalForm):
 
         self._logging_construct_circuit = True
         self._shallow_circuit_concat = shallow_circuit_concat
-
+        self._support_parameterized_circuit = False
 
     def _build_hopping_operators(self):
         from .uvcc import UVCC
