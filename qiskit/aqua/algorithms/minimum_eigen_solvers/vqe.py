@@ -332,7 +332,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         if self.expectation is None:
             self._try_set_expectation_value_from_factory()
 
-        # If setting the expecation failed, raise an Error:
+        # If setting the expectation failed, raise an Error:
         if self.expectation is None:
             raise AquaError('No expectation set and could not automatically set one, please '
                             'try explicitly setting an expectation or specify a backend so it '
@@ -351,7 +351,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
             parameter: Parameters for the ansatz circuit.
 
         Returns:
-            A list of the circuits used to compute the expecation value.
+            A list of the circuits used to compute the expectation value.
         """
         expect_op = self.construct_expectation(parameter).to_circuit_op()
 
