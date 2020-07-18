@@ -127,7 +127,7 @@ class OptimizationResult:
         if isinstance(item, int):
             return self.x[item]
         if isinstance(item, str):
-            return self.var_dict[item]
+            return self.variables[item]
         raise QiskitOptimizationError("Integer or string parameter required, instead "
                                       + type(item).__name__ + " provided.")
 
