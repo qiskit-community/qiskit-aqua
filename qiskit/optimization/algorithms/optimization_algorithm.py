@@ -119,11 +119,12 @@ class OptimizationResult:
         self._results = results
         self._status = status
         self._variable_names = [variable.name for variable in self._variables]
-        self._variables_dict = dict(zip(self._variable_names or [], self._x or []))
+        self._variables_dict = dict(zip(self._variable_names, self._x))
 
     def __repr__(self):
+        self._x = self._x if self._x is not None else []
         return 'optimal variables: [{}]\noptimal function value: {}\nstatus: {}' \
-            .format(','.join([str(x_) for x_ in self.x or []]), self.fval, self.status.name)
+            .format(','.join([str(x_) for x_ in self._x]), self._fval, self._status.name)
 
     def __getitem__(self, item: Union[int, str]):
         if isinstance(item, int):
