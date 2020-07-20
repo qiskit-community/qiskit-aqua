@@ -169,7 +169,7 @@ class ADMMOptimizationResult(OptimizationResult):
 
     def __init__(self, x: Optional[Any] = None, fval: Optional[Any] = None,
                  state: Optional[ADMMState] = None, results: Optional[Any] = None,
-                 variables: Optional[Any] = None) -> None:
+                 variables: Optional[List[Variable]] = None) -> None:
         super().__init__(x=x,
                          variables=variables,
                          fval=fval,

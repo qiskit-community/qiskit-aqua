@@ -113,11 +113,13 @@ class OptimizationResult:
                  results: Optional[Any] = None,
                  status: OptimizationResultStatus = OptimizationResultStatus.SUCCESS,
                  variables: Optional[List[Variable]] = None) -> None:
-        self._x = x  # pylint: disable=invalid-name
-        self._variables = variables
+        self._x = x if x is not None else []   # pylint: disable=invalid-name
+        self._variables = variables if variables is not None else []
         self._fval = fval
         self._results = results
         self._status = status
+        self._variable_names = [variable.name for variable in self._variables]
+        self._variables_dict = dict(zip(self._variable_names, x))
 
     def __repr__(self):
         return 'optimal variables: [{}]\noptimal function value: {}\nstatus: {}' \
@@ -125,33 +127,29 @@ class OptimizationResult:
 
     def __getitem__(self, item: Union[int, str]):
         if isinstance(item, int):
-            return self.x[item]
+            return self._x[item]
         if isinstance(item, str):
-            return self.variables[item]
+            return self._variables_dict[item]
         raise QiskitOptimizationError("Integer or string parameter required, instead "
                                       + type(item).__name__ + " provided.")
 
     @property
-    def variables(self) -> Optional[Dict[str, int]]:
+    def variables_dict(self) -> Optional[Dict[str, int]]:
         """Returns the pairs of variable names and values under optimization.
 
         Returns:
             The pairs of variable names and values under optimization.
         """
-        if self.x is not None and self.variables is not None and len(self.x) == len(self.x_names):
-            return dict(zip(self.x_names, self.x))
-        return None
+        return self._variables_dict
 
     @property
-    def x_names(self) -> Optional[List[str]]:
+    def variable_names(self) -> Optional[List[str]]:
         """Returns the list of variable names under optimization.
 
         Returns:
             The list of variable names under optimization.
         """
-        if self._variables is None:
-            return None
-        return [variable.name for variable in self._variables]
+        return self._variable_names
 
     @property
     def x(self) -> Any:
