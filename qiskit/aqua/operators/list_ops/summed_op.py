@@ -18,6 +18,7 @@ from typing import List, Union, cast
 
 import numpy as np
 
+from qiskit import QuantumCircuit
 from qiskit.circuit import ParameterExpression
 from .list_op import ListOp
 from ..legacy.base_operator import LegacyBaseOperator
@@ -130,6 +131,9 @@ class SummedOp(ListOp):
             return reduced_ops.oplist[0]
         else:
             return cast(OperatorBase, reduced_ops)
+
+    def to_circuit(self) -> QuantumCircuit:
+        return self.to_matrix_op().to_circuit()
 
     def to_legacy_op(self, massive: bool = False) -> LegacyBaseOperator:
         # We do this recursively in case there are SummedOps of PauliOps in oplist.
