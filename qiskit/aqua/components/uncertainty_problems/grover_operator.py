@@ -17,7 +17,8 @@
 from typing import List, Optional
 import numpy
 from qiskit.circuit import QuantumCircuit, QuantumRegister, AncillaRegister
-from .bit_oracle import BitOracle
+from qiskit.circuit.library import BitStringOracle
+# from .bit_oracle import BitOracle
 
 
 class GroverOperator(QuantumCircuit):
@@ -77,7 +78,11 @@ class GroverOperator(QuantumCircuit):
 
         num_state_qubits = self.oracle.num_qubits - self.oracle.num_ancillas
         qubits = [i for i in range(num_state_qubits) if i not in self.idle_qubits]
-        zero_reflection = BitOracle(num_state_qubits, qubits, mcx=self._mcx)
+        # zero_reflection = BitOracle(num_state_qubits, qubits, mcx=self._mcx)
+        zero_reflection = BitStringOracle(num_state_qubits,
+                                          objective_qubits=qubits,
+                                          states='0' * len(qubits),
+                                          mcx=self._mcx)
         return zero_reflection
 
     @property
