@@ -113,13 +113,13 @@ class OptimizationResult:
                  results: Optional[Any] = None,
                  status: OptimizationResultStatus = OptimizationResultStatus.SUCCESS,
                  variables: Optional[List[Variable]] = None) -> None:
-        self._x = x if x is not None else []   # pylint: disable=invalid-name
-        self._variables = variables if variables is not None else []
+        self._x = x if x else []   # pylint: disable=invalid-name
+        self._variables = variables if variables else []
         self._fval = fval
         self._results = results
         self._status = status
         self._variable_names = [variable.name for variable in self._variables]
-        self._variables_dict = dict(zip(self._variable_names, x))
+        self._variables_dict = dict(zip(self._variable_names, self._x))
 
     def __repr__(self):
         return 'optimal variables: [{}]\noptimal function value: {}\nstatus: {}' \
