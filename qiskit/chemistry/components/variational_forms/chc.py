@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -11,15 +11,13 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""
-This trial wavefunction is the Compact Heuristic for Chemistry as defined
-in Ollitrault Pauline J., Chemical science 11 (2020): 6842-6855. It aims at approximating
-the UCC Ansatz for a lower CNOT count. It is not particle number conserving and the accuracy
-of the approximation decreases with the number of excitations.
-"""
+
+""" Compact heuristic ansatz for Chemistry """
+
+from typing import List, Optional
 
 import numpy as np
-from typing import List
+
 from qiskit import QuantumRegister, QuantumCircuit
 
 from qiskit.aqua.components.variational_forms import VariationalForm
@@ -34,9 +32,24 @@ class CHC(VariationalForm):
     of the approximation decreases with the number of excitations.
     """
 
-    def __init__(self,  num_qubits: int, depth: int = 1, ladder: bool = False, excitations: List[List[int]]=None,
-                 entangler_map:List[int]=None, entanglement:str='full', initial_state:InitialState=None):
+    def __init__(self, num_qubits: int, depth: int = 1, ladder: bool = False,
+                 excitations: Optional[List[List[int]]] = None,
+                 entangler_map: Optional[List[int]] = None,
+                 entanglement: str = 'full',
+                 initial_state: Optional[InitialState] = None) -> None:
+        """
 
+        Args:
+            num_qubits:
+            depth:
+            ladder:
+            excitations:
+            entangler_map:
+            entanglement:
+            initial_state:
+        """
+
+        super().__init__()
         self._num_qubits = num_qubits
         self._depth = depth
         self._excitations = None
@@ -54,7 +67,8 @@ class CHC(VariationalForm):
         self._initial_state = initial_state
         self._support_parameterized_circuit = False
 
-    def construct_circuit(self, parameters: np.ndarray, q:QuantumRegister=None):
+    def construct_circuit(self, parameters: np.ndarray, q: Optional[QuantumRegister] = None) \
+            -> QuantumCircuit:
         """
         Construct the variational form, given its parameters.
 
@@ -80,12 +94,11 @@ class CHC(VariationalForm):
         else:
             circuit = QuantumCircuit(q)
 
-
         count = 0
-        for d in range(self._depth):
+        for _ in range(self._depth):
             for idx in self._excitations:
 
-                if len(idx)==2:
+                if len(idx) == 2:
 
                     i = idx[0]
                     r = idx[1]
@@ -102,9 +115,7 @@ class CHC(VariationalForm):
                     else:
                         circuit.cx(q[i], q[r])
 
-
                     circuit.u1(parameters[count], q[r])
-
 
                     if self._ladder:
                         for qubit in range(r, i, -1):
@@ -118,8 +129,7 @@ class CHC(VariationalForm):
                     circuit.u1(-parameters[count] / 4 - np.pi / 4, q[i])
                     circuit.u1(-parameters[count] / 4 + np.pi / 4, q[r])
 
-
-                elif len(idx)==4:
+                elif len(idx) == 4:
 
                     i = idx[0]
                     r = idx[1]
@@ -145,7 +155,7 @@ class CHC(VariationalForm):
                             circuit.cx(q[qubit], q[qubit+1])
                             circuit.barrier(q[qubit], q[qubit + 1])
                     else:
-                        circuit.cx(q[j],q[s])
+                        circuit.cx(q[j], q[s])
 
                     circuit.u1(parameters[count], q[s])
 
@@ -172,9 +182,9 @@ class CHC(VariationalForm):
                     circuit.u1(-parameters[count] / 2 + np.pi, q[r])
 
                 else:
-                    raise ValueError('Limited to single and double excitations, higher order is not implemented')
+                    raise ValueError('Limited to single and double excitations, '
+                                     'higher order is not implemented')
 
                 count += 1
 
         return circuit
-

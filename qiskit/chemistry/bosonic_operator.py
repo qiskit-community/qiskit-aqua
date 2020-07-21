@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -11,14 +11,9 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-""" A set of functions to map bosonic Hamiltonians to qubit Hamiltonians.
 
-    References:
+""" Bosonic Operator """
 
-    - *Veis Libor, et al., International Journal of Quantum Chemistry 116.18 (2016): 1328-1336.*
-    - *McArdle Sam, et al., Chemical science 10.22 (2019): 5725-5735.*
-    - *Ollitrault Pauline J., Chemical science 11 (2020): 6842-6855.*
-"""
 import copy
 import logging
 from typing import List, Tuple
@@ -214,22 +209,22 @@ class BosonicOperator:
 
         return qubit_op
 
-    def print_exact_states(self, vecs:np.ndarray, energies:np.ndarray, threshold:float=1e-3):
+    def print_exact_states(self, vecs: np.ndarray, energies: np.ndarray, threshold: float = 1e-3):
         """
-        prints the relevant states (the ones with the correct symmetries) out of a list of states
+        Prints the relevant states (the ones with the correct symmetries) out of a list of states
         that are usually obtained with an exact eigensolver.
+
         Args:
             vecs: contains all the states
             energies: contains all the corresponding energies
-            threshold: threshold for showing the differenc configurations of a state
+            threshold: threshold for showing the different configurations of a state
         """
 
-        for v in range(len(vecs)):
-            vec = vecs[v]
+        for v, vec in enumerate(vecs):
             new_vec = np.zeros(len(vec), dtype=np.complex64)
-            for i in range(len(vec)):
-                if np.real(np.conj(vec[i]) * vec[i]) > threshold:
-                    new_vec[i] = vec[i]
+            for i, vec_i in enumerate(vec):
+                if np.real(np.conj(vec_i) * vec_i) > threshold:
+                    new_vec[i] = vec_i
 
             indices = np.nonzero(new_vec)[0]
             printmsg = True
@@ -237,16 +232,16 @@ class BosonicOperator:
                 bin_i = np.frombuffer(np.binary_repr(i, width=sum(self._basis)).encode('utf-8'),
                                       dtype='S1').astype(int)
                 count = 0
-                nq = 0
+                nqi = 0
                 for m in range(self._num_modes):
-                    sub_bin = bin_i[nq:nq + self._basis[m]]
+                    sub_bin = bin_i[nqi:nqi + self._basis[m]]
                     occ_i = 0
                     for idx_i in sub_bin:
                         occ_i += idx_i
                     if occ_i != 1:
                         break
                     count += 1
-                    nq += self._basis[m]
+                    nqi += self._basis[m]
                 if count == self._num_modes:
                     if printmsg:
                         print('\n -', v, energies[v])

@@ -11,17 +11,14 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""
-This trial wavefunction is a Unitary Vibrational Coupled-Cluster Single and Double excitations
-variational form.
-For more information, see Ollitrault Pauline J., Chemical science 11 (2020): 6842-6855.
-"""
+""" Unitary Vibrational Coupled-Cluster Single and Double excitations variational form. """
 
 import logging
 import sys
+from typing import Optional, List, Tuple
 
 import numpy as np
-from typing import Optional, List, Tuple
+
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
@@ -37,37 +34,39 @@ logger = logging.getLogger(__name__)
 
 class UVCC(VariationalForm):
     """
-        This trial wavefunction is a Unitary Vibrational Coupled-Cluster Single and Double excitations
-        variational form.
-        For more information, see Ollitrault Pauline J., Chemical science 11 (2020): 6842-6855.
+    This trial wavefunction is a Unitary Vibrational Coupled-Cluster Single and Double excitations
+    variational form.
+    For more information, see Ollitrault Pauline J., Chemical science 11 (2020): 6842-6855.
     """
 
     def __init__(self, num_qubits: int,
                  basis: List[int],
                  degrees: List[int],
                  depth: int = 1,
-                 excitations: List[List[int]] = None,
-                 initial_state: Optional[InitialState] =None,
-                 qubit_mapping: str ='direct',
-                 num_time_slices: int =1,
-                 shallow_circuit_concat: bool =True):
-        """Constructor.
+                 excitations: Optional[List[List[int]]] = None,
+                 initial_state: Optional[InitialState] = None,
+                 qubit_mapping: str = 'direct',
+                 num_time_slices: int = 1,
+                 shallow_circuit_concat: bool = True) -> None:
+        """
 
         Args:
             num_qubits: number of qubits
             basis: Is a list defining the number of modals per mode. E.g. for a 3 modes system
-                            with 4 modals per mode basis = [4,4,4]
-            degrees: degree of excitation to be included (for single and double excitations degrees=[0,1])
+                with 4 modals per mode basis = [4,4,4]
+            degrees: degree of excitation to be included (for single and double excitations
+                degrees=[0,1])
             depth: number of replica of basic module
-            excitations: index of the excitations to be included in the circuit. Can be provided or not.
-                            If not the default is to compute all singles and doubles.
+            excitations: The excitations to be included in the circuit.
+                If not provided the default is to compute all singles and doubles.
             initial_state: An initial state object.
             qubit_mapping: the qubits mapping type. Only 'direct' is supported at the moment.
             num_time_slices: parameters for dynamics.
             shallow_circuit_concat: indicate whether to use shallow (cheap) mode for
-                                           circuit concatenation
+                circuit concatenation
         """
 
+        super().__init__()
         self._num_qubits = num_qubits
         self._num_modes = len(basis)
         self._basis = basis
@@ -75,10 +74,10 @@ class UVCC(VariationalForm):
         self._initial_state = initial_state
         self._qubit_mapping = qubit_mapping
         self._num_time_slices = num_time_slices
-        if excitations == None:
+        if excitations is None:
             self._excitations = UVCC.compute_excitation_lists(basis, degrees)
         else:
-            self._excitations=excitations
+            self._excitations = excitations
 
         self._hopping_ops, self._num_parameters = self._build_hopping_operators()
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
@@ -88,8 +87,6 @@ class UVCC(VariationalForm):
         self._support_parameterized_circuit = False
 
     def _build_hopping_operators(self):
-        from .uvcc import UVCC
-
         if logger.isEnabledFor(logging.DEBUG):
             TextProgressBar(sys.stderr)
 
@@ -102,25 +99,27 @@ class UVCC(VariationalForm):
         return hopping_ops, num_parameters
 
     @staticmethod
-    def _build_hopping_operator(index: List[int], basis: List[int], qubit_mapping: str):
+    def _build_hopping_operator(index: List[int], basis: List[int], qubit_mapping: str) \
+            -> WeightedPauliOperator:
         """
-        Builds a hopping operator given the list of indices (index) that is a single, a double or a higher order
-        excitation.
+        Builds a hopping operator given the list of indices (index) that is a single, a double
+        or a higher order excitation.
 
         Args:
             index: the indexes defining the excitation
             basis: Is a list defining the number of modals per mode. E.g. for a 3 modes system
-                            with 4 modals per mode basis = [4,4,4]
+                with 4 modals per mode basis = [4,4,4]
             qubit_mapping: the qubits mapping type. Only 'direct' is supported at the moment.
 
-        Returns: a QubitOperator object corresponding to the hopping operator
+        Returns:
+            Qubit operator object corresponding to the hopping operator
 
         """
 
         degree = len(index)
-        h = []
-        for deg in range(degree):
-            h.append([])
+        hml = []
+        for _ in range(degree):
+            hml.append([])
 
         tmp = []
         tmpdag = []
@@ -128,18 +127,18 @@ class UVCC(VariationalForm):
             tmp.append(index[i])
             tmpdag.append([index[i][0], index[i][2], index[i][1]])
 
-        h[-1].append([tmp,1])
-        h[-1].append([tmpdag,-1])
+        hml[-1].append([tmp, 1])
+        hml[-1].append([tmpdag, -1])
 
-        dummpy_op = BosonicOperator(h, basis)
+        dummpy_op = BosonicOperator(np.asarray(hml), basis)
         qubit_op = dummpy_op.mapping(qubit_mapping)
         if len(qubit_op.paulis) == 0:
-            qubit_op=None
+            qubit_op = None
 
         return qubit_op
 
-
-    def construct_circuit(self, parameters: np.ndarray, q: QuantumRegister=None):
+    def construct_circuit(self, parameters: np.ndarray, q: Optional[QuantumRegister] = None) \
+            -> QuantumCircuit:
         """Construct the variational form, given its parameters.
 
         Args:
@@ -147,7 +146,7 @@ class UVCC(VariationalForm):
             q: Quantum Register for the circuit.
 
         Returns:
-            Qauntum Circuit a quantum circuit with given `parameters`
+            Quantum Circuit a quantum circuit with given `parameters`
 
         Raises:
             ValueError: the number of parameters is incorrect.
@@ -183,46 +182,51 @@ class UVCC(VariationalForm):
 
         return circuit
 
-
     @staticmethod
-    def _construct_circuit_for_one_excited_operator(qubit_op_and_param: Tuple[WeightedPauliOperator, float],
-                                                    qr: QuantumRegister, num_time_slices: int):
+    def _construct_circuit_for_one_excited_operator(
+            qubit_op_and_param: Tuple[WeightedPauliOperator, float],
+            qr: QuantumRegister, num_time_slices: int) -> QuantumCircuit:
         #List[Union[WeightedPauliOperator
         """ Construct the circuit building block corresponding to one excitation operator
 
         Args:
             qubit_op_and_param: list containing the qubit operator and the parameter
             qr: the quantum register to build the circuit on
-            num_time_slices: the number of time the building block should be added, this should be set to 1
+            num_time_slices: the number of time the building block should be added,
+                this should be set to 1
 
-        Returns: QuantumCircuit the quantum circuit
-
+        Returns:
+             The quantum circuit
         """
         qubit_op, param = qubit_op_and_param
-        qc = qubit_op.evolve(state_in=None, evo_time=param * -1j, num_time_slices=num_time_slices, quantum_registers=qr)
+        qc = qubit_op.evolve(state_in=None, evo_time=param * -1j, num_time_slices=num_time_slices,
+                             quantum_registers=qr)
 
         return qc
 
-
     @staticmethod
-    def compute_excitation_lists(basis: List[int], degrees: List[int]):
+    def compute_excitation_lists(basis: List[int], degrees: List[int]) -> List[List[int]]:
         """Compute the list with all possible excitation for given orders
 
         Args:
             basis: Is a list defining the number of modals per mode. E.g. for a 3 modes system
-                            with 4 modals per mode basis = [4,4,4]
-            degrees: degree of excitation to be included (for single and double excitations degrees=[0,1])
+                with 4 modals per mode basis = [4,4,4]
+            degrees: degree of excitation to be included (for single and double excitations
+                degrees=[0,1])
 
-        Returns: List of excitation indexes in terms of modes and modals
+        Returns:
+            List of excitation indexes in terms of modes and modals
 
+        Raises:
+            ValueError: If excitation degree is greater than size of basis
         """
 
         excitation_list = []
 
         def combine_modes(modes, tmp, results, degree):
 
-            if degree>=0:
-                for m in range(len(modes)):
+            if degree >= 0:
+                for m, _ in enumerate(modes):
                     combine_modes(modes[m+1:], tmp+[modes[m]], results, degree-1)
             else:
                 results.append(tmp)
@@ -236,7 +240,8 @@ class UVCC(VariationalForm):
 
         for degree in degrees:
             if degree >= len(basis):
-                raise ValueError('The degree of excitation cannot be greater than the number of modes')
+                raise ValueError('The degree of excitation cannot be '
+                                 'greater than the number of modes')
 
             combined_modes = []
             modes = []
@@ -246,14 +251,16 @@ class UVCC(VariationalForm):
             combine_modes(modes, [], combined_modes, degree)
 
             for element in combined_modes:
-                indexes([],excitation_list,element,len(element)-1,basis)
+                indexes([], excitation_list, element, len(element)-1, basis)
 
         return excitation_list
 
-    def excitations_in_qubit_format(self):
-        """Gives the list of excitation indexes in terms of qubit indexes rather than in modes and modals
+    def excitations_in_qubit_format(self) -> List[List[int]]:
+        """Gives the list of excitation indexes in terms of qubit indexes rather
+         than in modes and modals
 
-        Returns: List of excitation indexes
+        Returns:
+            List of excitation indexes
 
         """
 
@@ -265,7 +272,7 @@ class UVCC(VariationalForm):
             for element in excitation:
                 q_count = 0
                 for idx in range(element[0]):
-                    q_count+=self._basis[idx]
+                    q_count += self._basis[idx]
 
                 dummy_ex.append(q_count+element[1])
                 dummy_ex.append(q_count+element[2])
@@ -274,5 +281,3 @@ class UVCC(VariationalForm):
             result.append(dummy_ex)
 
         return result
-
-
