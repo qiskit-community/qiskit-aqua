@@ -373,3 +373,15 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
 
         except NameError as ex:
             self.skipTest(str(ex))
+
+    def test_admm_setters_getters(self):
+        optimizer = ADMMOptimizer()
+        self.assertEqual(optimizer.parameters.maxiter, 10)
+
+        optimizer.parameters.maxiter = 11
+        self.assertEqual(optimizer.parameters.maxiter, 11)
+
+        params = ADMMParameters(maxiter=12)
+        optimizer.parameters = params
+        self.assertEqual(optimizer.parameters.maxiter, 12)
+

@@ -96,8 +96,8 @@ class ADMMParameters:
         self.rho_initial = rho_initial
 
     def __repr__(self) -> str:
-        attrs = ", ".join(["{}={}".format(key, value) for (key, value) in vars(self).items()])
-        return "{0}({1})".format(type(self).__name__, attrs)
+        props = ", ".join(["{}={}".format(key, value) for (key, value) in vars(self).items()])
+        return "{0}({1})".format(type(self).__name__, props)
 
 
 class ADMMState:
@@ -817,3 +817,21 @@ class ADMMOptimizer(OptimizationAlgorithm):
         dual_residual = self._state.rho * np.linalg.norm(elements_dual)
 
         return primal_residual, dual_residual
+
+    @property
+    def parameters(self) -> ADMMParameters:
+        """Returns current parameters of the optimizer.
+
+        Returns:
+            The parameters.
+        """
+        return self._params
+
+    @parameters.setter
+    def parameters(self, params: ADMMParameters) -> None:
+        """Sets the parameters of the optimizer.
+
+        Args:
+            params: New parameters to set.
+        """
+        self._params = params
