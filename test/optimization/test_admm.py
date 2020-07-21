@@ -376,13 +376,16 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
 
     def test_admm_setters_getters(self):
         """Tests get/set properties of ADMMOptimizer"""
+        try:
+            optimizer = ADMMOptimizer()
+            self.assertEqual(optimizer.parameters.maxiter, 10)
 
-        optimizer = ADMMOptimizer()
-        self.assertEqual(optimizer.parameters.maxiter, 10)
+            optimizer.parameters.maxiter = 11
+            self.assertEqual(optimizer.parameters.maxiter, 11)
 
-        optimizer.parameters.maxiter = 11
-        self.assertEqual(optimizer.parameters.maxiter, 11)
+            params = ADMMParameters(maxiter=12)
+            optimizer.parameters = params
+            self.assertEqual(optimizer.parameters.maxiter, 12)
 
-        params = ADMMParameters(maxiter=12)
-        optimizer.parameters = params
-        self.assertEqual(optimizer.parameters.maxiter, 12)
+        except NameError as ex:
+            self.skipTest(str(ex))
