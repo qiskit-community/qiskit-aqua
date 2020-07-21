@@ -18,6 +18,7 @@
 import unittest
 from test.aqua import QiskitAquaTestCase
 import itertools
+from scipy.stats import unitary_group
 import numpy as np
 from ddt import ddt, data
 
@@ -376,6 +377,15 @@ class TestOpConstruction(QiskitAquaTestCase):
         non_unitary = X + Y + Z
         # pylint: disable=unnecessary-lambda
         self.assertRaises(ExtensionError, lambda: non_unitary.to_circuit())
+
+        # more general test case
+        u2 = MatrixOp(primitive=unitary_group.rvs(2))
+        u4 = MatrixOp(primitive=unitary_group.rvs(4))
+        u8 = MatrixOp(primitive=unitary_group.rvs(8))
+        c2 = u2.to_circuit_op()
+
+        op = ((X ^ u4) @ (Z ^ c2 ^ Y) @ u8) ^ u2
+        op.to_circuit()
 
     @data(Z, CircuitOp(ZGate()), MatrixOp([[1, 0], [0, -1]]))
     def test_op_hashing(self, op):
