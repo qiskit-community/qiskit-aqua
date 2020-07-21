@@ -139,7 +139,7 @@ class SummedOp(ListOp):
         Raises:
             ExtensionError: if operator is not unitary
         """
-        return self.to_matrix_op().to_circuit()
+        return self.to_matrix_op().to_circuit()  # type: ignore
 
     def to_legacy_op(self, massive: bool = False) -> LegacyBaseOperator:
         # We do this recursively in case there are SummedOps of PauliOps in oplist.

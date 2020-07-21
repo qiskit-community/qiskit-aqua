@@ -68,7 +68,7 @@ class ComposedOp(ListOp):
         Returns:
             The circuit representation of the composed operator.
         """
-        return self.to_circuit_op().to_circuit()
+        return self.to_circuit_op().to_circuit()  # type: ignore
 
     def adjoint(self) -> OperatorBase:
         return ComposedOp([op.adjoint() for op in reversed(self.oplist)], coeff=self.coeff)

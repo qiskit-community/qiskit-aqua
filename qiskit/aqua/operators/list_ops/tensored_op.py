@@ -81,4 +81,4 @@ class TensoredOp(ListOp):
         Returns:
             The circuit representation of the tensored operator.
         """
-        return self.to_circuit_op().to_circuit()
+        return self.to_circuit_op().to_circuit()  # type: ignore
