@@ -133,6 +133,12 @@ class SummedOp(ListOp):
             return cast(OperatorBase, reduced_ops)
 
     def to_circuit(self) -> QuantumCircuit:
+        """ Returns the quantum circuit, representing the composed operator.
+        Returns:
+            The circuit representation of the composed operator.
+        Raises:
+            ExtensionError: if operator is not unitary
+        """
         return self.to_matrix_op().to_circuit()
 
     def to_legacy_op(self, massive: bool = False) -> LegacyBaseOperator:

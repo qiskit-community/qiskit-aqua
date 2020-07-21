@@ -17,6 +17,7 @@
 from typing import List, Union, cast
 from functools import reduce, partial
 import numpy as np
+from qiskit import QuantumCircuit
 
 from qiskit.circuit import ParameterExpression
 
@@ -61,6 +62,13 @@ class ComposedOp(ListOp):
     # def tensorpower(self, other):
     #     """ Tensor product with Self Multiple Times """
     #     raise NotImplementedError
+
+    def to_circuit(self) -> QuantumCircuit:
+        """ Returns the quantum circuit, representing the composed operator.
+        Returns:
+            The circuit representation of the composed operator.
+        """
+        return self.to_circuit_op().to_circuit()
 
     def adjoint(self) -> OperatorBase:
         return ComposedOp([op.adjoint() for op in reversed(self.oplist)], coeff=self.coeff)

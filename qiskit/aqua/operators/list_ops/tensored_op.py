@@ -17,6 +17,7 @@
 from typing import List, Union, cast
 from functools import reduce, partial
 import numpy as np
+from qiskit import QuantumCircuit
 
 from qiskit.circuit import ParameterExpression
 
@@ -74,3 +75,10 @@ class TensoredOp(ListOp):
             return reduced_ops.oplist[0]
         else:
             return cast(OperatorBase, reduced_ops)
+
+    def to_circuit(self) -> QuantumCircuit:
+        """ Returns the quantum circuit, representing the tensored operator.
+        Returns:
+            The circuit representation of the tensored operator.
+        """
+        return self.to_circuit_op().to_circuit()

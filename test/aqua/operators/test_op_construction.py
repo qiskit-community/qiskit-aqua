@@ -364,14 +364,17 @@ class TestOpConstruction(QiskitAquaTestCase):
         self.assertEqual(composed.num_qubits, 2)
 
     def test_list_op_to_circuit(self):
+        """
+        unitary composed/tensored/summed operator should transpile to circuit
+        non-unitary operator should raise Exception
+        """
         i = MatrixOp([[1, 0], [0, 1]])
 
         unitary = (i ^ X ^ i) @ (Z ^ i ^ Y)
-        # ListOp unitary operator should transpile to circuit
         unitary.to_circuit()
 
         non_unitary = X + Y + Z
-        # ListOp non-unitary operator should raise Exception
+        # pylint: disable=unnecessary-lambda
         self.assertRaises(ExtensionError, lambda: non_unitary.to_circuit())
 
     @data(Z, CircuitOp(ZGate()), MatrixOp([[1, 0], [0, -1]]))

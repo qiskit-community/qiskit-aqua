@@ -18,7 +18,6 @@ from typing import Set, Union, Dict, Optional, List, cast
 from numbers import Number
 from abc import ABC, abstractmethod
 import numpy as np
-from qiskit import QuantumCircuit
 
 from qiskit.aqua import AquaError
 from qiskit.circuit import ParameterExpression, ParameterVector
@@ -110,16 +109,6 @@ class OperatorBase(ABC):
 
         Returns:
               The NumPy ``ndarray`` equivalent to this Operator.
-        """
-        raise NotImplementedError
-
-    @abstractmethod
-    def to_circuit(self) -> QuantumCircuit:
-        r"""
-        Returns:
-             QuantumCircuit representation of the Operator.
-        Raises:
-            ExtensionError: if the Operator is not unitary.
         """
         raise NotImplementedError
 

@@ -136,9 +136,6 @@ class StateFn(OperatorBase):
     def num_qubits(self) -> int:
         raise NotImplementedError
 
-    def to_circuit(self) -> QuantumCircuit:
-        raise NotImplementedError
-
     def add(self, other: OperatorBase) -> OperatorBase:
         raise NotImplementedError
 
