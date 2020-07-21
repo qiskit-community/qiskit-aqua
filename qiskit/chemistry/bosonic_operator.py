@@ -131,7 +131,8 @@ class BosonicOperator:
 
         return final_list
 
-    def _combine(self, modes: List[int], paulis: List[List[Tuple[float, Pauli]]], coeff: float) -> WeightedPauliOperator:
+    def _combine(self, modes: List[int], paulis: List[List[Tuple[float, Pauli]]],
+                 coeff: float) -> WeightedPauliOperator:
         """ Combines the paulis of each mode together in one WeightedPauliOperator.
 
         Args:
@@ -201,7 +202,8 @@ class BosonicOperator:
                     for i in range(deg+1):
                         m, bf1, bf2 = element[0][i]
                         modes.append(m)
-                        paulis.append((self._one_body_mapping((1, pau[m][bf1], pau[m][bf2]))).paulis)
+                        paulis.append((self._one_body_mapping((1, pau[m][bf1],
+                                                               pau[m][bf2]))).paulis)
 
                     qubit_op += self._combine(modes, paulis, coeff)
 
@@ -213,6 +215,14 @@ class BosonicOperator:
         return qubit_op
 
     def print_exact_states(self, vecs:np.ndarray, energies:np.ndarray, threshold:float=1e-3):
+        """
+        prints the relevant states (the ones with the correct symmetries) out of a list of states
+        that are usually obtained with an exact eigensolver.
+        Args:
+            vecs: contains all the states
+            energies: contains all the corresponding energies
+            threshold: threshold for showing the differenc configurations of a state
+        """
 
         for v in range(len(vecs)):
             vec = vecs[v]
@@ -224,7 +234,8 @@ class BosonicOperator:
             indices = np.nonzero(new_vec)[0]
             printmsg = True
             for i in indices:
-                bin_i = np.frombuffer(np.binary_repr(i, width=sum(self._basis)).encode('utf-8'), dtype='S1').astype(int)
+                bin_i = np.frombuffer(np.binary_repr(i, width=sum(self._basis)).encode('utf-8'),
+                                      dtype='S1').astype(int)
                 count = 0
                 nq = 0
                 for m in range(self._num_modes):
