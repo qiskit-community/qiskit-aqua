@@ -20,6 +20,7 @@ import warnings
 from typing import List, Optional, Any, Tuple, cast
 
 import numpy as np
+from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 
 from .minimum_eigen_optimizer import MinimumEigenOptimizer
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
@@ -29,7 +30,6 @@ from ..problems.linear_constraint import LinearConstraint
 from ..problems.quadratic_objective import QuadraticObjective
 from ..problems.quadratic_program import QuadraticProgram
 from ..problems.variable import VarType, Variable
-from ...aqua.algorithms import NumPyMinimumEigensolver
 
 UPDATE_RHO_BY_TEN_PERCENT = 0
 UPDATE_RHO_BY_RESIDUALS = 1
