@@ -95,6 +95,10 @@ class ADMMParameters:
         self.beta = beta
         self.rho_initial = rho_initial
 
+    def __repr__(self) -> str:
+        attrs = ", ".join(["{}={}".format(key, value) for (key, value) in vars(self).items()])
+        return "{0}({1})".format(type(self).__name__, attrs)
+
 
 class ADMMState:
     """Internal computation state of the ADMM implementation.
