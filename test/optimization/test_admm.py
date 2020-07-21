@@ -375,6 +375,8 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
             self.skipTest(str(ex))
 
     def test_admm_setters_getters(self):
+        """Tests get/set properties of ADMMOptimizer"""
+
         optimizer = ADMMOptimizer()
         self.assertEqual(optimizer.parameters.maxiter, 10)
 
@@ -384,4 +386,3 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
         params = ADMMParameters(maxiter=12)
         optimizer.parameters = params
         self.assertEqual(optimizer.parameters.maxiter, 12)
-
