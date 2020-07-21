@@ -13,20 +13,23 @@
 # that they have been altered from the originals.
 
 """An implementation of the ADMM algorithm."""
-import warnings
 import copy
 import logging
 import time
+import warnings
 from typing import List, Optional, Any, Tuple, cast
 
 import numpy as np
-from .cplex_optimizer import CplexOptimizer
+
+from .minimum_eigen_optimizer import MinimumEigenOptimizer
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
-from ..problems.quadratic_program import QuadraticProgram
-from ..problems.variable import VarType, Variable
+from .slsqp_optimizer import SlsqpOptimizer
 from ..problems.constraint import Constraint
 from ..problems.linear_constraint import LinearConstraint
 from ..problems.quadratic_objective import QuadraticObjective
+from ..problems.quadratic_program import QuadraticProgram
+from ..problems.variable import VarType, Variable
+from ...aqua.algorithms import NumPyMinimumEigensolver
 
 UPDATE_RHO_BY_TEN_PERCENT = 0
 UPDATE_RHO_BY_RESIDUALS = 1
@@ -203,9 +206,6 @@ class ADMMOptimizer(OptimizationAlgorithm):
             continuous_optimizer: An instance of OptimizationAlgorithm that can solve
                 continuous problems.
             params: An instance of ADMMParameters.
-
-        Raises:
-            NameError: CPLEX is not installed.
         """
         super().__init__()
         self._log = logging.getLogger(__name__)
@@ -214,8 +214,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
         self._params = params or ADMMParameters()
 
         # create optimizers if not specified
-        self._qubo_optimizer = qubo_optimizer or CplexOptimizer()
-        self._continuous_optimizer = continuous_optimizer or CplexOptimizer()
+        self._qubo_optimizer = qubo_optimizer or MinimumEigenOptimizer(NumPyMinimumEigensolver())
+        self._continuous_optimizer = continuous_optimizer or SlsqpOptimizer()
 
         # internal state where we'll keep intermediate solution
         # here, we just declare the class variable, the variable is initialized in kept in
