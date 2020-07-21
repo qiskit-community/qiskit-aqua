@@ -133,9 +133,9 @@ class SummedOp(ListOp):
             return cast(OperatorBase, reduced_ops)
 
     def to_circuit(self) -> QuantumCircuit:
-        """ Returns the quantum circuit, representing the composed operator.
+        """ Returns the quantum circuit, representing the summed operator.
         Returns:
-            The circuit representation of the composed operator.
+            The circuit representation of the summed operator.
         Raises:
             ExtensionError: if operator is not unitary
         """
