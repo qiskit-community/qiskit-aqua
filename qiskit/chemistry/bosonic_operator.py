@@ -1,3 +1,24 @@
+# -*- coding: utf-8 -*-
+
+# This code is part of Qiskit.
+#
+# (C) Copyright IBM 2018, 2020.
+#
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
+#
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
+""" A set of functions to map bosonic Hamiltonians to qubit Hamiltonians.
+
+    References:
+
+    - *Veis Libor, et al., International Journal of Quantum Chemistry 116.18 (2016): 1328-1336.*
+    - *McArdle Sam, et al., Chemical science 10.22 (2019): 5725-5735.*
+    - *Ollitrault Pauline J., Chemical science 11 (2020): 6842-6855.*
+"""
 import copy
 import logging
 from typing import List, Tuple
