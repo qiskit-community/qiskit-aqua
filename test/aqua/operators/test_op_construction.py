@@ -369,22 +369,40 @@ class TestOpConstruction(QiskitAquaTestCase):
         unitary composed/tensored/summed operator should transpile to circuit
         non-unitary operator should raise Exception
         """
-        i = MatrixOp([[1, 0], [0, 1]])
-
-        unitary = (i ^ X ^ i) @ (Z ^ i ^ Y)
-        unitary.to_circuit()
-
         non_unitary = X + Y + Z
         self.assertRaises(ExtensionError, non_unitary.to_circuit)
 
-        # more general test case
-        u2 = MatrixOp(primitive=unitary_group.rvs(2))
-        u4 = MatrixOp(primitive=unitary_group.rvs(4))
-        u8 = MatrixOp(primitive=unitary_group.rvs(8))
-        c2 = u2.to_circuit_op()
+        # generate unitary matrices of dimension 2,4,8
+        u2 = unitary_group.rvs(2)
+        u4 = unitary_group.rvs(4)
+        u8 = unitary_group.rvs(8)
 
-        op = ((X ^ u4) @ (Z ^ c2 ^ Y) @ u8) ^ u2
-        op.to_circuit()
+        # pauli matrices as numpy.arrays
+        x = np.array([[0.0, 1.0], [1.0, 0.0]])
+        y = np.array([[0.0, -1.0j], [1.0j, 0.0]])
+        z = np.array([[1.0, 0.0], [0.0, -1.0]])
+
+        # create MatrixOp and CircuitOp out of matrices
+        op2 = MatrixOp(u2)
+        op4 = MatrixOp(u4)
+        op8 = MatrixOp(u8)
+        c2 = op2.to_circuit_op()
+
+        # algorithm using matrix operations on numpy.arrays
+        xu4 = np.kron(x, u4)
+        zc2 = np.kron(z, u2)
+        zc2y = np.kron(zc2, y)
+        matrix = np.matmul(xu4, zc2y)
+        matrix = np.matmul(matrix, u8)
+        matrix = np.kron(matrix, u2)
+        operator = Operator(matrix)  # resulting operator of type Operator(BaseOperator) from terra
+
+        # same algorithm as above, but using PrimitiveOps
+        list_op = ((X ^ op4) @ (Z ^ c2 ^ Y) @ op8) ^ op2
+        circuit = list_op.to_circuit()
+
+        # verify that ListOp.to_circuit() outputs correct quantum circuit
+        self.assertTrue(operator.equiv(circuit), "ListOp.to_circuit() outputs wrong circuit!")
 
     @data(Z, CircuitOp(ZGate()), MatrixOp([[1, 0], [0, -1]]))
     def test_op_hashing(self, op):
