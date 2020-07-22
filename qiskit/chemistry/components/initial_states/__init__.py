@@ -29,11 +29,11 @@ Initial States
    :nosignatures:
 
    HartreeFock
-   VModes
+   VSCF
 
 """
 
 from .hartree_fock import HartreeFock
-from .v_modes import VModes
+from .vscf import VSCF
 
-__all__ = ['HartreeFock', 'VModes']
+__all__ = ['HartreeFock', 'VSCF']

@@ -26,7 +26,7 @@ from qiskit.aqua.components.initial_states import InitialState
 logger = logging.getLogger(__name__)
 
 
-class VModes(InitialState):
+class VSCF(InitialState):
     """Initial state for vibrational modes. Creates an occupation number
     vector as defined in Ollitrault Pauline J., Chemical science 11 (2020): 6842-6855.
     e.g. for 2 modes with 4 modals per mode it creates: |1000 1000> """
