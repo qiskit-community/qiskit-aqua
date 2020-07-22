@@ -116,6 +116,7 @@ class SummedOp(ListOp):
     # Try collapsing list or trees of Sums.
     # TODO be smarter about the fact that any two ops in oplist could be evaluated for sum.
     def reduce(self) -> OperatorBase:
+        self.oplist = chop_summands()
         reduced_ops = [op.reduce() for op in self.oplist]
         reduced_ops = reduce(lambda x, y: x.add(y), reduced_ops) * self.coeff
         if isinstance(reduced_ops, SummedOp) and len(reduced_ops.oplist) == 1:
@@ -142,3 +143,20 @@ class SummedOp(ListOp):
             coeff = cast(float, self.coeff)
 
         return self.combo_fn(legacy_ops) * coeff
+
+    def chop_summands(self, threshold = 0) -> 'SummedOp':
+        oplist = []
+        for op in self.oplist:
+            temp_real = op.coeff.real if np.absolute(op.coeff.real) >= threshold else 0.0
+            temp_imag = op.coeff.imag if np.absolute(op.coeff.imag) >= threshold else 0.0
+            if temp_real != 0.0 or temp_imag != 0.0:
+                oplist.append(op)
+        return oplist
+
+
+    #def chop_summands(self, threshold = 0) -> 'SummedOp':
+    #    oplist = []
+    #    for op in self.oplist:
+    #        if op.coeff >= threshold:
+    #            oplist.append(op)
+    #    return oplist
