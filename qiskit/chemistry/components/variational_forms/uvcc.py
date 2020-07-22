@@ -43,7 +43,7 @@ class UVCC(VariationalForm):
                  basis: List[int],
                  degrees: List[int],
                  depth: int = 1,
-                 excitations: Optional[List[List[int]]] = None,
+                 excitations: Optional[List[List[List[int]]]] = None,
                  initial_state: Optional[InitialState] = None,
                  qubit_mapping: str = 'direct',
                  num_time_slices: int = 1,
