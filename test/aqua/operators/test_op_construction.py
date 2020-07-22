@@ -375,8 +375,7 @@ class TestOpConstruction(QiskitAquaTestCase):
         unitary.to_circuit()
 
         non_unitary = X + Y + Z
-        # pylint: disable=unnecessary-lambda
-        self.assertRaises(ExtensionError, lambda: non_unitary.to_circuit())
+        self.assertRaises(ExtensionError, non_unitary.to_circuit)
 
         # more general test case
         u2 = MatrixOp(primitive=unitary_group.rvs(2))
