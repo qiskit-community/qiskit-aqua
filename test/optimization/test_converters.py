@@ -28,8 +28,6 @@ from qiskit.optimization.algorithms import OptimizationResult
 from qiskit.optimization.algorithms.optimization_algorithm import OptimizationResultStatus
 from qiskit.optimization.converters import (
     InequalityToEquality,
-    QuadraticProgramToIsing,
-    IsingToQuadraticProgram,
     IntegerToBinary,
     LinearEqualityToPenalty,
 )
@@ -65,24 +63,21 @@ class TestConverters(QiskitOptimizationTestCase):
         op = conv.convert(op)
         conv = LinearEqualityToPenalty()
         op = conv.convert(op)
-        conv = QuadraticProgramToIsing()
-        _, shift = conv.convert(op)
+        _, shift = op.to_ising()
         self.assertEqual(shift, 0.0)
 
     def test_valid_variable_type(self):
-        """Validate the types of the variables for QuadraticProgramToIsing."""
+        """Validate the types of the variables for QuadraticProgram.to_ising."""
         # Integer variable
         with self.assertRaises(QiskitOptimizationError):
             op = QuadraticProgram()
             op.integer_var(0, 10, "int_var")
-            conv = QuadraticProgramToIsing()
-            _ = conv.convert(op)
+            _ = op.to_ising()
         # Continuous variable
         with self.assertRaises(QiskitOptimizationError):
             op = QuadraticProgram()
             op.continuous_var(0, 10, "continuous_var")
-            conv = QuadraticProgramToIsing()
-            _ = conv.convert(op)
+            _ = op.to_ising()
 
     def test_inequality_binary(self):
         """ Test InequalityToEqualityConverter with binary variables """
@@ -425,10 +420,8 @@ class TestConverters(QiskitOptimizationTestCase):
             linear[x.name] = i + 1
         op.linear_constraint(linear, Constraint.Sense.EQ, 3, 'sum1')
         penalize = LinearEqualityToPenalty(penalty=1e5)
-        op2ope = QuadraticProgramToIsing()
         op2 = penalize.convert(op)
-        qubitop, offset = op2ope.convert(op2)
-
+        qubitop, offset = op2.to_ising()
         self.assertEqual(qubitop, QUBIT_OP_MAXIMIZE_SAMPLE)
         self.assertEqual(offset, OFFSET_MAXIMIZE_SAMPLE)
 
@@ -437,8 +430,8 @@ class TestConverters(QiskitOptimizationTestCase):
         op = QUBIT_OP_MAXIMIZE_SAMPLE
         offset = OFFSET_MAXIMIZE_SAMPLE
 
-        op2qp = IsingToQuadraticProgram(linear=True)
-        quadratic = op2qp.convert(op, offset)
+        quadratic = QuadraticProgram()
+        quadratic.from_ising(op, offset, linear=True)
 
         self.assertEqual(len(quadratic.variables), 4)
         self.assertEqual(len(quadratic.linear_constraints), 0)
@@ -472,8 +465,8 @@ class TestConverters(QiskitOptimizationTestCase):
         op = QUBIT_OP_MAXIMIZE_SAMPLE
         offset = OFFSET_MAXIMIZE_SAMPLE
 
-        op2qp = IsingToQuadraticProgram(linear=False)
-        quadratic = op2qp.convert(op, offset)
+        quadratic = QuadraticProgram()
+        quadratic.from_ising(op, offset, linear=False)
 
         self.assertEqual(len(quadratic.variables), 4)
         self.assertEqual(len(quadratic.linear_constraints), 0)

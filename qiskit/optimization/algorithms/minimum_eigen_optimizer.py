@@ -23,7 +23,6 @@ from qiskit.aqua.operators import StateFn, DictStateFn
 
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
 from ..problems.quadratic_program import QuadraticProgram
-from ..converters.quadratic_program_to_ising import QuadraticProgramToIsing
 from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
 
 
@@ -144,8 +143,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         problem_ = qubo_converter.convert(problem)
 
         # construct operator and offset
-        operator_converter = QuadraticProgramToIsing()
-        operator, offset = operator_converter.convert(problem_)
+        operator, offset = problem_.to_ising()
 
         # only try to solve non-empty Ising Hamiltonians
         x = None  # type: Optional[Any]
