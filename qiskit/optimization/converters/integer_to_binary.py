@@ -215,7 +215,7 @@ class IntegerToBinary:
         Returns:
             The result of the original problem.
         """
-        result._x = self._decode_var(result.x)  # type: ignore
+        result._val = self._decode_var(result.x)  # type: ignore
         return result
 
     def _decode_var(self, vals) -> List[float]:

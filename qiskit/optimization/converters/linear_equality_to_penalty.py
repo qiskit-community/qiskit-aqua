@@ -191,19 +191,14 @@ class LinearEqualityToPenalty:
             substitute_dict[variables[i].name] = result.x[i]
         substituted_qp = self._src.substitute_variables(substitute_dict)
 
-        new_result = OptimizationResult()
-        new_result.x = result.x
-
-        # Set the new function value
-        new_result.fval = substituted_qp.objective.constant
-
         # Set the new status of optimization result
         if substituted_qp.status == QuadraticProgramStatus.VALID:
-            new_result.status = OptimizationResultStatus.SUCCESS
+            new_status = OptimizationResultStatus.SUCCESS
         else:
-            new_result.status = OptimizationResultStatus.INFEASIBLE
+            new_status = OptimizationResultStatus.INFEASIBLE
 
-        return new_result
+        return OptimizationResult(x=result.x, fval=substituted_qp.objective.constant,
+                                  results=result.results, status=new_status)
 
     @property
     def penalty(self) -> Optional[float]:
