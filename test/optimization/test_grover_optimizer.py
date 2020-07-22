@@ -40,8 +40,8 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
         comp_result = solver.solve(problem)
 
         # Validate results.
-        self.assertTrue(comp_result.x == results.x)
-        self.assertTrue(comp_result.fval == results.fval)
+        self.assertEqual(comp_result.x, results.x)
+        self.assertEqual(comp_result.fval, results.fval)
 
     def test_qubo_gas_int_zero(self):
         """Test for when the answer is zero."""

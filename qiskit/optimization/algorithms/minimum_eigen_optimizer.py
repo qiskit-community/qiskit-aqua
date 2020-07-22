@@ -30,8 +30,8 @@ from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
 class MinimumEigenOptimizerResult(OptimizationResult):
     """ Minimum Eigen Optimizer Result."""
 
-    def __init__(self, x: Optional[Any] = None, fval: Optional[Any] = None,
-                 samples: Optional[Any] = None, results: Optional[Any] = None) -> None:
+    def __init__(self, x: List[float], fval: float,
+                 samples: List[Tuple[str, float, float]], results: QuadraticProgramToQubo) -> None:
         super().__init__(x, fval, results)
         self._samples = samples
 
@@ -40,12 +40,7 @@ class MinimumEigenOptimizerResult(OptimizationResult):
         """ returns samples """
         return self._samples
 
-    @samples.setter
-    def samples(self, samples: Any) -> None:
-        """ set samples """
-        self._samples = samples
-
-    def get_correlations(self):
+    def get_correlations(self) -> np.ndarray:
         """ get <Zi x Zj> correlation matrix from samples """
 
         states = [v[0] for v in self.samples]
@@ -161,7 +156,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
             # samples = [(res[0], problem_.objective.sense.value * (res[1] + offset), res[2])
             #    for res in samples]
             samples.sort(key=lambda x: problem_.objective.sense.value * x[1])
-            x = samples[0][0]
+            x = [int(e) for e in samples[0][0]]
             fval = samples[0][1]
 
         # if Hamiltonian is empty, then the objective function is constant to the offset

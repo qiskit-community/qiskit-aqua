@@ -16,7 +16,8 @@
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any, Optional
+from typing import List, Union, Any, Optional
+import numpy as np
 
 from .. import QiskitOptimizationError
 from ..problems.quadratic_program import QuadraticProgram
@@ -108,8 +109,8 @@ class OptimizationResult:
 
     Status = OptimizationResultStatus
 
-    def __init__(self, x: Optional[Any] = None, fval: Optional[Any] = None,
-                 results: Optional[Any] = None,
+    def __init__(self, x: Union[List[float], np.ndarray], fval: float,
+                 results: Any,
                  status: OptimizationResultStatus = OptimizationResultStatus.SUCCESS) -> None:
         self._val = x
         self._fval = fval
@@ -124,7 +125,7 @@ class OptimizationResult:
         return 'x=[{}], fval={}'.format(','.join([str(x_) for x_ in self.x]), self.fval)
 
     @property
-    def x(self) -> Any:
+    def x(self) -> Union[List[float], np.ndarray]:
         """Returns the optimal value found in the optimization.
 
         Returns:
@@ -132,32 +133,14 @@ class OptimizationResult:
         """
         return self._val
 
-    @x.setter  # type: ignore
-    def x(self, x: Any) -> None:
-        """Set a new optimal value.
-
-        Args:
-            x: The new optimal value.
-        """
-        self._val = x
-
     @property
-    def fval(self) -> Any:
+    def fval(self) -> float:
         """Returns the optimal function value.
 
         Returns:
             The function value corresponding to the optimal value found in the optimization.
         """
         return self._fval
-
-    @fval.setter  # type: ignore
-    def fval(self, fval: Any) -> None:
-        """Set a new optimal function value.
-
-        Args:
-            fval: The new optimal function value.
-        """
-        self._fval = fval
 
     @property
     def results(self) -> Any:
@@ -170,15 +153,6 @@ class OptimizationResult:
         """
         return self._results
 
-    @results.setter  # type: ignore
-    def results(self, results: Any) -> None:
-        """Set results.
-
-        Args:
-            results: The new additional results of the optimization.
-        """
-        self._results = results
-
     @property
     def status(self) -> OptimizationResultStatus:
         """Return the termination status of the algorithm.
@@ -187,12 +161,3 @@ class OptimizationResult:
             The termination status of the algorithm.
         """
         return self._status
-
-    @status.setter  # type: ignore
-    def status(self, status: OptimizationResultStatus) -> None:
-        """Set a new termination status.
-
-        Args:
-            status: The new termination status.
-        """
-        self._status = status
