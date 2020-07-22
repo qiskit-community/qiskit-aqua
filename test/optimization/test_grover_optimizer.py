@@ -40,7 +40,7 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
         comp_result = solver.solve(problem)
 
         # Validate results.
-        self.assertEqual(comp_result.x, results.x)
+        self.assertListEqual(comp_result.x, results.x)
         self.assertEqual(comp_result.fval, results.fval)
 
     def test_qubo_gas_int_zero(self):
@@ -57,7 +57,7 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
         # Will not find a negative, should return 0.
         gmf = GroverOptimizer(1, num_iterations=1, quantum_instance=self.q_instance)
         results = gmf.solve(op)
-        self.assertEqual(results.x, [0, 0])
+        self.assertListEqual(results.x, [0, 0])
         self.assertEqual(results.fval, 0.0)
 
     def test_qubo_gas_int_simple(self):

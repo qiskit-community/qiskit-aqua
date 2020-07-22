@@ -16,7 +16,7 @@
 
 import copy
 import logging
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -218,9 +218,9 @@ class IntegerToBinary:
         result._val = self._decode_var(result.x)  # type: ignore
         return result
 
-    def _decode_var(self, vals) -> List[float]:
+    def _decode_var(self, vals: Union[List[float], np.ndarray]) -> List[float]:
         # decode integer values
-        sol = {x.name: float(vals[i]) for i, x in enumerate(self._dst.variables)}
+        sol = {x.name: vals[i] for i, x in enumerate(self._dst.variables)}
         new_vals = []
         for x in self._src.variables:
             if x in self._conv:
