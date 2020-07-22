@@ -202,9 +202,10 @@ class ADMMOptimizer(OptimizationAlgorithm):
         """
         Args:
             qubo_optimizer: An instance of OptimizationAlgorithm that can effectively solve
-                QUBO problems.
+                QUBO problems. If not specified then :class:`MinimumEigenOptimizer` initialized
+                with an instance of :class:`NumPyMinimumEigensolver` will be used.
             continuous_optimizer: An instance of OptimizationAlgorithm that can solve
-                continuous problems.
+                continuous problems. If not specified then :class:`SlsqpOptimizer` will be used.
             params: An instance of ADMMParameters.
         """
         super().__init__()
