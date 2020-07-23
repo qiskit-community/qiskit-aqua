@@ -102,7 +102,7 @@ class OptimizationResult:
     Attributes:
         x: The optimal value found in the optimization algorithm.
         fval: The function value corresponding to the optimal value.
-        results: The original results object returned from the optimization algorithm. This can
+        raw_results: The original results object returned from the optimization algorithm. This can
             contain more information than only the optimal value and function value.
         status: The termination status of the algorithm.
     """
@@ -110,11 +110,11 @@ class OptimizationResult:
     Status = OptimizationResultStatus
 
     def __init__(self, x: Union[List[float], np.ndarray], fval: float,
-                 results: Any,
+                 raw_results: Optional[Any] = None,
                  status: OptimizationResultStatus = OptimizationResultStatus.SUCCESS) -> None:
-        self._val = x
+        self._x = x
         self._fval = fval
-        self._results = results
+        self._raw_results = raw_results
         self._status = status
 
     def __repr__(self):
@@ -131,7 +131,7 @@ class OptimizationResult:
         Returns:
             The optimal value found in the optimization.
         """
-        return self._val
+        return self._x
 
     @property
     def fval(self) -> float:
@@ -143,7 +143,7 @@ class OptimizationResult:
         return self._fval
 
     @property
-    def results(self) -> Any:
+    def raw_results(self) -> Optional[Any]:
         """Return the original results object from the algorithm.
 
         Currently a dump for any leftovers.
@@ -151,7 +151,7 @@ class OptimizationResult:
         Returns:
             Additional result information of the optimization algorithm.
         """
-        return self._results
+        return self._raw_results
 
     @property
     def status(self) -> OptimizationResultStatus:

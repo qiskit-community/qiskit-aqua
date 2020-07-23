@@ -23,7 +23,7 @@ from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.aqua.utils.validation import validate_min
 
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
-from .minimum_eigen_optimizer import MinimumEigenOptimizer
+from .minimum_eigen_optimizer import MinimumEigenOptimizer, MinimumEigenOptimizerResult
 from ..exceptions import QiskitOptimizationError
 from ..problems.quadratic_program import QuadraticProgram
 from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
@@ -133,7 +133,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         while problem_.get_num_vars() > self._min_num_vars:
 
             # solve current problem with optimizer
-            res = self._min_eigen_optimizer.solve(problem_)
+            res = self._min_eigen_optimizer.solve(problem_)  # type: MinimumEigenOptimizerResult
 
             # analyze results to get strongest correlation
             correlations = res.get_correlations()

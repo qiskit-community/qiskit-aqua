@@ -17,7 +17,7 @@ import warnings
 import copy
 import logging
 import time
-from typing import List, Optional, Any, Tuple, cast
+from typing import List, Optional, Tuple
 
 import numpy as np
 from .cplex_optimizer import CplexOptimizer
@@ -167,15 +167,13 @@ class ADMMState:
 class ADMMOptimizationResult(OptimizationResult):
     """ ADMMOptimization Result."""
 
-    def __init__(self, x: np.ndarray, fval: float, state: ADMMState,
-                 results: Optional[Any] = None) -> None:
-        super().__init__(x, fval, results or state)
-        self._state = state
+    def __init__(self, x: np.ndarray, fval: float, state: ADMMState) -> None:
+        super().__init__(x, fval, state)
 
     @property
     def state(self) -> ADMMState:
         """ returns state """
-        return self._state
+        return self._raw_results
 
 
 class ADMMOptimizer(OptimizationAlgorithm):
@@ -354,11 +352,13 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # flip the objective sign again if required
         objective_value = objective_value * sense
 
-        # third parameter is our internal state of computations.
-        result = ADMMOptimizationResult(solution, objective_value, self._state)
-
         # convert back integer to binary
-        result = cast(ADMMOptimizationResult, int2bin.decode(result))
+        base_result = OptimizationResult(solution, objective_value)
+        base_result = int2bin.decode(base_result)
+
+        # third parameter is our internal state of computations.
+        result = ADMMOptimizationResult(base_result.x, base_result.fval, self._state)
+
         # debug
         self._log.debug("solution=%s, objective=%s at iteration=%s",
                         solution, objective_value, iteration)

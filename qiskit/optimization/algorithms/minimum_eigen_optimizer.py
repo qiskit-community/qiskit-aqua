@@ -15,7 +15,7 @@
 
 """A wrapper for minimum eigen solvers from Aqua to be used within the optimization module."""
 
-from typing import Optional, Any, Union, Tuple, List, cast
+from typing import Optional, Any, Union, Tuple, List
 import numpy as np
 
 from qiskit.aqua.algorithms import MinimumEigensolver
@@ -31,14 +31,13 @@ class MinimumEigenOptimizerResult(OptimizationResult):
     """ Minimum Eigen Optimizer Result."""
 
     def __init__(self, x: List[float], fval: float,
-                 samples: List[Tuple[str, float, float]], results: QuadraticProgramToQubo) -> None:
-        super().__init__(x, fval, results)
-        self._samples = samples
+                 samples: List[Tuple[str, float, float]]) -> None:
+        super().__init__(x, fval, samples)
 
     @property
-    def samples(self) -> Any:
+    def samples(self) -> List[Tuple[str, float, float]]:
         """ returns samples """
-        return self._samples
+        return self._raw_results
 
     def get_correlations(self) -> np.ndarray:
         """ get <Zi x Zj> correlation matrix from samples """
@@ -167,9 +166,9 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
             samples = [(x_str, offset, 1.0)]
 
         # translate result back to integers
-        opt_res = MinimumEigenOptimizerResult(x, fval, samples, qubo_converter)
-        opt_res = cast(MinimumEigenOptimizerResult, qubo_converter.decode(opt_res))
-
+        base_res = OptimizationResult(x, fval)
+        base_res = qubo_converter.decode(base_res)
+        opt_res = MinimumEigenOptimizerResult(base_res.x, base_res.fval, samples)
         # translate results back to original problem
         return opt_res
 
