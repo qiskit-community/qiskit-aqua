@@ -388,14 +388,14 @@ class TestOpConstruction(QiskitAquaTestCase):
         op8 = MatrixOp(u8)
         c2 = op2.to_circuit_op()
 
-        # algorithm using matrix operations on numpy.arrays
+        # algorithm using only matrix operations on numpy.arrays
         xu4 = np.kron(x, u4)
         zc2 = np.kron(z, u2)
         zc2y = np.kron(zc2, y)
         matrix = np.matmul(xu4, zc2y)
         matrix = np.matmul(matrix, u8)
         matrix = np.kron(matrix, u2)
-        operator = Operator(matrix)  # resulting operator of type Operator(BaseOperator) from terra
+        operator = Operator(matrix)
 
         # same algorithm as above, but using PrimitiveOps
         list_op = ((X ^ op4) @ (Z ^ c2 ^ Y) @ op8) ^ op2
