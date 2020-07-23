@@ -1,0 +1,7 @@
+---
+fixes:
+  - |
+    ComposedOp distributes over ListOp under the method `reduce`. But,
+    SummedOp does not. This change fixes this inconsistency by also
+    distributing SummedOp over ListOp. For example,
+    (Y + ListOp([X, Z])).reduce() == ListOp([Y + X, Y + Z]).

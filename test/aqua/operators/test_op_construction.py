@@ -27,7 +27,7 @@ from qiskit.quantum_info.operators import Operator, Pauli
 from qiskit.circuit.library import CZGate, ZGate
 
 from qiskit.aqua.operators import (
-    X, Y, Z, I, CX, T, H, PrimitiveOp, SummedOp, PauliOp, Minus, CircuitOp, MatrixOp
+    X, Y, Z, I, CX, T, H, PrimitiveOp, SummedOp, ListOp, PauliOp, Minus, CircuitOp, MatrixOp
 )
 
 
@@ -350,6 +350,13 @@ class TestOpConstruction(QiskitAquaTestCase):
         with self.subTest('matrix op and paulis'):
             z = MatrixOp([[1, 0], [0, -1]])
             self.assertEqual(Z + z, z + Z)
+
+    def test_list_op_reduce(self):
+        """Test ListOp"""
+        list_op = Y + ListOp([Z, X])  # type: SummedOp
+        list_op = list_op.reduce()
+        with self.subTest('ListOp test 1'):
+            self.assertEqual(list_op, ListOp([Y + Z, Y + X]))
 
     def test_circuit_compose_register_independent(self):
         """Test that CircuitOp uses combines circuits independent of the register.

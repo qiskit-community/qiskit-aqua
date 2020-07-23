@@ -16,6 +16,7 @@
 
 from typing import List, Union, cast
 
+from functools import reduce
 import numpy as np
 
 from qiskit.circuit import ParameterExpression
@@ -125,6 +126,20 @@ class SummedOp(ListOp):
         # group duplicate operators
         if isinstance(reduced_ops, SummedOp):
             reduced_ops = reduced_ops.collapse_summands()
+
+        # distribute over ListOp
+        # pylint: disable=invalid-name
+        def distribute_sum(l, r):
+            # pylint: disable=unidiomatic-typecheck
+            if type(l) == ListOp:
+                return ListOp([distribute_sum(l_op * l.coeff, r) for l_op in l.oplist])
+            if type(r) == ListOp:
+                return ListOp([distribute_sum(l, r_op * r.coeff) for r_op in r.oplist])
+            else:
+                return l + r
+
+        if isinstance(reduced_ops, SummedOp):
+            reduced_ops = reduce(distribute_sum, reduced_ops)  # type: ignore
 
         if isinstance(reduced_ops, SummedOp) and len(reduced_ops.oplist) == 1:
             return reduced_ops.oplist[0]
