@@ -22,7 +22,7 @@ from scipy.stats import unitary_group
 import numpy as np
 from ddt import ddt, data
 
-from qiskit.circuit import QuantumCircuit, QuantumRegister, Instruction
+from qiskit.circuit import QuantumCircuit, QuantumRegister, Instruction, Parameter
 from qiskit.extensions.exceptions import ExtensionError
 from qiskit.quantum_info.operators import Operator, Pauli
 from qiskit.circuit.library import CZGate, ZGate
@@ -75,6 +75,15 @@ class TestOpConstruction(QiskitAquaTestCase):
         self.assertEqual(Y.eval('1').eval('0'), -1j)
         self.assertEqual(Y.eval('0').eval('1'), 1j)
         self.assertEqual(Y.eval('1').eval('1'), 0)
+
+        with self.assertRaises(ValueError):
+            Y.eval('11')
+
+        with self.assertRaises(ValueError):
+            (X ^ Y).eval('1111')
+
+        with self.assertRaises(ValueError):
+            Y.eval((X ^ X).to_matrix_op())
 
         # Check that Pauli logic eval returns same as matrix logic
         self.assertEqual(PrimitiveOp(Z.to_matrix()).eval('0').eval('0'), 1)
@@ -351,6 +360,29 @@ class TestOpConstruction(QiskitAquaTestCase):
         with self.subTest('matrix op and paulis'):
             z = MatrixOp([[1, 0], [0, -1]])
             self.assertEqual(Z + z, z + Z)
+
+        with self.subTest('matrix multiplicative'):
+            z = MatrixOp([[1, 0], [0, -1]])
+            self.assertEqual(2 * z, z + z)
+
+        with self.subTest('parameter coefficients'):
+            expr = Parameter('theta')
+            z = MatrixOp([[1, 0], [0, -1]])
+            self.assertEqual(expr * z, expr * z)
+
+        with self.subTest('different coefficient types'):
+            expr = Parameter('theta')
+            z = MatrixOp([[1, 0], [0, -1]])
+            self.assertNotEqual(expr * z, 2 * z)
+
+        with self.subTest('additions aggregation'):
+            z = MatrixOp([[1, 0], [0, -1]])
+            a = z + z + Z
+            b = 2 * z + Z
+            c = z + Z + z
+            self.assertEqual(a, b)
+            self.assertEqual(b, c)
+            self.assertEqual(a, c)
 
     def test_circuit_compose_register_independent(self):
         """Test that CircuitOp uses combines circuits independent of the register.
