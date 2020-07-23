@@ -1,0 +1,8 @@
+---
+fixes:
+  - |
+    ``op.eval(other)``, where ``op`` is of type ``OperatorBase``, sometimes
+    silently returns a nonsensical value when the number of qubits in ``op``
+    and ``other`` are not equal. This fix results in correct bevavior, which
+    is to throw an error rather than return a value, because the input in
+    this case is invalid.
