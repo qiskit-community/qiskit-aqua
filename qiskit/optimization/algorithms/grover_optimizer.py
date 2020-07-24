@@ -226,7 +226,7 @@ class GroverOptimizer(OptimizationAlgorithm):
         fval = solutions[optimum_key]
         if sense == problem_.objective.Sense.MAXIMIZE:
             fval = -fval
-        result = OptimizationResult(x=opt_x, fval=fval,
+        result = OptimizationResult(x=opt_x, variables=problem.variables, fval=fval,
                                     results={"grover_results": grover_results,
                                              "qubo_converter": qubo_converter})
 
