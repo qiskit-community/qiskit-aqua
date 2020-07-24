@@ -73,7 +73,7 @@ these on a quantum backend, whether a real device or simulator.
 * **IBM CPLEX** may be [installed](https://qiskit.org/documentation/apidoc/qiskit.aqua.algorithms.minimum_eigen_solvers.cplex.html)
   to allow use of the `ClassicalCPLEX` classical solver algorithm. `pip install cplex` may be used
   as an alternative.
-* **PyTorch**, may be installed either using command `pip install qiskit-aqua[torch]` to install the
+* **PyTorch**, may be installed either using command `pip install torch` to install the
   package or refer to PyTorch [getting started](https://pytorch.org/get-started/locally/). PyTorch
   being installed will enable the neural networks `PyTorchDiscriminator` component to be used with
   the QGAN algorithm.
