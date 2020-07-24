@@ -20,7 +20,7 @@ from typing import List, Union, Any, Optional
 import numpy as np
 
 from .. import QiskitOptimizationError
-from ..problems.quadratic_program import QuadraticProgram
+from ..problems.quadratic_program import QuadraticProgram, Variable
 
 
 class OptimizationAlgorithm(ABC):
@@ -105,24 +105,53 @@ class OptimizationResult:
         raw_results: The original results object returned from the optimization algorithm. This can
             contain more information than only the optimal value and function value.
         status: The termination status of the algorithm.
+        variables: The list of variables under optimization.
     """
 
     Status = OptimizationResultStatus
 
     def __init__(self, x: Union[List[float], np.ndarray], fval: float,
+                 variables: Optional[List[Variable]],
                  raw_results: Optional[Any] = None,
                  status: OptimizationResultStatus = OptimizationResultStatus.SUCCESS) -> None:
-        self._x = x
+        self._x = x  # pylint: disable=invalid-name
         self._fval = fval
         self._raw_results = raw_results
         self._status = status
+        self._variables = variables
+        self._variable_names = [variable.name for variable in self._variables]
+        self._variables_dict = dict(zip(self._variable_names, self._x))
 
     def __repr__(self):
-        return '([{}] / {} / {})'.format(','.join([str(x_) for x_ in self.x]), self.fval,
-                                         self.status)
+        self._x = self._x if self._x is not None else []
+        return 'optimal variables: [{}]\noptimal function value: {}\nstatus: {}' \
+            .format(','.join([str(x_) for x_ in self._x]), self._fval, self._status.name)
 
-    def __str__(self):
-        return 'x=[{}], fval={}'.format(','.join([str(x_) for x_ in self.x]), self.fval)
+    def __getitem__(self, item: Union[int, str]):
+        if isinstance(item, int):
+            return self._x[item]
+        if isinstance(item, str):
+            return self._variables_dict[item]
+        raise QiskitOptimizationError("Integer or string parameter required, instead "
+                                      + type(item).__name__ + " provided.")
+
+    @property
+    def variables_dict(self) -> Optional[Dict[str, int]]:
+        """Returns the pairs of variable names and values under optimization.
+
+        Returns:
+            The pairs of variable names and values under optimization.
+        """
+        return self._variables_dict
+
+    @property
+    def variable_names(self) -> Optional[List[str]]:
+        """Returns the list of variable names under optimization.
+
+        Returns:
+            The list of variable names under optimization.
+        """
+        return self._variable_names
 
     @property
     def x(self) -> Union[List[float], np.ndarray]:
