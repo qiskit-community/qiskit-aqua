@@ -120,7 +120,8 @@ class TestDriverFCIDumpDumpH2(QiskitChemistryTestCase, BaseTestDriverFCIDumpDump
             dump = tempfile.NamedTemporaryFile()
             FCIDumpDriver.dump(qmolecule, dump.name)
 
-            from pyscf.tools import fcidump as pyscf_fcidump  # pylint: disable=import-outside-toplevel
+            # pylint: disable=import-outside-toplevel
+            from pyscf.tools import fcidump as pyscf_fcidump
             self.dumped = pyscf_fcidump.read(dump.name)
 
             dump.close()
