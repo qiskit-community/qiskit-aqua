@@ -216,7 +216,8 @@ class IntegerToBinary:
             The result of the original problem.
         """
         new_x = self._decode_var(result.x)
-        return OptimizationResult(x=new_x, fval=result.fval, raw_results=result.fval)
+        return OptimizationResult(x=new_x, fval=result.fval, variables=result.variables,
+                                  raw_results=result.fval)
 
     def _decode_var(self, vals: Union[List[float], np.ndarray]) -> List[float]:
         # decode integer values

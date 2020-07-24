@@ -15,16 +15,16 @@
 """Converter to convert a problem with equality constraints to unconstrained with penalty terms."""
 
 import copy
-from typing import Optional, cast, Union, Tuple, Dict
-from math import fsum
 import logging
+from math import fsum
+from typing import Optional, cast, Union, Tuple, Dict
 
 from ..algorithms.optimization_algorithm import OptimizationResult, OptimizationResultStatus
-from ..problems.quadratic_program import QuadraticProgram, QuadraticProgramStatus
-from ..problems.variable import Variable
+from ..exceptions import QiskitOptimizationError
 from ..problems.constraint import Constraint
 from ..problems.quadratic_objective import QuadraticObjective
-from ..exceptions import QiskitOptimizationError
+from ..problems.quadratic_program import QuadraticProgram, QuadraticProgramStatus
+from ..problems.variable import Variable
 
 logger = logging.getLogger(__name__)
 
@@ -198,7 +198,8 @@ class LinearEqualityToPenalty:
             new_status = OptimizationResultStatus.INFEASIBLE
 
         return OptimizationResult(x=result.x, fval=substituted_qp.objective.constant,
-                                  raw_results=result.raw_results, status=new_status)
+                                  variables=result.variables, raw_results=result.raw_results,
+                                  status=new_status)
 
     @property
     def penalty(self) -> Optional[float]:

@@ -16,7 +16,8 @@
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import List, Union, Any, Optional
+from typing import List, Union, Any, Optional, Dict
+
 import numpy as np
 
 from .. import QiskitOptimizationError
@@ -119,11 +120,10 @@ class OptimizationResult:
         self._raw_results = raw_results
         self._status = status
         self._variables = variables
-        self._variable_names = [variable.name for variable in self._variables]
-        self._variables_dict = dict(zip(self._variable_names, self._x))
+        self._variable_names = [var.name for var in self._variables] if variables else []
+        self._variables_dict = dict(zip(self._variable_names, self._x)) if variables else {}
 
     def __repr__(self):
-        self._x = self._x if self._x is not None else []
         return 'optimal variables: [{}]\noptimal function value: {}\nstatus: {}' \
             .format(','.join([str(x_) for x_ in self._x]), self._fval, self._status.name)
 
@@ -132,26 +132,8 @@ class OptimizationResult:
             return self._x[item]
         if isinstance(item, str):
             return self._variables_dict[item]
-        raise QiskitOptimizationError("Integer or string parameter required, instead "
-                                      + type(item).__name__ + " provided.")
-
-    @property
-    def variables_dict(self) -> Optional[Dict[str, int]]:
-        """Returns the pairs of variable names and values under optimization.
-
-        Returns:
-            The pairs of variable names and values under optimization.
-        """
-        return self._variables_dict
-
-    @property
-    def variable_names(self) -> Optional[List[str]]:
-        """Returns the list of variable names under optimization.
-
-        Returns:
-            The list of variable names under optimization.
-        """
-        return self._variable_names
+        raise QiskitOptimizationError(
+            "Integer or string parameter required, instead '{}' provided.".format(item))
 
     @property
     def x(self) -> Union[List[float], np.ndarray]:
@@ -190,3 +172,30 @@ class OptimizationResult:
             The termination status of the algorithm.
         """
         return self._status
+
+    @property
+    def variables(self) -> Optional[List[Variable]]:
+        """Returns the list of variables of the optimization problem.
+
+        Returns:
+            The list of variables.
+        """
+        return self._variables
+
+    @property
+    def variables_dict(self) -> Dict[str, int]:
+        """Returns the pairs of variable names and values under optimization.
+
+        Returns:
+            The pairs of variable names and values under optimization.
+        """
+        return self._variables_dict
+
+    @property
+    def variable_names(self) -> List[str]:
+        """Returns the list of variable names under optimization.
+
+        Returns:
+            The list of variable names under optimization.
+        """
+        return self._variable_names

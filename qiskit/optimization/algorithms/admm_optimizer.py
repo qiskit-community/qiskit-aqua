@@ -17,7 +17,7 @@ import copy
 import logging
 import time
 import warnings
-from typing import List, Optional, Any, Tuple, cast
+from typing import List, Optional, Tuple
 
 import numpy as np
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
@@ -174,8 +174,9 @@ class ADMMState:
 class ADMMOptimizationResult(OptimizationResult):
     """ ADMMOptimization Result."""
 
-    def __init__(self, x: np.ndarray, fval: float, state: ADMMState) -> None:
-        super().__init__(x, fval, state)
+    def __init__(self, x: np.ndarray, fval: float, variables: List[Variable],
+                 state: ADMMState) -> None:
+        super().__init__(x=x, fval=fval, variables=variables, raw_results=state)
 
     @property
     def state(self) -> ADMMState:
@@ -271,6 +272,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # map integer variables to binary variables
         from ..converters.integer_to_binary import IntegerToBinary
         int2bin = IntegerToBinary()
+        original_variables = problem.variables
         problem = int2bin.encode(problem)
 
         # we deal with minimization in the optimizer, so turn the problem to minimization
@@ -358,11 +360,13 @@ class ADMMOptimizer(OptimizationAlgorithm):
         objective_value = objective_value * sense
 
         # convert back integer to binary
-        base_result = OptimizationResult(solution, objective_value)
+        base_result = OptimizationResult(solution, objective_value, original_variables)
         base_result = int2bin.decode(base_result)
 
         # third parameter is our internal state of computations.
-        result = ADMMOptimizationResult(base_result.x, base_result.fval, self._state)
+        result = ADMMOptimizationResult(x=base_result.x, fval=base_result.fval,
+                                        variables=base_result.variables,
+                                        state=self._state)
 
         # debug
         self._log.debug("solution=%s, objective=%s at iteration=%s",
