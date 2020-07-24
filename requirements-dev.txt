@@ -16,3 +16,4 @@ torch; sys_platform == 'linux' or (python_version < '3.8' and sys_platform != 'w
 qiskit-aer
 mypy>=0.780
 mypy-extensions>=0.4.3
+pyscf
