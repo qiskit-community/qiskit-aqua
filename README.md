@@ -161,10 +161,6 @@ Several, as listed below, are supported, and while logic to interface these prog
 the chemistry module via the above pip installation, the dependent programs/libraries themselves need
 to be installed separately.
 
-Note: As `PySCF` can be installed via pip the installation of Qiskit (Aqua) will install PySCF
-where it's supported (MacOS and Linux x86). For other platforms see the PySCF information as to
-whether this might be possible manually.
-
 1. [Gaussian 16&trade;](https://qiskit.org/documentation/apidoc/qiskit.chemistry.drivers.gaussiand.html), a commercial chemistry program
 2. [PSI4](https://qiskit.org/documentation/apidoc/qiskit.chemistry.drivers.psi4d.html), a chemistry program that exposes a Python interface allowing for accessing internal objects
 3. [PySCF](https://qiskit.org/documentation/apidoc/qiskit.chemistry.drivers.pyscfd.html), an open-source Python chemistry program
