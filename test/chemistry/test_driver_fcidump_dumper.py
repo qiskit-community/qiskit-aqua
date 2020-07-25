@@ -115,18 +115,20 @@ class TestDriverFCIDumpDumpH2(QiskitChemistryTestCase, BaseTestDriverFCIDumpDump
                                  charge=0,
                                  spin=0,
                                  basis='sto3g')
+            qmolecule = driver.run()
+
+            dump = tempfile.NamedTemporaryFile()
+            FCIDumpDriver.dump(qmolecule, dump.name)
+
+            # pylint: disable=import-outside-toplevel
+            from pyscf.tools import fcidump as pyscf_fcidump
+            self.dumped = pyscf_fcidump.read(dump.name)
+
+            dump.close()
         except QiskitChemistryError:
-            self.skipTest('PYSCF driver does not appear to be installed')
-
-        qmolecule = driver.run()
-
-        dump = tempfile.NamedTemporaryFile()
-        FCIDumpDriver.dump(qmolecule, dump.name)
-
-        from pyscf.tools import fcidump as pyscf_fcidump  # pylint: disable=import-outside-toplevel
-        self.dumped = pyscf_fcidump.read(dump.name)
-
-        dump.close()
+            self.skipTest('PYSCF driver does not appear to be installed.')
+        except ImportError:
+            self.skipTest('PYSCF driver does not appear to be installed.')
 
 
 if __name__ == '__main__':
