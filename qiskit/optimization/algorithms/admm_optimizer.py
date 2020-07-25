@@ -13,20 +13,23 @@
 # that they have been altered from the originals.
 
 """An implementation of the ADMM algorithm."""
-import warnings
 import copy
 import logging
 import time
+import warnings
 from typing import List, Optional, Any, Tuple, cast
 
 import numpy as np
-from .cplex_optimizer import CplexOptimizer
+from qiskit.aqua.algorithms import NumPyMinimumEigensolver
+
+from .minimum_eigen_optimizer import MinimumEigenOptimizer
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
-from ..problems.quadratic_program import QuadraticProgram
-from ..problems.variable import VarType, Variable
+from .slsqp_optimizer import SlsqpOptimizer
 from ..problems.constraint import Constraint
 from ..problems.linear_constraint import LinearConstraint
 from ..problems.quadratic_objective import QuadraticObjective
+from ..problems.quadratic_program import QuadraticProgram
+from ..problems.variable import VarType, Variable
 
 UPDATE_RHO_BY_TEN_PERCENT = 0
 UPDATE_RHO_BY_RESIDUALS = 1
@@ -94,6 +97,10 @@ class ADMMParameters:
         self.factor_c = factor_c
         self.beta = beta
         self.rho_initial = rho_initial
+
+    def __repr__(self) -> str:
+        props = ", ".join(["{}={}".format(key, value) for (key, value) in vars(self).items()])
+        return "{0}({1})".format(type(self).__name__, props)
 
 
 class ADMMState:
@@ -168,8 +175,12 @@ class ADMMOptimizationResult(OptimizationResult):
     """ ADMMOptimization Result."""
 
     def __init__(self, x: Optional[Any] = None, fval: Optional[Any] = None,
-                 state: Optional[ADMMState] = None, results: Optional[Any] = None) -> None:
-        super().__init__(x, fval, results or state)
+                 state: Optional[ADMMState] = None, results: Optional[Any] = None,
+                 variables: Optional[List[Variable]] = None) -> None:
+        super().__init__(x=x,
+                         variables=variables,
+                         fval=fval,
+                         results=results or state)
         self._state = state
 
     @property
@@ -195,13 +206,11 @@ class ADMMOptimizer(OptimizationAlgorithm):
         """
         Args:
             qubo_optimizer: An instance of OptimizationAlgorithm that can effectively solve
-                QUBO problems.
+                QUBO problems. If not specified then :class:`MinimumEigenOptimizer` initialized
+                with an instance of :class:`NumPyMinimumEigensolver` will be used.
             continuous_optimizer: An instance of OptimizationAlgorithm that can solve
-                continuous problems.
+                continuous problems. If not specified then :class:`SlsqpOptimizer` will be used.
             params: An instance of ADMMParameters.
-
-        Raises:
-            NameError: CPLEX is not installed.
         """
         super().__init__()
         self._log = logging.getLogger(__name__)
@@ -210,8 +219,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
         self._params = params or ADMMParameters()
 
         # create optimizers if not specified
-        self._qubo_optimizer = qubo_optimizer or CplexOptimizer()
-        self._continuous_optimizer = continuous_optimizer or CplexOptimizer()
+        self._qubo_optimizer = qubo_optimizer or MinimumEigenOptimizer(NumPyMinimumEigensolver())
+        self._continuous_optimizer = continuous_optimizer or SlsqpOptimizer()
 
         # internal state where we'll keep intermediate solution
         # here, we just declare the class variable, the variable is initialized in kept in
@@ -355,7 +364,10 @@ class ADMMOptimizer(OptimizationAlgorithm):
         objective_value = objective_value * sense
 
         # third parameter is our internal state of computations.
-        result = ADMMOptimizationResult(solution, objective_value, self._state)
+        result = ADMMOptimizationResult(x=solution,
+                                        fval=objective_value,
+                                        state=self._state,
+                                        variables=problem.variables)
 
         # convert back integer to binary
         result = cast(ADMMOptimizationResult, int2bin.decode(result))
@@ -813,3 +825,21 @@ class ADMMOptimizer(OptimizationAlgorithm):
         dual_residual = self._state.rho * np.linalg.norm(elements_dual)
 
         return primal_residual, dual_residual
+
+    @property
+    def parameters(self) -> ADMMParameters:
+        """Returns current parameters of the optimizer.
+
+        Returns:
+            The parameters.
+        """
+        return self._params
+
+    @parameters.setter
+    def parameters(self, params: ADMMParameters) -> None:
+        """Sets the parameters of the optimizer.
+
+        Args:
+            params: New parameters to set.
+        """
+        self._params = params
