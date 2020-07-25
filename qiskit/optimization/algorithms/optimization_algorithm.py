@@ -112,7 +112,7 @@ class OptimizationResult:
     Status = OptimizationResultStatus
 
     def __init__(self, x: Union[List[float], np.ndarray], fval: float,
-                 variables: Optional[List[Variable]],
+                 variables: Optional[List[Variable]] = None,
                  raw_results: Optional[Any] = None,
                  status: OptimizationResultStatus = OptimizationResultStatus.SUCCESS) -> None:
         self._x = x  # pylint: disable=invalid-name
@@ -124,16 +124,18 @@ class OptimizationResult:
         self._variables_dict = dict(zip(self._variable_names, self._x)) if variables else {}
 
     def __repr__(self):
-        return 'optimal variables: [{}]\noptimal function value: {}\nstatus: {}' \
-            .format(','.join([str(x_) for x_ in self._x]), self._fval, self._status.name)
+        return 'optimal function value: {}\n' \
+               'optimal value: {}\n' \
+               'status: {}'.format(self._fval, self._x, self._status.name)
 
     def __getitem__(self, item: Union[int, str]):
         if isinstance(item, int):
             return self._x[item]
         if isinstance(item, str):
             return self._variables_dict[item]
-        raise QiskitOptimizationError(
-            "Integer or string parameter required, instead '{}' provided.".format(item))
+        raise TypeError(
+            "Integer or string parameter required,"
+            "instead {}({}) provided.".format(type(item), item))
 
     @property
     def x(self) -> Union[List[float], np.ndarray]:
@@ -154,7 +156,7 @@ class OptimizationResult:
         return self._fval
 
     @property
-    def raw_results(self) -> Optional[Any]:
+    def raw_results(self) -> Any:
         """Return the original results object from the algorithm.
 
         Currently a dump for any leftovers.
