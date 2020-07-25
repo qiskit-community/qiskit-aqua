@@ -123,19 +123,38 @@ class OptimizationResult:
         self._variable_names = [var.name for var in self._variables] if variables else []
         self._variables_dict = dict(zip(self._variable_names, self._x)) if variables else {}
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'optimal function value: {}\n' \
                'optimal value: {}\n' \
                'status: {}'.format(self._fval, self._x, self._status.name)
 
-    def __getitem__(self, item: Union[int, str]):
-        if isinstance(item, int):
-            return self._x[item]
-        if isinstance(item, str):
-            return self._variables_dict[item]
+    def __getitem__(self, key: Union[int, str]) -> float:
+        """Returns the value of the variable whose index or name is equal to `key`.
+
+        The key can be an integer or a string.
+        If the key is an integer, this methods returns the value of the variable
+        whose index is equal to `key`.
+        If the key is a string, this methods return the value of the variable
+        whose name is equal to `key`.
+
+        Args:
+            key: an integer or a string.
+
+        Returns:
+            The value of a variable whose index or name is equal to `key`.
+
+        Raises:
+            IndexError: if `key` is an integer and is out of range of the variables.
+            KeyError: if `key` is a string and none of the variables has `key` as name.
+            TypeError: if `key` is neither an integer nor a string.
+        """
+        if isinstance(key, int):
+            return self._x[key]
+        if isinstance(key, str):
+            return self._variables_dict[key]
         raise TypeError(
-            "Integer or string parameter required,"
-            "instead {}({}) provided.".format(type(item), item))
+            "Integer or string key required,"
+            "instead {}({}) provided.".format(type(key), key))
 
     @property
     def x(self) -> Union[List[float], np.ndarray]:
@@ -186,18 +205,18 @@ class OptimizationResult:
 
     @property
     def variables_dict(self) -> Dict[str, int]:
-        """Returns the pairs of variable names and values under optimization.
+        """Returns the optimal value as a dictionary of the variable name and corresponding value.
 
         Returns:
-            The pairs of variable names and values under optimization.
+            The optimal value as a dictionary of the variable name and corresponding value.
         """
         return self._variables_dict
 
     @property
     def variable_names(self) -> List[str]:
-        """Returns the list of variable names under optimization.
+        """Returns the list of variable names of the optimization problem.
 
         Returns:
-            The list of variable names under optimization.
+            The list of variable names of the optimization problem.
         """
         return self._variable_names
