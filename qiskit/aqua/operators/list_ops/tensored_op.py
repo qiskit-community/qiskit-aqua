@@ -17,11 +17,14 @@
 from typing import List, Union, cast
 from functools import reduce, partial
 import numpy as np
+
 from qiskit import QuantumCircuit
-
 from qiskit.circuit import ParameterExpression
+from qiskit.aqua import AquaError
 
+from ..state_fns.circuit_state_fn import CircuitStateFn
 from ..operator_base import OperatorBase
+from ..primitive_ops.primitive_op import PrimitiveOp
 from .list_op import ListOp
 
 
@@ -80,5 +83,11 @@ class TensoredOp(ListOp):
         """ Returns the quantum circuit, representing the tensored operator.
         Returns:
             The circuit representation of the tensored operator.
+        Raises:
+            AquaError: for operators where a single underlying circuit can not be produced.
         """
-        return self.to_circuit_op().to_circuit()  # type: ignore
+        circuit_op = self.to_circuit_op()
+        if isinstance(circuit_op, (PrimitiveOp, CircuitStateFn)):
+            return circuit_op.to_circuit()
+        raise AquaError('Conversion to_circuit supported only for operators, where a single '
+                        'underlying circuit can be produced.')
