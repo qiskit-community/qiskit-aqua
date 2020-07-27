@@ -98,8 +98,8 @@ class PauliOp(PrimitiveOp):
 
         return TensoredOp([self, other])
 
-    def identity(self, num_qubit: int) -> OperatorBase:
-        primitive = Pauli(label='I'*num_qubit)
+    def identity(self, num_qubits: int) -> OperatorBase:
+        primitive = Pauli(label='I'*num_qubits)
         return PauliOp(primitive)
 
     def compose(self, other: OperatorBase) -> OperatorBase:

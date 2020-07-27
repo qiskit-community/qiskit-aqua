@@ -170,9 +170,9 @@ class CircuitStateFn(StateFn):
         from qiskit.aqua.operators import ComposedOp
         return ComposedOp([new_self, other])
 
-    def identity(self, dim: int) -> 'CircuitStateFn':
-        new_qc = QuantumCircuit(dim)
-        for i in range(dim):
+    def identity(self, num_qubits: int) -> 'CircuitStateFn':
+        new_qc = QuantumCircuit(num_qubits)
+        for i in range(num_qubits):
             new_qc.i(i)
         return CircuitStateFn(new_qc, is_measurement=self.is_measurement)
 
@@ -199,7 +199,6 @@ class CircuitStateFn(StateFn):
         if isinstance(other, CircuitStateFn) and other.is_measurement == self.is_measurement:
             # Avoid reimplementing tensor, just use CircuitOp's
             from ..primitive_ops.circuit_op import CircuitOp
-            from ..operator_globals import Zero
             c_op_self = CircuitOp(self.primitive, self.coeff)
             c_op_other = CircuitOp(other.primitive, other.coeff)
             c_op = c_op_self.tensor(c_op_other)

@@ -214,9 +214,6 @@ class CircuitOp(PrimitiveOp):
     def to_instruction(self) -> Instruction:
         return self.primitive.to_instruction()  # type: ignore
 
-    def to_circuit_state_fn(self, is_measurement=False) -> OperatorBase:
-        return
-
     # Warning - modifying immutable object!!
     def reduce(self) -> OperatorBase:
         if self.primitive.data is not None:  # type: ignore

@@ -371,7 +371,7 @@ class OperatorBase(ABC):
             return cast(OperatorBase, other).tensor(self)
 
     @abstractmethod
-    def identity(self, dim: int) -> 'OperatorBase':
+    def identity(self, num_qubits: int) -> 'OperatorBase':
         """
         Returns:
             identity operator of dimension 'dim'.

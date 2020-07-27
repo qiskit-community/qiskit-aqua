@@ -346,6 +346,10 @@ class TestOpConstruction(QiskitAquaTestCase):
             self.assertListEqual([op.coeff for op in sum_op], [10, 2, 3])
 
     def test_compose_op_of_different_dim(self):
+        """
+        Test if smaller operator expands to correct dim when composed with bigger operator.
+        Test if compose methods of PrimitiveOp types are consistent.
+        """
         # PauliOps of different dim
         xy_p = (X ^ Y)
         xyz_p = (X ^ Y ^ Z)
