@@ -371,6 +371,40 @@ class TestOpConstruction(QiskitAquaTestCase):
         self.assertTrue(np.allclose(pauli_op.to_matrix(), circuit_op.to_matrix(), rtol=1e-14))
         self.assertTrue(np.allclose(matrix_op.to_matrix(), circuit_op.to_matrix(), rtol=1e-14))
 
+    def test_expand_on_state_fn(self):
+        """ Tests num_qubits on the original instance and expanded instance of StateFn """
+        num_qubits = 3
+        add_qubits = 2
+
+        # case CircuitStateFn, with primitive QuantumCircuit
+        qc2 = QuantumCircuit(num_qubits)
+        qc2.cx(0, 1)
+
+        cfn = CircuitStateFn(qc2, is_measurement=True)
+
+        cfn_exp = cfn.expand(add_qubits)
+        self.assertEqual(cfn_exp.num_qubits, add_qubits + num_qubits)
+
+        # case OperatorStateFn, with OperatorBase primitive, in our case CircuitStateFn
+        osfn = OperatorStateFn(cfn)
+        osfn_exp = osfn.expand(add_qubits)
+
+        self.assertEqual(osfn_exp.num_qubits, add_qubits + num_qubits)
+
+        # case DictStateFn
+        dsfn = DictStateFn('1'*num_qubits, is_measurement=True)
+        self.assertEqual(dsfn.num_qubits, num_qubits)
+
+        dsfn_exp = dsfn.expand(add_qubits)
+        self.assertEqual(dsfn_exp.num_qubits, num_qubits + add_qubits)
+
+        # case VectorStateFn
+        vsfn = VectorStateFn(np.ones(2**num_qubits, dtype=complex))
+        self.assertEqual(vsfn.num_qubits, num_qubits)
+
+        vsfn_exp = vsfn.expand(add_qubits)
+        self.assertEqual(vsfn_exp.num_qubits, num_qubits + add_qubits)
+
     def test_summed_op_equals(self):
         """Test corner cases of SummedOp's equals function."""
         with self.subTest('multiplicative factor'):

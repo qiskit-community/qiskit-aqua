@@ -79,7 +79,7 @@ class VectorStateFn(StateFn):
                              is_measurement=(not self.is_measurement))
 
     def identity(self, num_qubits: int) -> 'VectorStateFn':
-        primitive = np.identity(2**num_qubits, dtype=complex)
+        primitive = np.zeros(2**num_qubits, dtype=complex)
         return VectorStateFn(primitive)
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
