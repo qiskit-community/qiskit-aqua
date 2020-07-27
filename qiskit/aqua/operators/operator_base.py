@@ -440,7 +440,7 @@ class OperatorBase(ABC):
         raise NotImplementedError
 
     def expand(self, num_qubits: int) -> 'OperatorBase':
-        """Expand the operator with identity operator of dimension corresponding to num_qubits.
+        """ Expand the operator with identity operator of dimension corresponding to num_qubits.
         Returns:
             Operator corresponding to self.tensor(identity_operator), where dimension of
             identity operator is 2 ^ num_qubits.
