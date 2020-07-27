@@ -108,9 +108,11 @@ class OptimizationResult:
         status: The termination status of the algorithm.
         variables: The list of variables under optimization.
         variable_names: The list of variable names.
-        variables_dict: The optimal value as a dictionary of the variable name and corresponding value.
+        variables_dict: The optimal value as a dictionary of the variable name and corresponding
+            value.
 
-    `OptimizationResult` allows users to get the value of a variable by specifying an index or a name as follows.
+    `OptimizationResult` allows users to get the value of a variable by specifying an index or
+    a name as follows.
 
     Examples:
         >>> problem = QuadraticProgram()
@@ -136,9 +138,9 @@ class OptimizationResult:
         {'x1': 0.0, 'x2': 1.0, 'x3': 0.0}
 
     Note:
-        The order of variables are supposed to be equal to that of the problem solved by optimization algorithms.
-        Optimization algorithms and converters of `QuadraticProgram` should maintain the order when generating a new
-        `OptimizationResult` object.
+        The order of variables are supposed to be equal to that of the problem solved by
+        optimization algorithms. Optimization algorithms and converters of `QuadraticProgram`
+        should maintain the order when generating a new `OptimizationResult` object.
     """
 
     Status = OptimizationResultStatus
