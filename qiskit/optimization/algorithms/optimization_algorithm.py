@@ -100,6 +100,19 @@ class OptimizationResult:
     The optimization algorithms return an object of the type `OptimizationResult`, which enforces
     providing the following attributes.
 
+    You can get the value of a variable by specifying an index or a name.
+
+    Examples:
+        >>> result = OptimizationAlgorithm.solve(problem)
+        >>> print(result.variable_names)
+        ['x1', 'x2', 'x3']
+        >>> print(result.x)
+        [1, 0, 1]
+        >>> print(result[1])
+        0
+        >>> print(result['x1'])
+        1
+
     Attributes:
         x: The optimal value found in the optimization algorithm.
         fval: The function value corresponding to the optimal value.
@@ -112,7 +125,7 @@ class OptimizationResult:
     Status = OptimizationResultStatus
 
     def __init__(self, x: Union[List[float], np.ndarray], fval: float,
-                 variables: Optional[List[Variable]] = None,
+                 variables: List[Variable],
                  raw_results: Optional[Any] = None,
                  status: OptimizationResultStatus = OptimizationResultStatus.SUCCESS) -> None:
         self._x = x  # pylint: disable=invalid-name
@@ -120,8 +133,8 @@ class OptimizationResult:
         self._raw_results = raw_results
         self._status = status
         self._variables = variables
-        self._variable_names = [var.name for var in self._variables] if variables else []
-        self._variables_dict = dict(zip(self._variable_names, self._x)) if variables else {}
+        self._variable_names = [var.name for var in self._variables]
+        self._variables_dict = dict(zip(self._variable_names, self._x))
 
     def __repr__(self) -> str:
         return 'optimal function value: {}\n' \
@@ -195,7 +208,7 @@ class OptimizationResult:
         return self._status
 
     @property
-    def variables(self) -> Optional[List[Variable]]:
+    def variables(self) -> List[Variable]:
         """Returns the list of variables of the optimization problem.
 
         Returns:
