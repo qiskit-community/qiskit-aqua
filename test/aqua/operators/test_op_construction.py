@@ -27,7 +27,8 @@ from qiskit.quantum_info.operators import Operator, Pauli
 from qiskit.circuit.library import CZGate, ZGate
 
 from qiskit.aqua.operators import (
-    X, Y, Z, I, CX, T, H, PrimitiveOp, SummedOp, PauliOp, Minus, CircuitOp, MatrixOp
+    X, Y, Z, I, CX, T, H, PrimitiveOp, SummedOp, PauliOp, Minus, CircuitOp, MatrixOp,
+    CircuitStateFn, VectorStateFn, DictStateFn, OperatorStateFn
 )
 
 
@@ -343,6 +344,32 @@ class TestOpConstruction(QiskitAquaTestCase):
             self.assertEqual(sum_op.coeff, 1)
             self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY', 'ZZ'])
             self.assertListEqual([op.coeff for op in sum_op], [10, 2, 3])
+
+    def test_compose_op_of_different_dim(self):
+        # PauliOps of different dim
+        xy_p = (X ^ Y)
+        xyz_p = (X ^ Y ^ Z)
+
+        pauli_op = xy_p @ xyz_p
+        expected_result = (I ^ I ^ Z)
+        self.assertEqual(pauli_op, expected_result)
+
+        # MatrixOps of different dim
+        xy_m = xy_p.to_matrix_op()
+        xyz_m = xyz_p.to_matrix_op()
+
+        matrix_op = xy_m @ xyz_m
+        self.assertEqual(matrix_op, expected_result.to_matrix_op())
+
+        # CircuitOps of different dim
+        xy_c = xy_p.to_circuit_op()
+        xyz_c = xyz_p.to_circuit_op()
+
+        circuit_op = xy_c @ xyz_c
+
+        self.assertTrue(np.array_equal(pauli_op.to_matrix(), matrix_op.to_matrix()))
+        self.assertTrue(np.allclose(pauli_op.to_matrix(), circuit_op.to_matrix(), rtol=1e-14))
+        self.assertTrue(np.allclose(matrix_op.to_matrix(), circuit_op.to_matrix(), rtol=1e-14))
 
     def test_summed_op_equals(self):
         """Test corner cases of SummedOp's equals function."""

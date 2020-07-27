@@ -82,6 +82,9 @@ class OperatorStateFn(StateFn):
                                coeff=np.conj(self.coeff),
                                is_measurement=(not self.is_measurement))
 
+    def identity(self, num_qubits: int) -> 'OperatorStateFn':
+        return OperatorStateFn(self.primitive.identity(num_qubits))
+
     def tensor(self, other: OperatorBase) -> OperatorBase:
         if isinstance(other, OperatorStateFn):
             return StateFn(self.primitive.tensor(other.primitive),

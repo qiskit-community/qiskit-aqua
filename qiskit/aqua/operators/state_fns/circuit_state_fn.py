@@ -170,6 +170,12 @@ class CircuitStateFn(StateFn):
         from qiskit.aqua.operators import ComposedOp
         return ComposedOp([new_self, other])
 
+    def identity(self, dim: int) -> 'CircuitStateFn':
+        new_qc = QuantumCircuit(dim)
+        for i in range(dim):
+            new_qc.i(i)
+        return CircuitStateFn(new_qc, is_measurement=self.is_measurement)
+
     def tensor(self, other: OperatorBase) -> OperatorBase:
         r"""
         Return tensor product between self and other, overloaded by ``^``.

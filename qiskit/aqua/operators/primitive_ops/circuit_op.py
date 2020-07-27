@@ -111,7 +111,7 @@ class CircuitOp(PrimitiveOp):
         return TensoredOp([self, other])
 
     def compose(self, other: OperatorBase) -> OperatorBase:
-        other = self._check_zero_for_composition_and_expand(other)
+        self, other = self._check_zero_for_composition_and_expand(other)
         # pylint: disable=cyclic-import,import-outside-toplevel
         from ..operator_globals import Zero
         from ..state_fns import CircuitStateFn
@@ -214,6 +214,9 @@ class CircuitOp(PrimitiveOp):
     def to_instruction(self) -> Instruction:
         return self.primitive.to_instruction()  # type: ignore
 
+    def to_circuit_state_fn(self, is_measurement=False) -> OperatorBase:
+        return
+
     # Warning - modifying immutable object!!
     def reduce(self) -> OperatorBase:
         if self.primitive.data is not None:  # type: ignore
@@ -228,6 +231,12 @@ class CircuitOp(PrimitiveOp):
                     del self.primitive.data[i]  # type: ignore
         return self
 
+    def identity(self, num_qubits: int) -> OperatorBase:
+        new_qc = QuantumCircuit(num_qubits)
+        for i in range(num_qubits):
+            new_qc.i(i)
+        return CircuitOp(new_qc)
+
     def permute(self, permutation: List[int]) -> 'CircuitOp':
         r"""
         Permute the qubits of the circuit.
@@ -239,5 +248,5 @@ class CircuitOp(PrimitiveOp):
         Returns:
             A new CircuitOp containing the permuted circuit.
         """
-        new_qc = QuantumCircuit(self.num_qubits).compose(self.primitive, qubits=permutation)
+        new_qc = QuantumCircuit(max(permutation) + 1).compose(self.primitive, qubits=permutation)
         return CircuitOp(new_qc, coeff=self.coeff)

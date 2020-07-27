@@ -371,6 +371,14 @@ class OperatorBase(ABC):
             return cast(OperatorBase, other).tensor(self)
 
     @abstractmethod
+    def identity(self, dim: int) -> 'OperatorBase':
+        """
+        Returns:
+            identity operator of dimension 'dim'.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
     def tensor(self, other: 'OperatorBase') -> 'OperatorBase':
         r""" Return tensor product between self and other, overloaded by ``^``.
         Note: You must be conscious of Qiskit's big-endian bit printing convention.
@@ -430,6 +438,14 @@ class OperatorBase(ABC):
             this ``OperatorBase`` is an ``OpList``.
         """
         raise NotImplementedError
+
+    def expand(self, num_qubits: int) -> 'OperatorBase':
+        """Expand the operator with identity operator of dimension corresponding to num_qubits.
+        Returns:
+            Operator corresponding to self.tensor(identity_operator), where dimension of
+            identity operator is 2 ^ num_qubits.
+        """
+        return self.tensor(self.identity(num_qubits))
 
     def bind_parameters(self,
                         param_dict: Dict[ParameterExpression,

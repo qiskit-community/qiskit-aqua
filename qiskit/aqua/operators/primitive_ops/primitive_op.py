@@ -14,7 +14,7 @@
 
 """ PrimitiveOp Class """
 
-from typing import Optional, Union, Set, List
+from typing import Optional, Union, Set, List, Tuple
 import logging
 import numpy as np
 from scipy.sparse import spmatrix
@@ -158,18 +158,20 @@ class PrimitiveOp(OperatorBase):
     def compose(self, other: OperatorBase) -> OperatorBase:
         raise NotImplementedError
 
-    def _check_zero_for_composition_and_expand(self, other: OperatorBase) -> OperatorBase:
+    def _check_zero_for_composition_and_expand(self, other: OperatorBase) \
+            -> Tuple[OperatorBase, OperatorBase]:
+        new_self = self
         if not self.num_qubits == other.num_qubits:
             # pylint: disable=cyclic-import,import-outside-toplevel
             from ..operator_globals import Zero
             if other == Zero:
                 # Zero is special - we'll expand it to the correct qubit number.
                 other = Zero.__class__('0' * self.num_qubits)
-            else:
-                raise ValueError(
-                    'Composition is not defined over Operators of different dimensions, {} and {}, '
-                    'respectively.'.format(self.num_qubits, other.num_qubits))
-        return other
+            elif other.num_qubits < self.num_qubits:
+                other = other.expand(self.num_qubits - other.num_qubits)
+            elif other.num_qubits > self.num_qubits:
+                new_self = self.expand(other.num_qubits - self.num_qubits)
+        return new_self, other
 
     def power(self, exponent: int) -> OperatorBase:
         if not isinstance(exponent, int) or exponent <= 0:
