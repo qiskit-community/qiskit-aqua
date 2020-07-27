@@ -202,7 +202,10 @@ class CircuitStateFn(StateFn):
             from ..operator_globals import Zero
             c_op_self = CircuitOp(self.primitive, self.coeff)
             c_op_other = CircuitOp(other.primitive, other.coeff)
-            return c_op_self.tensor(c_op_other).compose(Zero)
+            c_op = c_op_self.tensor(c_op_other)
+            if isinstance(c_op, CircuitOp):
+                return CircuitStateFn(primitive=c_op.primitive, coeff=c_op.coeff,
+                                      is_measurement=self.is_measurement)
         # pylint: disable=cyclic-import
         from ..list_ops.tensored_op import TensoredOp
         return TensoredOp([self, other])
