@@ -100,19 +100,6 @@ class OptimizationResult:
     The optimization algorithms return an object of the type `OptimizationResult`, which enforces
     providing the following attributes.
 
-    You can get the value of a variable by specifying an index or a name.
-
-    Examples:
-        >>> result = OptimizationAlgorithm.solve(problem)
-        >>> print(result.variable_names)
-        ['x1', 'x2', 'x3']
-        >>> print(result.x)
-        [1, 0, 1]
-        >>> print(result[1])
-        0
-        >>> print(result['x1'])
-        1
-
     Attributes:
         x: The optimal value found in the optimization algorithm.
         fval: The function value corresponding to the optimal value.
@@ -120,6 +107,38 @@ class OptimizationResult:
             contain more information than only the optimal value and function value.
         status: The termination status of the algorithm.
         variables: The list of variables under optimization.
+        variable_names: The list of variable names.
+        variables_dict: The optimal value as a dictionary of the variable name and corresponding value.
+
+    `OptimizationResult` allows users to get the value of a variable by specifying an index or a name as follows.
+
+    Examples:
+        >>> problem = QuadraticProgram()
+        >>> problem.binary_var('x1')
+        >>> problem.binary_var('x2')
+        >>> problem.binary_var('x3')
+        >>> problem.minimize(linear={'x1': 1, 'x2': -2, 'x3': 3})
+        >>> print([var.name for var in problem.variables])
+        ['x1', 'x2', 'x3']
+        >>> algo = CplexOptimizer()
+        >>> result = algo.solve(problem)
+        >>> print(result.variable_names)
+        ['x1', 'x2', 'x3']
+        >>> print(result.x)
+        [0.0, 1.0, 0.0]
+        >>> print(result[1])
+        1.0
+        >>> print(result['x1'])
+        0.0
+        >>> print(result.fval)
+        -2.0
+        >>> print(result.variables_dict)
+        {'x1': 0.0, 'x2': 1.0, 'x3': 0.0}
+
+    Note:
+        The order of variables are supposed to be equal to that of the problem solved by optimization algorithms.
+        Optimization algorithms and converters of `QuadraticProgram` should maintain the order when generating a new
+        `OptimizationResult` object.
     """
 
     Status = OptimizationResultStatus
@@ -217,7 +236,7 @@ class OptimizationResult:
         return self._variables
 
     @property
-    def variables_dict(self) -> Dict[str, int]:
+    def variables_dict(self) -> Dict[str, float]:
         """Returns the optimal value as a dictionary of the variable name and corresponding value.
 
         Returns:
