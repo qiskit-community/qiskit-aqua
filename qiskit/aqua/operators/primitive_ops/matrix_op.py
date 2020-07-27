@@ -116,7 +116,7 @@ class MatrixOp(PrimitiveOp):
         return TensoredOp([self, other])
 
     def compose(self, other: OperatorBase) -> OperatorBase:
-        self, other = self._check_zero_for_composition_and_expand(other)
+        self, other = self._check_zero_for_composition_and_expand(other)  # type: ignore
 
         if isinstance(other, MatrixOp):
             return MatrixOp(self.primitive.compose(other.primitive, front=True),  # type: ignore
@@ -124,7 +124,7 @@ class MatrixOp(PrimitiveOp):
 
         return ComposedOp([self, other])
 
-    def identity(self, num_qubits: int) -> OperatorBase:
+    def identity(self, num_qubits: int) -> 'MatrixOp':
         identity = np.identity(2**num_qubits, dtype=complex)
         return MatrixOp(Operator(identity))
 

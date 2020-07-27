@@ -24,6 +24,7 @@ from qiskit.circuit import ParameterExpression, Instruction
 from ..operator_base import OperatorBase
 from ..primitive_ops.primitive_op import PrimitiveOp
 from ..primitive_ops.matrix_op import MatrixOp
+from ..primitive_ops.pauli_op import PauliOp  # pylint: disable=cyclic-import
 from ..list_ops import ListOp
 from ..list_ops.summed_op import SummedOp
 from ..list_ops.composed_op import ComposedOp
@@ -88,14 +89,13 @@ class EvolvedOp(PrimitiveOp):
 
         return TensoredOp([self, other])
 
-    def identity(self, num_qubits: int) -> OperatorBase:
-        from ..primitive_ops.pauli_op import PauliOp
+    def identity(self, num_qubits: int) -> 'PrimitiveOp':
         from qiskit.quantum_info import Pauli
         primitive = Pauli(label='I' * num_qubits)
         return PauliOp(primitive)
 
     def compose(self, other: OperatorBase) -> OperatorBase:
-        self, other = self._check_zero_for_composition_and_expand(other)
+        self, other = self._check_zero_for_composition_and_expand(other)  # type: ignore
 
         if isinstance(other, ComposedOp):
             return ComposedOp([self] + other.oplist)  # type: ignore

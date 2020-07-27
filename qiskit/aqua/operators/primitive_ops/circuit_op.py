@@ -111,7 +111,7 @@ class CircuitOp(PrimitiveOp):
         return TensoredOp([self, other])
 
     def compose(self, other: OperatorBase) -> OperatorBase:
-        self, other = self._check_zero_for_composition_and_expand(other)
+        self, other = self._check_zero_for_composition_and_expand(other)  # type: ignore
         # pylint: disable=cyclic-import,import-outside-toplevel
         from ..operator_globals import Zero
         from ..state_fns import CircuitStateFn
@@ -228,7 +228,7 @@ class CircuitOp(PrimitiveOp):
                     del self.primitive.data[i]  # type: ignore
         return self
 
-    def identity(self, num_qubits: int) -> OperatorBase:
+    def identity(self, num_qubits: int) -> 'CircuitOp':
         new_qc = QuantumCircuit(num_qubits)
         for i in range(num_qubits):
             new_qc.i(i)

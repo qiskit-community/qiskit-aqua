@@ -162,7 +162,7 @@ class PrimitiveOp(OperatorBase):
         raise NotImplementedError
 
     def _check_zero_for_composition_and_expand(self, other: OperatorBase) \
-            -> Tuple[OperatorBase, OperatorBase]:
+            -> Tuple['PrimitiveOp', OperatorBase]:
         new_self = self
         if not self.num_qubits == other.num_qubits:
             # pylint: disable=cyclic-import,import-outside-toplevel
@@ -173,7 +173,7 @@ class PrimitiveOp(OperatorBase):
             elif other.num_qubits < self.num_qubits:
                 other = other.expand(self.num_qubits - other.num_qubits)
             elif other.num_qubits > self.num_qubits:
-                new_self = self.expand(other.num_qubits - self.num_qubits)
+                new_self = self.expand(other.num_qubits - self.num_qubits)  # type: ignore
         return new_self, other
 
     def power(self, exponent: int) -> OperatorBase:

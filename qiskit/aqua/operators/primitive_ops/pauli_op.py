@@ -98,12 +98,12 @@ class PauliOp(PrimitiveOp):
 
         return TensoredOp([self, other])
 
-    def identity(self, num_qubits: int) -> OperatorBase:
+    def identity(self, num_qubits: int) -> 'PauliOp':
         primitive = Pauli(label='I'*num_qubits)
         return PauliOp(primitive)
 
     def compose(self, other: OperatorBase) -> OperatorBase:
-        self, other = self._check_zero_for_composition_and_expand(other)
+        self, other = self._check_zero_for_composition_and_expand(other)  # type: ignore
 
         # If self is identity, just return other.
         if not any(self.primitive.x + self.primitive.z):  # type: ignore
