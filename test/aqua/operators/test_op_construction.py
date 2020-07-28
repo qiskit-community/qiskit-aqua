@@ -401,8 +401,6 @@ class TestOpConstruction(QiskitAquaTestCase):
         unitary composed/tensored/summed operator should transpile to circuit
         non-unitary operator should raise Exception
         """
-        non_unitary = X + Y + Z
-        self.assertRaises(ExtensionError, non_unitary.to_circuit)
 
         # generate unitary matrices of dimension 2,4,8
         u2 = unitary_group.rvs(2)
@@ -435,6 +433,26 @@ class TestOpConstruction(QiskitAquaTestCase):
 
         # verify that ListOp.to_circuit() outputs correct quantum circuit
         self.assertTrue(operator.equiv(circuit), "ListOp.to_circuit() outputs wrong circuit!")
+
+        # case ComposedOp.to_circuit
+        m1 = np.array([[0, 0, 1, 0], [0, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0]])
+        m2 = np.array([[0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 0], [0, -1, 0, 0]])
+
+        unitary = np.kron(np.kron(x, y), m1 + m2)  # resulting matrix should be unitary
+
+        m_op1 = MatrixOp(m1)
+        m_op2 = MatrixOp(m2)
+
+        pm1 = (X ^ Y) ^ m_op1  # non-unitary TensoredOp
+        pm2 = (X ^ Y) ^ m_op2  # non-unitary TensoredOp
+
+        self.assertRaises(ExtensionError, pm1.to_circuit)
+        self.assertRaises(ExtensionError, pm2.to_circuit)
+
+        summed_op = pm1 + pm2  # SummedOp([TensoredOp, TensoredOp])
+
+        circuit = summed_op.to_circuit()
+        self.assertTrue(Operator(unitary).equiv(circuit))
 
     @data(Z, CircuitOp(ZGate()), MatrixOp([[1, 0], [0, -1]]))
     def test_op_hashing(self, op):
