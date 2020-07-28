@@ -19,14 +19,12 @@ from test.aqua import QiskitAquaTestCase
 import numpy as np
 from ddt import ddt, idata, data, unpack
 from qiskit import QuantumRegister, QuantumCircuit, BasicAer
-from qiskit.circuit.library import QFT
+from qiskit.circuit.library import QFT, GroverOperator
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import (AmplitudeEstimation, MaximumLikelihoodAmplitudeEstimation,
                                     IterativeAmplitudeEstimation)
 
 from qiskit.quantum_info import Operator
-from qiskit.aqua.components.uncertainty_problems.grover_operator import GroverOperator
-from qiskit.aqua.components.uncertainty_problems.bit_oracle import BitOracle
 
 
 class BernoulliStateIn(QuantumCircuit):
@@ -168,7 +166,11 @@ class TestBernoulli(QiskitAquaTestCase):
                 for power in range(m):
                     circuit.cry(2 * 2 ** power * angle, qr_eval[power], qr_objective[0])
             else:
-                oracle = BitOracle(1, [0])
+                oracle = QuantumCircuit(1)
+                oracle.x(0)
+                oracle.z(0)
+                oracle.x(0)
+
                 state_in = QuantumCircuit(1)
                 state_in.ry(angle, 0)
                 grover_op = GroverOperator(oracle, state_in)
@@ -209,7 +211,10 @@ class TestBernoulli(QiskitAquaTestCase):
                 circuit.ry(2 * k * angle, q_objective[0])
 
             else:
-                oracle = BitOracle(1, [0])
+                oracle = QuantumCircuit(1)
+                oracle.x(0)
+                oracle.z(0)
+                oracle.x(0)
                 state_in = QuantumCircuit(1)
                 state_in.ry(angle, 0)
                 grover_op = GroverOperator(oracle, state_in)
@@ -251,7 +256,10 @@ class TestBernoulli(QiskitAquaTestCase):
                     circuit.ry(2 * 2 ** power * angle, q_objective[0])
 
                 else:
-                    oracle = BitOracle(1, [0])
+                    oracle = QuantumCircuit(1)
+                    oracle.x(0)
+                    oracle.z(0)
+                    oracle.x(0)
                     state_in = QuantumCircuit(1)
                     state_in.ry(angle, 0)
                     grover_op = GroverOperator(oracle, state_in)
@@ -276,7 +284,11 @@ class TestProblemSetting(QiskitAquaTestCase):
 
         num_qubits = 5
         self.a_integral = SineIntegral(num_qubits)
-        oracle = BitOracle(num_qubits + 1, objective_qubits=[num_qubits])
+        oracle = QuantumCircuit(num_qubits + 1)
+        oracle.x(num_qubits)
+        oracle.z(num_qubits)
+        oracle.x(num_qubits)
+
         self.q_integral = GroverOperator(oracle, self.a_integral)
         self.i_integral = [num_qubits]
 

@@ -17,7 +17,8 @@
 from typing import List, Optional
 import numpy
 from qiskit.circuit import QuantumCircuit, QuantumRegister, AncillaRegister
-from qiskit.circuit.library import BitStringOracle
+from qiskit.circuit.library import MCXGate
+# from qiskit.circuit.library import BitStringOracle
 # from .bit_oracle import BitOracle
 
 
@@ -78,12 +79,7 @@ class GroverOperator(QuantumCircuit):
 
         num_state_qubits = self.oracle.num_qubits - self.oracle.num_ancillas
         qubits = [i for i in range(num_state_qubits) if i not in self.idle_qubits]
-        # zero_reflection = BitOracle(num_state_qubits, qubits, mcx=self._mcx)
-        zero_reflection = BitStringOracle(num_state_qubits,
-                                          objective_qubits=qubits,
-                                          states='0' * len(qubits),
-                                          mcx=self._mcx)
-        return zero_reflection
+        return _zero_reflection(num_state_qubits, qubits, self._mcx)
 
     @property
     def state_in(self) -> QuantumCircuit:
@@ -104,12 +100,12 @@ class GroverOperator(QuantumCircuit):
 
     def _build(self):
         num_state_qubits = self.oracle.num_qubits - self.oracle.num_ancillas
-        self.qregs = [QuantumRegister(num_state_qubits, name='state')]
+        self.add_register(QuantumRegister(num_state_qubits, name='state'))
         num_ancillas = numpy.max([self.oracle.num_ancillas,
                                   self.zero_reflection.num_ancillas,
                                   self.state_in.num_ancillas])
         if num_ancillas > 0:
-            self.qregs += [AncillaRegister(num_ancillas, name='ancilla')]
+            self.add_register(AncillaRegister(num_ancillas, name='ancilla'))
 
         self.compose(self.oracle, list(range(self.oracle.num_qubits)), inplace=True)
         if self._insert_barriers:
@@ -122,3 +118,28 @@ class GroverOperator(QuantumCircuit):
         if self._insert_barriers:
             self.barrier()
         self.compose(self.state_in, list(range(self.state_in.num_qubits)), inplace=True)
+
+
+# TODO use the oracle compiler or the bit string oracle
+def _zero_reflection(num_state_qubits: int, qubits: List[int], mcx: Optional[str] = None
+                     ) -> QuantumCircuit:
+    qr_state = QuantumRegister(num_state_qubits, 'state')
+    reflection = QuantumCircuit(qr_state, name='S_0')
+
+    num_ancillas = MCXGate.get_num_ancilla_qubits(num_state_qubits - 1, mcx)
+    if num_ancillas > 0:
+        qr_ancilla = AncillaRegister(num_ancillas, 'ancilla')
+        reflection.add_register(qr_ancilla)
+    else:
+        qr_ancilla = []
+
+    reflection.x(qubits)
+    if len(qubits) == 1:
+        reflection.z(0)  # MCX does not allow 0 control qubits, therefore this is separate
+    else:
+        reflection.h(qubits[-1])
+        reflection.mcx(qubits[:-1], qubits[-1], qr_ancilla[:], mode=mcx)
+        reflection.h(qubits[-1])
+    reflection.x(qubits)
+
+    return reflection
