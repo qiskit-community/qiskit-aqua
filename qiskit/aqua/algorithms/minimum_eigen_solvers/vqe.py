@@ -355,20 +355,19 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         """
         expect_op = self.construct_expectation(parameter).to_circuit_op()
 
-        circuits = {}
+        circuits = []
 
         # recursively extract circuits
         def extract_circuits(op):
             if isinstance(op, CircuitStateFn):
-                circuit = op.primitive
-                circuits[id(circuit)] = circuit  # don't store duplicates
+                circuits.append(op.primitive)
             elif isinstance(op, ListOp):
                 for op_i in op.oplist:
                     extract_circuits(op_i)
 
         extract_circuits(expect_op)
 
-        return list(circuits.values())
+        return circuits
 
     def supports_aux_operators(self) -> bool:
         return True
