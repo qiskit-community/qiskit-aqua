@@ -122,8 +122,8 @@ class OptimizationResult:
         >>> problem.minimize(linear={'x1': 1, 'x2': -2, 'x3': 3})
         >>> print([var.name for var in problem.variables])
         ['x1', 'x2', 'x3']
-        >>> algo = CplexOptimizer()
-        >>> result = algo.solve(problem)
+        >>> optimizer = CplexOptimizer()
+        >>> result = optimizer.solve(problem)
         >>> print(result.variable_names)
         ['x1', 'x2', 'x3']
         >>> print(result.x)
