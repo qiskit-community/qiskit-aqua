@@ -175,8 +175,12 @@ class ADMMOptimizationResult(OptimizationResult):
     """ ADMMOptimization Result."""
 
     def __init__(self, x: Optional[Any] = None, fval: Optional[Any] = None,
-                 state: Optional[ADMMState] = None, results: Optional[Any] = None) -> None:
-        super().__init__(x, fval, results or state)
+                 state: Optional[ADMMState] = None, results: Optional[Any] = None,
+                 variables: Optional[List[Variable]] = None) -> None:
+        super().__init__(x=x,
+                         variables=variables,
+                         fval=fval,
+                         results=results or state)
         self._state = state
 
     @property
@@ -360,7 +364,10 @@ class ADMMOptimizer(OptimizationAlgorithm):
         objective_value = objective_value * sense
 
         # third parameter is our internal state of computations.
-        result = ADMMOptimizationResult(solution, objective_value, self._state)
+        result = ADMMOptimizationResult(x=solution,
+                                        fval=objective_value,
+                                        state=self._state,
+                                        variables=problem.variables)
 
         # convert back integer to binary
         result = cast(ADMMOptimizationResult, int2bin.decode(result))
