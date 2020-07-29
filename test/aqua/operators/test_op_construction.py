@@ -375,6 +375,25 @@ class TestOpConstruction(QiskitAquaTestCase):
         self.assertTrue(np.allclose(pauli_op.to_matrix(), circuit_op.to_matrix(), rtol=1e-14))
         self.assertTrue(np.allclose(matrix_op.to_matrix(), circuit_op.to_matrix(), rtol=1e-14))
 
+    def test_permute_on_primitive_op(self):
+        """ Test if permute methods of PrimitiveOps are consistent and work correctly. """
+        indices = [1, 2, 4]
+
+        # PauliOp
+        pauli_op = (X ^ Y ^ Z)
+        permuted_pauli_op = pauli_op.permute(indices)
+        expected_pauli_op = (X ^ I ^ Y ^ Z ^ I)
+
+        self.assertEqual(permuted_pauli_op, expected_pauli_op)
+
+        # CircuitOp
+        circuit_op = pauli_op.to_circuit_op()
+        permuted_circuit_op = circuit_op.permute(indices)
+        expected_circuit_op = expected_pauli_op.to_circuit_op()
+
+        self.assertEqual(permuted_circuit_op.primitive.__str__(),
+                         expected_circuit_op.primitive.__str__())
+
     def test_expand_on_state_fn(self):
         """ Tests num_qubits on the original instance and expanded instance of StateFn """
         num_qubits = 3

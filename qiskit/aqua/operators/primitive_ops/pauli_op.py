@@ -14,7 +14,7 @@
 
 """ PauliOp Class """
 
-from typing import Union, Set, Dict, cast
+from typing import Union, Set, Dict, cast, List
 import logging
 import numpy as np
 from scipy.sparse import spmatrix
@@ -30,6 +30,7 @@ from ..list_ops.summed_op import SummedOp
 from ..list_ops.composed_op import ComposedOp
 from ..list_ops.tensored_op import TensoredOp
 from ..legacy.weighted_pauli_operator import WeightedPauliOperator
+from ... import AquaError
 
 logger = logging.getLogger(__name__)
 PAULI_GATE_MAPPING = {'X': XGate(), 'Y': YGate(), 'Z': ZGate(), 'I': IGate()}
@@ -97,6 +98,26 @@ class PauliOp(PrimitiveOp):
             return self.to_circuit_op().tensor(other)
 
         return TensoredOp([self, other])
+
+    def permute(self, indices: List[int] = None) -> 'PauliOp':
+        """ Permutes the underlying Pauli matrices.
+        Args:
+            indices: A list defining where each Pauli should be permuted. The Pauli at index
+                j of the primitive should be permuted to position indices[j].
+        Returns:
+              A new PauliOp with the permuted Paulis. For operator (X ^ Y ^ Z) and indices=[1,2,4],
+              it returns (X ^ I ^ Y ^ Z ^ I).
+        Raises:
+            AquaError: if number of indices to not match the num_qubits
+        """
+        pauli_string = self.primitive.__str__()
+        length = max(indices) + 1  # size of list must be +1 larger then its max index
+        new_pauli_list = ['I'] * length
+        if len(indices) != self.num_qubits:
+            raise AquaError("List of indices to permute must have the same size as Pauli Operator")
+        for i, index in enumerate(indices):
+            new_pauli_list[-index - 1] = pauli_string[-i - 1]
+        return PauliOp(Pauli(label=''.join(new_pauli_list)), self.coeff)
 
     def identity(self, num_qubits: int) -> 'PauliOp':
         primitive = Pauli(label='I'*num_qubits)
