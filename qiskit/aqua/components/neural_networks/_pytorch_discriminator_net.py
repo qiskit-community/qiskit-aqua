@@ -31,7 +31,7 @@ except ImportError:
 # torch 1.6.0 fixed a mypy error about not applying contravariance rules
 # to inputs by defining forward as a value, rather than a function.  See also
 # https://github.com/python/mypy/issues/8795
-# The fix introduced an error on Method class about '_forward_unimplemented'
+# The fix introduced an error on Module class about '_forward_unimplemented'
 # not being implemented.
 # The pylint disable=abstract-method fixes it.
 
