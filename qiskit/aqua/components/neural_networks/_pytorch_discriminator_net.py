@@ -29,7 +29,7 @@ except ImportError:
                 'see https://pytorch.org/get-started/locally/')
 
 
-class DiscriminatorNet(torch.nn.Module):
+class DiscriminatorNet(torch.nn.Module):  # pylint: disable=abstract-method
     """
     Discriminator
     """
