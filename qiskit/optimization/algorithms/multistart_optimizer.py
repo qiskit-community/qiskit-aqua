@@ -25,7 +25,8 @@ import numpy as np
 from scipy.stats import uniform
 
 from qiskit.optimization import QuadraticProgram, INFINITY
-from qiskit.optimization.algorithms import OptimizationAlgorithm, OptimizationResult
+from qiskit.optimization.algorithms.optimization_algorithm import (OptimizationAlgorithm,
+                                                                   OptimizationResult)
 
 logger = logging.getLogger(__name__)
 
