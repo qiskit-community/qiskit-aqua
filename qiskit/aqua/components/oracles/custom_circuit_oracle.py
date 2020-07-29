@@ -63,7 +63,7 @@ class CustomCircuitOracle(Oracle):
             output_register: The register holding output qubit(s) for the oracle function
             circuit: The quantum circuit corresponding to the intended oracle function
             ancillary_register: The register holding ancillary qubit(s)
-            evaluate_classically_callback: The classical callback function for evaluating the 
+            evaluate_classically_callback: The classical callback function for evaluating the
                 oracle, for example, to use with :class:`~qiskit.aqua.algorithms.Grover`'s search
         Raises:
             AquaError: Invalid input
