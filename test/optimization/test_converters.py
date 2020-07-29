@@ -408,7 +408,7 @@ class TestConverters(QiskitOptimizationTestCase):
         op2 = conv.encode(op)
         result = OptimizationResult(x=[0, 1, 1, 1, 1], fval=17, variables=op2.variables)
         new_result = conv.decode(result)
-        self.assertListEqual(new_result.x, [0, 1, 5])
+        np.testing.assert_array_almost_equal(new_result.x, [0, 1, 5])
         self.assertEqual(new_result.fval, 17)
 
     def test_optimizationproblem_to_ising(self):
@@ -539,7 +539,7 @@ class TestConverters(QiskitOptimizationTestCase):
         result = exact.solve(qubo)
         result_auto = exact.solve(qubo_auto)
         self.assertEqual(result.fval, result_auto.fval)
-        self.assertListEqual(result.x, result_auto.x)
+        np.testing.assert_array_almost_equal(result.x, result_auto.x)
 
     def test_auto_penalty_warning(self):
         """ Test warnings of auto penalty function"""
@@ -575,12 +575,12 @@ class TestConverters(QiskitOptimizationTestCase):
         result = exact.solve(qubo)
         decoded_result = lineq2penalty.decode(result)
         self.assertEqual(decoded_result.fval, 4)
-        self.assertListEqual(decoded_result.x, [1, 1, 0])
+        np.testing.assert_array_almost_equal(decoded_result.x, [1, 1, 0])
         self.assertEqual(decoded_result.status, OptimizationResultStatus.SUCCESS)
         infeasible_result = OptimizationResult(x=[1, 1, 1], fval=0, variables=qprog.variables)
         decoded_infeasible_result = lineq2penalty.decode(infeasible_result)
         self.assertEqual(decoded_infeasible_result.fval, 5)
-        self.assertListEqual(decoded_infeasible_result.x, [1, 1, 1])
+        np.testing.assert_array_almost_equal(decoded_infeasible_result.x, [1, 1, 1])
         self.assertEqual(decoded_infeasible_result.status, OptimizationResultStatus.INFEASIBLE)
 
 

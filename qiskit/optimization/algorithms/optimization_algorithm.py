@@ -149,7 +149,7 @@ class OptimizationResult:
                  variables: List[Variable],
                  raw_results: Optional[Any] = None,
                  status: OptimizationResultStatus = OptimizationResultStatus.SUCCESS) -> None:
-        self._x = x  # pylint: disable=invalid-name
+        self._x = x if isinstance(x, np.ndarray) else np.array(x)  # pylint: disable=invalid-name
         self._fval = fval
         self._raw_results = raw_results
         self._status = status
@@ -191,7 +191,7 @@ class OptimizationResult:
             "instead {}({}) provided.".format(type(key), key))
 
     @property
-    def x(self) -> Union[List[float], np.ndarray]:
+    def x(self) -> np.ndarray:
         """Returns the optimal value found in the optimization.
 
         Returns:
