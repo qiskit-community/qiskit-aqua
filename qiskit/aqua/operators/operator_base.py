@@ -20,7 +20,6 @@ from abc import ABC, abstractmethod
 import numpy as np
 
 from qiskit.aqua import AquaError
-from qiskit.aqua.operators.operator_globals import INDENTATION
 from qiskit.circuit import ParameterExpression, ParameterVector
 from .legacy.base_operator import LegacyBaseOperator
 
@@ -35,6 +34,8 @@ class OperatorBase(ABC):
     building blocks for algorithms in Aqua.
 
     """
+
+    INDENTATION = '  '
 
     @property
     @abstractmethod
@@ -139,7 +140,10 @@ class OperatorBase(ABC):
     @staticmethod
     def _indent(lines: str, indentation: str = INDENTATION) -> str:
         """ Indented representation to allow pretty representation of nested operators. """
-        return indentation + lines.replace("\n", "\n{}".format(indentation)).rstrip(indentation)
+        indented_str = indentation + lines.replace("\n", "\n{}".format(indentation))
+        if indented_str.endswith("\n{}".format(indentation)):
+            indented_str = indented_str[:-len(indentation)]
+        return indented_str
 
     # Addition / Subtraction
 

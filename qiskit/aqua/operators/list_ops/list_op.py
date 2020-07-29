@@ -20,7 +20,6 @@ from typing import List, Union, Optional, Callable, Iterator, Set, Dict
 import numpy as np
 from scipy.sparse import spmatrix
 
-from qiskit.aqua.operators.operator_globals import INDENTATION
 from qiskit.circuit import ParameterExpression
 from ..legacy.base_operator import LegacyBaseOperator
 from ..operator_base import OperatorBase
@@ -298,11 +297,11 @@ class ListOp(OperatorBase):
 
         return self.to_matrix_op(massive=massive).log_i(massive=massive)  # type: ignore
 
-    def __str__(self, indentation: str = INDENTATION) -> str:
+    def __str__(self) -> str:
         content_string = ',\n'.join([str(op) for op in self.oplist])
         main_string = "{}([\n{}\n])".format(
             self.__class__.__name__,
-            self._indent(content_string, indentation=indentation))
+            self._indent(content_string, indentation=self.INDENTATION))
         if self.abelian:
             main_string = 'Abelian' + main_string
         if self.coeff != 1.0:

@@ -32,9 +32,6 @@ from .state_fns.state_fn import StateFn
 # otherwise it would not.
 EVAL_SIG_DIGITS = 18
 
-# Indentation when displaying nested operators
-INDENTATION = '  '
-
 # Immutable convenience objects
 
 
