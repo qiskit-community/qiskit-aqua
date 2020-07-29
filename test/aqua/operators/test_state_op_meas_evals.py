@@ -15,11 +15,12 @@
 """ Test Operator construction, including OpPrimitives and singletons. """
 
 import unittest
-
-from qiskit.aqua import QuantumInstance
 from test.aqua import QiskitAquaTestCase
+
 import numpy
+
 from qiskit import Aer
+from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import StateFn, Zero, One, H, X, I, Z, Plus, Minus, CircuitSampler
 
 
