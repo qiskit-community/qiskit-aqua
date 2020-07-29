@@ -300,7 +300,7 @@ class ListOp(OperatorBase):
     @staticmethod
     def _indent(lines: str, indentation: str = "  ") -> str:
         """ Indented representation to allow pretty representation of nested operators. """
-        return indentation + lines.replace("\n", f"\n{indentation}").rstrip(indentation)
+        return indentation + lines.replace("\n", "\n{}.format(indentation)").rstrip(indentation)
 
     def __str__(self, indentation: str = "  ") -> str:
         content_string = ',\n'.join([str(op) for op in self.oplist])
