@@ -139,7 +139,7 @@ class OperatorBase(ABC):
     @staticmethod
     def _indent(lines: str, indentation: str = INDENTATION) -> str:
         """ Indented representation to allow pretty representation of nested operators. """
-        return indentation + lines.replace("\n", f"\n{indentation}").rstrip(indentation)
+        return indentation + lines.replace("\n", "\n{}".format(indentation)).rstrip(indentation)
 
     # Addition / Subtraction
 
