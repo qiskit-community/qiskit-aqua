@@ -14,7 +14,7 @@ notifications:
   email:
     if: fork = false AND type = cron
     recipients:
-      - manoel@us.ibm.com
+      - manoel.marques@ibm.com
     on_success: never
     on_failure: always
 
