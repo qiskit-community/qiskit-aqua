@@ -20,6 +20,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 
 from qiskit.aqua import AquaError
+from qiskit.aqua.operators.operator_globals import INDENTATION
 from qiskit.circuit import ParameterExpression, ParameterVector
 from .legacy.base_operator import LegacyBaseOperator
 
@@ -134,6 +135,11 @@ class OperatorBase(ABC):
                 unbound coeff Parameter.
         """
         raise NotImplementedError
+
+    @staticmethod
+    def _indent(lines: str, indentation: str = INDENTATION) -> str:
+        """ Indented representation to allow pretty representation of nested operators. """
+        return indentation + lines.replace("\n", f"\n{indentation}").rstrip(indentation)
 
     # Addition / Subtraction
 

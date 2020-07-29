@@ -20,6 +20,7 @@ from typing import List, Union, Optional, Callable, Iterator, Set, Dict
 import numpy as np
 from scipy.sparse import spmatrix
 
+from qiskit.aqua.operators.operator_globals import INDENTATION
 from qiskit.circuit import ParameterExpression
 from ..legacy.base_operator import LegacyBaseOperator
 from ..operator_base import OperatorBase
@@ -297,12 +298,7 @@ class ListOp(OperatorBase):
 
         return self.to_matrix_op(massive=massive).log_i(massive=massive)  # type: ignore
 
-    @staticmethod
-    def _indent(lines: str, indentation: str = "  ") -> str:
-        """ Indented representation to allow pretty representation of nested operators. """
-        return indentation + lines.replace("\n", f"\n{indentation}").rstrip(indentation)
-
-    def __str__(self, indentation: str = "  ") -> str:
+    def __str__(self, indentation: str = INDENTATION) -> str:
         content_string = ',\n'.join([str(op) for op in self.oplist])
         main_string = "{}([\n{}\n])".format(
             self.__class__.__name__,

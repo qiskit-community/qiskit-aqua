@@ -372,6 +372,15 @@ class TestOpConstruction(QiskitAquaTestCase):
         """
         self.assertEqual(set([2 * op]), set([2 * op]))
 
+    @data(Z, CircuitOp(ZGate()), MatrixOp([[1, 0], [0, -1]]))
+    def test_op_indent(self, op):
+        initial_str = str(op)
+        indented_str = op._indent(initial_str)
+        starts_with_indent = indented_str.startwith("\t")
+        self.assertTrue(starts_with_indent)
+        indented_str_content = (indented_str[1:] + "\t").split("\n\t")
+        self.assertListEqual(indented_str_content, initial_str.split("\n"))
+
 
 if __name__ == '__main__':
     unittest.main()
