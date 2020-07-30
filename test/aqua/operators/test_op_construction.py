@@ -16,6 +16,9 @@
 
 
 import unittest
+
+from qiskit import QiskitError
+
 from test.aqua import QiskitAquaTestCase
 import itertools
 from scipy.stats import unitary_group
@@ -395,6 +398,39 @@ class TestOpConstruction(QiskitAquaTestCase):
         composed = op.compose(CircuitOp(circuit))
 
         self.assertEqual(composed.num_qubits, 2)
+
+    def test_matrix_op_to_instruction(self):
+        m = np.array([[0, 0, 1, 0], [0, 0, 0, -1], [1, 0, 0, 0], [0, -1, 0, 0]])
+        matrix_op = MatrixOp(m, Parameter('beta'))
+
+        # QiskitError: multiplication of Operator with ParameterExpression is not implemented
+        self.assertRaises(QiskitError, matrix_op.to_instruction)
+
+    def test_matrix_op_to_circuit(self):
+        m = np.array([[0, 0, 1, 0], [0, 0, 0, -1], [1, 0, 0, 0], [0, -1, 0, 0]])
+        matrix_op = MatrixOp(m, Parameter('alpha'))
+
+        # QiskitError: multiplication of Operator with ParameterExpression is not implemented
+        self.assertRaises(QiskitError, matrix_op.to_circuit)
+
+    def test_primitive_op_to_matrix(self):
+        # MatrixOp
+        m = np.array([[0, 0, 1, 0], [0, 0, 0, -1], [1, 0, 0, 0], [0, -1, 0, 0]])
+        matrix_op = MatrixOp(m, Parameter('beta'))
+        # TypeError: multiplication of 'complex' and 'Parameter' is not implemented
+        self.assertRaises(TypeError, matrix_op.to_matrix)
+
+        # PauliOp
+        pauli_op = PauliOp(primitive=Pauli(label='XYZ'), coeff=Parameter('beta'))
+        # TypeError: multiplication of 'complex' and 'Parameter' is not implemented
+        self.assertRaises(TypeError, pauli_op.to_matrix)
+
+        # CircuitOp
+        qc = QuantumCircuit(2)
+        qc.cx(0, 1)
+        circuit_op = CircuitOp(qc, coeff=Parameter('alpha'))
+        # TypeError: multiplication of 'complex' and 'Parameter' is not implemented
+        self.assertRaises(TypeError, circuit_op.to_matrix)
 
     def test_list_op_to_circuit(self):
         """
