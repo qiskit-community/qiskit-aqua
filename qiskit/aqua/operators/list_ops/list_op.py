@@ -146,7 +146,7 @@ class ListOp(OperatorBase):
         state = {'coeff': np.conj(self.coeff), 'abelian': self.abelian}
         if self.__class__ == ListOp:
             state['combo_fn'] = self.combo_fn
-        return self.__class__([op.adjoint() for op in self.oplist], **state)
+        return self.__class__([op.adjoint() for op in self.oplist], **state)  # type: ignore
 
     def traverse(self,
                  convert_fn: Callable,
@@ -156,7 +156,7 @@ class ListOp(OperatorBase):
         state = {'coeff': coeff or self.coeff, 'abelian': False}
         if self.__class__ == ListOp:
             state['combo_fn'] = self.combo_fn
-        return self.__class__([convert_fn(op) for op in self.oplist], **state)
+        return self.__class__([convert_fn(op) for op in self.oplist], **state)  # type: ignore
 
     def equals(self, other: OperatorBase) -> bool:
         if not isinstance(other, type(self)) or not len(self.oplist) == len(other.oplist):
@@ -176,7 +176,7 @@ class ListOp(OperatorBase):
         state = {'coeff': self.coeff * scalar, 'abelian': self.abelian}
         if self.__class__ == ListOp:
             state['combo_fn'] = self.combo_fn
-        return self.__class__(self.oplist, **state)
+        return self.__class__(self.oplist, **state)  # type: ignore
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
         # Avoid circular dependency
@@ -283,8 +283,8 @@ class ListOp(OperatorBase):
         """ Return an ``OperatorBase`` equivalent to an exponentiation of self * -i, e^(-i*op)."""
         # pylint: disable=unidiomatic-typecheck
         if type(self) == ListOp:
-            # type: ignore
-            return ListOp([op.exp_i() for op in self.oplist], combo_fn=self.combo_fn,
+            return ListOp([op.exp_i() for op in self.oplist],  # type: ignore
+                          combo_fn=self.combo_fn,
                           coeff=self.coeff)
 
         # pylint: disable=import-outside-toplevel
@@ -336,7 +336,7 @@ class ListOp(OperatorBase):
         state = {'coeff': self.coeff, 'abelian': self.abelian}
         if self.__class__ == ListOp:
             state['combo_fn'] = self.combo_fn
-        return self.__class__(reduced_ops, **state)
+        return self.__class__(reduced_ops, **state)  # type: ignore
 
     def to_matrix_op(self, massive: bool = False) -> OperatorBase:
         """ Returns an equivalent Operator composed of only NumPy-based primitives, such as
@@ -346,8 +346,8 @@ class ListOp(OperatorBase):
             state['combo_fn'] = self.combo_fn
 
         return self.__class__(
-            [op.to_matrix_op(massive=massive) for op in self.oplist],  # type: ignore
-            **state).reduce()
+            [op.to_matrix_op(massive=massive) for op in self.oplist], **state  # type: ignore
+            ).reduce()
 
     def to_circuit_op(self) -> OperatorBase:
         """ Returns an equivalent Operator composed of only QuantumCircuit-based primitives,
@@ -360,7 +360,7 @@ class ListOp(OperatorBase):
         return self.__class__([op.to_circuit_op()  # type: ignore
                                if not isinstance(op, OperatorStateFn) else op
                                for op in self.oplist],
-                              **state).reduce()
+                              **state).reduce()  # type: ignore
 
     def to_pauli_op(self, massive: bool = False) -> OperatorBase:
         """ Returns an equivalent Operator composed of only Pauli-based primitives,
@@ -373,7 +373,7 @@ class ListOp(OperatorBase):
         return self.__class__([op.to_pauli_op(massive=massive)  # type: ignore
                                if not isinstance(op, StateFn) else op
                                for op in self.oplist],
-                              **state).reduce()
+                              **state).reduce()  # type: ignore
 
     def to_legacy_op(self, massive: bool = False) -> LegacyBaseOperator:
         mat_op = self.to_matrix_op(massive=massive).reduce()
