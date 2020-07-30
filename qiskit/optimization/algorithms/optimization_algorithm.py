@@ -138,7 +138,7 @@ class OptimizationResult:
         {'x1': 0.0, 'x2': 1.0, 'x3': 0.0}
 
     Note:
-        The order of variables are supposed to be equal to that of the problem solved by
+        The order of variables should be equal to that of the problem solved by
         optimization algorithms. Optimization algorithms and converters of `QuadraticProgram`
         should maintain the order when generating a new `OptimizationResult` object.
     """
