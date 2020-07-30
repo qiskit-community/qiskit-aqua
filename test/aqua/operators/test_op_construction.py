@@ -19,6 +19,7 @@ import unittest
 
 from qiskit import QiskitError
 
+from qiskit.aqua import AquaError
 from test.aqua import QiskitAquaTestCase
 import itertools
 from scipy.stats import unitary_group
@@ -489,6 +490,13 @@ class TestOpConstruction(QiskitAquaTestCase):
 
         circuit = summed_op.to_circuit()
         self.assertTrue(Operator(unitary).equiv(circuit))
+
+        # case with parametrized MatrixOps
+        op1_with_param = MatrixOp(m1, Parameter('alpha'))
+        op2_with_param = MatrixOp(m2, Parameter('beta'))
+
+        summed_op_with_param = op1_with_param + op2_with_param
+        self.assertRaises(AquaError, summed_op_with_param.to_circuit)
 
     @data(Z, CircuitOp(ZGate()), MatrixOp([[1, 0], [0, -1]]))
     def test_op_hashing(self, op):

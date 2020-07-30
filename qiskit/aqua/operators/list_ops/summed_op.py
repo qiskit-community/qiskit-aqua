@@ -25,6 +25,7 @@ from ..legacy.base_operator import LegacyBaseOperator
 from ..legacy.weighted_pauli_operator import WeightedPauliOperator
 from ..operator_base import OperatorBase
 from ..primitive_ops.primitive_op import PrimitiveOp
+from ... import AquaError
 
 
 class SummedOp(ListOp):
@@ -138,8 +139,14 @@ class SummedOp(ListOp):
             The circuit representation of the summed operator.
         Raises:
             ExtensionError: if operator is not unitary
+            AquaError: if SummedOp can not be converted to MatrixOp
         """
-        return self.to_matrix_op().to_circuit()  # type: ignore
+        from .. import MatrixOp
+        matrix_op = self.to_matrix_op()
+        if isinstance(matrix_op, MatrixOp):
+            return matrix_op.to_circuit()
+        raise AquaError("The SummedOp can not be converted to circuit, because conversion to "
+                        "MatrixOp failed.")
 
     def to_matrix_op(self, massive: bool = False) -> OperatorBase:
         """ Returns an equivalent Operator composed of only NumPy-based primitives, such as
