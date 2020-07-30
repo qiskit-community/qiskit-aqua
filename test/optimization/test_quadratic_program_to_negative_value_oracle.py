@@ -77,75 +77,66 @@ class TestQuadraticProgramToNegativeValueOracle(QiskitOptimizationTestCase):
 
     def test_optnvo_3_linear_2_quadratic_no_constant(self):
         """Test with 3 linear coefficients, 2 quadratic, and no constant."""
-        try:
-            # Circuit parameters.
-            num_value = 4
+        # Circuit parameters.
+        num_value = 4
 
-            # Input.
-            problem = QuadraticProgram()
-            for name in ['x0', 'x1', 'x2']:
-                problem.binary_var(name)
-            linear = [-1, 2, -3]
-            quadratic = {('x0', 'x2'): -2, ('x1', 'x2'): -1}
-            problem.minimize(linear=linear, quadratic=quadratic)
+        # Input.
+        problem = QuadraticProgram()
+        for name in ['x0', 'x1', 'x2']:
+            problem.binary_var(name)
+        linear = [-1, 2, -3]
+        quadratic = {('x0', 'x2'): -2, ('x1', 'x2'): -1}
+        problem.minimize(linear=linear, quadratic=quadratic)
 
-            # Convert to dictionary format with operator/oracle.
-            converter = QuadraticProgramToNegativeValueOracle(num_value)
-            a_operator, _, func_dict = converter.encode(problem)
+        # Convert to dictionary format with operator/oracle.
+        converter = QuadraticProgramToNegativeValueOracle(num_value)
+        a_operator, _, func_dict = converter.encode(problem)
 
-            self._validate_function(func_dict, problem)
-            self._validate_operator(func_dict, len(linear), num_value, a_operator)
-        except NameError as ex:
-            self.skipTest(str(ex))
+        self._validate_function(func_dict, problem)
+        self._validate_operator(func_dict, len(linear), num_value, a_operator)
 
     def test_optnvo_4_key_all_negative(self):
         """Test with all negative values."""
         # Circuit parameters.
-        try:
-            num_value = 5
+        num_value = 5
 
-            # Input.
-            problem = QuadraticProgram()
-            for name in ['x0', 'x1', 'x2']:
-                problem.binary_var(name)
-            linear = [-1, -2, -1]
-            quadratic = {('x0', 'x1'): -1, ('x0', 'x2'): -2, ('x1', 'x2'): -1}
-            problem.minimize(constant=-1, linear=linear, quadratic=quadratic)
+        # Input.
+        problem = QuadraticProgram()
+        for name in ['x0', 'x1', 'x2']:
+            problem.binary_var(name)
+        linear = [-1, -2, -1]
+        quadratic = {('x0', 'x1'): -1, ('x0', 'x2'): -2, ('x1', 'x2'): -1}
+        problem.minimize(constant=-1, linear=linear, quadratic=quadratic)
 
-            # Convert to dictionary format with operator/oracle.
-            converter = QuadraticProgramToNegativeValueOracle(num_value)
-            a_operator, _, func_dict = converter.encode(problem)
+        # Convert to dictionary format with operator/oracle.
+        converter = QuadraticProgramToNegativeValueOracle(num_value)
+        a_operator, _, func_dict = converter.encode(problem)
 
-            self._validate_function(func_dict, problem)
-            self._validate_operator(func_dict, len(linear), num_value, a_operator)
-        except NameError as ex:
-            self.skipTest(str(ex))
+        self._validate_function(func_dict, problem)
+        self._validate_operator(func_dict, len(linear), num_value, a_operator)
 
     def test_optnvo_6_key(self):
         """Test with 6 linear coefficients, negative quadratics, no constant."""
         # Circuit parameters.
-        try:
-            num_value = 4
+        num_value = 4
 
-            # Input.
-            problem = QuadraticProgram()
+        # Input.
+        problem = QuadraticProgram()
 
-            # Input.
-            problem = QuadraticProgram()
-            for name in ['x0', 'x1', 'x2', 'x3', 'x4', 'x5']:
-                problem.binary_var(name)
-            linear = [-1, -2, -1, 0, 1, 2]
-            quadratic = {('x0', 'x3'): -1, ('x1', 'x5'): -2}
-            problem.minimize(linear=linear, quadratic=quadratic)
+        # Input.
+        problem = QuadraticProgram()
+        for name in ['x0', 'x1', 'x2', 'x3', 'x4', 'x5']:
+            problem.binary_var(name)
+        linear = [-1, -2, -1, 0, 1, 2]
+        quadratic = {('x0', 'x3'): -1, ('x1', 'x5'): -2}
+        problem.minimize(linear=linear, quadratic=quadratic)
 
-            # Convert to dictionary format with operator/oracle.
-            converter = QuadraticProgramToNegativeValueOracle(num_value)
-            a_operator, _, func_dict = converter.encode(problem)
+        # Convert to dictionary format with operator/oracle.
+        converter = QuadraticProgramToNegativeValueOracle(num_value)
+        a_operator, _, func_dict = converter.encode(problem)
 
-            self._validate_function(func_dict, problem)
-            self._validate_operator(func_dict, len(linear), num_value, a_operator)
-        except NameError as ex:
-            self.skipTest(str(ex))
+        self._validate_function(func_dict, problem)
+        self._validate_operator(func_dict, len(linear), num_value, a_operator)
 
 
 if __name__ == '__main__':

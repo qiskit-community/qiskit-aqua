@@ -20,7 +20,7 @@ from typing import Tuple, Dict, Union
 import numpy as np
 
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
-from qiskit.circuit.library import QFT
+from qiskit.circuit.library import QFT, QuadraticForm
 from qiskit.aqua.components.initial_states import Custom
 from qiskit.aqua.components.oracles import CustomCircuitOracle
 from ..problems.quadratic_program import QuadraticProgram
@@ -65,48 +65,43 @@ class QuadraticProgramToNegativeValueOracle:
             the constant.
         """
 
-        # get linear part of objective
-        linear_dict = problem.objective.linear.to_dict()
-        linear_coeff = np.zeros(len(problem.variables))
-        for i, v in linear_dict.items():
-            linear_coeff[i] = v
-
-        # get quadratic part of objective
-        quadratic_coeff = problem.objective.quadratic.to_dict()
-
-        constant = int(problem.objective.constant)
+        # Define state preparation operator A from function.
+        quadratic = problem.objective.quadratic.to_array()
+        linear = problem.objective.linear.to_array()
+        offset = problem.objective.constant
 
         # Get circuit requirements from input.
-        self._num_key = len(linear_coeff)
+        self._num_key = len(linear)
 
-        # Get the function dictionary.
-        func = self._get_function(linear_coeff, quadratic_coeff, constant)
-        logger.info("Function: %s\n", func)
+        quadratic_form = QuadraticForm(self._num_value, quadratic, linear, offset,
+                                       little_endian=False)
 
-        # Define state preparation operator A from function.
-        a_operator_circuit = self._build_operator(func)
+        qr = QuantumRegister(self._num_key + self._num_value)
+        a_operator_circuit = QuantumCircuit(qr)
+        a_operator_circuit.h(list(range(self._num_key)))
+        a_operator_circuit.compose(quadratic_form, inplace=True)
+
         a_operator = Custom(a_operator_circuit.width(), circuit=a_operator_circuit)
-
-        # Get registers from the A operator circuit.
-        reg_map = {}
-        for reg in a_operator_circuit.qregs:
-            reg_map[reg.name] = reg
-        key_val = reg_map["key_value"]
 
         # Build negative value oracle O.
         oracle_bit = QuantumRegister(1, "oracle")
-        oracle_circuit = QuantumCircuit(key_val, oracle_bit)
-        oracle_circuit.z(key_val[self._num_key])  # recognize negative values.
-        oracle = CustomCircuitOracle(variable_register=key_val,
+        oracle_circuit = QuantumCircuit(qr, oracle_bit)
+        oracle_circuit.z(self._num_key)  # recognize negative values.
+        oracle = CustomCircuitOracle(variable_register=qr,
                                      output_register=oracle_bit,
                                      circuit=oracle_circuit,
                                      evaluate_classically_callback=self._evaluate_classically)
 
+        # Get the function dictionary. Used for computing the solution values and testing.
+        quadratic_dict = problem.objective.quadratic.to_dict()
+        func = self._get_function(linear, quadratic_dict, offset)
+        logger.info("Function: %s\n", func)
+
         return a_operator, oracle, func
 
     @staticmethod
-    def _get_function(linear: np.array, quadratic: np.array, constant: int) -> \
-            Dict[Union[int, Tuple[int, int]], int]:
+    def _get_function(linear: np.array, quadratic: Dict[Union[int, Tuple[int, int]], int],
+                      constant: int) -> Dict[Union[int, Tuple[int, int]], int]:
         """Convert the problem to a dictionary format."""
         func = {-1: int(constant)}  # type: Dict[Union[int, Tuple[int, int]], int]
         for idx, val in enumerate(linear):
