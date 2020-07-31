@@ -34,7 +34,7 @@ class OperatorBase(ABC):
     building blocks for algorithms in Aqua.
 
     """
-    # Indentation used in string representation of list operators 
+    # Indentation used in string representation of list operators
     # Can be changed to use another indentation than two whitespaces
     INDENTATION = '  '
 
