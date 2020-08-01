@@ -21,6 +21,8 @@ from typing import Any, Optional, Union, List, Dict
 from .. import QiskitOptimizationError
 from ..problems.quadratic_program import QuadraticProgram, Variable
 
+import numpy as np
+
 
 class OptimizationAlgorithm(ABC):
     """An abstract class for optimization algorithms in Qiskit's optimization module."""
@@ -109,14 +111,14 @@ class OptimizationResult:
 
     Status = OptimizationResultStatus
 
-    def __init__(self, x: Optional[Any] = None, fval: Optional[Any] = None,
-                 results: Optional[Any] = None,
-                 status: OptimizationResultStatus = OptimizationResultStatus.SUCCESS,
-                 variables: Optional[List[Variable]] = None) -> None:
+    def __init__(self, x: Union[List[float], np.ndarray], fval: float,
+                 variables: List[Variable],
+                 raw_results: Optional[Any] = None,
+                 status: OptimizationResultStatus = OptimizationResultStatus.SUCCESS) -> None:
         self._x = x if x is not None else []   # pylint: disable=invalid-name
         self._variables = variables if variables is not None else []
         self._fval = fval
-        self._results = results
+        self._raw_results = raw_results
         self._status = status
         self._variable_names = [variable.name for variable in self._variables]
         self._variables_dict = dict(zip(self._variable_names, self._x))
@@ -189,7 +191,7 @@ class OptimizationResult:
         self._fval = fval
 
     @property
-    def results(self) -> Any:
+    def raw_results(self) -> Any:
         """Return the original results object from the algorithm.
 
         Currently a dump for any leftovers.
@@ -197,16 +199,7 @@ class OptimizationResult:
         Returns:
             Additional result information of the optimization algorithm.
         """
-        return self._results
-
-    @results.setter  # type: ignore
-    def results(self, results: Any) -> None:
-        """Set results.
-
-        Args:
-            results: The new additional results of the optimization.
-        """
-        self._results = results
+        return self._raw_results
 
     @property
     def status(self) -> OptimizationResultStatus:

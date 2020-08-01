@@ -15,7 +15,7 @@
 """A recursive minimal eigen optimizer in Qiskit's optimization module."""
 
 from copy import deepcopy
-from typing import Optional
+from typing import Optional, Union, List, Tuple, Dict
 import logging
 import numpy as np
 
@@ -23,12 +23,27 @@ from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.aqua.utils.validation import validate_min
 
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
-from .minimum_eigen_optimizer import MinimumEigenOptimizer
+from .minimum_eigen_optimizer import MinimumEigenOptimizer, MinimumEigenOptimizerResult
 from ..exceptions import QiskitOptimizationError
+from ..problems import Variable
 from ..problems.quadratic_program import QuadraticProgram
 from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
 
 logger = logging.getLogger(__name__)
+
+
+class RecursiveMinimumEigenOptimizerResult(OptimizationResult):
+    """Recursive Eigen Optimizer Result."""
+    def __init__(self, x: Union[List[float], np.ndarray], fval: float,
+                 variables: List[Variable],
+                 qubo_converter: QuadraticProgramToQubo,
+                 replacements: Dict[str, Tuple[str, int]],
+                 history: Optional[List[MinimumEigenOptimizerResult]] = None) -> None:
+        super().__init__(x, fval, variables, None)
+        self._qubo_converter = qubo_converter
+        self._samples = samples
+        self._eigensolver_result = eigensolver_result
+        self._replacements = None # type: Dict[str, Tuple[str, int]]
 
 
 class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
@@ -60,7 +75,8 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
 
     def __init__(self, min_eigen_optimizer: MinimumEigenOptimizer, min_num_vars: int = 1,
                  min_num_vars_optimizer: Optional[OptimizationAlgorithm] = None,
-                 penalty: Optional[float] = None) -> None:
+                 penalty: Optional[float] = None,
+                 full_history: Optional[bool] = False) -> None:
         """ Initializes the recursive minimum eigen optimizer.
 
         This initializer takes a ``MinimumEigenOptimizer``, the parameters to specify until when to
@@ -75,6 +91,9 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
                 problem with the remaining variables.
             penalty: The factor that is used to scale the penalty terms corresponding to linear
                 equality constraints.
+            full_history: Whether to provide full history of computations in the result. Default
+                value is `False`
+
 
         TODO: add flag to store full history.
 
@@ -91,6 +110,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         else:
             self._min_num_vars_optimizer = MinimumEigenOptimizer(NumPyMinimumEigensolver())
         self._penalty = penalty
+        self._full_history = full_history
 
     def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
         """Checks whether a given problem can be solved with this optimizer.
@@ -129,11 +149,15 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         problem_ref = deepcopy(problem_)
 
         # run recursive optimization until the resulting problem is small enough
-        replacements = {}
+        replacements = {}   # type: Dict[str, Tuple[str, int]]
+        history = []        # type: List[MinimumEigenOptimizerResult]
         while problem_.get_num_vars() > self._min_num_vars:
 
             # solve current problem with optimizer
+            # MinimumEigenOptimizerResult
             res = self._min_eigen_optimizer.solve(problem_)
+            if self._full_history:
+                history.append(res)
 
             # analyze results to get strongest correlation
             correlations = res.get_correlations()
@@ -180,6 +204,8 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
 
         # solve remaining problem
         result = self._min_num_vars_optimizer.solve(problem_)
+        if self._full_history:
+            history.append(result)
 
         # unroll replacements
         var_values = {}
@@ -209,9 +235,16 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         # construct result
         x_v = [var_values[x_aux.name] for x_aux in problem_ref.variables]
         fval = result.fval
+
         results = OptimizationResult(x_v, fval, (replacements, qubo_converter),
                                      variables=problem.variables)
         results = qubo_converter.decode(results)
+
+        results2 = RecursiveMinimumEigenOptimizerResult(x_v, fval,
+                                                        problem.variables,
+
+                                                        qubo_converter,
+                                                        history if self._full_history else None)
         return results
 
     def _find_strongest_correlation(self, correlations):

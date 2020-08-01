@@ -18,7 +18,7 @@
 from typing import Optional, Any, Union, Tuple, List, cast
 import numpy as np
 
-from qiskit.aqua.algorithms import MinimumEigensolver
+from qiskit.aqua.algorithms import MinimumEigensolver, MinimumEigensolverResult
 from qiskit.aqua.operators import StateFn, DictStateFn
 
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
@@ -31,24 +31,33 @@ from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
 class MinimumEigenOptimizerResult(OptimizationResult):
     """ Minimum Eigen Optimizer Result."""
 
-    def __init__(self, x: Optional[Any] = None, fval: Optional[Any] = None,
-                 samples: Optional[Any] = None, results: Optional[Any] = None,
-                 variables: Optional[List[Variable]] = None) -> None:
-        super().__init__(x, fval, results, variables=variables)
+    def __init__(self, x: Union[List[float], np.ndarray], fval: float,
+                 variables: List[Variable],
+                 qubo_converter: QuadraticProgramToQubo,
+                 samples: List[Tuple[str, float, float]],
+                 eigensolver_result: MinimumEigensolverResult = None) -> None:
+        super().__init__(x, fval, variables, None)
+        self._qubo_converter = qubo_converter
         self._samples = samples
+        self._eigensolver_result = eigensolver_result
 
     @property
     def samples(self) -> Any:
-        """ returns samples """
+        """Returns samples."""
         return self._samples
 
-    @samples.setter
-    def samples(self, samples: Any) -> None:
-        """ set samples """
-        self._samples = samples
+    @property
+    def qubo_converter(self) -> QuadraticProgramToQubo:
+        """Returns an instance of :class:QuadraticProgramToQubo that was used to convert
+        the problem to QUBO."""
+        return self._qubo_converter
+
+    @property
+    def eigensolver_result(self) -> MinimumEigensolverResult:
+        return self._eigensolver_result
 
     def get_correlations(self):
-        """ get <Zi x Zj> correlation matrix from samples """
+        """Get <Zi x Zj> correlation matrix from samples."""
 
         states = [v[0] for v in self.samples]
         probs = [v[2] for v in self.samples]
@@ -151,14 +160,16 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
 
         # only try to solve non-empty Ising Hamiltonians
         x = None  # type: Optional[Any]
+        eigen_result = None    # type: Optional[MinimumEigensolverResult]
         if operator.num_qubits > 0:
 
             # approximate ground state of operator using min eigen solver
-            eigen_results = self._min_eigen_solver.compute_minimum_eigenvalue(operator)
+            # the result is MinimumEigensolverResult
+            eigen_result = self._min_eigen_solver.compute_minimum_eigenvalue(operator)
 
             # analyze results
             # backend = getattr(self._min_eigen_solver, 'quantum_instance', None)
-            samples = _eigenvector_to_solutions(eigen_results.eigenstate, problem_)
+            samples = _eigenvector_to_solutions(eigen_result.eigenstate, problem_)
             # print(offset, samples)
             # samples = [(res[0], problem_.objective.sense.value * (res[1] + offset), res[2])
             #    for res in samples]
@@ -174,8 +185,11 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
             samples = [(x_str, offset, 1.0)]
 
         # translate result back to integers
-        opt_res = MinimumEigenOptimizerResult(x, fval, samples, qubo_converter,
-                                              variables=problem.variables)
+        opt_res = MinimumEigenOptimizerResult(x, fval, problem.variables,
+                                              qubo_converter=qubo_converter,
+                                              samples=samples,
+                                              eigensolver_result=eigen_result
+                                              )
         opt_res = cast(MinimumEigenOptimizerResult, qubo_converter.decode(opt_res))
 
         # translate results back to original problem
