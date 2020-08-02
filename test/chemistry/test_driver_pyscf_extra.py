@@ -27,11 +27,11 @@ class TestDriverPySCFExtra(QiskitChemistryTestCase):
     def setUp(self):
         super().setUp()
         try:
-            driver = PySCFDriver(atom='H .0 .0 .0; H .0 .0 0.735',
-                                 unit=UnitsType.ANGSTROM,
-                                 charge=0,
-                                 spin=0,
-                                 basis='sto3g')
+            PySCFDriver(atom='H .0 .0 .0; H .0 .0 0.735',
+                        unit=UnitsType.ANGSTROM,
+                        charge=0,
+                        spin=0,
+                        basis='sto3g')
         except QiskitChemistryError:
             self.skipTest('PYSCF driver does not appear to be installed')
 
