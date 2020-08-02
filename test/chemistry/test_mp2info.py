@@ -70,7 +70,7 @@ class TestMP2Info(QiskitChemistryTestCase):
                                              e_deltas, decimal=6)
 
     def test_mp2_h2(self):
-        """ Single double excitation expected - see issue 1151 """
+        """ Just one double excitation expected - see issue 1151 """
         driver = PySCFDriver(atom="H 0 0 0; H 0 0 0.7", unit=UnitsType.ANGSTROM,
                              charge=0, spin=0, basis='sto3g')
         molecule = driver.run()
