@@ -15,7 +15,7 @@
 """GroverOptimizer module"""
 
 import logging
-from typing import Optional, Dict, Union, Tuple
+from typing import Optional, Dict, Union, Tuple, cast
 import math
 import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister
@@ -137,6 +137,7 @@ class GroverOptimizer(OptimizationAlgorithm):
         for idx, val in enumerate(linear):
             func[idx] = int(val)
         for (i, j), v in quadratic.items():
+            i, j = cast(int, i), cast(int, j)  # type of i and j is Union[str, int], should be int
             if i != j:
                 func[(i, j)] = int(quadratic[(i, j)])
             else:
