@@ -23,6 +23,7 @@ from qiskit.aqua.operators import StateFn, DictStateFn
 
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
 from ..problems.quadratic_program import QuadraticProgram
+from ..problems.variable import Variable
 from ..converters.quadratic_program_to_ising import QuadraticProgramToIsing
 from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
 
@@ -31,8 +32,9 @@ class MinimumEigenOptimizerResult(OptimizationResult):
     """ Minimum Eigen Optimizer Result."""
 
     def __init__(self, x: Optional[Any] = None, fval: Optional[Any] = None,
-                 samples: Optional[Any] = None, results: Optional[Any] = None) -> None:
-        super().__init__(x, fval, results)
+                 samples: Optional[Any] = None, results: Optional[Any] = None,
+                 variables: Optional[List[Variable]] = None) -> None:
+        super().__init__(x, fval, results, variables=variables)
         self._samples = samples
 
     @property
@@ -172,7 +174,8 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
             samples = [(x_str, offset, 1.0)]
 
         # translate result back to integers
-        opt_res = MinimumEigenOptimizerResult(x, fval, samples, qubo_converter)
+        opt_res = MinimumEigenOptimizerResult(x, fval, samples, qubo_converter,
+                                              variables=problem.variables)
         opt_res = cast(MinimumEigenOptimizerResult, qubo_converter.decode(opt_res))
 
         # translate results back to original problem

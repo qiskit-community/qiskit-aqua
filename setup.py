@@ -39,7 +39,6 @@ requirements = [
     "setuptools>=40.1.0",
     "h5py",
     "networkx>=2.2",
-    "pyscf; sys_platform != 'win32'",
     "pandas",
     "quandl",
     "yfinance",
@@ -87,7 +86,8 @@ setuptools.setup(
     extras_require={
         'torch': ["torch; sys_platform == 'linux' or (python_version < '3.8' and sys_platform != 'win32')"],
         'cplex': ["cplex; python_version >= '3.6' and python_version < '3.8'"],
-        'cvx': ['cvxpy>1.0.0,<1.1.0'],
+        'cvx': ['cvxpy>1.0.0,!=1.1.0,!=1.1.1,!=1.1.2'],
+        'pyscf': ["pyscf; sys_platform != 'win32'"],
     },
     zip_safe=False
 )

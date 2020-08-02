@@ -14,7 +14,7 @@ notifications:
   email:
     if: fork = false AND type = cron
     recipients:
-      - manoel@us.ibm.com
+      - manoel.marques@ibm.com
     on_success: never
     on_failure: always
 
@@ -122,7 +122,7 @@ jobs:
   include:
     - stage: Checks and Tests
       <<: *stage_dependencies
-      name: "Pip, spell, style, lint, copyright and docs checks"
+      name: "Pip, spell, style, lint, copyright and docs checks Python 3.7"
       if: tag IS blank
       install:
         # install spell check libraries
@@ -130,16 +130,31 @@ jobs:
         - sudo apt-get -y install hunspell-en-us
         - pip install pyenchant
         - pip install cplex
-        - pip install "cvxpy>1.0.0,<1.1.0"
+        - pip install "cvxpy>1.0.0"
         - pip install https://github.com/rpmuller/pyquante2/archive/master.zip --progress-bar off
       script:
         - pip check
         - make spell
         - make style
         - make lint
+        # Lint with latest pylint also
+        - pip install -U pylint
+        - make lint
         - make copyright
         - make html SPHINXOPTS=-W
         - make doctest
+    - name: "Lint check Python 3.8"
+      <<: *stage_dependencies
+      if: tag IS blank
+      python: 3.8
+      install:
+        - pip install "cvxpy>1.0.0"
+        - pip install https://github.com/rpmuller/pyquante2/archive/master.zip --progress-bar off
+      script:
+        - make lint
+        # Lint with latest pylint also
+        - pip install -U pylint
+        - make lint
     - name: "Mypy check"
       <<: *stage_dependencies
       if: tag IS blank
@@ -159,7 +174,7 @@ jobs:
             - aqua137.dep
       before_script:
         - pip install cplex
-        - pip install "cvxpy>1.0.0,<1.1.0"
+        - pip install "cvxpy>1.0.0"
         - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
       script:
         - stestr --test-path test/aqua run --blacklist-file selection.txt 2> >(tee /dev/stderr out.txt > /dev/null)
@@ -175,7 +190,7 @@ jobs:
           paths: aqua138.dep
       python: 3.8
       before_script:
-        - pip install "cvxpy>1.0.0,<1.1.0"
+        - pip install "cvxpy>1.0.0"
       script:
         - stestr --test-path test/aqua run --blacklist-file selection.txt 2> >(tee /dev/stderr out.txt > /dev/null)
         - python tools/extract_deprecation.py -file out.txt -output aqua138.dep
@@ -190,7 +205,7 @@ jobs:
             - aqua237.dep
       before_script:
         - pip install cplex
-        - pip install "cvxpy>1.0.0,<1.1.0"
+        - pip install "cvxpy>1.0.0"
         - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
       script:
         - stestr --test-path test/aqua run --whitelist-file selection.txt 2> >(tee /dev/stderr out.txt > /dev/null)
@@ -206,7 +221,7 @@ jobs:
           paths: aqua238.dep
       python: 3.8
       before_script:
-        - pip install "cvxpy>1.0.0,<1.1.0"
+        - pip install "cvxpy>1.0.0"
       script:
         - stestr --test-path test/aqua run --whitelist-file selection.txt 2> >(tee /dev/stderr out.txt > /dev/null)
         - python tools/extract_deprecation.py -file out.txt -output aqua238.dep
@@ -228,7 +243,7 @@ jobs:
         - sudo apt-get -y install libgfortran5
         # Installing pyquante2 master branch...
         - pip install https://github.com/rpmuller/pyquante2/archive/master.zip --progress-bar off
-        - pip install cplex
+        - pip install cplex pyscf
       before_script:
         - export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
       script:
@@ -251,6 +266,7 @@ jobs:
         - sudo apt-get -y install libgfortran5
         # Installing pyquante2 master branch...
         - pip install https://github.com/rpmuller/pyquante2/archive/master.zip --progress-bar off
+        - pip install pyscf
       script:
         - stestr --test-path test/chemistry run 2> >(tee /dev/stderr out.txt > /dev/null)
         - python tools/extract_deprecation.py -file out.txt -output chemistry38.dep
