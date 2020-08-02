@@ -28,8 +28,6 @@ from qiskit.aqua.components.oracles import CustomCircuitOracle
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
 from ..problems.quadratic_program import QuadraticProgram
 from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
-# from ..converters.quadratic_program_to_negative_value_oracle import \
-#     QuadraticProgramToNegativeValueOracle
 
 
 logger = logging.getLogger(__name__)
@@ -90,7 +88,7 @@ class GroverOptimizer(OptimizationAlgorithm):
         """
         return QuadraticProgramToQubo.get_compatibility_msg(problem)
 
-    def _get_a_operator(self, problem):
+    def _get_a_operator(self, qr_key_value, problem):
         quadratic = problem.objective.quadratic.to_array()
         linear = problem.objective.linear.to_array()
         offset = problem.objective.constant
@@ -99,17 +97,17 @@ class GroverOptimizer(OptimizationAlgorithm):
         quadratic_form = QuadraticForm(self._num_value_qubits, quadratic, linear, offset,
                                        little_endian=False)
 
-        qr = QuantumRegister(self._num_key_qubits + self._num_value_qubits)
-        a_operator_circuit = QuantumCircuit(qr)
+        a_operator_circuit = QuantumCircuit(qr_key_value)
         a_operator_circuit.h(list(range(self._num_key_qubits)))
         a_operator_circuit.compose(quadratic_form, inplace=True)
 
         a_operator = Custom(a_operator_circuit.width(), circuit=a_operator_circuit)
         return a_operator
 
-    def _get_oracle(self):
+    def _get_oracle(self, qr_key_value):
         # Build negative value oracle O.
-        qr_key_value = QuantumRegister(self._num_key_qubits + self._num_value_qubits)
+        qr_key_value = qr_key_value or QuantumRegister(
+            self._num_key_qubits + self._num_value_qubits)
         oracle_bit = QuantumRegister(1, "oracle")
         oracle_circuit = QuantumCircuit(qr_key_value, oracle_bit)
         oracle_circuit.z(self._num_key_qubits)  # recognize negative values.
@@ -204,9 +202,11 @@ class GroverOptimizer(OptimizationAlgorithm):
         max_rotations = int(np.ceil(100*np.pi/4))
 
         # Initialize oracle helper object.
+        qr_key_value = QuantumRegister(self._num_key_qubits + self._num_value_qubits)
         orig_constant = problem_.objective.constant
         measurement = not self.quantum_instance.is_statevector
-        oracle = self._get_oracle()
+        oracle = self._get_oracle(qr_key_value)
+        # opt_prob_converter = QuadraticProgramToNegativeValueOracle(n_value, measurement)
 
         while not optimum_found:
             m = 1
@@ -215,7 +215,8 @@ class GroverOptimizer(OptimizationAlgorithm):
             # Get oracle O and the state preparation operator A for the current threshold.
             problem_.objective.constant = orig_constant - threshold
             # a_operator, oracle, func_dict = opt_prob_converter.encode(problem_)
-            a_operator = self._get_a_operator(problem_)
+            a_operator = self._get_a_operator(qr_key_value, problem_)
+            # oracle = self._get_oracle(a_operator._circuit.qregs[0])
 
             # Iterate until we measure a negative.
             loops_with_no_improvement = 0
