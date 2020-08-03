@@ -175,7 +175,7 @@ class ListOp(OperatorBase):
                               coeff=self.coeff * scalar,
                               abelian=self.abelian)
 
-    def identity(self, num_qubits: int) -> OperatorBase:
+    def identity_operator(self, num_qubits: int) -> OperatorBase:
         """Returns the PauliOp, with Pauli I as primitive..
         Choice of Pauli as identity is arbitrary and could be substituted
         for other PrimitiveOp.identity.

@@ -170,7 +170,7 @@ class CircuitStateFn(StateFn):
         from qiskit.aqua.operators import ComposedOp
         return ComposedOp([new_self, other])
 
-    def identity(self, num_qubits: int) -> 'CircuitStateFn':
+    def identity_operator(self, num_qubits: int) -> 'CircuitStateFn':
         new_qc = QuantumCircuit(num_qubits)
         for i in range(num_qubits):
             new_qc.i(i)

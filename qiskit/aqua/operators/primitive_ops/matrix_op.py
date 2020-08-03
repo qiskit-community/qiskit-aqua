@@ -142,15 +142,15 @@ class MatrixOp(PrimitiveOp):
         new_self = self
         new_matrix_size = max(indices) + 1
 
-        # extend the indices to match the size of the new matrix
-        indices = list(filter(lambda x: x not in indices, range(new_matrix_size))) + indices
-
         if self.num_qubits != len(indices):
             raise AquaError("New index must be defined for each qubit of the operator.")
         if self.num_qubits < new_matrix_size:
             # pad the operator with identities
             new_self = self.expand(new_matrix_size - self.num_qubits)
         qc = QuantumCircuit(new_matrix_size)
+
+        # extend the indices to match the size of the new matrix
+        indices = list(filter(lambda x: x not in indices, range(new_matrix_size))) + indices
 
         # decompose permutation into sequence of transpositions
         transpositions = Permutation(indices).transpositions()
@@ -159,7 +159,7 @@ class MatrixOp(PrimitiveOp):
         matrix = CircuitOp(qc).to_matrix()
         return MatrixOp(matrix.transpose()) @ new_self @ MatrixOp(matrix)  # permuted MatrixOp
 
-    def identity(self, num_qubits: int) -> 'MatrixOp':
+    def identity_operator(self, num_qubits: int) -> 'MatrixOp':
         identity = np.identity(2**num_qubits, dtype=complex)
         return MatrixOp(Operator(identity))
 

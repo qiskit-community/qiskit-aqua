@@ -78,7 +78,7 @@ class VectorStateFn(StateFn):
                              coeff=np.conj(self.coeff),
                              is_measurement=(not self.is_measurement))
 
-    def identity(self, num_qubits: int) -> 'VectorStateFn':
+    def identity_operator(self, num_qubits: int) -> 'VectorStateFn':
         primitive = np.zeros(2**num_qubits, dtype=complex)
         return VectorStateFn(primitive)
 

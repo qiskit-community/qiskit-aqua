@@ -158,7 +158,7 @@ class StateFn(OperatorBase):
                               coeff=self.coeff * scalar,
                               is_measurement=self.is_measurement)
 
-    def identity(self, num_qubits: int) -> 'StateFn':
+    def identity_operator(self, num_qubits: int) -> 'StateFn':
         raise NotImplementedError
 
     def tensor(self, other: OperatorBase) -> OperatorBase:

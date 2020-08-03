@@ -89,7 +89,7 @@ class EvolvedOp(PrimitiveOp):
 
         return TensoredOp([self, other])
 
-    def identity(self, num_qubits: int) -> 'PrimitiveOp':
+    def identity_operator(self, num_qubits: int) -> 'PrimitiveOp':
         from qiskit.quantum_info import Pauli
         primitive = Pauli(label='I' * num_qubits)
         return PauliOp(primitive)

@@ -228,7 +228,7 @@ class CircuitOp(PrimitiveOp):
                     del self.primitive.data[i]  # type: ignore
         return self
 
-    def identity(self, num_qubits: int) -> 'CircuitOp':
+    def identity_operator(self, num_qubits: int) -> 'CircuitOp':
         new_qc = QuantumCircuit(num_qubits)
         for i in range(num_qubits):
             new_qc.i(i)

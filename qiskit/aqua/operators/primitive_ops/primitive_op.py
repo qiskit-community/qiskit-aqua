@@ -155,7 +155,7 @@ class PrimitiveOp(OperatorBase):
             temp = temp.tensor(self)
         return temp
 
-    def identity(self, num_qubits: int) -> 'PrimitiveOp':
+    def identity_operator(self, num_qubits: int) -> 'PrimitiveOp':
         raise NotImplementedError
 
     def compose(self, other: OperatorBase) -> OperatorBase:

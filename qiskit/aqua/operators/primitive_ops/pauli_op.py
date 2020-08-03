@@ -119,7 +119,7 @@ class PauliOp(PrimitiveOp):
             new_pauli_list[-index - 1] = pauli_string[-i - 1]
         return PauliOp(Pauli(label=''.join(new_pauli_list)), self.coeff)
 
-    def identity(self, num_qubits: int) -> 'PauliOp':
+    def identity_operator(self, num_qubits: int) -> 'PauliOp':
         primitive = Pauli(label='I'*num_qubits)
         return PauliOp(primitive)
 

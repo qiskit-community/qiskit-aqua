@@ -109,7 +109,7 @@ class DictStateFn(StateFn):
                            coeff=np.conj(self.coeff),
                            is_measurement=(not self.is_measurement))
 
-    def identity(self, num_qubits: int) -> 'DictStateFn':
+    def identity_operator(self, num_qubits: int) -> 'DictStateFn':
         return DictStateFn('0' * num_qubits, is_measurement=self.is_measurement)
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
