@@ -25,11 +25,12 @@ from ..exceptions import QiskitOptimizationError
 from ..problems.quadratic_objective import QuadraticObjective
 from ..problems.quadratic_program import QuadraticProgram
 from ..problems.variable import Variable
+from .quadratic_program_converter import QuadraticProgramConverter
 
 logger = logging.getLogger(__name__)
 
 
-class IntegerToBinary:
+class IntegerToBinary(QuadraticProgramConverter):
     """Convert a :class:`~qiskit.optimization.problems.QuadraticProgram` into new one by encoding
     integer with binary variables.
 
@@ -41,7 +42,7 @@ class IntegerToBinary:
         >>> problem = QuadraticProgram()
         >>> var = problem.integer_var(name='x', lowerbound=0, upperbound=10)
         >>> conv = IntegerToBinary()
-        >>> problem2 = conv.encode(problem)
+        >>> problem2 = conv.convert(problem)
 
     References:
         [1]: Sahar Karimi, Pooya Ronagh (2017), Practical Integer-to-Binary Mapping for Quantum
@@ -54,15 +55,14 @@ class IntegerToBinary:
         self._src = None  # type: Optional[QuadraticProgram]
         self._dst = None  # type: Optional[QuadraticProgram]
         self._conv = {}  # type: Dict[Variable, List[Tuple[str, int]]]
+
         # e.g., self._conv = {x: [('x@1', 1), ('x@2', 2)]}
 
-    def encode(self, op: QuadraticProgram, name: Optional[str] = None) -> QuadraticProgram:
+    def convert(self, problem: QuadraticProgram) -> QuadraticProgram:
         """Convert an integer problem into a new problem with binary variables.
 
         Args:
-            op: The problem to be solved, that may contain integer variables.
-            name: The name of the converted problem. If not provided, the name of the input
-                problem is used.
+            problem: The problem to be solved, that may contain integer variables.
 
         Returns:
             The converted problem, that contains no integer variables.
@@ -71,18 +71,18 @@ class IntegerToBinary:
             QiskitOptimizationError: if variable or constraint type is not supported.
         """
 
-        # copy original QP as reference.
-        self._src = copy.deepcopy(op)
+        # Copy original QP as reference.
+        self._src = copy.deepcopy(problem)
 
         if self._src.get_num_integer_vars() > 0:
 
-            # initialize new QP
-            self._dst = QuadraticProgram()
+            # Initialize new QP
+            self._dst = QuadraticProgram(name=problem.name)
 
-            # declare variables
+            # Declare variables
             for x in self._src.variables:
                 if x.vartype == Variable.Type.INTEGER:
-                    new_vars = self._encode_var(x.name, x.lowerbound, x.upperbound)
+                    new_vars = self._convert_var(x.name, x.lowerbound, x.upperbound)
                     self._conv[x] = new_vars
                     for (var_name, _) in new_vars:
                         self._dst.binary_var(var_name)
@@ -93,23 +93,20 @@ class IntegerToBinary:
                         self._dst.binary_var(x.name)
                     else:
                         raise QiskitOptimizationError(
-                            "Unsupported variable type {}".format(x.vartype))
+                            "Unsupported variable type {}".format(x.vartype)
+                        )
 
             self._substitute_int_var()
 
         else:
             # just copy the problem if no integer variables exist
-            self._dst = copy.deepcopy(op)
-
-        # adjust name of resulting problem if necessary
-        if name:
-            self._dst.name = name
-        else:
-            self._dst.name = self._src.name
+            self._dst = copy.deepcopy(problem)
 
         return self._dst
 
-    def _encode_var(self, name: str, lowerbound: float, upperbound: float) -> List[Tuple[str, int]]:
+    def _convert_var(
+            self, name: str, lowerbound: float, upperbound: float
+    ) -> List[Tuple[str, int]]:
         var_range = upperbound - lowerbound
         power = int(np.log2(var_range))
         bounded_coef = var_range - (2 ** power - 1)
@@ -117,8 +114,9 @@ class IntegerToBinary:
         coeffs = [2 ** i for i in range(power)] + [bounded_coef]
         return [(name + self._delimiter + str(i), coef) for i, coef in enumerate(coeffs)]
 
-    def _encode_linear_coefficients_dict(self, coefficients: Dict[str, float]) \
-            -> Tuple[Dict[str, float], float]:
+    def _convert_linear_coefficients_dict(
+            self, coefficients: Dict[str, float]
+    ) -> Tuple[Dict[str, float], float]:
         constant = 0.0
         linear = {}  # type: Dict[str, float]
         for name, v in coefficients.items():
@@ -132,8 +130,9 @@ class IntegerToBinary:
 
         return linear, constant
 
-    def _encode_quadratic_coefficients_dict(self, coefficients: Dict[Tuple[str, str], float]) \
-            -> Tuple[Dict[Tuple[str, str], float], Dict[str, float], float]:
+    def _convert_quadratic_coefficients_dict(
+            self, coefficients: Dict[Tuple[str, str], float]
+    ) -> Tuple[Dict[Tuple[str, str], float], Dict[str, float], float]:
         constant = 0.0
         linear = {}  # type: Dict[str, float]
         quadratic = {}
@@ -171,14 +170,15 @@ class IntegerToBinary:
     def _substitute_int_var(self):
 
         # set objective
-        linear, linear_constant = self._encode_linear_coefficients_dict(
-            self._src.objective.linear.to_dict(use_name=True))
-        quadratic, quadratic_linear, quadratic_constant = \
-            self._encode_quadratic_coefficients_dict(
-                self._src.objective.quadratic.to_dict(use_name=True))
+        linear, linear_constant = self._convert_linear_coefficients_dict(
+            self._src.objective.linear.to_dict(use_name=True)
+        )
+        quadratic, q_linear, q_constant, = self._convert_quadratic_coefficients_dict(
+            self._src.objective.quadratic.to_dict(use_name=True)
+        )
 
-        constant = self._src.objective.constant + linear_constant + quadratic_constant
-        for i, v in quadratic_linear.items():
+        constant = self._src.objective.constant + linear_constant + q_constant
+        for i, v in q_linear.items():
             linear[i] = linear.get(i, 0) + v
 
         if self._src.objective.sense == QuadraticObjective.Sense.MINIMIZE:
@@ -188,26 +188,31 @@ class IntegerToBinary:
 
         # set linear constraints
         for constraint in self._src.linear_constraints:
-            linear, constant = self._encode_linear_coefficients_dict(constraint.linear.to_dict())
-            self._dst.linear_constraint(linear, constraint.sense,
-                                        constraint.rhs - constant, constraint.name)
+            linear, constant = self._convert_linear_coefficients_dict(constraint.linear.to_dict())
+            self._dst.linear_constraint(
+                linear, constraint.sense, constraint.rhs - constant, constraint.name
+            )
 
         # set quadratic constraints
         for constraint in self._src.quadratic_constraints:
-            linear, linear_constant = self._encode_linear_coefficients_dict(
-                constraint.linear.to_dict())
-            quadratic, quadratic_linear, quadratic_constant = \
-                self._encode_quadratic_coefficients_dict(constraint.quadratic.to_dict())
+            linear, linear_constant = self._convert_linear_coefficients_dict(
+                constraint.linear.to_dict()
+            )
+            quadratic, q_linear, q_constant = self._convert_quadratic_coefficients_dict(
+                constraint.quadratic.to_dict()
+            )
 
-            constant = linear_constant + quadratic_constant
-            for i, v in quadratic_linear.items():
+            constant = linear_constant + q_constant
+            for i, v in q_linear.items():
                 linear[i] = linear.get(i, 0) + v
 
-            self._dst.quadratic_constraint(linear, quadratic, constraint.sense,
-                                           constraint.rhs - constant, constraint.name)
+            self._dst.quadratic_constraint(
+                linear, quadratic, constraint.sense, constraint.rhs - constant, constraint.name
+            )
 
-    def decode(self, result: OptimizationResult) -> OptimizationResult:
-        """Convert the encoded problem (binary variables) back to the original (integer variables).
+    def interpret(self, result: OptimizationResult) -> OptimizationResult:
+        """Convert back the converted problem (binary variables)
+        to the original (integer variables).
 
         Args:
             result: The result of the converted problem.
@@ -215,13 +220,16 @@ class IntegerToBinary:
         Returns:
             The result of the original problem.
         """
+        # copy fval and status of the result of the converted problem
+        new_result = copy.deepcopy(result)
+        # convert back additional binary variables into integer variables
         vals = result.x
-        new_vals = self._decode_var(vals)
-        result.x = new_vals  # type: ignore
-        return result
+        new_result.x = self._interpret_var(vals)  # type: ignore
 
-    def _decode_var(self, vals) -> List[float]:
-        # decode integer values
+        return new_result
+
+    def _interpret_var(self, vals) -> List[float]:
+        # interpret integer values
         sol = {x.name: float(vals[i]) for i, x in enumerate(self._dst.variables)}
         new_vals = []
         for x in self._src.variables:
