@@ -1,0 +1,6 @@
+---
+features:
+  - |
+    Removed soft dependency on CPLEX in ADMMOptimizer. Now default optimizers used by ADMMOptimizer
+    are MinimumEigenOptimizer for QUBO problems and SlsqpOptimizer as a continuous optimizer. You
+    can still use CplexOptimizer as a optimizer for ADMMOptimizer, but it should be set explicitly.

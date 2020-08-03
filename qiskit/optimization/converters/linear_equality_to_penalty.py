@@ -25,30 +25,29 @@ from ..problems.variable import Variable
 from ..problems.constraint import Constraint
 from ..problems.quadratic_objective import QuadraticObjective
 from ..exceptions import QiskitOptimizationError
+from .quadratic_program_converter import QuadraticProgramConverter
 
 logger = logging.getLogger(__name__)
 
 
-class LinearEqualityToPenalty:
+class LinearEqualityToPenalty(QuadraticProgramConverter):
     """Convert a problem with only equality constraints to unconstrained with penalty terms."""
 
-    def __init__(self, penalty: Optional[float] = None, name: Optional[str] = None):
+    def __init__(self, penalty: Optional[float] = None) -> None:
         """
         Args:
             penalty: Penalty factor to scale equality constraints that are added to objective.
                      If None is passed, penalty factor will be automatically calculated.
-            name: The name of the converted problem.
         """
         self._src = None  # type: Optional[QuadraticProgram]
         self._dst = None  # type: Optional[QuadraticProgram]
-        self._dst_name = name  # type: Optional[str]
         self._penalty = penalty  # type: Optional[float]
 
-    def encode(self, op: QuadraticProgram) -> QuadraticProgram:
+    def convert(self, problem: QuadraticProgram) -> QuadraticProgram:
         """Convert a problem with equality constraints into an unconstrained problem.
 
         Args:
-            op: The problem to be solved, that does not contain inequality constraints.
+            problem: The problem to be solved, that does not contain inequality constraints.
 
         Returns:
             The converted problem, that is an unconstrained problem.
@@ -58,8 +57,8 @@ class LinearEqualityToPenalty:
         """
 
         # create empty QuadraticProgram model
-        self._src = copy.deepcopy(op)  # deep copy
-        self._dst = QuadraticProgram()
+        self._src = copy.deepcopy(problem)
+        self._dst = QuadraticProgram(name=problem.name)
 
         # If penalty is None, set the penalty coefficient by _auto_define_penalty()
         if self._penalty is None:
@@ -67,13 +66,7 @@ class LinearEqualityToPenalty:
         else:
             penalty = self._penalty
 
-        # set problem name
-        if self._dst_name is None:
-            self._dst.name = self._src.name
-        else:
-            self._dst.name = self._dst_name
-
-        # set variables
+        # Set variables
         for x in self._src.variables:
             if x.vartype == Variable.Type.CONTINUOUS:
                 self._dst.continuous_var(x.lowerbound, x.upperbound, x.name)
@@ -167,8 +160,9 @@ class LinearEqualityToPenalty:
 
         return fsum(penalties)
 
-    def decode(self, result: OptimizationResult) -> OptimizationResult:
+    def interpret(self, result: OptimizationResult) -> OptimizationResult:
         """Convert the result of the converted problem back to that of the original problem
+
         Args:
             result: The result of the converted problem.
 
@@ -188,10 +182,10 @@ class LinearEqualityToPenalty:
         substitute_dict = {}  # type: Dict[Union[str, int], float]
         variables = self._src.variables
         for i in range(len(result.x)):
-            substitute_dict[variables[i].name] = result.x[i]
+            substitute_dict[variables[i].name] = float(result.x[i])
         substituted_qp = self._src.substitute_variables(substitute_dict)
 
-        new_result = OptimizationResult()
+        new_result = copy.deepcopy(result)
         new_result.x = result.x
 
         # Set the new function value
@@ -214,7 +208,7 @@ class LinearEqualityToPenalty:
         """
         return self._penalty
 
-    @penalty.setter  # type:ignore
+    @penalty.setter
     def penalty(self, penalty: Optional[float]) -> None:
         """Set a new penalty factor.
 
@@ -223,22 +217,3 @@ class LinearEqualityToPenalty:
                      If None is passed, penalty factor will be automatically calculated.
         """
         self._penalty = penalty
-
-    @property
-    def name(self) -> Optional[str]:
-        """Returns the name of the converted problem
-
-        Returns:
-            The name of the converted problem
-        """
-        return self._dst_name
-
-    @name.setter  # type:ignore
-    def name(self, name: Optional[str]) -> None:
-        """Set a name for a converted problem
-
-        Args:
-            name: A name for a converted problem. If not provided, the name of the input
-                  problem is used.
-        """
-        self._dst_name = name

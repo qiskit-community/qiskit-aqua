@@ -17,12 +17,12 @@
 from typing import Optional
 
 from ..algorithms.optimization_algorithm import OptimizationResult
-from ..problems.quadratic_program import QuadraticProgram
-from ..problems.constraint import Constraint
 from ..exceptions import QiskitOptimizationError
+from ..problems.quadratic_program import QuadraticProgram
+from .quadratic_program_converter import QuadraticProgramConverter
 
 
-class QuadraticProgramToQubo:
+class QuadraticProgramToQubo(QuadraticProgramConverter):
     """Convert a given optimization problem to a new problem that is a QUBO.
 
         Examples:
@@ -31,23 +31,24 @@ class QuadraticProgramToQubo:
             >>> problem = QuadraticProgram()
             >>> # define a problem
             >>> conv = QuadraticProgramToQubo()
-            >>> problem2 = conv.encode(problem)
+            >>> problem2 = conv.convert(problem)
     """
 
     def __init__(self, penalty: Optional[float] = None) -> None:
         """
         Args:
             penalty: Penalty factor to scale equality constraints that are added to objective.
-                     If None is passed, penalty factor will be automatically calculated.
+                If None is passed, penalty factor will be automatically calculated.
         """
         from ..converters.integer_to_binary import IntegerToBinary
+        from ..converters.inequality_to_equality import InequalityToEquality
         from ..converters.linear_equality_to_penalty import LinearEqualityToPenalty
 
         self._int_to_bin = IntegerToBinary()
-        self._penalize_lin_eq_constraints = LinearEqualityToPenalty(penalty)
-        self._penalty = penalty
+        self._ineq_to_eq = InequalityToEquality(mode='integer')
+        self._penalize_lin_eq_constraints = LinearEqualityToPenalty(penalty=penalty)
 
-    def encode(self, problem: QuadraticProgram) -> QuadraticProgram:
+    def convert(self, problem: QuadraticProgram) -> QuadraticProgram:
         """Convert a problem with linear equality constraints into new one with a QUBO form.
 
         Args:
@@ -65,17 +66,20 @@ class QuadraticProgramToQubo:
         if len(msg) > 0:
             raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
 
-        # map integer variables to binary variables
-        problem_ = self._int_to_bin.encode(problem)
+        # Convert inequality constraints into equality constraints by adding slack variables
+        problem_ = self._ineq_to_eq.convert(problem)
 
-        # penalize linear equality constraints with only binary variables
-        problem_ = self._penalize_lin_eq_constraints.encode(problem_)
+        # Map integer variables to binary variables
+        problem_ = self._int_to_bin.convert(problem_)
 
-        # return QUBO
+        # Penalize linear equality constraints with only binary variables
+        problem_ = self._penalize_lin_eq_constraints.convert(problem_)
+
+        # Return QUBO
         return problem_
 
-    def decode(self, result: OptimizationResult) -> OptimizationResult:
-        """ Convert a result of a converted problem into that of the original problem.
+    def interpret(self, result: OptimizationResult) -> OptimizationResult:
+        """Convert a result of a converted problem into that of the original problem.
 
             Args:
                 result: The result of the converted problem.
@@ -83,7 +87,10 @@ class QuadraticProgramToQubo:
             Returns:
                 The result of the original problem.
         """
-        return self._int_to_bin.decode(result)
+        result_ = self._penalize_lin_eq_constraints.interpret(result)
+        result_ = self._int_to_bin.interpret(result_)
+        result_ = self._ineq_to_eq.interpret(result_)
+        return result_
 
     @staticmethod
     def get_compatibility_msg(problem: QuadraticProgram) -> str:
@@ -101,17 +108,32 @@ class QuadraticProgramToQubo:
 
         # initialize message
         msg = ''
-
         # check whether there are incompatible variable types
         if problem.get_num_continuous_vars() > 0:
             msg += 'Continuous variables are not supported! '
 
         # check whether there are incompatible constraint types
-        if not all(constraint.sense == Constraint.Sense.EQ
-                   for constraint in problem.linear_constraints):
-            msg += 'Only linear equality constraints are supported.'
         if len(problem.quadratic_constraints) > 0:
             msg += 'Quadratic constraints are not supported. '
+        # check whether there are float coefficients in constraints
+        compatible_with_integer_slack = True
+        for l_constraint in problem.linear_constraints:
+            linear = l_constraint.linear.to_dict()
+            if any(isinstance(coef, float) and not coef.is_integer() for coef in linear.values()):
+                compatible_with_integer_slack = False
+        for q_constraint in problem.quadratic_constraints:
+            linear = q_constraint.linear.to_dict()
+            quadratic = q_constraint.quadratic.to_dict()
+            if any(
+                    isinstance(coef, float) and not coef.is_integer()
+                    for coef in quadratic.values()
+            ) or any(
+                isinstance(coef, float) and not coef.is_integer() for coef in linear.values()
+            ):
+                compatible_with_integer_slack = False
+        if not compatible_with_integer_slack:
+            msg += 'Can not convert inequality constraints to equality constraint because \
+                    float coefficients are in constraints. '
 
         # if an error occurred, return error message, otherwise, return None
         return msg
@@ -126,3 +148,22 @@ class QuadraticProgramToQubo:
             Returns True if the problem is compatible, False otherwise.
         """
         return len(self.get_compatibility_msg(problem)) == 0
+
+    @property
+    def penalty(self) -> Optional[float]:
+        """Returns the penalty factor used in conversion.
+
+        Returns:
+            The penalty factor used in conversion.
+        """
+        return self._penalize_lin_eq_constraints.penalty
+
+    @penalty.setter
+    def penalty(self, penalty: Optional[float]) -> None:
+        """Set a new penalty factor.
+
+        Args:
+            penalty: The new penalty factor.
+                     If None is passed, penalty factor will be automatically calculated.
+        """
+        self._penalize_lin_eq_constraints.penalty = penalty

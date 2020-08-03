@@ -24,7 +24,8 @@ from qiskit.circuit.library import TwoLocal, EfficientSU2
 
 from qiskit.aqua import QuantumInstance, aqua_globals, AquaError
 from qiskit.aqua.operators import (WeightedPauliOperator, PrimitiveOp, X, Z, I,
-                                   AerPauliExpectation, PauliExpectation)
+                                   AerPauliExpectation, PauliExpectation,
+                                   MatrixExpectation, ExpectationBase)
 from qiskit.aqua.components.variational_forms import RYRZ
 from qiskit.aqua.components.optimizers import L_BFGS_B, COBYLA, SPSA, SLSQP
 from qiskit.aqua.algorithms import VQE
@@ -96,6 +97,23 @@ class TestVQE(QiskitAquaTestCase):
         vqe = VQE(self.h2_op, wavefunction, optimizer=optimizer)
         result = vqe.run(self.statevector_simulator)
         self.assertAlmostEqual(result.eigenvalue.real, self.h2_energy, places=5)
+
+    @data(
+        (MatrixExpectation(), 1),
+        (AerPauliExpectation(), 1),
+        (PauliExpectation(), 2),
+    )
+    @unpack
+    def test_construct_circuit(self, expectation, num_circuits):
+        """Test construct circuits returns QuantumCircuits and the right number of them."""
+        wavefunction = EfficientSU2(2, reps=1)
+        vqe = VQE(self.h2_op, wavefunction, expectation=expectation)
+        params = [0] * wavefunction.num_parameters
+        circuits = vqe.construct_circuit(params)
+
+        self.assertEqual(len(circuits), num_circuits)
+        for circuit in circuits:
+            self.assertIsInstance(circuit, QuantumCircuit)
 
     def test_legacy_operator(self):
         """Test the VQE accepts and converts the legacy WeightedPauliOperator."""
@@ -296,6 +314,38 @@ class TestVQE(QiskitAquaTestCase):
         self.assertEqual(len(result.optimal_point), 16)
         self.assertIsNotNone(result.cost_function_evals)
         self.assertIsNotNone(result.optimizer_time)
+
+    @data(MatrixExpectation(), None)
+    def test_backend_change(self, user_expectation):
+        """Test that VQE works when backend changes."""
+        vqe = VQE(operator=self.h2_op,
+                  var_form=TwoLocal(rotation_blocks=['ry', 'rz'], entanglement_blocks='cz'),
+                  optimizer=SLSQP(maxiter=2),
+                  expectation=user_expectation,
+                  quantum_instance=BasicAer.get_backend('statevector_simulator'))
+        result0 = vqe.run()
+        if user_expectation is not None:
+            with self.subTest('User expectation kept.'):
+                self.assertEqual(vqe.expectation, user_expectation)
+        else:
+            with self.subTest('Expectation created.'):
+                self.assertIsInstance(vqe.expectation, ExpectationBase)
+        try:
+            vqe.set_backend(BasicAer.get_backend('qasm_simulator'))
+        except Exception as ex:  # pylint: disable=broad-except
+            self.fail("Failed to change backend. Error: '{}'".format(str(ex)))
+            return
+
+        result1 = vqe.run()
+        if user_expectation is not None:
+            with self.subTest('Change backend with user expectation, it is kept.'):
+                self.assertEqual(vqe.expectation, user_expectation)
+        else:
+            with self.subTest('Change backend without user expectation, one created.'):
+                self.assertIsInstance(vqe.expectation, ExpectationBase)
+
+        with self.subTest('Check results.'):
+            self.assertEqual(len(result0.optimal_point), len(result1.optimal_point))
 
 
 if __name__ == '__main__':

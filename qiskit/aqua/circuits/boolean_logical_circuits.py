@@ -182,6 +182,27 @@ class BooleanLogicNormalForm(ABC):
 
         return None
 
+    def compute_num_ancillae(self, mct_mode='basic'):
+        """ returns the number of ancillary qubits needed """
+        max_num_ancillae = max(
+            max(
+                self._num_clauses if self._clause_register else 0,
+                self._max_clause_size
+            ) - 2,
+            0
+        )
+        num_ancillae = 0
+        if mct_mode in ('basic', 'basic-dirty-ancilla'):
+            num_ancillae = max_num_ancillae
+        elif mct_mode == 'advanced':
+            if max_num_ancillae >= 3:
+                num_ancillae = 1
+        elif mct_mode == 'noancilla':
+            pass
+        else:
+            raise ValueError('Unsupported MCT mode {}.'.format(mct_mode))
+        return num_ancillae
+
     def _set_up_circuit(
             self,
             circuit=None,
@@ -204,23 +225,7 @@ class BooleanLogicNormalForm(ABC):
         )
         self._output_idx = output_idx if output_idx else 0
 
-        max_num_ancillae = max(
-            max(
-                self._num_clauses if self._clause_register else 0,
-                self._max_clause_size
-            ) - 2,
-            0
-        )
-        num_ancillae = 0
-        if mct_mode in ('basic', 'basic-dirty-ancilla'):
-            num_ancillae = max_num_ancillae
-        elif mct_mode == 'advanced':
-            if max_num_ancillae >= 3:
-                num_ancillae = 1
-        elif mct_mode == 'noancilla':
-            pass
-        else:
-            raise ValueError('Unsupported MCT mode {}.'.format(mct_mode))
+        num_ancillae = self.compute_num_ancillae(mct_mode)
 
         self._ancillary_register = BooleanLogicNormalForm._set_up_register(
             num_ancillae, ancillary_register, 'ancilla'

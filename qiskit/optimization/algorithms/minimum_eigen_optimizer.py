@@ -14,7 +14,7 @@
 # that they have been altered from the originals.
 
 """A wrapper for minimum eigen solvers from Aqua to be used within the optimization module."""
-
+import copy
 from typing import Optional, Any, Union, Tuple, List, cast
 import numpy as np
 
@@ -23,7 +23,7 @@ from qiskit.aqua.operators import StateFn, DictStateFn
 
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
 from ..problems.quadratic_program import QuadraticProgram
-from ..converters.quadratic_program_to_ising import QuadraticProgramToIsing
+from ..problems.variable import Variable
 from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
 
 
@@ -31,8 +31,9 @@ class MinimumEigenOptimizerResult(OptimizationResult):
     """ Minimum Eigen Optimizer Result."""
 
     def __init__(self, x: Optional[Any] = None, fval: Optional[Any] = None,
-                 samples: Optional[Any] = None, results: Optional[Any] = None) -> None:
-        super().__init__(x, fval, results)
+                 samples: Optional[Any] = None, results: Optional[Any] = None,
+                 variables: Optional[List[Variable]] = None) -> None:
+        super().__init__(x, fval, results, variables=variables)
         self._samples = samples
 
     @property
@@ -108,6 +109,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         """
         self._min_eigen_solver = min_eigen_solver
         self._penalty = penalty
+        self._qubo_converter = QuadraticProgramToQubo()
 
     def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
         """Checks whether a given problem can be solved with this optimizer.
@@ -140,12 +142,10 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         self._verify_compatibility(problem)
 
         # convert problem to QUBO
-        qubo_converter = QuadraticProgramToQubo()
-        problem_ = qubo_converter.encode(problem)
+        problem_ = self._qubo_converter.convert(problem)
 
         # construct operator and offset
-        operator_converter = QuadraticProgramToIsing()
-        operator, offset = operator_converter.encode(problem_)
+        operator, offset = problem_.to_ising()
 
         # only try to solve non-empty Ising Hamiltonians
         x = None  # type: Optional[Any]
@@ -172,8 +172,11 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
             samples = [(x_str, offset, 1.0)]
 
         # translate result back to integers
-        opt_res = MinimumEigenOptimizerResult(x, fval, samples, qubo_converter)
-        opt_res = cast(MinimumEigenOptimizerResult, qubo_converter.decode(opt_res))
+        opt_res = MinimumEigenOptimizerResult(x=x, fval=fval, samples=samples,
+                                              results={"qubo_converter": copy.deepcopy(
+                                                  self._qubo_converter)},
+                                              variables=problem.variables)
+        opt_res = cast(MinimumEigenOptimizerResult, self._qubo_converter.interpret(opt_res))
 
         # translate results back to original problem
         return opt_res

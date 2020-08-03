@@ -28,8 +28,6 @@ from qiskit.optimization.algorithms import OptimizationResult
 from qiskit.optimization.algorithms.optimization_algorithm import OptimizationResultStatus
 from qiskit.optimization.converters import (
     InequalityToEquality,
-    QuadraticProgramToIsing,
-    IsingToQuadraticProgram,
     IntegerToBinary,
     LinearEqualityToPenalty,
 )
@@ -60,29 +58,26 @@ class TestConverters(QiskitOptimizationTestCase):
         """ Test empty problem """
         op = QuadraticProgram()
         conv = InequalityToEquality()
-        op = conv.encode(op)
+        op = conv.convert(op)
         conv = IntegerToBinary()
-        op = conv.encode(op)
+        op = conv.convert(op)
         conv = LinearEqualityToPenalty()
-        op = conv.encode(op)
-        conv = QuadraticProgramToIsing()
-        _, shift = conv.encode(op)
+        op = conv.convert(op)
+        _, shift = op.to_ising()
         self.assertEqual(shift, 0.0)
 
     def test_valid_variable_type(self):
-        """Validate the types of the variables for QuadraticProgramToIsing."""
+        """Validate the types of the variables for QuadraticProgram.to_ising."""
         # Integer variable
         with self.assertRaises(QiskitOptimizationError):
             op = QuadraticProgram()
             op.integer_var(0, 10, "int_var")
-            conv = QuadraticProgramToIsing()
-            _ = conv.encode(op)
+            _ = op.to_ising()
         # Continuous variable
         with self.assertRaises(QiskitOptimizationError):
             op = QuadraticProgram()
             op.continuous_var(0, 10, "continuous_var")
-            conv = QuadraticProgramToIsing()
-            _ = conv.encode(op)
+            _ = op.to_ising()
 
     def test_inequality_binary(self):
         """ Test InequalityToEqualityConverter with binary variables """
@@ -113,7 +108,7 @@ class TestConverters(QiskitOptimizationTestCase):
         op.quadratic_constraint({}, quadratic, Constraint.Sense.GE, 3, 'x0x1_x1x2GE')
         # Convert inequality constraints into equality constraints
         conv = InequalityToEquality()
-        op2 = conv.encode(op)
+        op2 = conv.convert(op)
         # Check names and objective senses
         self.assertEqual(op.name, op2.name)
         self.assertEqual(op.objective.sense, op2.objective.sense)
@@ -188,7 +183,7 @@ class TestConverters(QiskitOptimizationTestCase):
         quadratic[('x1', 'x2')] = 4
         op.quadratic_constraint({}, quadratic, Constraint.Sense.GE, 3, 'x0x1_x1x2GE')
         conv = InequalityToEquality()
-        op2 = conv.encode(op)
+        op2 = conv.convert(op)
         # For linear constraints
         lst = [
             op2.linear_constraints[0].linear.to_dict()[0],
@@ -250,8 +245,8 @@ class TestConverters(QiskitOptimizationTestCase):
         linear_constraint['x0'] = 1
         linear_constraint['x2'] = 3
         op.linear_constraint(linear_constraint, Constraint.Sense.GE, 2, 'x0x2')
-        conv = InequalityToEquality()
-        op2 = conv.encode(op, mode='integer')
+        conv = InequalityToEquality(mode='integer')
+        op2 = conv.convert(op)
         lst = [op2.variables[3].vartype, op2.variables[4].vartype]
         self.assertListEqual(lst, [Variable.Type.INTEGER, Variable.Type.INTEGER])
 
@@ -273,8 +268,8 @@ class TestConverters(QiskitOptimizationTestCase):
         linear_constraint['x0'] = 1
         linear_constraint['x2'] = 3
         op.linear_constraint(linear_constraint, Constraint.Sense.GE, 2, 'x0x2')
-        conv = InequalityToEquality()
-        op2 = conv.encode(op, mode='continuous')
+        conv = InequalityToEquality(mode='continuous')
+        op2 = conv.convert(op)
         lst = [op2.variables[3].vartype, op2.variables[4].vartype]
         self.assertListEqual(lst, [Variable.Type.CONTINUOUS, Variable.Type.CONTINUOUS])
 
@@ -296,8 +291,8 @@ class TestConverters(QiskitOptimizationTestCase):
         linear_constraint['x0'] = 1.1
         linear_constraint['x2'] = 2.2
         op.linear_constraint(linear_constraint, Constraint.Sense.GE, 3.3, 'x0x2')
-        conv = InequalityToEquality()
-        op2 = conv.encode(op, mode='auto')
+        conv = InequalityToEquality(mode='auto')
+        op2 = conv.convert(op)
         lst = [op2.variables[3].vartype, op2.variables[4].vartype]
         self.assertListEqual(lst, [Variable.Type.INTEGER, Variable.Type.CONTINUOUS])
 
@@ -322,7 +317,7 @@ class TestConverters(QiskitOptimizationTestCase):
         self.assertEqual(len(op.linear_constraints), 3)
         conv = LinearEqualityToPenalty()
         with self.assertRaises(QiskitOptimizationError):
-            conv.encode(op)
+            conv.convert(op)
 
     def test_penalize_binary(self):
         """ Test PenalizeLinearEqualityConstraints with binary variables """
@@ -344,7 +339,7 @@ class TestConverters(QiskitOptimizationTestCase):
         op.linear_constraint(linear_constraint, Constraint.Sense.EQ, 2, 'x0x2')
         self.assertEqual(len(op.linear_constraints), 3)
         conv = LinearEqualityToPenalty()
-        op2 = conv.encode(op)
+        op2 = conv.convert(op)
         self.assertEqual(len(op2.linear_constraints), 0)
 
     def test_penalize_integer(self):
@@ -367,7 +362,7 @@ class TestConverters(QiskitOptimizationTestCase):
         op.linear_constraint(linear_constraint, Constraint.Sense.EQ, 2, 'x0x2')
         self.assertEqual(len(op.linear_constraints), 3)
         conv = LinearEqualityToPenalty()
-        op2 = conv.encode(op)
+        op2 = conv.convert(op)
         self.assertEqual(len(op2.linear_constraints), 0)
 
     def test_integer_to_binary(self):
@@ -381,7 +376,7 @@ class TestConverters(QiskitOptimizationTestCase):
             linear[x.name] = i + 1
         op.maximize(0, linear, {})
         conv = IntegerToBinary()
-        op2 = conv.encode(op)
+        op2 = conv.convert(op)
         for x in op2.variables:
             self.assertEqual(x.vartype, Variable.Type.BINARY)
         dct = op2.objective.linear.to_dict()
@@ -405,9 +400,9 @@ class TestConverters(QiskitOptimizationTestCase):
             linear[x.name] = 1
         op.linear_constraint(linear, Constraint.Sense.EQ, 6, 'x0x1x2')
         conv = IntegerToBinary()
-        _ = conv.encode(op)
+        _ = conv.convert(op)
         result = OptimizationResult(x=[0, 1, 1, 1, 1], fval=17)
-        new_result = conv.decode(result)
+        new_result = conv.interpret(result)
         self.assertListEqual(new_result.x, [0, 1, 5])
         self.assertEqual(new_result.fval, 17)
 
@@ -425,10 +420,8 @@ class TestConverters(QiskitOptimizationTestCase):
             linear[x.name] = i + 1
         op.linear_constraint(linear, Constraint.Sense.EQ, 3, 'sum1')
         penalize = LinearEqualityToPenalty(penalty=1e5)
-        op2ope = QuadraticProgramToIsing()
-        op2 = penalize.encode(op)
-        qubitop, offset = op2ope.encode(op2)
-
+        op2 = penalize.convert(op)
+        qubitop, offset = op2.to_ising()
         self.assertEqual(qubitop, QUBIT_OP_MAXIMIZE_SAMPLE)
         self.assertEqual(offset, OFFSET_MAXIMIZE_SAMPLE)
 
@@ -437,8 +430,8 @@ class TestConverters(QiskitOptimizationTestCase):
         op = QUBIT_OP_MAXIMIZE_SAMPLE
         offset = OFFSET_MAXIMIZE_SAMPLE
 
-        op2qp = IsingToQuadraticProgram(linear=True)
-        quadratic = op2qp.encode(op, offset)
+        quadratic = QuadraticProgram()
+        quadratic.from_ising(op, offset, linear=True)
 
         self.assertEqual(len(quadratic.variables), 4)
         self.assertEqual(len(quadratic.linear_constraints), 0)
@@ -472,8 +465,8 @@ class TestConverters(QiskitOptimizationTestCase):
         op = QUBIT_OP_MAXIMIZE_SAMPLE
         offset = OFFSET_MAXIMIZE_SAMPLE
 
-        op2qp = IsingToQuadraticProgram(linear=False)
-        quadratic = op2qp.encode(op, offset)
+        quadratic = QuadraticProgram()
+        quadratic.from_ising(op, offset, linear=False)
 
         self.assertEqual(len(quadratic.variables), 4)
         self.assertEqual(len(quadratic.linear_constraints), 0)
@@ -507,7 +500,7 @@ class TestConverters(QiskitOptimizationTestCase):
             op = QuadraticProgram()
             op.from_docplex(mdl)
             converter = IntegerToBinary()
-            op = converter.encode(op)
+            op = converter.convert(op)
             admm_params = ADMMParameters()
             qubo_optimizer = MinimumEigenOptimizer(NumPyMinimumEigensolver())
             continuous_optimizer = CplexOptimizer()
@@ -517,7 +510,7 @@ class TestConverters(QiskitOptimizationTestCase):
                 params=admm_params,
             )
             solution = solver.solve(op)
-            solution = converter.decode(solution)
+            solution = converter.interpret(solution)
             self.assertEqual(solution.x[0], 10.9)
         except NameError as ex:
             self.skipTest(str(ex))
@@ -532,8 +525,8 @@ class TestConverters(QiskitOptimizationTestCase):
         op.linear_constraint(linear={'x': 1, 'y': 1, 'z': 1}, sense='EQ', rhs=2, name='xyz_eq')
         lineq2penalty = LinearEqualityToPenalty(penalty=1e5)
         lineq2penalty_auto = LinearEqualityToPenalty()
-        qubo = lineq2penalty.encode(op)
-        qubo_auto = lineq2penalty_auto.encode(op)
+        qubo = lineq2penalty.convert(op)
+        qubo_auto = lineq2penalty_auto.convert(op)
         exact_mes = NumPyMinimumEigensolver()
         exact = MinimumEigenOptimizer(exact_mes)
         result = exact.solve(qubo)
@@ -551,7 +544,7 @@ class TestConverters(QiskitOptimizationTestCase):
         op.linear_constraint(linear={'x': 0.5, 'y': 0.5, 'z': 0.5}, sense='EQ', rhs=1, name='xyz')
         with self.assertLogs('qiskit.optimization', level='WARNING') as log:
             lineq2penalty = LinearEqualityToPenalty()
-            _ = lineq2penalty.encode(op)
+            _ = lineq2penalty.convert(op)
         warning = (
             'WARNING:qiskit.optimization.converters.linear_equality_to_penalty:'
             + 'Warning: Using 100000.000000 for the penalty coefficient because a float '
@@ -569,16 +562,16 @@ class TestConverters(QiskitOptimizationTestCase):
         qprog .maximize(linear={'x': 3, 'y': 1, 'z': 1})
         qprog .linear_constraint(linear={'x': 1, 'y': 1, 'z': 1}, sense='EQ', rhs=2, name='xyz_eq')
         lineq2penalty = LinearEqualityToPenalty()
-        qubo = lineq2penalty.encode(qprog)
+        qubo = lineq2penalty.convert(qprog)
         exact_mes = NumPyMinimumEigensolver()
         exact = MinimumEigenOptimizer(exact_mes)
         result = exact.solve(qubo)
-        decoded_result = lineq2penalty.decode(result)
+        decoded_result = lineq2penalty.interpret(result)
         self.assertEqual(decoded_result.fval, 4)
         self.assertListEqual(decoded_result.x, [1, 1, 0])
         self.assertEqual(decoded_result.status, OptimizationResultStatus.SUCCESS)
         infeasible_result = OptimizationResult(x=[1, 1, 1])
-        decoded_infeasible_result = lineq2penalty.decode(infeasible_result)
+        decoded_infeasible_result = lineq2penalty.interpret(infeasible_result)
         self.assertEqual(decoded_infeasible_result.fval, 5)
         self.assertListEqual(decoded_infeasible_result.x, [1, 1, 1])
         self.assertEqual(decoded_infeasible_result.status, OptimizationResultStatus.INFEASIBLE)
