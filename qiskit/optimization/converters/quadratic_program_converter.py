@@ -28,20 +28,21 @@ class QuadraticProgramConverter(ABC):
     """
     @abstractmethod
     def convert(self, problem: QuadraticProgram) -> QuadraticProgram:
-        """
-        Convert a QuadraticProgram into another form
+        """Convert a QuadraticProgram into another form
         and keep the information required to interpret the result.
         """
+
         raise NotImplementedError
 
     @abstractmethod
     def interpret(self, result: OptimizationResult) -> OptimizationResult:
         """ Interpret a result into another form using the information of conversion"""
+
         raise NotImplementedError
 
-    def encode(self, problem: QuadraticProgram) -> None:
-        """
-        Encode a QuadraticProgram into another form
+    @abstractmethod
+    def encode(self, problem: QuadraticProgram) -> QuadraticProgram:  # type: ignore
+        """Encode a QuadraticProgram into another form
         and keep the information required to decode the result.
         """
         warnings.warn('The qiskit.optimization.converters.QuadraticProgramConverter.encode() '
@@ -51,8 +52,9 @@ class QuadraticProgramConverter(ABC):
                       'instead.',
                       DeprecationWarning, stacklevel=2)
 
-    def decode(self, result: OptimizationResult) -> None:
-        """ Decode a result into"""
+    @abstractmethod
+    def decode(self, result: OptimizationResult) -> OptimizationResult:  # type: ignore
+        """Decode a result into"""
         warnings.warn('The qiskit.optimization.converters.QuadraticProgramConverter.decode() '
                       'method is deprecated as of 0.7.4 and will be removed no sooner '
                       'than 3 months after the release. You should use '
