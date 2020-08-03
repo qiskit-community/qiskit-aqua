@@ -126,25 +126,6 @@ class GroverOptimizer(OptimizationAlgorithm):
                                      evaluate_classically_callback=evaluate_classically)
         return oracle
 
-    @staticmethod
-    def _get_function_dict(problem: QuadraticProgram) -> Dict[Union[int, Tuple[int, int]], int]:
-        """Convert the problem to a dictionary format."""
-        quadratic = problem.objective.quadratic.to_dict()
-        linear = problem.objective.linear.to_array()
-        constant = problem.objective.constant
-
-        func = {-1: int(constant)}  # type: Dict[Union[int, Tuple[int, int]], int]
-        for idx, val in enumerate(linear):
-            func[idx] = int(val)
-        for (i, j), v in quadratic.items():
-            i, j = cast(int, i), cast(int, j)  # type of i and j is Union[str, int], should be int
-            if i != j:
-                func[(i, j)] = int(quadratic[(i, j)])
-            else:
-                func[i] += int(v)
-
-        return func
-
     def solve(self, problem: QuadraticProgram) -> OptimizationResult:
         """Tries to solves the given problem using the grover optimizer.
 
@@ -194,7 +175,6 @@ class GroverOptimizer(OptimizationAlgorithm):
         keys_measured = []
 
         # Variables for result object.
-        func_dict = {}  # type: Dict[Union[int, Tuple[int, int]], int]
         operation_count = {}
         iteration = 0
 
@@ -207,7 +187,6 @@ class GroverOptimizer(OptimizationAlgorithm):
         orig_constant = problem_.objective.constant
         measurement = not self.quantum_instance.is_statevector
         oracle = self._get_oracle(qr_key_value)
-        # opt_prob_converter = QuadraticProgramToNegativeValueOracle(n_value, measurement)
 
         while not optimum_found:
             m = 1
@@ -215,9 +194,7 @@ class GroverOptimizer(OptimizationAlgorithm):
 
             # Get oracle O and the state preparation operator A for the current threshold.
             problem_.objective.constant = orig_constant - threshold
-            # a_operator, oracle, func_dict = opt_prob_converter.encode(problem_)
             a_operator = self._get_a_operator(qr_key_value, problem_)
-            # oracle = self._get_oracle(a_operator._circuit.qregs[0])
 
             # Iterate until we measure a negative.
             loops_with_no_improvement = 0
@@ -274,21 +251,17 @@ class GroverOptimizer(OptimizationAlgorithm):
                 iteration += 1
                 logger.info('Operation Count: %s\n', operations)
 
-        # Get original key and value pairs.
-        func_dict = self._get_function_dict(problem_)
-        func_dict[-1] = int(orig_constant)
-        solutions = self._get_qubo_solutions(func_dict, n_key)
-
         # If the constant is 0 and we didn't find a negative, the answer is likely 0.
         if optimum_value >= 0 and orig_constant == 0:
             optimum_key = 0
-        opt_x = [1 if s == '1' else 0 for s in ('{0:%sb}' % n_key).format(optimum_key)]
+
+        opt_x = np.array([1 if s == '1' else 0 for s in ('{0:%sb}' % n_key).format(optimum_key)])
 
         # Build the results object.
-        grover_results = GroverOptimizationResults(operation_count, n_key, n_value, func_dict)
-        fval = solutions[optimum_key]
-        if sense == problem_.objective.Sense.MAXIMIZE:
-            fval = -fval
+        grover_results = GroverOptimizationResults(operation_count, n_key, n_value, problem_)
+
+        # Compute function value
+        fval = problem.objective.evaluate(opt_x)
         result = OptimizationResult(x=opt_x, variables=problem.variables, fval=fval,
                                     results={"grover_results": grover_results,
                                              "qubo_converter": qubo_converter})
@@ -354,82 +327,24 @@ class GroverOptimizer(OptimizationAlgorithm):
 
         return int_v
 
-    @staticmethod
-    def _get_qubo_solutions(function_dict: Dict[Union[int, Tuple[int, int]], int], n_key: int,
-                            print_solutions: Optional[bool] = False):
-        """ Calculates all of the outputs of a QUBO function representable by n key qubits.
-
-        Args:
-            function_dict: A dictionary representation of the function, where the keys correspond
-                to a variable, and the values are the corresponding coefficients.
-            n_key: The number of key qubits.
-            print_solutions: If true, the solutions will be formatted and printed.
-
-        Returns:
-            dict: A dictionary of the inputs (keys) and outputs (values) of the QUBO function.
-        """
-        # Determine constant.
-        constant = 0
-        if -1 in function_dict:
-            constant = function_dict[-1]
-        format_string = '{0:0'+str(n_key)+'b}'
-
-        # Iterate through every key combination.
-        if print_solutions:
-            print("QUBO Solutions:")
-            print("==========================")
-        solutions = {}
-        for i in range(2**n_key):
-            solution = constant
-
-            # Convert int to a list of binary variables.
-            bin_key = format_string.format(i)
-            bin_list = [int(bin_key[j]) for j in range(len(bin_key))]
-
-            # Handle the linear terms.
-            for k in range(len(bin_key)):
-                if bin_list[k] == 1 and k in function_dict:
-                    solution += function_dict[k]
-
-            # Handle the quadratic terms.
-            for j in range(len(bin_key)):
-                for q in range(len(bin_key)):
-                    if (j, q) in function_dict and j != q and bin_list[j] == 1 and bin_list[q] == 1:
-                        solution += function_dict[(j, q)]
-
-            # Print row.
-            if print_solutions:
-                spacer = "" if i >= 10 else " "
-                value_spacer = " " if solution < 0 else "  "
-                print(spacer + str(i), "=", bin_key, "->" + value_spacer + str(round(solution, 4)))
-
-            # Record solution.
-            solutions[i] = solution
-
-        if print_solutions:
-            print()
-
-        return solutions
-
 
 class GroverOptimizationResults:
     """A results object for Grover Optimization methods."""
 
     def __init__(self, operation_counts: Dict[int, Dict[str, int]],
                  n_input_qubits: int, n_output_qubits: int,
-                 func_dict: Dict[Union[int, Tuple[int, int]], int]) -> None:
+                 problem: QuadraticProgram) -> None:
         """
         Args:
             operation_counts: The counts of each operation performed per iteration.
             n_input_qubits: The number of qubits used to represent the input.
             n_output_qubits: The number of qubits used to represent the output.
-            func_dict: A dictionary representation of the function, where the keys correspond
-                to a variable, and the values are the corresponding coefficients.
+            problem:
         """
         self._operation_counts = operation_counts
         self._n_input_qubits = n_input_qubits
         self._n_output_qubits = n_output_qubits
-        self._func_dict = func_dict
+        self._problem = problem
 
     @property
     def operation_counts(self) -> Dict[int, Dict[str, int]]:
@@ -459,12 +374,35 @@ class GroverOptimizationResults:
         return self._n_output_qubits
 
     @property
+    def problem(self) -> QuadraticProgram:
+        """Get the underlying quadratic program that is solved.
+
+        Returns:
+            The solved quadratic program.
+        """
+        return self._problem
+
+    @property
     def func_dict(self) -> Dict[Union[int, Tuple[int, int]], int]:
-        """Getter of func_dict
+        """Get the quadratic form in the format of a function dictionary.
 
         Returns:
             A dictionary of coefficients describing a function, where the keys are the subscripts
             of the variables (e.g. x1), and the values are the corresponding coefficients. If there
             is a constant term, it is referenced by key -1.
         """
-        return self._func_dict
+        quadratic = self.problem.objective.quadratic.to_dict()
+        linear = self.problem.objective.linear.to_array()
+        constant = self.problem.objective.constant
+
+        func = {-1: int(constant)}  # type: Dict[Union[int, Tuple[int, int]], int]
+        for idx, val in enumerate(linear):
+            func[idx] = int(val)
+        for (i, j), v in quadratic.items():
+            i, j = cast(int, i), cast(int, j)  # type of i and j is Union[str, int], should be int
+            if i != j:
+                func[(i, j)] = int(quadratic[(i, j)])
+            else:
+                func[i] += int(v)
+
+        return func
