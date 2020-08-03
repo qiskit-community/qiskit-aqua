@@ -40,7 +40,7 @@ Algorithms and results
 
    ADMMOptimizationResult
    ADMMOptimizer
-   ADMMParameter
+   ADMMParameters
    ADMMState
    CobylaOptimizer
    CplexOptimizer
