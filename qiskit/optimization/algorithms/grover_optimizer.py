@@ -350,7 +350,7 @@ class GroverOptimizer(OptimizationAlgorithm):
 
 
 class GroverOptimizationResult:
-    """A results object for Grover Optimization methods."""
+    """A result object for Grover Optimization methods."""
 
     def __init__(self, operation_counts: Dict[int, Dict[str, int]],
                  n_input_qubits: int, n_output_qubits: int,
