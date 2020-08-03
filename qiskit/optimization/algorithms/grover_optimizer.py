@@ -222,7 +222,7 @@ class GroverOptimizer(OptimizationAlgorithm):
         opt_x = [1 if s == '1' else 0 for s in ('{0:%sb}' % n_key).format(optimum_key)]
 
         # Build the results object.
-        grover_results = GroverOptimizationResults(operation_count, n_key, n_value, func_dict)
+        grover_results = GroverOptimizationResult(operation_count, n_key, n_value, func_dict)
         fval = solutions[optimum_key]
         if sense == problem_.objective.Sense.MAXIMIZE:
             fval = -fval
@@ -349,7 +349,7 @@ class GroverOptimizer(OptimizationAlgorithm):
         return solutions
 
 
-class GroverOptimizationResults:
+class GroverOptimizationResult:
     """A results object for Grover Optimization methods."""
 
     def __init__(self, operation_counts: Dict[int, Dict[str, int]],

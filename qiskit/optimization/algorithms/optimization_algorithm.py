@@ -89,9 +89,15 @@ class OptimizationAlgorithm(ABC):
 
 class OptimizationResultStatus(Enum):
     """Feasible values for the termination status of an optimization algorithm."""
+
     SUCCESS = 0
+    """the optimization algorithm succeeded to find an optimal solution."""
+
     FAILURE = 1
+    """the optimization algorithm ended in a failure."""
+
     INFEASIBLE = 2
+    """the optimization algorithm obtained an infeasible solution."""
 
 
 class OptimizationResult:
