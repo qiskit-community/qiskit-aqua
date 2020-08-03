@@ -14,7 +14,7 @@
 # that they have been altered from the originals.
 
 """A wrapper for minimum eigen solvers from Aqua to be used within the optimization module."""
-
+import copy
 from typing import Optional, Any, Union, Tuple, List, cast
 import numpy as np
 
@@ -172,7 +172,9 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
             samples = [(x_str, offset, 1.0)]
 
         # translate result back to integers
-        opt_res = MinimumEigenOptimizerResult(x, fval, samples, self._qubo_converter,
+        opt_res = MinimumEigenOptimizerResult(x=x, fval=fval, samples=samples,
+                                              results={"qubo_converter": copy.deepcopy(
+                                                  self._qubo_converter)},
                                               variables=problem.variables)
         opt_res = cast(MinimumEigenOptimizerResult, self._qubo_converter.interpret(opt_res))
 

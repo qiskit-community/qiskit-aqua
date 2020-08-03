@@ -14,10 +14,13 @@
 
 """GroverOptimizer module"""
 
+import copy
 import logging
 from typing import Optional, Dict, Union, Tuple
 import math
+
 import numpy as np
+
 from qiskit import QuantumCircuit
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance, aqua_globals
@@ -228,7 +231,10 @@ class GroverOptimizer(OptimizationAlgorithm):
             fval = -fval
         result = OptimizationResult(x=opt_x, variables=problem.variables, fval=fval,
                                     results={"grover_results": grover_results,
-                                             "qubo_converter": self._qubo_converter})
+                                             "qubo_converter": copy.deepcopy(self._qubo_converter),
+                                             "negative_value_oracle_converter": copy.deepcopy(
+                                                 opt_prob_converter)
+                                             })
 
         # cast binaries back to integers
         result = self._qubo_converter.interpret(result)

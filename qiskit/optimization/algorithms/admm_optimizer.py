@@ -367,6 +367,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
         result = ADMMOptimizationResult(x=solution,
                                         fval=objective_value,
                                         state=self._state,
+                                        results={"integer_to_binary_converter": copy.deepcopy(
+                                            int2bin)},
                                         variables=problem.variables)
 
         # convert back integer to binary

@@ -209,7 +209,8 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         # construct result
         x_v = [var_values[x_aux.name] for x_aux in problem_ref.variables]
         fval = result.fval
-        results = OptimizationResult(x_v, fval, (replacements, self._qubo_converter),
+        results = OptimizationResult(x=x_v, fval=fval,
+                                     results=(replacements, deepcopy(self._qubo_converter)),
                                      variables=problem.variables)
         results = self._qubo_converter.interpret(results)
         return results

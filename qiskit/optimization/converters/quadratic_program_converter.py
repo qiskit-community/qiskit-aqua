@@ -40,7 +40,6 @@ class QuadraticProgramConverter(ABC):
 
         raise NotImplementedError
 
-    @abstractmethod
     def encode(self, problem: QuadraticProgram) -> QuadraticProgram:  # type: ignore
         """Encode a QuadraticProgram into another form
         and keep the information required to decode the result.
@@ -50,9 +49,9 @@ class QuadraticProgramConverter(ABC):
                       'than 3 months after the release. You should use '
                       'qiskit.optimization.converters.QuadraticProgramConverter.convert() '
                       'instead.',
-                      DeprecationWarning, stacklevel=2)
+                      DeprecationWarning, stacklevel=1)
+        return self.convert(problem)
 
-    @abstractmethod
     def decode(self, result: OptimizationResult) -> OptimizationResult:  # type: ignore
         """Decode a result into"""
         warnings.warn('The qiskit.optimization.converters.QuadraticProgramConverter.decode() '
@@ -60,4 +59,5 @@ class QuadraticProgramConverter(ABC):
                       'than 3 months after the release. You should use '
                       'qiskit.optimization.converters.QuadraticProgramConverter.interpret() '
                       'instead.',
-                      DeprecationWarning, stacklevel=2)
+                      DeprecationWarning, stacklevel=1)
+        return self.interpret(result)
