@@ -14,6 +14,8 @@
 
 """An abstract class for optimization algorithms in Qiskit's optimization module."""
 
+import warnings
+
 from abc import ABC, abstractmethod
 
 from ..algorithms.optimization_algorithm import OptimizationResult
@@ -24,12 +26,11 @@ class QuadraticProgramConverter(ABC):
     """
     An abstract class for converters of quadratic programs in Qiskit's optimization module.
     """
-
     @abstractmethod
     def convert(self, problem: QuadraticProgram) -> QuadraticProgram:
         """
         Convert a QuadraticProgram into another form
-        and keep the information required to interpret the result
+        and keep the information required to interpret the result.
         """
         raise NotImplementedError
 
@@ -37,3 +38,26 @@ class QuadraticProgramConverter(ABC):
     def interpret(self, result: OptimizationResult) -> OptimizationResult:
         """ Interpret a result into another form using the information of conversion"""
         raise NotImplementedError
+
+    @abstractmethod
+    def encode(self, problem: QuadraticProgram) -> QuadraticProgram:
+        """
+        Encode a QuadraticProgram into another form
+        and keep the information required to decode the result.
+        """
+        warnings.warn('The qiskit.optimization.converters.QuadraticProgramConverter.encode() '
+                      'method is deprecated as of 0.7.4 and will be removed no sooner '
+                      'than 3 months after the release. You should use '
+                      'qiskit.optimization.converters.QuadraticProgramConverter.convert() '
+                      'instead.',
+                      DeprecationWarning, stacklevel=2)
+
+    @abstractmethod
+    def decode(self, result: OptimizationResult) -> OptimizationResult:
+        """ Decode a result into"""
+        warnings.warn('The qiskit.optimization.converters.QuadraticProgramConverter.decode() '
+                      'method is deprecated as of 0.7.4 and will be removed no sooner '
+                      'than 3 months after the release. You should use '
+                      'qiskit.optimization.converters.QuadraticProgramConverter.interpret() '
+                      'instead.',
+                      DeprecationWarning, stacklevel=2)

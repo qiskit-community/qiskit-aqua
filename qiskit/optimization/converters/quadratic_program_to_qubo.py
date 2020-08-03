@@ -79,8 +79,38 @@ class QuadraticProgramToQubo(QuadraticProgramConverter):
         # Return QUBO
         return problem_
 
+    def encode(self, problem: QuadraticProgram) -> QuadraticProgram:
+        """Convert a problem with linear equality constraints into new one with a QUBO form.
+
+        Args:
+            problem: The problem with linear equality constraints to be solved.
+
+        Returns:
+            The problem converted in QUBO format.
+
+        Raises:
+            QiskitOptimizationError: In case of an incompatible problem.
+        """
+        super().encode(problem)
+        # analyze compatibility of problem
+        msg = self.get_compatibility_msg(problem)
+        if len(msg) > 0:
+            raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
+
+        # Convert inequality constraints into equality constraints by adding slack variables
+        problem_ = self._ineq_to_eq.convert(problem)
+
+        # Map integer variables to binary variables
+        problem_ = self._int_to_bin.convert(problem_)
+
+        # Penalize linear equality constraints with only binary variables
+        problem_ = self._penalize_lin_eq_constraints.convert(problem_)
+
+        # Return QUBO
+        return problem_
+
     def interpret(self, result: OptimizationResult) -> OptimizationResult:
-        """ Convert a result of a converted problem into that of the original problem.
+        """Convert a result of a converted problem into that of the original problem.
 
             Args:
                 result: The result of the converted problem.
@@ -88,6 +118,21 @@ class QuadraticProgramToQubo(QuadraticProgramConverter):
             Returns:
                 The result of the original problem.
         """
+        result_ = self._penalize_lin_eq_constraints.interpret(result)
+        result_ = self._int_to_bin.interpret(result_)
+        result_ = self._ineq_to_eq.interpret(result_)
+        return result_
+
+    def decode(self, result: OptimizationResult) -> OptimizationResult:
+        """Convert a result of a converted problem into that of the original problem.
+
+            Args:
+                result: The result of the converted problem.
+
+            Returns:
+                The result of the original problem.
+        """
+        super().decode(result)
         result_ = self._penalize_lin_eq_constraints.interpret(result)
         result_ = self._int_to_bin.interpret(result_)
         result_ = self._ineq_to_eq.interpret(result_)

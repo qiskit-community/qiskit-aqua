@@ -104,6 +104,52 @@ class IntegerToBinary(QuadraticProgramConverter):
 
         return self._dst
 
+    def encode(self, problem: QuadraticProgram) -> QuadraticProgram:
+        """Convert an integer problem into a new problem with binary variables.
+
+        Args:
+            problem: The problem to be solved, that may contain integer variables.
+
+        Returns:
+            The converted problem, that contains no integer variables.
+
+        Raises:
+            QiskitOptimizationError: if variable or constraint type is not supported.
+        """
+        super().encode(problem)
+        # Copy original QP as reference.
+        self._src = copy.deepcopy(problem)
+
+        if self._src.get_num_integer_vars() > 0:
+
+            # Initialize new QP
+            self._dst = QuadraticProgram(name=problem.name)
+
+            # Declare variables
+            for x in self._src.variables:
+                if x.vartype == Variable.Type.INTEGER:
+                    new_vars = self._convert_var(x.name, x.lowerbound, x.upperbound)
+                    self._conv[x] = new_vars
+                    for (var_name, _) in new_vars:
+                        self._dst.binary_var(var_name)
+                else:
+                    if x.vartype == Variable.Type.CONTINUOUS:
+                        self._dst.continuous_var(x.lowerbound, x.upperbound, x.name)
+                    elif x.vartype == Variable.Type.BINARY:
+                        self._dst.binary_var(x.name)
+                    else:
+                        raise QiskitOptimizationError(
+                            "Unsupported variable type {}".format(x.vartype)
+                        )
+
+            self._substitute_int_var()
+
+        else:
+            # just copy the problem if no integer variables exist
+            self._dst = copy.deepcopy(problem)
+
+        return self._dst
+
     def _convert_var(
             self, name: str, lowerbound: float, upperbound: float
     ) -> List[Tuple[str, int]]:
@@ -211,8 +257,7 @@ class IntegerToBinary(QuadraticProgramConverter):
             )
 
     def interpret(self, result: OptimizationResult) -> OptimizationResult:
-        """
-        Convert back the converted problem (binary variables) to the original (integer variables).
+        """Convert back the converted problem (binary variables) to the original (integer variables).
 
         Args:
             result: The result of the converted problem.
@@ -220,6 +265,24 @@ class IntegerToBinary(QuadraticProgramConverter):
         Returns:
             The result of the original problem.
         """
+        # copy fval and status of the result of the converted problem
+        new_result = copy.deepcopy(result)
+        # convert back additional binary variables into integer variables
+        vals = result.x
+        new_result.x = self._interpret_var(vals)  # type: ignore
+
+        return new_result
+
+    def decode(self, result: OptimizationResult) -> OptimizationResult:
+        """Convert back the converted problem (binary variables) to the original (integer variables).
+
+        Args:
+            result: The result of the converted problem.
+
+        Returns:
+            The result of the original problem.
+        """
+        super().decode(result)
         # copy fval and status of the result of the converted problem
         new_result = copy.deepcopy(result)
         # convert back additional binary variables into integer variables

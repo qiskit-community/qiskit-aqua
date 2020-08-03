@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 class LinearEqualityToPenalty(QuadraticProgramConverter):
     """Convert a problem with only equality constraints to unconstrained with penalty terms."""
 
-    def __init__(self, penalty: Optional[float] = None):
+    def __init__(self, penalty: Optional[float] = None) -> None:
         """
         Args:
             penalty: Penalty factor to scale equality constraints that are added to objective.
@@ -48,6 +48,7 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
 
         Args:
             problem: The problem to be solved, that does not contain inequality constraints.
+
         Returns:
             The converted problem, that is an unconstrained problem.
 
@@ -56,7 +57,87 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
         """
 
         # create empty QuadraticProgram model
-        self._src = copy.deepcopy(problem)  # deep copy
+        self._src = copy.deepcopy(problem)
+        self._dst = QuadraticProgram(name=problem.name)
+
+        # If penalty is None, set the penalty coefficient by _auto_define_penalty()
+        if self._penalty is None:
+            penalty = self._auto_define_penalty()
+        else:
+            penalty = self._penalty
+
+        # Set variables
+        for x in self._src.variables:
+            if x.vartype == Variable.Type.CONTINUOUS:
+                self._dst.continuous_var(x.lowerbound, x.upperbound, x.name)
+            elif x.vartype == Variable.Type.BINARY:
+                self._dst.binary_var(x.name)
+            elif x.vartype == Variable.Type.INTEGER:
+                self._dst.integer_var(x.lowerbound, x.upperbound, x.name)
+            else:
+                raise QiskitOptimizationError('Unsupported vartype: {}'.format(x.vartype))
+
+        # get original objective terms
+        offset = self._src.objective.constant
+        linear = self._src.objective.linear.to_dict()
+        quadratic = self._src.objective.quadratic.to_dict()
+        sense = self._src.objective.sense.value
+
+        # convert linear constraints into penalty terms
+        for constraint in self._src.linear_constraints:
+
+            if constraint.sense != Constraint.Sense.EQ:
+                raise QiskitOptimizationError(
+                    'An inequality constraint exists. '
+                    'The method supports only equality constraints.'
+                )
+
+            constant = constraint.rhs
+            row = constraint.linear.to_dict()
+
+            # constant parts of penalty*(Constant-func)**2: penalty*(Constant**2)
+            offset += sense * penalty * constant ** 2
+
+            # linear parts of penalty*(Constant-func)**2: penalty*(-2*Constant*func)
+            for j, coef in row.items():
+                # if j already exists in the linear terms dic, add a penalty term
+                # into existing value else create new key and value in the linear_term dict
+                linear[j] = linear.get(j, 0.0) + sense * penalty * -2 * coef * constant
+
+            # quadratic parts of penalty*(Constant-func)**2: penalty*(func**2)
+            for j, coef_1 in row.items():
+                for k, coef_2 in row.items():
+                    # if j and k already exist in the quadratic terms dict,
+                    # add a penalty term into existing value
+                    # else create new key and value in the quadratic term dict
+
+                    # according to implementation of quadratic terms in OptimizationModel,
+                    # don't need to multiply by 2, since loops run over (x, y) and (y, x).
+                    tup = cast(Union[Tuple[int, int], Tuple[str, str]], (j, k))
+                    quadratic[tup] = quadratic.get(tup, 0.0) + sense * penalty * coef_1 * coef_2
+
+        if self._src.objective.sense == QuadraticObjective.Sense.MINIMIZE:
+            self._dst.minimize(offset, linear, quadratic)
+        else:
+            self._dst.maximize(offset, linear, quadratic)
+
+        return self._dst
+
+    def encode(self, problem: QuadraticProgram) -> QuadraticProgram:
+        """Convert a problem with equality constraints into an unconstrained problem.
+
+        Args:
+            problem: The problem to be solved, that does not contain inequality constraints.
+
+        Returns:
+            The converted problem, that is an unconstrained problem.
+
+        Raises:
+            QiskitOptimizationError: If an inequality constraint exists.
+        """
+        super().encode(problem)
+        # create empty QuadraticProgram model
+        self._src = copy.deepcopy(problem)
         self._dst = QuadraticProgram(name=problem.name)
 
         # If penalty is None, set the penalty coefficient by _auto_define_penalty()
@@ -161,6 +242,7 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
 
     def interpret(self, result: OptimizationResult) -> OptimizationResult:
         """Convert the result of the converted problem back to that of the original problem
+
         Args:
             result: The result of the converted problem.
 
@@ -171,6 +253,46 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
             QiskitOptimizationError: if the number of variables in the result differs from
                                      that of the original problem.
         """
+        if len(result.x) != len(self._src.variables):
+            raise QiskitOptimizationError(
+                'The number of variables in the passed result differs from '
+                'that of the original problem.'
+            )
+        # Substitute variables to obtain the function value and feasibility in the original problem
+        substitute_dict = {}  # type: Dict[Union[str, int], float]
+        variables = self._src.variables
+        for i in range(len(result.x)):
+            substitute_dict[variables[i].name] = float(result.x[i])
+        substituted_qp = self._src.substitute_variables(substitute_dict)
+
+        new_result = copy.deepcopy(result)
+        new_result.x = result.x
+
+        # Set the new function value
+        new_result.fval = substituted_qp.objective.constant
+
+        # Set the new status of optimization result
+        if substituted_qp.status == QuadraticProgramStatus.VALID:
+            new_result.status = OptimizationResultStatus.SUCCESS
+        else:
+            new_result.status = OptimizationResultStatus.INFEASIBLE
+
+        return new_result
+
+    def decode(self, result: OptimizationResult) -> OptimizationResult:
+        """Convert the result of the converted problem back to that of the original problem
+
+        Args:
+            result: The result of the converted problem.
+
+        Returns:
+            The result of the original problem.
+
+        Raises:
+            QiskitOptimizationError: if the number of variables in the result differs from
+                                     that of the original problem.
+        """
+        super().decode(result)
         if len(result.x) != len(self._src.variables):
             raise QiskitOptimizationError(
                 'The number of variables in the passed result differs from '

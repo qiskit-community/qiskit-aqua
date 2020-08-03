@@ -62,6 +62,7 @@ class InequalityToEquality(QuadraticProgramConverter):
 
         Args:
             problem: The problem to be solved, that may contain inequality constraints.
+
         Returns:
             The converted problem, that contain only equality constraints.
 
@@ -70,6 +71,119 @@ class InequalityToEquality(QuadraticProgramConverter):
             QiskitOptimizationError: If an unsupported mode is selected.
             QiskitOptimizationError: If an unsupported sense is specified.
         """
+        self._src = copy.deepcopy(problem)
+        self._dst = QuadraticProgram(name=problem.name)
+
+        # set a converting mode
+        mode = self._mode
+
+        # Copy variables
+        for x in self._src.variables:
+            if x.vartype == Variable.Type.BINARY:
+                self._dst.binary_var(name=x.name)
+            elif x.vartype == Variable.Type.INTEGER:
+                self._dst.integer_var(
+                    name=x.name, lowerbound=x.lowerbound, upperbound=x.upperbound
+                )
+            elif x.vartype == Variable.Type.CONTINUOUS:
+                self._dst.continuous_var(
+                    name=x.name, lowerbound=x.lowerbound, upperbound=x.upperbound
+                )
+            else:
+                raise QiskitOptimizationError(
+                    "Unsupported variable type {}".format(x.vartype))
+
+        # Copy the objective function
+        constant = self._src.objective.constant
+        linear = self._src.objective.linear.to_dict(use_name=True)
+        quadratic = self._src.objective.quadratic.to_dict(use_name=True)
+        if self._src.objective.sense == QuadraticObjective.Sense.MINIMIZE:
+            self._dst.minimize(constant, linear, quadratic)
+        else:
+            self._dst.maximize(constant, linear, quadratic)
+
+        # For linear constraints
+        for l_constraint in self._src.linear_constraints:
+            linear = l_constraint.linear.to_dict(use_name=True)
+            if l_constraint.sense == Constraint.Sense.EQ:
+                self._dst.linear_constraint(
+                    linear, l_constraint.sense, l_constraint.rhs, l_constraint.name
+                )
+            elif (
+                    l_constraint.sense == Constraint.Sense.LE
+                    or l_constraint.sense == Constraint.Sense.GE
+            ):
+                if mode == 'integer':
+                    self._add_integer_slack_var_linear_constraint(
+                        linear, l_constraint.sense, l_constraint.rhs, l_constraint.name
+                    )
+                elif mode == 'continuous':
+                    self._add_continuous_slack_var_linear_constraint(
+                        linear, l_constraint.sense, l_constraint.rhs, l_constraint.name
+                    )
+                elif mode == 'auto':
+                    self._add_auto_slack_var_linear_constraint(
+                        linear, l_constraint.sense, l_constraint.rhs, l_constraint.name
+                    )
+                else:
+                    raise QiskitOptimizationError(
+                        'Unsupported mode is selected: {}'.format(mode))
+            else:
+                raise QiskitOptimizationError(
+                    'Type of sense in {} is not supported'.format(
+                        l_constraint.name)
+                )
+
+        # For quadratic constraints
+        for q_constraint in self._src.quadratic_constraints:
+            linear = q_constraint.linear.to_dict(use_name=True)
+            quadratic = q_constraint.quadratic.to_dict(use_name=True)
+            if q_constraint.sense == Constraint.Sense.EQ:
+                self._dst.quadratic_constraint(
+                    linear, quadratic, q_constraint.sense, q_constraint.rhs, q_constraint.name
+                )
+            elif (
+                    q_constraint.sense == Constraint.Sense.LE
+                    or q_constraint.sense == Constraint.Sense.GE
+            ):
+                if mode == 'integer':
+                    self._add_integer_slack_var_quadratic_constraint(
+                        linear, quadratic, q_constraint.sense, q_constraint.rhs, q_constraint.name,
+                    )
+                elif mode == 'continuous':
+                    self._add_continuous_slack_var_quadratic_constraint(
+                        linear, quadratic, q_constraint.sense, q_constraint.rhs, q_constraint.name,
+                    )
+                elif mode == 'auto':
+                    self._add_auto_slack_var_quadratic_constraint(
+                        linear, quadratic, q_constraint.sense, q_constraint.rhs, q_constraint.name,
+                    )
+                else:
+                    raise QiskitOptimizationError(
+                        'Unsupported mode is selected: {}'.format(mode))
+            else:
+                raise QiskitOptimizationError(
+                    'Type of sense in {} is not supported'.format(
+                        q_constraint.name)
+                )
+
+        return self._dst
+
+    def encode(self, problem: QuadraticProgram) -> QuadraticProgram:
+        """Encode a problem with inequality constraints into one with only equality constraints.
+
+        Args:
+            problem: The problem to be solved, that may contain inequality constraints.
+
+        Returns:
+            The converted problem, that contain only equality constraints.
+
+        Raises:
+            QiskitOptimizationError: If a variable type is not supported.
+            QiskitOptimizationError: If an unsupported mode is selected.
+            QiskitOptimizationError: If an unsupported sense is specified.
+        """
+        super().encode(problem)
         self._src = copy.deepcopy(problem)
         self._dst = QuadraticProgram(name=problem.name)
 
@@ -355,6 +469,24 @@ class InequalityToEquality(QuadraticProgramConverter):
         new_result.x = self._interpret_var(names, vals)  # type: ignore
         return new_result
 
+    def decode(self, result: OptimizationResult) -> OptimizationResult:
+        """Convert a result of a converted problem into that of the original problem.
+
+        Args:
+            result: The result of the converted problem.
+
+        Returns:
+            The result of the original problem.
+        """
+        super().decode(result)
+        # copy fval and status of the result of the converted problem
+        new_result = copy.deepcopy(result)
+        # convert back the optimization result into that of the original problem
+        names = [x.name for x in self._dst.variables]
+        vals = result.x
+        new_result.x = self._interpret_var(names, vals)  # type: ignore
+        return new_result
+
     def _interpret_var(self, names, vals) -> List[int]:
         # interpret slack variables
         sol = {name: vals[i] for i, name in enumerate(names)}
@@ -366,8 +498,7 @@ class InequalityToEquality(QuadraticProgramConverter):
 
     @staticmethod
     def _contains_any_float_value(values: List[Union[int, float]]) -> bool:
-        """
-        Check whether the list contains float or not.
+        """Check whether the list contains float or not.
         This method is used to check whether a constraint contain float coefficients or not.
 
         Args:

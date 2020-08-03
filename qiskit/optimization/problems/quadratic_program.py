@@ -857,7 +857,8 @@ class QuadraticProgram:
         """Return the Ising Hamiltonian of this problem.
 
         Returns:
-            The qubit operator of the problem and the shift value.
+            qubit_op: The qubit operator for the problem
+            offset: The constant value in the Ising Hamiltonian.
 
         Raises:
             QiskitOptimizationError: If a variable type is not binary.
@@ -886,7 +887,7 @@ class QuadraticProgram:
         # initialize Hamiltonian.
         num_nodes = self.get_num_vars()
         pauli_list = []
-        shift = 0
+        offset = 0
         zero = zeros(num_nodes, dtype=nbool)
 
         # set a sign corresponding to a maximized or minimized problem.
@@ -894,7 +895,7 @@ class QuadraticProgram:
         sense = self.objective.sense.value
 
         # convert a constant part of the object function into Hamiltonian.
-        shift += self.objective.constant * sense
+        offset += self.objective.constant * sense
 
         # convert linear parts of the object function into Hamiltonian.
         for idx, coef in self.objective.linear.to_dict().items():
@@ -903,7 +904,7 @@ class QuadraticProgram:
             z_p[idx] = True
 
             pauli_list.append([-weight, Pauli(z_p, zero)])
-            shift += weight
+            offset += weight
 
         # convert quadratic parts of the object function into Hamiltonian.
         # first merge coefficients (i, j) and (j, i)
@@ -920,7 +921,7 @@ class QuadraticProgram:
             weight = coeff * sense / 4
 
             if i == j:
-                shift += weight
+                offset += weight
             else:
                 z_p = zeros(num_nodes, dtype=nbool)
                 z_p[i] = True
@@ -935,7 +936,7 @@ class QuadraticProgram:
             z_p[j] = True
             pauli_list.append([-weight, Pauli(z_p, zero)])
 
-            shift += weight
+            offset += weight
 
         # Remove paulis whose coefficients are zeros.
         qubit_op = sum(PauliOp(pauli, coeff=coeff) for coeff, pauli in pauli_list)
@@ -947,7 +948,7 @@ class QuadraticProgram:
         else:
             qubit_op = I ^ num_nodes
 
-        return qubit_op, shift
+        return qubit_op, offset
 
     def from_ising(self,
                    qubit_op: Union[OperatorBase, WeightedPauliOperator],
@@ -955,8 +956,8 @@ class QuadraticProgram:
         r"""Create a quadratic program from a qubit operator and a shift value.
 
         Args:
-            qubit_op: The qubit operator
-            offset: The shift value of the qubit operator
+            qubit_op: The qubit operator of the problem.
+            offset: The constant value in the Ising Hamiltonian.
             linear: If linear is True, :math:`x^2` is treated as a linear term
                 since :math:`x^2 = x` for :math:`x \in \{0,1\}`.
                 Else, :math:`x^2` is treat as a quadratic term.
@@ -978,7 +979,7 @@ class QuadraticProgram:
                 'operator in the ListOp separately.'
             )
 
-        # Create `QuadraticProgram`
+        # add binary variables
         for i in range(qubit_op.num_qubits):
             self.binary_var(name='x_{0}'.format(i))
 
