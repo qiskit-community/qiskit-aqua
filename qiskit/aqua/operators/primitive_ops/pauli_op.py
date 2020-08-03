@@ -84,6 +84,9 @@ class PauliOp(PrimitiveOp):
 
         return self.primitive == other.primitive
 
+    def expand_to_dim(self, num_qubits: int) -> 'PauliOp':
+        return PauliOp(Pauli(label='I'*num_qubits).kron(self.primitive), coeff=self.coeff)
+
     def tensor(self, other: OperatorBase) -> OperatorBase:
         # Both Paulis
         if isinstance(other, PauliOp):
@@ -118,10 +121,6 @@ class PauliOp(PrimitiveOp):
         for i, index in enumerate(indices):
             new_pauli_list[-index - 1] = pauli_string[-i - 1]
         return PauliOp(Pauli(label=''.join(new_pauli_list)), self.coeff)
-
-    def identity_operator(self, num_qubits: int) -> 'PauliOp':
-        primitive = Pauli(label='I'*num_qubits)
-        return PauliOp(primitive)
 
     def compose(self, other: OperatorBase) -> OperatorBase:
         self, other = self._check_zero_for_composition_and_expand(other)  # type: ignore

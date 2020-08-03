@@ -19,6 +19,7 @@ from functools import reduce, partial
 import numpy as np
 
 from qiskit.circuit import ParameterExpression
+from qiskit.quantum_info import Pauli
 
 from ..operator_base import OperatorBase
 from .list_op import ListOp
@@ -52,6 +53,16 @@ class TensoredOp(ListOp):
     @property
     def distributive(self) -> bool:
         return False
+
+    def expand_to_dim(self, num_qubits: int) -> 'TensoredOp':
+        """ Appends PauliOp, with Pauli I as primitive, to ``oplist``.
+        Choice of Pauli as identity is arbitrary and could be substituted for other
+        PrimitiveOp.identity.
+        Returns:
+            identity operator represented by Pauli(label='I'*num_qubit)
+        """
+        from qiskit.aqua.operators import PauliOp
+        return TensoredOp(self.oplist + [PauliOp(Pauli(label='I' * num_qubits))])
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
         if isinstance(other, TensoredOp):

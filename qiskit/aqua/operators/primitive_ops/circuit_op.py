@@ -228,11 +228,8 @@ class CircuitOp(PrimitiveOp):
                     del self.primitive.data[i]  # type: ignore
         return self
 
-    def identity_operator(self, num_qubits: int) -> 'CircuitOp':
-        new_qc = QuantumCircuit(num_qubits)
-        for i in range(num_qubits):
-            new_qc.i(i)
-        return CircuitOp(new_qc)
+    def expand_to_dim(self, num_qubits: int) -> 'CircuitOp':
+        return self.permute(list(range(num_qubits, num_qubits + self.num_qubits)))
 
     def permute(self, permutation: List[int]) -> 'CircuitOp':
         r"""
