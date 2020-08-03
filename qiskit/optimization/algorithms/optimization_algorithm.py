@@ -88,7 +88,7 @@ class OptimizationAlgorithm(ABC):
 
 
 class OptimizationResultStatus(Enum):
-    """Feasible values for the termination status of an optimization algorithm."""
+    """Termination status of an optimization algorithm."""
 
     SUCCESS = 0
     """the optimization algorithm succeeded to find an optimal solution."""
@@ -103,10 +103,10 @@ class OptimizationResultStatus(Enum):
 class OptimizationResult:
     """The optimization result class.
 
-    The optimization algorithms return an object of the type `OptimizationResult`, which enforces
-    providing the following attributes.
+    The optimization algorithms return an object of the type ``OptimizationResult``
+    with the information about the solution obtained.
 
-    `OptimizationResult` allows users to get the value of a variable by specifying an index or
+    ``OptimizationResult`` allows users to get the value of a variable by specifying an index or
     a name as follows.
 
     Examples:
@@ -136,11 +136,9 @@ class OptimizationResult:
 
     Note:
         The order of variables should be equal to that of the problem solved by
-        optimization algorithms. Optimization algorithms and converters of `QuadraticProgram`
-        should maintain the order when generating a new `OptimizationResult` object.
+        optimization algorithms. Optimization algorithms and converters of ``QuadraticProgram``
+        should maintain the order when generating a new ``OptimizationResult`` object.
     """
-
-    Status = OptimizationResultStatus
 
     def __init__(self, x: Union[List[float], np.ndarray], fval: float,
                  variables: List[Variable],
@@ -160,24 +158,24 @@ class OptimizationResult:
                'status: {}'.format(self._fval, self._x, self._status.name)
 
     def __getitem__(self, key: Union[int, str]) -> float:
-        """Returns the value of the variable whose index or name is equal to `key`.
+        """Returns the value of the variable whose index or name is equal to ``key``.
 
         The key can be an integer or a string.
         If the key is an integer, this methods returns the value of the variable
-        whose index is equal to `key`.
+        whose index is equal to ``key``.
         If the key is a string, this methods return the value of the variable
-        whose name is equal to `key`.
+        whose name is equal to ``key``.
 
         Args:
             key: an integer or a string.
 
         Returns:
-            The value of a variable whose index or name is equal to `key`.
+            The value of a variable whose index or name is equal to ``key``.
 
         Raises:
-            IndexError: if `key` is an integer and is out of range of the variables.
-            KeyError: if `key` is a string and none of the variables has `key` as name.
-            TypeError: if `key` is neither an integer nor a string.
+            IndexError: if ``key`` is an integer and is out of range of the variables.
+            KeyError: if ``key`` is a string and none of the variables has ``key`` as name.
+            TypeError: if ``key`` is neither an integer nor a string.
         """
         if isinstance(key, int):
             return self._x[key]
