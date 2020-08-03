@@ -17,10 +17,10 @@
 from typing import Union, Optional, Set, List
 import logging
 import numpy as np
-from qiskit import QuantumCircuit
 from scipy.sparse import spmatrix
 from sympy.combinatorics import Permutation
 
+from qiskit import QuantumCircuit
 from qiskit.quantum_info import Operator
 from qiskit.circuit import ParameterExpression, Instruction
 from qiskit.extensions.hamiltonian_gate import HamiltonianGate
@@ -127,14 +127,25 @@ class MatrixOp(PrimitiveOp):
 
         return ComposedOp([self, other])
 
-    def permute(self, indices: List[int] = None):
+    def permute(self, indices: List[int] = None) -> 'MatrixOp':
+        """ Creates a new MatrixOp that acts on the permuted qubits.
+
+        Args:
+            indices: A list defining where each qubit should be permuted. The qubit at index
+                j should be permuted to position indices[j].
+
+        Returns:
+            A new MatrixOp acting on the permuted qubits.
+        Raises:
+            AquaError: if indices does not define a new index for each qubit.
+        """
         new_self = self
         new_matrix_size = max(indices) + 1
 
         # extend the indices to match the size of the new matrix
         indices = list(filter(lambda x: x not in indices, range(new_matrix_size))) + indices
 
-        if self.num_qubits > len(indices):
+        if self.num_qubits != len(indices):
             raise AquaError("New index must be defined for each qubit of the operator.")
         if self.num_qubits < new_matrix_size:
             # pad the operator with identities
@@ -143,8 +154,8 @@ class MatrixOp(PrimitiveOp):
 
         # decompose permutation into sequence of transpositions
         transpositions = Permutation(indices).transpositions()
-        for t in transpositions:
-            qc.swap(t[0], t[1])
+        for trans in transpositions:
+            qc.swap(trans[0], trans[1])
         matrix = CircuitOp(qc).to_matrix()
         return MatrixOp(matrix.transpose()) @ new_self @ MatrixOp(matrix)  # permuted MatrixOp
 
