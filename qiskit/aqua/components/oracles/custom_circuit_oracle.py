@@ -33,26 +33,38 @@ class CustomCircuitOracle(Oracle):
     It is geared towards programmatically experimenting with oracles, where a user directly
     provides a `QuantumCircuit` object, corresponding to the intended oracle function,
     together with the various `QuantumRegister` objects involved.
+
+    Note:
+        The `evaluate_classically_callback` param is to supply a method to classically evaluate
+        the function (as encoded by the oracle) on a particular input bitstring. For example
+        for an oracle that encodes 3-SAT problems, this method would determine classically if
+        an input variable assignment would satisfy the 3-SAT expression.
+
+        The input bitstring is a string of 1's and 0's corresponding to the input variable(s). The
+        return should be a (bool, List[int]) tuple where the bool corresponds to the return value
+        of the *binary* function encoded by the oracle, and the List[int] should just be a
+        different representation of the input variable assignment, which should be equivalent to
+        the bitstring or a quantum measurement.
+
+        Examples of existing implementations, for reference, can be found in other oracles such as
+        :meth:`TruthTableOracle.evaluate_classically` and
+        :meth:`LogicalExpressionOracle.evaluate_classically`.
     """
 
-    def __init__(self, variable_register: Optional[QuantumRegister] = None,
-                 output_register: Optional[QuantumRegister] = None,
+    def __init__(self, variable_register: QuantumRegister,
+                 output_register: QuantumRegister,
+                 circuit: QuantumCircuit,
                  ancillary_register: Optional[QuantumRegister] = None,
-                 circuit: Optional[QuantumCircuit] = None,
                  evaluate_classically_callback:
                  Optional[Callable[[str], Tuple[bool, List[int]]]] = None):
         """
         Args:
-            variable_register: The register holding variable qubit(s) for
-                    the oracle function
-            output_register: The register holding output qubit(s)
-                    for the oracle function
+            variable_register: The register holding variable qubit(s) for the oracle function
+            output_register: The register holding output qubit(s) for the oracle function
+            circuit: The quantum circuit corresponding to the intended oracle function
             ancillary_register: The register holding ancillary qubit(s)
-            circuit: The quantum circuit corresponding to the
-                    intended oracle function
-            evaluate_classically_callback: The classical callback function for
-                    evaluating the oracle, for example, to use with
-                    :class:`~qiskit.aqua.algorithms.Grover`'s search
+            evaluate_classically_callback: The classical callback function for evaluating the
+                oracle, for example, to use with :class:`~qiskit.aqua.algorithms.Grover`'s search
         Raises:
             AquaError: Invalid input
         """
@@ -66,8 +78,8 @@ class CustomCircuitOracle(Oracle):
             raise AquaError('Missing custom QuantumCircuit for the oracle.')
         self._variable_register = variable_register
         self._output_register = output_register
-        self._ancillary_register = ancillary_register
         self._circuit = circuit
+        self._ancillary_register = ancillary_register
         if evaluate_classically_callback is not None:
             self.evaluate_classically = evaluate_classically_callback
 
