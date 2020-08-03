@@ -171,9 +171,9 @@ class PrimitiveOp(OperatorBase):
                 # Zero is special - we'll expand it to the correct qubit number.
                 other = Zero.__class__('0' * self.num_qubits)
             elif other.num_qubits < self.num_qubits:
-                other = other.expand(self.num_qubits - other.num_qubits)
+                other = other.expand_to_dim(self.num_qubits - other.num_qubits)
             elif other.num_qubits > self.num_qubits:
-                new_self = self.expand(other.num_qubits - self.num_qubits)  # type: ignore
+                new_self = self.expand_to_dim(other.num_qubits - self.num_qubits)  # type: ignore
         return new_self, other
 
     def power(self, exponent: int) -> OperatorBase:

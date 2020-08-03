@@ -146,7 +146,7 @@ class MatrixOp(PrimitiveOp):
             raise AquaError("New index must be defined for each qubit of the operator.")
         if self.num_qubits < new_matrix_size:
             # pad the operator with identities
-            new_self = self.expand(new_matrix_size - self.num_qubits)
+            new_self = self.expand_to_dim(new_matrix_size - self.num_qubits)
         qc = QuantumCircuit(new_matrix_size)
 
         # extend the indices to match the size of the new matrix
