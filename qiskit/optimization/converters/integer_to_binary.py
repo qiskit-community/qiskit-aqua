@@ -257,7 +257,8 @@ class IntegerToBinary(QuadraticProgramConverter):
             )
 
     def interpret(self, result: OptimizationResult) -> OptimizationResult:
-        """Convert back the converted problem (binary variables) to the original (integer variables).
+        """Convert back the converted problem (binary variables)
+        to the original (integer variables).
 
         Args:
             result: The result of the converted problem.
@@ -274,7 +275,8 @@ class IntegerToBinary(QuadraticProgramConverter):
         return new_result
 
     def decode(self, result: OptimizationResult) -> OptimizationResult:
-        """Convert back the converted problem (binary variables) to the original (integer variables).
+        """Convert back the converted problem (binary variables)
+        to the original (integer variables).
 
         Args:
             result: The result of the converted problem.
