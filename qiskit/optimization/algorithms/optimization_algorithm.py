@@ -106,17 +106,6 @@ class OptimizationResult:
     The optimization algorithms return an object of the type `OptimizationResult`, which enforces
     providing the following attributes.
 
-    Attributes:
-        x: The optimal value found in the optimization algorithm.
-        fval: The function value corresponding to the optimal value.
-        raw_results: The original results object returned from the optimization algorithm. This can
-            contain more information than only the optimal value and function value.
-        status: The termination status of the algorithm.
-        variables: The list of variables under optimization.
-        variable_names: The list of variable names.
-        variables_dict: The optimal value as a dictionary of the variable name and corresponding
-            value.
-
     `OptimizationResult` allows users to get the value of a variable by specifying an index or
     a name as follows.
 
@@ -229,7 +218,7 @@ class OptimizationResult:
 
     @property
     def status(self) -> OptimizationResultStatus:
-        """Return the termination status of the algorithm.
+        """Returns the termination status of the algorithm.
 
         Returns:
             The termination status of the algorithm.
