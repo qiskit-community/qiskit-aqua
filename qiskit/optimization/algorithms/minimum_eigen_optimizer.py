@@ -109,6 +109,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         """
         self._min_eigen_solver = min_eigen_solver
         self._penalty = penalty
+        self._qubo_converter = QuadraticProgramToQubo()
 
     def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
         """Checks whether a given problem can be solved with this optimizer.
@@ -141,8 +142,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         self._verify_compatibility(problem)
 
         # convert problem to QUBO
-        qubo_converter = QuadraticProgramToQubo()
-        problem_ = qubo_converter.convert(problem)
+        problem_ = self._qubo_converter.convert(problem)
 
         # construct operator and offset
         operator, offset = problem_.to_ising()
@@ -172,9 +172,9 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
             samples = [(x_str, offset, 1.0)]
 
         # translate result back to integers
-        opt_res = MinimumEigenOptimizerResult(x, fval, samples, qubo_converter,
+        opt_res = MinimumEigenOptimizerResult(x, fval, samples, self._qubo_converter,
                                               variables=problem.variables)
-        opt_res = cast(MinimumEigenOptimizerResult, qubo_converter.interpret(opt_res))
+        opt_res = cast(MinimumEigenOptimizerResult, self._qubo_converter.interpret(opt_res))
 
         # translate results back to original problem
         return opt_res

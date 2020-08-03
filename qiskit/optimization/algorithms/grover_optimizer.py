@@ -47,6 +47,7 @@ class GroverOptimizer(OptimizationAlgorithm):
         self._num_value_qubits = num_value_qubits
         self._n_iterations = num_iterations
         self._quantum_instance = None
+        self._qubo_converter = QuadraticProgramToQubo()
 
         if quantum_instance is not None:
             self.quantum_instance = quantum_instance
@@ -108,8 +109,7 @@ class GroverOptimizer(OptimizationAlgorithm):
         self._verify_compatibility(problem)
 
         # convert problem to QUBO
-        qubo_converter = QuadraticProgramToQubo()
-        problem_ = qubo_converter.convert(problem)
+        problem_ = self._qubo_converter.convert(problem)
 
         # convert to minimization problem
         sense = problem_.objective.sense
@@ -228,10 +228,10 @@ class GroverOptimizer(OptimizationAlgorithm):
             fval = -fval
         result = OptimizationResult(x=opt_x, variables=problem.variables, fval=fval,
                                     results={"grover_results": grover_results,
-                                             "qubo_converter": qubo_converter})
+                                             "qubo_converter": self._qubo_converter})
 
         # cast binaries back to integers
-        result = qubo_converter.interpret(result)
+        result = self._qubo_converter.interpret(result)
 
         return result
 

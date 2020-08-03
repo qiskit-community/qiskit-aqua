@@ -46,8 +46,7 @@ class QuadraticProgramToQubo(QuadraticProgramConverter):
 
         self._int_to_bin = IntegerToBinary()
         self._ineq_to_eq = InequalityToEquality(mode='integer')
-        self._penalize_lin_eq_constraints = LinearEqualityToPenalty()
-        self._penalty = penalty
+        self._penalize_lin_eq_constraints = LinearEqualityToPenalty(penalty=penalty)
 
     def convert(self, problem: QuadraticProgram) -> QuadraticProgram:
         """Convert a problem with linear equality constraints into new one with a QUBO form.
@@ -202,7 +201,7 @@ class QuadraticProgramToQubo(QuadraticProgramConverter):
         Returns:
             The penalty factor used in conversion.
         """
-        return self._penalty
+        return self._penalize_lin_eq_constraints.penalty
 
     @penalty.setter
     def penalty(self, penalty: Optional[float]) -> None:
@@ -212,4 +211,4 @@ class QuadraticProgramToQubo(QuadraticProgramConverter):
             penalty: The new penalty factor.
                      If None is passed, penalty factor will be automatically calculated.
         """
-        self._penalty = penalty
+        self._penalize_lin_eq_constraints.penalty = penalty
