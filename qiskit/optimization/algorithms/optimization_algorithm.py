@@ -121,10 +121,12 @@ class OptimizationResult:
     a name as follows.
 
     Examples:
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> from qiskit.optimization.algorithms import CplexOptimizer
         >>> problem = QuadraticProgram()
-        >>> problem.binary_var('x1')
-        >>> problem.binary_var('x2')
-        >>> problem.binary_var('x3')
+        >>> _ = problem.binary_var('x1')
+        >>> _ = problem.binary_var('x2')
+        >>> _ = problem.binary_var('x3')
         >>> problem.minimize(linear={'x1': 1, 'x2': -2, 'x3': 3})
         >>> print([var.name for var in problem.variables])
         ['x1', 'x2', 'x3']
@@ -133,7 +135,7 @@ class OptimizationResult:
         >>> print(result.variable_names)
         ['x1', 'x2', 'x3']
         >>> print(result.x)
-        [0.0, 1.0, 0.0]
+        [0. 1. 0.]
         >>> print(result[1])
         1.0
         >>> print(result['x1'])

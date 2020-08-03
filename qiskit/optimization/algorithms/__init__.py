@@ -32,7 +32,7 @@ Base class
    MultiStartOptimizer
 
 Algorithms and results
-==========
+======================
 
 .. autosummary::
    :toctree: ../stubs/
