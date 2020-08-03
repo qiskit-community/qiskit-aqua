@@ -32,6 +32,13 @@ class MinimumEigenOptimizerResult(OptimizationResult):
 
     def __init__(self, x: List[float], fval: float, variables: List[Variable],
                  samples: List[Tuple[str, float, float]]) -> None:
+        """
+        Args:
+            x: the optimal value found by ``MinimumEigensolver``.
+            fval: the optimal function value.
+            variables: the list of variables of the optimization problem.
+            samples: the basis state as bitstring, the QUBO value, and the probability of sampling.
+        """
         super().__init__(x=x, fval=fval, variables=variables, raw_results=samples)
 
     @property

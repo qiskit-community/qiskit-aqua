@@ -144,6 +144,14 @@ class OptimizationResult:
                  variables: List[Variable],
                  raw_results: Optional[Any] = None,
                  status: OptimizationResultStatus = OptimizationResultStatus.SUCCESS) -> None:
+        """
+        Args:
+            x: the optimal value found in the optimization.
+            fval: the optimal function value.
+            variables: the list of variables of the optimization problem.
+            raw_results: the original results object from the optimization algorithm.
+            status: the termination status of the optimization algorithm.
+        """
         self._x = x if isinstance(x, np.ndarray) else np.array(x)  # pylint: disable=invalid-name
         self._fval = fval
         self._raw_results = raw_results
@@ -205,7 +213,7 @@ class OptimizationResult:
 
     @property
     def raw_results(self) -> Any:
-        """Return the original results object from the algorithm.
+        """Return the original results object from the optimization algorithm.
 
         Currently a dump for any leftovers.
 
@@ -216,7 +224,7 @@ class OptimizationResult:
 
     @property
     def status(self) -> OptimizationResultStatus:
-        """Returns the termination status of the algorithm.
+        """Returns the termination status of the optimization algorithm.
 
         Returns:
             The termination status of the algorithm.

@@ -176,6 +176,13 @@ class ADMMOptimizationResult(OptimizationResult):
 
     def __init__(self, x: np.ndarray, fval: float, variables: List[Variable],
                  state: ADMMState) -> None:
+        """
+        Args:
+            x: the optimal value found by ADMM.
+            fval: the optimal function value.
+            variables: the list of variables of the optimization problem.
+            state: the internal computation state of ADMM.
+        """
         super().__init__(x=x, fval=fval, variables=variables, raw_results=state)
 
     @property
