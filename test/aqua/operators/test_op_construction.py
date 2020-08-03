@@ -394,6 +394,14 @@ class TestOpConstruction(QiskitAquaTestCase):
         self.assertEqual(permuted_circuit_op.primitive.__str__(),
                          expected_circuit_op.primitive.__str__())
 
+        # MatrixOp
+        matrix_op = pauli_op.to_matrix_op()
+        permuted_matrix_op = matrix_op.permute(indices)
+        expected_matrix_op = expected_pauli_op.to_matrix_op()
+
+        equal = np.allclose(permuted_matrix_op.to_matrix(), expected_matrix_op.to_matrix())
+        self.assertTrue(equal)
+
     def test_expand_on_state_fn(self):
         """ Tests num_qubits on the original instance and expanded instance of StateFn """
         num_qubits = 3
