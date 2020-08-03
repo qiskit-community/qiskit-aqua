@@ -155,7 +155,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
             # samples = [(res[0], problem_.objective.sense.value * (res[1] + offset), res[2])
             #    for res in samples]
             samples.sort(key=lambda x: problem_.objective.sense.value * x[1])
-            x = [int(e) for e in samples[0][0]]
+            x = [float(e) for e in samples[0][0]]
             fval = samples[0][1]
 
         # if Hamiltonian is empty, then the objective function is constant to the offset
