@@ -15,7 +15,7 @@
 """GroverOptimizer module"""
 
 import logging
-from typing import Optional, Dict, Union, Tuple, cast
+from typing import Optional, Dict, Union
 import math
 import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister
@@ -258,7 +258,7 @@ class GroverOptimizer(OptimizationAlgorithm):
         opt_x = np.array([1 if s == '1' else 0 for s in ('{0:%sb}' % n_key).format(optimum_key)])
 
         # Build the results object.
-        grover_results = GroverOptimizationResults(operation_count, n_key, n_value, problem_)
+        grover_results = GroverOptimizationResults(operation_count, n_key, n_value)
 
         # Compute function value
         fval = problem.objective.evaluate(opt_x)
@@ -332,19 +332,16 @@ class GroverOptimizationResults:
     """A results object for Grover Optimization methods."""
 
     def __init__(self, operation_counts: Dict[int, Dict[str, int]],
-                 n_input_qubits: int, n_output_qubits: int,
-                 problem: QuadraticProgram) -> None:
+                 n_input_qubits: int, n_output_qubits: int) -> None:
         """
         Args:
             operation_counts: The counts of each operation performed per iteration.
             n_input_qubits: The number of qubits used to represent the input.
             n_output_qubits: The number of qubits used to represent the output.
-            problem:
         """
         self._operation_counts = operation_counts
         self._n_input_qubits = n_input_qubits
         self._n_output_qubits = n_output_qubits
-        self._problem = problem
 
     @property
     def operation_counts(self) -> Dict[int, Dict[str, int]]:
@@ -372,37 +369,3 @@ class GroverOptimizationResults:
             The number of qubits used to represent the output.
         """
         return self._n_output_qubits
-
-    @property
-    def problem(self) -> QuadraticProgram:
-        """Get the underlying quadratic program that is solved.
-
-        Returns:
-            The solved quadratic program.
-        """
-        return self._problem
-
-    @property
-    def func_dict(self) -> Dict[Union[int, Tuple[int, int]], int]:
-        """Get the quadratic form in the format of a function dictionary.
-
-        Returns:
-            A dictionary of coefficients describing a function, where the keys are the subscripts
-            of the variables (e.g. x1), and the values are the corresponding coefficients. If there
-            is a constant term, it is referenced by key -1.
-        """
-        quadratic = self.problem.objective.quadratic.to_dict()
-        linear = self.problem.objective.linear.to_array()
-        constant = self.problem.objective.constant
-
-        func = {-1: int(constant)}  # type: Dict[Union[int, Tuple[int, int]], int]
-        for idx, val in enumerate(linear):
-            func[idx] = int(val)
-        for (i, j), v in quadratic.items():
-            i, j = cast(int, i), cast(int, j)  # type of i and j is Union[str, int], should be int
-            if i != j:
-                func[(i, j)] = int(quadratic[(i, j)])
-            else:
-                func[i] += int(v)
-
-        return func
