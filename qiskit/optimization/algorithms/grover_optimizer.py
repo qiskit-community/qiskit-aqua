@@ -266,10 +266,7 @@ class GroverOptimizer(OptimizationAlgorithm):
         fval = problem.objective.evaluate(opt_x)
         result = OptimizationResult(x=opt_x, variables=problem.variables, fval=fval,
                                     results={"grover_results": grover_results,
-                                             "qubo_converter": copy.deepcopy(self._qubo_converter),
-                                             "negative_value_oracle_converter": copy.deepcopy(
-                                                 opt_prob_converter)
-                                             })
+                                             "qubo_converter": copy.deepcopy(self._qubo_converter)})
 
         # cast binaries back to integers
         result = self._qubo_converter.interpret(result)
