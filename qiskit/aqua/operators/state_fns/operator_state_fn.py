@@ -14,7 +14,7 @@
 
 """ OperatorStateFn Class """
 
-from typing import Union, Set
+from typing import Union, Set, List
 import numpy as np
 
 from qiskit.circuit import ParameterExpression
@@ -84,6 +84,11 @@ class OperatorStateFn(StateFn):
 
     def expand_to_dim(self, num_qubits: int) -> 'OperatorStateFn':
         return OperatorStateFn(self.primitive.expand_to_dim(num_qubits),
+                               coeff=self.coeff,
+                               is_measurement=self.is_measurement)
+
+    def permute(self, permutation: List[int]) -> 'OperatorStateFn':
+        return OperatorStateFn(self.primitive.permute(permutation),
                                coeff=self.coeff,
                                is_measurement=self.is_measurement)
 
