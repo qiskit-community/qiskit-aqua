@@ -122,6 +122,13 @@ class MatrixOp(PrimitiveOp):
             return MatrixOp(self.primitive.compose(other.primitive, front=True),  # type: ignore
                             coeff=self.coeff * other.coeff)
 
+        if isinstance(other, ComposedOp):
+            comp_with_first = self.compose(other.oplist[0])
+            if not isinstance(comp_with_first, ComposedOp):
+                new_oplist = [comp_with_first] + other.oplist[1:]
+                return ComposedOp(new_oplist, coeff=other.coeff)
+            return ComposedOp([self] + other.oplist, coeff=other.coeff)
+
         return ComposedOp([self, other])
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
