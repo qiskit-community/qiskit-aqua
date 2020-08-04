@@ -113,7 +113,7 @@ class MatrixOp(PrimitiveOp):
 
     def expand_to_dim(self, num_qubits: int) -> 'MatrixOp':
         identity = np.identity(2**num_qubits, dtype=complex)
-        return MatrixOp(self.primitive.tensor(Operator(identity)), coeff=self.coeff)
+        return MatrixOp(self.primitive.tensor(Operator(identity)), coeff=self.coeff)  # type: ignore
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
         if isinstance(other.primitive, Operator):  # type: ignore
@@ -161,7 +161,7 @@ class MatrixOp(PrimitiveOp):
         for trans in transpositions:
             qc.swap(trans[0], trans[1])
         matrix = CircuitOp(qc).to_matrix()
-        return MatrixOp(matrix.transpose()) @ new_self @ MatrixOp(matrix)  # permuted MatrixOp
+        return MatrixOp(matrix.transpose()) @ new_self @ MatrixOp(matrix)  # type: ignore
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
         return self.primitive.data * self.coeff  # type: ignore

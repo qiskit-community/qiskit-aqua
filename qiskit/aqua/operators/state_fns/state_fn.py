@@ -142,6 +142,9 @@ class StateFn(OperatorBase):
     def adjoint(self) -> OperatorBase:
         raise NotImplementedError
 
+    def expand_to_dim(self, num_qubits: int) -> 'StateFn':
+        raise NotImplementedError
+
     def equals(self, other: OperatorBase) -> bool:
         if not isinstance(other, type(self)) or not self.coeff == other.coeff:
             return False
@@ -157,9 +160,6 @@ class StateFn(OperatorBase):
         return self.__class__(self.primitive,
                               coeff=self.coeff * scalar,
                               is_measurement=self.is_measurement)
-
-    def identity_operator(self, num_qubits: int) -> 'StateFn':
-        raise NotImplementedError
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
         r"""

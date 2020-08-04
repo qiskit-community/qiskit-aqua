@@ -170,12 +170,6 @@ class CircuitStateFn(StateFn):
         from qiskit.aqua.operators import ComposedOp
         return ComposedOp([new_self, other])
 
-    def identity_operator(self, num_qubits: int) -> 'CircuitStateFn':
-        new_qc = QuantumCircuit(num_qubits)
-        for i in range(num_qubits):
-            new_qc.i(i)
-        return CircuitStateFn(new_qc, is_measurement=self.is_measurement)
-
     def tensor(self, other: OperatorBase) -> OperatorBase:
         r"""
         Return tensor product between self and other, overloaded by ``^``.
@@ -362,6 +356,9 @@ class CircuitStateFn(StateFn):
                     del self.primitive.data[i]
         return self
 
+    def expand_to_dim(self, num_qubits: int) -> 'CircuitStateFn':
+        return self.permute(list(range(num_qubits, num_qubits + self.num_qubits)))
+
     def permute(self, permutation: List[int]) -> 'CircuitStateFn':
         r"""
         Permute the qubits of the circuit.
@@ -373,5 +370,5 @@ class CircuitStateFn(StateFn):
         Returns:
             A new CircuitStateFn containing the permuted circuit.
         """
-        new_qc = QuantumCircuit(self.num_qubits).compose(self.primitive, qubits=permutation)
+        new_qc = QuantumCircuit(max(permutation) + 1).compose(self.primitive, qubits=permutation)
         return CircuitStateFn(new_qc, coeff=self.coeff, is_measurement=self.is_measurement)

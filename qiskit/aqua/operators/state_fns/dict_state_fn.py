@@ -109,8 +109,11 @@ class DictStateFn(StateFn):
                            coeff=np.conj(self.coeff),
                            is_measurement=(not self.is_measurement))
 
-    def identity_operator(self, num_qubits: int) -> 'DictStateFn':
-        return DictStateFn('0' * num_qubits, is_measurement=self.is_measurement)
+    def expand_to_dim(self, num_qubits: int) -> 'DictStateFn':
+        pad = {'0'*num_qubits: 1}
+        new_dict = {k1 + k2: v1 * v2 for ((k1, v1,), (k2, v2)) in
+                    itertools.product(self.primitive.items(), pad.items())}
+        return DictStateFn(new_dict, coeff=self.coeff, is_measurement=self.is_measurement)
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
         # Both dicts

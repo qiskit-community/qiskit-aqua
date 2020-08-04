@@ -65,6 +65,10 @@ class ComposedOp(ListOp):
     def adjoint(self) -> OperatorBase:
         return ComposedOp([op.adjoint() for op in reversed(self.oplist)], coeff=self.coeff)
 
+    def expand_to_dim(self, num_qubits: int) -> 'ComposedOp':
+        return ComposedOp([op.expand_to_dim(num_qubits + self.num_qubits - op.num_qubits)
+                           for op in self.oplist], coeff=self.coeff)
+
     def compose(self, other: OperatorBase) -> OperatorBase:
         # Try composing with last element in list
         if isinstance(other, ComposedOp):

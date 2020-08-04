@@ -21,7 +21,6 @@ import numpy as np
 from scipy.sparse import spmatrix
 
 from qiskit.circuit import ParameterExpression
-from qiskit.quantum_info import Pauli
 
 from ..legacy.base_operator import LegacyBaseOperator
 from ..operator_base import OperatorBase
@@ -185,17 +184,6 @@ class ListOp(OperatorBase):
                           abelian=self.abelian)
         return self.__class__(self.oplist, coeff=scalar * self.coeff, abelian=self.abelian)
 
-    def identity_operator(self, num_qubits: int) -> OperatorBase:
-        """Returns the PauliOp, with Pauli I as primitive..
-        Choice of Pauli as identity is arbitrary and could be substituted
-        for other PrimitiveOp.identity.
-        Returns:
-            identity operator represented by Pauli(label='I'*num_qubit)
-        """
-        from qiskit.aqua.operators import PauliOp
-        primitive = Pauli(label='I' * num_qubits)
-        return PauliOp(primitive)
-
     def tensor(self, other: OperatorBase) -> OperatorBase:
         # Avoid circular dependency
         # pylint: disable=cyclic-import,import-outside-toplevel
@@ -213,6 +201,9 @@ class ListOp(OperatorBase):
         # pylint: disable=cyclic-import,import-outside-toplevel
         from .tensored_op import TensoredOp
         return TensoredOp([self] * other)
+
+    def expand_to_dim(self, num_qubits: int) -> 'ListOp':
+        raise NotImplementedError
 
     def compose(self, other: OperatorBase) -> OperatorBase:
         # Avoid circular dependency

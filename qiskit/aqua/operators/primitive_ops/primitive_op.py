@@ -155,9 +155,6 @@ class PrimitiveOp(OperatorBase):
             temp = temp.tensor(self)
         return temp
 
-    def identity_operator(self, num_qubits: int) -> 'PrimitiveOp':
-        raise NotImplementedError
-
     def compose(self, other: OperatorBase) -> OperatorBase:
         raise NotImplementedError
 
@@ -183,6 +180,9 @@ class PrimitiveOp(OperatorBase):
         for _ in range(exponent - 1):
             temp = temp.compose(self)
         return temp
+
+    def expand_to_dim(self, num_qubits: int) -> 'OperatorBase':
+        raise NotImplementedError
 
     def exp_i(self) -> OperatorBase:
         """ Return Operator exponentiation, equaling e^(-i * op)"""

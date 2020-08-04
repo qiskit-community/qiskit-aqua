@@ -56,6 +56,10 @@ class SummedOp(ListOp):
     def distributive(self) -> bool:
         return True
 
+    def expand_to_dim(self, num_qubits: int) -> 'SummedOp':
+        return SummedOp([op.expand_to_dim(num_qubits + self.num_qubits - op.num_qubits)
+                         for op in self.oplist], coeff=self.coeff)
+
     def add(self, other: OperatorBase) -> OperatorBase:
         """Return Operator addition of ``self`` and ``other``, overloaded by ``+``.
 
