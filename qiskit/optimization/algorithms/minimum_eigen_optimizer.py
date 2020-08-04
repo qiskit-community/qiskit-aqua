@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 
 # This code is part of Qiskit.
@@ -14,49 +13,45 @@
 # that they have been altered from the originals.
 
 """A wrapper for minimum eigen solvers from Aqua to be used within the optimization module."""
+from copy import deepcopy
+from typing import Optional, Any, Union, Tuple, List
 
-from typing import Optional, Any, Union, Tuple, List, cast
 import numpy as np
-
 from qiskit.aqua.algorithms import MinimumEigensolver, MinimumEigensolverResult
 from qiskit.aqua.operators import StateFn, DictStateFn
 
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
-from ..problems.quadratic_program import QuadraticProgram
-from ..problems.variable import Variable
-from ..converters.quadratic_program_to_ising import QuadraticProgramToIsing
 from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
+from ..problems.quadratic_program import QuadraticProgram, Variable
 
 
 class MinimumEigenOptimizerResult(OptimizationResult):
     """ Minimum Eigen Optimizer Result."""
 
-    def __init__(self, x: Union[List[float], np.ndarray], fval: float,
+    def __init__(self, x: List[float], fval: float,
                  variables: List[Variable],
-                 qubo_converter: QuadraticProgramToQubo,
                  samples: List[Tuple[str, float, float]],
+                 qubo_converter: QuadraticProgramToQubo,
                  eigensolver_result: MinimumEigensolverResult = None) -> None:
+        """
+        Args:
+            x: the optimal value found by ``MinimumEigensolver``.
+            fval: the optimal function value.
+            variables: the list of variables of the optimization problem.
+            samples: the basis state as bitstring, the QUBO value, and the probability of sampling.
+            qubo_converter: ``QuadraticProgram`` to QUBO converter.
+        """
         super().__init__(x, fval, variables, None)
         self._qubo_converter = qubo_converter
         self._samples = samples
         self._eigensolver_result = eigensolver_result
 
     @property
-    def samples(self) -> Any:
+    def samples(self) -> List[Tuple[str, float, float]]:
         """Returns samples."""
         return self._samples
 
-    @property
-    def qubo_converter(self) -> QuadraticProgramToQubo:
-        """Returns an instance of :class:QuadraticProgramToQubo that was used to convert
-        the problem to QUBO."""
-        return self._qubo_converter
-
-    @property
-    def eigensolver_result(self) -> MinimumEigensolverResult:
-        return self._eigensolver_result
-
-    def get_correlations(self):
+    def get_correlations(self) -> np.ndarray:
         """Get <Zi x Zj> correlation matrix from samples."""
 
         states = [v[0] for v in self.samples]
@@ -119,6 +114,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         """
         self._min_eigen_solver = min_eigen_solver
         self._penalty = penalty
+        self._qubo_converter = QuadraticProgramToQubo()
 
     def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
         """Checks whether a given problem can be solved with this optimizer.
@@ -151,20 +147,16 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         self._verify_compatibility(problem)
 
         # convert problem to QUBO
-        qubo_converter = QuadraticProgramToQubo()
-        problem_ = qubo_converter.encode(problem)
+        problem_ = self._qubo_converter.convert(problem)
 
         # construct operator and offset
-        operator_converter = QuadraticProgramToIsing()
-        operator, offset = operator_converter.encode(problem_)
+        operator, offset = problem_.to_ising()
 
         # only try to solve non-empty Ising Hamiltonians
         x = None  # type: Optional[Any]
-        eigen_result = None    # type: Optional[MinimumEigensolverResult]
         if operator.num_qubits > 0:
 
             # approximate ground state of operator using min eigen solver
-            # the result is MinimumEigensolverResult
             eigen_result = self._min_eigen_solver.compute_minimum_eigenvalue(operator)
 
             # analyze results
@@ -174,25 +166,24 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
             # samples = [(res[0], problem_.objective.sense.value * (res[1] + offset), res[2])
             #    for res in samples]
             samples.sort(key=lambda x: problem_.objective.sense.value * x[1])
-            x = samples[0][0]
+            x = [float(e) for e in samples[0][0]]
             fval = samples[0][1]
 
         # if Hamiltonian is empty, then the objective function is constant to the offset
         else:
-            x = [0]*problem_.get_num_binary_vars()
+            x = [0] * problem_.get_num_binary_vars()
             fval = offset
-            x_str = '0'*problem_.get_num_binary_vars()
+            x_str = '0' * problem_.get_num_binary_vars()
             samples = [(x_str, offset, 1.0)]
 
         # translate result back to integers
-        opt_res = MinimumEigenOptimizerResult(x, fval, problem.variables,
-                                              qubo_converter=qubo_converter,
+        base_res = OptimizationResult(x=x, fval=fval, variables=problem.variables)
+        base_res = self._qubo_converter.interpret(base_res)
+        opt_res = MinimumEigenOptimizerResult(x=base_res.x, fval=base_res.fval,
+                                              variables=base_res.variables,
                                               samples=samples,
-                                              eigensolver_result=eigen_result
-                                              )
-        opt_res = cast(MinimumEigenOptimizerResult, qubo_converter.decode(opt_res))
-
-        # translate results back to original problem
+                                              eigensolver_result=eigen_result,
+                                              qubo_converter=deepcopy(self._qubo_converter))
         return opt_res
 
 
@@ -229,7 +220,7 @@ def _eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray, StateFn],
         TypeError: If the type of eigenvector is not supported.
     """
     if isinstance(eigenvector, DictStateFn):
-        eigenvector = {bitstr: val**2 for (bitstr, val) in eigenvector.primitive.items()}
+        eigenvector = {bitstr: val ** 2 for (bitstr, val) in eigenvector.primitive.items()}
     elif isinstance(eigenvector, StateFn):
         eigenvector = eigenvector.to_matrix()
 
