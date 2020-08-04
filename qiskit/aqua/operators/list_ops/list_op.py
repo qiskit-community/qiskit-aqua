@@ -231,10 +231,11 @@ class ListOp(OperatorBase):
             new_self = self.expand_to_dim(circuit_size - self.num_qubits)
         qc = QuantumCircuit(circuit_size)
         # extend the indices to match the size of the circuit
-        indices = list(filter(lambda x: x not in indices, range(circuit_size))) + permutation
+        permutation = list(filter(lambda x: x not in permutation, range(circuit_size))) \
+                      + permutation
 
         # decompose permutation into sequence of transpositions
-        transpositions = Permutation(indices).transpositions()
+        transpositions = Permutation(permutation).transpositions()
         for trans in transpositions:
             qc.swap(trans[0], trans[1])
 

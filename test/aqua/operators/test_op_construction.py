@@ -27,8 +27,8 @@ from qiskit.quantum_info.operators import Operator, Pauli
 from qiskit.circuit.library import CZGate, ZGate
 
 from qiskit.aqua.operators import (
-    X, Y, Z, I, CX, T, H, PrimitiveOp, SummedOp, PauliOp, Minus, CircuitOp, MatrixOp, ListOp,
-    CircuitStateFn, VectorStateFn, DictStateFn, OperatorStateFn
+    X, Y, Z, I, CX, T, H, Minus, PrimitiveOp, PauliOp, CircuitOp, MatrixOp, CircuitStateFn,
+    VectorStateFn, DictStateFn, OperatorStateFn, ListOp, ComposedOp, TensoredOp, SummedOp
 )
 
 
@@ -405,6 +405,9 @@ class TestOpConstruction(QiskitAquaTestCase):
     def test_permute_on_list_op(self):
         """ Test if permute method of ListOp works correctly and is consistent with other
         permute methods. """
+
+        composed_op = ComposedOp([(X ^ Y ^ Z), (Z ^ X ^ Y).to_circuit_op()])
+        composed_op_perm = composed_op.permute([1, 2, 0])
 
     def test_expand_on_state_fn(self):
         """ Tests num_qubits on the original instance and expanded instance of StateFn """
