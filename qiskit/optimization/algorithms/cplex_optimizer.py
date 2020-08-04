@@ -15,8 +15,8 @@
 
 """The CPLEX optimizer wrapped to be used within Qiskit's optimization module."""
 
-from typing import Optional
 import logging
+from typing import Optional
 
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
 from ..exceptions import QiskitOptimizationError

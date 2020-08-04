@@ -14,17 +14,15 @@
 # that they have been altered from the originals.
 
 """A wrapper for minimum eigen solvers from Aqua to be used within the optimization module."""
-import copy
 from typing import Optional, Any, Union, Tuple, List
-import numpy as np
 
+import numpy as np
 from qiskit.aqua.algorithms import MinimumEigensolver
 from qiskit.aqua.operators import StateFn, DictStateFn
 
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
-from ..problems.quadratic_program import QuadraticProgram, Variable
-from ..converters.quadratic_program_to_ising import QuadraticProgramToIsing
 from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
+from ..problems.quadratic_program import QuadraticProgram, Variable
 
 
 class MinimumEigenOptimizerResult(OptimizationResult):

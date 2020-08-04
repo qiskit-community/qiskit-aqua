@@ -14,19 +14,19 @@
 
 """A recursive minimal eigen optimizer in Qiskit's optimization module."""
 
+import logging
 from copy import deepcopy
 from typing import Optional
-import logging
-import numpy as np
 
+import numpy as np
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.aqua.utils.validation import validate_min
 
-from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
 from .minimum_eigen_optimizer import MinimumEigenOptimizer, MinimumEigenOptimizerResult
+from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
+from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
 from ..exceptions import QiskitOptimizationError
 from ..problems.quadratic_program import QuadraticProgram
-from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
 
 logger = logging.getLogger(__name__)
 
