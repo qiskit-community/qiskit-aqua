@@ -400,10 +400,10 @@ class TestConverters(QiskitOptimizationTestCase):
             linear[x.name] = 1
         op.linear_constraint(linear, Constraint.Sense.EQ, 6, 'x0x1x2')
         conv = IntegerToBinary()
-        _ = conv.convert(op)
-        result = OptimizationResult(x=[0, 1, 1, 1, 1], fval=17)
+        op2 = conv.convert(op)
+        result = OptimizationResult(x=[0, 1, 1, 1, 1], fval=17, variables=op2.variables)
         new_result = conv.interpret(result)
-        self.assertListEqual(new_result.x, [0, 1, 5])
+        np.testing.assert_array_almost_equal(new_result.x, [0, 1, 5])
         self.assertEqual(new_result.fval, 17)
 
     def test_optimizationproblem_to_ising(self):
@@ -532,7 +532,7 @@ class TestConverters(QiskitOptimizationTestCase):
         result = exact.solve(qubo)
         result_auto = exact.solve(qubo_auto)
         self.assertEqual(result.fval, result_auto.fval)
-        self.assertListEqual(result.x, result_auto.x)
+        np.testing.assert_array_almost_equal(result.x, result_auto.x)
 
     def test_auto_penalty_warning(self):
         """ Test warnings of auto penalty function"""
@@ -556,11 +556,11 @@ class TestConverters(QiskitOptimizationTestCase):
     def test_linear_equality_to_penalty_decode(self):
         """ Test decode func of LinearEqualityToPenalty"""
         qprog = QuadraticProgram()
-        qprog .binary_var('x')
-        qprog .binary_var('y')
-        qprog .binary_var('z')
-        qprog .maximize(linear={'x': 3, 'y': 1, 'z': 1})
-        qprog .linear_constraint(linear={'x': 1, 'y': 1, 'z': 1}, sense='EQ', rhs=2, name='xyz_eq')
+        qprog.binary_var('x')
+        qprog.binary_var('y')
+        qprog.binary_var('z')
+        qprog.maximize(linear={'x': 3, 'y': 1, 'z': 1})
+        qprog.linear_constraint(linear={'x': 1, 'y': 1, 'z': 1}, sense='EQ', rhs=2, name='xyz_eq')
         lineq2penalty = LinearEqualityToPenalty()
         qubo = lineq2penalty.convert(qprog)
         exact_mes = NumPyMinimumEigensolver()
@@ -568,12 +568,12 @@ class TestConverters(QiskitOptimizationTestCase):
         result = exact.solve(qubo)
         decoded_result = lineq2penalty.interpret(result)
         self.assertEqual(decoded_result.fval, 4)
-        self.assertListEqual(decoded_result.x, [1, 1, 0])
+        np.testing.assert_array_almost_equal(decoded_result.x, [1, 1, 0])
         self.assertEqual(decoded_result.status, OptimizationResultStatus.SUCCESS)
-        infeasible_result = OptimizationResult(x=[1, 1, 1])
+        infeasible_result = OptimizationResult(x=[1, 1, 1], fval=0, variables=qprog.variables)
         decoded_infeasible_result = lineq2penalty.interpret(infeasible_result)
         self.assertEqual(decoded_infeasible_result.fval, 5)
-        self.assertListEqual(decoded_infeasible_result.x, [1, 1, 1])
+        np.testing.assert_array_almost_equal(decoded_infeasible_result.x, [1, 1, 1])
         self.assertEqual(decoded_infeasible_result.status, OptimizationResultStatus.INFEASIBLE)
 
 

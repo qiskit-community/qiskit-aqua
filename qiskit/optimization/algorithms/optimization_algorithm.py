@@ -16,7 +16,9 @@
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import Any, Optional, Union, List, Dict
+from typing import List, Union, Any, Optional, Dict
+
+import numpy as np
 
 from .. import QiskitOptimizationError
 from ..problems.quadratic_program import QuadraticProgram, Variable
@@ -86,74 +88,113 @@ class OptimizationAlgorithm(ABC):
 
 
 class OptimizationResultStatus(Enum):
-    """Feasible values for the termination status of an optimization algorithm."""
+    """Termination status of an optimization algorithm."""
+
     SUCCESS = 0
+    """the optimization algorithm succeeded to find an optimal solution."""
+
     FAILURE = 1
+    """the optimization algorithm ended in a failure."""
+
     INFEASIBLE = 2
+    """the optimization algorithm obtained an infeasible solution."""
 
 
 class OptimizationResult:
     """The optimization result class.
 
-    The optimization algorithms return an object of the type `OptimizationResult`, which enforces
-    providing the following attributes.
+    The optimization algorithms return an object of the type ``OptimizationResult``
+    with the information about the solution obtained.
 
-    Attributes:
-        x: The optimal value found in the optimization algorithm.
-        fval: The function value corresponding to the optimal value.
-        results: The original results object returned from the optimization algorithm. This can
-            contain more information than only the optimal value and function value.
-        status: The termination status of the algorithm.
-        variables: The list of variables under optimization.
+    ``OptimizationResult`` allows users to get the value of a variable by specifying an index or
+    a name as follows.
+
+    Examples:
+        >>> from qiskit.optimization import QuadraticProgram
+        >>> from qiskit.optimization.algorithms import CplexOptimizer
+        >>> problem = QuadraticProgram()
+        >>> _ = problem.binary_var('x1')
+        >>> _ = problem.binary_var('x2')
+        >>> _ = problem.binary_var('x3')
+        >>> problem.minimize(linear={'x1': 1, 'x2': -2, 'x3': 3})
+        >>> print([var.name for var in problem.variables])
+        ['x1', 'x2', 'x3']
+        >>> optimizer = CplexOptimizer()
+        >>> result = optimizer.solve(problem)
+        >>> print(result.variable_names)
+        ['x1', 'x2', 'x3']
+        >>> print(result.x)
+        [0. 1. 0.]
+        >>> print(result[1])
+        1.0
+        >>> print(result['x1'])
+        0.0
+        >>> print(result.fval)
+        -2.0
+        >>> print(result.variables_dict)
+        {'x1': 0.0, 'x2': 1.0, 'x3': 0.0}
+
+    Note:
+        The order of variables should be equal to that of the problem solved by
+        optimization algorithms. Optimization algorithms and converters of ``QuadraticProgram``
+        should maintain the order when generating a new ``OptimizationResult`` object.
     """
 
-    Status = OptimizationResultStatus
-
-    def __init__(self, x: Optional[Any] = None, fval: Optional[Any] = None,
-                 results: Optional[Any] = None,
-                 status: OptimizationResultStatus = OptimizationResultStatus.SUCCESS,
-                 variables: Optional[List[Variable]] = None) -> None:
-        self._x = x if x is not None else []   # pylint: disable=invalid-name
-        self._variables = variables if variables is not None else []
+    def __init__(self, x: Union[List[float], np.ndarray], fval: float,
+                 variables: List[Variable],
+                 raw_results: Optional[Any] = None,
+                 status: OptimizationResultStatus = OptimizationResultStatus.SUCCESS) -> None:
+        """
+        Args:
+            x: the optimal value found in the optimization.
+            fval: the optimal function value.
+            variables: the list of variables of the optimization problem.
+            raw_results: the original results object from the optimization algorithm.
+            status: the termination status of the optimization algorithm.
+        """
+        self._x = x if isinstance(x, np.ndarray) else np.array(x)  # pylint: disable=invalid-name
         self._fval = fval
-        self._results = results
+        self._raw_results = raw_results
         self._status = status
-        self._variable_names = [variable.name for variable in self._variables]
+        self._variables = variables
+        self._variable_names = [var.name for var in self._variables]
         self._variables_dict = dict(zip(self._variable_names, self._x))
 
-    def __repr__(self):
-        self._x = self._x if self._x is not None else []
-        return 'optimal variables: [{}]\noptimal function value: {}\nstatus: {}' \
-            .format(','.join([str(x_) for x_ in self._x]), self._fval, self._status.name)
+    def __repr__(self) -> str:
+        return 'optimal function value: {}\n' \
+               'optimal value: {}\n' \
+               'status: {}'.format(self._fval, self._x, self._status.name)
 
-    def __getitem__(self, item: Union[int, str]):
-        if isinstance(item, int):
-            return self._x[item]
-        if isinstance(item, str):
-            return self._variables_dict[item]
-        raise QiskitOptimizationError("Integer or string parameter required, instead "
-                                      + type(item).__name__ + " provided.")
+    def __getitem__(self, key: Union[int, str]) -> float:
+        """Returns the value of the variable whose index or name is equal to ``key``.
 
-    @property
-    def variables_dict(self) -> Optional[Dict[str, int]]:
-        """Returns the pairs of variable names and values under optimization.
+        The key can be an integer or a string.
+        If the key is an integer, this methods returns the value of the variable
+        whose index is equal to ``key``.
+        If the key is a string, this methods return the value of the variable
+        whose name is equal to ``key``.
 
-        Returns:
-            The pairs of variable names and values under optimization.
-        """
-        return self._variables_dict
-
-    @property
-    def variable_names(self) -> Optional[List[str]]:
-        """Returns the list of variable names under optimization.
+        Args:
+            key: an integer or a string.
 
         Returns:
-            The list of variable names under optimization.
+            The value of a variable whose index or name is equal to ``key``.
+
+        Raises:
+            IndexError: if ``key`` is an integer and is out of range of the variables.
+            KeyError: if ``key`` is a string and none of the variables has ``key`` as name.
+            TypeError: if ``key`` is neither an integer nor a string.
         """
-        return self._variable_names
+        if isinstance(key, int):
+            return self._x[key]
+        if isinstance(key, str):
+            return self._variables_dict[key]
+        raise TypeError(
+            "Integer or string key required,"
+            "instead {}({}) provided.".format(type(key), key))
 
     @property
-    def x(self) -> Any:
+    def x(self) -> np.ndarray:
         """Returns the optimal value found in the optimization.
 
         Returns:
@@ -161,17 +202,8 @@ class OptimizationResult:
         """
         return self._x
 
-    @x.setter  # type: ignore
-    def x(self, x: Any) -> None:
-        """Set a new optimal value.
-
-        Args:
-            x: The new optimal value.
-        """
-        self._x = x
-
     @property
-    def fval(self) -> Any:
+    def fval(self) -> float:
         """Returns the optimal function value.
 
         Returns:
@@ -179,49 +211,49 @@ class OptimizationResult:
         """
         return self._fval
 
-    @fval.setter  # type: ignore
-    def fval(self, fval: Any) -> None:
-        """Set a new optimal function value.
-
-        Args:
-            fval: The new optimal function value.
-        """
-        self._fval = fval
-
     @property
-    def results(self) -> Any:
-        """Return the original results object from the algorithm.
+    def raw_results(self) -> Any:
+        """Return the original results object from the optimization algorithm.
 
         Currently a dump for any leftovers.
 
         Returns:
             Additional result information of the optimization algorithm.
         """
-        return self._results
-
-    @results.setter  # type: ignore
-    def results(self, results: Any) -> None:
-        """Set results.
-
-        Args:
-            results: The new additional results of the optimization.
-        """
-        self._results = results
+        return self._raw_results
 
     @property
     def status(self) -> OptimizationResultStatus:
-        """Return the termination status of the algorithm.
+        """Returns the termination status of the optimization algorithm.
 
         Returns:
             The termination status of the algorithm.
         """
         return self._status
 
-    @status.setter  # type: ignore
-    def status(self, status: OptimizationResultStatus) -> None:
-        """Set a new termination status.
+    @property
+    def variables(self) -> List[Variable]:
+        """Returns the list of variables of the optimization problem.
 
-        Args:
-            status: The new termination status.
+        Returns:
+            The list of variables.
         """
-        self._status = status
+        return self._variables
+
+    @property
+    def variables_dict(self) -> Dict[str, float]:
+        """Returns the optimal value as a dictionary of the variable name and corresponding value.
+
+        Returns:
+            The optimal value as a dictionary of the variable name and corresponding value.
+        """
+        return self._variables_dict
+
+    @property
+    def variable_names(self) -> List[str]:
+        """Returns the list of variable names of the optimization problem.
+
+        Returns:
+            The list of variable names of the optimization problem.
+        """
+        return self._variable_names

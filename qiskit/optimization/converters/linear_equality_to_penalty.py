@@ -15,16 +15,16 @@
 """Converter to convert a problem with equality constraints to unconstrained with penalty terms."""
 
 import copy
-from typing import Optional, cast, Union, Tuple, Dict
-from math import fsum
 import logging
+from math import fsum
+from typing import Optional, cast, Union, Tuple, Dict
 
 from ..algorithms.optimization_algorithm import OptimizationResult, OptimizationResultStatus
-from ..problems.quadratic_program import QuadraticProgram, QuadraticProgramStatus
-from ..problems.variable import Variable
+from ..exceptions import QiskitOptimizationError
 from ..problems.constraint import Constraint
 from ..problems.quadratic_objective import QuadraticObjective
-from ..exceptions import QiskitOptimizationError
+from ..problems.quadratic_program import QuadraticProgram, QuadraticProgramStatus
+from ..problems.variable import Variable
 from .quadratic_program_converter import QuadraticProgramConverter
 
 logger = logging.getLogger(__name__)
@@ -185,19 +185,15 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
             substitute_dict[variables[i].name] = float(result.x[i])
         substituted_qp = self._src.substitute_variables(substitute_dict)
 
-        new_result = copy.deepcopy(result)
-        new_result.x = result.x
-
-        # Set the new function value
-        new_result.fval = substituted_qp.objective.constant
-
         # Set the new status of optimization result
         if substituted_qp.status == QuadraticProgramStatus.VALID:
-            new_result.status = OptimizationResultStatus.SUCCESS
+            new_status = OptimizationResultStatus.SUCCESS
         else:
-            new_result.status = OptimizationResultStatus.INFEASIBLE
+            new_status = OptimizationResultStatus.INFEASIBLE
 
-        return new_result
+        return OptimizationResult(x=result.x, fval=substituted_qp.objective.constant,
+                                  variables=result.variables, raw_results=result.raw_results,
+                                  status=new_status)
 
     @property
     def penalty(self) -> Optional[float]:
