@@ -280,7 +280,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         from ..converters.integer_to_binary import IntegerToBinary
         int2bin = IntegerToBinary()
         original_variables = problem.variables
-        problem = int2bin.encode(problem)
+        problem = int2bin.convert(problem)
 
         # we deal with minimization in the optimizer, so turn the problem to minimization
         problem, sense = self._turn_to_minimization(problem)
@@ -368,7 +368,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         # convert back integer to binary
         base_result = OptimizationResult(solution, objective_value, original_variables)
-        base_result = int2bin.decode(base_result)
+        base_result = int2bin.interpret(base_result)
 
         # third parameter is our internal state of computations.
         result = ADMMOptimizationResult(x=base_result.x, fval=base_result.fval,

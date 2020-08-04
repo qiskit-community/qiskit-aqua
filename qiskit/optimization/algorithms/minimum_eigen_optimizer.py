@@ -14,7 +14,7 @@
 # that they have been altered from the originals.
 
 """A wrapper for minimum eigen solvers from Aqua to be used within the optimization module."""
-
+import copy
 from typing import Optional, Any, Union, Tuple, List
 import numpy as np
 
@@ -109,6 +109,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         """
         self._min_eigen_solver = min_eigen_solver
         self._penalty = penalty
+        self._qubo_converter = QuadraticProgramToQubo()
 
     def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
         """Checks whether a given problem can be solved with this optimizer.
@@ -141,12 +142,10 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         self._verify_compatibility(problem)
 
         # convert problem to QUBO
-        qubo_converter = QuadraticProgramToQubo()
-        problem_ = qubo_converter.encode(problem)
+        problem_ = self._qubo_converter.convert(problem)
 
         # construct operator and offset
-        operator_converter = QuadraticProgramToIsing()
-        operator, offset = operator_converter.encode(problem_)
+        operator, offset = problem_.to_ising()
 
         # only try to solve non-empty Ising Hamiltonians
         x = None  # type: Optional[Any]
@@ -174,11 +173,10 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
 
         # translate result back to integers
         base_res = OptimizationResult(x=x, fval=fval, variables=problem.variables)
-        base_res = qubo_converter.decode(base_res)
+        base_res = self._qubo_converter.interpret(base_res)
         opt_res = MinimumEigenOptimizerResult(x=base_res.x, fval=base_res.fval,
                                               variables=base_res.variables,
                                               samples=samples)
-        # translate results back to original problem
         return opt_res
 
 
