@@ -26,7 +26,7 @@ from qiskit.optimization.applications.ising.common import sample_most_likely
 from qiskit.aqua.components.optimizers import COBYLA
 from qiskit.aqua.algorithms import QAOA
 from qiskit.aqua import QuantumInstance, aqua_globals
-from qiskit.aqua.operators import X, Z, I
+from qiskit.aqua.operators import X, I
 
 W1 = np.array([
     [0, 1, 0, 1],
@@ -87,19 +87,46 @@ class TestQAOA(QiskitOptimizationTestCase):
         self.assertIn(''.join([str(int(i)) for i in graph_solution]), solutions)
 
     def test_change_operator_size(self):
-        """ QAOA test """
-        backend = BasicAer.get_backend('statevector_simulator')
-        optimizer = COBYLA(maxiter=2)
-        qubit_op, _ = max_cut.get_operator(W1)
-        qubit_op = qubit_op.to_opflow().to_matrix_op()
+        """ QAOA change operator size test """
 
-        seed = 0
-        aqua_globals.random_seed = seed
-        qaoa = QAOA(qubit_op, optimizer, P1)
-        quantum_instance = QuantumInstance(backend, seed_simulator=seed, seed_transpiler=seed)
-        qaoa.run(quantum_instance)
-        qaoa.operator = (X ^ qubit_op ^ Z)
-        qaoa.run()
+        aqua_globals.random_seed = 0
+        qubit_op, _ = max_cut.get_operator(
+            np.array([
+                [0, 1, 0, 1],
+                [1, 0, 1, 0],
+                [0, 1, 0, 1],
+                [1, 0, 1, 0]
+            ]))
+        qaoa = QAOA(qubit_op.to_opflow(), COBYLA(), 1)
+        quantum_instance = QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                           seed_simulator=aqua_globals.random_seed,
+                                           seed_transpiler=aqua_globals.random_seed)
+        result = qaoa.run(quantum_instance)
+        x = sample_most_likely(result.eigenstate)
+        graph_solution = max_cut.get_graph_solution(x)
+        with self.subTest(msg='QAOA 4x4'):
+            self.assertIn(''.join([str(int(i)) for i in graph_solution]), {'0101', '1010'})
+
+        try:
+            qubit_op, _ = max_cut.get_operator(
+                np.array([
+                    [0, 1, 0, 1, 0, 1],
+                    [1, 0, 1, 0, 1, 0],
+                    [0, 1, 0, 1, 0, 1],
+                    [1, 0, 1, 0, 1, 0],
+                    [0, 1, 0, 1, 0, 1],
+                    [1, 0, 1, 0, 1, 0],
+                ]))
+            qaoa.operator = qubit_op.to_opflow()
+        except Exception as ex:  # pylint: disable=broad-except
+            self.fail("Failed to change operator. Error: '{}'".format(str(ex)))
+            return
+
+        result = qaoa.run()
+        x = sample_most_likely(result.eigenstate)
+        graph_solution = max_cut.get_graph_solution(x)
+        with self.subTest(msg='QAOA 6x6'):
+            self.assertIn(''.join([str(int(i)) for i in graph_solution]), {'010101', '101010'})
 
     @idata([
         [W2, S2, None],
