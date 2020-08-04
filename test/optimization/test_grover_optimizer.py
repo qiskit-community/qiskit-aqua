@@ -32,7 +32,6 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
         aqua_globals.random_seed = 1
         self.q_instance = QuantumInstance(Aer.get_backend('statevector_simulator'),
                                           seed_simulator=921, seed_transpiler=200)
-        # logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
 
     def validate_results(self, problem, results):
         """Validate the results object returned by GroverOptimizer."""
