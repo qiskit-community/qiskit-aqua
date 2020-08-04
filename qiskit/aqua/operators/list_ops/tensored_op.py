@@ -17,12 +17,15 @@
 from typing import List, Union, cast
 from functools import reduce, partial
 import numpy as np
+from sympy.combinatorics import Permutation
 
+from qiskit import QuantumCircuit
 from qiskit.circuit import ParameterExpression
 from qiskit.quantum_info import Pauli
 
 from ..operator_base import OperatorBase
 from .list_op import ListOp
+from ... import AquaError
 
 
 class TensoredOp(ListOp):
@@ -63,6 +66,41 @@ class TensoredOp(ListOp):
         """
         from qiskit.aqua.operators import PauliOp
         return TensoredOp(self.oplist + [PauliOp(Pauli(label='I' * num_qubits))])
+
+    def permute(self, permutation: List[int]) -> 'ListOp':
+        r"""
+        Permute the qubits of the operator.
+
+        Args:
+            permutation: A list defining where each qubit should be permuted. The qubit at index
+                j should be permuted to position permutation[j].
+
+        Returns:
+            A new ListOp containing the permuted circuit.
+        Raises:
+            AquaError: if indices does not define a new index for each qubit.
+        """
+        new_self = self
+        circuit_size = max(permutation) + 1
+
+        if self.num_qubits != len(permutation):
+            raise AquaError("New index must be defined for each qubit of the operator.")
+        if self.num_qubits < circuit_size:
+            # pad the operator with identities
+            new_self = self.expand_to_dim(circuit_size - self.num_qubits)
+        qc = QuantumCircuit(circuit_size)
+        # extend the indices to match the size of the circuit
+        indices = list(filter(lambda x: x not in indices, range(circuit_size))) + permutation
+
+        # decompose permutation into sequence of transpositions
+        transpositions = Permutation(indices).transpositions()
+        for trans in transpositions:
+            qc.swap(trans[0], trans[1])
+
+        from qiskit.aqua.operators import CircuitOp, MatrixOp
+
+        matrix = CircuitOp(qc).to_matrix()
+        return MatrixOp(matrix.transpose()) @ new_self @ MatrixOp(matrix)  # type: ignore
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
         if isinstance(other, TensoredOp):
