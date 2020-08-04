@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 
 # This code is part of Qiskit.
@@ -14,6 +13,7 @@
 # that they have been altered from the originals.
 
 """A wrapper for minimum eigen solvers from Aqua to be used within the optimization module."""
+from copy import deepcopy
 from typing import Optional, Any, Union, Tuple, List
 
 import numpy as np
@@ -29,20 +29,23 @@ class MinimumEigenOptimizerResult(OptimizationResult):
     """ Minimum Eigen Optimizer Result."""
 
     def __init__(self, x: List[float], fval: float, variables: List[Variable],
-                 samples: List[Tuple[str, float, float]]) -> None:
+                 samples: List[Tuple[str, float, float]],
+                 qubo_converter: QuadraticProgramToQubo) -> None:
         """
         Args:
             x: the optimal value found by ``MinimumEigensolver``.
             fval: the optimal function value.
             variables: the list of variables of the optimization problem.
             samples: the basis state as bitstring, the QUBO value, and the probability of sampling.
+            qubo_converter: ``QuadraticProgram`` to QUBO converter.
         """
-        super().__init__(x=x, fval=fval, variables=variables, raw_results=samples)
+        super().__init__(x=x, fval=fval, variables=variables,
+                         raw_results={'samples': samples, 'qubo_converter': qubo_converter})
 
     @property
     def samples(self) -> List[Tuple[str, float, float]]:
         """ returns samples """
-        return self._raw_results
+        return self._raw_results['samples']
 
     def get_correlations(self) -> np.ndarray:
         """ get <Zi x Zj> correlation matrix from samples """
@@ -164,9 +167,9 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
 
         # if Hamiltonian is empty, then the objective function is constant to the offset
         else:
-            x = [0]*problem_.get_num_binary_vars()
+            x = [0] * problem_.get_num_binary_vars()
             fval = offset
-            x_str = '0'*problem_.get_num_binary_vars()
+            x_str = '0' * problem_.get_num_binary_vars()
             samples = [(x_str, offset, 1.0)]
 
         # translate result back to integers
@@ -174,7 +177,8 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         base_res = self._qubo_converter.interpret(base_res)
         opt_res = MinimumEigenOptimizerResult(x=base_res.x, fval=base_res.fval,
                                               variables=base_res.variables,
-                                              samples=samples)
+                                              samples=samples,
+                                              qubo_converter=deepcopy(self._qubo_converter))
         return opt_res
 
 
@@ -211,7 +215,7 @@ def _eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray, StateFn],
         TypeError: If the type of eigenvector is not supported.
     """
     if isinstance(eigenvector, DictStateFn):
-        eigenvector = {bitstr: val**2 for (bitstr, val) in eigenvector.primitive.items()}
+        eigenvector = {bitstr: val ** 2 for (bitstr, val) in eigenvector.primitive.items()}
     elif isinstance(eigenvector, StateFn):
         eigenvector = eigenvector.to_matrix()
 
