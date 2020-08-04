@@ -133,9 +133,6 @@ class CircuitOp(PrimitiveOp):
             else:
                 return CircuitOp(new_qc, coeff=self.coeff * other.coeff)
 
-        if isinstance(other, ComposedOp):
-            return ComposedOp([self] + other.oplist)
-
         return ComposedOp([self, other])
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
