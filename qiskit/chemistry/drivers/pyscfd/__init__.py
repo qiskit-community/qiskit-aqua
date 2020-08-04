@@ -23,10 +23,6 @@ According to the `PySCF installation instructions <http://sunqm.github.io/pyscf/
 the preferred installation method is via the pip package management system.  Doing so,
 while in the Python virtual environment where Qiskit's chemistry module is also installed, will
 automatically make PySCF available to Qiskit at run time.
-
-Note: `PySCF` is automatically installed for `macOS` and `Linux` platforms when Qiskit is
-installed via the pip package management system.
-
 """
 
 from .pyscfdriver import PySCFDriver, InitialGuess

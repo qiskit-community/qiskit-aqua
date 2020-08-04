@@ -15,8 +15,8 @@
 
 """The CPLEX optimizer wrapped to be used within Qiskit's optimization module."""
 
-from typing import Optional
 import logging
+from typing import Optional
 
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
 from ..exceptions import QiskitOptimizationError
@@ -135,7 +135,10 @@ class CplexOptimizer(OptimizationAlgorithm):
         sol = cplex.solution
 
         # create results
-        result = OptimizationResult(sol.get_values(), sol.get_objective_value(), sol)
+        result = OptimizationResult(x=sol.get_values(),
+                                    fval=sol.get_objective_value(),
+                                    variables=problem.variables,
+                                    raw_results=sol)
 
         # return solution
         return result

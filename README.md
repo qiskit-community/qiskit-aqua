@@ -73,7 +73,7 @@ these on a quantum backend, whether a real device or simulator.
 * **IBM CPLEX** may be [installed](https://qiskit.org/documentation/apidoc/qiskit.aqua.algorithms.minimum_eigen_solvers.cplex.html)
   to allow use of the `ClassicalCPLEX` classical solver algorithm. `pip install cplex` may be used
   as an alternative.
-* **PyTorch**, may be installed either using command `pip install qiskit-aqua[torch]` to install the
+* **PyTorch**, may be installed either using command `pip install torch` to install the
   package or refer to PyTorch [getting started](https://pytorch.org/get-started/locally/). PyTorch
   being installed will enable the neural networks `PyTorchDiscriminator` component to be used with
   the QGAN algorithm.
@@ -160,10 +160,6 @@ a classical computation chemistry software program/library interfaced by Qiskit.
 Several, as listed below, are supported, and while logic to interface these programs is supplied by
 the chemistry module via the above pip installation, the dependent programs/libraries themselves need
 to be installed separately.
-
-Note: As `PySCF` can be installed via pip the installation of Qiskit (Aqua) will install PySCF
-where it's supported (MacOS and Linux x86). For other platforms see the PySCF information as to
-whether this might be possible manually.
 
 1. [Gaussian 16&trade;](https://qiskit.org/documentation/apidoc/qiskit.chemistry.drivers.gaussiand.html), a commercial chemistry program
 2. [PSI4](https://qiskit.org/documentation/apidoc/qiskit.chemistry.drivers.psi4d.html), a chemistry program that exposes a Python interface allowing for accessing internal objects
