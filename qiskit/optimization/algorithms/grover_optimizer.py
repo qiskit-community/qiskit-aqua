@@ -173,7 +173,7 @@ class GroverOptimizer(OptimizationAlgorithm):
         n_value = self._num_value_qubits
 
         # Variables for tracking the solutions encountered.
-        num_solutions = 2**n_key
+        num_solutions = 2 ** n_key
         keys_measured = []
 
         # Variables for result object.
@@ -182,7 +182,7 @@ class GroverOptimizer(OptimizationAlgorithm):
 
         # Variables for stopping if we've hit the rotation max.
         rotations = 0
-        max_rotations = int(np.ceil(100*np.pi/4))
+        max_rotations = int(np.ceil(100 * np.pi / 4))
 
         # Initialize oracle helper object.
         qr_key_value = QuantumRegister(self._num_key_qubits + self._num_value_qubits)
@@ -203,7 +203,7 @@ class GroverOptimizer(OptimizationAlgorithm):
             while not improvement_found:
                 # Determine the number of rotations.
                 loops_with_no_improvement += 1
-                rotation_count = int(np.ceil(aqua_globals.random.uniform(0, m-1)))
+                rotation_count = int(np.ceil(aqua_globals.random.uniform(0, m - 1)))
                 rotations += rotation_count
 
                 # Apply Grover's Algorithm to find values below the threshold.
@@ -234,7 +234,7 @@ class GroverOptimizer(OptimizationAlgorithm):
                         threshold = optimum_value
                 else:
                     # Using Durr and Hoyer method, increase m.
-                    m = int(np.ceil(min(m * 8/7, 2**(n_key / 2))))
+                    m = int(np.ceil(min(m * 8 / 7, 2 ** (n_key / 2))))
                     logger.info('No Improvement. M: %s', m)
 
                     # Check if we've already seen this value.
@@ -260,13 +260,14 @@ class GroverOptimizer(OptimizationAlgorithm):
         opt_x = np.array([1 if s == '1' else 0 for s in ('{0:%sb}' % n_key).format(optimum_key)])
 
         # Build the results object.
-        grover_results = GroverOptimizationResults(operation_count, n_key, n_value)
+        grover_results = GroverOptimizationRawResult(operation_count, n_key, n_value)
 
         # Compute function value
         fval = problem.objective.evaluate(opt_x)
-        result = OptimizationResult(x=opt_x, variables=problem.variables, fval=fval,
-                                    results={"grover_results": grover_results,
-                                             "qubo_converter": copy.deepcopy(self._qubo_converter)})
+        result = OptimizationResult(x=opt_x, fval=fval, variables=problem.variables,
+                                    raw_results={
+                                        "grover_results": grover_results,
+                                        "qubo_converter": copy.deepcopy(self._qubo_converter)})
 
         # cast binaries back to integers
         result = self._qubo_converter.interpret(result)
@@ -279,7 +280,7 @@ class GroverOptimizer(OptimizationAlgorithm):
         freq = sorted(probs.items(), key=lambda x: x[1], reverse=True)
 
         # Pick a random outcome.
-        freq[len(freq)-1] = (freq[len(freq)-1][0], 1.0 - sum([x[1] for x in freq[0:len(freq)-1]]))
+        freq[-1] = (freq[-1][0], 1.0 - sum(x[1] for x in freq[0:len(freq) - 1]))
         idx = aqua_globals.random.choice(len(freq), 1, p=[x[1] for x in freq])[0]
         logger.info('Frequencies: %s', freq)
 
@@ -293,7 +294,7 @@ class GroverOptimizer(OptimizationAlgorithm):
             state = np.round(result.get_statevector(qc), 5)
             keys = [bin(i)[2::].rjust(int(np.log2(len(state))), '0')[::-1]
                     for i in range(0, len(state))]
-            probs = [np.round(abs(a)*abs(a), 5) for a in state]
+            probs = [np.round(abs(a) * abs(a), 5) for a in state]
             hist = dict(zip(keys, probs))
         else:
             state = result.get_counts(qc)
@@ -308,13 +309,13 @@ class GroverOptimizer(OptimizationAlgorithm):
     @staticmethod
     def _twos_complement(v: int, n_bits: int) -> str:
         """Converts an integer into a binary string of n bits using two's complement."""
-        assert -2**n_bits <= v < 2**n_bits
+        assert -2 ** n_bits <= v < 2 ** n_bits
 
         if v < 0:
-            v += 2**n_bits
+            v += 2 ** n_bits
             bin_v = bin(v)[2:]
         else:
-            format_string = '{0:0'+str(n_bits)+'b}'
+            format_string = '{0:0' + str(n_bits) + 'b}'
             bin_v = format_string.format(v)
 
         return bin_v
@@ -330,8 +331,8 @@ class GroverOptimizer(OptimizationAlgorithm):
         return int_v
 
 
-class GroverOptimizationResults:
-    """A results object for Grover Optimization methods."""
+class GroverOptimizationRawResult:
+    """A raw result object for Grover Optimization methods."""
 
     def __init__(self, operation_counts: Dict[int, Dict[str, int]],
                  n_input_qubits: int, n_output_qubits: int) -> None:
