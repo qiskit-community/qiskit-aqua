@@ -19,11 +19,14 @@ from typing import List, Union, Optional, Callable, Iterator, Set, Dict
 
 import numpy as np
 from scipy.sparse import spmatrix
+from sympy.combinatorics import Permutation
 
+from qiskit import QuantumCircuit
 from qiskit.circuit import ParameterExpression
 
 from ..legacy.base_operator import LegacyBaseOperator
 from ..operator_base import OperatorBase
+from ... import AquaError
 
 
 class ListOp(OperatorBase):
@@ -204,6 +207,40 @@ class ListOp(OperatorBase):
 
     def expand_to_dim(self, num_qubits: int) -> 'ListOp':
         raise NotImplementedError
+
+    def permute(self, permutation: List[int]) -> 'ListOp':
+        r"""
+        Permute the qubits of the operator.
+
+        Args:
+            permutation: A list defining where each qubit should be permuted. The qubit at index
+                j should be permuted to position permutation[j].
+
+        Returns:
+            A new ListOp containing the permuted circuit.
+        Raises:
+            AquaError: if indices does not define a new index for each qubit.
+        """
+        new_self = self
+        circuit_size = max(permutation) + 1
+
+        if self.num_qubits != len(permutation):
+            raise AquaError("New index must be defined for each qubit of the operator.")
+        if self.num_qubits < circuit_size:
+            # pad the operator with identities
+            new_self = self.expand_to_dim(circuit_size - self.num_qubits)
+        qc = QuantumCircuit(circuit_size)
+        # extend the indices to match the size of the circuit
+        indices = list(filter(lambda x: x not in indices, range(circuit_size))) + permutation
+
+        # decompose permutation into sequence of transpositions
+        transpositions = Permutation(indices).transpositions()
+        for trans in transpositions:
+            qc.swap(trans[0], trans[1])
+
+        from qiskit.aqua.operators import CircuitOp
+
+        return CircuitOp(qc.reverse_ops()) @ new_self @ CircuitOp(qc)  # type: ignore
 
     def compose(self, other: OperatorBase) -> OperatorBase:
         # Avoid circular dependency
