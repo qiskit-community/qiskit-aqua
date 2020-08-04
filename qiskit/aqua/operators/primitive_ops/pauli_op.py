@@ -27,7 +27,6 @@ from qiskit.circuit.library import RZGate, RYGate, RXGate, XGate, YGate, ZGate, 
 from ..operator_base import OperatorBase
 from .primitive_op import PrimitiveOp
 from ..list_ops.summed_op import SummedOp
-from ..list_ops.composed_op import ComposedOp
 from ..list_ops.tensored_op import TensoredOp
 from ..legacy.weighted_pauli_operator import WeightedPauliOperator
 
@@ -116,14 +115,7 @@ class PauliOp(PrimitiveOp):
         if isinstance(other, (CircuitOp, CircuitStateFn)):
             return self.to_circuit_op().compose(other)
 
-        if isinstance(other, ComposedOp):
-            comp_with_first = self.compose(other.oplist[0])
-            if not isinstance(comp_with_first, ComposedOp):
-                new_oplist = [comp_with_first] + other.oplist[1:]
-                return ComposedOp(new_oplist, coeff=other.coeff)
-            return ComposedOp([self] + other.oplist, coeff=other.coeff)
-
-        return ComposedOp([self, other])
+        return super(PauliOp, self).compose(other)
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
         if self.num_qubits > 16 and not massive:
