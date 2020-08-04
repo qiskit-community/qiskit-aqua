@@ -14,19 +14,19 @@
 
 """A recursive minimal eigen optimizer in Qiskit's optimization module."""
 
+import logging
 from copy import deepcopy
 from typing import Optional
-import logging
-import numpy as np
 
+import numpy as np
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.aqua.utils.validation import validate_min
 
+from .minimum_eigen_optimizer import MinimumEigenOptimizer, MinimumEigenOptimizerResult
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
-from .minimum_eigen_optimizer import MinimumEigenOptimizer
+from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
 from ..exceptions import QiskitOptimizationError
 from ..problems.quadratic_program import QuadraticProgram
-from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
 
 logger = logging.getLogger(__name__)
 
@@ -133,7 +133,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         while problem_.get_num_vars() > self._min_num_vars:
 
             # solve current problem with optimizer
-            res = self._min_eigen_optimizer.solve(problem_)
+            res = self._min_eigen_optimizer.solve(problem_)  # type: MinimumEigenOptimizerResult
 
             # analyze results to get strongest correlation
             correlations = res.get_correlations()
@@ -210,7 +210,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         x_v = [var_values[x_aux.name] for x_aux in problem_ref.variables]
         fval = result.fval
         results = OptimizationResult(x=x_v, fval=fval,
-                                     results=(replacements, deepcopy(self._qubo_converter)),
+                                     raw_results=(replacements, deepcopy(self._qubo_converter)),
                                      variables=problem.variables)
         results = self._qubo_converter.interpret(results)
         return results

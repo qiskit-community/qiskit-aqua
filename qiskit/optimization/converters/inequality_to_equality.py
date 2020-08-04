@@ -18,13 +18,13 @@ import logging
 import math
 from typing import List, Optional, Union
 
+from .quadratic_program_converter import QuadraticProgramConverter
 from ..algorithms.optimization_algorithm import OptimizationResult
 from ..exceptions import QiskitOptimizationError
 from ..problems.constraint import Constraint
 from ..problems.quadratic_objective import QuadraticObjective
 from ..problems.quadratic_program import QuadraticProgram
 from ..problems.variable import Variable
-from .quadratic_program_converter import QuadraticProgramConverter
 
 logger = logging.getLogger(__name__)
 
@@ -171,9 +171,10 @@ class InequalityToEquality(QuadraticProgramConverter):
 
     def _add_integer_slack_var_linear_constraint(self, linear, sense, rhs, name):
         # If a coefficient that is not integer exist, raise error
-        if self._contains_any_float_value(list(linear.values())):
-            raise QiskitOptimizationError(name + ' contains float coefficients. '
-                                          'We can not use an integer slack variable for ' + name)
+        if self._contains_any_float_value(linear.values()):
+            raise QiskitOptimizationError(
+                '"{0}" contains float coefficients. '
+                'We can not use an integer slack variable for "{0}"'.format(name))
 
         # If rhs is float number, round up/down to the nearest integer.
         new_rhs = rhs
@@ -240,8 +241,9 @@ class InequalityToEquality(QuadraticProgramConverter):
         # If a coefficient that is not integer exist, raise an error
         if (self._contains_any_float_value(list(linear.values()))
                 or self._contains_any_float_value(list(quadratic.values()))):
-            raise QiskitOptimizationError(name + ' contains float coefficients. '
-                                          'We can not use an integer slack variable for ' + name)
+            raise QiskitOptimizationError(
+                '"{0}" contains float coefficients. '
+                'We can not use an integer slack variable for "{0}"'.format(name))
 
         # If rhs is float number, round up/down to the nearest integer.
         new_rhs = rhs
@@ -348,13 +350,11 @@ class InequalityToEquality(QuadraticProgramConverter):
         Returns:
             The result of the original problem.
         """
-        # copy fval and status of the result of the converted problem
-        new_result = copy.deepcopy(result)
         # convert back the optimization result into that of the original problem
         names = [x.name for x in self._dst.variables]
-        vals = result.x
-        new_result.x = self._interpret_var(names, vals)  # type: ignore
-        return new_result
+        new_x = self._interpret_var(names, result.x)
+        return OptimizationResult(x=new_x, fval=result.fval, variables=self._dst.variables,
+                                  raw_results=result.raw_results, status=result.status)
 
     def _interpret_var(self, names, vals) -> List[int]:
         # interpret slack variables

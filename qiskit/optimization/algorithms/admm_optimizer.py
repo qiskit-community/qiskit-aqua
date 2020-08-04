@@ -17,7 +17,7 @@ import copy
 import logging
 import time
 import warnings
-from typing import List, Optional, Any, Tuple, cast
+from typing import List, Optional, Tuple
 
 import numpy as np
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
@@ -174,19 +174,21 @@ class ADMMState:
 class ADMMOptimizationResult(OptimizationResult):
     """ ADMMOptimization Result."""
 
-    def __init__(self, x: Optional[Any] = None, fval: Optional[Any] = None,
-                 state: Optional[ADMMState] = None, results: Optional[Any] = None,
-                 variables: Optional[List[Variable]] = None) -> None:
-        super().__init__(x=x,
-                         variables=variables,
-                         fval=fval,
-                         results=results or state)
-        self._state = state
+    def __init__(self, x: np.ndarray, fval: float, variables: List[Variable],
+                 state: ADMMState) -> None:
+        """
+        Args:
+            x: the optimal value found by ADMM.
+            fval: the optimal function value.
+            variables: the list of variables of the optimization problem.
+            state: the internal computation state of ADMM.
+        """
+        super().__init__(x=x, fval=fval, variables=variables, raw_results=state)
 
     @property
-    def state(self) -> Optional[ADMMState]:
+    def state(self) -> ADMMState:
         """ returns state """
-        return self._state
+        return self._raw_results
 
 
 class ADMMOptimizer(OptimizationAlgorithm):
@@ -277,6 +279,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # map integer variables to binary variables
         from ..converters.integer_to_binary import IntegerToBinary
         int2bin = IntegerToBinary()
+        original_variables = problem.variables
         problem = int2bin.convert(problem)
 
         # we deal with minimization in the optimizer, so turn the problem to minimization
@@ -363,16 +366,15 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # flip the objective sign again if required
         objective_value = objective_value * sense
 
-        # third parameter is our internal state of computations.
-        result = ADMMOptimizationResult(x=solution,
-                                        fval=objective_value,
-                                        state=self._state,
-                                        results={"integer_to_binary_converter": copy.deepcopy(
-                                            int2bin)},
-                                        variables=problem.variables)
-
         # convert back integer to binary
-        result = cast(ADMMOptimizationResult, int2bin.interpret(result))
+        base_result = OptimizationResult(solution, objective_value, original_variables)
+        base_result = int2bin.interpret(base_result)
+
+        # third parameter is our internal state of computations.
+        result = ADMMOptimizationResult(x=base_result.x, fval=base_result.fval,
+                                        variables=base_result.variables,
+                                        state=self._state)
+
         # debug
         self._log.debug("solution=%s, objective=%s at iteration=%s",
                         solution, objective_value, iteration)

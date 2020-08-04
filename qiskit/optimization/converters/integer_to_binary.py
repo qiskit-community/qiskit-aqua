@@ -16,7 +16,7 @@
 
 import copy
 import logging
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -55,7 +55,6 @@ class IntegerToBinary(QuadraticProgramConverter):
         self._src = None  # type: Optional[QuadraticProgram]
         self._dst = None  # type: Optional[QuadraticProgram]
         self._conv = {}  # type: Dict[Variable, List[Tuple[str, int]]]
-
         # e.g., self._conv = {x: [('x@1', 1), ('x@2', 2)]}
 
     def convert(self, problem: QuadraticProgram) -> QuadraticProgram:
@@ -220,17 +219,13 @@ class IntegerToBinary(QuadraticProgramConverter):
         Returns:
             The result of the original problem.
         """
-        # copy fval and status of the result of the converted problem
-        new_result = copy.deepcopy(result)
-        # convert back additional binary variables into integer variables
-        vals = result.x
-        new_result.x = self._interpret_var(vals)  # type: ignore
+        new_x = self._interpret_var(result.x)
+        return OptimizationResult(x=new_x, fval=result.fval, variables=result.variables,
+                                  raw_results=result.raw_results)
 
-        return new_result
-
-    def _interpret_var(self, vals) -> List[float]:
+    def _interpret_var(self, vals: Union[List[float], np.ndarray]) -> List[float]:
         # interpret integer values
-        sol = {x.name: float(vals[i]) for i, x in enumerate(self._dst.variables)}
+        sol = {x.name: vals[i] for i, x in enumerate(self._dst.variables)}
         new_vals = []
         for x in self._src.variables:
             if x in self._conv:
