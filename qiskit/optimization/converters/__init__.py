@@ -30,16 +30,10 @@ Converters
 
    InequalityToEquality
    IntegerToBinary
-   QuadraticProgramToIsing
    QuadraticProgramToQubo
    LinearEqualityToPenalty
-   IsingToQuadraticProgram
 
 """
-
-# no opt problem dependency
-from .quadratic_program_to_ising import QuadraticProgramToIsing
-from .ising_to_quadratic_program import IsingToQuadraticProgram
 
 # opt problem dependency
 from .integer_to_binary import IntegerToBinary
@@ -51,8 +45,6 @@ from .quadratic_program_to_qubo import QuadraticProgramToQubo
 __all__ = [
     "InequalityToEquality",
     "IntegerToBinary",
-    "QuadraticProgramToIsing",
     "QuadraticProgramToQubo",
-    "LinearEqualityToPenalty",
-    "IsingToQuadraticProgram"
+    "LinearEqualityToPenalty"
 ]
