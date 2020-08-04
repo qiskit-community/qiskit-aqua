@@ -140,6 +140,9 @@ class PauliOp(PrimitiveOp):
         if isinstance(other, (CircuitOp, CircuitStateFn)):
             return self.to_circuit_op().compose(other)
 
+        if isinstance(other, ComposedOp):
+            return ComposedOp([self] + other.oplist)
+
         return ComposedOp([self, other])
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:

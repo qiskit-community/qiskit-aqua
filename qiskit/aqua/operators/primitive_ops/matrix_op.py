@@ -129,6 +129,9 @@ class MatrixOp(PrimitiveOp):
             return MatrixOp(self.primitive.compose(other.primitive, front=True),  # type: ignore
                             coeff=self.coeff * other.coeff)
 
+        if isinstance(other, ComposedOp):
+            return ComposedOp([self] + other.oplist)
+
         return ComposedOp([self, other])
 
     def permute(self, permutation: List[int] = None) -> 'MatrixOp':
