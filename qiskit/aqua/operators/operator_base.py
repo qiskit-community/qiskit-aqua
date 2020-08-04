@@ -451,6 +451,22 @@ class OperatorBase(ABC):
         """
         raise NotImplementedError
 
+    @abstractmethod
+    def permute(self, permutation: List[int]) -> 'OperatorBase':
+        r"""
+        Permutes the qubits of the operator.
+
+        Args:
+            permutation: A list defining where each qubit should be permuted. The qubit at index
+                j should be permuted to position permutation[j].
+
+        Returns:
+            A new OperatorBase containing the permuted circuit.
+        Raises:
+            AquaError: if indices does not define a new index for each qubit.
+        """
+        raise NotImplementedError
+
     def bind_parameters(self,
                         param_dict: Dict[ParameterExpression,
                                          Union[Number,

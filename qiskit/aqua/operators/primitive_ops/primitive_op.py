@@ -184,6 +184,9 @@ class PrimitiveOp(OperatorBase):
     def expand_to_dim(self, num_qubits: int) -> 'OperatorBase':
         raise NotImplementedError
 
+    def permute(self, permutation: List[int]) -> 'OperatorBase':
+        raise NotImplementedError
+
     def exp_i(self) -> OperatorBase:
         """ Return Operator exponentiation, equaling e^(-i * op)"""
         # pylint: disable=cyclic-import,import-outside-toplevel

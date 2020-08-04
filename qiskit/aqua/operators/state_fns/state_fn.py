@@ -14,7 +14,7 @@
 
 """ StateFn Class """
 
-from typing import Union, Optional, Callable, Set, Dict, Tuple
+from typing import Union, Optional, Callable, Set, Dict, Tuple, List
 import numpy as np
 
 from qiskit.quantum_info import Statevector
@@ -143,6 +143,9 @@ class StateFn(OperatorBase):
         raise NotImplementedError
 
     def expand_to_dim(self, num_qubits: int) -> 'StateFn':
+        raise NotImplementedError
+
+    def permute(self, permutation: List[int]) -> 'OperatorBase':
         raise NotImplementedError
 
     def equals(self, other: OperatorBase) -> bool:

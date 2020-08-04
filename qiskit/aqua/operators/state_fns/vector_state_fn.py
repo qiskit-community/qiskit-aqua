@@ -15,7 +15,7 @@
 """ VectorStateFn Class """
 
 
-from typing import Union, Set
+from typing import Union, Set, List
 import numpy as np
 
 from qiskit.quantum_info import Statevector
@@ -77,6 +77,9 @@ class VectorStateFn(StateFn):
         return VectorStateFn(self.primitive.conjugate(),
                              coeff=np.conj(self.coeff),
                              is_measurement=(not self.is_measurement))
+
+    def permute(self, permutation: List[int]) -> 'OperatorBase':
+        raise NotImplementedError
 
     def expand_to_dim(self, num_qubits: int) -> 'VectorStateFn':
         primitive = np.zeros(2**num_qubits, dtype=complex)

@@ -402,6 +402,10 @@ class TestOpConstruction(QiskitAquaTestCase):
         equal = np.allclose(permuted_matrix_op.to_matrix(), expected_matrix_op.to_matrix())
         self.assertTrue(equal)
 
+    def test_permute_on_list_op(self):
+        """ Test if permute method of ListOp works correctly and is consistent with other
+        permute methods. """
+
     def test_expand_on_state_fn(self):
         """ Tests num_qubits on the original instance and expanded instance of StateFn """
         num_qubits = 3

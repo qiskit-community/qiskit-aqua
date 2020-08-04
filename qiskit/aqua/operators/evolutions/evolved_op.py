@@ -93,6 +93,9 @@ class EvolvedOp(PrimitiveOp):
         from qiskit.quantum_info import Pauli
         return self.tensor(PauliOp(Pauli(label='I'*num_qubits)))
 
+    def permute(self, permutation: List[int]) -> 'OperatorBase':
+        return EvolvedOp(self.primitive.permute(permutation), coeff=self.coeff)  # type: ignore
+
     def compose(self, other: OperatorBase) -> OperatorBase:
         self, other = self._check_zero_for_composition_and_expand(other)  # type: ignore
 

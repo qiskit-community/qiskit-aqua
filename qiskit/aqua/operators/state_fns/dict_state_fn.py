@@ -14,7 +14,7 @@
 
 """ DictStateFn Class """
 
-from typing import Union, Set, cast
+from typing import Union, Set, cast, List
 import itertools
 import numpy as np
 from scipy import sparse
@@ -108,6 +108,9 @@ class DictStateFn(StateFn):
         return DictStateFn({b: np.conj(v) for (b, v) in self.primitive.items()},
                            coeff=np.conj(self.coeff),
                            is_measurement=(not self.is_measurement))
+
+    def permute(self, permutation: List[int]) -> 'OperatorBase':
+        raise NotImplementedError
 
     def expand_to_dim(self, num_qubits: int) -> 'DictStateFn':
         pad = {'0'*num_qubits: 1}
