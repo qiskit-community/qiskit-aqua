@@ -16,20 +16,21 @@
 
 import copy
 import logging
+from typing import Optional, Dict, Union
 import math
-from typing import Optional, Dict, Union, Tuple
 
 import numpy as np
-from qiskit import QuantumCircuit
+from qiskit import QuantumCircuit, QuantumRegister
+from qiskit.circuit.library import QuadraticForm
+from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms.amplitude_amplifiers.grover import Grover
-from qiskit.providers import BaseBackend
-
+from qiskit.aqua.components.initial_states import Custom
+from qiskit.aqua.components.oracles import CustomCircuitOracle
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
-from ..converters.quadratic_program_to_negative_value_oracle import \
-    QuadraticProgramToNegativeValueOracle
-from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
 from ..problems.quadratic_program import QuadraticProgram
+from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
+
 
 logger = logging.getLogger(__name__)
 
@@ -47,6 +48,7 @@ class GroverOptimizer(OptimizationAlgorithm):
             quantum_instance: Instance of selected backend, defaults to Aer's statevector simulator.
         """
         self._num_value_qubits = num_value_qubits
+        self._num_key_qubits = None
         self._n_iterations = num_iterations
         self._quantum_instance = None
         self._qubo_converter = QuadraticProgramToQubo()
@@ -89,6 +91,44 @@ class GroverOptimizer(OptimizationAlgorithm):
         """
         return QuadraticProgramToQubo.get_compatibility_msg(problem)
 
+    def _get_a_operator(self, qr_key_value, problem):
+        quadratic = problem.objective.quadratic.to_array()
+        linear = problem.objective.linear.to_array()
+        offset = problem.objective.constant
+
+        # Get circuit requirements from input.
+        quadratic_form = QuadraticForm(self._num_value_qubits, quadratic, linear, offset,
+                                       little_endian=False)
+
+        a_operator_circuit = QuantumCircuit(qr_key_value)
+        a_operator_circuit.h(list(range(self._num_key_qubits)))
+        a_operator_circuit.compose(quadratic_form, inplace=True)
+
+        a_operator = Custom(a_operator_circuit.width(), circuit=a_operator_circuit)
+        return a_operator
+
+    def _get_oracle(self, qr_key_value):
+        # Build negative value oracle O.
+        qr_key_value = qr_key_value or QuantumRegister(
+            self._num_key_qubits + self._num_value_qubits)
+        oracle_bit = QuantumRegister(1, "oracle")
+        oracle_circuit = QuantumCircuit(qr_key_value, oracle_bit)
+        oracle_circuit.z(self._num_key_qubits)  # recognize negative values.
+
+        def evaluate_classically(self, measurement):
+            """ evaluate classical """
+            value = measurement[self._num_key_qubits:self._num_key_qubits + self._num_value_qubits]
+            assignment = [(var + 1) * (int(tf) * 2 - 1) for tf, var in zip(measurement,
+                                                                           range(len(measurement)))]
+            evaluation = value[0] == '1'
+            return evaluation, assignment
+
+        oracle = CustomCircuitOracle(variable_register=qr_key_value,
+                                     output_register=oracle_bit,
+                                     circuit=oracle_circuit,
+                                     evaluate_classically_callback=evaluate_classically)
+        return oracle
+
     def solve(self, problem: QuadraticProgram) -> OptimizationResult:
         """Tries to solves the given problem using the grover optimizer.
 
@@ -122,6 +162,7 @@ class GroverOptimizer(OptimizationAlgorithm):
                 problem_.objective.linear[i] = -val
             for (i, j), val in problem_.objective.quadratic.to_dict().items():
                 problem_.objective.quadratic[i, j] = -val
+        self._num_key_qubits = len(problem_.objective.linear.to_array())
 
         # Variables for tracking the optimum.
         optimum_found = False
@@ -136,7 +177,6 @@ class GroverOptimizer(OptimizationAlgorithm):
         keys_measured = []
 
         # Variables for result object.
-        func_dict = {}  # type: Dict[Union[int, Tuple[int, int]], int]
         operation_count = {}
         iteration = 0
 
@@ -145,10 +185,10 @@ class GroverOptimizer(OptimizationAlgorithm):
         max_rotations = int(np.ceil(100 * np.pi / 4))
 
         # Initialize oracle helper object.
+        qr_key_value = QuantumRegister(self._num_key_qubits + self._num_value_qubits)
         orig_constant = problem_.objective.constant
         measurement = not self.quantum_instance.is_statevector
-        opt_prob_converter = QuadraticProgramToNegativeValueOracle(n_value,
-                                                                   measurement)
+        oracle = self._get_oracle(qr_key_value)
 
         while not optimum_found:
             m = 1
@@ -156,7 +196,7 @@ class GroverOptimizer(OptimizationAlgorithm):
 
             # Get oracle O and the state preparation operator A for the current threshold.
             problem_.objective.constant = orig_constant - threshold
-            a_operator, oracle, func_dict = opt_prob_converter.encode(problem_)
+            a_operator = self._get_a_operator(qr_key_value, problem_)
 
             # Iterate until we measure a negative.
             loops_with_no_improvement = 0
@@ -170,8 +210,7 @@ class GroverOptimizer(OptimizationAlgorithm):
                 if rotation_count > 0:
                     # TODO: Utilize Grover's incremental feature - requires changes to Grover.
                     grover = Grover(oracle, init_state=a_operator, num_iterations=rotation_count)
-                    circuit = grover.construct_circuit(
-                        measurement=self.quantum_instance.is_statevector)
+                    circuit = grover.construct_circuit(measurement=measurement)
                 else:
                     circuit = a_operator._circuit
 
@@ -214,27 +253,21 @@ class GroverOptimizer(OptimizationAlgorithm):
                 iteration += 1
                 logger.info('Operation Count: %s\n', operations)
 
-        # Get original key and value pairs.
-        func_dict[-1] = int(orig_constant)
-        solutions = self._get_qubo_solutions(func_dict, n_key)
-
         # If the constant is 0 and we didn't find a negative, the answer is likely 0.
         if optimum_value >= 0 and orig_constant == 0:
             optimum_key = 0
-        opt_x = [1 if s == '1' else 0 for s in ('{0:%sb}' % n_key).format(optimum_key)]
+
+        opt_x = np.array([1 if s == '1' else 0 for s in ('{0:%sb}' % n_key).format(optimum_key)])
 
         # Build the results object.
-        grover_results = GroverOptimizationRawResult(operation_count, n_key, n_value, func_dict)
-        fval = solutions[optimum_key]
-        if sense == problem_.objective.Sense.MAXIMIZE:
-            fval = -fval
+        grover_results = GroverOptimizationRawResult(operation_count, n_key, n_value)
+
+        # Compute function value
+        fval = problem.objective.evaluate(opt_x)
         result = OptimizationResult(x=opt_x, fval=fval, variables=problem.variables,
-                                    raw_results={"grover_results": grover_results,
-                                                 "qubo_converter": copy.deepcopy(
-                                                     self._qubo_converter),
-                                                 "negative_value_oracle_converter": copy.deepcopy(
-                                                     opt_prob_converter)
-                                                 })
+                                    raw_results={
+                                        "grover_results": grover_results,
+                                        "qubo_converter": copy.deepcopy(self._qubo_converter)})
 
         # cast binaries back to integers
         result = self._qubo_converter.interpret(result)
@@ -297,82 +330,21 @@ class GroverOptimizer(OptimizationAlgorithm):
 
         return int_v
 
-    @staticmethod
-    def _get_qubo_solutions(function_dict: Dict[Union[int, Tuple[int, int]], int], n_key: int,
-                            print_solutions: Optional[bool] = False):
-        """ Calculates all of the outputs of a QUBO function representable by n key qubits.
-
-        Args:
-            function_dict: A dictionary representation of the function, where the keys correspond
-                to a variable, and the values are the corresponding coefficients.
-            n_key: The number of key qubits.
-            print_solutions: If true, the solutions will be formatted and printed.
-
-        Returns:
-            dict: A dictionary of the inputs (keys) and outputs (values) of the QUBO function.
-        """
-        # Determine constant.
-        constant = 0
-        if -1 in function_dict:
-            constant = function_dict[-1]
-        format_string = '{0:0' + str(n_key) + 'b}'
-
-        # Iterate through every key combination.
-        if print_solutions:
-            print("QUBO Solutions:")
-            print("==========================")
-        solutions = {}
-        for i in range(2 ** n_key):
-            solution = constant
-
-            # Convert int to a list of binary variables.
-            bin_key = format_string.format(i)
-            bin_list = [int(bin_key[j]) for j in range(len(bin_key))]
-
-            # Handle the linear terms.
-            for k in range(len(bin_key)):
-                if bin_list[k] == 1 and k in function_dict:
-                    solution += function_dict[k]
-
-            # Handle the quadratic terms.
-            for j in range(len(bin_key)):
-                for q in range(len(bin_key)):
-                    if (j, q) in function_dict and j != q and bin_list[j] == 1 and bin_list[q] == 1:
-                        solution += function_dict[(j, q)]
-
-            # Print row.
-            if print_solutions:
-                spacer = "" if i >= 10 else " "
-                value_spacer = " " if solution < 0 else "  "
-                print(spacer + str(i), "=", bin_key, "->" + value_spacer + str(round(solution, 4)))
-
-            # Record solution.
-            solutions[i] = solution
-
-        if print_solutions:
-            print()
-
-        return solutions
-
 
 class GroverOptimizationRawResult:
     """A raw result object for Grover Optimization methods."""
 
     def __init__(self, operation_counts: Dict[int, Dict[str, int]],
-                 n_input_qubits: int, n_output_qubits: int,
-                 func_dict: Dict[Union[int, Tuple[int, int]], int]) -> None:
+                 n_input_qubits: int, n_output_qubits: int) -> None:
         """
         Args:
             operation_counts: The counts of each operation performed per iteration.
             n_input_qubits: The number of qubits used to represent the input.
             n_output_qubits: The number of qubits used to represent the output.
-            func_dict: A dictionary representation of the function, where the keys correspond
-                to a variable, and the values are the corresponding coefficients.
         """
         self._operation_counts = operation_counts
         self._n_input_qubits = n_input_qubits
         self._n_output_qubits = n_output_qubits
-        self._func_dict = func_dict
 
     @property
     def operation_counts(self) -> Dict[int, Dict[str, int]]:
@@ -400,14 +372,3 @@ class GroverOptimizationRawResult:
             The number of qubits used to represent the output.
         """
         return self._n_output_qubits
-
-    @property
-    def func_dict(self) -> Dict[Union[int, Tuple[int, int]], int]:
-        """Getter of func_dict
-
-        Returns:
-            A dictionary of coefficients describing a function, where the keys are the subscripts
-            of the variables (e.g. x1), and the values are the corresponding coefficients. If there
-            is a constant term, it is referenced by key -1.
-        """
-        return self._func_dict
