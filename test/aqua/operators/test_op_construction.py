@@ -17,15 +17,14 @@
 
 import unittest
 
-from qiskit import QiskitError
-
-from qiskit.aqua import AquaError
 from test.aqua import QiskitAquaTestCase
 import itertools
 from scipy.stats import unitary_group
 import numpy as np
 from ddt import ddt, data
 
+from qiskit import QiskitError
+from qiskit.aqua import AquaError
 from qiskit.circuit import QuantumCircuit, QuantumRegister, Instruction, Parameter
 from qiskit.extensions.exceptions import ExtensionError
 from qiskit.quantum_info.operators import Operator, Pauli
@@ -401,6 +400,9 @@ class TestOpConstruction(QiskitAquaTestCase):
         self.assertEqual(composed.num_qubits, 2)
 
     def test_matrix_op_to_instruction(self):
+        """Test to reveal the exception that is raised when .to_instruction is called on
+        parametrized matrix op.
+        """
         m = np.array([[0, 0, 1, 0], [0, 0, 0, -1], [1, 0, 0, 0], [0, -1, 0, 0]])
         matrix_op = MatrixOp(m, Parameter('beta'))
 
@@ -408,6 +410,9 @@ class TestOpConstruction(QiskitAquaTestCase):
         self.assertRaises(QiskitError, matrix_op.to_instruction)
 
     def test_matrix_op_to_circuit(self):
+        """Test to reveal the exception that is raised when .to_circuit is called on MatrixOp
+        with parameter.
+        """
         m = np.array([[0, 0, 1, 0], [0, 0, 0, -1], [1, 0, 0, 0], [0, -1, 0, 0]])
         matrix_op = MatrixOp(m, Parameter('alpha'))
 
@@ -415,6 +420,9 @@ class TestOpConstruction(QiskitAquaTestCase):
         self.assertRaises(QiskitError, matrix_op.to_circuit)
 
     def test_primitive_op_to_matrix(self):
+        """ Test to reveal the exception that is raised when .to_matrix is called on PrimitiveOps
+        with parameter.
+        """
         # MatrixOp
         m = np.array([[0, 0, 1, 0], [0, 0, 0, -1], [1, 0, 0, 0], [0, -1, 0, 0]])
         matrix_op = MatrixOp(m, Parameter('beta'))

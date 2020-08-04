@@ -141,7 +141,7 @@ class SummedOp(ListOp):
             ExtensionError: if operator is not unitary
             AquaError: if SummedOp can not be converted to MatrixOp
         """
-        from .. import MatrixOp
+        from qiskit.aqua.operators import MatrixOp
         matrix_op = self.to_matrix_op()
         if isinstance(matrix_op, MatrixOp):
             return matrix_op.to_circuit()

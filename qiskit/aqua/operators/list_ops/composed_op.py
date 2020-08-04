@@ -19,7 +19,6 @@ from functools import reduce, partial
 import numpy as np
 
 from qiskit import QuantumCircuit
-from qiskit.aqua import AquaError
 from qiskit.circuit import ParameterExpression
 
 from ..operator_base import OperatorBase
@@ -27,6 +26,7 @@ from .list_op import ListOp
 from ..primitive_ops.primitive_op import PrimitiveOp
 from ..state_fns.state_fn import StateFn
 from ..state_fns.circuit_state_fn import CircuitStateFn
+from ... import AquaError
 
 
 # pylint: disable=invalid-name

@@ -20,12 +20,12 @@ import numpy as np
 
 from qiskit import QuantumCircuit
 from qiskit.circuit import ParameterExpression
-from qiskit.aqua import AquaError
 
 from ..state_fns.circuit_state_fn import CircuitStateFn
 from ..operator_base import OperatorBase
 from ..primitive_ops.primitive_op import PrimitiveOp
 from .list_op import ListOp
+from ... import AquaError
 
 
 class TensoredOp(ListOp):
