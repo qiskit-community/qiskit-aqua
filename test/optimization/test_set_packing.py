@@ -32,6 +32,7 @@ class TestSetPacking(QiskitOptimizationTestCase):
 
     def setUp(self):
         super().setUp()
+        aqua_globals.random_seed = 2752
         input_file = self.get_resource_path('sample.setpacking')
         with open(input_file) as file:
             self.list_of_subsets = json.load(file)
@@ -75,10 +76,9 @@ class TestSetPacking(QiskitOptimizationTestCase):
 
         wavefunction = TwoLocal(rotation_blocks='ry', entanglement_blocks='cz',
                                 reps=3, entanglement='linear')
-        aqua_globals.random_seed = 51
         result = VQE(self.qubit_op,
                      wavefunction,
-                     SPSA(max_trials=200),
+                     SPSA(maxiter=200),
                      max_evals_grouped=2).run(
                          QuantumInstance(Aer.get_backend('qasm_simulator'),
                                          seed_simulator=aqua_globals.random_seed,

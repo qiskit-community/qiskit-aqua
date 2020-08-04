@@ -14,23 +14,26 @@
 
 """ Test Operator construction, including OpPrimitives and singletons. """
 
+
 import unittest
 from test.aqua import QiskitAquaTestCase
 import itertools
 import numpy as np
+from ddt import ddt, data
 
-from qiskit.circuit import QuantumCircuit, QuantumRegister, Instruction
+from qiskit.circuit import QuantumCircuit, QuantumRegister, Instruction, Parameter
 from qiskit.extensions.exceptions import ExtensionError
 from qiskit.quantum_info.operators import Operator, Pauli
-from qiskit.circuit.library import CZGate
+from qiskit.circuit.library import CZGate, ZGate
 
 from qiskit.aqua.operators import (
-    X, Y, Z, I, CX, T, H, PrimitiveOp, SummedOp, PauliOp, Minus, CircuitOp
+    X, Y, Z, I, CX, T, H, PrimitiveOp, SummedOp, PauliOp, Minus, CircuitOp, MatrixOp, ListOp
 )
 
 
 # pylint: disable=invalid-name
 
+@ddt
 class TestOpConstruction(QiskitAquaTestCase):
     """Operator Construction tests."""
 
@@ -71,6 +74,15 @@ class TestOpConstruction(QiskitAquaTestCase):
         self.assertEqual(Y.eval('1').eval('0'), -1j)
         self.assertEqual(Y.eval('0').eval('1'), 1j)
         self.assertEqual(Y.eval('1').eval('1'), 0)
+
+        with self.assertRaises(ValueError):
+            Y.eval('11')
+
+        with self.assertRaises(ValueError):
+            (X ^ Y).eval('1111')
+
+        with self.assertRaises(ValueError):
+            Y.eval((X ^ X).to_matrix_op())
 
         # Check that Pauli logic eval returns same as matrix logic
         self.assertEqual(PrimitiveOp(Z.to_matrix()).eval('0').eval('0'), 1)
@@ -235,6 +247,142 @@ class TestOpConstruction(QiskitAquaTestCase):
         c_op_id = c_op_perm.permute(perm)
         self.assertEqual(c_op, c_op_id)
 
+    def test_summed_op_reduce(self):
+        """Test SummedOp"""
+        sum_op = (X ^ X * 2) + (Y ^ Y)  # type: SummedOp
+        with self.subTest('SummedOp test 1'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [2, 1])
+
+        sum_op = (X ^ X * 2) + (Y ^ Y)
+        sum_op += Y ^ Y
+        with self.subTest('SummedOp test 2-a'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [2, 1, 1])
+
+        sum_op = sum_op.collapse_summands()
+        with self.subTest('SummedOp test 2-b'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [2, 2])
+
+        sum_op = (X ^ X * 2) + (Y ^ Y)
+        sum_op += (Y ^ Y) + (X ^ X * 2)
+        with self.subTest('SummedOp test 3-a'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY', 'YY', 'XX'])
+            self.assertListEqual([op.coeff for op in sum_op], [2, 1, 1, 2])
+
+        sum_op = sum_op.reduce()
+        with self.subTest('SummedOp test 3-b'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [4, 2])
+
+        sum_op = SummedOp([X ^ X * 2, Y ^ Y], 2)
+        with self.subTest('SummedOp test 4-a'):
+            self.assertEqual(sum_op.coeff, 2)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [2, 1])
+
+        sum_op = sum_op.collapse_summands()
+        with self.subTest('SummedOp test 4-b'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [4, 2])
+
+        sum_op = SummedOp([X ^ X * 2, Y ^ Y], 2)
+        sum_op += Y ^ Y
+        with self.subTest('SummedOp test 5-a'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [4, 2, 1])
+
+        sum_op = sum_op.collapse_summands()
+        with self.subTest('SummedOp test 5-b'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [4, 3])
+
+        sum_op = SummedOp([X ^ X * 2, Y ^ Y], 2)
+        sum_op += (X ^ X) * 2 + (Y ^ Y)
+        with self.subTest('SummedOp test 6-a'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY', 'XX', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [4, 2, 2, 1])
+
+        sum_op = sum_op.collapse_summands()
+        with self.subTest('SummedOp test 6-b'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [6, 3])
+
+        sum_op = SummedOp([X ^ X * 2, Y ^ Y], 2)
+        sum_op += sum_op
+        with self.subTest('SummedOp test 7-a'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY', 'XX', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [4, 2, 4, 2])
+
+        sum_op = sum_op.collapse_summands()
+        with self.subTest('SummedOp test 7-b'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY'])
+            self.assertListEqual([op.coeff for op in sum_op], [8, 4])
+
+        sum_op = SummedOp([X ^ X * 2, Y ^ Y], 2) + SummedOp([X ^ X * 2, Z ^ Z], 3)
+        with self.subTest('SummedOp test 8-a'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY', 'XX', 'ZZ'])
+            self.assertListEqual([op.coeff for op in sum_op], [4, 2, 6, 3])
+
+        sum_op = sum_op.collapse_summands()
+        with self.subTest('SummedOp test 8-b'):
+            self.assertEqual(sum_op.coeff, 1)
+            self.assertListEqual([str(op.primitive) for op in sum_op], ['XX', 'YY', 'ZZ'])
+            self.assertListEqual([op.coeff for op in sum_op], [10, 2, 3])
+
+    def test_summed_op_equals(self):
+        """Test corner cases of SummedOp's equals function."""
+        with self.subTest('multiplicative factor'):
+            self.assertEqual(2 * X, X + X)
+
+        with self.subTest('commutative'):
+            self.assertEqual(X + Z, Z + X)
+
+        with self.subTest('circuit and paulis'):
+            z = CircuitOp(ZGate())
+            self.assertEqual(Z + z, z + Z)
+
+        with self.subTest('matrix op and paulis'):
+            z = MatrixOp([[1, 0], [0, -1]])
+            self.assertEqual(Z + z, z + Z)
+
+        with self.subTest('matrix multiplicative'):
+            z = MatrixOp([[1, 0], [0, -1]])
+            self.assertEqual(2 * z, z + z)
+
+        with self.subTest('parameter coefficients'):
+            expr = Parameter('theta')
+            z = MatrixOp([[1, 0], [0, -1]])
+            self.assertEqual(expr * z, expr * z)
+
+        with self.subTest('different coefficient types'):
+            expr = Parameter('theta')
+            z = MatrixOp([[1, 0], [0, -1]])
+            self.assertNotEqual(expr * z, 2 * z)
+
+        with self.subTest('additions aggregation'):
+            z = MatrixOp([[1, 0], [0, -1]])
+            a = z + z + Z
+            b = 2 * z + Z
+            c = z + Z + z
+            self.assertEqual(a, b)
+            self.assertEqual(b, c)
+            self.assertEqual(a, c)
+
     def test_circuit_compose_register_independent(self):
         """Test that CircuitOp uses combines circuits independent of the register.
 
@@ -247,13 +395,67 @@ class TestOpConstruction(QiskitAquaTestCase):
 
         self.assertEqual(composed.num_qubits, 2)
 
-    def test_pauli_op_hashing(self):
+    @data(Z, CircuitOp(ZGate()), MatrixOp([[1, 0], [0, -1]]))
+    def test_op_hashing(self, op):
         """Regression test against faulty set comparison.
 
         Set comparisons rely on a hash table which requires identical objects to have identical
-        hashes. Thus, the PauliOp.__hash__ should support this requirement.
+        hashes. Thus, the PrimitiveOp.__hash__ should support this requirement.
         """
-        self.assertEqual(set([2*Z]), set([2*Z]))
+        self.assertEqual(set([2 * op]), set([2 * op]))
+
+    @data(Z, CircuitOp(ZGate()), MatrixOp([[1, 0], [0, -1]]))
+    def test_op_indent(self, op):
+        """Test that indentation correctly adds INDENTATION at the beginning of each line"""
+        initial_str = str(op)
+        indented_str = op._indent(initial_str)
+        starts_with_indent = indented_str.startswith(op.INDENTATION)
+        self.assertTrue(starts_with_indent)
+        indented_str_content = (
+            indented_str[len(op.INDENTATION):]
+        ).split("\n{}".format(op.INDENTATION))
+        self.assertListEqual(indented_str_content, initial_str.split("\n"))
+
+
+class TestListOpComboFn(QiskitAquaTestCase):
+    """Test combo fn is propagated."""
+
+    def setUp(self):
+        super().setUp()
+        self.combo_fn = lambda x: [x_i ** 2 for x_i in x]
+        self.listop = ListOp([X], combo_fn=self.combo_fn)
+
+    def assertComboFnPreserved(self, processed_op):
+        """Assert the quadratic combo_fn is preserved."""
+        x = [1, 2, 3]
+        self.assertListEqual(processed_op.combo_fn(x), self.combo_fn(x))
+
+    def test_at_conversion(self):
+        """Test after conversion the combo_fn is preserved."""
+        for method in ['to_matrix_op', 'to_pauli_op', 'to_circuit_op']:
+            with self.subTest(method):
+                converted = getattr(self.listop, method)()
+                self.assertComboFnPreserved(converted)
+
+    def test_after_mul(self):
+        """Test after multiplication the combo_fn is preserved."""
+        self.assertComboFnPreserved(2 * self.listop)
+
+    def test_at_traverse(self):
+        """Test after traversing the combo_fn is preserved."""
+        def traverse_fn(op):
+            return -op
+
+        traversed = self.listop.traverse(traverse_fn)
+        self.assertComboFnPreserved(traversed)
+
+    def test_after_adjoint(self):
+        """Test after traversing the combo_fn is preserved."""
+        self.assertComboFnPreserved(self.listop.adjoint())
+
+    def test_after_reduce(self):
+        """Test after reducing the combo_fn is preserved."""
+        self.assertComboFnPreserved(self.listop.reduce())
 
 
 if __name__ == '__main__':

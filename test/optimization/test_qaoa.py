@@ -26,7 +26,7 @@ from qiskit.optimization.applications.ising.common import sample_most_likely
 from qiskit.aqua.components.optimizers import COBYLA
 from qiskit.aqua.algorithms import QAOA
 from qiskit.aqua import QuantumInstance, aqua_globals
-from qiskit.aqua.operators import WeightedPauliOperator, X, Z
+from qiskit.aqua.operators import X, I
 
 W1 = np.array([
     [0, 1, 0, 1],
@@ -35,11 +35,7 @@ W1 = np.array([
     [1, 0, 1, 0]
 ])
 P1 = 1
-M1 = WeightedPauliOperator.from_dict({'paulis': [{'label': 'IIIX', 'coeff': {'real': 1}},
-                                                 {'label': 'IIXI', 'coeff': {'real': 1}},
-                                                 {'label': 'IXII', 'coeff': {'real': 1}},
-                                                 {'label': 'XIII', 'coeff': {'real': 1}}]
-                                      }).to_opflow()
+M1 = (I ^ I ^ I ^ X) + (I ^ I ^ X ^ I) + (I ^ X ^ I ^ I) + (X ^ I ^ I ^ I)
 S1 = {'0101', '1010'}
 
 
@@ -91,19 +87,81 @@ class TestQAOA(QiskitOptimizationTestCase):
         self.assertIn(''.join([str(int(i)) for i in graph_solution]), solutions)
 
     def test_change_operator_size(self):
-        """ QAOA test """
-        backend = BasicAer.get_backend('statevector_simulator')
-        optimizer = COBYLA(maxiter=2)
-        qubit_op, _ = max_cut.get_operator(W1)
-        qubit_op = qubit_op.to_opflow().to_matrix_op()
+        """ QAOA change operator size test """
 
-        seed = 0
-        aqua_globals.random_seed = seed
-        qaoa = QAOA(qubit_op, optimizer, P1)
-        quantum_instance = QuantumInstance(backend, seed_simulator=seed, seed_transpiler=seed)
-        qaoa.run(quantum_instance)
-        qaoa.operator = (X ^ qubit_op ^ Z)
-        qaoa.run()
+        aqua_globals.random_seed = 0
+        qubit_op, _ = max_cut.get_operator(
+            np.array([
+                [0, 1, 0, 1],
+                [1, 0, 1, 0],
+                [0, 1, 0, 1],
+                [1, 0, 1, 0]
+            ]))
+        qaoa = QAOA(qubit_op.to_opflow(), COBYLA(), 1)
+        quantum_instance = QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                           seed_simulator=aqua_globals.random_seed,
+                                           seed_transpiler=aqua_globals.random_seed)
+        result = qaoa.run(quantum_instance)
+        x = sample_most_likely(result.eigenstate)
+        graph_solution = max_cut.get_graph_solution(x)
+        with self.subTest(msg='QAOA 4x4'):
+            self.assertIn(''.join([str(int(i)) for i in graph_solution]), {'0101', '1010'})
+
+        try:
+            qubit_op, _ = max_cut.get_operator(
+                np.array([
+                    [0, 1, 0, 1, 0, 1],
+                    [1, 0, 1, 0, 1, 0],
+                    [0, 1, 0, 1, 0, 1],
+                    [1, 0, 1, 0, 1, 0],
+                    [0, 1, 0, 1, 0, 1],
+                    [1, 0, 1, 0, 1, 0],
+                ]))
+            qaoa.operator = qubit_op.to_opflow()
+        except Exception as ex:  # pylint: disable=broad-except
+            self.fail("Failed to change operator. Error: '{}'".format(str(ex)))
+            return
+
+        result = qaoa.run()
+        x = sample_most_likely(result.eigenstate)
+        graph_solution = max_cut.get_graph_solution(x)
+        with self.subTest(msg='QAOA 6x6'):
+            self.assertIn(''.join([str(int(i)) for i in graph_solution]), {'010101', '101010'})
+
+    @idata([
+        [W2, S2, None],
+        [W2, S2, [0.0, 0.0]],
+        [W2, S2, [1.0, 0.8]]
+    ])
+    @unpack
+    def test_qaoa_initial_point(self, w, solutions, init_pt):
+        """ Check first parameter value used is initial point as expected """
+        optimizer = COBYLA()
+        qubit_op, _ = max_cut.get_operator(w)
+
+        first_pt = []
+
+        def cb_callback(eval_count, parameters, mean, std):
+            nonlocal first_pt
+            if eval_count == 1:
+                first_pt = list(parameters)
+
+        quantum_instance = QuantumInstance(BasicAer.get_backend('statevector_simulator'))
+        qaoa = QAOA(qubit_op, optimizer, initial_point=init_pt, callback=cb_callback,
+                    quantum_instance=quantum_instance)
+
+        result = qaoa.compute_minimum_eigenvalue()
+        x = sample_most_likely(result.eigenstate)
+        graph_solution = max_cut.get_graph_solution(x)
+
+        if init_pt is None:       # If None the preferred initial point of QAOA variational form
+            init_pt = [0.0, 0.0]  # i.e. 0,0 should come through as the first point
+
+        with self.subTest('Initial Point'):
+            self.assertListEqual(init_pt, first_pt)
+
+        with self.subTest('Solution'):
+            self.assertIn(''.join([str(int(i)) for i in graph_solution]), solutions)
 
 
 if __name__ == '__main__':

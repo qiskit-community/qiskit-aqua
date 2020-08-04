@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 
 # This code is part of Qiskit.
@@ -15,19 +14,20 @@
 
 """The COBYLA optimizer wrapped to be used within Qiskit's optimization module."""
 
-from typing import Optional
+from typing import Optional, cast, List
 
 import numpy as np
 from scipy.optimize import fmin_cobyla
 
-from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
-from ..problems.quadratic_program import QuadraticProgram
-from ..problems.constraint import Constraint
+from .multistart_optimizer import MultiStartOptimizer
+from .optimization_algorithm import OptimizationResult
 from ..exceptions import QiskitOptimizationError
 from ..infinity import INFINITY
+from ..problems.constraint import Constraint
+from ..problems.quadratic_program import QuadraticProgram
 
 
-class CobylaOptimizer(OptimizationAlgorithm):
+class CobylaOptimizer(MultiStartOptimizer):
     """The SciPy COBYLA optimizer wrapped as an Qiskit :class:`OptimizationAlgorithm`.
 
     This class provides a wrapper for ``scipy.optimize.fmin_cobyla``
@@ -45,7 +45,8 @@ class CobylaOptimizer(OptimizationAlgorithm):
     """
 
     def __init__(self, rhobeg: float = 1.0, rhoend: float = 1e-4, maxfun: int = 1000,
-                 disp: Optional[int] = None, catol: float = 2e-4) -> None:
+                 disp: Optional[int] = None, catol: float = 2e-4, trials: int = 1,
+                 clip: float = 100.) -> None:
         """Initializes the CobylaOptimizer.
 
         This initializer takes the algorithmic parameters of COBYLA and stores them for later use
@@ -61,8 +62,16 @@ class CobylaOptimizer(OptimizationAlgorithm):
                 Feasible values are {0, 1, 2, 3}.
             maxfun: Maximum number of function evaluations.
             catol: Absolute tolerance for constraint violations.
+            trials: The number of trials for multi-start method. The first trial is solved with
+                the initial guess of zero. If more than one trial is specified then
+                initial guesses are uniformly drawn from ``[lowerbound, upperbound]``
+                with potential clipping.
+            clip: Clipping parameter for the initial guesses in the multi-start method.
+                If a variable is unbounded then the lower bound and/or upper bound are replaced
+                with the ``-clip`` or ``clip`` values correspondingly for the initial guesses.
         """
 
+        super().__init__(trials, clip)
         self._rhobeg = rhobeg
         self._rhoend = rhoend
         self._maxfun = maxfun
@@ -101,10 +110,7 @@ class CobylaOptimizer(OptimizationAlgorithm):
         Raises:
             QiskitOptimizationError: If the problem is incompatible with the optimizer.
         """
-        # check compatibility and raise exception if incompatible
-        msg = self.get_compatibility_msg(problem)
-        if len(msg) > 0:
-            raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
+        self._verify_compatibility(problem)
 
         # construct quadratic objective function
         def objective(x):
@@ -114,17 +120,22 @@ class CobylaOptimizer(OptimizationAlgorithm):
         constraints = []
 
         # add lower/upper bound constraints
-        for variable in problem.variables:
+        for i, variable in enumerate(problem.variables):
             lowerbound = variable.lowerbound
             upperbound = variable.upperbound
             if lowerbound > -INFINITY:
-                constraints += [lambda x, lb=lowerbound: x - lb]
+                def lb_constraint(x, l_b=lowerbound, j=i):
+                    return x[j] - l_b
+                constraints += [lb_constraint]
             if upperbound < INFINITY:
-                constraints += [lambda x, ub=upperbound: ub - x]
+                def ub_constraint(x, u_b=upperbound, j=i):
+                    return u_b - x[j]
+                constraints += [ub_constraint]
 
         # pylint: disable=no-member
         # add linear and quadratic constraints
-        for constraint in problem.linear_constraints + problem.quadratic_constraints:
+        for constraint in cast(List[Constraint], problem.linear_constraints) +\
+                cast(List[Constraint], problem.quadratic_constraints):
             rhs = constraint.rhs
             sense = constraint.sense
 
@@ -140,13 +151,10 @@ class CobylaOptimizer(OptimizationAlgorithm):
             else:
                 raise QiskitOptimizationError('Unsupported constraint type!')
 
-        # TODO: derive x_0 from lower/upper bounds
-        x_0 = np.zeros(len(problem.variables))
+        # actual minimization function to be called by multi_start_solve
+        def _minimize(x_0: np.array) -> np.array:
+            return fmin_cobyla(objective, x_0, constraints, rhobeg=self._rhobeg,
+                               rhoend=self._rhoend, maxfun=self._maxfun, disp=self._disp,
+                               catol=self._catol)
 
-        # run optimization
-        x = fmin_cobyla(objective, x_0, constraints, rhobeg=self._rhobeg, rhoend=self._rhoend,
-                        maxfun=self._maxfun, disp=self._disp, catol=self._catol)
-        fval = problem.objective.sense.value * objective(x)
-
-        # return results
-        return OptimizationResult(x, fval, x)
+        return self.multi_start_solve(_minimize, problem)

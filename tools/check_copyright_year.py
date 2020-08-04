@@ -165,7 +165,7 @@ def check_path(path):
     if not path or os.path.isdir(path):
         return path
 
-    raise argparse.ArgumentTypeError(f"readable_dir:{path} is not a valid path")
+    raise argparse.ArgumentTypeError("readable_dir:{} is not a valid path".format(path))
 
 
 if __name__ == '__main__':

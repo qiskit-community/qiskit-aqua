@@ -107,6 +107,23 @@ class TestLinearExpression(QiskitOptimizationTestCase):
         for values in [values_list, values_array, values_dict_int, values_dict_str]:
             self.assertEqual(linear.evaluate(values), 30)
 
+    def test_evaluate_gradient(self):
+        """ test evaluate gradient. """
+
+        quadratic_program = QuadraticProgram()
+        x = [quadratic_program.continuous_var() for _ in range(5)]
+
+        coefficients_list = list(range(5))
+        linear = LinearExpression(quadratic_program, coefficients_list)
+
+        values_list = list(range(len(x)))
+        values_array = np.array(values_list)
+        values_dict_int = {i: i for i in range(len(x))}
+        values_dict_str = {'x{}'.format(i): i for i in range(len(x))}
+
+        for values in [values_list, values_array, values_dict_int, values_dict_str]:
+            np.testing.assert_almost_equal(linear.evaluate_gradient(values), coefficients_list)
+
 
 if __name__ == '__main__':
     unittest.main()
