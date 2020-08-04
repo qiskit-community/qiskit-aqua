@@ -92,6 +92,7 @@ composable
 conda
 conf
 config
+contravariance
 conv
 coord
 coords
@@ -384,6 +385,7 @@ msq
 multiclass
 multinomial
 multiprocess
+mypy
 nakanishi
 namelist
 nan
@@ -689,6 +691,7 @@ wavefunctions
 weightedpaulioperator
 wf
 whitespace
+whitespaces
 wigner
 wikipedia
 workq
