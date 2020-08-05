@@ -24,6 +24,7 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 Added
 -----
 
+-   Add validation of sizes of arguments of OptimizationResults and unit tests (#1167)
 -   For the Enhancement of converters of QuadraticProgram (#1061)
 -   Indented string display (#1112)
 -   Improve opflow test repeatability (#1147)
