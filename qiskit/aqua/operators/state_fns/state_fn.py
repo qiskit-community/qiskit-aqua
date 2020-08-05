@@ -234,13 +234,17 @@ class StateFn(OperatorBase):
         """
         raise NotImplementedError
 
-    def compose(self, other: OperatorBase) -> OperatorBase:
+    def compose(self, other: OperatorBase,
+                permute_self: List[int] = None,
+                permute_other: List[int] = None) -> OperatorBase:
         r"""
         Composition (Linear algebra-style: A@B(x) = A(B(x))) is not well defined for states
         in the binary function model, but is well defined for measurements.
 
         Args:
             other: The Operator to compose with self.
+            permute_self: ``List[int]`` which defines permutation on self.
+            permute_other: ``List[int]`` which defines permutation on other.
 
         Returns:
             An Operator equivalent to the function composition of self and other.
@@ -252,6 +256,11 @@ class StateFn(OperatorBase):
         if not self.is_measurement:
             raise ValueError(
                 'Composition with a Statefunction in the first operand is not defined.')
+
+        if permute_self is not None:
+            self = self.permute(permute_self)  # type: ignore
+        if permute_other is not None:
+            other = other.permute(permute_other)
 
         new_self, other = self._check_zero_for_composition_and_expand(other)
         # TODO maybe include some reduction here in the subclasses - vector and Op, op and Op, etc.

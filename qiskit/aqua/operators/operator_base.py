@@ -14,7 +14,7 @@
 
 """ OperatorBase Class """
 
-from typing import Set, Union, Dict, Optional, List, cast
+from typing import Set, Union, Dict, Optional, List, cast, Tuple
 from numbers import Number
 from abc import ABC, abstractmethod
 import numpy as np
@@ -516,6 +516,21 @@ class OperatorBase(ABC):
         """ Gets a single non-list-nested param_dict for a given list index from a nested one. """
         return {k: v[i] for (k, v) in unrolled_dict.items()}
 
+    def _check_zero_for_composition_and_expand(self, other: 'OperatorBase') \
+            -> Tuple['OperatorBase', 'OperatorBase']:
+        new_self = self
+        if not self.num_qubits == other.num_qubits:
+            # pylint: disable=cyclic-import,import-outside-toplevel
+            from .operator_globals import Zero
+            if other == Zero:
+                # Zero is special - we'll expand it to the correct qubit number.
+                other = Zero.__class__('0' * self.num_qubits)
+            elif other.num_qubits < self.num_qubits:
+                other = other.expand_to_dim(self.num_qubits - other.num_qubits)
+            elif other.num_qubits > self.num_qubits:
+                new_self = self.expand_to_dim(other.num_qubits - self.num_qubits)  # type: ignore
+        return new_self, other
+
     # Composition
 
     def __matmul__(self, other: 'OperatorBase') -> 'OperatorBase':
@@ -530,7 +545,9 @@ class OperatorBase(ABC):
         return self.compose(other)
 
     @abstractmethod
-    def compose(self, other: 'OperatorBase') -> 'OperatorBase':
+    def compose(self, other: 'OperatorBase',
+                permute_self: List[int] = None,
+                permute_other: List[int] = None) -> 'OperatorBase':
         r""" Return Operator Composition between self and other (linear algebra-style:
         A@B(x) = A(B(x))), overloaded by ``@``.
 
@@ -544,6 +561,8 @@ class OperatorBase(ABC):
 
         Args:
             other: The ``OperatorBase`` with which to compose self.
+            permute_self: ``List[int]`` which defines permutation on self.
+            permute_other: ``List[int]`` which defines permutation on other.
 
         Returns:
             An ``OperatorBase`` equivalent to the function composition of self and other.

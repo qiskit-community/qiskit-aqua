@@ -69,7 +69,15 @@ class ComposedOp(ListOp):
         return ComposedOp([op.expand_to_dim(num_qubits + self.num_qubits - op.num_qubits)
                            for op in self.oplist], coeff=self.coeff)
 
-    def compose(self, other: OperatorBase) -> OperatorBase:
+    def compose(self, other: OperatorBase,
+                permute_self: List[int] = None,
+                permute_other: List[int] = None) -> OperatorBase:
+        if permute_self is not None:
+            self = self.permute(permute_self)  # type: ignore
+        if permute_other is not None:
+            other = other.permute(permute_other)
+        self, other = self._check_zero_for_composition_and_expand(other)  # type: ignore
+
         # Try composing with last element in list
         if isinstance(other, ComposedOp):
             return ComposedOp(self.oplist + other.oplist, coeff=self.coeff * other.coeff)

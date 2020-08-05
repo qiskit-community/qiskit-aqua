@@ -14,7 +14,7 @@
 
 """ PrimitiveOp Class """
 
-from typing import Optional, Union, Set, List, Tuple
+from typing import Optional, Union, Set, List
 import logging
 import numpy as np
 from scipy.sparse import spmatrix
@@ -155,7 +155,9 @@ class PrimitiveOp(OperatorBase):
             temp = temp.tensor(self)
         return temp
 
-    def compose(self, other: OperatorBase) -> OperatorBase:
+    def compose(self, other: OperatorBase,
+                permute_self: List[int] = None,
+                permute_other: List[int] = None) -> OperatorBase:
         from ..list_ops.composed_op import ComposedOp
         if isinstance(other, ComposedOp):
             comp_with_first = self.compose(other.oplist[0])
@@ -165,21 +167,6 @@ class PrimitiveOp(OperatorBase):
             return ComposedOp([self] + other.oplist, coeff=other.coeff)  # type: ignore
 
         return ComposedOp([self, other])
-
-    def _check_zero_for_composition_and_expand(self, other: OperatorBase) \
-            -> Tuple['PrimitiveOp', OperatorBase]:
-        new_self = self
-        if not self.num_qubits == other.num_qubits:
-            # pylint: disable=cyclic-import,import-outside-toplevel
-            from ..operator_globals import Zero
-            if other == Zero:
-                # Zero is special - we'll expand it to the correct qubit number.
-                other = Zero.__class__('0' * self.num_qubits)
-            elif other.num_qubits < self.num_qubits:
-                other = other.expand_to_dim(self.num_qubits - other.num_qubits)
-            elif other.num_qubits > self.num_qubits:
-                new_self = self.expand_to_dim(other.num_qubits - self.num_qubits)  # type: ignore
-        return new_self, other
 
     def power(self, exponent: int) -> OperatorBase:
         if not isinstance(exponent, int) or exponent <= 0:

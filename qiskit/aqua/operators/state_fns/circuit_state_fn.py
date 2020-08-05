@@ -139,10 +139,17 @@ class CircuitStateFn(StateFn):
                               coeff=np.conj(self.coeff),
                               is_measurement=(not self.is_measurement))
 
-    def compose(self, other: OperatorBase) -> OperatorBase:
+    def compose(self, other: OperatorBase,
+                permute_self: List[int] = None,
+                permute_other: List[int] = None) -> OperatorBase:
         if not self.is_measurement:
             raise ValueError(
                 'Composition with a Statefunctions in the first operand is not defined.')
+
+        if permute_self is not None:
+            self = self.permute(permute_self)  # type: ignore
+        if permute_other is not None:
+            other = other.permute(permute_other)
 
         new_self, other = self._check_zero_for_composition_and_expand(other)
 
