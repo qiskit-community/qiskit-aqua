@@ -90,7 +90,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
     def __init__(self, min_eigen_optimizer: MinimumEigenOptimizer, min_num_vars: int = 1,
                  min_num_vars_optimizer: Optional[OptimizationAlgorithm] = None,
                  penalty: Optional[float] = None,
-                 history: Optional[IntermediateResult] = IntermediateResult.LAST_ITERATION) -> None:
+                 history: Optional[IntermediateResult] = IntermediateResult.LAST) -> None:
         """ Initializes the recursive minimum eigen optimizer.
 
         This initializer takes a ``MinimumEigenOptimizer``, the parameters to specify until when to
