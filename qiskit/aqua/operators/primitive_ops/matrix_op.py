@@ -156,8 +156,8 @@ class MatrixOp(PrimitiveOp):
         qc = QuantumCircuit(new_matrix_size)
 
         # extend the indices to match the size of the new matrix
-        permutation = list(filter(lambda x: x not in permutation, range(new_matrix_size))) \
-                      + permutation
+        permutation \
+            = list(filter(lambda x: x not in permutation, range(new_matrix_size))) + permutation
 
         # decompose permutation into sequence of transpositions
         transpositions = Permutation(permutation).transpositions()

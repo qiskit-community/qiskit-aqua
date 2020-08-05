@@ -433,9 +433,9 @@ class TestOpConstruction(QiskitAquaTestCase):
 
         # reduce the ListOp to PrimitiveOp
         composed_oplist = tensored_op_perm.oplist
-        to_primitive = composed_oplist[0] \
-                       @ (composed_oplist[1].oplist[0] ^ composed_oplist[1].oplist[1]) \
-                       @ composed_oplist[2]
+        to_primitive = \
+            composed_oplist[0] @ (composed_oplist[1].oplist[0] ^ composed_oplist[1].oplist[1]) @ \
+            composed_oplist[2]
 
         # compare resulting PrimitiveOps
         equal = np.allclose(primitive_op_perm.to_matrix(), to_primitive.to_matrix())
@@ -572,6 +572,17 @@ class TestOpConstruction(QiskitAquaTestCase):
 
         list_op = summed_op @ tensored_op.compose(composed_op, permute_self=[1, 2, 3, 5, 4])
         self.assertEqual(num_qubits, list_op.num_qubits)
+
+        num_qubits = 4
+        circuit_fn = CircuitStateFn(primitive=circuit_op.primitive, is_measurement=True)
+        operator_fn = OperatorStateFn(primitive=circuit_op ^ circuit_op, is_measurement=True)
+
+        no_perm_op = circuit_fn @ operator_fn
+        self.assertEqual(no_perm_op.num_qubits, num_qubits)
+
+        indices = [0, 4]
+        perm_op = circuit_fn.compose(operator_fn, permute_self=indices)
+        self.assertEqual(perm_op.num_qubits, max(indices) + 1)
 
     def test_summed_op_equals(self):
         """Test corner cases of SummedOp's equals function."""

@@ -200,27 +200,17 @@ class StateFn(OperatorBase):
                                                permute_self: List[int] = None,
                                                permute_other: List[int] = None) \
             -> Tuple[OperatorBase, OperatorBase]:
-        if permute_self is not None:
-            self = self.permute(permute_self)  # type: ignore # pylint: disable=self-cls-assignment
-        if permute_other is not None:
-            other = other.permute(permute_other)
 
-        new_self = self
-        # pylint: disable=import-outside-toplevel
-        if not self.num_qubits == other.num_qubits:
-            from qiskit.aqua.operators import Zero
-            if self == StateFn({'0': 1}, is_measurement=True):
-                # Zero is special - we'll expand it to the correct qubit number.
-                new_self = StateFn('0' * self.num_qubits, is_measurement=True)
-            elif other == Zero:
-                # Zero is special - we'll expand it to the correct qubit number.
-                other = StateFn('0' * self.num_qubits)
-            else:
-                raise ValueError(
-                    'Composition is not defined over Operators of different dimensions, {} and {}, '
-                    'respectively.'.format(self.num_qubits, other.num_qubits))
+        from ..operator_globals import Zero
 
-        return new_self, other
+        if self == StateFn({'0': 1}, is_measurement=True):
+            # Zero is special - we'll expand it to the correct qubit number.
+            return StateFn('0' * other.num_qubits, is_measurement=True), other
+        elif other == Zero:
+            # Zero is special - we'll expand it to the correct qubit number.
+            return self, StateFn('0' * self.num_qubits)
+
+        return super()._check_zero_for_composition_and_expand(other, permute_self, permute_other)
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
         raise NotImplementedError
