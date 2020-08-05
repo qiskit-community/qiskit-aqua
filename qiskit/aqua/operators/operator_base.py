@@ -516,8 +516,14 @@ class OperatorBase(ABC):
         """ Gets a single non-list-nested param_dict for a given list index from a nested one. """
         return {k: v[i] for (k, v) in unrolled_dict.items()}
 
-    def _check_zero_for_composition_and_expand(self, other: 'OperatorBase') \
+    def _check_zero_for_composition_and_expand(self, other: 'OperatorBase',
+                                               permute_self: List[int] = None,
+                                               permute_other: List[int] = None) \
             -> Tuple['OperatorBase', 'OperatorBase']:
+        if permute_self is not None:
+            self = self.permute(permute_self)  # pylint: disable=self-cls-assignment
+        if permute_other is not None:
+            other = other.permute(permute_other)
         new_self = self
         if not self.num_qubits == other.num_qubits:
             # pylint: disable=cyclic-import,import-outside-toplevel

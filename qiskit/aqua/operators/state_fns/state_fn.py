@@ -196,8 +196,15 @@ class StateFn(OperatorBase):
             temp = temp.tensor(self)
         return temp
 
-    def _check_zero_for_composition_and_expand(self, other: OperatorBase) \
+    def _check_zero_for_composition_and_expand(self, other: OperatorBase,
+                                               permute_self: List[int] = None,
+                                               permute_other: List[int] = None) \
             -> Tuple[OperatorBase, OperatorBase]:
+        if permute_self is not None:
+            self = self.permute(permute_self)  # pylint: disable=self-cls-assignment
+        if permute_other is not None:
+            other = other.permute(permute_other)
+
         new_self = self
         # pylint: disable=import-outside-toplevel
         if not self.num_qubits == other.num_qubits:
@@ -256,11 +263,6 @@ class StateFn(OperatorBase):
         if not self.is_measurement:
             raise ValueError(
                 'Composition with a Statefunction in the first operand is not defined.')
-
-        if permute_self is not None:
-            self = self.permute(permute_self)  # type: ignore
-        if permute_other is not None:
-            other = other.permute(permute_other)
 
         new_self, other = self._check_zero_for_composition_and_expand(other)
         # TODO maybe include some reduction here in the subclasses - vector and Op, op and Op, etc.
