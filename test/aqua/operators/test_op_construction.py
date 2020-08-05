@@ -443,6 +443,36 @@ class TestOpConstruction(QiskitAquaTestCase):
         vsfn_exp = vsfn.expand_to_dim(add_qubits)
         self.assertEqual(vsfn_exp.num_qubits, num_qubits + add_qubits)
 
+    def test_compose_consistency(self):
+        """Checks if PrimitiveOp @ ComposedOp is consistent with ComposedOp @ PrimitiveOp."""
+
+        # PauliOp
+        op1 = (X ^ Y ^ Z)
+        op2 = (X ^ Y ^ Z)
+        op3 = (X ^ Y ^ Z).to_circuit_op()
+
+        comp1 = op1 @ ComposedOp([op2, op3])
+        comp2 = ComposedOp([op3, op2]) @ op1
+        self.assertListEqual(comp1.oplist, list(reversed(comp2.oplist)))
+
+        # CircitOp
+        op1 = op1.to_circuit_op()
+        op2 = op2.to_circuit_op()
+        op3 = op3.to_matrix_op()
+
+        comp1 = op1 @ ComposedOp([op2, op3])
+        comp2 = ComposedOp([op3, op2]) @ op1
+        self.assertListEqual(comp1.oplist, list(reversed(comp2.oplist)))
+
+        # MatrixOp
+        op1 = op1.to_matrix_op()
+        op2 = op2.to_matrix_op()
+        op3 = op3.to_pauli_op()
+
+        comp1 = op1 @ ComposedOp([op2, op3])
+        comp2 = ComposedOp([op3, op2]) @ op1
+        self.assertListEqual(comp1.oplist, list(reversed(comp2.oplist)))
+
     def test_summed_op_equals(self):
         """Test corner cases of SummedOp's equals function."""
         with self.subTest('multiplicative factor'):
