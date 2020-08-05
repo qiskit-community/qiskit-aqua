@@ -173,7 +173,7 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
             QiskitOptimizationError: if the number of variables in the result differs from
                                      that of the original problem.
         """
-        if len(result.x) != len(self._src.variables):
+        if len(result.x) != self._src.get_num_vars():
             raise QiskitOptimizationError(
                 'The number of variables in the passed result differs from '
                 'that of the original problem.'
@@ -192,7 +192,7 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
             new_status = OptimizationResultStatus.INFEASIBLE
 
         return OptimizationResult(x=result.x, fval=substituted_qp.objective.constant,
-                                  variables=result.variables, raw_results=result.raw_results,
+                                  variables=self._src.variables, raw_results=result.raw_results,
                                   status=new_status)
 
     @property
