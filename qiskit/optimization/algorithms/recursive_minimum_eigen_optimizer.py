@@ -59,6 +59,16 @@ class RecursiveMinimumEigenOptimizerResult(OptimizationResult):
         self._replacements = replacements
         self._history = history
 
+    @property
+    def replacements(self) -> Dict[str, Tuple[str, int]]:
+        """Returns replacements."""
+        return self._replacements
+
+    @property
+    def history(self) -> List[MinimumEigenOptimizerResult]:
+        """Returns intermediate results."""
+        return self._history
+
 
 class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
     """A meta-algorithm that applies a recursive optimization.

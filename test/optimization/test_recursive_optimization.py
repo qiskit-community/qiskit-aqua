@@ -16,6 +16,8 @@
 
 import unittest
 from os import path
+
+from qiskit.optimization.algorithms.recursive_minimum_eigen_optimizer import IntermediateResult
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
@@ -60,6 +62,49 @@ class TestRecursiveMinEigenOptimizer(QiskitOptimizationTestCase):
                 self.skipTest(msg)
             else:
                 self.fail(msg)
+
+    def test_min_eigen_optimizer_history(self):
+        filename = 'op_ip1.lp'
+        # load optimization problem
+        problem = QuadraticProgram()
+        lp_file = self.get_resource_path(path.join('resources', filename))
+        problem.read_from_lp_file(lp_file)
+
+        # get minimum eigen solver
+        min_eigen_solver = NumPyMinimumEigensolver()
+
+        # construct minimum eigen optimizer
+        min_eigen_optimizer = MinimumEigenOptimizer(min_eigen_solver)
+
+        # no history
+        recursive_min_eigen_optimizer = \
+            RecursiveMinimumEigenOptimizer(min_eigen_optimizer,
+                                           min_num_vars=4,
+                                           history=IntermediateResult.NO)
+        result = recursive_min_eigen_optimizer.solve(problem)
+        self.assertIsNotNone(result.replacements)
+        self.assertIsNotNone(result.history)
+        self.assertEqual(len(result.history), 0)
+
+        # only last iteration in the history
+        recursive_min_eigen_optimizer = \
+            RecursiveMinimumEigenOptimizer(min_eigen_optimizer,
+                                           min_num_vars=4,
+                                           history=IntermediateResult.LAST)
+        result = recursive_min_eigen_optimizer.solve(problem)
+        self.assertIsNotNone(result.replacements)
+        self.assertIsNotNone(result.history)
+        self.assertEqual(len(result.history), 1)
+
+        # full history
+        recursive_min_eigen_optimizer = \
+            RecursiveMinimumEigenOptimizer(min_eigen_optimizer,
+                                           min_num_vars=4,
+                                           history=IntermediateResult.ALL)
+        result = recursive_min_eigen_optimizer.solve(problem)
+        self.assertIsNotNone(result.replacements)
+        self.assertIsNotNone(result.history)
+        self.assertGreater(len(result.history), 1)
 
 
 if __name__ == '__main__':
