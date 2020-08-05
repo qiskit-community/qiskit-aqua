@@ -455,6 +455,25 @@ class TestOpConstruction(QiskitAquaTestCase):
         equal = np.allclose(primitive_op_perm.to_matrix(), to_primitive.to_matrix())
         self.assertTrue(equal)
 
+    def test_expand_on_list_op(self):
+        """ Tests the expected num_qubits on expanded operator. """
+        add_qubits = 3
+
+        # ComposedOp
+        composed_op = ComposedOp([(X ^ Y ^ Z), (H ^ T), (Z ^ X ^ Y ^ Z).to_matrix_op()])
+        expanded = composed_op.expand_to_dim(add_qubits)
+        self.assertEqual(composed_op.num_qubits + add_qubits, expanded.num_qubits)
+
+        # TensoredOp
+        tensored_op = TensoredOp([(X ^ Y), (Z ^ I)])
+        expanded = tensored_op.expand_to_dim(add_qubits)
+        self.assertEqual(tensored_op.num_qubits + add_qubits, expanded.num_qubits)
+
+        # SummedOp
+        summed_op = SummedOp([(X ^ Y), (Z ^ I ^ Z)])
+        expanded = summed_op.expand_to_dim(add_qubits)
+        self.assertEqual(summed_op.num_qubits + add_qubits, expanded.num_qubits)
+
     def test_expand_on_state_fn(self):
         """ Tests num_qubits on the original instance and expanded instance of StateFn """
         num_qubits = 3
