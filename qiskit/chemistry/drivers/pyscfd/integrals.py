@@ -206,8 +206,8 @@ def _calculate_integrals(mol, hf_method='rhf', conv_tol=1e-9, max_cycle=50, init
     z_dip_ints = ao_dip[2]
 
     d_m = m_f.make_rdm1(m_f.mo_coeff, m_f.mo_occ)
-    if hf_method in ('rohf', 'uhf'):
-        d_m = d_m[0]
+    if not (isinstance(d_m, np.ndarray) and d_m.ndim == 2):
+        d_m = d_m[0] + d_m[1]
     elec_dip = np.negative(np.einsum('xij,ji->x', ao_dip, d_m).real)
     elec_dip = np.round(elec_dip, decimals=8)
     nucl_dip = np.einsum('i,ix->x', mol.atom_charges(), mol.atom_coords())
