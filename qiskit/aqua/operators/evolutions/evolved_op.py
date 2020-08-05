@@ -99,10 +99,9 @@ class EvolvedOp(PrimitiveOp):
     def compose(self, other: OperatorBase,
                 permute_self: List[int] = None,
                 permute_other: List[int] = None) -> OperatorBase:
-        # type: ignore
-        self, other = self._check_zero_for_composition_and_expand(other, permute_self,
-                                                                  permute_other)
 
+        self, other = self._check_zero_for_composition_and_expand(other,  # type: ignore
+                                                                  permute_self, permute_other)
         if isinstance(other, ComposedOp):
             return ComposedOp([self] + other.oplist)  # type: ignore
 

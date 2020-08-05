@@ -201,7 +201,7 @@ class StateFn(OperatorBase):
                                                permute_other: List[int] = None) \
             -> Tuple[OperatorBase, OperatorBase]:
         if permute_self is not None:
-            self = self.permute(permute_self)  # pylint: disable=self-cls-assignment
+            self = self.permute(permute_self)  # type: ignore # pylint: disable=self-cls-assignment
         if permute_other is not None:
             other = other.permute(permute_other)
 

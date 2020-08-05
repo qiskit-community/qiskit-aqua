@@ -206,7 +206,8 @@ class ListOp(OperatorBase):
         return TensoredOp([self] * other)
 
     def expand_to_dim(self, num_qubits: int) -> 'ListOp':
-        raise NotImplementedError
+        return ListOp([op.expand_to_dim(num_qubits + self.num_qubits - op.num_qubits)
+                       for op in self.oplist], combo_fn=self.combo_fn, coeff=self.coeff)
 
     def permute(self, permutation: List[int]) -> 'ListOp':
         r"""
@@ -246,9 +247,9 @@ class ListOp(OperatorBase):
     def compose(self, other: OperatorBase,
                 permute_self: List[int] = None,
                 permute_other: List[int] = None) -> OperatorBase:
-        # type: ignore
-        self, other = self._check_zero_for_composition_and_expand(other, permute_self,
-                                                                  permute_other)
+
+        self, other = self._check_zero_for_composition_and_expand(other,  # type: ignore
+                                                                  permute_self, permute_other)
         # Avoid circular dependency
         # pylint: disable=cyclic-import,import-outside-toplevel
         from .composed_op import ComposedOp

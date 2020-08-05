@@ -62,7 +62,7 @@ class TensoredOp(ListOp):
             identity operator represented by Pauli(label='I'*num_qubit)
         """
         from qiskit.aqua.operators import PauliOp
-        return TensoredOp(self.oplist + [PauliOp(Pauli(label='I' * num_qubits))])
+        return TensoredOp(self.oplist + [PauliOp(Pauli(label='I' * num_qubits))], coeff=self.coeff)
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
         if isinstance(other, TensoredOp):

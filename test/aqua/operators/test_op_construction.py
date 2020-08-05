@@ -572,7 +572,6 @@ class TestOpConstruction(QiskitAquaTestCase):
 
         list_op = summed_op @ tensored_op.compose(composed_op, permute_self=[1, 2, 3, 5, 4])
         self.assertEqual(num_qubits, list_op.num_qubits)
-        print('hello')
 
     def test_summed_op_equals(self):
         """Test corner cases of SummedOp's equals function."""
