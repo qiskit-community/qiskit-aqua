@@ -28,21 +28,18 @@ from ..problems.quadratic_program import QuadraticProgram, Variable
 class MinimumEigenOptimizerResult(OptimizationResult):
     """ Minimum Eigen Optimizer Result."""
 
-    def __init__(self, x: List[float], fval: float,
+    def __init__(self, x: Union[List[float], np.ndarray], fval: float,
                  variables: List[Variable],
                  samples: List[Tuple[str, float, float]],
-                 qubo_converter: QuadraticProgramToQubo,
-                 eigensolver_result: MinimumEigensolverResult = None) -> None:
+                 eigensolver_result: Optional[MinimumEigensolverResult] = None) -> None:
         """
         Args:
             x: the optimal value found by ``MinimumEigensolver``.
             fval: the optimal function value.
             variables: the list of variables of the optimization problem.
             samples: the basis state as bitstring, the QUBO value, and the probability of sampling.
-            qubo_converter: ``QuadraticProgram`` to QUBO converter.
         """
         super().__init__(x, fval, variables, None)
-        self._qubo_converter = qubo_converter
         self._samples = samples
         self._eigensolver_result = eigensolver_result
 
@@ -50,6 +47,11 @@ class MinimumEigenOptimizerResult(OptimizationResult):
     def samples(self) -> List[Tuple[str, float, float]]:
         """Returns samples."""
         return self._samples
+
+    @property
+    def eigensolver_result(self) -> MinimumEigensolverResult:
+        """Returns a result object obtained from the instance of :class:`MinimumEigensolver`."""
+        return self._eigensolver_result
 
     def get_correlations(self) -> np.ndarray:
         """Get <Zi x Zj> correlation matrix from samples."""
@@ -154,6 +156,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
 
         # only try to solve non-empty Ising Hamiltonians
         x = None  # type: Optional[Any]
+        eigen_result = None     # type: MinimumEigensolverResult
         if operator.num_qubits > 0:
 
             # approximate ground state of operator using min eigen solver
@@ -177,14 +180,12 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
             samples = [(x_str, offset, 1.0)]
 
         # translate result back to integers
-        base_res = OptimizationResult(x=x, fval=fval, variables=problem.variables)
-        base_res = self._qubo_converter.interpret(base_res)
-        opt_res = MinimumEigenOptimizerResult(x=base_res.x, fval=base_res.fval,
-                                              variables=base_res.variables,
+        result = OptimizationResult(x=x, fval=fval, variables=problem.variables)
+        result = self._qubo_converter.interpret(result)
+        return MinimumEigenOptimizerResult(x=result.x, fval=result.fval,
+                                              variables=result.variables,
                                               samples=samples,
-                                              eigensolver_result=eigen_result,
-                                              qubo_converter=deepcopy(self._qubo_converter))
-        return opt_res
+                                              eigensolver_result=eigen_result)
 
 
 def _eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray, StateFn],
