@@ -445,6 +445,7 @@ class OperatorBase(ABC):
     @abstractmethod
     def expand_to_dim(self, num_qubits: int) -> 'OperatorBase':
         r""" Expands the operator with identity operator of dimension 2**num_qubits.
+
         Returns:
             Operator corresponding to self.tensor(identity_operator), where dimension of identity
             operator is 2 ** num_qubits.
@@ -453,8 +454,7 @@ class OperatorBase(ABC):
 
     @abstractmethod
     def permute(self, permutation: List[int]) -> 'OperatorBase':
-        r"""
-        Permutes the qubits of the operator.
+        r""" Permutes the qubits of the operator.
 
         Args:
             permutation: A list defining where each qubit should be permuted. The qubit at index

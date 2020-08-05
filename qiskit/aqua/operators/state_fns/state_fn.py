@@ -201,7 +201,7 @@ class StateFn(OperatorBase):
                                                permute_other: List[int] = None) \
             -> Tuple[OperatorBase, OperatorBase]:
 
-        from ..operator_globals import Zero
+        from qiskit.aqua.operators import Zero
 
         if self == StateFn({'0': 1}, is_measurement=True):
             # Zero is special - we'll expand it to the correct qubit number.
