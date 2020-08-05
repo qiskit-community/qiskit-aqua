@@ -27,8 +27,9 @@ from qiskit.quantum_info.operators import Operator, Pauli
 from qiskit.circuit.library import CZGate, ZGate
 
 from qiskit.aqua.operators import (
-    X, Y, Z, I, CX, T, H, Minus, PrimitiveOp, PauliOp, CircuitOp, MatrixOp, CircuitStateFn,
-    VectorStateFn, DictStateFn, OperatorStateFn, ListOp, ComposedOp, TensoredOp, SummedOp
+    X, Y, Z, I, CX, T, H, Minus, PrimitiveOp, PauliOp, CircuitOp, MatrixOp, EvolvedOp,
+    CircuitStateFn, VectorStateFn, DictStateFn, OperatorStateFn, ListOp, ComposedOp, TensoredOp,
+    SummedOp
 )
 
 
@@ -537,6 +538,41 @@ class TestOpConstruction(QiskitAquaTestCase):
         comp1 = op1 @ ComposedOp([op2, op3])
         comp2 = ComposedOp([op3, op2]) @ op1
         self.assertListEqual(comp1.oplist, list(reversed(comp2.oplist)))
+
+    def test_compose_with_indices(self):
+        """ Test compose method using permutation feature."""
+
+        pauli_op = (X ^ Y ^ Z)
+        circuit_op = (T ^ H)
+        matrix_op = (X ^ Y ^ H ^ T).to_matrix_op()
+        evolved_op = EvolvedOp(matrix_op)
+
+        # composition of PrimitiveOps
+        num_qubits = 4
+        primitive_op = pauli_op @ circuit_op @ matrix_op
+        composed_op = pauli_op @ circuit_op @ evolved_op
+        self.assertEqual(primitive_op.num_qubits, num_qubits)
+        self.assertEqual(composed_op.num_qubits, num_qubits)
+
+        # with permutation
+        num_qubits = 5
+        indices = [1, 4]
+        permuted_primitive_op = pauli_op @ circuit_op.permute(indices) @ matrix_op
+        composed_primitive_op = pauli_op.compose(circuit_op, permute_other=indices) @ matrix_op
+
+        self.assertTrue(np.allclose(permuted_primitive_op.to_matrix(),
+                                    composed_primitive_op.to_matrix()))
+        self.assertEqual(num_qubits, permuted_primitive_op.num_qubits)
+
+        # ListOp
+        num_qubits = 6
+        tensored_op = TensoredOp([pauli_op, circuit_op])
+        summed_op = pauli_op + circuit_op.permute([2, 1])
+        composed_op = circuit_op @ evolved_op @ matrix_op
+
+        list_op = summed_op @ tensored_op.compose(composed_op, permute_self=[1, 2, 3, 5, 4])
+        self.assertEqual(num_qubits, list_op.num_qubits)
+        print('hello')
 
     def test_summed_op_equals(self):
         """Test corner cases of SummedOp's equals function."""
