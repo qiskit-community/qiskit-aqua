@@ -55,11 +55,11 @@ class TensoredOp(ListOp):
         return False
 
     def expand_to_dim(self, num_qubits: int) -> 'TensoredOp':
-        """ Appends PauliOp, with Pauli I as primitive, to ``oplist``.
-        Choice of Pauli as identity is arbitrary and could be substituted for other
-        PrimitiveOp.identity.
+        """ Appends PauliOp, with Pauli I as primitive, to ``oplist``. Choice of Pauli as
+        identity is arbitrary and could be substituted for other PrimitiveOp identity.
+
         Returns:
-            identity operator represented by Pauli(label='I'*num_qubit)
+            identity operator represented by Pauli
         """
         from qiskit.aqua.operators import PauliOp
         return TensoredOp(self.oplist + [PauliOp(Pauli(label='I' * num_qubits))], coeff=self.coeff)
