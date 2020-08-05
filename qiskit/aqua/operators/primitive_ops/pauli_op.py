@@ -103,12 +103,15 @@ class PauliOp(PrimitiveOp):
 
     def permute(self, permutation: List[int] = None) -> 'PauliOp':
         """ Permutes the underlying Pauli matrices.
+
         Args:
             permutation: A list defining where each Pauli should be permuted. The Pauli at index
                 j of the primitive should be permuted to position permutation[j].
+
         Returns:
               A new PauliOp with the permuted Paulis. For operator (X ^ Y ^ Z) and indices=[1,2,4],
               it returns (X ^ I ^ Y ^ Z ^ I).
+
         Raises:
             AquaError: if number of indices to not match the num_qubits
         """
