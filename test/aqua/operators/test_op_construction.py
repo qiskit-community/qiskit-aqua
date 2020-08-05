@@ -403,11 +403,57 @@ class TestOpConstruction(QiskitAquaTestCase):
         self.assertTrue(equal)
 
     def test_permute_on_list_op(self):
-        """ Test if permute method of ListOp works correctly and is consistent with other
-        permute methods. """
+        """ Test if permute method of ListOp is consistent with PrimitiveOp permute methods. """
 
-        composed_op = ComposedOp([(X ^ Y ^ Z), (Z ^ X ^ Y).to_circuit_op()])
-        composed_op_perm = composed_op.permute([1, 2, 0])
+        op1 = (X ^ Y ^ Z).to_circuit_op()
+        op2 = (Z ^ X ^ Y)
+
+        # ComposedOp
+        indices = [1, 2, 0]
+        primitive_op = op1 @ op2
+        primitive_op_perm = primitive_op.permute(indices)  # CircuitOp.permute
+
+        composed_op = ComposedOp([op1, op2])
+        composed_op_perm = composed_op.permute(indices)
+
+        # reduce the ListOp to PrimitiveOp
+        to_primitive = composed_op_perm.oplist[0] @ composed_op_perm.oplist[1]
+        # compare resulting PrimitiveOps
+        equal = np.allclose(primitive_op_perm.to_matrix(), to_primitive.to_matrix())
+        self.assertTrue(equal)
+
+        # TensoredOp
+        indices = [3, 5, 4, 0, 2, 1]
+        primitive_op = op1 ^ op2
+        primitive_op_perm = primitive_op.permute(indices)
+
+        tensored_op = TensoredOp([op1, op2])
+        tensored_op_perm = tensored_op.permute(indices)
+
+        # reduce the ListOp to PrimitiveOp
+        composed_oplist = tensored_op_perm.oplist
+        to_primitive = composed_oplist[0] \
+                       @ (composed_oplist[1].oplist[0] ^ composed_oplist[1].oplist[1]) \
+                       @ composed_oplist[2]
+
+        # compare resulting PrimitiveOps
+        equal = np.allclose(primitive_op_perm.to_matrix(), to_primitive.to_matrix())
+        self.assertTrue(equal)
+
+        # SummedOp
+        primitive_op = (X ^ Y ^ Z)
+        summed_op = SummedOp([primitive_op])
+
+        indices = [1, 2, 0]
+        primitive_op_perm = primitive_op.permute(indices)  # PauliOp.permute
+        summed_op_perm = summed_op.permute(indices)
+
+        # reduce the ListOp to PrimitiveOp
+        to_primitive = summed_op_perm.oplist[0] @ primitive_op @ summed_op_perm.oplist[2]
+
+        # compare resulting PrimitiveOps
+        equal = np.allclose(primitive_op_perm.to_matrix(), to_primitive.to_matrix())
+        self.assertTrue(equal)
 
     def test_expand_on_state_fn(self):
         """ Tests num_qubits on the original instance and expanded instance of StateFn """
