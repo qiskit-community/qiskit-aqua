@@ -220,7 +220,7 @@ class IntegerToBinary(QuadraticProgramConverter):
             The result of the original problem.
         """
         new_x = self._interpret_var(result.x)
-        return OptimizationResult(x=new_x, fval=result.fval, variables=result.variables,
+        return OptimizationResult(x=new_x, fval=result.fval, variables=self._src.variables,
                                   raw_results=result.raw_results)
 
     def _interpret_var(self, vals: Union[List[float], np.ndarray]) -> List[float]:
