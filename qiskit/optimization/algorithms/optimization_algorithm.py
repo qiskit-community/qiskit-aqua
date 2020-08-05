@@ -151,7 +151,15 @@ class OptimizationResult:
             variables: the list of variables of the optimization problem.
             raw_results: the original results object from the optimization algorithm.
             status: the termination status of the optimization algorithm.
+
+        Raises:
+            QiskitOptimizationError: if sizes of ``x`` and ``variables`` do not match.
         """
+        if len(x) != len(variables):
+            raise QiskitOptimizationError(
+                'Inconsistent size of optimal value and variables. x: size {} {}, '
+                'variables: size {} {}'.format(len(x), x, len(variables),
+                                               [v.name for v in variables]))
         self._x = x if isinstance(x, np.ndarray) else np.array(x)  # pylint: disable=invalid-name
         self._fval = fval
         self._raw_results = raw_results

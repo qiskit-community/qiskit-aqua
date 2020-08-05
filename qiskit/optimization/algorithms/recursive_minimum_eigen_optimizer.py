@@ -211,7 +211,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         fval = result.fval
         results = OptimizationResult(x=x_v, fval=fval,
                                      raw_results=(replacements, deepcopy(self._qubo_converter)),
-                                     variables=problem.variables)
+                                     variables=problem_ref.variables)
         results = self._qubo_converter.interpret(results)
         return results
 
