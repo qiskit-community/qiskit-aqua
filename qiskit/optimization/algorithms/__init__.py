@@ -51,6 +51,7 @@ Algorithms and results
    OptimizationResultStatus
    RecursiveMinimumEigenOptimizationResult
    RecursiveMinimumEigenOptimizer
+   SlsqpOptimizationResult
    SlsqpOptimizer
 
 """
@@ -65,9 +66,10 @@ from .optimization_algorithm import (OptimizationAlgorithm, OptimizationResult,
                                      OptimizationResultStatus)
 from .recursive_minimum_eigen_optimizer import (RecursiveMinimumEigenOptimizer,
                                                 RecursiveMinimumEigenOptimizationResult)
-from .slsqp_optimizer import SlsqpOptimizer
+from .slsqp_optimizer import SlsqpOptimizer, SlsqpOptimizationResult
 
 __all__ = ["ADMMOptimizer", "OptimizationAlgorithm", "OptimizationResult", "CplexOptimizer",
            "CobylaOptimizer", "MinimumEigenOptimizer", "MinimumEigenOptimizationResult",
            "RecursiveMinimumEigenOptimizer", "RecursiveMinimumEigenOptimizationResult",
-           "GroverOptimizer", "GroverOptimizationResult", "SlsqpOptimizer"]
+           "GroverOptimizer", "GroverOptimizationResult", "SlsqpOptimizer",
+           "SlsqpOptimizationResult"]

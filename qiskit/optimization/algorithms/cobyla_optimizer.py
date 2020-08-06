@@ -14,7 +14,7 @@
 
 """The COBYLA optimizer wrapped to be used within Qiskit's optimization module."""
 
-from typing import Optional, cast, List
+from typing import Optional, cast, List, Tuple, Any
 
 import numpy as np
 from scipy.optimize import fmin_cobyla
@@ -152,9 +152,10 @@ class CobylaOptimizer(MultiStartOptimizer):
                 raise QiskitOptimizationError('Unsupported constraint type!')
 
         # actual minimization function to be called by multi_start_solve
-        def _minimize(x_0: np.array) -> np.array:
-            return fmin_cobyla(objective, x_0, constraints, rhobeg=self._rhobeg,
-                               rhoend=self._rhoend, maxfun=self._maxfun, disp=self._disp,
-                               catol=self._catol)
+        def _minimize(x_0: np.array) -> Tuple[np.array, Any]:
+            x = fmin_cobyla(objective, x_0, constraints, rhobeg=self._rhobeg,
+                            rhoend=self._rhoend, maxfun=self._maxfun, disp=self._disp,
+                            catol=self._catol)
+            return x, None
 
         return self.multi_start_solve(_minimize, problem)
