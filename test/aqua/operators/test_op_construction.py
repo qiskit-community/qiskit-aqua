@@ -509,6 +509,29 @@ class TestOpConstruction(QiskitAquaTestCase):
         vsfn_exp = vsfn.expand_with_identity(add_qubits)
         self.assertEqual(vsfn_exp.num_qubits, num_qubits + add_qubits)
 
+    def test_permute_on_state_fn(self):
+        """ Test if StateFns permute are consistent. """
+
+        num_qubits = 4
+        dim = 2**num_qubits
+        primitive_list = [1.0/(i+1) for i in range(dim)]
+        primitive_dict = {format(i, 'b').zfill(num_qubits): 1.0/(i+1) for i in range(dim)}
+
+        dict_fn = DictStateFn(primitive=primitive_dict, is_measurement=True)
+        vec_fn = VectorStateFn(primitive=primitive_list, is_measurement=True)
+
+        # check if dict_fn and vec_fn are equivalent
+        equivalent = np.allclose(dict_fn.to_matrix(), vec_fn.to_matrix())
+        self.assertTrue(equivalent)
+
+        # permute
+        indices = [2, 3, 0, 1]
+        permute_dict = dict_fn.permute(indices)
+        permute_vect = vec_fn.permute(indices)
+
+        equivalent = np.allclose(permute_dict.to_matrix(), permute_vect.to_matrix())
+        self.assertTrue(equivalent)
+
     def test_compose_consistency(self):
         """Test if PrimitiveOp @ ComposedOp is consistent with ComposedOp @ PrimitiveOp."""
 

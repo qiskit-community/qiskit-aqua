@@ -79,7 +79,13 @@ class VectorStateFn(StateFn):
                              is_measurement=(not self.is_measurement))
 
     def permute(self, permutation: List[int]) -> 'OperatorBase':
-        raise NotImplementedError
+        return self.to_dict_fn().permute(permutation).to_vector_state_fn()
+
+    def to_dict_fn(self) -> 'DictStateFn':
+        num_qubits = self.num_qubits
+        new_dict = {format(i, 'b').zfill(num_qubits): v for i, v in enumerate(self.primitive.data)}
+        from qiskit.aqua.operators import DictStateFn
+        return DictStateFn(new_dict, coeff=self.coeff, is_measurement=self.is_measurement)
 
     def expand_with_identity(self, num_qubits: int) -> 'VectorStateFn':
         primitive = np.zeros(2**num_qubits, dtype=complex)

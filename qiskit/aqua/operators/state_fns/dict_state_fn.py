@@ -18,7 +18,6 @@ from typing import Union, Set, cast, List
 import itertools
 import numpy as np
 from scipy import sparse
-from sympy.combinatorics import Permutation
 
 from qiskit.result import Result
 from qiskit.circuit import ParameterExpression
@@ -110,7 +109,7 @@ class DictStateFn(StateFn):
                            coeff=np.conj(self.coeff),
                            is_measurement=(not self.is_measurement))
 
-    def permute(self, permutation: List[int]) -> 'OperatorBase':
+    def permute(self, permutation: List[int]) -> 'DictStateFn':
         new_num_qubits = max(permutation) + 1
         if self.num_qubits != len(permutation):
             raise AquaError("New index must be defined for each qubit of the operator.")
@@ -120,7 +119,7 @@ class DictStateFn(StateFn):
             list_key = ['0'] * new_num_qubits
             for i, k in enumerate(permutation):
                 list_key[k] = key[i]
-            return str(list_key)
+            return ''.join(list_key)
 
         new_dict = {perm(key): value for key, value in self.primitive.items()}
         return DictStateFn(new_dict, coeff=self.coeff, is_measurement=self.is_measurement)
@@ -129,6 +128,14 @@ class DictStateFn(StateFn):
         pad = '0'*num_qubits
         new_dict = {key + pad: value for key, value in self.primitive.items()}
         return DictStateFn(new_dict, coeff=self.coeff, is_measurement=self.is_measurement)
+
+    def to_vector_state_fn(self) -> 'VectorStateFn':
+        states = int(2 ** self.num_qubits)
+        probs = np.zeros(states) + 0.j
+        for k, v in self.primitive.items():
+            probs[int(k, 2)] = v
+        from qiskit.aqua.operators import VectorStateFn
+        return VectorStateFn(probs, coeff=self.coeff, is_measurement=self.is_measurement)
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
         # Both dicts
