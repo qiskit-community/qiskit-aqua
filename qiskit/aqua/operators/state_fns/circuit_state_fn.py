@@ -359,7 +359,7 @@ class CircuitStateFn(StateFn):
                     del self.primitive.data[i]
         return self
 
-    def expand_to_dim(self, num_qubits: int) -> 'CircuitStateFn':
+    def expand_with_identity(self, num_qubits: int) -> 'CircuitStateFn':
         return self.permute(list(range(num_qubits, num_qubits + self.num_qubits)))
 
     def permute(self, permutation: List[int]) -> 'CircuitStateFn':

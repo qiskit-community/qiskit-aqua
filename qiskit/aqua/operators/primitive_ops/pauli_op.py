@@ -83,7 +83,7 @@ class PauliOp(PrimitiveOp):
 
         return self.primitive == other.primitive
 
-    def expand_to_dim(self, num_qubits: int) -> 'PauliOp':
+    def expand_with_identity(self, num_qubits: int) -> 'PauliOp':
         return PauliOp(Pauli(label='I'*num_qubits).kron(self.primitive), coeff=self.coeff)
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
@@ -102,18 +102,18 @@ class PauliOp(PrimitiveOp):
         return TensoredOp([self, other])
 
     def permute(self, permutation: List[int] = None) -> 'PauliOp':
-        """ Permutes the underlying Pauli matrices.
+        """ Permutes the sequence of Pauli matrices.
 
         Args:
             permutation: A list defining where each Pauli should be permuted. The Pauli at index
                 j of the primitive should be permuted to position permutation[j].
 
         Returns:
-              A new PauliOp with the permuted Paulis. For operator (X ^ Y ^ Z) and indices=[1,2,4],
-              it returns (X ^ I ^ Y ^ Z ^ I).
+              A new PauliOp representing the permuted operator. For operator (X ^ Y ^ Z) and
+              indices=[1,2,4], it returns (X ^ I ^ Y ^ Z ^ I).
 
         Raises:
-            AquaError: if number of indices to not match the num_qubits
+            AquaError: if indices do not define a new index for each qubit.
         """
         pauli_string = self.primitive.__str__()
         length = max(permutation) + 1  # size of list must be +1 larger then its max index

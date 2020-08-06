@@ -142,7 +142,7 @@ class StateFn(OperatorBase):
     def adjoint(self) -> OperatorBase:
         raise NotImplementedError
 
-    def expand_to_dim(self, num_qubits: int) -> 'StateFn':
+    def expand_with_identity(self, num_qubits: int) -> 'StateFn':
         raise NotImplementedError
 
     def permute(self, permutation: List[int]) -> 'OperatorBase':

@@ -81,7 +81,7 @@ class VectorStateFn(StateFn):
     def permute(self, permutation: List[int]) -> 'OperatorBase':
         raise NotImplementedError
 
-    def expand_to_dim(self, num_qubits: int) -> 'VectorStateFn':
+    def expand_with_identity(self, num_qubits: int) -> 'VectorStateFn':
         primitive = np.zeros(2**num_qubits, dtype=complex)
         return VectorStateFn(self.primitive.tensor(primitive),
                              coeff=self.coeff,

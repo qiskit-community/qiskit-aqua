@@ -82,8 +82,8 @@ class OperatorStateFn(StateFn):
                                coeff=np.conj(self.coeff),
                                is_measurement=(not self.is_measurement))
 
-    def expand_to_dim(self, num_qubits: int) -> 'OperatorStateFn':
-        return OperatorStateFn(self.primitive.expand_to_dim(num_qubits),
+    def expand_with_identity(self, num_qubits: int) -> 'OperatorStateFn':
+        return OperatorStateFn(self.primitive.expand_with_identity(num_qubits),
                                coeff=self.coeff,
                                is_measurement=self.is_measurement)
 

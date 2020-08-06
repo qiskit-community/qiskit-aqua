@@ -89,7 +89,7 @@ class EvolvedOp(PrimitiveOp):
 
         return TensoredOp([self, other])
 
-    def expand_to_dim(self, num_qubits: int) -> 'OperatorBase':
+    def expand_with_identity(self, num_qubits: int) -> 'OperatorBase':
         from qiskit.quantum_info import Pauli
         return self.tensor(PauliOp(Pauli(label='I'*num_qubits)))
 

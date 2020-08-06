@@ -112,7 +112,7 @@ class DictStateFn(StateFn):
     def permute(self, permutation: List[int]) -> 'OperatorBase':
         raise NotImplementedError
 
-    def expand_to_dim(self, num_qubits: int) -> 'DictStateFn':
+    def expand_with_identity(self, num_qubits: int) -> 'DictStateFn':
         pad = {'0'*num_qubits: 1}
         new_dict = {k1 + k2: v1 * v2 for ((k1, v1,), (k2, v2)) in
                     itertools.product(self.primitive.items(), pad.items())}

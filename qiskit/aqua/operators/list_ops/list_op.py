@@ -205,8 +205,8 @@ class ListOp(OperatorBase):
         from .tensored_op import TensoredOp
         return TensoredOp([self] * other)
 
-    def expand_to_dim(self, num_qubits: int) -> 'ListOp':
-        return ListOp([op.expand_to_dim(num_qubits + self.num_qubits - op.num_qubits)
+    def expand_with_identity(self, num_qubits: int) -> 'ListOp':
+        return ListOp([op.expand_with_identity(num_qubits + self.num_qubits - op.num_qubits)
                        for op in self.oplist], combo_fn=self.combo_fn, coeff=self.coeff)
 
     def permute(self, permutation: List[int]) -> 'ListOp':
@@ -218,9 +218,10 @@ class ListOp(OperatorBase):
                 j should be permuted to position permutation[j].
 
         Returns:
-            A new ListOp containing the permuted circuit.
+            A new ListOp representing the permuted operator.
+
         Raises:
-            AquaError: if indices does not define a new index for each qubit.
+            AquaError: if indices do not define a new index for each qubit.
         """
         new_self = self
         circuit_size = max(permutation) + 1
@@ -229,7 +230,7 @@ class ListOp(OperatorBase):
             raise AquaError("New index must be defined for each qubit of the operator.")
         if self.num_qubits < circuit_size:
             # pad the operator with identities
-            new_self = self.expand_to_dim(circuit_size - self.num_qubits)
+            new_self = self.expand_with_identity(circuit_size - self.num_qubits)
         qc = QuantumCircuit(circuit_size)
         # extend the indices to match the size of the circuit
         permutation \

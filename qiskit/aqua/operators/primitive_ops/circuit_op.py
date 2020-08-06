@@ -232,7 +232,7 @@ class CircuitOp(PrimitiveOp):
                     del self.primitive.data[i]  # type: ignore
         return self
 
-    def expand_to_dim(self, num_qubits: int) -> 'CircuitOp':
+    def expand_with_identity(self, num_qubits: int) -> 'CircuitOp':
         return self.permute(list(range(num_qubits, num_qubits + self.num_qubits)))
 
     def permute(self, permutation: List[int]) -> 'CircuitOp':

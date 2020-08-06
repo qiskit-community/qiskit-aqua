@@ -110,7 +110,7 @@ class MatrixOp(PrimitiveOp):
             return self.coeff == other.coeff and self.primitive == other.primitive
         return self.coeff * self.primitive == other.coeff * other.primitive  # type: ignore
 
-    def expand_to_dim(self, num_qubits: int) -> 'MatrixOp':
+    def expand_with_identity(self, num_qubits: int) -> 'MatrixOp':
         identity = np.identity(2**num_qubits, dtype=complex)
         return MatrixOp(self.primitive.tensor(Operator(identity)), coeff=self.coeff)  # type: ignore
 
@@ -141,9 +141,10 @@ class MatrixOp(PrimitiveOp):
                 j should be permuted to position permutation[j].
 
         Returns:
-            A new MatrixOp acting on the permuted qubits.
+            A new MatrixOp representing the permuted operator.
+
         Raises:
-            AquaError: if indices does not define a new index for each qubit.
+            AquaError: if indices do not define a new index for each qubit.
         """
         new_self = self
         new_matrix_size = max(permutation) + 1
@@ -152,7 +153,7 @@ class MatrixOp(PrimitiveOp):
             raise AquaError("New index must be defined for each qubit of the operator.")
         if self.num_qubits < new_matrix_size:
             # pad the operator with identities
-            new_self = self.expand_to_dim(new_matrix_size - self.num_qubits)
+            new_self = self.expand_with_identity(new_matrix_size - self.num_qubits)
         qc = QuantumCircuit(new_matrix_size)
 
         # extend the indices to match the size of the new matrix

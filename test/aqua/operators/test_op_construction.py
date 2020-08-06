@@ -349,7 +349,7 @@ class TestOpConstruction(QiskitAquaTestCase):
     def test_compose_op_of_different_dim(self):
         """
         Test if smaller operator expands to correct dim when composed with bigger operator.
-        Test if compose methods of PrimitiveOp types are consistent.
+        Test if PrimitiveOps compose methods are consistent.
         """
         # PauliOps of different dim
         xy_p = (X ^ Y)
@@ -377,7 +377,7 @@ class TestOpConstruction(QiskitAquaTestCase):
         self.assertTrue(np.allclose(matrix_op.to_matrix(), circuit_op.to_matrix(), rtol=1e-14))
 
     def test_permute_on_primitive_op(self):
-        """ Test if permute methods of PrimitiveOps are consistent and work correctly. """
+        """ Test if permute methods of PrimitiveOps are consistent and work as expected. """
         indices = [1, 2, 4]
 
         # PauliOp
@@ -404,7 +404,7 @@ class TestOpConstruction(QiskitAquaTestCase):
         self.assertTrue(equal)
 
     def test_permute_on_list_op(self):
-        """ Test if permute method of ListOp is consistent with PrimitiveOp permute methods. """
+        """ Test if ListOp permute method is consistent with PrimitiveOps permute methods. """
 
         op1 = (X ^ Y ^ Z).to_circuit_op()
         op2 = (Z ^ X ^ Y)
@@ -457,26 +457,26 @@ class TestOpConstruction(QiskitAquaTestCase):
         self.assertTrue(equal)
 
     def test_expand_on_list_op(self):
-        """ Tests the expected num_qubits on expanded operator. """
+        """ Test if expanded ListOp has expected num_qubits. """
         add_qubits = 3
 
         # ComposedOp
         composed_op = ComposedOp([(X ^ Y ^ Z), (H ^ T), (Z ^ X ^ Y ^ Z).to_matrix_op()])
-        expanded = composed_op.expand_to_dim(add_qubits)
+        expanded = composed_op.expand_with_identity(add_qubits)
         self.assertEqual(composed_op.num_qubits + add_qubits, expanded.num_qubits)
 
         # TensoredOp
         tensored_op = TensoredOp([(X ^ Y), (Z ^ I)])
-        expanded = tensored_op.expand_to_dim(add_qubits)
+        expanded = tensored_op.expand_with_identity(add_qubits)
         self.assertEqual(tensored_op.num_qubits + add_qubits, expanded.num_qubits)
 
         # SummedOp
         summed_op = SummedOp([(X ^ Y), (Z ^ I ^ Z)])
-        expanded = summed_op.expand_to_dim(add_qubits)
+        expanded = summed_op.expand_with_identity(add_qubits)
         self.assertEqual(summed_op.num_qubits + add_qubits, expanded.num_qubits)
 
     def test_expand_on_state_fn(self):
-        """ Tests num_qubits on the original instance and expanded instance of StateFn """
+        """ Test if expanded StateFn has expected num_qubits. """
         num_qubits = 3
         add_qubits = 2
 
@@ -486,12 +486,12 @@ class TestOpConstruction(QiskitAquaTestCase):
 
         cfn = CircuitStateFn(qc2, is_measurement=True)
 
-        cfn_exp = cfn.expand_to_dim(add_qubits)
+        cfn_exp = cfn.expand_with_identity(add_qubits)
         self.assertEqual(cfn_exp.num_qubits, add_qubits + num_qubits)
 
         # case OperatorStateFn, with OperatorBase primitive, in our case CircuitStateFn
         osfn = OperatorStateFn(cfn)
-        osfn_exp = osfn.expand_to_dim(add_qubits)
+        osfn_exp = osfn.expand_with_identity(add_qubits)
 
         self.assertEqual(osfn_exp.num_qubits, add_qubits + num_qubits)
 
@@ -499,18 +499,18 @@ class TestOpConstruction(QiskitAquaTestCase):
         dsfn = DictStateFn('1'*num_qubits, is_measurement=True)
         self.assertEqual(dsfn.num_qubits, num_qubits)
 
-        dsfn_exp = dsfn.expand_to_dim(add_qubits)
+        dsfn_exp = dsfn.expand_with_identity(add_qubits)
         self.assertEqual(dsfn_exp.num_qubits, num_qubits + add_qubits)
 
         # case VectorStateFn
         vsfn = VectorStateFn(np.ones(2**num_qubits, dtype=complex))
         self.assertEqual(vsfn.num_qubits, num_qubits)
 
-        vsfn_exp = vsfn.expand_to_dim(add_qubits)
+        vsfn_exp = vsfn.expand_with_identity(add_qubits)
         self.assertEqual(vsfn_exp.num_qubits, num_qubits + add_qubits)
 
     def test_compose_consistency(self):
-        """Checks if PrimitiveOp @ ComposedOp is consistent with ComposedOp @ PrimitiveOp."""
+        """Test if PrimitiveOp @ ComposedOp is consistent with ComposedOp @ PrimitiveOp."""
 
         # PauliOp
         op1 = (X ^ Y ^ Z)
@@ -540,7 +540,7 @@ class TestOpConstruction(QiskitAquaTestCase):
         self.assertListEqual(comp1.oplist, list(reversed(comp2.oplist)))
 
     def test_compose_with_indices(self):
-        """ Test compose method using permutation feature."""
+        """ Test compose method using its permutation feature."""
 
         pauli_op = (X ^ Y ^ Z)
         circuit_op = (T ^ H)
