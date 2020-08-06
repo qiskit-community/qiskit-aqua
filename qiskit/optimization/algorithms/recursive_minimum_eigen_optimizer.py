@@ -255,7 +255,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         # construct result
         x_v = [var_values[x_aux.name] for x_aux in problem_ref.variables]
         fval = result.fval
-        result = OptimizationResult(x=x_v, fval=fval, variables=problem_.variables)
+        result = OptimizationResult(x=x_v, fval=fval, variables=problem_ref.variables)
         result = self._qubo_converter.interpret(result)
 
         return RecursiveMinimumEigenOptimizationResult(x=result.x, fval=result.fval,
