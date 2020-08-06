@@ -183,9 +183,9 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         result = OptimizationResult(x=x, fval=fval, variables=problem.variables)
         result = self._qubo_converter.interpret(result)
         return MinimumEigenOptimizerResult(x=result.x, fval=result.fval,
-                                              variables=result.variables,
-                                              samples=samples,
-                                              eigensolver_result=eigen_result)
+                                           variables=result.variables,
+                                           samples=samples,
+                                           eigensolver_result=eigen_result)
 
 
 def _eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray, StateFn],

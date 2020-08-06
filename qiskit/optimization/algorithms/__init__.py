@@ -57,14 +57,16 @@ Algorithms and results
 from .admm_optimizer import ADMMOptimizer, ADMMOptimizationResult, ADMMState, ADMMParameters
 from .cobyla_optimizer import CobylaOptimizer
 from .cplex_optimizer import CplexOptimizer
-from .grover_optimizer import GroverOptimizer, GroverOptimizationRawResult
+from .grover_optimizer import GroverOptimizer, GroverOptimizerResult
 from .minimum_eigen_optimizer import MinimumEigenOptimizer, MinimumEigenOptimizerResult
 from .multistart_optimizer import MultiStartOptimizer
 from .optimization_algorithm import (OptimizationAlgorithm, OptimizationResult,
                                      OptimizationResultStatus)
-from .recursive_minimum_eigen_optimizer import RecursiveMinimumEigenOptimizer
+from .recursive_minimum_eigen_optimizer import (RecursiveMinimumEigenOptimizer,
+                                                RecursiveMinimumEigenOptimizerResult)
 from .slsqp_optimizer import SlsqpOptimizer
 
 __all__ = ["ADMMOptimizer", "OptimizationAlgorithm", "OptimizationResult", "CplexOptimizer",
            "CobylaOptimizer", "MinimumEigenOptimizer", "RecursiveMinimumEigenOptimizer",
-           "GroverOptimizer", "GroverOptimizationRawResult", "SlsqpOptimizer"]
+           "RecursiveMinimumEigenOptimizerResult", "GroverOptimizer", "GroverOptimizerResult",
+           "SlsqpOptimizer"]
