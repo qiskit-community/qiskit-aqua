@@ -20,6 +20,7 @@ import numpy as np
 
 from qiskit.quantum_info import Statevector
 from qiskit.circuit import ParameterExpression
+from qiskit.aqua import aqua_globals
 
 from ..operator_base import OperatorBase
 from .state_fn import StateFn
@@ -111,7 +112,7 @@ class VectorStateFn(StateFn):
     def to_circuit_op(self) -> OperatorBase:
         """ Return ``StateFnCircuit`` corresponding to this StateFn."""
         from .circuit_state_fn import CircuitStateFn
-        csfn = CircuitStateFn.from_vector(self.to_matrix(massive=True)) * self.coeff
+        csfn = CircuitStateFn.from_vector(self.to_matrix(massive=True)) * self.coeff  # type: ignore
         return csfn.adjoint() if self.is_measurement else csfn
 
     def __str__(self) -> str:
@@ -135,7 +136,7 @@ class VectorStateFn(StateFn):
                 'sf.adjoint() first to convert to measurement.')
 
         if isinstance(front, ListOp) and front.distributive:
-            return front.combo_fn([self.eval(front.coeff * front_elem)
+            return front.combo_fn([self.eval(front.coeff * front_elem)  # type: ignore
                                    for front_elem in front.oplist])
 
         if not isinstance(front, OperatorBase):
@@ -147,23 +148,24 @@ class VectorStateFn(StateFn):
         from .operator_state_fn import OperatorStateFn
         from .circuit_state_fn import CircuitStateFn
         if isinstance(front, DictStateFn):
-            return round(sum([v * self.primitive.data[int(b, 2)] * front.coeff
-                              for (b, v) in front.primitive.items()]) * self.coeff,
-                         ndigits=EVAL_SIG_DIGITS)
+            return np.round(sum([v * self.primitive.data[int(b, 2)] * front.coeff  # type: ignore
+                                 for (b, v) in front.primitive.items()]) * self.coeff,
+                            decimals=EVAL_SIG_DIGITS)
 
         if isinstance(front, VectorStateFn):
             # Need to extract the element or np.array([1]) is returned.
-            return round(np.dot(self.to_matrix(), front.to_matrix())[0],
-                         ndigits=EVAL_SIG_DIGITS)
+            return np.round(np.dot(self.to_matrix(), front.to_matrix())[0],
+                            decimals=EVAL_SIG_DIGITS)
 
         if isinstance(front, CircuitStateFn):
             # Don't reimplement logic from CircuitStateFn
-            return np.conj(front.adjoint().eval(self.adjoint().primitive)) * self.coeff
+            return np.conj(
+                front.adjoint().eval(self.adjoint().primitive)) * self.coeff  # type: ignore
 
         if isinstance(front, OperatorStateFn):
-            return front.adjoint().eval(self.primitive) * self.coeff
+            return front.adjoint().eval(self.primitive) * self.coeff  # type: ignore
 
-        return front.adjoint().eval(self.adjoint().primitive).adjoint() * self.coeff
+        return front.adjoint().eval(self.adjoint().primitive).adjoint() * self.coeff  # type: ignore
 
     def sample(self,
                shots: int = 1024,
@@ -172,9 +174,9 @@ class VectorStateFn(StateFn):
         deterministic_counts = self.primitive.probabilities_dict()
         # Don't need to square because probabilities_dict already does.
         probs = np.array(list(deterministic_counts.values()))
-        unique, counts = np.unique(np.random.choice(list(deterministic_counts.keys()),
-                                                    size=shots,
-                                                    p=(probs / sum(probs))),
+        unique, counts = np.unique(aqua_globals.random.choice(list(deterministic_counts.keys()),
+                                                              size=shots,
+                                                              p=(probs / sum(probs))),
                                    return_counts=True)
         counts = dict(zip(unique, counts))
         if reverse_endianness:

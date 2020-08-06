@@ -13,11 +13,12 @@
 # that they have been altered from the originals.
 
 """Quadratic Program."""
+
+from typing import cast, List, Union, Dict, Optional, Tuple
 import logging
 from collections import defaultdict
 from enum import Enum
 from math import fsum
-from typing import List, Union, Dict, Optional, Tuple
 
 from docplex.mp.constr import (LinearConstraint as DocplexLinearConstraint,
                                QuadraticConstraint as DocplexQuadraticConstraint,
@@ -26,16 +27,18 @@ from docplex.mp.linear import Var
 from docplex.mp.model import Model
 from docplex.mp.model_reader import ModelReader
 from docplex.mp.quad import QuadExpr
-from numpy import ndarray
+from numpy import (ndarray, zeros, bool as nbool)
 from scipy.sparse import spmatrix
 
-from .constraint import Constraint
+from qiskit.aqua.operators import I, OperatorBase, PauliOp, WeightedPauliOperator, SummedOp, ListOp
+from qiskit.quantum_info import Pauli
+from .constraint import Constraint, ConstraintSense
 from .linear_constraint import LinearConstraint
 from .linear_expression import LinearExpression
 from .quadratic_constraint import QuadraticConstraint
 from .quadratic_expression import QuadraticExpression
 from .quadratic_objective import QuadraticObjective
-from .variable import Variable
+from .variable import Variable, VarType
 from ..exceptions import QiskitOptimizationError
 from ..infinity import INFINITY
 
@@ -64,16 +67,19 @@ class QuadraticProgram:
         self._name = name
         self._status = QuadraticProgram.Status.VALID
 
-        self._variables = []  # List[Variable]
-        self._variables_index = {}  # Dict[str, int]
+        self._variables = []  # type: List[Variable]
+        self._variables_index = {}  # type: Dict[str, int]
 
-        self._linear_constraints = []  # List[LinearConstraint]
-        self._linear_constraints_index = {}  # Dict[str, int]
+        self._linear_constraints = []  # type: List[LinearConstraint]
+        self._linear_constraints_index = {}  # type: Dict[str, int]
 
-        self._quadratic_constraints = []  # List[QuadraticConstraint]
-        self._quadratic_constraints_index = {}  # Dict[str, int]
+        self._quadratic_constraints = []  # type: List[QuadraticConstraint]
+        self._quadratic_constraints_index = {}  # type: Dict[str, int]
 
         self._objective = QuadraticObjective(self)
+
+    def __repr__(self) -> str:
+        return self.to_docplex().export_as_lp_string()
 
     def clear(self) -> None:
         """Clears the quadratic program, i.e., deletes all variables, constraints, the
@@ -142,7 +148,7 @@ class QuadraticProgram:
     def _add_variable(self,
                       lowerbound: Union[float, int] = 0,
                       upperbound: Union[float, int] = INFINITY,
-                      vartype: Variable.Type = Variable.Type.CONTINUOUS,
+                      vartype: VarType = VarType.CONTINUOUS,
                       name: Optional[str] = None) -> Variable:
         """Checks whether a variable name is already taken and adds the variable to list and index
         if not.
@@ -237,7 +243,7 @@ class QuadraticProgram:
         else:
             return self.variables[self._variables_index[i]]
 
-    def get_num_vars(self, vartype: Optional[Variable.Type] = None) -> int:
+    def get_num_vars(self, vartype: Optional[VarType] = None) -> int:
         """Returns the total number of variables or the number of variables of the specified type.
 
         Args:
@@ -296,7 +302,7 @@ class QuadraticProgram:
     def linear_constraint(self,
                           linear: Union[ndarray, spmatrix, List[float],
                                         Dict[Union[int, str], float]] = None,
-                          sense: Union[str, Constraint.Sense] = '<=',
+                          sense: Union[str, ConstraintSense] = '<=',
                           rhs: float = 0.0, name: Optional[str] = None) -> LinearConstraint:
         """Adds a linear equality constraint to the quadratic program of the form:
             linear * x sense rhs.
@@ -383,7 +389,7 @@ class QuadraticProgram:
                              quadratic: Union[ndarray, spmatrix, List[List[float]],
                                               Dict[Tuple[Union[int, str],
                                                          Union[int, str]], float]] = None,
-                             sense: Union[str, Constraint.Sense] = '<=',
+                             sense: Union[str, ConstraintSense] = '<=',
                              rhs: float = 0.0, name: Optional[str] = None) -> QuadraticConstraint:
         """Adds a quadratic equality constraint to the quadratic program of the form:
             x * Q * x <= rhs.
@@ -692,13 +698,13 @@ class QuadraticProgram:
 
         # add variables
         var = {}
-        for i, x in enumerate(self.variables):
+        for idx, x in enumerate(self.variables):
             if x.vartype == Variable.Type.CONTINUOUS:
-                var[i] = mdl.continuous_var(lb=x.lowerbound, ub=x.upperbound, name=x.name)
+                var[idx] = mdl.continuous_var(lb=x.lowerbound, ub=x.upperbound, name=x.name)
             elif x.vartype == Variable.Type.BINARY:
-                var[i] = mdl.binary_var(name=x.name)
+                var[idx] = mdl.binary_var(name=x.name)
             elif x.vartype == Variable.Type.INTEGER:
-                var[i] = mdl.integer_var(lb=x.lowerbound, ub=x.upperbound, name=x.name)
+                var[idx] = mdl.integer_var(lb=x.lowerbound, ub=x.upperbound, name=x.name)
             else:
                 # should never happen
                 raise QiskitOptimizationError('Unsupported variable type: {}'.format(x.vartype))
@@ -706,24 +712,24 @@ class QuadraticProgram:
         # add objective
         objective = self.objective.constant
         for i, v in self.objective.linear.to_dict().items():
-            objective += v * var[i]
+            objective += v * var[cast(int, i)]
         for (i, j), v in self.objective.quadratic.to_dict().items():
-            objective += v * var[i] * var[j]
+            objective += v * var[cast(int, i)] * var[cast(int, j)]
         if self.objective.sense == QuadraticObjective.Sense.MINIMIZE:
             mdl.minimize(objective)
         else:
             mdl.maximize(objective)
 
         # add linear constraints
-        for i, constraint in enumerate(self.linear_constraints):
-            name = constraint.name
-            rhs = constraint.rhs
-            if rhs == 0 and constraint.linear.coefficients.nnz == 0:
+        for i, l_constraint in enumerate(self.linear_constraints):
+            name = l_constraint.name
+            rhs = l_constraint.rhs
+            if rhs == 0 and l_constraint.linear.coefficients.nnz == 0:
                 continue
             linear_expr = 0
-            for j, v in constraint.linear.to_dict().items():
-                linear_expr += v * var[j]
-            sense = constraint.sense
+            for j, v in l_constraint.linear.to_dict().items():
+                linear_expr += v * var[cast(int, j)]
+            sense = l_constraint.sense
             if sense == Constraint.Sense.EQ:
                 mdl.add_constraint(linear_expr == rhs, ctname=name)
             elif sense == Constraint.Sense.GE:
@@ -735,19 +741,19 @@ class QuadraticProgram:
                 raise QiskitOptimizationError("Unsupported constraint sense: {}".format(sense))
 
         # add quadratic constraints
-        for i, constraint in enumerate(self.quadratic_constraints):
-            name = constraint.name
-            rhs = constraint.rhs
+        for i, q_constraint in enumerate(self.quadratic_constraints):
+            name = q_constraint.name
+            rhs = q_constraint.rhs
             if rhs == 0 \
-                    and constraint.linear.coefficients.nnz == 0 \
-                    and constraint.quadratic.coefficients.nnz == 0:
+                    and q_constraint.linear.coefficients.nnz == 0 \
+                    and q_constraint.quadratic.coefficients.nnz == 0:
                 continue
             quadratic_expr = 0
-            for j, v in constraint.linear.to_dict().items():
-                quadratic_expr += v * var[j]
-            for (j, k), v in constraint.quadratic.to_dict().items():
-                quadratic_expr += v * var[j] * var[k]
-            sense = constraint.sense
+            for j, v in q_constraint.linear.to_dict().items():
+                quadratic_expr += v * var[cast(int, j)]
+            for (j, k), v in q_constraint.quadratic.to_dict().items():
+                quadratic_expr += v * var[cast(int, j)] * var[cast(int, k)]
+            sense = q_constraint.sense
             if sense == Constraint.Sense.EQ:
                 mdl.add_constraint(quadratic_expr == rhs, ctname=name)
             elif sense == Constraint.Sense.GE:
@@ -759,23 +765,6 @@ class QuadraticProgram:
                 raise QiskitOptimizationError("Unsupported constraint sense: {}".format(sense))
 
         return mdl
-
-    def pprint_as_string(self) -> str:
-        """Returns the quadratic program as a string in Docplex's pretty print format.
-
-        Returns:
-            A string representing the quadratic program.
-        """
-        return self.to_docplex().pprint_as_string()
-
-    def prettyprint(self, out: Optional[str] = None) -> None:
-        """Pretty prints the quadratic program to a given output stream (None = default).
-
-        Args:
-            out: The output stream or file name to print to.
-              if you specify a file name, the output file name is has '.mod' as suffix.
-        """
-        self.to_docplex().prettyprint(out)
 
     def export_as_lp_string(self) -> str:
         """Returns the quadratic program as a string of LP format.
@@ -819,7 +808,7 @@ class QuadraticProgram:
             return model_name
 
         model_reader = ModelReader()
-        model = model_reader.read(pathname=filename, model_name=_parse_problem_name(filename))
+        model = model_reader.read(filename, model_name=_parse_problem_name(filename))
         self.from_docplex(model)
 
     def write_to_lp_file(self, filename: str) -> None:
@@ -864,6 +853,217 @@ class QuadraticProgram:
         """
         return SubstituteVariables().substitute_variables(self, constants, variables)
 
+    def to_ising(self) -> Tuple[OperatorBase, float]:
+        """Return the Ising Hamiltonian of this problem.
+
+        Returns:
+            qubit_op: The qubit operator for the problem
+            offset: The constant value in the Ising Hamiltonian.
+
+        Raises:
+            QiskitOptimizationError: If a variable type is not binary.
+            QiskitOptimizationError: If constraints exist in the problem.
+        """
+        # if problem has variables that are not binary, raise an error
+        if self.get_num_vars() > self.get_num_binary_vars():
+            raise QiskitOptimizationError('The type of variable must be a binary variable. '
+                                          'Use a QuadraticProgramToQubo converter to convert '
+                                          'integer variables to binary variables. '
+                                          'If the problem contains continuous variables, '
+                                          'currently we can not apply VQE/QAOA directly. '
+                                          'you might want to use an ADMM optimizer '
+                                          'for the problem. ')
+
+        # if constraints exist, raise an error
+        if self.linear_constraints \
+                or self.quadratic_constraints:
+            raise QiskitOptimizationError('An constraint exists. '
+                                          'The method supports only model with no constraints. '
+                                          'Use a QuadraticProgramToQubo converter. '
+                                          'It converts inequality constraints to equality '
+                                          'constraints, and then, it converters equality '
+                                          'constraints to penalty terms of the object function.')
+
+        # initialize Hamiltonian.
+        num_nodes = self.get_num_vars()
+        pauli_list = []
+        offset = 0
+        zero = zeros(num_nodes, dtype=nbool)
+
+        # set a sign corresponding to a maximized or minimized problem.
+        # sign == 1 is for minimized problem. sign == -1 is for maximized problem.
+        sense = self.objective.sense.value
+
+        # convert a constant part of the object function into Hamiltonian.
+        offset += self.objective.constant * sense
+
+        # convert linear parts of the object function into Hamiltonian.
+        for idx, coef in self.objective.linear.to_dict().items():
+            z_p = zeros(num_nodes, dtype=nbool)
+            weight = coef * sense / 2
+            z_p[idx] = True
+
+            pauli_list.append([-weight, Pauli(z_p, zero)])
+            offset += weight
+
+        # convert quadratic parts of the object function into Hamiltonian.
+        # first merge coefficients (i, j) and (j, i)
+        coeffs = {}  # type: Dict
+        for (i, j), coeff in self.objective.quadratic.to_dict().items():
+            if j < i:  # type: ignore
+                coeffs[(j, i)] = coeffs.get((j, i), 0.0) + coeff
+            else:
+                coeffs[(i, j)] = coeffs.get((i, j), 0.0) + coeff
+
+        # create Pauli terms
+        for (i, j), coeff in coeffs.items():
+
+            weight = coeff * sense / 4
+
+            if i == j:
+                offset += weight
+            else:
+                z_p = zeros(num_nodes, dtype=nbool)
+                z_p[i] = True
+                z_p[j] = True
+                pauli_list.append([weight, Pauli(z_p, zero)])
+
+            z_p = zeros(num_nodes, dtype=nbool)
+            z_p[i] = True
+            pauli_list.append([-weight, Pauli(z_p, zero)])
+
+            z_p = zeros(num_nodes, dtype=nbool)
+            z_p[j] = True
+            pauli_list.append([-weight, Pauli(z_p, zero)])
+
+            offset += weight
+
+        # Remove paulis whose coefficients are zeros.
+        qubit_op = sum(PauliOp(pauli, coeff=coeff) for coeff, pauli in pauli_list)
+
+        # qubit_op could be the integer 0, in this case return an identity operator of
+        # appropriate size
+        if isinstance(qubit_op, OperatorBase):
+            qubit_op = qubit_op.reduce()
+        else:
+            qubit_op = I ^ num_nodes
+
+        return qubit_op, offset
+
+    def from_ising(self,
+                   qubit_op: Union[OperatorBase, WeightedPauliOperator],
+                   offset: float = 0.0, linear: bool = False) -> None:
+        r"""Create a quadratic program from a qubit operator and a shift value.
+
+        Args:
+            qubit_op: The qubit operator of the problem.
+            offset: The constant value in the Ising Hamiltonian.
+            linear: If linear is True, :math:`x^2` is treated as a linear term
+                since :math:`x^2 = x` for :math:`x \in \{0,1\}`.
+                Else, :math:`x^2` is treat as a quadratic term.
+                The default value is False.
+
+        Raises:
+            QiskitOptimizationError: If there are Pauli Xs in any Pauli term
+            QiskitOptimizationError: If there are more than 2 Pauli Zs in any Pauli term
+            NotImplementedError: If the input operator is a ListOp
+        """
+        if isinstance(qubit_op, WeightedPauliOperator):
+            qubit_op = qubit_op.to_opflow()
+
+        # No support for ListOp yet, this can be added in future
+        # pylint: disable=unidiomatic-typecheck
+        if type(qubit_op) == ListOp:
+            raise NotImplementedError(
+                'Conversion of a ListOp is not supported, convert each '
+                'operator in the ListOp separately.'
+            )
+
+        # add binary variables
+        for i in range(qubit_op.num_qubits):
+            self.binary_var(name='x_{0}'.format(i))
+
+        # Create a QUBO matrix
+        # The Qubo matrix is an upper triangular matrix.
+        # Diagonal elements in the QUBO matrix are for linear terms of the qubit operator.
+        # The other elements in the QUBO matrix are for quadratic terms of the qubit operator.
+        qubo_matrix = zeros((qubit_op.num_qubits, qubit_op.num_qubits))
+
+        if not isinstance(qubit_op, SummedOp):
+            oplist = [qubit_op.to_pauli_op()]
+        else:
+            oplist = qubit_op.to_pauli_op().oplist
+
+        for pauli_op in oplist:
+            pauli = pauli_op.primitive
+            coeff = pauli_op.coeff
+            # Count the number of Pauli Zs in a Pauli term
+            lst_z = pauli.z.tolist()
+            z_index = [i for i, z in enumerate(lst_z) if z is True]
+            num_z = len(z_index)
+
+            # Add its weight of the Pauli term to the corresponding element of QUBO matrix
+            if num_z == 1:
+                qubo_matrix[z_index[0], z_index[0]] = coeff.real
+            elif num_z == 2:
+                qubo_matrix[z_index[0], z_index[1]] = coeff.real
+            else:
+                raise QiskitOptimizationError(
+                    'There are more than 2 Pauli Zs in the Pauli term {}'.format(pauli.z)
+                )
+
+            # If there are Pauli Xs in the Pauli term, raise an error
+            lst_x = pauli.x.tolist()
+            x_index = [i for i, x in enumerate(lst_x) if x is True]
+            if len(x_index) > 0:
+                raise QiskitOptimizationError('Pauli Xs exist in the Pauli {}'.format(pauli.x))
+
+        # Initialize dicts for linear terms and quadratic terms
+        linear_terms = {}
+        quadratic_terms = {}
+
+        # For quadratic pauli terms of operator
+        # x_i * x_ j = (1 - Z_i - Z_j + Z_i * Z_j)/4
+        for i, row in enumerate(qubo_matrix):
+            for j, weight in enumerate(row):
+                # Focus on the upper triangular matrix
+                if j <= i:
+                    continue
+                # Add a quadratic term to the object function of `QuadraticProgram`
+                # The coefficient of the quadratic term in `QuadraticProgram` is
+                # 4 * weight of the pauli
+                coef = weight * 4
+                quadratic_terms[i, j] = coef
+                # Sub the weight of the quadratic pauli term from the QUBO matrix
+                qubo_matrix[i, j] -= weight
+                # Sub the weight of the linear pauli term from the QUBO matrix
+                qubo_matrix[i, i] += weight
+                qubo_matrix[j, j] += weight
+                # Sub the weight from offset
+                offset -= weight
+
+        # After processing quadratic pauli terms, only linear paulis are left
+        # x_i = (1 - Z_i)/2
+        for i in range(qubit_op.num_qubits):
+            weight = qubo_matrix[i, i]
+            # Add a linear term to the object function of `QuadraticProgram`
+            # The coefficient of the linear term in `QuadraticProgram` is
+            # 2 * weight of the pauli
+            coef = weight * 2
+            if linear:
+                # If the linear option is True, add it into linear_terms
+                linear_terms[i] = -coef
+            else:
+                # Else, add it into quadratic_terms as a diagonal element.
+                quadratic_terms[i, i] = -coef
+            # Sub the weight of the linear pauli term from the QUBO matrix
+            qubo_matrix[i, i] -= weight
+            offset += weight
+
+        # Set the objective function
+        self.minimize(constant=offset, linear=linear_terms, quadratic=quadratic_terms)
+        offset -= offset
+
 
 class SubstituteVariables:
     """A class to substitute variables of an optimization problem with constants for other
@@ -872,9 +1072,9 @@ class SubstituteVariables:
     CONST = '__CONSTANT__'
 
     def __init__(self):
-        self._src = None  # Optional[QuadraticProgram]
-        self._dst = None  # Optional[QuadraticProgram]
-        self._subs = {}
+        self._src = None  # type: Optional[QuadraticProgram]
+        self._dst = None  # type: Optional[QuadraticProgram]
+        self._subs = {}  # type: Dict[Union[int, str], Tuple[str, float]]
 
     def substitute_variables(
             self, src: QuadraticProgram,
@@ -919,7 +1119,7 @@ class SubstituteVariables:
         return self._dst
 
     @staticmethod
-    def _feasible(sense: Constraint.Sense, rhs: float) -> bool:
+    def _feasible(sense: ConstraintSense, rhs: float) -> bool:
         """Checks feasibility of the following condition
             0 `sense` rhs
         """
@@ -947,7 +1147,7 @@ class SubstituteVariables:
 
     def _subs_dict(self, constants, variables):
         # guarantee that there is no overlap between variables to be replaced and combine input
-        subs = {}  # Dict[str, Tuple[str, float]]
+        subs = {}  # type: Dict[Union[int, str], Tuple[str, float]]
         if constants is not None:
             for i, v in constants.items():
                 # substitute i <- v
@@ -1036,7 +1236,7 @@ class SubstituteVariables:
     def _linear_expression(self, lin_expr: LinearExpression) \
             -> Tuple[List[float], LinearExpression]:
         const = []
-        lin_dict = defaultdict(float)
+        lin_dict = defaultdict(float)  # type: Dict[Union[int, str], float]
         for i, w_i in lin_expr.to_dict(use_name=True).items():
             repl_i = self._subs[i] if i in self._subs else (i, 1)
             prod = w_i * repl_i[1]
@@ -1052,15 +1252,15 @@ class SubstituteVariables:
     def _quadratic_expression(self, quad_expr: QuadraticExpression) \
             -> Tuple[List[float], Optional[LinearExpression], Optional[QuadraticExpression]]:
         const = []
-        lin_dict = defaultdict(float)
-        quad_dict = defaultdict(float)
+        lin_dict = defaultdict(float)  # type: Dict[Union[int, str], float]
+        quad_dict = defaultdict(float)  # type: Dict[Tuple[Union[int, str], Union[int, str]], float]
         for (i, j), w_ij in quad_expr.to_dict(use_name=True).items():
             repl_i = self._subs[i] if i in self._subs else (i, 1)
             repl_j = self._subs[j] if j in self._subs else (j, 1)
             idx = tuple(x for x, _ in [repl_i, repl_j] if x != self.CONST)
             prod = w_ij * repl_i[1] * repl_j[1]
             if len(idx) == 2:
-                quad_dict[idx] += prod
+                quad_dict[idx] += prod  # type: ignore
             elif len(idx) == 1:
                 lin_dict[idx[0]] += prod
             else:

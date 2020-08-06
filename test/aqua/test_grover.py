@@ -40,21 +40,31 @@ TESTS = [
 MCT_MODES = ['basic', 'basic-dirty-ancilla', 'advanced', 'noancilla']
 SIMULATORS = ['statevector_simulator', 'qasm_simulator']
 OPTIMIZATIONS = [True, False]
+LAMBDA = [1.44, 8/7]
+ROTATION_COUNTS = [
+    None,
+    [0, 0, 0, 1, 1, 0, 1, 1, 2, 1, 2, 3, 1, 4, 5, 1, 6, 2, 7, 9,
+     11, 13, 16, 5, 20, 24, 28, 34, 2, 41, 49, 4, 60]
+]
 
 
 @ddt
 class TestGrover(QiskitAquaTestCase):
     """ Grover test """
     @idata(
-        [x[0] + list(x[1:]) for x in list(itertools.product(TESTS, MCT_MODES,
-                                                            SIMULATORS, OPTIMIZATIONS))]
+        [x[0] + list(x[1:]) for x in list(itertools.product(TESTS, MCT_MODES, SIMULATORS,
+                                                            OPTIMIZATIONS, LAMBDA,
+                                                            ROTATION_COUNTS))]
     )
     @unpack
-    def test_grover(self, input_test, sol, oracle_cls, mct_mode, simulator, optimization):
+    def test_grover(self, input_test, sol, oracle_cls, mct_mode,
+                    simulator, optimization, lam, rotation_counts):
         """ grover test """
         groundtruth = sol
         oracle = oracle_cls(input_test, optimization=optimization)
-        grover = Grover(oracle, incremental=True, mct_mode=mct_mode)
+        grover = Grover(oracle, incremental=True,
+                        lam=lam,
+                        rotation_counts=rotation_counts, mct_mode=mct_mode)
         backend = BasicAer.get_backend(simulator)
         quantum_instance = QuantumInstance(backend, shots=1000)
 

@@ -190,7 +190,8 @@ class OperatorStateFn(StateFn):
             front = StateFn(front)
 
         if isinstance(self.primitive, ListOp) and self.primitive.distributive:
-            evals = [OperatorStateFn(op, coeff=self.coeff, is_measurement=self.is_measurement).eval(
+            coeff = self.coeff * self.primitive.coeff
+            evals = [OperatorStateFn(op, coeff=coeff, is_measurement=self.is_measurement).eval(
                 front) for op in self.primitive.oplist]
             return self.primitive.combo_fn(evals)
 
@@ -199,10 +200,10 @@ class OperatorStateFn(StateFn):
         # Can't use isinstance because this would include subclasses.
         # pylint: disable=unidiomatic-typecheck
         if type(front) == ListOp:
-            return front.combo_fn([self.eval(front.coeff * front_elem)
-                                   for front_elem in front.oplist])
+            return front.combo_fn([self.eval(front.coeff * front_elem)  # type: ignore
+                                   for front_elem in front.oplist])  # type: ignore
 
-        return front.adjoint().eval(self.primitive.eval(front)) * self.coeff
+        return front.adjoint().eval(self.primitive.eval(front)) * self.coeff  # type: ignore
 
     def sample(self,
                shots: int = 1024,

@@ -16,6 +16,7 @@
 
 import unittest
 import itertools
+import warnings
 from test.aqua import QiskitAquaTestCase
 import numpy as np
 from qiskit.quantum_info import Pauli
@@ -38,9 +39,11 @@ class TestTPBGroupedWeightedPauliOperator(QiskitAquaTestCase):
         self.num_qubits = 3
         paulis = [Pauli.from_label(pauli_label)
                   for pauli_label in itertools.product('IXYZ', repeat=self.num_qubits)]
-        weights = aqua_globals.random.random_sample(len(paulis))
+        weights = aqua_globals.random.random(len(paulis))
         self.qubit_op = WeightedPauliOperator.from_list(paulis, weights)
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         self.var_form = RYRZ(self.qubit_op.num_qubits, 1)
+        warnings.filterwarnings('always', category=DeprecationWarning)
 
         qasm_simulator = BasicAer.get_backend('qasm_simulator')
         self.quantum_instance_qasm = QuantumInstance(qasm_simulator, shots=65536,
@@ -56,7 +59,7 @@ class TestTPBGroupedWeightedPauliOperator(QiskitAquaTestCase):
         num_qubits = 2
         paulis = [Pauli.from_label(pauli_label)
                   for pauli_label in itertools.product('IXYZ', repeat=num_qubits)]
-        weights = aqua_globals.random.random_sample(len(paulis))
+        weights = aqua_globals.random.random(len(paulis))
         op = WeightedPauliOperator.from_list(paulis, weights)
         grouped_op = op_converter.to_tpb_grouped_weighted_pauli_operator(
             op, TPBGroupedWeightedPauliOperator.sorted_grouping)
@@ -81,7 +84,7 @@ class TestTPBGroupedWeightedPauliOperator(QiskitAquaTestCase):
         num_qubits = 4
         paulis = [Pauli.from_label(pauli_label)
                   for pauli_label in itertools.product('IXYZ', repeat=num_qubits)]
-        weights = aqua_globals.random.random_sample(len(paulis))
+        weights = aqua_globals.random.random(len(paulis))
         op = WeightedPauliOperator.from_list(paulis, weights)
         grouped_op = op_converter.to_tpb_grouped_weighted_pauli_operator(
             op, TPBGroupedWeightedPauliOperator.unsorted_grouping)
@@ -125,7 +128,7 @@ class TestTPBGroupedWeightedPauliOperator(QiskitAquaTestCase):
     def test_evaluate_qasm_mode(self):
         """ evaluate qasm mode test """
         wave_function = self.var_form.construct_circuit(
-            np.array(aqua_globals.random.randn(self.var_form.num_parameters)))
+            np.array(aqua_globals.random.standard_normal(self.var_form.num_parameters)))
         wave_fn_statevector = \
             self.quantum_instance_statevector.execute(wave_function).get_statevector(wave_function)
         reference = self.qubit_op.copy().evaluate_with_statevector(wave_fn_statevector)

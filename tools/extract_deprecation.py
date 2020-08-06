@@ -14,6 +14,7 @@
 
 """ Extract deprecation messages from input """
 
+from typing import List
 import sys
 import os
 import argparse
@@ -25,7 +26,7 @@ class DeprecationExtractor:
     def __init__(self, in_file: str, out_file: str) -> None:
         self._input_filename = in_file
         self._output_filename = out_file
-        self._messages = None
+        self._messages = None  # type: List[str]
 
     def extract_messages(self) -> bool:
         """

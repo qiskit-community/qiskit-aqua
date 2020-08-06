@@ -101,7 +101,7 @@ class TestInitialStateCustom(QiskitAquaTestCase):
     def test_qubits_5_randgiven_vector(self):
         """ qubits 5 randgiven vector test """
         aqua_globals.random_seed = 32
-        custom = Custom(5, state_vector=aqua_globals.random.rand(32))
+        custom = Custom(5, state_vector=aqua_globals.random.random(32))
         cct = custom.construct_circuit('vector')
         prob = np.sqrt(np.sum([x**2 for x in cct]))
         self.assertAlmostEqual(prob, 1.0)

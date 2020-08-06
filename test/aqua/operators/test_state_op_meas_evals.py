@@ -16,7 +16,12 @@
 
 import unittest
 from test.aqua import QiskitAquaTestCase
-from qiskit.aqua.operators import StateFn, Zero, One, H, X
+
+import numpy
+
+from qiskit import Aer
+from qiskit.aqua import QuantumInstance
+from qiskit.aqua.operators import StateFn, Zero, One, H, X, I, Z, Plus, Minus, CircuitSampler
 
 
 # pylint: disable=invalid-name
@@ -55,6 +60,26 @@ class TestStateOpMeasEvals(QiskitAquaTestCase):
         self.assertAlmostEqual(wf_vec.adjoint().eval(op.eval(wf)), .25)
         self.assertAlmostEqual(wf.adjoint().eval(op.eval(wf_vec)), .25)
         self.assertAlmostEqual(wf_vec.adjoint().eval(op.eval(wf_vec)), .25)
+
+    def test_coefficients_correctly_propagated(self):
+        """Test that the coefficients in SummedOp and states are correctly used."""
+        with self.subTest('zero coeff in SummedOp'):
+            op = 0 * (I + Z)
+            state = Plus
+            self.assertEqual((~StateFn(op) @ state).eval(), 0j)
+
+        backend = Aer.get_backend('qasm_simulator')
+        q_instance = QuantumInstance(backend, seed_simulator=97, seed_transpiler=97)
+        op = I
+        with self.subTest('zero coeff in summed StateFn and CircuitSampler'):
+            state = 0 * (Plus + Minus)
+            sampler = CircuitSampler(q_instance).convert(~StateFn(op) @ state)
+            self.assertEqual(sampler.eval(), 0j)
+
+        with self.subTest('coeff gets squared in CircuitSampler shot-based readout'):
+            state = (Plus + Minus) / numpy.sqrt(2)
+            sampler = CircuitSampler(q_instance).convert(~StateFn(op) @ state)
+            self.assertAlmostEqual(sampler.eval(), 1+0j)
 
 
 if __name__ == '__main__':

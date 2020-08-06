@@ -19,9 +19,11 @@ The neural network is based on a neural network introduced in:
 https://towardsdatascience.com/lets-code-a-neural-network-in-plain-numpy-ae7e74410795
 """
 
+from typing import Dict, Any
 import os
 import logging
 import numpy as np
+from qiskit.aqua import aqua_globals
 from qiskit.aqua.components.optimizers import ADAM
 from .discriminative_network import DiscriminativeNetwork
 
@@ -60,7 +62,7 @@ class DiscriminatorNet():
             activ_function_curr = layer["activation"]
             layer_input_size = layer["input_dim"]
             layer_output_size = layer["output_dim"]
-            params_layer = np.random.rand(layer_output_size * layer_input_size)
+            params_layer = aqua_globals.random.random(layer_output_size * layer_input_size)
             if activ_function_curr == "leaky_relu":
                 params_layer = (params_layer * 2 - np.ones(np.shape(params_layer))) * 0.7
             elif activ_function_curr == "sigmoid":
@@ -225,7 +227,7 @@ class NumPyDiscriminator(DiscriminativeNetwork):
                                noise_factor=1e-4,
                                eps=1e-6, amsgrad=True)
 
-        self._ret = {}
+        self._ret = {}  # type: Dict[str, Any]
 
     def set_seed(self, seed):
         """
@@ -233,7 +235,7 @@ class NumPyDiscriminator(DiscriminativeNetwork):
         Args:
             seed (int): seed
         """
-        np.random.RandomState(seed)
+        aqua_globals.random_seed = seed
 
     def save_model(self, snapshot_dir):
         """
@@ -377,7 +379,8 @@ class NumPyDiscriminator(DiscriminativeNetwork):
 
         return gradient_function
 
-    def train(self, data, weights, penalty=False, quantum_instance=None, shots=None):
+    def train(self, data, weights, penalty=False,
+              quantum_instance=None, shots=None) -> Dict[str, Any]:
         """
         Perform one training step w.r.t to the discriminator's parameters
 

@@ -396,7 +396,8 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
                 q_p.read_from_lp_file('')
             with self.assertRaises(FileNotFoundError):
                 q_p.read_from_lp_file('no_file.txt')
-            q_p.read_from_lp_file('test/optimization/resources/test_quadratic_program.lp')
+            lp_file = self.get_resource_path(path.join('resources', 'test_quadratic_program.lp'))
+            q_p.read_from_lp_file(lp_file)
             self.assertEqual(q_p.name, 'my problem')
             self.assertEqual(q_p.get_num_vars(), 3)
             self.assertEqual(q_p.get_num_binary_vars(), 1)
@@ -482,8 +483,8 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         q_p.quadratic_constraint({'x': 1, 'y': 1}, {('x', 'x'): 1, ('y', 'z'): -1, ('z', 'z'): 2},
                                  '>=', 1, 'quad_geq')
 
-        reference_file_name = path.join('test', 'optimization', 'resources',
-                                        'test_quadratic_program.lp')
+        reference_file_name = self.get_resource_path(path.join('resources',
+                                                               'test_quadratic_program.lp'))
         temp_output_file = tempfile.NamedTemporaryFile(mode='w+t', suffix='.lp')
         q_p.write_to_lp_file(temp_output_file.name)
         with open(reference_file_name) as reference:
@@ -519,7 +520,6 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         q_p.quadratic_constraint({'x': 2, 'z': -1}, {('y', 'z'): 3}, '==', 1)
         q_p2 = QuadraticProgram()
         q_p2.from_docplex(q_p.to_docplex())
-        self.assertEqual(q_p.pprint_as_string(), q_p2.pprint_as_string())
         self.assertEqual(q_p.export_as_lp_string(), q_p2.export_as_lp_string())
 
         mod = Model('test')
@@ -529,7 +529,6 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         mod.minimize(1 + x + 2 * y - x * y + 2 * z * z)
         mod.add(2 * x - z == 1, 'c0')
         mod.add(2 * x - z + 3 * y * z == 1, 'q0')
-        self.assertEqual(q_p.pprint_as_string(), mod.pprint_as_string())
         self.assertEqual(q_p.export_as_lp_string(), mod.export_as_lp_string())
 
         with self.assertRaises(QiskitOptimizationError):

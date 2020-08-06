@@ -14,7 +14,7 @@
 
 """ PauliOp Class """
 
-from typing import Union, Optional, Set
+from typing import Union, Set, Dict, cast
 import logging
 import numpy as np
 from scipy.sparse import spmatrix
@@ -42,7 +42,7 @@ class PauliOp(PrimitiveOp):
 
     def __init__(self,
                  primitive: Union[Pauli] = None,
-                 coeff: Optional[Union[int, float, complex, ParameterExpression]] = 1.0) -> None:
+                 coeff: Union[int, float, complex, ParameterExpression] = 1.0) -> None:
         """
             Args:
                 primitive: The Pauli which defines the behavior of the underlying function.
@@ -87,7 +87,7 @@ class PauliOp(PrimitiveOp):
         # Both Paulis
         if isinstance(other, PauliOp):
             # Copying here because Terra's Pauli kron is in-place.
-            op_copy = Pauli(x=other.primitive.x, z=other.primitive.z)
+            op_copy = Pauli(x=other.primitive.x, z=other.primitive.z)  # type: ignore
             # NOTE!!! REVERSING QISKIT ENDIANNESS HERE
             return PauliOp(op_copy.kron(self.primitive), coeff=self.coeff * other.coeff)
 
@@ -102,8 +102,8 @@ class PauliOp(PrimitiveOp):
         other = self._check_zero_for_composition_and_expand(other)
 
         # If self is identity, just return other.
-        if not any(self.primitive.x + self.primitive.z):
-            return other * self.coeff
+        if not any(self.primitive.x + self.primitive.z):  # type: ignore
+            return other * self.coeff  # type: ignore
 
         # Both Paulis
         if isinstance(other, PauliOp):
@@ -125,7 +125,7 @@ class PauliOp(PrimitiveOp):
                 'in this case {0}x{0} elements.'
                 ' Set massive=True if you want to proceed.'.format(2 ** self.num_qubits))
 
-        return self.primitive.to_matrix() * self.coeff
+        return self.primitive.to_matrix() * self.coeff  # type: ignore
 
     def to_spmatrix(self) -> spmatrix:
         """ Returns SciPy sparse matrix representation of the Operator.
@@ -136,7 +136,7 @@ class PauliOp(PrimitiveOp):
         Raises:
             ValueError: invalid parameters.
         """
-        return self.primitive.to_spmatrix() * self.coeff
+        return self.primitive.to_spmatrix() * self.coeff  # type: ignore
 
     def __str__(self) -> str:
         prim_str = str(self.primitive)
@@ -165,42 +165,51 @@ class PauliOp(PrimitiveOp):
             front = StateFn(front, is_measurement=False)
 
         if isinstance(front, ListOp) and front.distributive:
-            new_front = front.combo_fn([self.eval(front.coeff * front_elem)
+            new_front = front.combo_fn([self.eval(front.coeff * front_elem)  # type: ignore
                                         for front_elem in front.oplist])
 
-        elif isinstance(front, DictStateFn):
-            new_dict = {}
-            corrected_x_bits = self.primitive.x[::-1]
-            corrected_z_bits = self.primitive.z[::-1]
+        else:
 
-            for bstr, v in front.primitive.items():
-                bitstr = np.asarray(list(bstr)).astype(np.int).astype(np.bool)
-                new_b_str = np.logical_xor(bitstr, corrected_x_bits)
-                new_str = ''.join(map(str, 1 * new_b_str))
-                z_factor = np.product(1 - 2 * np.logical_and(bitstr, corrected_z_bits))
-                y_factor = np.product(np.sqrt(1 - 2 * np.logical_and(corrected_x_bits,
-                                                                     corrected_z_bits) + 0j))
-                new_dict[new_str] = (v * z_factor * y_factor) + new_dict.get(new_str, 0)
-            new_front = StateFn(new_dict, coeff=self.coeff * front.coeff)
+            if self.num_qubits != front.num_qubits:
+                raise ValueError(
+                    'eval does not support operands with differing numbers of qubits, '
+                    '{} and {}, respectively.'.format(
+                        self.num_qubits, front.num_qubits))
 
-        elif isinstance(front, StateFn) and front.is_measurement:
-            raise ValueError('Operator composed with a measurement is undefined.')
+            if isinstance(front, DictStateFn):
 
-        # Composable types with PauliOp
-        elif isinstance(front, (PauliOp, CircuitOp, CircuitStateFn)):
-            new_front = self.compose(front)
+                new_dict = {}  # type: Dict
+                corrected_x_bits = self.primitive.x[::-1]  # type: ignore
+                corrected_z_bits = self.primitive.z[::-1]  # type: ignore
+
+                for bstr, v in front.primitive.items():
+                    bitstr = np.asarray(list(bstr)).astype(np.int).astype(np.bool)
+                    new_b_str = np.logical_xor(bitstr, corrected_x_bits)
+                    new_str = ''.join(map(str, 1 * new_b_str))
+                    z_factor = np.product(1 - 2 * np.logical_and(bitstr, corrected_z_bits))
+                    y_factor = np.product(np.sqrt(1 - 2 * np.logical_and(corrected_x_bits,
+                                                                         corrected_z_bits) + 0j))
+                    new_dict[new_str] = (v * z_factor * y_factor) + new_dict.get(new_str, 0)
+                    new_front = StateFn(new_dict, coeff=self.coeff * front.coeff)
+
+            elif isinstance(front, StateFn) and front.is_measurement:
+                raise ValueError('Operator composed with a measurement is undefined.')
+
+            # Composable types with PauliOp
+            elif isinstance(front, (PauliOp, CircuitOp, CircuitStateFn)):
+                new_front = self.compose(front)
 
         # Covers VectorStateFn and OperatorStateFn
-        elif isinstance(front, OperatorBase):
-            new_front = self.to_matrix_op().eval(front.to_matrix_op())
+            elif isinstance(front, OperatorBase):
+                new_front = self.to_matrix_op().eval(front.to_matrix_op())  # type: ignore
 
         return new_front
 
     def exp_i(self) -> OperatorBase:
         """ Return a ``CircuitOp`` equivalent to e^-iH for this operator H. """
         # if only one qubit is significant, we can perform the evolution
-        corrected_x = self.primitive.x[::-1]
-        corrected_z = self.primitive.z[::-1]
+        corrected_x = self.primitive.x[::-1]  # type: ignore
+        corrected_z = self.primitive.z[::-1]  # type: ignore
         # pylint: disable=import-outside-toplevel,no-member
         sig_qubits = np.logical_or(corrected_x, corrected_z)
         if np.sum(sig_qubits) == 0:
@@ -231,10 +240,6 @@ class PauliOp(PrimitiveOp):
             from ..evolutions.evolved_op import EvolvedOp
             return EvolvedOp(self)
 
-    def __hash__(self) -> int:
-        # Need this to be able to easily construct AbelianGraphs
-        return hash(str(self))
-
     def commutes(self, other_op: OperatorBase) -> bool:
         """ Returns whether self commutes with other_op.
 
@@ -248,17 +253,17 @@ class PauliOp(PrimitiveOp):
         if not isinstance(other_op, PauliOp):
             return False
         # Don't use compose because parameters will break this
-        self_bits = self.primitive.z.astype(int) + 2 * self.primitive.x.astype(int)
-        other_bits = other_op.primitive.z.astype(int) + 2 * other_op.primitive.x.astype(int)
+        self_bits = self.primitive.z + 2 * self.primitive.x  # type: ignore
+        other_bits = other_op.primitive.z + 2 * other_op.primitive.x  # type: ignore
         return all((self_bits * other_bits) * (self_bits - other_bits) == 0)
 
     def to_circuit(self) -> QuantumCircuit:
         # If Pauli equals identity, don't skip the IGates
-        is_identity = sum(self.primitive.x + self.primitive.z) == 0
+        is_identity = sum(self.primitive.x + self.primitive.z) == 0  # type: ignore
 
         # Note: Reversing endianness!!
         qc = QuantumCircuit(len(self.primitive))
-        for q, pauli_str in enumerate(reversed(self.primitive.to_label())):
+        for q, pauli_str in enumerate(reversed(self.primitive.to_label())):  # type: ignore
             gate = PAULI_GATE_MAPPING[pauli_str]
             if not pauli_str == 'I' or is_identity:
                 qc.append(gate, qargs=[q])
@@ -283,5 +288,5 @@ class PauliOp(PrimitiveOp):
                 raise TypeError('Cannot convert Operator with unbound parameter {} to Legacy '
                                 'Operator'.format(self.coeff))
         else:
-            coeff = self.coeff
-        return WeightedPauliOperator(paulis=[(coeff, self.primitive)])
+            coeff = cast(float, self.coeff)
+        return WeightedPauliOperator(paulis=[(coeff, self.primitive)])  # type: ignore

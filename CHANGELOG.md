@@ -15,8 +15,102 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 > -   **Fixed**: for any bug fixes.
 > -   **Security**: in case of vulnerabilities.
 
-[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.7.3...HEAD)
+[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.7.4...HEAD)
 ========================================================================
+
+[0.7.4](https://github.com/Qiskit/qiskit-aqua/compare/0.7.3...0.7.4) - 2020-08-06
+=================================================================================
+
+Added
+-----
+
+-   Add validation of sizes of arguments of OptimizationResults and unit tests (#1167)
+-   For the Enhancement of converters of QuadraticProgram (#1061)
+-   Indented string display (#1112)
+-   Improve opflow test repeatability (#1147)
+-   Make pyscf an optional dependency (#1140)
+-   Documentation update for CustomCircuitOracle (#1149)
+-   Further enhancements in ADMMOptimizer (#1126)
+-   Check number of qubits in PauliOp.eval (#1105)
+-   Improve inequality for "a" in Shor's Algorithm documentation (#1133)
+-   Since #1100 Aqua depends on Terra 0.15 or higher (#1119)
+-   For Z2Symmetry chop resultant tapered operators (#1110)
+-   added LinearEqualityToPenalty._auto_define_penalty() function (#1043)
+-   Unify optimizer parameters (#1084)
+-   Reduce the number of qubits required by ADMMOptimizer (#1050)
+-   Pretty output for optimization elements (#1021)
+-   Make cvxpy an optional dependency (#1055)
+-   VQE default expectation selection (#1040)
+-   Set lstsq fitter for StateTomographyFitter on HHL (#1039)
+-   Pin sphinx version temporarily (#1033)
+-   Add static type hints checking (#1020)
+-   Refactor Shor's algorithm (#975)
+-   Re-use optimal vector result previously computed in VQE (#1014)
+-   Update to new NumPy RNG (#921)
+-   Allow Custom Lambda for Iterative Grover, see #893 (#1005)
+-   Add reno for release notes and update CONTRIBUTING guide (#1002)
+-   Replace algorithm result eigvecs by eingenstate (#997)
+-   Improve resource access for unit tests (#993)
+-   Speed-up of AbelianGrouper.group_subops (#923)
+-   sort params in variational dists (#985)
+
+Changed
+-------
+
+-   Move functionality QuadraticProgramToNegativeValueOracle to circuit library and GroverOptimizer (#1160)
+-   Make OptimizationResult read-only (all parameters of the constructor become mandatory) (#1131)
+
+Removed
+-------
+
+-   Remove cvxpy cap (#1150)
+-   Remove Swaps From IQFT in Grover Optimizer (#1078)
+-   Remove cvxopt and use cvxpy instead (#1035)
+-   Remove install check for PySCF 1.7.2post1 (#1004)
+
+
+Fixed
+-----
+
+-   Mp2info incorrect when only one double excitation (#1161)
+-   Fix PySCF driver exception (#1159)
+-   show full grover circ; fixes #1139 (#1141)
+-   VQE change backends (#1154)
+-   Fix preservation of ListOp's combofn (#1152)
+-   VQE construct circuit returns circuits (#1121)
+-   Fix torch abstract class method not implemented (#1146)
+-   OptimizationResult does not contain variable information #1107 (#1122)
+-   Be more memory efficient converting SummedOp to MatrixOp (#1129)
+-   Matrix multiplicative factor (z + z == 2 * z) (#1111)
+-   Determine the max number of ancillae for all ESOPs (TruthTableOracle fix) (#1128)
+-   P_BFGS spawn crash on MacOS and python >= 3.8 (#1123)
+-   Fix qgan.py where batch size is greater than data size to raise error (#1115)
+-   Fix to accommodate latest docplex 2.15.194 (#1117)
+-   SLSQP optimizer, multistart Cobyla, enhanced compatibility checks (#1082)
+-   Fix lint in controlled circuit and Instruction.definition change (#1100)
+-   SummedOp updates & optimization converters to use Opflow (#1059)
+-   CircuitStateFn.assign_parameters overwrites is_measurement (#1094)
+-   OperatorStateFn: bind parameters in coeff and primitive (#1085)
+-   Set qcp to True for cvxpy Problem.solve in qp_solver (#1083)
+-   Z2 symmetry fix for when no symmetries found (#1075)
+-   DeprecationWarning of  round with numpy 1.19 (#1081)
+-   Correct coefficient propagation in the operators  (#1077)
+-   Fix Exchange/Wiki providers, new Yahoo! provider, fix divide by 0  (#1051)
+-   remove warnings from deprecated varform (#1058)
+-   Fix hash function of PauliOp class (#1052)
+-   MatrixOp.to_instruction updated to return an Instruction (#1049)
+-   Evaluate eigenvalues in MinEigenOptimizer more efficiently (#1045)
+-   CircuitOp uses QuantumCircuit.compose, not .combine (#1048)
+-   fix remaining type hints errors (#1025)
+-   Fix QAOA initial point bug (#1026)
+-   Remove deprecated VQ tests (#987)
+-   Fix ADAM resuseability (#1016)
+-   Test lam argument in Grover algorithm (#1011)
+-   Fix VQE optimizer setter (#1008)
+-   Separate simplification of operators from SummedOp.add and fix bugs of add (#1000)
+-   Fix cobyla optimizer (#999)
+-   Ignore buggy pyscf 1.7.2.post1 (#994)
+
 
 [0.7.3](https://github.com/Qiskit/qiskit-aqua/compare/0.7.2...0.7.3) - 2020-06-18
 =================================================================================

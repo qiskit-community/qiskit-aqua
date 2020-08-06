@@ -26,8 +26,8 @@ long_description = """<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Aqua
  machine learning and optimization modules to experiment with real-world applications to quantum computing."""
 
 requirements = [
-    "qiskit-terra>=0.14.0",
-    "qiskit-ignis>=0.2.0",
+    "qiskit-terra>=0.15.0",
+    "qiskit-ignis>=0.4.0",
     "scipy>=1.4",
     "sympy>=1.3",
     "numpy>=1.17",
@@ -36,11 +36,12 @@ requirements = [
     "dlx",
     "docplex",
     "fastdtw",
-    "quandl",
     "setuptools>=40.1.0",
     "h5py",
     "networkx>=2.2",
-    "pyscf; sys_platform != 'win32'",
+    "pandas",
+    "quandl",
+    "yfinance",
 ]
 
 if not hasattr(setuptools, 'find_namespace_packages') or not inspect.ismethod(setuptools.find_namespace_packages):
@@ -85,7 +86,8 @@ setuptools.setup(
     extras_require={
         'torch': ["torch; sys_platform == 'linux' or (python_version < '3.8' and sys_platform != 'win32')"],
         'cplex': ["cplex; python_version >= '3.6' and python_version < '3.8'"],
-        'cvx': ['cvxpy>1.0.0,<1.1.0'],
+        'cvx': ['cvxpy>1.0.0,!=1.1.0,!=1.1.1,!=1.1.2'],
+        'pyscf': ["pyscf; sys_platform != 'win32'"],
     },
     zip_safe=False
 )
