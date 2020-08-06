@@ -18,10 +18,11 @@ from typing import Union, Set, cast, List
 import itertools
 import numpy as np
 from scipy import sparse
+from sympy.combinatorics import Permutation
 
 from qiskit.result import Result
 from qiskit.circuit import ParameterExpression
-from qiskit.aqua import aqua_globals
+from qiskit.aqua import aqua_globals, AquaError
 
 from ..operator_base import OperatorBase
 from .state_fn import StateFn
@@ -110,12 +111,23 @@ class DictStateFn(StateFn):
                            is_measurement=(not self.is_measurement))
 
     def permute(self, permutation: List[int]) -> 'OperatorBase':
-        raise NotImplementedError
+        new_num_qubits = max(permutation) + 1
+        if self.num_qubits != len(permutation):
+            raise AquaError("New index must be defined for each qubit of the operator.")
+
+        # helper function to permute the key
+        def perm(key):
+            list_key = ['0'] * new_num_qubits
+            for i, k in enumerate(permutation):
+                list_key[k] = key[i]
+            return str(list_key)
+
+        new_dict = {perm(key): value for key, value in self.primitive.items()}
+        return DictStateFn(new_dict, coeff=self.coeff, is_measurement=self.is_measurement)
 
     def expand_with_identity(self, num_qubits: int) -> 'DictStateFn':
-        pad = {'0'*num_qubits: 1}
-        new_dict = {k1 + k2: v1 * v2 for ((k1, v1,), (k2, v2)) in
-                    itertools.product(self.primitive.items(), pad.items())}
+        pad = '0'*num_qubits
+        new_dict = {key + pad: value for key, value in self.primitive.items()}
         return DictStateFn(new_dict, coeff=self.coeff, is_measurement=self.is_measurement)
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
