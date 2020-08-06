@@ -14,7 +14,7 @@
 
 """The SLSQP optimizer wrapped to be used within Qiskit's optimization module."""
 import logging
-from typing import List, cast, Tuple, Any, Union
+from typing import List, cast, Tuple, Any, Union, Optional
 
 import numpy as np
 from scipy.optimize import fmin_slsqp
@@ -34,7 +34,8 @@ class SlsqpOptimizationResult(OptimizationResult):
     SLSQP optimization result, defines additional properties that may be returned by the optimizer.
     """
     def __init__(self, x: Union[List[float], np.ndarray], fval: float, variables: List[Variable],
-                 fx: np.ndarray, its: int, imode: int, smode: str) -> None:
+                 fx: Optional[np.ndarray] = None, its: Optional[int] = None,
+                 imode: Optional[int] = None, smode: Optional[str] = None) -> None:
         """
         Constructs a result object with the specific to SLSQP properties.
 
@@ -214,4 +215,12 @@ class SlsqpOptimizer(MultiStartOptimizer):
                 x, rest = output, None
             return np.asarray(x), rest
 
-        return self.multi_start_solve(_minimize, problem)
+        # actual optimization goes here
+        result = self.multi_start_solve(_minimize, problem)
+
+        if self._full_output:
+            return SlsqpOptimizationResult(result.x, result.fval, result.variables,
+                                           fx=result.raw_results[0], its=result.raw_results[1],
+                                           imode=result.raw_results[2], smode=result.raw_results[3])
+        else:
+            return SlsqpOptimizationResult(result.x, result.fval, result.variables)
