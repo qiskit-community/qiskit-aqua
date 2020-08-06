@@ -270,9 +270,9 @@ class GroverOptimizer(OptimizationAlgorithm):
         # cast binaries back to integers
         result = self._qubo_converter.interpret(result)
 
-        return GroverOptimizerResult(x=result.x, fval=result.fval, variables=result.variables,
-                                     operation_counts=operation_count, n_input_qubits=n_key,
-                                     n_output_qubits=n_value)
+        return GroverOptimizationResult(x=result.x, fval=result.fval, variables=result.variables,
+                                        operation_counts=operation_count, n_input_qubits=n_key,
+                                        n_output_qubits=n_value)
 
     def _measure(self, circuit: QuantumCircuit) -> str:
         """Get probabilities from the given backend, and picks a random outcome."""
@@ -331,7 +331,7 @@ class GroverOptimizer(OptimizationAlgorithm):
         return int_v
 
 
-class GroverOptimizerResult(OptimizationResult):
+class GroverOptimizationResult(OptimizationResult):
     """A result object for Grover Optimization methods."""
 
     def __init__(self, x: Union[List[float], np.ndarray], fval: float, variables: List[Variable],

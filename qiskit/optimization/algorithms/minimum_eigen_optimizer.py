@@ -25,7 +25,7 @@ from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
 from ..problems.quadratic_program import QuadraticProgram, Variable
 
 
-class MinimumEigenOptimizerResult(OptimizationResult):
+class MinimumEigenOptimizationResult(OptimizationResult):
     """ Minimum Eigen Optimizer Result."""
 
     def __init__(self, x: Union[List[float], np.ndarray], fval: float,
@@ -132,7 +132,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         """
         return QuadraticProgramToQubo.get_compatibility_msg(problem)
 
-    def solve(self, problem: QuadraticProgram) -> MinimumEigenOptimizerResult:
+    def solve(self, problem: QuadraticProgram) -> MinimumEigenOptimizationResult:
         """Tries to solves the given problem using the optimizer.
 
         Runs the optimizer to try to solve the optimization problem.
@@ -182,10 +182,10 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         # translate result back to integers
         result = OptimizationResult(x=x, fval=fval, variables=problem.variables)
         result = self._qubo_converter.interpret(result)
-        return MinimumEigenOptimizerResult(x=result.x, fval=result.fval,
-                                           variables=result.variables,
-                                           samples=samples,
-                                           eigensolver_result=eigen_result)
+        return MinimumEigenOptimizationResult(x=result.x, fval=result.fval,
+                                              variables=result.variables,
+                                              samples=samples,
+                                              eigensolver_result=eigen_result)
 
 
 def _eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray, StateFn],
