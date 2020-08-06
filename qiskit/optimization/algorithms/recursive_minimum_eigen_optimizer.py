@@ -54,7 +54,7 @@ class RecursiveMinimumEigenOptimizationResult(OptimizationResult):
     def __init__(self, x: Union[List[float], np.ndarray], fval: float,
                  variables: List[Variable],
                  replacements: Dict[str, Tuple[str, int]],
-                 history: List[MinimumEigenOptimizationResult]) -> None:
+                 history: List[OptimizationResult]) -> None:
         super().__init__(x, fval, variables, None)
         self._replacements = replacements
         self._history = history
@@ -65,7 +65,7 @@ class RecursiveMinimumEigenOptimizationResult(OptimizationResult):
         return self._replacements
 
     @property
-    def history(self) -> List[MinimumEigenOptimizationResult]:
+    def history(self) -> List[OptimizationResult]:
         """Returns intermediate results."""
         return self._history
 
@@ -171,7 +171,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
 
         # run recursive optimization until the resulting problem is small enough
         replacements = {}   # type: Dict[str, Tuple[str, int]]
-        intermediate_results = []        # type: List[MinimumEigenOptimizationResult]
+        intermediate_results = []        # type: List[OptimizationResult]
         while problem_.get_num_vars() > self._min_num_vars:
 
             # solve current problem with optimizer
