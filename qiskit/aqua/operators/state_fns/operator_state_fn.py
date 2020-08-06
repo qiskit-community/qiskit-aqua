@@ -88,16 +88,6 @@ class OperatorStateFn(StateFn):
                                is_measurement=self.is_measurement)
 
     def permute(self, permutation: List[int]) -> 'OperatorStateFn':
-        r"""
-        Permute the qubits of the operator.
-
-        Args:
-            permutation: A list defining where each qubit should be permuted. The qubit at index
-                j should be permuted to position permutation[j].
-
-        Returns:
-            A new OperatorStateFn containing the permuted operator.
-        """
         return OperatorStateFn(self.primitive.permute(permutation),
                                coeff=self.coeff,
                                is_measurement=self.is_measurement)

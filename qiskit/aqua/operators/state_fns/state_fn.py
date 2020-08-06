@@ -146,6 +146,16 @@ class StateFn(OperatorBase):
         raise NotImplementedError
 
     def permute(self, permutation: List[int]) -> 'OperatorBase':
+        r"""
+        Permute the qubits of the state function.
+
+        Args:
+            permutation: A list defining where each qubit should be permuted. The qubit at index
+                j of the circuit should be permuted to position permutation[j].
+
+        Returns:
+            A new StateFn containing the permuted primitive.
+        """
         raise NotImplementedError
 
     def equals(self, other: OperatorBase) -> bool:

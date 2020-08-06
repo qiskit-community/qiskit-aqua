@@ -22,6 +22,7 @@ from qiskit.quantum_info import Statevector
 from qiskit.circuit import ParameterExpression
 from qiskit.aqua import aqua_globals
 
+from .. import DictStateFn  # pylint: disable=cyclic-import
 from ..operator_base import OperatorBase
 from .state_fn import StateFn
 from ..list_ops.list_op import ListOp
@@ -82,9 +83,14 @@ class VectorStateFn(StateFn):
         return self.to_dict_fn().permute(permutation).to_vector_state_fn()
 
     def to_dict_fn(self) -> 'DictStateFn':
+        r"""
+        Creates the equivalent state function of type DictStateFn.
+
+        Returns:
+            A new DictStateFn equivalent to ``self``.
+        """
         num_qubits = self.num_qubits
         new_dict = {format(i, 'b').zfill(num_qubits): v for i, v in enumerate(self.primitive.data)}
-        from qiskit.aqua.operators import DictStateFn
         return DictStateFn(new_dict, coeff=self.coeff, is_measurement=self.is_measurement)
 
     def expand_with_identity(self, num_qubits: int) -> 'VectorStateFn':
@@ -159,7 +165,6 @@ class VectorStateFn(StateFn):
 
         # pylint: disable=cyclic-import,import-outside-toplevel
         from ..operator_globals import EVAL_SIG_DIGITS
-        from .dict_state_fn import DictStateFn
         from .operator_state_fn import OperatorStateFn
         from .circuit_state_fn import CircuitStateFn
         if isinstance(front, DictStateFn):

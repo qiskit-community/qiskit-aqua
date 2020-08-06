@@ -23,6 +23,7 @@ from qiskit.result import Result
 from qiskit.circuit import ParameterExpression
 from qiskit.aqua import aqua_globals, AquaError
 
+from .. import VectorStateFn  # pylint: disable=cyclic-import
 from ..operator_base import OperatorBase
 from .state_fn import StateFn
 from ..list_ops.list_op import ListOp
@@ -130,11 +131,16 @@ class DictStateFn(StateFn):
         return DictStateFn(new_dict, coeff=self.coeff, is_measurement=self.is_measurement)
 
     def to_vector_state_fn(self) -> 'VectorStateFn':
+        r"""
+        Creates the equivalent state function of type VectorStateFn.
+
+        Returns:
+            A new VectorStateFn equivalent to ``self``.
+        """
         states = int(2 ** self.num_qubits)
         probs = np.zeros(states) + 0.j
         for k, v in self.primitive.items():
             probs[int(k, 2)] = v
-        from qiskit.aqua.operators import VectorStateFn
         return VectorStateFn(probs, coeff=self.coeff, is_measurement=self.is_measurement)
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
@@ -240,7 +246,6 @@ class DictStateFn(StateFn):
 
         # All remaining possibilities only apply when self.is_measurement is True
 
-        from .vector_state_fn import VectorStateFn
         if isinstance(front, VectorStateFn):
             # TODO does it need to be this way for measurement?
             # return sum([v * front.primitive.data[int(b, 2)] *
