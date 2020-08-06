@@ -15,7 +15,7 @@ contributing to Aqua, these are documented below.
 ### Project Code Style.
 
 Code in Aqua should conform to PEP8 and style/lint checks are run to validate
-this.  Line length must be limited to no more 100 characters. Docstrings
+this.  Line length must be limited to no more than 100 characters. Docstrings
 should be written using the Google docstring format.
 
 ### Pull request checklist
@@ -117,7 +117,7 @@ is that if your code contribution has user facing changes that you will write
 the release documentation for these changes. This documentation must explain
 what was changed, why it was changed, and how users can either use or adapt
 to the change. The idea behind release documentation is that when a naive
-user with limited internal knowledege of the project is upgrading from the
+user with limited internal knowledge of the project is upgrading from the
 previous release to the new one, they should be able to read the release notes,
 understand if they need to update their program which uses qiskit, and how they
 would go about doing that. It ideally should explain why they need to make
@@ -237,7 +237,7 @@ section of the Qiskit documentation.
 
 Note: Aqua depends on Ignis and Terra, and has optional dependence on Aer and IBM Q Provider, so
 these should be installed too. The master branch of Aqua is kept working with those other element
-master branches so these should be installed from source too following the the instructions at 
+master branches so these should be installed from source too following the instructions at 
 the same location
 
 Aqua also has some other optional dependents see 

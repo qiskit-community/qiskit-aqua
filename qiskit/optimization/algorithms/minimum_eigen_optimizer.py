@@ -180,7 +180,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
             samples = [(x_str, offset, 1.0)]
 
         # translate result back to integers
-        result = OptimizationResult(x=x, fval=fval, variables=problem.variables)
+        result = OptimizationResult(x=x, fval=fval, variables=problem_.variables)
         result = self._qubo_converter.interpret(result)
         return MinimumEigenOptimizationResult(x=result.x, fval=result.fval,
                                               variables=result.variables,
