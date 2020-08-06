@@ -39,13 +39,13 @@ class IntermediateResult(Enum):
     and returned to the end user.
     """
 
-    NO = 0
+    NO_ITERATIONS = 0
     """No intermediate results are stored."""
 
-    LAST = 1
+    LAST_ITERATION = 1
     """Only results from the last iteration are stored."""
 
-    ALL = 2
+    ALL_ITERATIONS = 2
     """All intermediate results are stored."""
 
 
@@ -100,7 +100,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
     def __init__(self, min_eigen_optimizer: MinimumEigenOptimizer, min_num_vars: int = 1,
                  min_num_vars_optimizer: Optional[OptimizationAlgorithm] = None,
                  penalty: Optional[float] = None,
-                 history: Optional[IntermediateResult] = IntermediateResult.LAST) -> None:
+                 history: Optional[IntermediateResult] = IntermediateResult.LAST_ITERATION) -> None:
         """ Initializes the recursive minimum eigen optimizer.
 
         This initializer takes a ``MinimumEigenOptimizer``, the parameters to specify until when to
@@ -116,7 +116,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
             penalty: The factor that is used to scale the penalty terms corresponding to linear
                 equality constraints.
             history: Whether the intermediate results are stored.
-                Default value is :py:obj:`~IntermediateResult.LAST`.
+                Default value is :py:obj:`~IntermediateResult.LAST_ITERATION`.
 
         Raises:
             QiskitOptimizationError: In case of invalid parameters (num_min_vars < 1).
@@ -175,8 +175,8 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         while problem_.get_num_vars() > self._min_num_vars:
 
             # solve current problem with optimizer
-            res = self._min_eigen_optimizer.solve(problem_)     # type: MinimumEigenOptimizationResult
-            if self._history == IntermediateResult.ALL:
+            res = self._min_eigen_optimizer.solve(problem_)   # type: MinimumEigenOptimizationResult
+            if self._history == IntermediateResult.ALL_ITERATIONS:
                 intermediate_results.append(res)
 
             # analyze results to get strongest correlation
@@ -224,7 +224,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
 
         # solve remaining problem
         result = self._min_num_vars_optimizer.solve(problem_)
-        if self._history in (IntermediateResult.LAST, IntermediateResult.ALL):
+        if self._history in (IntermediateResult.LAST_ITERATION, IntermediateResult.ALL_ITERATIONS):
             intermediate_results.append(result)
 
         # unroll replacements

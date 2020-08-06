@@ -267,6 +267,7 @@ ij
 ijkl
 ik
 imag
+imode
 implicant
 implicants
 indices
@@ -582,6 +583,7 @@ simonetto
 sj
 sklearn
 slsqp
+smode
 spsa
 sqrt
 srange

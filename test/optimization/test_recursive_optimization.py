@@ -17,8 +17,8 @@
 import unittest
 from os import path
 
-from qiskit.optimization.algorithms.recursive_minimum_eigen_optimizer import IntermediateResult
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
+from qiskit.optimization.algorithms.recursive_minimum_eigen_optimizer import IntermediateResult
 
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 
@@ -64,6 +64,7 @@ class TestRecursiveMinEigenOptimizer(QiskitOptimizationTestCase):
                 self.fail(msg)
 
     def test_min_eigen_optimizer_history(self):
+        """Tests different options for history."""
         filename = 'op_ip1.lp'
         # load optimization problem
         problem = QuadraticProgram()
@@ -80,7 +81,7 @@ class TestRecursiveMinEigenOptimizer(QiskitOptimizationTestCase):
         recursive_min_eigen_optimizer = \
             RecursiveMinimumEigenOptimizer(min_eigen_optimizer,
                                            min_num_vars=4,
-                                           history=IntermediateResult.NO)
+                                           history=IntermediateResult.NO_ITERATIONS)
         result = recursive_min_eigen_optimizer.solve(problem)
         self.assertIsNotNone(result.replacements)
         self.assertIsNotNone(result.history)
@@ -90,7 +91,7 @@ class TestRecursiveMinEigenOptimizer(QiskitOptimizationTestCase):
         recursive_min_eigen_optimizer = \
             RecursiveMinimumEigenOptimizer(min_eigen_optimizer,
                                            min_num_vars=4,
-                                           history=IntermediateResult.LAST)
+                                           history=IntermediateResult.LAST_ITERATION)
         result = recursive_min_eigen_optimizer.solve(problem)
         self.assertIsNotNone(result.replacements)
         self.assertIsNotNone(result.history)
@@ -100,7 +101,7 @@ class TestRecursiveMinEigenOptimizer(QiskitOptimizationTestCase):
         recursive_min_eigen_optimizer = \
             RecursiveMinimumEigenOptimizer(min_eigen_optimizer,
                                            min_num_vars=4,
-                                           history=IntermediateResult.ALL)
+                                           history=IntermediateResult.ALL_ITERATIONS)
         result = recursive_min_eigen_optimizer.solve(problem)
         self.assertIsNotNone(result.replacements)
         self.assertIsNotNone(result.history)

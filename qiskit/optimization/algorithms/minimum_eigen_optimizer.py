@@ -13,7 +13,6 @@
 # that they have been altered from the originals.
 
 """A wrapper for minimum eigen solvers from Aqua to be used within the optimization module."""
-from copy import deepcopy
 from typing import Optional, Any, Union, Tuple, List
 
 import numpy as np
@@ -38,6 +37,7 @@ class MinimumEigenOptimizationResult(OptimizationResult):
             fval: the optimal function value.
             variables: the list of variables of the optimization problem.
             samples: the basis state as bitstring, the QUBO value, and the probability of sampling.
+            eigensolver_result: the result obtained from the underlying algorithm.
         """
         super().__init__(x, fval, variables, None)
         self._samples = samples

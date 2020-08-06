@@ -14,7 +14,6 @@
 
 """GroverOptimizer module"""
 
-import copy
 import logging
 from typing import Optional, Dict, Union, List
 import math
@@ -338,7 +337,12 @@ class GroverOptimizationResult(OptimizationResult):
                  operation_counts: Dict[int, Dict[str, int]], n_input_qubits: int,
                  n_output_qubits: int) -> None:
         """
+        Constructs a result object with the specific Grover properties.
+
         Args:
+            x: The solution of the problem
+            fval: The value of the objective function of the solution
+            variables: A list of variables defined in the problem
             operation_counts: The counts of each operation performed per iteration.
             n_input_qubits: The number of qubits used to represent the input.
             n_output_qubits: The number of qubits used to represent the output.

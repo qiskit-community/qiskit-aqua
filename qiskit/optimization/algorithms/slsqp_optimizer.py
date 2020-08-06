@@ -36,6 +36,7 @@ class SlsqpOptimizationResult(OptimizationResult):
     def __init__(self, x: Union[List[float], np.ndarray], fval: float, variables: List[Variable],
                  fx: np.ndarray, its: int, imode: int, smode: str) -> None:
         """
+        Constructs a result object with the specific to SLSQP properties.
 
         Args:
             x: The solution of the problem
@@ -53,6 +54,7 @@ class SlsqpOptimizationResult(OptimizationResult):
         self._imode = imode
         self._smode = smode
 
+    # pylint:disable=invalid-name
     @property
     def fx(self) -> np.ndarray:
         """Returns the final value of the objective function being actually optimized."""
@@ -203,9 +205,9 @@ class SlsqpOptimizer(MultiStartOptimizer):
         # actual minimization function to be called by multi_start_solve
         def _minimize(x_0: np.array) -> Tuple[np.array, Any]:
             output = fmin_slsqp(_objective, x_0, eqcons=slsqp_eq_constraints,
-                                  ieqcons=slsqp_ineq_constraints, bounds=slsqp_bounds,
-                                  fprime=_objective_gradient, iter=self._iter, acc=self._acc,
-                                  iprint=self._iprint, full_output=self._full_output)
+                                ieqcons=slsqp_ineq_constraints, bounds=slsqp_bounds,
+                                fprime=_objective_gradient, iter=self._iter, acc=self._acc,
+                                iprint=self._iprint, full_output=self._full_output)
             if self._full_output:
                 x, *rest = output
             else:
