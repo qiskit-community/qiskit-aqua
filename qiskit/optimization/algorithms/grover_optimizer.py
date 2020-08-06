@@ -259,9 +259,6 @@ class GroverOptimizer(OptimizationAlgorithm):
 
         opt_x = np.array([1 if s == '1' else 0 for s in ('{0:%sb}' % n_key).format(optimum_key)])
 
-        # Build the results object.
-        # grover_results = GroverOptimizationRawResult(operation_count, n_key, n_value)
-
         # Compute function value
         fval = problem_.objective.evaluate(opt_x)
         result = OptimizationResult(x=opt_x, fval=fval, variables=problem_.variables)
