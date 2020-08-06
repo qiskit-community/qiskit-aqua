@@ -535,7 +535,8 @@ class OperatorBase(ABC):
             elif other.num_qubits < self.num_qubits:
                 other = other.expand_with_identity(self.num_qubits - other.num_qubits)
             elif other.num_qubits > self.num_qubits:
-                new_self = self.expand_with_identity(other.num_qubits - self.num_qubits)  # type: ignore
+                # type: ignore
+                new_self = self.expand_with_identity(other.num_qubits - self.num_qubits)
         return new_self, other
 
     # Composition
