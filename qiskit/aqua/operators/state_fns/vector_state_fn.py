@@ -22,7 +22,6 @@ from qiskit.quantum_info import Statevector
 from qiskit.circuit import ParameterExpression
 from qiskit.aqua import aqua_globals
 
-from .. import DictStateFn  # pylint: disable=cyclic-import
 from ..operator_base import OperatorBase
 from .state_fn import StateFn
 from ..list_ops.list_op import ListOp
@@ -82,13 +81,15 @@ class VectorStateFn(StateFn):
     def permute(self, permutation: List[int]) -> 'OperatorBase':
         return self.to_dict_fn().permute(permutation).to_vector_state_fn()
 
-    def to_dict_fn(self) -> 'DictStateFn':
+    def to_dict_fn(self) -> 'DictStateFn':  # type: ignore
         r"""
         Creates the equivalent state function of type DictStateFn.
 
         Returns:
             A new DictStateFn equivalent to ``self``.
         """
+        from .dict_state_fn import DictStateFn
+
         num_qubits = self.num_qubits
         new_dict = {format(i, 'b').zfill(num_qubits): v for i, v in enumerate(self.primitive.data)}
         return DictStateFn(new_dict, coeff=self.coeff, is_measurement=self.is_measurement)
@@ -167,6 +168,7 @@ class VectorStateFn(StateFn):
         from ..operator_globals import EVAL_SIG_DIGITS
         from .operator_state_fn import OperatorStateFn
         from .circuit_state_fn import CircuitStateFn
+        from .dict_state_fn import DictStateFn
         if isinstance(front, DictStateFn):
             return np.round(sum([v * self.primitive.data[int(b, 2)] * front.coeff  # type: ignore
                                  for (b, v) in front.primitive.items()]) * self.coeff,

@@ -59,7 +59,7 @@ class TensoredOp(ListOp):
         identity is arbitrary and can be substituted for other PrimitiveOp identity.
 
         Returns:
-            Identity operator represented by PauliOp.
+            TensoredOp expanded with identity operator.
         """
         from qiskit.aqua.operators import PauliOp
         return TensoredOp(self.oplist + [PauliOp(Pauli(label='I' * num_qubits))], coeff=self.coeff)

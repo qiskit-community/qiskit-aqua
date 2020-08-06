@@ -23,10 +23,10 @@ from qiskit.result import Result
 from qiskit.circuit import ParameterExpression
 from qiskit.aqua import aqua_globals, AquaError
 
-from .. import VectorStateFn  # pylint: disable=cyclic-import
 from ..operator_base import OperatorBase
 from .state_fn import StateFn
 from ..list_ops.list_op import ListOp
+from .vector_state_fn import VectorStateFn
 
 
 class DictStateFn(StateFn):
@@ -130,7 +130,7 @@ class DictStateFn(StateFn):
         new_dict = {key + pad: value for key, value in self.primitive.items()}
         return DictStateFn(new_dict, coeff=self.coeff, is_measurement=self.is_measurement)
 
-    def to_vector_state_fn(self) -> 'VectorStateFn':
+    def to_vector_state_fn(self) -> 'VectorStateFn':  # type: ignore
         r"""
         Creates the equivalent state function of type VectorStateFn.
 
