@@ -580,8 +580,9 @@ class TestOpConstruction(QiskitAquaTestCase):
         # with permutation
         num_qubits = 5
         indices = [1, 4]
-        permuted_primitive_op = pauli_op @ circuit_op.permute(indices) @ matrix_op
-        composed_primitive_op = pauli_op.compose(circuit_op, permute_other=indices) @ matrix_op
+        permuted_primitive_op = evolved_op @ pauli_op @ circuit_op.permute(indices) @ matrix_op
+        composed_primitive_op = \
+            evolved_op @ pauli_op.compose(circuit_op, permute_other=indices) @ matrix_op
 
         self.assertTrue(np.allclose(permuted_primitive_op.to_matrix(),
                                     composed_primitive_op.to_matrix()))
@@ -606,6 +607,27 @@ class TestOpConstruction(QiskitAquaTestCase):
         indices = [0, 4]
         perm_op = circuit_fn.compose(operator_fn, permute_self=indices)
         self.assertEqual(perm_op.num_qubits, max(indices) + 1)
+
+        # StateFn
+        num_qubits = 3
+        dim = 2**num_qubits
+        vec = [1.0/(i+1) for i in range(dim)]
+        dic = {format(i, 'b').zfill(num_qubits): 1.0/(i+1) for i in range(dim)}
+
+        is_measurement = True
+        op_state_fn = OperatorStateFn(matrix_op, is_measurement=is_measurement)  # num_qubit = 4
+        vec_state_fn = VectorStateFn(vec, is_measurement=is_measurement)  # 3
+        dic_state_fn = DictStateFn(dic, is_measurement=is_measurement)  # 3
+        circ_state_fn = CircuitStateFn(circuit_op.to_circuit(), is_measurement=is_measurement)  # 2
+
+        composed_op = op_state_fn @ vec_state_fn @ dic_state_fn @ circ_state_fn
+        self.assertEqual(composed_op.num_qubits, op_state_fn.num_qubits)
+
+        # with permutation
+        perm = [2, 4, 6]
+        composed = \
+            op_state_fn @ vec_state_fn.compose(dic_state_fn, permute_self=perm) @ circ_state_fn
+        self.assertEqual(composed.num_qubits, max(perm) + 1)
 
     def test_summed_op_equals(self):
         """Test corner cases of SummedOp's equals function."""

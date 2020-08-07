@@ -264,7 +264,8 @@ class StateFn(OperatorBase):
             raise ValueError(
                 'Composition with a Statefunction in the first operand is not defined.')
 
-        new_self, other = self._check_zero_for_composition_and_expand(other)
+        new_self, other = self._check_zero_for_composition_and_expand(other, permute_self,
+                                                                      permute_other)
         # TODO maybe include some reduction here in the subclasses - vector and Op, op and Op, etc.
         # pylint: disable=import-outside-toplevel
         from qiskit.aqua.operators import CircuitOp
