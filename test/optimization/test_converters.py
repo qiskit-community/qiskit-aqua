@@ -28,7 +28,8 @@ from qiskit.optimization.algorithms import OptimizationResult
 from qiskit.optimization.algorithms.admm_optimizer import ADMMParameters
 from qiskit.optimization.algorithms.optimization_algorithm import OptimizationResultStatus
 from qiskit.optimization.converters import (InequalityToEquality, IntegerToBinary,
-                                            LinearEqualityToPenalty)
+                                            LinearEqualityToPenalty, QuadraticProgramToIsing,
+                                            IsingToQuadraticProgram)
 from qiskit.optimization.problems import Constraint, Variable
 
 logger = logging.getLogger(__name__)
@@ -558,6 +559,120 @@ class TestConverters(QiskitOptimizationTestCase):
         self.assertEqual(decoded_infeasible_result.status, OptimizationResultStatus.INFEASIBLE)
         self.assertListEqual(infeasible_result.variable_names, ['x', 'y', 'z'])
         self.assertDictEqual(infeasible_result.variables_dict, {'x': 1.0, 'y': 1.0, 'z': 1.0})
+
+    def test_empty_problem_deprecated(self):
+        """ Test empty problem """
+        op = QuadraticProgram()
+        conv = InequalityToEquality()
+        op = conv.encode(op)
+        conv = IntegerToBinary()
+        op = conv.encode(op)
+        conv = LinearEqualityToPenalty()
+        op = conv.encode(op)
+        conv = QuadraticProgramToIsing()
+        _, shift = conv.encode(op)
+        self.assertEqual(shift, 0.0)
+
+    def test_valid_variable_type_deprecated(self):
+        """Validate the types of the variables for QuadraticProgramToIsing."""
+        # Integer variable
+        with self.assertRaises(QiskitOptimizationError):
+            op = QuadraticProgram()
+            op.integer_var(0, 10, "int_var")
+            conv = QuadraticProgramToIsing()
+            _ = conv.encode(op)
+        # Continuous variable
+        with self.assertRaises(QiskitOptimizationError):
+            op = QuadraticProgram()
+            op.continuous_var(0, 10, "continuous_var")
+            conv = QuadraticProgramToIsing()
+            _ = conv.encode(op)
+
+    def test_optimizationproblem_to_ising_deprecated(self):
+        """ Test optimization problem to operators"""
+        op = QuadraticProgram()
+        for i in range(4):
+            op.binary_var(name='x{}'.format(i))
+        linear = {}
+        for x in op.variables:
+            linear[x.name] = 1
+        op.maximize(0, linear, {})
+        linear = {}
+        for i, x in enumerate(op.variables):
+            linear[x.name] = i + 1
+        op.linear_constraint(linear, Constraint.Sense.EQ, 3, 'sum1')
+        penalize = LinearEqualityToPenalty(penalty=1e5)
+        op2ope = QuadraticProgramToIsing()
+        op2 = penalize.encode(op)
+        qubitop, offset = op2ope.encode(op2)
+
+        self.assertEqual(qubitop, QUBIT_OP_MAXIMIZE_SAMPLE)
+        self.assertEqual(offset, OFFSET_MAXIMIZE_SAMPLE)
+
+    def test_ising_to_quadraticprogram_linear_deprecated(self):
+        """ Test optimization problem to operators with linear=True"""
+        op = QUBIT_OP_MAXIMIZE_SAMPLE
+        offset = OFFSET_MAXIMIZE_SAMPLE
+
+        op2qp = IsingToQuadraticProgram(linear=True)
+        quadratic = op2qp.encode(op, offset)
+
+        self.assertEqual(len(quadratic.variables), 4)
+        self.assertEqual(len(quadratic.linear_constraints), 0)
+        self.assertEqual(len(quadratic.quadratic_constraints), 0)
+        self.assertEqual(quadratic.objective.sense, quadratic.objective.Sense.MINIMIZE)
+        self.assertAlmostEqual(quadratic.objective.constant, 900000)
+
+        linear_matrix = np.zeros((1, 4))
+        linear_matrix[0, 0] = -500001
+        linear_matrix[0, 1] = -800001
+        linear_matrix[0, 2] = -900001
+        linear_matrix[0, 3] = -800001
+
+        quadratic_matrix = np.zeros((4, 4))
+        quadratic_matrix[0, 1] = 400000
+        quadratic_matrix[0, 2] = 600000
+        quadratic_matrix[1, 2] = 1200000
+        quadratic_matrix[0, 3] = 800000
+        quadratic_matrix[1, 3] = 1600000
+        quadratic_matrix[2, 3] = 2400000
+
+        np.testing.assert_array_almost_equal(
+            quadratic.objective.linear.coefficients.toarray(), linear_matrix
+        )
+        np.testing.assert_array_almost_equal(
+            quadratic.objective.quadratic.coefficients.toarray(), quadratic_matrix
+        )
+
+    def test_ising_to_quadraticprogram_quadratic_deprecated(self):
+        """ Test optimization problem to operators with linear=False"""
+        op = QUBIT_OP_MAXIMIZE_SAMPLE
+        offset = OFFSET_MAXIMIZE_SAMPLE
+
+        op2qp = IsingToQuadraticProgram(linear=False)
+        quadratic = op2qp.encode(op, offset)
+
+        self.assertEqual(len(quadratic.variables), 4)
+        self.assertEqual(len(quadratic.linear_constraints), 0)
+        self.assertEqual(len(quadratic.quadratic_constraints), 0)
+        self.assertEqual(quadratic.objective.sense, quadratic.objective.Sense.MINIMIZE)
+        self.assertAlmostEqual(quadratic.objective.constant, 900000)
+
+        quadratic_matrix = np.zeros((4, 4))
+        quadratic_matrix[0, 0] = -500001
+        quadratic_matrix[0, 1] = 400000
+        quadratic_matrix[0, 2] = 600000
+        quadratic_matrix[0, 3] = 800000
+        quadratic_matrix[1, 1] = -800001
+        quadratic_matrix[1, 2] = 1200000
+        quadratic_matrix[1, 3] = 1600000
+        quadratic_matrix[2, 2] = -900001
+        quadratic_matrix[2, 3] = 2400000
+        quadratic_matrix[3, 3] = -800001
+
+        np.testing.assert_array_almost_equal(
+            quadratic.objective.quadratic.coefficients.toarray(), quadratic_matrix
+        )
 
 
 if __name__ == '__main__':
