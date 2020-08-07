@@ -174,7 +174,6 @@ class SummedOp(ListOp):
         ret = self.to_legacy_op().print_details()
         return ret
 
-
     def equals(self, other: OperatorBase) -> bool:
         """Check if other is equal to self.
 
