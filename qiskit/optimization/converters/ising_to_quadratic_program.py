@@ -62,9 +62,6 @@ class IsingToQuadraticProgram:
         self._qubit_op = qubit_op
         self._offset = copy.deepcopy(offset)
         self._num_qubits = qubit_op.num_qubits
-        for i in range(self._num_qubits):
-            self._qp.binary_var(name='x_{0}'.format(i))
-
         self._qp = QuadraticProgram()
         self._qp.from_ising(qubit_op, offset,
                             linear=self._linear)
