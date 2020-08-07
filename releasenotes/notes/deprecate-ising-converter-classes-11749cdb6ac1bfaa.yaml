@@ -1,0 +1,11 @@
+---
+deprecations:
+  - |
+    The ising convert classes
+    :class:`qiskit.optimization.converters.QuadraticProgramToIsing` and
+    :class:`qiskit.optimization.converters.IsingToQuadraticProgram` have
+    been deprecated and will be removed in a future release. Instead the
+    :class:`qiskit.optimization.QuadraticProgram` methods
+    :meth:`~qiskit.optimization.QuadraticProgram.to_ising` and
+    :meth:`~qiskit.optimization.QuadraticPrgraom.from_ising` should be used
+    instead.
