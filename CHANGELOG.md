@@ -15,8 +15,17 @@ Changelog](http://keepachangelog.com/en/1.0.0/).
 > -   **Fixed**: for any bug fixes.
 > -   **Security**: in case of vulnerabilities.
 
-[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.7.4...HEAD)
+[UNRELEASED](https://github.com/Qiskit/qiskit-aqua/compare/0.7.5...HEAD)
 ========================================================================
+
+[0.7.5](https://github.com/Qiskit/qiskit-aqua/compare/0.7.4...0.7.5) - 2020-08-07
+=================================================================================
+
+Deprecated
+----------
+
+-   Properly deprecate quadratic program ising converter classes (#1178)
+
 
 [0.7.4](https://github.com/Qiskit/qiskit-aqua/compare/0.7.3...0.7.4) - 2020-08-06
 =================================================================================
