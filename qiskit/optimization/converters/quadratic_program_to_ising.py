@@ -12,13 +12,13 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""The converter from an ```QuadraticProgram``` to ``Operator``."""
+
 from typing import Tuple, Optional
 import warnings
 
 from qiskit.aqua.operators import OperatorBase
 from ..problems.quadratic_program import QuadraticProgram
-
-"""The converter from an ```QuadraticProgram``` to ``Operator``."""
 
 
 class QuadraticProgramToIsing:
