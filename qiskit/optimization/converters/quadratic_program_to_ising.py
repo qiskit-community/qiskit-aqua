@@ -34,6 +34,7 @@ class QuadraticProgramToIsing:
 
     def encode(self, op: QuadraticProgram) -> Tuple[OperatorBase, float]:
         """Convert a problem into a qubit operator
+
         Args:
             op: The optimization problem to be converted. Must be an unconstrained problem with
                 binary variables only.

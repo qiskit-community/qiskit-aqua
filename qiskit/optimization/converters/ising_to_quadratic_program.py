@@ -49,6 +49,7 @@ class IsingToQuadraticProgram:
     def encode(self, qubit_op: Union[OperatorBase, WeightedPauliOperator], offset: float = 0.0
                ) -> QuadraticProgram:
         """Convert a qubit operator and a shift value into a quadratic program
+
         Args:
             qubit_op: The qubit operator to be converted into a
                 :class:`~qiskit.optimization.problems.quadratic_program.QuadraticProgram`

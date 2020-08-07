@@ -788,6 +788,7 @@ class QuadraticProgram:
 
     def prettyprint(self, out: Optional[str] = None) -> None:
         """Pretty prints the quadratic program to a given output stream (None = default).
+
         Args:
             out: The output stream or file name to print to.
               if you specify a file name, the output file name is has '.mod' as suffix.
