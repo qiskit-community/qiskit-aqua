@@ -798,7 +798,6 @@ class QuadraticProgram:
                       "output", DeprecationWarning)
         self.to_docplex().prettyprint(out)
 
-
     def read_from_lp_file(self, filename: str) -> None:
         """Loads the quadratic program from a LP file.
 
