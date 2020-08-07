@@ -18,7 +18,7 @@
 from typing import Optional, Union
 import copy
 import warnings
-import numpy as np
+import numpy as np  # pylint: disable=unused-import
 
 from qiskit.aqua.operators import OperatorBase, WeightedPauliOperator
 from ..problems.quadratic_program import QuadraticProgram
