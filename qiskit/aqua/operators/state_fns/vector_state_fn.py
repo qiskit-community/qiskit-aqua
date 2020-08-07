@@ -78,10 +78,10 @@ class VectorStateFn(StateFn):
                              coeff=np.conj(self.coeff),
                              is_measurement=(not self.is_measurement))
 
-    def permute(self, permutation: List[int]) -> 'OperatorBase':
-        return self.to_dict_fn().permute(permutation).to_vector_state_fn()
+    def permute(self, permutation: List[int]) -> 'VectorStateFn':
+        return self.to_dict_fn().permute(permutation).to_vector_state_fn()  # type: ignore
 
-    def to_dict_fn(self) -> 'DictStateFn':  # type: ignore
+    def to_dict_fn(self) -> 'StateFn':
         r"""
         Creates the equivalent state function of type DictStateFn.
 
