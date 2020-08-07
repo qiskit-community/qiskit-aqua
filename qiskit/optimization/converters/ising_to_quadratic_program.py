@@ -66,6 +66,6 @@ class IsingToQuadraticProgram:
             self._qp.binary_var(name='x_{0}'.format(i))
 
         self._qp = QuadraticProgram()
-        self._qp = .from_ising(qubit_op, offset,
-                               linear=self._linear)
+        self._qp.from_ising(qubit_op, offset,
+                            linear=self._linear)
         return self._qp
