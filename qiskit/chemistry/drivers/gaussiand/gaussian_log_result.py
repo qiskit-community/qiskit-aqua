@@ -70,28 +70,26 @@ class GaussianLogResult:
     SECTION_CUBIC = r':\s+CUBIC\sFORCE\sCONSTANTS\sIN\sNORMAL\sMODES'
     SECTION_QUARTIC = r':\s+QUARTIC\sFORCE\sCONSTANTS\sIN\sNORMAL\sMODES'
 
-    PATTERN_QUADRATIC_CONST = r'''
-    \s+(?P<index1>\d+)
-    \s+(?P<index2>\d+)
-    \s+(?P<const1>[+-]?\d+\.\d+)
-    \s+(?P<const2>[+-]?\d+\.\d+)
-    \s+(?P<const3>[+-]?\d+\.\d+)
-    '''
-
     @property
     def quadratic_force_constants(self) -> List[Tuple[str, str, float, float, float]]:
-        """ Quadratic force constants: 2 indices and 3 constant values """
+        """ Quadratic force constants: 2 indices and 3 constant values.
+            An empty list is returned if no such data is present in the log.
+        """
         return self._force_constants(self.SECTION_QUADRATIC, 2)
 
     @property
     def cubic_force_constants(self) -> List[Tuple[str, str, str, float, float, float]]:
-        """ Cubic force constants: 3 indices and 3 constant values """
-        return self._force_constants(self.SECTION_QUADRATIC, 3)
+        """ Cubic force constants: 3 indices and 3 constant values.
+            An empty list is returned if no such data is present in the log.
+        """
+        return self._force_constants(self.SECTION_CUBIC, 3)
 
     @property
     def quartic_force_constants(self) -> List[Tuple[str, str, str, str, float, float, float]]:
-        """ Cubic force constants: 4 indices and 3 constant values """
-        return self._force_constants(self.SECTION_QUADRATIC, 4)
+        """ Cubic force constants: 4 indices and 3 constant values.
+            An empty list is returned if no such data is present in the log.
+        """
+        return self._force_constants(self.SECTION_QUARTIC, 4)
 
     def _force_constants(self, section_name: str, indices: int) -> List[Tuple]:
         constants = []
