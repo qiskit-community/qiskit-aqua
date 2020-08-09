@@ -186,7 +186,6 @@ class UVCC(VariationalForm):
     def _construct_circuit_for_one_excited_operator(
             qubit_op_and_param: Tuple[WeightedPauliOperator, float],
             qr: QuantumRegister, num_time_slices: int) -> QuantumCircuit:
-        #List[Union[WeightedPauliOperator
         """ Construct the circuit building block corresponding to one excitation operator
 
         Args:
