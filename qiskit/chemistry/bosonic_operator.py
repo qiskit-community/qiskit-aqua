@@ -147,7 +147,7 @@ class BosonicOperator:
         else:
             a_z = np.asarray([0] * self._basis[m], dtype=np.bool)
             a_x = np.asarray([0] * self._basis[m], dtype=np.bool)
-            pauli_list = [[1, Pauli(a_z, a_x)]]
+            pauli_list = [(1, Pauli(a_z, a_x))]
 
         for m in range(1, self._num_modes):
             if m in modes:
@@ -156,7 +156,7 @@ class BosonicOperator:
             else:
                 a_z = np.asarray([0] * self._basis[m], dtype=np.bool)
                 a_x = np.asarray([0] * self._basis[m], dtype=np.bool)
-                new_list = [[1, Pauli(a_z, a_x)]]
+                new_list = [(1, Pauli(a_z, a_x))]
             pauli_list = self._extend(pauli_list, new_list)
 
         new_pauli_list = []
