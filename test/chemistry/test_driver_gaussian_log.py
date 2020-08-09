@@ -124,6 +124,15 @@ class TestDriverGaussianLog(QiskitChemistryTestCase):
                     ('3b', '3b', '3b', '3b', 220.54851, 0.82484, 0.01484)]
         self.assertListEqual(qfc, expected)
 
+    # This is just a dummy test at present to print out the stages of the computation
+    # to get to the array that will be sed as input for Bosonic Operator
+    def test_modes(self):
+        result = GaussianLogResult(self.logfile)
+        print("---------- OUT file equivalent ------------")
+        print(result._compute_modes())
+        print("---------- HAM file equivalent ------------")
+        print(result._compute_harmonic_modes())
+
 
 if __name__ == '__main__':
     unittest.main()

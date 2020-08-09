@@ -13,11 +13,14 @@
 # that they have been altered from the originals.
 
 """ Gaussian Log File Result """
-
-from typing import Union, List, Tuple, cast
+import math
+from typing import Dict, Union, List, Tuple, cast
 import copy
 import logging
 import re
+
+import numpy as np
+
 
 logger = logging.getLogger(__name__)
 
@@ -147,3 +150,162 @@ class GaussianLogResult:
                         break   # End of matching lines
 
         return constants
+
+    # ----------------------------------------------------------------------------------------
+    # The following is to process the constants and produce an n-body array for input
+    # to the Bosonic Operator. It maybe these methods all should be in some other module
+    # but for now they are here
+
+    @staticmethod
+    def _multinomial(indices: List[int]) -> float:
+        # For a given list of integers, computes the associated multinomial
+        tmp = set(indices)  # Set of uniques indices
+        multinomial = 1
+        for i, val in enumerate(tmp):
+            count = indices.count(val)
+            multinomial = multinomial * math.factorial(count)
+        return multinomial
+
+    @staticmethod
+    def _process_entry_indices(entry: List[Union[str, float]]) -> List[int]:
+        num_indices = len(entry) - 3
+        indices = entry[0:num_indices]
+        try:
+            return list(map(int, indices))
+        except ValueError:
+            return []
+
+    def _compute_modes(self, normalize: bool = True) -> List[List[Union[int, float]]]:
+        # Returns [value, idx0, idx1...] from 2 indices (quadratic) to 4 (quartic)
+        qua = self.quadratic_force_constants
+        cub = self.cubic_force_constants
+        qrt = self.quartic_force_constants
+        modes = []
+        for entry in qua:
+            indices = self._process_entry_indices(list(entry))
+            if indices:
+                factor = 2.0
+                factor *= self._multinomial(indices) if normalize else 1.0
+                line = [entry[2] / factor]
+                line.extend(indices)
+                modes.append(line)
+                modes.append([-x for x in line])
+        for entry in cub:
+            indices = self._process_entry_indices(list(entry))
+            if indices:
+                factor = 2.0 * math.sqrt(2.0)
+                factor *= self._multinomial(indices) if normalize else 1.0
+                line = [entry[3] / factor]
+                line.extend(indices)
+                modes.append(line)
+        for entry in qrt:
+            indices = self._process_entry_indices(list(entry))
+            if indices:
+                factor = 4.0
+                factor *= self._multinomial(indices) if normalize else 1.0
+                line = [entry[4] / factor]
+                line.extend(indices)
+                modes.append(line)
+
+        return modes
+
+    @staticmethod
+    def _harmonic_integrals(m: int, n: int, power: int, omega: int):
+        coeff = 0
+        if power == 1:
+            if abs(n - m) == 1:
+                coeff = np.sqrt(n / (2 * omega))
+        elif power == 2:
+            if abs(n - m) == 0:
+                coeff = (n + 1 / 2) / omega
+            elif abs(n - m) == 2:
+                coeff = np.sqrt(n * (n - 1)) / (2 * omega)
+        elif power == 3:
+            if abs(n - m) == 1:
+                coeff = 3 * np.power(n / (2 * omega), 3 / 2)
+            elif abs(n - m) == 3:
+                coeff = np.sqrt(n * (n - 1) * (n - 2)) / np.power(2 * omega, 3 / 2)
+        elif power == 4:
+            if abs(n - m) == 0:
+                coeff = (6 * n * (n + 1) + 3) / (4 * omega ** 2)
+            elif abs(n - m) == 2:
+                coeff = (n - 1 / 2) * np.sqrt(n * (n - 1)) / omega ** 2
+            elif abs(n - m) == 4:
+                coeff = np.sqrt(n * (n - 1) * (n - 2) * (n - 3)) / (4 * omega ** 2)
+        else:
+            raise ValueError('The expansion order of the PES is too high.')
+        return coeff
+
+    def _compute_harmonic_modes(self):
+        omega = {1: 1, 2: 1, 3: 1, 4: 1}
+        threshold = 1e-6
+        # num_modes = 4 # unused
+        num_modals = 3
+
+        harmonics = []
+
+        entries = self._compute_modes()
+        for entry in entries:
+            coeff0 = entry[0]
+            indices = entry[1:]
+            # SPW - these negative indices are explicitly generated. Maybe there is some case for
+            # keeping them in the method that does but since they are thrown away here....
+            if any([index < 0 for index in indices]):
+                continue
+            indexes = {}  # type: Dict[int, int]
+            for i in indices:
+                if indexes.get(i) is None:
+                    indexes[i] = 1
+                else:
+                    indexes[i] += 1
+
+            order = len(indexes.keys())
+            modes = list(indexes.keys())
+
+            if order == 1:
+                for m in range(num_modals):
+                    for n in range(num_modals):
+                        coeff = coeff0 * self._harmonic_integrals(m, n, indexes[modes[0]],
+                                                                  omega[modes[0]])
+                        if abs(coeff) > threshold:
+                            harmonics.append([modes[0], n, m, coeff])
+
+            elif order == 2:
+                for m in range(num_modals):
+                    for n in range(num_modals):
+                        coeff = coeff0 * self._harmonic_integrals(m, n, indexes[modes[0]],
+                                                                  omega[modes[0]])
+                        for j in range(num_modals):
+                            for k in range(num_modals):
+                                coeff *= self._harmonic_integrals(j, k, indexes[modes[1]],
+                                                                  omega[modes[1]])
+                                if abs(coeff) > threshold:
+                                    harmonics.append([modes[0], n, m,
+                                                      modes[1], j, k, coeff])
+            elif order == 3:
+                for m in range(num_modals):
+                    for n in range(num_modals):
+                        coeff = coeff0 * self._harmonic_integrals(m, n, indexes[modes[0]],
+                                                                  omega[modes[0]])
+                        for j in range(num_modals):
+                            for k in range(num_modals):
+                                coeff *= self._harmonic_integrals(j, k, indexes[modes[1]],
+                                                                  omega[modes[1]])
+                                for p in range(num_modals):
+                                    for q in range(num_modals):
+                                        coeff *= self._harmonic_integrals(p, q, indexes[modes[2]],
+                                                                          omega[modes[2]])
+                                        if abs(coeff) > threshold:
+                                            harmonics.append([modes[0], n, m,
+                                                              modes[1], j, k,
+                                                              modes[2], p, q, coeff])
+            else:
+                raise ValueError('Unexpected order value of {}'.format(order))
+
+            return harmonics
+
+    def get_harmonic_array(self):
+        # Process the above into the array. The logic in the notebook to process a ham file
+        # does not seem to expect the sort of data above which has just been appended as lists
+        # rather than fout to a file. So there seems some mismatch here.
+        pass
