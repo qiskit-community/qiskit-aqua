@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Initial state for vibrational modes. """
+""" Initial state for vibrational modes. """
 
 import logging
 from typing import List
@@ -27,9 +27,12 @@ logger = logging.getLogger(__name__)
 
 
 class VSCF(InitialState):
-    """Initial state for vibrational modes. Creates an occupation number
-    vector as defined in Ollitrault Pauline J., Chemical science 11 (2020): 6842-6855.
-    e.g. for 2 modes with 4 modals per mode it creates: |1000 1000> """
+    r""" Initial state for vibrational modes.
+
+    Creates an occupation number vector as defined in
+    Ollitrault Pauline J., Chemical science 11 (2020): 6842-6855.
+    e.g. for 2 modes with 4 modals per mode it creates: \|1000 1000>
+    """
 
     def __init__(self, basis: List[int]) -> None:
         """

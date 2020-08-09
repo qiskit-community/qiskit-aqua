@@ -25,11 +25,15 @@ from qiskit.aqua.components.initial_states import InitialState
 
 
 class CHC(VariationalForm):
-    """
-    This trial wavefunction is the Compact Heuristic for Chemistry as defined
-    in Ollitrault Pauline J., Chemical science 11 (2020): 6842-6855. It aims at approximating
-    the UCC Ansatz for a lower CNOT count. It is not particle number conserving and the accuracy
-    of the approximation decreases with the number of excitations.
+    """ This trial wavefunction is the Compact Heuristic for Chemistry.
+
+    The trial wavefunction is as defined in
+    Ollitrault Pauline J., Chemical science 11 (2020): 6842-6855. It aims at approximating
+    the UCC Ansatz for a lower CNOT count.
+
+    Note:
+        It is not particle number conserving and the accuracy of the approximation decreases
+        with the number of excitations.
     """
 
     def __init__(self, num_qubits: int, depth: int = 1, ladder: bool = False,

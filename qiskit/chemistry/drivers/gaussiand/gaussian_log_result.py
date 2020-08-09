@@ -12,9 +12,9 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Gaussian Log File Parser """
+""" Gaussian Log File Result """
 
-from typing import Union, List, Tuple
+from typing import Union, List, Tuple, cast
 import copy
 import logging
 import re
@@ -34,8 +34,8 @@ class GaussianLogResult:
         Args:
             log: The log contents conforming to Gaussian™ 16 format either as a single string
                  containing new line characters, or as a list of strings. If the single string
-                 has no new line characters it is treated a file name and will be read (a valid
-                 log file contents is multiple lines).
+                 has no new line characters it is treated a file name and the file contents
+                 will be read (a valid log file would be multiple lines).
         Raises:
             ValueError: Invalid Input
         """
@@ -59,37 +59,49 @@ class GaussianLogResult:
 
     @property
     def log(self) -> List[str]:
-        """ Gets the complete log in the form of a list of strings """
+        """ The complete Gaussian log in the form of a list of strings. """
         return copy.copy(self._log)
 
     def __str__(self):
         return '\n'.join(self._log)
 
     # Sections of interest in the log file
-    SECTION_QUADRATIC = r':\s+QUADRATIC\sFORCE\sCONSTANTS\sIN\sNORMAL\sMODES'
-    SECTION_CUBIC = r':\s+CUBIC\sFORCE\sCONSTANTS\sIN\sNORMAL\sMODES'
-    SECTION_QUARTIC = r':\s+QUARTIC\sFORCE\sCONSTANTS\sIN\sNORMAL\sMODES'
+    _SECTION_QUADRATIC = r':\s+QUADRATIC\sFORCE\sCONSTANTS\sIN\sNORMAL\sMODES'
+    _SECTION_CUBIC = r':\s+CUBIC\sFORCE\sCONSTANTS\sIN\sNORMAL\sMODES'
+    _SECTION_QUARTIC = r':\s+QUARTIC\sFORCE\sCONSTANTS\sIN\sNORMAL\sMODES'
 
     @property
     def quadratic_force_constants(self) -> List[Tuple[str, str, float, float, float]]:
-        """ Quadratic force constants: 2 indices and 3 constant values.
+        """ Quadratic force constants. (2 indices, 3 values)
+
+        Returns:
+            A list of tuples each with 2 index values and 3 constant values.
             An empty list is returned if no such data is present in the log.
         """
-        return self._force_constants(self.SECTION_QUADRATIC, 2)
+        qfc = self._force_constants(self._SECTION_QUADRATIC, 2)
+        return cast(List[Tuple[str, str, float, float, float]], qfc)
 
     @property
     def cubic_force_constants(self) -> List[Tuple[str, str, str, float, float, float]]:
-        """ Cubic force constants: 3 indices and 3 constant values.
+        """ Cubic force constants. (3 indices, 3 values)
+
+        Returns:
+            A list of tuples each with 3 index values and 3 constant values.
             An empty list is returned if no such data is present in the log.
         """
-        return self._force_constants(self.SECTION_CUBIC, 3)
+        cfc = self._force_constants(self._SECTION_CUBIC, 3)
+        return cast(List[Tuple[str, str, str, float, float, float]], cfc)
 
     @property
     def quartic_force_constants(self) -> List[Tuple[str, str, str, str, float, float, float]]:
-        """ Cubic force constants: 4 indices and 3 constant values.
+        """ Quartic force constants. (4 indices, 3 values)
+
+        Returns:
+            A list of tuples each with 4 index values and 3 constant values.
             An empty list is returned if no such data is present in the log.
         """
-        return self._force_constants(self.SECTION_QUARTIC, 4)
+        qfc = self._force_constants(self._SECTION_QUARTIC, 4)
+        return cast(List[Tuple[str, str, str, str, float, float, float]], qfc)
 
     def _force_constants(self, section_name: str, indices: int) -> List[Tuple]:
         constants = []
@@ -107,12 +119,12 @@ class GaussianLogResult:
                 found_section = True
                 break
 
-        # Now if section found look from this point on to get the corresponding constant data lines
-        # which is from when we start to get a match against the constants pattern until we
+        # Now if section found look from this line onwards to get the corresponding constant data
+        # lines which are from when we start to get a match against the constants pattern until we
         # do not again.
         const_found = False
         if found_section:
-            for j, line in enumerate(self._log[i:]):
+            for line in self._log[i:]:
                 if not const_found:
                     # If we have not found the first line that matches we keep looking
                     # until we get a match (non-None) and then drop through into found
@@ -125,7 +137,7 @@ class GaussianLogResult:
                     # such point as it does not match anymore then we break out
                     const = re.match(pattern_constants, line)
                     if const is not None:
-                        clist = []
+                        clist = []  # type: List[Union[str, float]]
                         for i in range(indices):
                             clist.append(const.group('index{}'.format(i + 1)))
                         for i in range(3):
@@ -135,6 +147,3 @@ class GaussianLogResult:
                         break   # End of matching lines
 
         return constants
-
-
-

@@ -29,7 +29,8 @@ G16PROG = which(GAUSSIAN_16)
 
 
 class GaussianLogDriver:
-    """
+    """  Gaussian™ 16 log driver.
+
     Qiskit chemistry driver using the Gaussian™ 16 program that provides the log
     back, via :class:`GaussianLogResult`, for access to the log and data recorded there.
 
@@ -37,29 +38,29 @@ class GaussianLogDriver:
 
     This driver does not use Gaussian 16 interfacing code, as certain data such as forces
     properties are not present in the MatrixElement file. The log is returned as a
-    class:`GaussianLogResult` allowing it to be parsed for whatever data may be of interest.
+    :class:`GaussianLogResult` allowing it to be parsed for whatever data may be of interest.
     This result class also contains ready access to certain data within the log.
     """
 
-    def __init__(self, config: Union[str, List[str]]) -> None:
+    def __init__(self, jcf: Union[str, List[str]]) -> None:
         r"""
         Args:
-            config: A molecular configuration conforming to Gaussian™ 16 format. This can
-                be provided as a string string with '\n' line separators or as a list of
+            jcf: A job control file conforming to Gaussian™ 16 format. This can
+                be provided as a single string with '\\n' line separators or as a list of
                 strings.
         Raises:
             QiskitChemistryError: Invalid Input
         """
         GaussianLogDriver._check_valid()
 
-        if not isinstance(config, list) and not isinstance(config, str):
+        if not isinstance(jcf, list) and not isinstance(jcf, str):
             raise QiskitChemistryError("Invalid input for Gaussian Log Driver '{}'"
-                                       .format(config))
+                                       .format(jcf))
 
-        if isinstance(config, list):
-            config = '\n'.join(config)
+        if isinstance(jcf, list):
+            jcf = '\n'.join(jcf)
 
-        self._config = config
+        self._jcf = jcf
 
     @staticmethod
     def _check_valid():
@@ -69,15 +70,20 @@ class GaussianLogDriver:
                 .format(GAUSSIAN_16_DESC, GAUSSIAN_16))
 
     def run(self) -> GaussianLogResult:
-        # The config, i.e. job control file, needs to end with a blank line to be valid for
+        """ Runs the driver to produce a result given the supplied job control file.
+
+        Returns:
+            A log file result.
+        """
+        # The job control file, needs to end with a blank line to be valid for
         # Gaussian to process it. We simply add the blank line here if not.
-        cfg = self._config
+        cfg = self._jcf
         while not cfg.endswith('\n\n'):
             cfg += '\n'
 
-        logger.debug("User supplied configuration raw: '%s'",
+        logger.debug("User supplied job control file raw: '%s'",
                      cfg.replace('\r', '\\r').replace('\n', '\\n'))
-        logger.debug('User supplied configuration\n%s', cfg)
+        logger.debug('User supplied job control file\n%s', cfg)
 
         return GaussianLogDriver._run_g16(cfg)
 
@@ -124,4 +130,3 @@ class GaussianLogDriver:
             logger.debug("Gaussian output:\n%s", alltext)
 
         return GaussianLogResult(alltext)
-
