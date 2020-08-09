@@ -1,0 +1,682 @@
+ **********************************************************************
+
+             Second-order Perturbative Anharmonic Analysis
+
+ **********************************************************************
+
+     ==================================================
+                      Reference System
+     ==================================================
+
+ NOTE: The system is set in Eckart orientation for the anharmonic
+       treatment.
+ 
+ Atom           X                  Y                  Z
+ ----------------------------------------------------------------
+  C      -0.0000000000000   -0.0000000000000    0.0000000000000
+  O       0.0000000000000    0.0000000000000    1.1603755640784
+  O      -0.0000000000000    0.0000000000000   -1.1603755640784
+ ----------------------------------------------------------------
+
+     ==================================================
+               Analysis of the Rotor Symmetry
+     ==================================================
+
+ Framework Group : D*H 
+ Rotor Type      : Linear Molecule
+ Inertia moments : X=   153.81787 , Y=   153.81787 , Z=     0.00000
+ Representation  : Ir Representation, Iz < Ix < Iy
+
+ Axes Definition for the Symmetric-Top Representation
+ ----------------------------------------------------
+ Axis Z automatically chosen to be collinear with Z from Eckart orient.
+ NOTE: In Vibro-rotational analysis, this will be referred to as the
+       spectroscopic orientation.
+
+     ==================================================
+                   Data Source Definition
+     ==================================================
+
+ Main data sources
+ -----------------
+ Harmonic data taken from: current calculation
+ Anharmonic data taken from: current calculation
+
+     ==================================================
+           Input Data Extraction and Preparation
+     ==================================================
+
+ Data for Harmonic Potential Energy Surface
+ ------------------------------------------
+
+ Definition of the model system: Active modes
+ --------------------------------------------
+ The 4 Active Modes are:
+     1     2     3     4
+
+ Data for Anharmonic Potential Energy Surface
+ --------------------------------------------
+ WARNING: Unreliable CUBIC force constant i=     1,j=     4,k=     4
+ - Fjik and Fijk differ by   10.2%
+ WARNING: Unreliable CUBIC force constant i=     1,j=     3,k=     4
+ - Fjik is NULL while MEAN(Fijk,Fjik) =    111.37642352
+ WARNING: Unreliable CUBIC force constant i=     1,j=     3,k=     3
+ - Fjik and Fijk differ by  189.8%
+
+ Data for Electric Dipole
+ ------------------------
+ Property available.
+ WARNING: Unreliable ELECTRIC DIPOLE derivatives i=     1,j=     4
+ - Pji(X) =     -0.00448759 while Pij(X) is NULL
+ WARNING: Unreliable ELECTRIC DIPOLE derivatives i=     1,j=     4
+ - Pji(Y) and Pij(Y) differ by   59.9%
+ WARNING: Unreliable ELECTRIC DIPOLE derivatives i=     1,j=     4
+ - Pji(Z) and Pij(Z) differ by   14.6%
+ WARNING: Unreliable ELECTRIC DIPOLE derivatives i=     1,j=     3
+ - Pji(X) and Pij(X) differ by  195.8%
+ WARNING: Unreliable ELECTRIC DIPOLE derivatives i=     1,j=     3
+ - Pji(Y) and Pij(Y) differ by  177.6%
+ WARNING: Unreliable ELECTRIC DIPOLE derivatives i=     1,j=     3
+ - Pji(Z) is NULL while Pij(Z) =     -0.01254252
+
+     ==================================================
+        Vibro-Rotational Analysis Based on Symmetry
+     ==================================================
+
+ Representation SGG 
+ -------------------
+    1 Vibrations with frequencies:
+   1409.20
+
+ Representation SGU 
+ -------------------
+    Z Translation
+    1 Vibrations with frequencies:
+   2526.46
+
+ Representation PIG  (doubly degenerate)
+ ---------------------------------------
+    X Rotation
+    Y Rotation
+ No Vibration
+
+ Representation PIU  (doubly degenerate)
+ ---------------------------------------
+    X Translation
+    Y Translation
+    1 Vibrations with frequencies:
+    462.62
+
+ Input/Output information
+ ------------------------
+ Normal modes will be PRINTED in DESCENDING order (imag. freq. first)
+   and sorted by irreducible representation
+ The connection between this new numbering (A) and the one used before
+   (H) is reported in the present equivalency table:
+ ----+------+------+------+------+
+ (H) |     1|     2|     3|     4|
+ (A) |    3a|    3b|     1|     2|
+ ----+------+------+------+------+
+ NOTE: Degenerate modes are referenced by the same number in the following
+
+ Normal modes will be READ in ASCENDING order (imag. freq. first)
+
+ TIP: To use the same numbering as in the whole output, use the option
+      "Print=NMOrder=AscNoIrrep" in the "ReadAnharm section"
+
+ TIP: To use the same numbering for reading and printing, use the option
+      "DataSrc=NMOrder=Print" in the "ReadAnharm section"
+ WARNING: Symmetry operations not available for non-Abelian groups.
+
+     ==================================================
+     Symm. Relations between Property/Energy derivativ.
+     ==================================================
+
+ Cut-offs for symmetry
+ ---------------------
+ - zero on 3rd derivs.:  .50000D-03 attoJoule
+ - zero on 4th derivs.:  .50000D-03
+ - diff on 3rd derivs.:    2.0 %
+ - diff on 4th derivs.:    2.0
+
+ Legend:
+ -------
+ i       : non-degenerate mode
+ s,t,u   : degenerate modes.
+           1,2 are appended to individuate modes with same degen. freq.
+           NOTE: 1,2 are replace by letters a,b in the actual test
+ F3      : cubic force constants
+ F4      : quartic force constants
+ D1+     : first electric dipole derivatives
+ D2+     : second electric dipole derivatives
+ D3+     : third electric dipole derivatives
+           + = x, y or z
+
+ Nonvanishing terms and symmetry relations
+ -----------------------------------------
+ All terms non present in the table and function of at least 1
+   degenerate mode are null.
+ The first 3 columns specify the irreducible representation for which
+   the rule(s) in 5th column are applicable. "*" specifies any
+   representation.
+ The 4th column specifies the roman numerals attribuited to each
+   different force.
+ Values are non-null only if derivatives are wrt an even num. of
+   normal modes with U symmetry. G/U subscripts will be dropped here.
+
+  s |    |    |       | RULE
+  * |    |    | I     | F4(s1,s1,s1,s1)=F4(s2,s2,s2,s2)=3F4(s1,s1,s2,s2)
+ ---+----+----+------+--------------------------------------------------
+  i |  s |    |       | RULE
+  * |  * |    | I     | F3(i,s1,s1)=F3(i,s2,s2)
+  * |  * |    |       | F4(i,i,s1,s1)=F4(i,i,s2,s2)
+ ---+----+----+------+--------------------------------------------------
+  s |  t |    |       | RULE
+  * |  * |    | II    | F4(s1,s1,t1,t1)=F4(s2,s2,t2,t2)
+  * |  * |    | III   | F4(s1,s1,t2,t2)=F4(s2,s2,t1,t1)
+ ---+----+----+------+--------------------------------------------------
+  i |  s |  t |       | RULE
+  * |  * |  * | I     | F3(i,s1,t1)=F3(i,s2,t2)
+ ---+----+----+------+--------------------------------------------------
+  s |  t |  u |       | RULE
+
+ Analysis of symmetry relations in cubic force constants
+ -------------------------------------------------------
+  F(    3a,    3a,    1 ) & F(    3b,    3b,    1 ): Diff.:  94.6%
+  F(    3a,    3b,    1 ) not NULL
+
+ Total of errors found:   2
+
+ Analysis of symmetry relations in quartic force constants
+ ---------------------------------------------------------
+  F(    3a,    3a,    3a,    3a) & F(    3a,    3a,    3b,    3b): Diff.:  37.3%
+  F(    3a,    3a,    3b,    3b) & F(    3b,    3b,    3b,    3b): Diff.:  37.3%
+  F(    3a,    3a,    3a,    3b) not NULL
+  F(    3a,    3b,    3b,    3b) not NULL
+
+ Total of errors found:   4
+
+ WARNING: Anharmonic treatment of linear tops is experimental.
+          Moreover, an hybrid treatment is used to simulate spectra:
+          - Energy: equations including degenerate modes are used.
+          - Intensity: summation done on N' modes, considering only one mode
+            per couple of degenerate modes. No variational correction done.
+
+     ==================================================
+                   Coriolis Couplings
+     ==================================================
+
+ Coriolis Couplings along the X axis
+ -----------------------------------
+                1             2             3a            3b
+      1   0.000000D+00
+      2   0.000000D+00  0.000000D+00
+      3a  0.000000D+00  0.735077D+00  0.000000D+00
+      3b  0.000000D+00 -0.677983D+00  0.000000D+00  0.000000D+00
+
+ Coriolis Couplings along the Y axis
+ -----------------------------------
+                1             2             3a            3b
+      1   0.000000D+00
+      2   0.000000D+00  0.000000D+00
+      3a  0.000000D+00 -0.677983D+00  0.000000D+00
+      3b  0.000000D+00 -0.735077D+00  0.000000D+00  0.000000D+00
+
+ Coriolis Couplings along the Z axis
+ -----------------------------------
+                1             2             3a            3b
+      1   0.000000D+00
+      2   0.000000D+00  0.000000D+00
+      3a  0.000000D+00  0.000000D+00  0.000000D+00
+      3b  0.000000D+00  0.000000D+00  0.100000D+01  0.000000D+00
+
+    2 Coriolis couplings larger than .100D-02 along the X axis
+    2 Coriolis couplings larger than .100D-02 along the Y axis
+    1 Coriolis couplings larger than .100D-02 along the Z axis
+
+     ==================================================
+     Printing Energy derivatives and Coriolis Couplings
+     ==================================================
+
+ ........................................................
+ :   Reference Energy (a.u.):       -0.188497D+03       :
+ :                    (cm-1):       -0.858857D-03       :
+ :......................................................:
+
+ ........................................................
+ :             GRADIENT IN NORMAL MODES                 :
+ :                                                      :
+ : FI =  Reduced values [cm-1]  (default input)         :
+ : k  =  Gradient [AttoJ*amu(-1/2)*Ang(-1)]             :
+ : K  =  Gradient [Hartree*amu(-1/2)*Bohr(-1)]          :
+ :......................................................:
+
+      I                          FI(I)         k(I)         K(I)
+
+     1                         1293.36602      0.16610      0.02016
+
+ Num. of 1st derivatives larger than  0.371D-02: 1 over 4
+
+ ........................................................
+ :                   CORIOLIS COUPLINGS                 :
+ :......................................................:
+
+    Ax       I      J          Zeta(I,J)
+
+     x      3a     2              0.73508
+     x      3b     2             -0.67798
+     y      3a     2             -0.67798
+     y      3b     2             -0.73508
+     z      3a     3b             1.00000
+
+ Num. of Coriolis couplings larger than  0.100D-02: 5 over 30
+
+ ........................................................
+ :      QUADRATIC FORCE CONSTANTS IN NORMAL MODES       :
+ :                                                      :
+ : FI =  Frequency [cm-1]                               :
+ : k  =  Force Const.[ attoJ * amu(-1) * ang(-2) ]      :
+ : K  =  Force Const.[ Hartrees * amu(-1) * bohr(-2) ]  :
+ :......................................................:
+
+      I      J                  FI(I,J)       k(I,J)       K(I,J)
+
+     1      1                  1409.20235      1.17003      0.07515
+     2      2                  2526.46159      3.76076      0.24156
+     3a     3a                  462.61566      0.12609      0.00810
+     3b     3b                  462.61566      0.12609      0.00810
+
+ Num. of 2nd derivatives larger than  0.371D-04: 4 over 10
+
+ ........................................................
+ :        CUBIC FORCE CONSTANTS IN NORMAL MODES         :
+ :                                                      :
+ : FI =  Reduced values [cm-1]  (default input)         :
+ : k  =  Cubic Force Const.[AttoJ*amu(-3/2)*Ang(-3)]    :
+ : K  =  Cubic Force Const.[Hartree*amu(-3/2)*Bohr(-3)] :
+ :......................................................:
+
+      I      J      K          FI(I,J,K)     k(I,J,K)     K(I,J,K)
+
+     1      1      1           -260.36071     -1.39757     -0.04750
+     2      2      1           -498.94440     -4.80163     -0.16320
+     3a     3a     1            239.87769      0.42270      0.01437
+     3a     3b     1             74.25095      0.13084      0.00445
+     3b     3b     1             12.93985      0.02280      0.00078
+
+ Num. of 3rd derivatives larger than  0.371D-04: 5 over 20
+
+ ........................................................
+ :                                                      :
+ :       QUARTIC FORCE CONSTANTS IN NORMAL MODES        :
+ :                                                      :
+ : FI =  Reduced values [cm-1]  (default input)         :
+ : k  =  Quartic Force Const.[AttoJ*amu(-2)*Ang(-4)]    :
+ : K  =  Quartic Force Const.[Hartree*amu(-2)*Bohr(-4)] :
+ :......................................................:
+
+      I      J      K      L  FI(I,J,K,L)   k(I,J,K,L)   K(I,J,K,L)
+
+     1      1      1      1      40.39063      1.40169      0.02521
+     2      2      1      1      79.08068      4.92017      0.08850
+     2      2      2      2     154.78015     17.26491      0.31053
+     3a     3a     1      1     -67.10879     -0.76453     -0.01375
+     3b     3b     1      1     -67.10879     -0.76453     -0.01375
+     3a     3a     2      2    -163.29426     -3.33524     -0.05999
+     3b     3b     2      2    -163.29426     -3.33524     -0.05999
+     3a     3a     3a     3a    220.54851      0.82484      0.01484
+     3a     3a     3a     3b     66.77089      0.24972      0.00449
+     3a     3a     3b     3b    117.26759      0.43857      0.00789
+     3a     3b     3b     3b    -66.77088     -0.24972     -0.00449
+     3b     3b     3b     3b    220.54851      0.82484      0.01484
+
+ Num. of 4th derivatives larger than  0.371D-04: 12 over 35
+
+     ==================================================
+                     Input for POLYMODE
+     ==================================================
+
+ ***************** cut here for POLYMODE input *****************
+  4,  1,  4,  5, 12,  0,  5,  5,  0
+SCF-CI
+          Input generated by DiNa
+  1, 1,  0.222148D-05 /
+  2, 2,  0.222148D-05 /
+  3, 3,  0.206133D-04 /
+  4, 4,  0.662562D-04 /
+  1, 1, 3, 0.923009D-07 /
+  1, 2, 3, 0.571410D-07 /
+  2, 2, 3, 0.497904D-08 /
+  3, 3, 3, -.101724D-06 /
+  3, 4, 4, -.104848D-05 /
+  1, 1, 1, 1, 0.186029D-09 /
+  1, 1, 2, 2, 0.593479D-09 /
+  1, 2, 2, 2, -.225280D-09 /
+  2, 2, 2, 2, 0.186029D-09 /
+  1, 1, 3, 3, -.103457D-08 /
+  2, 2, 3, 3, -.103457D-08 /
+  3, 3, 3, 3, 0.316128D-09 /
+  1, 1, 4, 4, -.451327D-08 /
+  2, 2, 4, 4, -.451327D-08 /
+  3, 3, 4, 4, 0.665799D-08 /
+  4, 4, 4, 4, 0.389383D-08 /
+ 0.280393D+06,0.280393D+06,0.764714D-27 /
+  4, 5, 1, -.735077D+00 /
+  4, 5, 2, 0.677983D+00 /
+  4, 5, 1, 0.677983D+00 /
+  4, 5, 2, 0.735077D+00 /
+  2, 5, 1, -.100000D+01 /
+ ***************** cut here for POLYMODE input *****************
+
+     ==================================================
+      Inertia Moments Derivatives w.r.t. Normal Modes
+     ==================================================
+
+ Units: amu^1/2.Ang
+
+                 Ixx        Ixy        Iyy        Ixz        Iyz        Izz
+ Q(     1)    13.12606   -0.00000   13.12606    0.00000    0.00000    0.00000
+ Q(     2)    -0.00000   -0.00000   -0.00000    0.00000    0.00000    0.00000
+ Q(    3a)     0.00000   -0.00000    0.00000   -0.00000    0.00000    0.00000
+ Q(    3b)    -0.00000   -0.00000   -0.00000    0.00000   -0.00000   -0.00000
+
+     ==================================================
+               Vibro-rotational Alpha Matrix
+     ==================================================
+
+ Vibro-Rot alpha Matrix (in cm^-1)
+ ---------------------------------
+                 A(z)           B(x)           C(y)
+ Q(     1)       -0.00000       -0.00042       -0.00042
+ Q(     2)       -0.00000        0.00283        0.00283
+ Q(     3)       -0.00000       -0.00119       -0.00119
+
+ Vibro-Rot alpha Matrix (in MHz)
+ -------------------------------
+                 A(z)           B(x)           C(y)
+ Q(     1)       -0.00000      -12.62820      -12.62820
+ Q(     2)       -0.00000       84.95659       84.95659
+ Q(     3)       -0.00000      -35.76684      -35.76684
+
+     ==================================================
+          Quartic Centrifugal Distortion Constants
+     ==================================================
+
+ NOTE: Values in Cartesian coords. refer to the structure in Eckart orientation.
+
+ Quartic Centrifugal Distortion Constants Tau Prime
+ --------------------------------------------------
+                      cm^-1                    MHz
+ TauP aaaa      0.0000000000D+00         0.0000000000D+00
+ TauP bbaa      0.0000000000D+00         0.0000000000D+00
+ TauP bbbb     -0.4829871082D-06        -0.1447958924D-01
+ cm-1                       MHz
+ De    0.1207467771D-06         0.3619897309D-02
+
+     ==================================================
+           Sextic Centrifugal Distortion Constants
+     ==================================================
+
+ Sextic Distortion Constants
+ ---------------------------
+                       in cm-1                  in Hz
+ Phi aaa         0.6952638225-309         0.0000000000D+00
+ Phi aab         0.6912151947-309         0.0000000000D+00
+ Phi abb         0.6952638225-309         0.0000000000D+00
+ Phi bbb         0.1441264505D-13         0.4320802284D-03
+
+ Linear molecule
+ ---------------
+                       cm^-1                    Hz
+ He               0.1441264505D-13         0.4320802284D-03
+
+     ==================================================
+            Rotational l-type doubling constants
+     ==================================================
+ Ref.: J.K.G. Watson, J. Mol. Spectry. 101, 83 (1983)
+       q_i = q_i^e + (q_i^J)*J(J+1) + (q_i^K)*K(K+-1)^2
+
+ q^e constants (in cm^-1)
+ ------------------------
+
+ Q(     3)    0.7540834247D-03
+
+ q^J constants (in cm^-1)
+ ------------------------
+
+ Q(     3)   -0.2146424661D-08
+
+ q^K constants (in cm^-1)
+ ------------------------
+
+ Q(     3)    0.2052013033D-08
+
+     ==================================================
+                     Resonance Analysis
+     ==================================================
+
+ Thresholds
+ ----------
+ 1-2 Fermi resonances:
+     - Maximum Frequency difference (cm^-1)          :    200.000
+     - Minimum Difference PT2 vs Variational (cm^-1) :      1.000
+ 2-2 Darling-Dennison resonances:
+     - Maximum Frequency difference (cm^-1)          :    100.000
+     - Minimum value of off-diagonal term (cm^-1)    :     10.000
+ 1-1 Darling-Dennison resonances:
+     - Maximum Frequency difference (cm^-1)          :    100.000
+     - Minimum value of off-diagonal term (cm^-1)    :     10.000
+
+ Fermi resonances
+ ----------------
+  No Fermi resonance found
+
+ Darling-Dennison resonances
+ ---------------------------
+  No 2-2 Darling-Dennison resonance found
+  No 1-1 Darling-Dennison resonance found
+
+     ==================================================
+                     Anharmonic X Matrix
+     ==================================================
+
+ PT2 model: Deperturbed VPT2 (DVPT2)
+ Ref.: V. Barone, J. Chem. Phys. 122, 1, 014108 (2005)
+
+ Coriolis contributions to X Matrix (in cm^-1)
+ ---------------------------------------------
+                1             2             3
+      1  0.000000D+00
+      2  0.000000D+00  0.000000D+00
+      3  0.000000D+00  0.220903D+01  0.000000D+00
+
+ 3rd Deriv. contributions to X Matrix (in cm^-1)
+ -----------------------------------------------
+                1             2             3
+      1 -0.501079D+01
+      2 -0.364016D+02 -0.211509D+02
+      3  0.239892D+02  0.212329D+02 -0.100492D+02
+
+ 4th Deriv. contributions to X Matrix (in cm^-1)
+ -----------------------------------------------
+                1             2             3
+      1  0.252441D+01
+      2  0.197702D+02  0.967376D+01
+      3 -0.167772D+02 -0.408236D+02  0.158351D+02
+
+ Total Anharmonic X Matrix (in cm^-1)
+ ------------------------------------
+                1             2             3
+      1 -0.248638D+01
+      2 -0.166315D+02 -0.114772D+02
+      3  0.721199D+01 -0.173817D+02  0.578593D+01
+
+     ==================================================
+                    Anharmonic Xl Matrix
+     ==================================================
+
+ Scheme used to remove resonant terms is the same as for the X matrix.
+
+ Total Anharmonic Xl Matrix (in cm^-1)
+ ------------------------------------
+                3
+      3 -0.371664D+00
+
+     ==================================================
+          Vibrational U- l-type doubling constants
+     ==================================================
+
+ Scheme used to remove resonant terms is the same as for the X matrix.
+
+ Total matrix of U- l-type doubling constants (in cm^-1)
+ --------------------------------------------------------
+   Mode       Real part       Imag. part
+     3    -0.795717D+00    -0.208659D+01
+
+     ==================================================
+                Anharmonic Zero Point Energy
+     ==================================================
+
+ Anharmonic X0 Term
+ ------------------
+ U term         : cm-1 =     0.00000 ; Kcal/mol =   0.000 ; KJ/mol =   0.000
+ Coriolis       : cm-1 =    -0.39137 ; Kcal/mol =  -0.001 ; KJ/mol =  -0.005
+ Anharmonic     : cm-1 =     3.55583 ; Kcal/mol =   0.010 ; KJ/mol =   0.043
+ Total X0       : cm-1 =     3.16446 ; Kcal/mol =   0.009 ; KJ/mol =   0.038
+
+ Anharmonic Zero Point Energy
+ ----------------------------
+ Harmonic       : cm-1 =  2430.44763 ; Kcal/mol =   6.949 ; KJ/mol =  29.075
+ Anharmonic Pot.: cm-1 =    -4.49635 ; Kcal/mol =  -0.013 ; KJ/mol =  -0.054
+ Watson+Coriolis: cm-1 =     0.71315 ; Kcal/mol =   0.002 ; KJ/mol =   0.009
+ Total Anharm   : cm-1 =  2426.66443 ; Kcal/mol =   6.938 ; KJ/mol =  29.029
+
+     ==================================================
+          Vibrational Energies at Anharmonic Level
+     ==================================================
+
+ Units: Vibrational energies and rotational constants in cm^-1.
+ NOTE: Transition energies are given with respect to the ground state.
+
+ Reference Data
+ --------------
+                              E(harm)  E(anharm)     Ba(x)      Ca(y)
+ Equilibrium Geometry                              0.391370   0.391370
+ Ground State                 2430.448  2426.664   0.391357   0.391357
+
+ Fundamental Bands
+ -----------------
+    Mode(n,l)    Status       E(harm)  E(anharm)     Ba(x)      Ca(y)
+       1(1,+0)   active      1409.202  1403.126   0.391778   0.391778
+       2(1,+0)   active      2526.462  2477.810   0.388523   0.388523
+       3(1,-1)   active       462.616   474.517   0.392550   0.392550
+       3(1,+1)   active       462.616   474.517   0.392550   0.392550
+
+ Overtones
+ ---------
+    Mode(n,l)                 E(harm)  E(anharm)     Ba(x)      Ca(y)
+       1(2,+0)               2818.405  2801.279   0.392199   0.392199
+       2(2,+0)               5052.923  4932.665   0.385689   0.385689
+       3(2,-2)                925.231   959.862   0.393743   0.393743
+       3(2,+0)                925.231   961.349   0.393743   0.393743
+       3(2,+2)                925.231   959.862   0.393743   0.393743
+
+ Combination Bands
+ -----------------
+    Mode(n,l)   Mode(n,l)    E(harm)  E(anharm)     Ba(x)      Ca(y)
+       2(1,+0)     1(1,+0)   3935.664  3864.304   0.388944   0.388944
+       3(1,-1)     1(1,+0)   1871.818  1884.855   0.392971   0.392971
+       3(1,+1)     1(1,+0)   1871.818  1884.855   0.392971   0.392971
+       3(1,-1)     2(1,+0)   2989.077  2934.945   0.389716   0.389716
+       3(1,+1)     2(1,+0)   2989.077  2934.945   0.389716   0.389716
+
+ WARNING: Anharmonic transition moments for symmetric and linear tops
+          are not yet fully implemented.
+
+     ==================================================
+               Anharmonic Transition Moments
+     ==================================================
+
+ Electric dipole : Fundamental Bands
+ ------------------------------------------------------------------------
+   Mode(n,l)                          X               Y               Z
+      1(1)                       0.866468D-15    0.260683D-14   -0.266312D-13
+      2(1)                      -0.481028D-05   -0.638463D-05    0.110028D+00
+      3(1)                      -0.401185D-01   -0.436800D-01    0.641128D-05
+
+ Electric dipole : Overtones
+ ------------------------------------------------------------------------
+   Mode(n,l)                          X               Y               Z
+      1(2)                      -0.702008D-16    0.937072D-16   -0.335019D-12
+      2(2)                      -0.919061D-16   -0.412226D-16    0.200899D-13
+      3(2)                       0.928106D-14    0.246748D-13   -0.290219D-13
+
+ Electric dipole : Combination Bands
+ ------------------------------------------------------------------------
+   Mode(n,l)   Mode(n,l)              X               Y               Z
+      2(1)        1(1)          -0.438349D-15    0.177350D-15   -0.148996D-01
+      3(1)        1(1)           0.515704D-03   -0.403108D-04    0.584594D-13
+      3(1)        2(1)          -0.111288D-12   -0.123347D-12   -0.120623D-13
+
+     ==================================================
+              Anharmonic Infrared Spectroscopy
+     ==================================================
+
+ Units: Transition energies (E) in cm^-1
+        Integrated intensity (I) in km.mol^-1
+
+ Fundamental Bands
+ -----------------
+   Mode(n,l)                E(harm)   E(anharm)        I(harm)       I(anharm)
+      1(1,+0)               1409.202   1403.126      0.00000000      0.00000000
+      2(1,+0)               2526.462   2477.810    510.04230420    485.77031571
+      3(1,-1)                462.616    474.517     26.94443649     27.02931874
+      3(1,+1)                462.616    474.517     26.94443649     27.02931874
+
+ Overtones
+ ---------
+   Mode(n,l)                E(harm)   E(anharm)                      I(anharm)
+      1(2,+0)               2818.405   2801.279                      0.00000000
+      2(2,+0)               5052.923   4932.665                      0.00000000
+      3(2,-2)                925.231    959.862                      0.00000000
+      3(2,+0)                925.231    961.349                      0.00000000
+      3(2,+2)                925.231    959.862                      0.00000000
+
+ Combination Bands
+ -----------------
+   Mode(n,l)   Mode(n,l)    E(harm)   E(anharm)                      I(anharm)
+      2(1,+0)     1(1,+0)   3935.664   3864.304                     13.89249309
+      3(1,-1)     1(1,+0)   1871.818   1884.855                      0.00816734
+      3(1,+1)     1(1,+0)   1871.818   1884.855                      0.00816734
+      3(1,-1)     2(1,+0)   2989.077   2934.945                      0.00000000
+      3(1,+1)     2(1,+0)   2989.077   2934.945                      0.00000000
+
+ Units: Transition energies (E) in cm^-1
+        Dipole strengths (DS) in 10^-40 esu^2.cm^2
+
+ Fundamental Bands
+ -----------------
+   Mode(n,l)                E(harm)   E(anharm)       DS(harm)      DS(anharm)
+      1(1,+0)               1409.202   1403.126      0.00000000      0.00000000
+      2(1,+0)               2526.462   2477.810    805.38011523    782.11462031
+      3(1,-1)                462.616    474.517    232.35722407    227.24313678
+      3(1,+1)                462.616    474.517    232.35722407    227.24313678
+
+ Overtones
+ ---------
+   Mode(n,l)                E(harm)   E(anharm)                     DS(anharm)
+      1(2,+0)               2818.405   2801.279                      0.00000000
+      2(2,+0)               5052.923   4932.665                      0.00000000
+      3(2,-2)                925.231    959.862                      0.00000000
+      3(2,+0)                925.231    961.349                      0.00000000
+      3(2,+2)                925.231    959.862                      0.00000000
+
+ Combination Bands
+ -----------------
+   Mode(n,l)   Mode(n,l)    E(harm)   E(anharm)                     DS(anharm)
+      2(1,+0)     1(1,+0)   3935.664   3864.304                     14.34221677
+      3(1,-1)     1(1,+0)   1871.818   1884.855                      0.01728663
+      3(1,+1)     1(1,+0)   1871.818   1884.855                      0.01728663
+      3(1,-1)     2(1,+0)   2989.077   2934.945                      0.00000000
+      3(1,+1)     2(1,+0)   2989.077   2934.945                      0.00000000
+
