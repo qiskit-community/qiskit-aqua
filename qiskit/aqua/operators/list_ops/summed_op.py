@@ -135,9 +135,11 @@ class SummedOp(ListOp):
             return cast(OperatorBase, reduced_ops)
 
     def to_circuit(self) -> QuantumCircuit:
-        """ Returns the quantum circuit, representing the summed operator.
+        """Returns the quantum circuit, representing the summed operator.
+
         Returns:
             The circuit representation of the summed operator.
+
         Raises:
             ExtensionError: if operator is not unitary
             AquaError: if SummedOp can not be converted to MatrixOp
