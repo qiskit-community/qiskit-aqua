@@ -4,7 +4,7 @@ features:
     ``eigensolver_result``. The latter is obtained from the underlying algorithm used by the
     optimizer and specific to the algorithm.
     ``RecursiveMinimumEigenOptimizer`` now returns an instance of the result class
-    ``RecursiveMinimumEigenOptimizationResult`` which in turns may contains intermediate results
+    ``RecursiveMinimumEigenOptimizationResult`` which in turn may contains intermediate results
     obtained from the underlying algorithms. The dedicated result class exposes properties
     ``replacements`` and ``history`` that are specific to this optimizer. The depth of the history
     is managed by the ``history`` parameter of the optimizer.
