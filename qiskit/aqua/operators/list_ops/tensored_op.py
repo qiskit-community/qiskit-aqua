@@ -18,8 +18,7 @@ from typing import List, Union, cast
 from functools import reduce, partial
 import numpy as np
 
-from qiskit import QuantumCircuit
-from qiskit.circuit import ParameterExpression
+from qiskit.circuit import QuantumCircuit, ParameterExpression
 
 from ..state_fns.circuit_state_fn import CircuitStateFn
 from ..operator_base import OperatorBase
