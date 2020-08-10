@@ -419,10 +419,15 @@ class UCCSD(VariationalForm):
                                task_args=(q, self._num_time_slices),
                                num_processes=aqua_globals.num_processes)
 
-        for qc in results:
-            if self._shallow_circuit_concat:
-                circuit.data += qc.data
-            else:
+        if self._shallow_circuit_concat:
+            for qc in results:
+                for _, qbits, _ in qc._data:
+                    for i, _ in enumerate(qbits):
+                        qbits[i] = circuit.qubits[qbits[i].index]
+            for qc in results:
+                circuit._data += qc._data
+        else:
+            for qc in results:
                 circuit += qc
 
         return circuit
