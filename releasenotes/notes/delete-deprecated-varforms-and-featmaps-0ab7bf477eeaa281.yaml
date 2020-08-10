@@ -10,3 +10,9 @@ deprecations:
     * :class:`~qiskit.aqua.components.feature_maps.PauliZExpansion`
     * :class:`~qiskit.aqua.components.feature_maps.FirstOrderExpansion`
     * :class:`~qiskit.aqua.components.feature_maps.SecondOrderExpansion`
+    * :class:`~qiskit.aqua.components.qfts.QFT`
+    * :class:`~qiskit.aqua.components.qfts.Standard`
+    * :class:`~qiskit.aqua.components.qfts.Approximate`
+    * :class:`~qiskit.aqua.components.iqfts.QFT`
+    * :class:`~qiskit.aqua.components.iqfts.Standard`
+    * :class:`~qiskit.aqua.components.iqfts.Approximate`
