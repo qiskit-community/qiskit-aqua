@@ -67,9 +67,11 @@ class ComposedOp(ListOp):
     #     raise NotImplementedError
 
     def to_circuit(self) -> QuantumCircuit:
-        """ Returns the quantum circuit, representing the composed operator.
+        """Returns the quantum circuit, representing the composed operator.
+
         Returns:
             The circuit representation of the composed operator.
+
         Raises:
             AquaError: for operators where a single underlying circuit can not be obtained.
         """
