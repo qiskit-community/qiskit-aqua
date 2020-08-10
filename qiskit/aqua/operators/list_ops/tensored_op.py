@@ -79,9 +79,11 @@ class TensoredOp(ListOp):
             return cast(OperatorBase, reduced_ops)
 
     def to_circuit(self) -> QuantumCircuit:
-        """ Returns the quantum circuit, representing the tensored operator.
+        """Returns the quantum circuit, representing the tensored operator.
+
         Returns:
             The circuit representation of the tensored operator.
+
         Raises:
             AquaError: for operators where a single underlying circuit can not be produced.
         """
