@@ -24,7 +24,7 @@ selection of both different :mod:`~qiskit.aqua.components.optimizers` and
 :mod:`~qiskit.aqua.components.variational_forms` that can be chosen from according the nature of
 the problem. Some optimizers use gradients, others have alternative techniques to finding a
 minimum. Variational forms include heuristic ansatzes such as
-:class:`~qiskit.aqua.components.variational_forms.RYRZ` and types designed for specific problems
+:class:`~qiskit.circuit.library.EfficientSU2` and types designed for specific problems
 such as :class:`~qiskit.chemistry.components.variational_forms.UCCSD` for chemistry and ground
 state energy computation.
 
