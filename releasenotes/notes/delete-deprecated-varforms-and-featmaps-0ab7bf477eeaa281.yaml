@@ -1,0 +1,12 @@
+---
+deprecations:
+  - |
+    The following deprecated classes have been deleted, as they reached the
+    end of the 3 month deprecation period:
+    * :class:`~qiskit.aqua.components.variational_forms.RY`
+    * :class:`~qiskit.aqua.components.variational_forms.RYRZ`
+    * :class:`~qiskit.aqua.components.variational_forms.SwapRZ`
+    * :class:`~qiskit.aqua.components.feature_maps.PauliExpansion`
+    * :class:`~qiskit.aqua.components.feature_maps.PauliZExpansion`
+    * :class:`~qiskit.aqua.components.feature_maps.FirstOrderExpansion`
+    * :class:`~qiskit.aqua.components.feature_maps.SecondOrderExpansion`
