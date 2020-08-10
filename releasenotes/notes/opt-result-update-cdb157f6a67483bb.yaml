@@ -9,7 +9,7 @@ features:
     ``replacements`` and ``history`` that are specific to this optimizer. The depth of the history
     is managed by the ``history`` parameter of the optimizer.
   - |
-    ``GroverOptimizer`` returns now an instance of ``GroverOptimizationResult`` and this result
+    ``GroverOptimizer`` now returns an instance of ``GroverOptimizationResult`` and this result
     class exposes properties ``operation_counts``, ``n_input_qubits``, and ``n_output_qubits``
     directly. These properties are not available in the ``raw_results`` dictionary anymore.
   - |
