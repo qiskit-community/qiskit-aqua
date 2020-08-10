@@ -21,8 +21,7 @@ import numpy as np
 from scipy.sparse import spmatrix
 from sympy.combinatorics import Permutation
 
-from qiskit import QuantumCircuit
-from qiskit.circuit import ParameterExpression
+from qiskit.circuit import QuantumCircuit, ParameterExpression
 
 from ..legacy.base_operator import LegacyBaseOperator
 from ..operator_base import OperatorBase
