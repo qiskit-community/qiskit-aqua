@@ -134,7 +134,7 @@ class MatrixOp(PrimitiveOp):
         return super(MatrixOp, self).compose(other)
 
     def permute(self, permutation: List[int] = None) -> 'MatrixOp':
-        """ Creates a new MatrixOp that acts on the permuted qubits.
+        """Creates a new MatrixOp that acts on the permuted qubits.
 
         Args:
             permutation: A list defining where each qubit should be permuted. The qubit at index

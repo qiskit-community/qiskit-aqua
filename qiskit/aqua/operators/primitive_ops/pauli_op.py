@@ -102,7 +102,7 @@ class PauliOp(PrimitiveOp):
         return TensoredOp([self, other])
 
     def permute(self, permutation: List[int] = None) -> 'PauliOp':
-        """ Permutes the sequence of Pauli matrices.
+        """Permutes the sequence of Pauli matrices.
 
         Args:
             permutation: A list defining where each Pauli should be permuted. The Pauli at index
