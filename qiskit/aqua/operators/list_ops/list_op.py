@@ -209,8 +209,7 @@ class ListOp(OperatorBase):
                        for op in self.oplist], combo_fn=self.combo_fn, coeff=self.coeff)
 
     def permute(self, permutation: List[int]) -> 'ListOp':
-        r"""
-        Permute the qubits of the operator.
+        """Permute the qubits of the operator.
 
         Args:
             permutation: A list defining where each qubit should be permuted. The qubit at index
