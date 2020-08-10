@@ -1,4 +1,4 @@
-.. module:: qiskit
+.. module:: qiskit.aqua
 
 =========================
 Qiskit Aqua API Reference
