@@ -18,7 +18,6 @@ from typing import Union, Optional, Set, List
 import logging
 import numpy as np
 from scipy.sparse import spmatrix
-from sympy.combinatorics import Permutation
 
 from qiskit import QuantumCircuit
 from qiskit.quantum_info import Operator
@@ -31,6 +30,7 @@ from ..list_ops.summed_op import SummedOp
 from ..list_ops.tensored_op import TensoredOp
 from .primitive_op import PrimitiveOp
 from ..legacy.matrix_operator import MatrixOperator
+from ...utils import arithmetic
 from ... import AquaError
 
 logger = logging.getLogger(__name__)
@@ -161,7 +161,7 @@ class MatrixOp(PrimitiveOp):
             = list(filter(lambda x: x not in permutation, range(new_matrix_size))) + permutation
 
         # decompose permutation into sequence of transpositions
-        transpositions = Permutation(permutation).transpositions()
+        transpositions = arithmetic.transpositions(permutation)
         for trans in transpositions:
             qc.swap(trans[0], trans[1])
         matrix = CircuitOp(qc).to_matrix()

@@ -19,7 +19,6 @@ from typing import List, Union, Optional, Callable, Iterator, Set, Dict
 
 import numpy as np
 from scipy.sparse import spmatrix
-from sympy.combinatorics import Permutation
 
 from qiskit import QuantumCircuit
 from qiskit.circuit import ParameterExpression
@@ -27,6 +26,7 @@ from qiskit.circuit import ParameterExpression
 from ..legacy.base_operator import LegacyBaseOperator
 from ..operator_base import OperatorBase
 from ... import AquaError
+from ...utils import arithmetic
 
 
 class ListOp(OperatorBase):
@@ -237,7 +237,7 @@ class ListOp(OperatorBase):
             = list(filter(lambda x: x not in permutation, range(circuit_size))) + permutation
 
         # decompose permutation into sequence of transpositions
-        transpositions = Permutation(permutation).transpositions()
+        transpositions = arithmetic.transpositions(permutation)
         for trans in transpositions:
             qc.swap(trans[0], trans[1])
 

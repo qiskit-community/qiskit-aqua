@@ -95,3 +95,33 @@ def next_power_of_2_base(n):
         base += 1
 
     return base
+
+
+def transpositions(permutation):
+    """
+    Return the permutation decomposed into a list of transpositions.
+    """
+    unchecked = [True] * len(permutation)
+    cyclic_form = []
+    for i in range(len(permutation)):
+        if unchecked[i]:
+            cycle = [i]
+            unchecked[i] = False
+            j = i
+            while unchecked[permutation[j]]:
+                j = permutation[j]
+                cycle.append(j)
+                unchecked[j] = False
+            if len(cycle) > 1:
+                cyclic_form.append(cycle)
+    cyclic_form.sort()
+    res = []
+    for x in cyclic_form:
+        nx = len(x)
+        if nx == 2:
+            res.append(tuple(x))
+        elif nx > 2:
+            first = x[0]
+            for y in x[nx - 1:0:-1]:
+                res.append((first, y))
+    return res
