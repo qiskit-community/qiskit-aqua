@@ -5,5 +5,5 @@ features:
     of the corresponding SciPy optimization method. This is a classical optimizer, does not depend
     on quantum algorithms and may be used as a replacement for ``CobylaOptimizer``.
   - |
-    Cobyla optimizer has been modified to accomodate a multi start feature introduced
+    Cobyla optimizer has been modified to accommodate a multi start feature introduced
     in the SLSQP optimizer. By default, the optimizer does not run in the multi start mode.
