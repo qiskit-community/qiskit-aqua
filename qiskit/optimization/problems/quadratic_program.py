@@ -31,6 +31,7 @@ from docplex.mp.quad import QuadExpr
 from numpy import (ndarray, zeros, bool as nbool)
 from scipy.sparse import spmatrix
 
+from qiskit.aqua import aqua_globals
 from qiskit.aqua.operators import I, OperatorBase, PauliOp, WeightedPauliOperator, SummedOp, ListOp
 from qiskit.quantum_info import Pauli
 from .constraint import Constraint, ConstraintSense
@@ -807,7 +808,7 @@ class QuadraticProgram:
 
         Raises:
             FileNotFoundError: If the file does not exist.
-            RuntimeError: If CPLEX is not installed.
+            NameError: If CPLEX is not installed.
 
         Note:
             This method requires CPLEX to be installed and present in ``PYTHONPATH``.
@@ -815,8 +816,10 @@ class QuadraticProgram:
         try:
             import cplex  # pylint: disable=unused-import
         except ImportError:
-            raise RuntimeError('The QuadraticProgram.read_from_lp_file method requires CPLEX to '
-                               'be installed, but CPLEX could not be found.')
+            raise NameError(aqua_globals.LIBRARY_MSG.format(
+                libname='CPLEX',
+                name='QuadraticProgram.read_from_lp_file',
+                extra="You can install it with 'pip install qiskit-aqua[cplex]'."))
 
         def _parse_problem_name(filename: str) -> str:
             # Because docplex model reader uses the base name as model name,

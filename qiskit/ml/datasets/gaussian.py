@@ -59,7 +59,10 @@ def gaussian(training_size, test_size, n, plot_data=False):
             try:
                 import matplotlib.pyplot as plt
             except ImportError:
-                raise NameError('Matplotlib not installed. Please install it before plotting')
+                raise NameError(aqua_globals.LIBRARY_MSG.format(
+                    libname='Matplotlib',
+                    name='gaussian',
+                    extra="You can install it with 'pip install matplotlib'."))
 
             for k in range(0, 2):
                 plt.scatter(sample_train[label_train == k, 0][:training_size],
@@ -120,7 +123,10 @@ def gaussian(training_size, test_size, n, plot_data=False):
             try:
                 import matplotlib.pyplot as plt
             except ImportError:
-                raise NameError('Matplotlib not installed. Please install it before plotting')
+                raise NameError(aqua_globals.LIBRARY_MSG.format(
+                    libname='Matplotlib',
+                    name='gaussian',
+                    extra="You can install it with 'pip install matplotlib'."))
 
             for k in range(0, 3):
                 plt.scatter(sample_train[label_train == k, 0][:training_size],

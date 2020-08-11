@@ -149,7 +149,10 @@ def ad_hoc_data(training_size, test_size, n, gap, plot_data=False):
             try:
                 import matplotlib.pyplot as plt
             except ImportError:
-                raise NameError('Matplotlib not installed. Please install it before plotting')
+                raise NameError(aqua_globals.LIBRARY_MSG.format(
+                    libname='Matplotlib',
+                    name='ad_hoc_data',
+                    extra="You can install it with 'pip install matplotlib'."))
 
             plt.show()
             fig2 = plt.figure()
@@ -224,7 +227,10 @@ def ad_hoc_data(training_size, test_size, n, gap, plot_data=False):
             try:
                 import matplotlib.pyplot as plt
             except ImportError:
-                raise NameError('Matplotlib not installed. Please install it before plotting')
+                raise NameError(aqua_globals.LIBRARY_MSG.format(
+                    libname='Matplotlib',
+                    name='ad_hoc_data',
+                    extra="You can install it with 'pip install matplotlib'."))
             sample_total_a = np.asarray(sample_total_a)
             sample_total_b = np.asarray(sample_total_b)
             x_1 = sample_total_a[:, 0]

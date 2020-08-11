@@ -459,12 +459,8 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
                                  {('x', 'x'): 1, ('y', 'z'): -1, ('z', 'z'): 2})
             self.assertEqual(cst[2].sense, Constraint.Sense.GE)
             self.assertEqual(cst[2].rhs, 1)
-        except RuntimeError as ex:
-            msg = str(ex)
-            if 'CPLEX' in msg:
-                self.skipTest(msg)
-            else:
-                self.fail(msg)
+        except NameError as ex:
+            self.skipTest(str(ex))
 
     def test_write_to_lp_file(self):
         """test write problem"""

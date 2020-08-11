@@ -20,13 +20,14 @@ import logging
 
 import numpy as np
 
+from qiskit.aqua import aqua_globals
 from ._base_data_provider import BaseDataProvider
 
 try:
     import pandas as pd
-    HAS_PANDAS = True
+    _HAS_PANDAS = True
 except ImportError:
-    HAS_PANDAS = False
+    _HAS_PANDAS = False
 
 logger = logging.getLogger(__name__)
 
@@ -51,10 +52,11 @@ class RandomDataProvider(BaseDataProvider):
             NameError: Pandas not installed
         """
         super().__init__()
-        if not HAS_PANDAS:
-            raise NameError("The Pandas package is required to use the "
-                            "RandomDataProvider. You can install it with "
-                            "'pip install pandas'.")
+        if not _HAS_PANDAS:
+            raise NameError(aqua_globals.LIBRARY_MSG.format(
+                libname='Pandas',
+                name='RandomDataProvider',
+                extra="You can install it with 'pip install pandas'."))
         tickers = tickers if tickers is not None else ["TICKER1", "TICKER2"]
         if isinstance(tickers, list):
             self._tickers = tickers

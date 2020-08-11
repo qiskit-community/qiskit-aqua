@@ -79,12 +79,8 @@ class TestMinEigenOptimizer(QiskitOptimizationTestCase):
 
             # analyze results
             self.assertAlmostEqual(cplex_result.fval, result.fval)
-        except RuntimeError as ex:
-            msg = str(ex)
-            if 'CPLEX' in msg:
-                self.skipTest(msg)
-            else:
-                self.fail(msg)
+        except NameError as ex:
+            self.skipTest(str(ex))
 
 
 if __name__ == '__main__':

@@ -20,19 +20,18 @@ from typing import Dict, Any
 import os
 import logging
 import numpy as np
+from qiskit.aqua import aqua_globals
 from .discriminative_network import DiscriminativeNetwork
 
 logger = logging.getLogger(__name__)
 
-_HAS_TORCH = False
 try:
     import torch
     from torch import nn, optim
     from torch.autograd.variable import Variable
     _HAS_TORCH = True
 except ImportError:
-    logger.info('Pytorch is not installed. For installation instructions '
-                'see https://pytorch.org/get-started/locally/')
+    _HAS_TORCH = False
 
 
 class PyTorchDiscriminator(DiscriminativeNetwork):
@@ -51,8 +50,10 @@ class PyTorchDiscriminator(DiscriminativeNetwork):
         """
         super().__init__()
         if not _HAS_TORCH:
-            raise NameError('Pytorch is not installed. For installation instructions see '
-                            'https://pytorch.org/get-started/locally/')
+            raise NameError(aqua_globals.LIBRARY_MSG.format(
+                libname='Pytorch',
+                name='PyTorchDiscriminator',
+                extra="You can install it with 'pip install qiskit-aqua[torch]'."))
 
         self._n_features = n_features
         self._n_out = n_out

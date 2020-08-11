@@ -17,7 +17,7 @@ Discriminator
 """
 
 import logging
-
+from qiskit.aqua import aqua_globals
 
 logger = logging.getLogger(__name__)
 
@@ -25,8 +25,12 @@ try:
     import torch
     from torch import nn
 except ImportError:
-    logger.info('Pytorch is not installed. For installation instructions '
-                'see https://pytorch.org/get-started/locally/')
+    if logger.isEnabledFor(logging.INFO):
+        _LOG_MSG = aqua_globals.LIBRARY_MSG.format(
+            libname='Pytorch',
+            name='DiscriminatorNet',
+            extra="You can install it with 'pip install qiskit-aqua[torch]'.")
+        logger.info(_LOG_MSG)
 
 # torch 1.6.0 fixed a mypy error about not applying contravariance rules
 # to inputs by defining forward as a value, rather than a function.  See also
