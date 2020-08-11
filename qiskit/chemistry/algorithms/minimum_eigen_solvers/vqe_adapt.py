@@ -248,7 +248,7 @@ class VQEAdapt(VQAlgorithm):
         match = cycle_regex.search(' '.join(map(str, indices)))
         logger.debug('Cycle detected: %s', match)
         # Additionally we also need to check whether the last two numbers are identical, because the
-        # regex above will only find cycles of at least two consecutive numbers.
+        # reg-ex above will only find cycles of at least two consecutive numbers.
         # It is sufficient to assert that the last two numbers are different due to the iterative
         # nature of the algorithm.
         return match is not None or (len(indices) > 1 and indices[-2] == indices[-1])
