@@ -19,6 +19,7 @@ import logging
 from collections import defaultdict
 from enum import Enum
 from math import fsum
+import warnings
 
 from docplex.mp.constr import (LinearConstraint as DocplexLinearConstraint,
                                QuadraticConstraint as DocplexQuadraticConstraint,
@@ -773,6 +774,30 @@ class QuadraticProgram:
             A string representing the quadratic program.
         """
         return self.to_docplex().export_as_lp_string()
+
+    def pprint_as_string(self) -> str:
+        """Returns the quadratic program as a string in Docplex's pretty print format.
+        Returns:
+            A string representing the quadratic program.
+        """
+        warnings.warn("The pprint_as_string method is deprecated and will be "
+                      "removed in a future release. Instead use the"
+                      "to_docplex() method and run pprint_as_string() on that "
+                      "output", DeprecationWarning)
+        return self.to_docplex().pprint_as_string()
+
+    def prettyprint(self, out: Optional[str] = None) -> None:
+        """Pretty prints the quadratic program to a given output stream (None = default).
+
+        Args:
+            out: The output stream or file name to print to.
+              if you specify a file name, the output file name is has '.mod' as suffix.
+        """
+        warnings.warn("The prettyprint method is deprecated and will be "
+                      "removed in a future release. Instead use the"
+                      "to_docplex() method and run prettyprint() on that "
+                      "output", DeprecationWarning)
+        self.to_docplex().prettyprint(out)
 
     def read_from_lp_file(self, filename: str) -> None:
         """Loads the quadratic program from a LP file.
