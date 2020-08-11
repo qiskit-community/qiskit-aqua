@@ -80,12 +80,18 @@ class TestVQEAdaptUCCSD(QiskitChemistryTestCase):
         backend = Aer.get_backend('statevector_simulator')
         optimizer = L_BFGS_B()
         algorithm = VQEAdapt(self.qubit_op, self.var_form_base, optimizer,
+                             threshold=0.00001, delta=0.1, max_iterations=1)
+        result = algorithm.run(backend)
+        self.assertEqual(result.num_iterations, 1)
+        self.assertEqual(result.finishing_criterion, 'Maximum number of iterations reached')
+
+        algorithm = VQEAdapt(self.qubit_op, self.var_form_base, optimizer,
                              threshold=0.00001, delta=0.1)
         result = algorithm.run(backend)
         self.assertAlmostEqual(result.eigenvalue.real, -1.85727503, places=2)
-        self.assertIsNotNone(result.num_iterations)
-        self.assertIsNotNone(result.final_max_gradient)
-        self.assertIsNotNone(result.finishing_criterion)
+        self.assertEqual(result.num_iterations, 2)
+        self.assertAlmostEqual(result.final_max_gradient, 0.0, places=5)
+        self.assertEqual(result.finishing_criterion, 'Threshold converged')
 
     def test_vqe_adapt_check_cyclicity(self):
         """ VQEAdapt index cycle detection """

@@ -49,7 +49,9 @@ class VQEAdapt(VQAlgorithm):
                  initial_point: Optional[np.ndarray] = None,
                  excitation_pool: Optional[List[WeightedPauliOperator]] = None,
                  threshold: float = 1e-5,
-                 delta: float = 1, max_evals_grouped: int = 1,
+                 delta: float = 1,
+                 max_iterations: int = None,
+                 max_evals_grouped: int = 1,
                  aux_operators: Optional[List[LegacyBaseOperator]] = None,
                  quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
         """
@@ -62,6 +64,7 @@ class VQEAdapt(VQAlgorithm):
             threshold: absolute threshold value for gradients, has a min. value of 1e-15.
             delta: finite difference step size for gradient computation,
                     has a min. value of 1e-5.
+            max_iterations: maximum number of macro iterations of the VQEAdapt algorithm.
             max_evals_grouped: max number of evaluations performed simultaneously
             aux_operators: Auxiliary operators to be evaluated at each eigenvalue
             quantum_instance: Quantum Instance or Backend
@@ -89,6 +92,7 @@ class VQEAdapt(VQAlgorithm):
             if excitation_pool is None else excitation_pool
         self._threshold = threshold
         self._delta = delta
+        self._max_iterations = max_iterations
         self._aux_operators = []
         if aux_operators is not None:
             aux_operators = \
@@ -148,11 +152,12 @@ class VQEAdapt(VQAlgorithm):
 
         threshold_satisfied = False
         alternating_sequence = False
+        max_iterations_exceeded = False
         prev_op_indices = []
         theta = []  # type: List
         max_grad = (0, 0)
         iteration = 0
-        while not threshold_satisfied and not alternating_sequence:
+        while self._max_iterations is None or iteration < self._max_iterations:
             iteration += 1
             logger.info('--- Iteration #%s ---', str(iteration))
             # compute gradients
@@ -192,6 +197,12 @@ class VQEAdapt(VQAlgorithm):
             vqe_result = algorithm.run(self._quantum_instance)
             self._ret['opt_params'] = vqe_result.optimal_point
             theta = vqe_result.optimal_point.tolist()
+        else:
+            # reached maximum number of iterations
+            max_iterations_exceeded = True
+            logger.info("Maximum number of iterations reached. Finishing.")
+            logger.info("Final maximum gradient: %s", str(np.abs(max_grad[0])))
+
         # once finished evaluate auxiliary operators if any
         if self._aux_operators is not None and self._aux_operators:
             algorithm = VQE(self._operator, self._var_form_base, self._optimizer,
@@ -203,6 +214,8 @@ class VQEAdapt(VQAlgorithm):
             finishing_criterion = 'Threshold converged'
         elif alternating_sequence:
             finishing_criterion = 'Aborted due to cyclicity'
+        elif max_iterations_exceeded:
+            finishing_criterion = 'Maximum number of iterations reached'
         else:
             raise AquaError('The algorithm finished due to an unforeseen reason!')
 
