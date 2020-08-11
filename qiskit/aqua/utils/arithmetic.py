@@ -117,11 +117,11 @@ def transpositions(permutation):
     cyclic_form.sort()
     res = []
     for x in cyclic_form:
-        nx = len(x)
-        if nx == 2:
+        len_x = len(x)
+        if len_x == 2:
             res.append(tuple(x))
-        elif nx > 2:
+        elif len_x > 2:
             first = x[0]
-            for y in x[nx - 1:0:-1]:
+            for y in x[len_x - 1:0:-1]:
                 res.append((first, y))
     return res
