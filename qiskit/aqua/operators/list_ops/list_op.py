@@ -244,11 +244,12 @@ class ListOp(OperatorBase):
         return CircuitOp(qc.reverse_ops()) @ new_self @ CircuitOp(qc)  # type: ignore
 
     def compose(self, other: OperatorBase,
-                permute_self: List[int] = None,
-                permute_other: List[int] = None) -> OperatorBase:
+                permutation: List[int] = None, front=False) -> OperatorBase:
 
         self, other = self._check_zero_for_composition_and_expand(other,  # type: ignore
-                                                                  permute_self, permute_other)
+                                                                  permutation)
+        if front:
+            return other.compose(self)
         # Avoid circular dependency
         # pylint: disable=cyclic-import,import-outside-toplevel
         from .composed_op import ComposedOp

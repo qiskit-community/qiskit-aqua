@@ -122,11 +122,12 @@ class MatrixOp(PrimitiveOp):
         return TensoredOp([self, other])
 
     def compose(self, other: OperatorBase,
-                permute_self: List[int] = None,
-                permute_other: List[int] = None) -> OperatorBase:
+                permutation: List[int] = None, front=False) -> OperatorBase:
 
         self, other = self._check_zero_for_composition_and_expand(other,  # type: ignore
-                                                                  permute_self, permute_other)
+                                                                  permutation)
+        if front:
+            return other.compose(self)
         if isinstance(other, MatrixOp):
             return MatrixOp(self.primitive.compose(other.primitive, front=True),  # type: ignore
                             coeff=self.coeff * other.coeff)

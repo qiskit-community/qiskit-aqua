@@ -140,14 +140,15 @@ class CircuitStateFn(StateFn):
                               is_measurement=(not self.is_measurement))
 
     def compose(self, other: OperatorBase,
-                permute_self: List[int] = None,
-                permute_other: List[int] = None) -> OperatorBase:
-        if not self.is_measurement:
+                permutation: List[int] = None, front=False) -> OperatorBase:
+        if not self.is_measurement and not front:
             raise ValueError(
                 'Composition with a Statefunctions in the first operand is not defined.')
         # type: ignore
-        new_self, other = self._check_zero_for_composition_and_expand(other, permute_self,
-                                                                      permute_other)
+        new_self, other = self._check_zero_for_composition_and_expand(other, permutation)
+
+        if front:
+            return other.compose(new_self)
 
         # pylint: disable=cyclic-import,import-outside-toplevel
         from ..primitive_ops.circuit_op import CircuitOp

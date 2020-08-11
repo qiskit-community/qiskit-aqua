@@ -66,11 +66,12 @@ class ComposedOp(ListOp):
         return ComposedOp([op.adjoint() for op in reversed(self.oplist)], coeff=self.coeff)
 
     def compose(self, other: OperatorBase,
-                permute_self: List[int] = None,
-                permute_other: List[int] = None) -> OperatorBase:
+                permutation: List[int] = None, front=False) -> OperatorBase:
 
         self, other = self._check_zero_for_composition_and_expand(other,  # type: ignore
-                                                                  permute_self, permute_other)
+                                                                  permutation)
+        if front:
+            return other.compose(self)
         # Try composing with last element in list
         if isinstance(other, ComposedOp):
             return ComposedOp(self.oplist + other.oplist, coeff=self.coeff * other.coeff)

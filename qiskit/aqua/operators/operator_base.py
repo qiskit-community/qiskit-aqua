@@ -518,13 +518,10 @@ class OperatorBase(ABC):
         return {k: v[i] for (k, v) in unrolled_dict.items()}
 
     def _check_zero_for_composition_and_expand(self, other: 'OperatorBase',
-                                               permute_self: List[int] = None,
-                                               permute_other: List[int] = None) \
+                                               permutation: List[int] = None) \
             -> Tuple['OperatorBase', 'OperatorBase']:
-        if permute_self is not None:
-            self = self.permute(permute_self)  # pylint: disable=self-cls-assignment
-        if permute_other is not None:
-            other = other.permute(permute_other)
+        if permutation is not None:
+            other = other.permute(permutation)
         new_self = self
         if not self.num_qubits == other.num_qubits:
             # pylint: disable=cyclic-import,import-outside-toplevel
@@ -554,8 +551,7 @@ class OperatorBase(ABC):
 
     @abstractmethod
     def compose(self, other: 'OperatorBase',
-                permute_self: List[int] = None,
-                permute_other: List[int] = None) -> 'OperatorBase':
+                permutation: List[int] = None, front=False) -> 'OperatorBase':
         r""" Return Operator Composition between self and other (linear algebra-style:
         A@B(x) = A(B(x))), overloaded by ``@``.
 
@@ -569,8 +565,8 @@ class OperatorBase(ABC):
 
         Args:
             other: The ``OperatorBase`` with which to compose self.
-            permute_self: ``List[int]`` which defines permutation on self.
-            permute_other: ``List[int]`` which defines permutation on other.
+            permutation: ``List[int]`` which defines permutation on other operator.
+            front: If front==True, return ``other.compose(self)``.
 
         Returns:
             An ``OperatorBase`` equivalent to the function composition of self and other.

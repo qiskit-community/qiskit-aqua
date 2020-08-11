@@ -207,8 +207,7 @@ class StateFn(OperatorBase):
         return temp
 
     def _check_zero_for_composition_and_expand(self, other: OperatorBase,
-                                               permute_self: List[int] = None,
-                                               permute_other: List[int] = None) \
+                                               permutation: List[int] = None) \
             -> Tuple[OperatorBase, OperatorBase]:
 
         from qiskit.aqua.operators import Zero
@@ -220,7 +219,7 @@ class StateFn(OperatorBase):
             # Zero is special - we'll expand it to the correct qubit number.
             return self, StateFn('0' * self.num_qubits)
 
-        return super()._check_zero_for_composition_and_expand(other, permute_self, permute_other)
+        return super()._check_zero_for_composition_and_expand(other, permutation)
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
         raise NotImplementedError
@@ -242,16 +241,15 @@ class StateFn(OperatorBase):
         raise NotImplementedError
 
     def compose(self, other: OperatorBase,
-                permute_self: List[int] = None,
-                permute_other: List[int] = None) -> OperatorBase:
+                permutation: List[int] = None, front=False) -> OperatorBase:
         r"""
         Composition (Linear algebra-style: A@B(x) = A(B(x))) is not well defined for states
         in the binary function model, but is well defined for measurements.
 
         Args:
             other: The Operator to compose with self.
-            permute_self: ``List[int]`` which defines permutation on self.
-            permute_other: ``List[int]`` which defines permutation on other.
+            permutation: ``List[int]`` which defines permutation on other operator.
+            front: If front==True, return ``other.compose(self)``.
 
         Returns:
             An Operator equivalent to the function composition of self and other.
@@ -264,8 +262,7 @@ class StateFn(OperatorBase):
             raise ValueError(
                 'Composition with a Statefunction in the first operand is not defined.')
 
-        new_self, other = self._check_zero_for_composition_and_expand(other, permute_self,
-                                                                      permute_other)
+        new_self, other = self._check_zero_for_composition_and_expand(other, permutation)
         # TODO maybe include some reduction here in the subclasses - vector and Op, op and Op, etc.
         # pylint: disable=import-outside-toplevel
         from qiskit.aqua.operators import CircuitOp

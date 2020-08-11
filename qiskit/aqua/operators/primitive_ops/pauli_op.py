@@ -125,11 +125,12 @@ class PauliOp(PrimitiveOp):
         return PauliOp(Pauli(label=''.join(new_pauli_list)), self.coeff)
 
     def compose(self, other: OperatorBase,
-                permute_self: List[int] = None,
-                permute_other: List[int] = None) -> OperatorBase:
+                permutation: List[int] = None, front=False) -> OperatorBase:
 
         self, other = self._check_zero_for_composition_and_expand(other,  # type: ignore
-                                                                  permute_self, permute_other)
+                                                                  permutation)
+        if front:
+            other.compose(self)
         # If self is identity, just return other.
         if not any(self.primitive.x + self.primitive.z):  # type: ignore
             return other * self.coeff  # type: ignore
