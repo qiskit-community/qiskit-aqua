@@ -131,7 +131,7 @@ class TestDriverGaussianLog(QiskitChemistryTestCase):
         print("---------- OUT file equivalent ------------")
         print(result._compute_modes())
         print("---------- HAM file equivalent ------------")
-        print(result._compute_harmonic_modes())
+        print(result.compute_harmonic_modes())
 
 
 if __name__ == '__main__':

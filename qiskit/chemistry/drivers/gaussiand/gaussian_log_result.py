@@ -151,6 +151,41 @@ class GaussianLogResult:
 
         return constants
 
+    @property
+    def a_to_h_numbering(self) -> Dict[str, int]:
+        """ A to H numbering mapping.
+
+        Returns:
+            Dictionary mapping string A numbering such as '1', '3a' etc from forces modes
+            to H integer numbering
+        """
+        a2h = {}  # type: Dict[str, int]
+
+        found_section = False
+        found_h = False
+        found_a = False
+        for line in self._log:
+            if not found_section:
+                if re.search(r'Input/Output\sinformation', line) is not None:
+                    logger.debug(line)
+                    found_section = True
+            else:
+                if re.search(r'\s+\(H\)\s+\|', line) is not None:
+                    logger.debug(line)
+                    found_h = True
+                    h_nums = [x.strip() for x in line.split('|') if x and '(H)' not in x]
+                elif re.search(r'\s+\(A\)\s+\|', line) is not None:
+                    logger.debug(line)
+                    found_a = True
+                    a_nums = [x.strip() for x in line.split('|') if x and '(A)' not in x]
+
+                if found_h and found_a:
+                    for i, a_num in enumerate(a_nums):
+                        a2h[a_num] = int(h_nums[i])
+                    break
+
+        return a2h
+
     # ----------------------------------------------------------------------------------------
     # The following is to process the constants and produce an n-body array for input
     # to the Bosonic Operator. It maybe these methods all should be in some other module
@@ -166,14 +201,15 @@ class GaussianLogResult:
             multinomial = multinomial * math.factorial(count)
         return multinomial
 
-    @staticmethod
-    def _process_entry_indices(entry: List[Union[str, float]]) -> List[int]:
+    def _process_entry_indices(self, entry: List[Union[str, float]]) -> List[int]:
+        # a2h gives us say '3a' -> 1, '3b' -> 2 etc. The H values can be 1 thru 4
+        # but we want them numbered in reverse order so the 'a2h_vals + 1 - a2h[x]'
+        # takes care of this
+        a2h = self.a_to_h_numbering
+        a2h_vals = max(list(a2h.values()))
+
         num_indices = len(entry) - 3
-        indices = entry[0:num_indices]
-        try:
-            return list(map(int, indices))
-        except ValueError:
-            return []
+        return [a2h_vals + 1 - a2h[x] for x in entry[0:num_indices]]
 
     def _compute_modes(self, normalize: bool = True) -> List[List[Union[int, float]]]:
         # Returns [value, idx0, idx1...] from 2 indices (quadratic) to 4 (quartic)
@@ -236,10 +272,9 @@ class GaussianLogResult:
             raise ValueError('The expansion order of the PES is too high.')
         return coeff
 
-    def _compute_harmonic_modes(self):
+    def compute_harmonic_modes(self, threshold=1e-6):
         omega = {1: 1, 2: 1, 3: 1, 4: 1}
-        threshold = 1e-6
-        # num_modes = 4 # unused
+        # num_modes = 4  # unused
         num_modals = 3
 
         harmonics = []
@@ -248,8 +283,9 @@ class GaussianLogResult:
         for entry in entries:
             coeff0 = entry[0]
             indices = entry[1:]
-            # SPW - these negative indices are explicitly generated. Maybe there is some case for
-            # keeping them in the method that does but since they are thrown away here....
+
+            # Note: these negative indices as detected below are explicitly generated in
+            # _compute_modes for other potential uses. They are not wanted by this logic.
             if any([index < 0 for index in indices]):
                 continue
             indexes = {}  # type: Dict[int, int]
@@ -302,10 +338,4 @@ class GaussianLogResult:
             else:
                 raise ValueError('Unexpected order value of {}'.format(order))
 
-            return harmonics
-
-    def get_harmonic_array(self):
-        # Process the above into the array. The logic in the notebook to process a ham file
-        # does not seem to expect the sort of data above which has just been appended as lists
-        # rather than fout to a file. So there seems some mismatch here.
-        pass
+        return harmonics
