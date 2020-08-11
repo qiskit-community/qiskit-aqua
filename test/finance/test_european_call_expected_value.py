@@ -52,7 +52,7 @@ class TestEuropeanCallExpectedValue(QiskitFinanceTestCase):
         init_distribution = np.sqrt(init_dist.probabilities)
         init_distribution = Custom(num_qubits=sum(num_qubits),
                                    state_vector=init_distribution)
-        var_form = TwoLocal(int(np.sum(num_qubits)), 'rx', 'cz', reps=1,
+        var_form = TwoLocal(int(np.sum(num_qubits)), 'ry', 'cz', reps=1,
                             initial_state=init_distribution,
                             entanglement=entangler_map)
 
