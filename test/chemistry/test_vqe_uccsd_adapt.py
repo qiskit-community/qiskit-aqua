@@ -103,6 +103,8 @@ class TestVQEAdaptUCCSD(QiskitChemistryTestCase):
             ([1, 12], False),
             ([1, 12, 2], False),
             ([1, 11, 1, 111], False),
+            ([1, 2, 3, 1, 2, 3], True),
+            ([1, 2, 3, 4, 1, 2, 3, 4], True),
         ]
         for seq, is_cycle in param_list:
             with self.subTest(msg="Checking index cyclicity in:", seq=seq):

@@ -237,13 +237,12 @@ class VQEAdapt(VQAlgorithm):
         Returns:
             bool: Whether repeating sequences of indices have been detected.
         """
-        cycle_regex = re.compile(r"(\b\d+\b \b\d+\b)( \b\1\b)+")
+        cycle_regex = re.compile(r"(.+ .+)( \b\1\b)+")
         # reg-ex explanation:
-        # 1. (\b\d+\b \b\d+\b) will match at least two whole numbers and try to match as many as
-        #    possible. The word boundaries "\b" ensure that the numbers are not separated by digits.
+        # 1. (.+ .+) will match at least two numbers and try to match as many as possible
         # 2. the match of this part is placed into capture group 1
-        # 3. ( \b\1\b)+ will match a space followed by the contents of capture group 1 (again
-        #    delimited by word boundaries to avoid separation into digits).
+        # 3. ( \b\1\b)+ will match a space followed by the contents of capture group 1. The word
+        #    boundaries ensure that numbers are only treated as a whole (and not in digits).
         # -> this results in any sequence of at least two numbers being detected
         match = cycle_regex.search(' '.join(map(str, indices)))
         logger.debug('Cycle detected: %s', match)
