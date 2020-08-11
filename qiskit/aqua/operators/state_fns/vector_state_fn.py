@@ -17,14 +17,17 @@
 
 from typing import Union, Set, List
 import numpy as np
+from qiskit import QuantumCircuit
 
 from qiskit.quantum_info import Statevector
 from qiskit.circuit import ParameterExpression
 from qiskit.aqua import aqua_globals
 
+from .. import CircuitOp
 from ..operator_base import OperatorBase
 from .state_fn import StateFn
 from ..list_ops.list_op import ListOp
+from ...utils import arithmetic
 
 
 class VectorStateFn(StateFn):
@@ -79,7 +82,30 @@ class VectorStateFn(StateFn):
                              is_measurement=(not self.is_measurement))
 
     def permute(self, permutation: List[int]) -> 'VectorStateFn':
-        return self.to_dict_fn().permute(permutation).to_vector_state_fn()  # type: ignore
+        new_self = self
+        new_num_qubits = max(permutation) + 1
+
+        if self.num_qubits != len(permutation):
+            # raise AquaError("New index must be defined for each qubit of the operator.")
+            pass
+        if self.num_qubits < new_num_qubits:
+            # pad the operator with identities
+            new_self = self._expand_dim(new_num_qubits - self.num_qubits)
+        qc = QuantumCircuit(new_num_qubits)
+
+        # extend the permutation indices to match the size of the new matrix
+        permutation \
+            = list(filter(lambda x: x not in permutation, range(new_num_qubits))) + permutation
+
+        # decompose permutation into sequence of transpositions
+        transpositions = arithmetic.transpositions(permutation)
+        for trans in transpositions:
+            qc.swap(trans[0], trans[1])
+        matrix = CircuitOp(qc).to_matrix()
+        vector = new_self.primitive.data
+        return VectorStateFn(primitive=matrix.dot(vector),
+                             coeff=self.coeff,
+                             is_measurement=self.is_measurement)
 
     def to_dict_fn(self) -> 'StateFn':
         r"""
