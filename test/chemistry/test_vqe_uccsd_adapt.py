@@ -87,6 +87,21 @@ class TestVQEAdaptUCCSD(QiskitChemistryTestCase):
         self.assertIsNotNone(result.final_max_gradient)
         self.assertIsNotNone(result.finishing_criterion)
 
+    def test_vqe_adapt_check_cyclicity(self):
+        """ VQEAdapt index cycle detection """
+        param_list = [
+            ([1, 1], True),
+            ([1, 2, 1], False),
+            ([1, 2, 1, 1], True),
+            ([1, 2, 1, 2], True),
+            ([1, 12], False),
+            ([1, 12, 2], False),
+            ([1, 11, 1, 111], False),
+        ]
+        for seq, is_cycle in param_list:
+            with self.subTest(msg="Checking index cyclicity in:", seq=seq):
+                self.assertEqual(is_cycle, VQEAdapt._check_cyclicity(seq))
+
 
 if __name__ == '__main__':
     unittest.main()

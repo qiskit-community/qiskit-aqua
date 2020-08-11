@@ -146,13 +146,6 @@ class VQEAdapt(VQAlgorithm):
         #                                            self._quantum_instance.backend)
         self._quantum_instance.circuit_summary = True
 
-        cycle_regex = re.compile(r'(.+)( \1)+')
-        # reg-ex explanation:
-        # 1. (.+) will match at least one number and try to match as many as possible
-        # 2. the match of this part is placed into capture group 1
-        # 3. ( \1)+ will match a space followed by the contents of capture group 1
-        # -> this results in any number of repeating numbers being detected
-
         threshold_satisfied = False
         alternating_sequence = False
         prev_op_indices = []
@@ -185,7 +178,7 @@ class VQEAdapt(VQAlgorithm):
                 threshold_satisfied = True
                 break
             # check indices of picked gradients for cycles
-            if cycle_regex.search(' '.join(map(str, prev_op_indices))) is not None:
+            if VQEAdapt._check_cyclicity(prev_op_indices):
                 logger.info("Alternating sequence found. Finishing.")
                 logger.info("Final maximum gradient: %s", str(np.abs(max_grad[0])))
                 alternating_sequence = True
@@ -222,6 +215,30 @@ class VQEAdapt(VQAlgorithm):
 
         logger.info('The final energy is: %s', str(result.optimal_value.real))
         return result
+
+    @staticmethod
+    def _check_cyclicity(indices: List) -> bool:
+        """
+        Auxiliary function to check for cycles in the indices of the selected excitations.
+
+        Returns:
+            bool: Whether repeating sequences of indices have been detected.
+        """
+        cycle_regex = re.compile(r"(\b\d+\b \b\d+\b)( \b\1\b)+")
+        # reg-ex explanation:
+        # 1. (\b\d+\b \b\d+\b) will match at least two whole numbers and try to match as many as
+        #    possible. The word boundaries "\b" ensure that the numbers are not separated by digits.
+        # 2. the match of this part is placed into capture group 1
+        # 3. ( \b\1\b)+ will match a space followed by the contents of capture group 1 (again
+        #    delimited by word boundaries to avoid separation into digits).
+        # -> this results in any sequence of at least two numbers being detected
+        match = cycle_regex.search(' '.join(map(str, indices)))
+        logger.debug('Cycle detected: %s', match)
+        # Additionally we also need to check whether the last two numbers are identical, because the
+        # regex above will only find cycles of at least two consecutive numbers.
+        # It is sufficient to assert that the last two numbers are different due to the iterative
+        # nature of the algorithm.
+        return match is not None or (len(indices) > 1 and indices[-2] == indices[-1])
 
     def get_optimal_cost(self):
         if 'opt_params' not in self._ret:
