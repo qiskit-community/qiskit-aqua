@@ -50,7 +50,7 @@ class VQEAdapt(VQAlgorithm):
                  excitation_pool: Optional[List[WeightedPauliOperator]] = None,
                  threshold: float = 1e-5,
                  delta: float = 1,
-                 max_iterations: int = None,
+                 max_iterations: Optional[int] = None,
                  max_evals_grouped: int = 1,
                  aux_operators: Optional[List[LegacyBaseOperator]] = None,
                  quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
