@@ -94,7 +94,7 @@ class VectorStateFn(StateFn):
         new_dict = {format(i, 'b').zfill(num_qubits): v for i, v in enumerate(self.primitive.data)}
         return DictStateFn(new_dict, coeff=self.coeff, is_measurement=self.is_measurement)
 
-    def expand_with_identity(self, num_qubits: int) -> 'VectorStateFn':
+    def _expand_dim(self, num_qubits: int) -> 'VectorStateFn':
         primitive = np.zeros(2**num_qubits, dtype=complex)
         return VectorStateFn(self.primitive.tensor(primitive),
                              coeff=self.coeff,

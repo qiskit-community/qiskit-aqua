@@ -89,7 +89,7 @@ class EvolvedOp(PrimitiveOp):
 
         return TensoredOp([self, other])
 
-    def expand_with_identity(self, num_qubits: int) -> 'OperatorBase':
+    def _expand_dim(self, num_qubits: int) -> 'OperatorBase':
         from qiskit.aqua.operators import I
         return self.tensor(I ^ num_qubits)
 

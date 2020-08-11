@@ -462,17 +462,17 @@ class TestOpConstruction(QiskitAquaTestCase):
 
         # ComposedOp
         composed_op = ComposedOp([(X ^ Y ^ Z), (H ^ T), (Z ^ X ^ Y ^ Z).to_matrix_op()])
-        expanded = composed_op.expand_with_identity(add_qubits)
+        expanded = composed_op._expand_dim(add_qubits)
         self.assertEqual(composed_op.num_qubits + add_qubits, expanded.num_qubits)
 
         # TensoredOp
         tensored_op = TensoredOp([(X ^ Y), (Z ^ I)])
-        expanded = tensored_op.expand_with_identity(add_qubits)
+        expanded = tensored_op._expand_dim(add_qubits)
         self.assertEqual(tensored_op.num_qubits + add_qubits, expanded.num_qubits)
 
         # SummedOp
         summed_op = SummedOp([(X ^ Y), (Z ^ I ^ Z)])
-        expanded = summed_op.expand_with_identity(add_qubits)
+        expanded = summed_op._expand_dim(add_qubits)
         self.assertEqual(summed_op.num_qubits + add_qubits, expanded.num_qubits)
 
     def test_expand_on_state_fn(self):
@@ -486,12 +486,12 @@ class TestOpConstruction(QiskitAquaTestCase):
 
         cfn = CircuitStateFn(qc2, is_measurement=True)
 
-        cfn_exp = cfn.expand_with_identity(add_qubits)
+        cfn_exp = cfn._expand_dim(add_qubits)
         self.assertEqual(cfn_exp.num_qubits, add_qubits + num_qubits)
 
         # case OperatorStateFn, with OperatorBase primitive, in our case CircuitStateFn
         osfn = OperatorStateFn(cfn)
-        osfn_exp = osfn.expand_with_identity(add_qubits)
+        osfn_exp = osfn._expand_dim(add_qubits)
 
         self.assertEqual(osfn_exp.num_qubits, add_qubits + num_qubits)
 
@@ -499,14 +499,14 @@ class TestOpConstruction(QiskitAquaTestCase):
         dsfn = DictStateFn('1'*num_qubits, is_measurement=True)
         self.assertEqual(dsfn.num_qubits, num_qubits)
 
-        dsfn_exp = dsfn.expand_with_identity(add_qubits)
+        dsfn_exp = dsfn._expand_dim(add_qubits)
         self.assertEqual(dsfn_exp.num_qubits, num_qubits + add_qubits)
 
         # case VectorStateFn
         vsfn = VectorStateFn(np.ones(2**num_qubits, dtype=complex))
         self.assertEqual(vsfn.num_qubits, num_qubits)
 
-        vsfn_exp = vsfn.expand_with_identity(add_qubits)
+        vsfn_exp = vsfn._expand_dim(add_qubits)
         self.assertEqual(vsfn_exp.num_qubits, num_qubits + add_qubits)
 
     def test_permute_on_state_fn(self):

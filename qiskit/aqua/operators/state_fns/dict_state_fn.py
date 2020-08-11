@@ -125,7 +125,7 @@ class DictStateFn(StateFn):
         new_dict = {perm(key): value for key, value in self.primitive.items()}
         return DictStateFn(new_dict, coeff=self.coeff, is_measurement=self.is_measurement)
 
-    def expand_with_identity(self, num_qubits: int) -> 'DictStateFn':
+    def _expand_dim(self, num_qubits: int) -> 'DictStateFn':
         pad = '0'*num_qubits
         new_dict = {key + pad: value for key, value in self.primitive.items()}
         return DictStateFn(new_dict, coeff=self.coeff, is_measurement=self.is_measurement)

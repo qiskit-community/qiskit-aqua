@@ -110,7 +110,7 @@ class MatrixOp(PrimitiveOp):
             return self.coeff == other.coeff and self.primitive == other.primitive
         return self.coeff * self.primitive == other.coeff * other.primitive  # type: ignore
 
-    def expand_with_identity(self, num_qubits: int) -> 'MatrixOp':
+    def _expand_dim(self, num_qubits: int) -> 'MatrixOp':
         identity = np.identity(2**num_qubits, dtype=complex)
         return MatrixOp(self.primitive.tensor(Operator(identity)), coeff=self.coeff)  # type: ignore
 
@@ -153,7 +153,7 @@ class MatrixOp(PrimitiveOp):
             raise AquaError("New index must be defined for each qubit of the operator.")
         if self.num_qubits < new_matrix_size:
             # pad the operator with identities
-            new_self = self.expand_with_identity(new_matrix_size - self.num_qubits)
+            new_self = self._expand_dim(new_matrix_size - self.num_qubits)
         qc = QuantumCircuit(new_matrix_size)
 
         # extend the indices to match the size of the new matrix

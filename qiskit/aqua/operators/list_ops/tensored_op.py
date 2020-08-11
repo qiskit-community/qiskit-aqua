@@ -54,7 +54,7 @@ class TensoredOp(ListOp):
     def distributive(self) -> bool:
         return False
 
-    def expand_with_identity(self, num_qubits: int) -> 'TensoredOp':
+    def _expand_dim(self, num_qubits: int) -> 'TensoredOp':
         """ Appends I ^ num_qubits to ``oplist``. Choice of PauliOp as
         identity is arbitrary and can be substituted for other PrimitiveOp identity.
 

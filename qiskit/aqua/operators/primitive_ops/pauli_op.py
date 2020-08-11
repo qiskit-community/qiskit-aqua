@@ -83,7 +83,7 @@ class PauliOp(PrimitiveOp):
 
         return self.primitive == other.primitive
 
-    def expand_with_identity(self, num_qubits: int) -> 'PauliOp':
+    def _expand_dim(self, num_qubits: int) -> 'PauliOp':
         return PauliOp(Pauli(label='I'*num_qubits).kron(self.primitive), coeff=self.coeff)
 
     def tensor(self, other: OperatorBase) -> OperatorBase:

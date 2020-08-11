@@ -443,7 +443,7 @@ class OperatorBase(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def expand_with_identity(self, num_qubits: int) -> 'OperatorBase':
+    def _expand_dim(self, num_qubits: int) -> 'OperatorBase':
         r""" Expands the operator with identity operator of dimension 2**num_qubits.
 
         Returns:
@@ -533,10 +533,10 @@ class OperatorBase(ABC):
                 # Zero is special - we'll expand it to the correct qubit number.
                 other = Zero.__class__('0' * self.num_qubits)
             elif other.num_qubits < self.num_qubits:
-                other = other.expand_with_identity(self.num_qubits - other.num_qubits)
+                other = other._expand_dim(self.num_qubits - other.num_qubits)
             elif other.num_qubits > self.num_qubits:
                 # type: ignore
-                new_self = self.expand_with_identity(other.num_qubits - self.num_qubits)
+                new_self = self._expand_dim(other.num_qubits - self.num_qubits)
         return new_self, other
 
     # Composition
