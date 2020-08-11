@@ -1,5 +1,5 @@
 ---
-deprecations:
+removed:
   - |
     The following deprecated classes have been deleted, as they reached the
     end of the 3 month deprecation period:
