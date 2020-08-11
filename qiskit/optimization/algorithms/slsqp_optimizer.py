@@ -37,7 +37,7 @@ class SlsqpOptimizationResult(OptimizationResult):
                  fx: Optional[np.ndarray] = None, its: Optional[int] = None,
                  imode: Optional[int] = None, smode: Optional[str] = None) -> None:
         """
-        Constructs a result object with the specific to SLSQP properties.
+        Constructs a result object with properties specific to SLSQP.
 
         Args:
             x: The solution of the problem
