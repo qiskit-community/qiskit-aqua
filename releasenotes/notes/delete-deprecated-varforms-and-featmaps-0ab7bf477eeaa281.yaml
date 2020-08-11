@@ -16,3 +16,8 @@ removed:
     * :class:`~qiskit.aqua.components.iqfts.QFT`
     * :class:`~qiskit.aqua.components.iqfts.Standard`
     * :class:`~qiskit.aqua.components.iqfts.Approximate`
+    * :class:`~qiskit.aqua.circuits.FixedValueComparator`
+    * :class:`~qiskit.aqua.circuits.LinearRotation`
+    * :class:`~qiskit.aqua.circuits.PiecewiseLinearRotation`
+    * :class:`~qiskit.aqua.circuits.PolynomialRotation`
+    * :class:`~qiskit.aqua.circuits.FourierTransformCircuits`
