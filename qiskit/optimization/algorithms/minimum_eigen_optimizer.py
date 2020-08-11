@@ -30,18 +30,18 @@ class MinimumEigenOptimizationResult(OptimizationResult):
     def __init__(self, x: Union[List[float], np.ndarray], fval: float,
                  variables: List[Variable],
                  samples: List[Tuple[str, float, float]],
-                 eigensolver_result: Optional[MinimumEigensolverResult] = None) -> None:
+                 min_eigen_solver_result: Optional[MinimumEigensolverResult] = None) -> None:
         """
         Args:
             x: the optimal value found by ``MinimumEigensolver``.
             fval: the optimal function value.
             variables: the list of variables of the optimization problem.
             samples: the basis state as bitstring, the QUBO value, and the probability of sampling.
-            eigensolver_result: the result obtained from the underlying algorithm.
+            min_eigen_solver_result: the result obtained from the underlying algorithm.
         """
         super().__init__(x, fval, variables, None)
         self._samples = samples
-        self._eigensolver_result = eigensolver_result
+        self._min_eigen_solver_result = min_eigen_solver_result
 
     @property
     def samples(self) -> List[Tuple[str, float, float]]:
@@ -49,9 +49,9 @@ class MinimumEigenOptimizationResult(OptimizationResult):
         return self._samples
 
     @property
-    def eigensolver_result(self) -> MinimumEigensolverResult:
+    def min_eigen_solver_result(self) -> MinimumEigensolverResult:
         """Returns a result object obtained from the instance of :class:`MinimumEigensolver`."""
-        return self._eigensolver_result
+        return self._min_eigen_solver_result
 
     def get_correlations(self) -> np.ndarray:
         """Get <Zi x Zj> correlation matrix from samples."""
@@ -185,7 +185,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         return MinimumEigenOptimizationResult(x=result.x, fval=result.fval,
                                               variables=result.variables,
                                               samples=samples,
-                                              eigensolver_result=eigen_result)
+                                              min_eigen_solver_result=eigen_result)
 
 
 def _eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray, StateFn],

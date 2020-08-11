@@ -82,7 +82,7 @@ class TestMinEigenOptimizer(QiskitOptimizationTestCase):
             self.assertAlmostEqual(cplex_result.fval, result.fval)
 
             # check that eigensolver result is present
-            self.assertIsNotNone(result.eigensolver_result)
+            self.assertIsNotNone(result.min_eigen_solver_result)
         except RuntimeError as ex:
             msg = str(ex)
             if 'CPLEX' in msg:

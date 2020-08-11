@@ -55,13 +55,26 @@ class RecursiveMinimumEigenOptimizationResult(OptimizationResult):
                  variables: List[Variable],
                  replacements: Dict[str, Tuple[str, int]],
                  history: List[OptimizationResult]) -> None:
+        """
+        Constructs an instance of the result class.
+
+        Args:
+            x: the optimal value found in the optimization.
+            fval: the optimal function value.
+            variables: the list of variables of the optimization problem.
+            replacements: a dictionary of substituted variables. Key is a variable being
+                substituted, value is a tuple of substituting variable and a weight, either 1 or -1.
+            history: a list of intermediate results obtained in iterations
+        """
         super().__init__(x, fval, variables, None)
         self._replacements = replacements
         self._history = history
 
     @property
     def replacements(self) -> Dict[str, Tuple[str, int]]:
-        """Returns replacements."""
+        """
+        Returns a dictionary of substituted variables. Key is a variable being substituted,  value
+        is a tuple of substituting variable and a weight, either 1 or -1."""
         return self._replacements
 
     @property

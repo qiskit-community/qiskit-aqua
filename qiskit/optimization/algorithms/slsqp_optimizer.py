@@ -57,22 +57,22 @@ class SlsqpOptimizationResult(OptimizationResult):
 
     # pylint:disable=invalid-name
     @property
-    def fx(self) -> np.ndarray:
+    def fx(self) -> Optional[np.ndarray]:
         """Returns the final value of the objective function being actually optimized."""
         return self._fx
 
     @property
-    def its(self) -> int:
+    def its(self) -> Optional[int]:
         """Returns the number of iterations"""
         return self._its
 
     @property
-    def imode(self) -> int:
+    def imode(self) -> Optional[int]:
         """Returns the exit mode from the optimizer."""
         return self._imode
 
     @property
-    def smode(self) -> str:
+    def smode(self) -> Optional[str]:
         """Returns message describing the exit mode from the optimizer."""
         return self._smode
 
