@@ -360,6 +360,8 @@ class CircuitStateFn(StateFn):
         return self
 
     def expand_with_identity(self, num_qubits: int) -> 'CircuitStateFn':
+        # this is equivalent to self.tensor(identity_operator), but optimized for better performance
+        # just like in tensor method, qiskit endianness is reversed here
         return self.permute(list(range(num_qubits, num_qubits + self.num_qubits)))
 
     def permute(self, permutation: List[int]) -> 'CircuitStateFn':
