@@ -100,6 +100,7 @@ class TestVQEAdaptUCCSD(QiskitChemistryTestCase):
             ([1, 2, 1], False),
             ([1, 2, 1, 1], True),
             ([1, 2, 1, 2], True),
+            ([11, 2, 1, 2], False),
             ([1, 12], False),
             ([1, 12, 2], False),
             ([1, 11, 1, 111], False),
