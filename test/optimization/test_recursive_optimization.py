@@ -18,6 +18,7 @@ import unittest
 from os import path
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 
+from qiskit.aqua import MissingOptionalLibraryError
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 
 from qiskit.optimization.algorithms import (MinimumEigenOptimizer, CplexOptimizer,
@@ -54,7 +55,7 @@ class TestRecursiveMinEigenOptimizer(QiskitOptimizationTestCase):
 
             # analyze results
             self.assertAlmostEqual(cplex_result.fval, result.fval)
-        except NameError as ex:
+        except MissingOptionalLibraryError as ex:
             self.skipTest(str(ex))
 
 

@@ -21,7 +21,7 @@ from sklearn import datasets
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.decomposition import PCA
-from qiskit.aqua import aqua_globals
+from qiskit.aqua import MissingOptionalLibraryError
 
 
 def digits(training_size, test_size, n, plot_data=False):
@@ -58,10 +58,10 @@ def digits(training_size, test_size, n, plot_data=False):
         try:
             import matplotlib.pyplot as plt
         except ImportError:
-            raise NameError(aqua_globals.LIBRARY_MSG.format(
+            raise MissingOptionalLibraryError(
                 libname='Matplotlib',
                 name='digits',
-                extra="You can install it with 'pip install matplotlib'."))
+                pip_install='pip install matplotlib')
         for k in range(0, 9):
             plt.scatter(sample_train[label_train == k, 0][:training_size],
                         sample_train[label_train == k, 1][:training_size])

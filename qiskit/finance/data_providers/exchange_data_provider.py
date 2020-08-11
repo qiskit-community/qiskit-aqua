@@ -18,7 +18,7 @@ from typing import Union, List
 import datetime
 import logging
 
-from qiskit.aqua import aqua_globals
+from qiskit.aqua import MissingOptionalLibraryError
 from ._base_data_provider import BaseDataProvider, StockMarket
 from ..exceptions import QiskitFinanceError
 
@@ -54,15 +54,15 @@ class ExchangeDataProvider(BaseDataProvider):
             start: first data point
             end: last data point precedes this date
         Raises:
-            NameError: Quandl not installed
+            MissingOptionalLibraryError: Quandl not installed
             QiskitFinanceError: provider doesn't support given stock market
         """
         super().__init__()
         if not _HAS_QUANDL:
-            raise NameError(aqua_globals.LIBRARY_MSG.format(
+            raise MissingOptionalLibraryError(
                 libname='Quandl',
                 name='ExchangeDataProvider',
-                extra="You can install it with 'pip install quandl'."))
+                pip_install='pip install quandl')
         self._tickers = []  # type: Union[str, List[str]]
         if isinstance(tickers, list):
             self._tickers = tickers

@@ -19,7 +19,7 @@ from enum import Enum
 from abc import abstractmethod
 import logging
 import numpy as np
-from qiskit.aqua import aqua_globals
+from qiskit.aqua import MissingOptionalLibraryError
 from qiskit.aqua.components.optimizers import Optimizer
 
 logger = logging.getLogger(__name__)
@@ -55,13 +55,15 @@ class NLoptOptimizer(Optimizer):
             max_evals: Maximum allowed number of function evaluations.
 
         Raises:
-            NameError: NLopt library not installed.
+            MissingOptionalLibraryError: NLopt library not installed.
         """
         if not _HAS_NLOPT:
-            raise NameError(aqua_globals.LIBRARY_MSG.format(
+            raise MissingOptionalLibraryError(
                 libname='nlopt',
                 name='NLoptOptimizer',
-                extra='Please install it.'))
+                msg='See https://qiskit.org/documentation/apidoc/'
+                    'qiskit.aqua.components.optimizers.nlopts.html'
+                    ' for installation information')
 
         super().__init__()
         for k, v in locals().items():

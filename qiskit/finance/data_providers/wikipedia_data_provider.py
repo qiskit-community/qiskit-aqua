@@ -18,7 +18,7 @@ from typing import Optional, Union, List
 import datetime
 import logging
 
-from qiskit.aqua import aqua_globals
+from qiskit.aqua import MissingOptionalLibraryError
 from ._base_data_provider import BaseDataProvider
 from ..exceptions import QiskitFinanceError
 
@@ -52,14 +52,14 @@ class WikipediaDataProvider(BaseDataProvider):
             start: start time
             end: end time
          Raises:
-            NameError: Quandl not installed
+            MissingOptionalLibraryError: Quandl not installed
         """
         super().__init__()
         if not _HAS_QUANDL:
-            raise NameError(aqua_globals.LIBRARY_MSG.format(
+            raise MissingOptionalLibraryError(
                 libname='Quandl',
                 name='WikipediaDataProvider',
-                extra="You can install it with 'pip install quandl'."))
+                pip_install='pip install quandl')
         self._tickers = None  # type: Optional[Union[str, List[str]]]
         tickers = tickers if tickers is not None else []
         if isinstance(tickers, list):

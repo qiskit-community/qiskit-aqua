@@ -20,7 +20,7 @@ import logging
 
 import numpy as np
 
-from qiskit.aqua import aqua_globals
+from qiskit.aqua import MissingOptionalLibraryError
 from ._base_data_provider import BaseDataProvider
 
 try:
@@ -49,14 +49,14 @@ class RandomDataProvider(BaseDataProvider):
             end: last data point precedes this date
             seed: shall a seed be used?
         Raises:
-            NameError: Pandas not installed
+            MissingOptionalLibraryError: Pandas not installed
         """
         super().__init__()
         if not _HAS_PANDAS:
-            raise NameError(aqua_globals.LIBRARY_MSG.format(
+            raise MissingOptionalLibraryError(
                 libname='Pandas',
                 name='RandomDataProvider',
-                extra="You can install it with 'pip install pandas'."))
+                pip_install='pip install pandas')
         tickers = tickers if tickers is not None else ["TICKER1", "TICKER2"]
         if isinstance(tickers, list):
             self._tickers = tickers

@@ -31,8 +31,6 @@ class QiskitAquaGlobals:
 
     CPU_COUNT = local_hardware_info()['cpus']
 
-    LIBRARY_MSG = "The '{libname}' library is required to use '{name}'. {extra}"
-
     def __init__(self):
         self._random_seed = None
         self._num_processes = QiskitAquaGlobals.CPU_COUNT

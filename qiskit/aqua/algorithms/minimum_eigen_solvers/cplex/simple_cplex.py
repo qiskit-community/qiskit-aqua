@@ -17,7 +17,7 @@
 import logging
 from itertools import product
 from sys import stdout
-from qiskit.aqua import aqua_globals
+from qiskit.aqua import MissingOptionalLibraryError
 
 logger = logging.getLogger(__name__)
 
@@ -34,10 +34,10 @@ class SimpleCPLEX:
     """Simple Python Wrapper for CPLEX"""
     def __init__(self, cplex=None):
         if not _HAS_CPLEX:
-            raise NameError(aqua_globals.LIBRARY_MSG.format(
+            raise MissingOptionalLibraryError(
                 libname='CPLEX',
                 name='SimpleCPLEX',
-                extra="You can install it with 'pip install qiskit-aqua[cplex]'."))
+                pip_install='pip install qiskit-aqua[cplex]')
 
         if cplex:
             self._model = Cplex(cplex._model)

@@ -20,7 +20,7 @@ from typing import Dict, Any
 import os
 import logging
 import numpy as np
-from qiskit.aqua import aqua_globals
+from qiskit.aqua import MissingOptionalLibraryError
 from .discriminative_network import DiscriminativeNetwork
 
 logger = logging.getLogger(__name__)
@@ -46,14 +46,14 @@ class PyTorchDiscriminator(DiscriminativeNetwork):
             n_out: Dimension of the discriminator's output vector.
 
         Raises:
-            NameError: Pytorch not installed
+            MissingOptionalLibraryError: Pytorch not installed
         """
         super().__init__()
         if not _HAS_TORCH:
-            raise NameError(aqua_globals.LIBRARY_MSG.format(
+            raise MissingOptionalLibraryError(
                 libname='Pytorch',
                 name='PyTorchDiscriminator',
-                extra="You can install it with 'pip install qiskit-aqua[torch]'."))
+                pip_install='pip install qiskit-aqua[torch]')
 
         self._n_features = n_features
         self._n_out = n_out

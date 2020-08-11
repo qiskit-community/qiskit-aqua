@@ -18,7 +18,7 @@ from typing import Optional, Union, List
 import datetime
 import logging
 
-from qiskit.aqua import aqua_globals
+from qiskit.aqua import MissingOptionalLibraryError
 from ._base_data_provider import BaseDataProvider
 from ..exceptions import QiskitFinanceError
 
@@ -50,14 +50,14 @@ class YahooDataProvider(BaseDataProvider):
             start: start time
             end: end time
         Raises:
-            NameError: YFinance not installed
+            MissingOptionalLibraryError: YFinance not installed
         """
         super().__init__()
         if not _HAS_YFINANCE:
-            raise NameError(aqua_globals.LIBRARY_MSG.format(
+            raise MissingOptionalLibraryError(
                 libname='YFinance',
                 name='YahooDataProvider',
-                extra="You can install it with 'pip install yfinance'."))
+                pip_install='pip install yfinance')
         self._tickers = None  # type: Optional[Union[str, List[str]]]
         tickers = tickers if tickers is not None else []
         if isinstance(tickers, list):

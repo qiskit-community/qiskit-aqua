@@ -25,7 +25,7 @@ try:
 except ImportError:
     _HAS_CVX = False
 
-from qiskit.aqua import aqua_globals
+from qiskit.aqua import MissingOptionalLibraryError
 
 logger = logging.getLogger(__name__)
 
@@ -54,14 +54,14 @@ def optimize_svm(kernel_matrix: np.ndarray,
         np.ndarray: Sx1 array, where S is the number of supports
 
     Raises:
-        NameError: If cvxpy is not installed
+        MissingOptionalLibraryError: If cvxpy is not installed
     """
     # pylint: disable=invalid-name, unused-argument
     if not _HAS_CVX:
-        raise NameError(aqua_globals.LIBRARY_MSG.format(
+        raise MissingOptionalLibraryError(
             libname='CVXPY',
             name='optimize_svm',
-            extra="You can install it with 'pip install qiskit-aqua[cvx]'."))
+            pip_install='pip install qiskit-aqua[cvx]')
 
     if max_iters is not None:
         warnings.warn('The max_iters parameter is deprecated as of '
