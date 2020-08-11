@@ -145,7 +145,7 @@ class CircuitStateFn(StateFn):
             raise ValueError(
                 'Composition with a Statefunctions in the first operand is not defined.')
         # type: ignore
-        new_self, other = self._check_zero_for_composition_and_expand(other, permutation)
+        new_self, other = self._expand_shorter_operator_and_permute(other, permutation)
 
         if front:
             return other.compose(new_self)

@@ -112,8 +112,8 @@ class CircuitOp(PrimitiveOp):
     def compose(self, other: OperatorBase,
                 permutation: List[int] = None, front=False) -> OperatorBase:
 
-        self, other = self._check_zero_for_composition_and_expand(other,  # type: ignore
-                                                                  permutation)
+        self, other = self._expand_shorter_operator_and_permute(other,  # type: ignore
+                                                                permutation)
         if front:
             return other.compose(self)
         # ignore

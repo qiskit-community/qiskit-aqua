@@ -206,8 +206,8 @@ class StateFn(OperatorBase):
             temp = temp.tensor(self)
         return temp
 
-    def _check_zero_for_composition_and_expand(self, other: OperatorBase,
-                                               permutation: List[int] = None) \
+    def _expand_shorter_operator_and_permute(self, other: OperatorBase,
+                                             permutation: List[int] = None) \
             -> Tuple[OperatorBase, OperatorBase]:
 
         from qiskit.aqua.operators import Zero
@@ -219,7 +219,7 @@ class StateFn(OperatorBase):
             # Zero is special - we'll expand it to the correct qubit number.
             return self, StateFn('0' * self.num_qubits)
 
-        return super()._check_zero_for_composition_and_expand(other, permutation)
+        return super()._expand_shorter_operator_and_permute(other, permutation)
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
         raise NotImplementedError
@@ -262,7 +262,7 @@ class StateFn(OperatorBase):
             raise ValueError(
                 'Composition with a Statefunction in the first operand is not defined.')
 
-        new_self, other = self._check_zero_for_composition_and_expand(other, permutation)
+        new_self, other = self._expand_shorter_operator_and_permute(other, permutation)
 
         if front:
             return other.compose(self)

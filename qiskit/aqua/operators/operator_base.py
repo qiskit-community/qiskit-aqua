@@ -517,8 +517,8 @@ class OperatorBase(ABC):
         """ Gets a single non-list-nested param_dict for a given list index from a nested one. """
         return {k: v[i] for (k, v) in unrolled_dict.items()}
 
-    def _check_zero_for_composition_and_expand(self, other: 'OperatorBase',
-                                               permutation: List[int] = None) \
+    def _expand_shorter_operator_and_permute(self, other: 'OperatorBase',
+                                             permutation: List[int] = None) \
             -> Tuple['OperatorBase', 'OperatorBase']:
         if permutation is not None:
             other = other.permute(permutation)
