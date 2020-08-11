@@ -39,6 +39,7 @@ and simulator too).
    :nosignatures:
 
    AquaError
+   MissingOptionalLibraryError
 
 In addition to standard Python errors Aqua will raise this error if circumstances
 are that it cannot proceed to completion.
