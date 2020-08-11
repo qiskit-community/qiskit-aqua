@@ -258,11 +258,14 @@ class StateFn(OperatorBase):
             ValueError: If self is not a measurement, it cannot be composed from the right.
         """
         # TODO maybe allow outers later to produce density operators or projectors, but not yet.
-        if not self.is_measurement:
+        if not self.is_measurement and not front:
             raise ValueError(
                 'Composition with a Statefunction in the first operand is not defined.')
 
         new_self, other = self._check_zero_for_composition_and_expand(other, permutation)
+
+        if front:
+            return other.compose(self)
         # TODO maybe include some reduction here in the subclasses - vector and Op, op and Op, etc.
         # pylint: disable=import-outside-toplevel
         from qiskit.aqua.operators import CircuitOp

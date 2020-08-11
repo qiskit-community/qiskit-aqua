@@ -130,7 +130,7 @@ class PauliOp(PrimitiveOp):
         self, other = self._check_zero_for_composition_and_expand(other,  # type: ignore
                                                                   permutation)
         if front:
-            other.compose(self)
+            return other.compose(self)
         # If self is identity, just return other.
         if not any(self.primitive.x + self.primitive.z):  # type: ignore
             return other * self.coeff  # type: ignore

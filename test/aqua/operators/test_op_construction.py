@@ -580,9 +580,9 @@ class TestOpConstruction(QiskitAquaTestCase):
         # with permutation
         num_qubits = 5
         indices = [1, 4]
-        permuted_primitive_op = evolved_op @ pauli_op @ circuit_op.permute(indices) @ matrix_op
+        permuted_primitive_op = evolved_op @ circuit_op.permute(indices) @ pauli_op @ matrix_op
         composed_primitive_op = \
-            evolved_op @ pauli_op.compose(circuit_op, permute_other=indices) @ matrix_op
+            evolved_op @ pauli_op.compose(circuit_op, permutation=indices, front=True) @ matrix_op
 
         self.assertTrue(np.allclose(permuted_primitive_op.to_matrix(),
                                     composed_primitive_op.to_matrix()))
@@ -594,7 +594,8 @@ class TestOpConstruction(QiskitAquaTestCase):
         summed_op = pauli_op + circuit_op.permute([2, 1])
         composed_op = circuit_op @ evolved_op @ matrix_op
 
-        list_op = summed_op @ tensored_op.compose(composed_op, permute_self=[1, 2, 3, 5, 4])
+        list_op = summed_op @ composed_op.compose(tensored_op, permutation=[1, 2, 3, 5, 4],
+                                                  front=True)
         self.assertEqual(num_qubits, list_op.num_qubits)
 
         num_qubits = 4
@@ -605,7 +606,7 @@ class TestOpConstruction(QiskitAquaTestCase):
         self.assertEqual(no_perm_op.num_qubits, num_qubits)
 
         indices = [0, 4]
-        perm_op = circuit_fn.compose(operator_fn, permute_self=indices)
+        perm_op = operator_fn.compose(circuit_fn, permutation=indices, front=True)
         self.assertEqual(perm_op.num_qubits, max(indices) + 1)
 
         # StateFn
@@ -626,7 +627,8 @@ class TestOpConstruction(QiskitAquaTestCase):
         # with permutation
         perm = [2, 4, 6]
         composed = \
-            op_state_fn @ vec_state_fn.compose(dic_state_fn, permute_self=perm) @ circ_state_fn
+            op_state_fn @ dic_state_fn.compose(vec_state_fn, permutation=perm, front=True) @ \
+            circ_state_fn
         self.assertEqual(composed.num_qubits, max(perm) + 1)
 
     def test_summed_op_equals(self):
