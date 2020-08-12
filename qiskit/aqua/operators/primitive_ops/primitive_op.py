@@ -155,6 +155,7 @@ class PrimitiveOp(OperatorBase):
             temp = temp.tensor(self)
         return temp
 
+
     def compose(self, other: OperatorBase,
                 permutation: List[int] = None, front: bool = False) -> OperatorBase:
         from ..list_ops.composed_op import ComposedOp
