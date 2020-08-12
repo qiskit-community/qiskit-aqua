@@ -475,7 +475,6 @@ class TestOpConstruction(QiskitAquaTestCase):
     def test_list_op_to_circuit(self):
         """
         unitary composed/tensored/summed operator should transpile to circuit
-        non-unitary operator should raise Exception
         """
 
         # generate unitary matrices of dimension 2,4,8
@@ -510,11 +509,17 @@ class TestOpConstruction(QiskitAquaTestCase):
         # verify that ListOp.to_circuit() outputs correct quantum circuit
         self.assertTrue(operator.equiv(circuit), "ListOp.to_circuit() outputs wrong circuit!")
 
-        # case ComposedOp.to_circuit
-        m1 = np.array([[0, 0, 1, 0], [0, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0]])
-        m2 = np.array([[0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 0], [0, -1, 0, 0]])
+    def test_composed_op_to_circuit(self):
+        """
+        Test if unitary ComposedOp transpile to circuit and represents expected operator.
+        Test if to_circuit on non-unitary ListOp raises exception.
+        """
 
-        unitary = np.kron(np.kron(x, y), m1 + m2)  # resulting matrix should be unitary
+        x = np.array([[0.0, 1.0], [1.0, 0.0]])  # Pauli X as numpy array
+        y = np.array([[0.0, -1.0j], [1.0j, 0.0]])  # Pauli Y as numpy array
+
+        m1 = np.array([[0, 0, 1, 0], [0, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0]])  # non-unitary
+        m2 = np.array([[0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 0], [0, -1, 0, 0]])  # non-unitary
 
         m_op1 = MatrixOp(m1)
         m_op2 = MatrixOp(m2)
@@ -525,17 +530,25 @@ class TestOpConstruction(QiskitAquaTestCase):
         self.assertRaises(ExtensionError, pm1.to_circuit)
         self.assertRaises(ExtensionError, pm2.to_circuit)
 
-        summed_op = pm1 + pm2  # SummedOp([TensoredOp, TensoredOp])
+        summed_op = pm1 + pm2  # unitary SummedOp([TensoredOp, TensoredOp])
+        circuit = summed_op.to_circuit()  # should transpile without any exception
 
-        circuit = summed_op.to_circuit()
+        # same algorithm that leads to summed_op above, but using only arrays and matrix operations
+        unitary = np.kron(np.kron(x, y), m1 + m2)
+
         self.assertTrue(Operator(unitary).equiv(circuit))
 
-        # case with parametrized MatrixOps
-        op1_with_param = MatrixOp(m1, Parameter('alpha'))
-        op2_with_param = MatrixOp(m2, Parameter('beta'))
+    def test_op_to_circuit_with_parameters(self):
+        """On parametrized SummedOp, to_matrix_op returns ListOp, instead of MatrixOp. To avoid
+        the infinite recursion, AquaError is raised. """
+        m1 = np.array([[0, 0, 1, 0], [0, 0, 0, -1], [0, 0, 0, 0], [0, 0, 0, 0]])  # non-unitary
+        m2 = np.array([[0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 0], [0, -1, 0, 0]])  # non-unitary
 
-        summed_op_with_param = op1_with_param + op2_with_param
-        self.assertRaises(AquaError, summed_op_with_param.to_circuit)
+        op1_with_param = MatrixOp(m1, Parameter('alpha'))  # non-unitary
+        op2_with_param = MatrixOp(m2, Parameter('beta'))  # non-unitary
+
+        summed_op_with_param = op1_with_param + op2_with_param  # unitary
+        self.assertRaises(AquaError, summed_op_with_param.to_circuit)  # should raise Aqua error
 
     @data(Z, CircuitOp(ZGate()), MatrixOp([[1, 0], [0, -1]]))
     def test_op_hashing(self, op):
