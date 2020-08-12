@@ -48,12 +48,10 @@ Submodules
    eigs
    feature_maps
    initial_states
-   iqfts
    multiclass_extensions
    neural_networks
    optimizers
    oracles
-   qfts
    reciprocals
    uncertainty_models
    uncertainty_problems
