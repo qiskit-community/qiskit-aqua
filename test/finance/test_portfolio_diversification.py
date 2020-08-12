@@ -32,12 +32,11 @@ from qiskit.finance.applications.ising.portfolio_diversification import \
 
 logger = logging.getLogger(__name__)
 
-_HAS_CPLEX = False
 try:
     import cplex
     _HAS_CPLEX = True
 except ImportError:
-    logger.info('CPLEX is not installed.')
+    _HAS_CPLEX = False
 
 
 class ClassicalOptimizer:
