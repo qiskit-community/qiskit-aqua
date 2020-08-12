@@ -175,10 +175,10 @@ class PrimitiveOp(OperatorBase):
             temp = temp.compose(self)
         return temp
 
-    def _expand_dim(self, num_qubits: int) -> 'OperatorBase':
+    def _expand_dim(self, num_qubits: int) -> OperatorBase:
         raise NotImplementedError
 
-    def permute(self, permutation: List[int]) -> 'OperatorBase':
+    def permute(self, permutation: List[int]) -> OperatorBase:
         raise NotImplementedError
 
     def exp_i(self) -> OperatorBase:

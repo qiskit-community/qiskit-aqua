@@ -107,7 +107,7 @@ class VectorStateFn(StateFn):
                              coeff=self.coeff,
                              is_measurement=self.is_measurement)
 
-    def to_dict_fn(self) -> 'StateFn':
+    def to_dict_fn(self) -> StateFn:
         r"""
         Creates the equivalent state function of type DictStateFn.
 

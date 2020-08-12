@@ -145,7 +145,7 @@ class StateFn(OperatorBase):
     def _expand_dim(self, num_qubits: int) -> 'StateFn':
         raise NotImplementedError
 
-    def permute(self, permutation: List[int]) -> 'OperatorBase':
+    def permute(self, permutation: List[int]) -> OperatorBase:
         r"""
         Permute the qubits of the state function.
 

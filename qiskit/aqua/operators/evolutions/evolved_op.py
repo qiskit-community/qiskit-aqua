@@ -89,11 +89,11 @@ class EvolvedOp(PrimitiveOp):
 
         return TensoredOp([self, other])
 
-    def _expand_dim(self, num_qubits: int) -> 'OperatorBase':
+    def _expand_dim(self, num_qubits: int) -> OperatorBase:
         from qiskit.aqua.operators import I
         return self.tensor(I ^ num_qubits)
 
-    def permute(self, permutation: List[int]) -> 'OperatorBase':
+    def permute(self, permutation: List[int]) -> OperatorBase:
         return EvolvedOp(self.primitive.permute(permutation), coeff=self.coeff)  # type: ignore
 
     def compose(self, other: OperatorBase,

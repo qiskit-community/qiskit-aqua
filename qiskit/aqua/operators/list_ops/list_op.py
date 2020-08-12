@@ -286,8 +286,8 @@ class ListOp(OperatorBase):
             [op.to_spmatrix() for op in self.oplist]) * self.coeff  # type: ignore
 
     def eval(self,
-             front: Optional[Union[str, Dict[str, complex], 'OperatorBase']] = None
-             ) -> Union['OperatorBase', float, complex, list]:
+             front: Optional[Union[str, Dict[str, complex], OperatorBase]] = None
+             ) -> Union[OperatorBase, float, complex, list]:
         """
         Evaluate the Operator's underlying function, either on a binary string or another Operator.
         A square binary Operator can be defined as a function taking a binary function to another
