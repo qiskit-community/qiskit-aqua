@@ -703,6 +703,7 @@ class TestOpConstruction(QiskitAquaTestCase):
         ).split("\n{}".format(op.INDENTATION))
         self.assertListEqual(indented_str_content, initial_str.split("\n"))
 
+
 class TestListOpComboFn(QiskitAquaTestCase):
     """Test combo fn is propagated."""
 
