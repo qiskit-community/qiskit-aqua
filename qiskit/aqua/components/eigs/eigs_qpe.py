@@ -32,8 +32,7 @@ class EigsQPE(Eigenvalues):
 
     Specifically, this class is based on PhaseEstimationCircuit with no measurements and
     has additional handling of negative eigenvalues, e.g. for :class:`~qiskit.aqua.algorithms.HHL`.
-    It depends on :mod:`QFT <qiskit.aqua.components.qfts>` and
-    :mod:`IQFT <qiskit.aqua.components.iqfts>` components.
+    It depends on the :class:`QFT <qiskit.circuit.library.QFT>` class.
     """
 
     def __init__(self,
