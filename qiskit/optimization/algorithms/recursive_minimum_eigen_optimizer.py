@@ -54,7 +54,7 @@ class RecursiveMinimumEigenOptimizationResult(OptimizationResult):
     def __init__(self, x: Union[List[float], np.ndarray], fval: float,
                  variables: List[Variable],
                  replacements: Dict[str, Tuple[str, int]],
-                 history: List[OptimizationResult]) -> None:
+                 history: Tuple[List[MinimumEigenOptimizationResult], OptimizationResult]) -> None:
         """
         Constructs an instance of the result class.
 
@@ -64,7 +64,12 @@ class RecursiveMinimumEigenOptimizationResult(OptimizationResult):
             variables: the list of variables of the optimization problem.
             replacements: a dictionary of substituted variables. Key is a variable being
                 substituted, value is a tuple of substituting variable and a weight, either 1 or -1.
-            history: a list of intermediate results obtained in iterations
+            history: a tuple containing intermediate results. The first element is a list of
+                :class:`~qiskit.optimization.algorithms.MinimumEigenOptimizerResult` obtained by
+                invoking :class:`~qiskit.optimization.algorithms.MinimumEigenOptimizer` iteratively,
+                the second element is an instance of
+                :class:`~qiskit.optimization.algorithm.OptimizationResult` obtained at the last step
+                via `min_num_vars_optimizer`.
         """
         super().__init__(x, fval, variables, None)
         self._replacements = replacements
@@ -78,8 +83,14 @@ class RecursiveMinimumEigenOptimizationResult(OptimizationResult):
         return self._replacements
 
     @property
-    def history(self) -> List[OptimizationResult]:
-        """Returns intermediate results."""
+    def history(self) -> Tuple[List[MinimumEigenOptimizationResult], OptimizationResult]:
+        """
+        Returns intermediate results. The first element is a list of
+        :class:`~qiskit.optimization.algorithms.MinimumEigenOptimizerResult` obtained by invoking
+        :class:`~qiskit.optimization.algorithms.MinimumEigenOptimizer` iteratively, the second
+        element is an instance of :class:`~qiskit.optimization.algorithm.OptimizationResult`
+        obtained at the last step via `min_num_vars_optimizer`.
+        """
         return self._history
 
 
@@ -184,13 +195,13 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
 
         # run recursive optimization until the resulting problem is small enough
         replacements = {}   # type: Dict[str, Tuple[str, int]]
-        intermediate_results = []        # type: List[OptimizationResult]
+        min_eigen_results = []        # type: List[MinimumEigenOptimizationResult]
         while problem_.get_num_vars() > self._min_num_vars:
 
             # solve current problem with optimizer
             res = self._min_eigen_optimizer.solve(problem_)   # type: MinimumEigenOptimizationResult
             if self._history == IntermediateResult.ALL_ITERATIONS:
-                intermediate_results.append(res)
+                min_eigen_results.append(res)
 
             # analyze results to get strongest correlation
             correlations = res.get_correlations()
@@ -237,8 +248,6 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
 
         # solve remaining problem
         result = self._min_num_vars_optimizer.solve(problem_)
-        if self._history in (IntermediateResult.LAST_ITERATION, IntermediateResult.ALL_ITERATIONS):
-            intermediate_results.append(result)
 
         # unroll replacements
         var_values = {}
@@ -265,6 +274,11 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
             if x_i.name not in var_values:
                 find_value(x_i.name, replacements, var_values)
 
+        # build history before any translations are applied
+        # min_eigen_results is an empty list if history is set to NO or LAST.
+        history = (min_eigen_results,
+                   None if self._history == IntermediateResult.NO_ITERATIONS else result)
+
         # construct result
         x_v = [var_values[x_aux.name] for x_aux in problem_ref.variables]
         fval = result.fval
@@ -274,7 +288,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         return RecursiveMinimumEigenOptimizationResult(x=result.x, fval=result.fval,
                                                        variables=result.variables,
                                                        replacements=replacements,
-                                                       history=intermediate_results)
+                                                       history=history)
 
     def _find_strongest_correlation(self, correlations):
 

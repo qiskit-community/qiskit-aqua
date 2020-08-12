@@ -86,7 +86,9 @@ class TestRecursiveMinEigenOptimizer(QiskitOptimizationTestCase):
             result = recursive_min_eigen_optimizer.solve(problem)
             self.assertIsNotNone(result.replacements)
             self.assertIsNotNone(result.history)
-            self.assertEqual(len(result.history), 0)
+            self.assertIsNotNone(result.history[0])
+            self.assertEqual(len(result.history[0]), 0)
+            self.assertIsNone(result.history[1])
 
             # only last iteration in the history
             recursive_min_eigen_optimizer = \
@@ -96,7 +98,9 @@ class TestRecursiveMinEigenOptimizer(QiskitOptimizationTestCase):
             result = recursive_min_eigen_optimizer.solve(problem)
             self.assertIsNotNone(result.replacements)
             self.assertIsNotNone(result.history)
-            self.assertEqual(len(result.history), 1)
+            self.assertIsNotNone(result.history[0])
+            self.assertEqual(len(result.history[0]), 0)
+            self.assertIsNotNone(result.history[1])
 
             # full history
             recursive_min_eigen_optimizer = \
@@ -106,7 +110,10 @@ class TestRecursiveMinEigenOptimizer(QiskitOptimizationTestCase):
             result = recursive_min_eigen_optimizer.solve(problem)
             self.assertIsNotNone(result.replacements)
             self.assertIsNotNone(result.history)
-            self.assertGreater(len(result.history), 1)
+            self.assertIsNotNone(result.history[0])
+            self.assertGreater(len(result.history[0]), 1)
+            self.assertIsNotNone(result.history[1])
+
         except RuntimeError as ex:
             msg = str(ex)
             if 'CPLEX' in msg:
