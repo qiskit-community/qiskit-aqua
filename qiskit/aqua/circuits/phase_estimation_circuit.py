@@ -14,10 +14,10 @@
 
 """Quantum Phase Estimation Circuit."""
 
-import warnings
 import numpy as np
 
 from qiskit import QuantumRegister, QuantumCircuit, ClassicalRegister
+from qiskit.circuit.library import QFT
 
 from qiskit.aqua import AquaError
 from qiskit.aqua.operators import (WeightedPauliOperator,   # pylint: disable=unused-import
@@ -79,14 +79,8 @@ class PhaseEstimationCircuit:
         self._state_in = state_in
         self._state_in_circuit_factory = state_in_circuit_factory
 
-        # cannot check for IQFT type due to circular import
-        if not isinstance(iqft, QuantumCircuit):
-            warnings.warn('Providing a qiskit.aqua.components.iqfts.IQFT module to the '
-                          'PhaseEstimationCircuit is deprecated as of 0.7.0 '
-                          'and will be removed no earlier than 3 months after the release. '
-                          'You should pass a QuantumCircuit instead, see '
-                          'qiskit.circuit.library.QFT and the .inverse() method.',
-                          DeprecationWarning, stacklevel=2)
+        if iqft is None:
+            iqft = QFT(num_ancillae, do_swaps=False, inverse=True)
         self._iqft = iqft
 
         self._num_time_slices = num_time_slices
@@ -217,20 +211,16 @@ class PhaseEstimationCircuit:
                     self._unitary_circuit_factory.build_controlled_power(qc, q, a[i], 2 ** i, aux)
 
             # inverse qft on ancillae
-            if isinstance(self._iqft, QuantumCircuit):
-                # check if QFT has the right size
-                if self._iqft.num_qubits != len(a):
-                    try:  # try resizing
-                        self._iqft.num_qubits = len(a)
-                    except AttributeError:
-                        raise ValueError('The IQFT cannot be resized and does not have the '
-                                         'required size of {}'.format(len(a)))
+            if self._iqft.num_qubits != len(a):  # check if QFT has the right size
+                try:  # try resizing
+                    self._iqft.num_qubits = len(a)
+                except AttributeError:
+                    raise ValueError('The IQFT cannot be resized and does not have the '
+                                     'required size of {}'.format(len(a)))
 
-                if hasattr(self._iqft, 'do_swaps'):
-                    self._iqft.do_swaps = False
-                qc.append(self._iqft.to_instruction(), a)
-            else:
-                self._iqft.construct_circuit(mode='circuit', qubits=a, circuit=qc, do_swaps=False)
+            if hasattr(self._iqft, 'do_swaps'):
+                self._iqft.do_swaps = False
+            qc.append(self._iqft.to_instruction(), a)
 
             if measurement:
                 c_ancilla = ClassicalRegister(self._num_ancillae, name='ca')
