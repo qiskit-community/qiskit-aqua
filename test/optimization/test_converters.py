@@ -20,6 +20,7 @@ from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 
 import numpy as np
 from docplex.mp.model import Model
+from qiskit.aqua import MissingOptionalLibraryError
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.aqua.operators import Z, I
 from qiskit.optimization import QuadraticProgram, QiskitOptimizationError
@@ -490,7 +491,7 @@ class TestConverters(QiskitOptimizationTestCase):
             self.assertEqual(result.x[0], 10.9)
             self.assertListEqual(result.variable_names, ['c', 'x'])
             self.assertDictEqual(result.variables_dict, {'c': 10.9, 'x': 0})
-        except NameError as ex:
+        except MissingOptionalLibraryError as ex:
             self.skipTest(str(ex))
 
     def test_auto_penalty(self):

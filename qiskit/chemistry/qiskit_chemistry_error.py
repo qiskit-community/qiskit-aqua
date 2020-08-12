@@ -12,17 +12,11 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Exception for errors raised by the QiskitChemistry SDK."""
+"""Chemistry Exception."""
+
+from qiskit.aqua.aqua_error import AquaError
 
 
-class QiskitChemistryError(Exception):
-    """Base class for errors raised by the QiskitChemistry SDK."""
-
-    def __init__(self, *message):
-        """Set the error message."""
-        super(QiskitChemistryError, self).__init__(' '.join(message))
-        self.message = ' '.join(message)
-
-    def __str__(self) -> str:
-        """Return the message."""
-        return repr(self.message)
+class QiskitChemistryError(AquaError):
+    """Class for errors returned by Qiskit's Chemistry module."""
+    pass
