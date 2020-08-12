@@ -241,7 +241,7 @@ class StateFn(OperatorBase):
         raise NotImplementedError
 
     def compose(self, other: OperatorBase,
-                permutation: List[int] = None, front=False) -> OperatorBase:
+                permutation: List[int] = None, front: bool = False) -> OperatorBase:
         r"""
         Composition (Linear algebra-style: A@B(x) = A(B(x))) is not well defined for states
         in the binary function model, but is well defined for measurements.

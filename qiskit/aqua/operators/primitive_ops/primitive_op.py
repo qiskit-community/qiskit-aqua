@@ -156,7 +156,7 @@ class PrimitiveOp(OperatorBase):
         return temp
 
     def compose(self, other: OperatorBase,
-                permutation: List[int] = None, front=False) -> OperatorBase:
+                permutation: List[int] = None, front: bool = False) -> OperatorBase:
         from ..list_ops.composed_op import ComposedOp
         if isinstance(other, ComposedOp):
             comp_with_first = self.compose(other.oplist[0])

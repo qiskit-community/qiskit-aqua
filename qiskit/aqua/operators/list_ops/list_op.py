@@ -244,7 +244,7 @@ class ListOp(OperatorBase):
         return CircuitOp(qc.reverse_ops()) @ new_self @ CircuitOp(qc)  # type: ignore
 
     def compose(self, other: OperatorBase,
-                permutation: List[int] = None, front=False) -> OperatorBase:
+                permutation: List[int] = None, front: bool = False) -> OperatorBase:
 
         self, other = self._expand_shorter_operator_and_permute(other,  # type: ignore
                                                                 permutation)

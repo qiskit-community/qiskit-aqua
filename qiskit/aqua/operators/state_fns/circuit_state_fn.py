@@ -140,7 +140,7 @@ class CircuitStateFn(StateFn):
                               is_measurement=(not self.is_measurement))
 
     def compose(self, other: OperatorBase,
-                permutation: List[int] = None, front=False) -> OperatorBase:
+                permutation: List[int] = None, front: bool = False) -> OperatorBase:
         if not self.is_measurement and not front:
             raise ValueError(
                 'Composition with a Statefunctions in the first operand is not defined.')

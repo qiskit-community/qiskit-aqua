@@ -125,7 +125,7 @@ class PauliOp(PrimitiveOp):
         return PauliOp(Pauli(label=''.join(new_pauli_list)), self.coeff)
 
     def compose(self, other: OperatorBase,
-                permutation: List[int] = None, front=False) -> OperatorBase:
+                permutation: List[int] = None, front: bool = False) -> OperatorBase:
 
         self, other = self._expand_shorter_operator_and_permute(other,  # type: ignore
                                                                 permutation)
