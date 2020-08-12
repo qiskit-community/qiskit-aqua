@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Chemistry Exception """
+"""Chemistry Exception."""
 
 from qiskit.aqua.aqua_error import AquaError
 

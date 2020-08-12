@@ -12,9 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""
-Exception for errors raised by Optional Missing Libraries.
-"""
+"""Exception for errors raised by Optional Missing Libraries."""
 
 from typing import Optional
 from .aqua_error import AquaError
@@ -28,8 +26,7 @@ class MissingOptionalLibraryError(AquaError):
                  name: str,
                  pip_install: Optional[str] = None,
                  msg: Optional[str] = None) -> None:
-        """
-        Set the error message.
+        """Set the error message.
 
         Args:
             libname: Name of missing library
