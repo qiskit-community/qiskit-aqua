@@ -17,6 +17,7 @@ Arithmetic Utilities
 """
 
 import numpy as np
+from typing import List
 
 
 def normalize_vector(vector):
@@ -97,9 +98,16 @@ def next_power_of_2_base(n):
     return base
 
 
-def transpositions(permutation):
-    """
-    Return the permutation decomposed into a list of transpositions.
+def transpositions(permutation: List[int]):
+    """Return a sequence of transpositions, corresponding to the permutation.
+
+    Args:
+        permutation: The ``List[int]`` defining the permutation. An element at index ``j`` should be
+            permuted to index ``permutation[j]``.
+
+    Returns:
+        List of transpositions, corresponding to the permutation. For permutation = [3, 0, 2, 1],
+        returns [ (0,1), (0,3) ]
     """
     unchecked = [True] * len(permutation)
     cyclic_form = []
