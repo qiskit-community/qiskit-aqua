@@ -111,12 +111,8 @@ class TestRecursiveMinEigenOptimizer(QiskitOptimizationTestCase):
             self.assertGreater(len(result.history[0]), 1)
             self.assertIsNotNone(result.history[1])
 
-        except RuntimeError as ex:
-            msg = str(ex)
-            if 'CPLEX' in msg:
-                self.skipTest(msg)
-            else:
-                self.fail(msg)
+        except MissingOptionalLibraryError as ex:
+            self.skipTest(str(ex))
 
 
 if __name__ == '__main__':
