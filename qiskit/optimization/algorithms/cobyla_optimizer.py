@@ -21,10 +21,10 @@ from scipy.optimize import fmin_cobyla
 
 from .multistart_optimizer import MultiStartOptimizer
 from .optimization_algorithm import OptimizationResult
-from ..problems.quadratic_program import QuadraticProgram
-from ..problems.constraint import Constraint
 from ..exceptions import QiskitOptimizationError
 from ..infinity import INFINITY
+from ..problems.constraint import Constraint
+from ..problems.quadratic_program import QuadraticProgram
 
 
 class CobylaOptimizer(MultiStartOptimizer):

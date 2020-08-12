@@ -13,20 +13,23 @@
 # that they have been altered from the originals.
 
 """An implementation of the ADMM algorithm."""
-import warnings
 import copy
 import logging
 import time
-from typing import List, Optional, Any, Tuple, cast
+import warnings
+from typing import List, Optional, Tuple
 
 import numpy as np
-from .cplex_optimizer import CplexOptimizer
+from qiskit.aqua.algorithms import NumPyMinimumEigensolver
+
+from .minimum_eigen_optimizer import MinimumEigenOptimizer
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
-from ..problems.quadratic_program import QuadraticProgram
-from ..problems.variable import VarType, Variable
+from .slsqp_optimizer import SlsqpOptimizer
 from ..problems.constraint import Constraint
 from ..problems.linear_constraint import LinearConstraint
 from ..problems.quadratic_objective import QuadraticObjective
+from ..problems.quadratic_program import QuadraticProgram
+from ..problems.variable import VarType, Variable
 
 UPDATE_RHO_BY_TEN_PERCENT = 0
 UPDATE_RHO_BY_RESIDUALS = 1
@@ -94,6 +97,10 @@ class ADMMParameters:
         self.factor_c = factor_c
         self.beta = beta
         self.rho_initial = rho_initial
+
+    def __repr__(self) -> str:
+        props = ", ".join(["{}={}".format(key, value) for (key, value) in vars(self).items()])
+        return "{0}({1})".format(type(self).__name__, props)
 
 
 class ADMMState:
@@ -167,15 +174,21 @@ class ADMMState:
 class ADMMOptimizationResult(OptimizationResult):
     """ ADMMOptimization Result."""
 
-    def __init__(self, x: Optional[Any] = None, fval: Optional[Any] = None,
-                 state: Optional[ADMMState] = None, results: Optional[Any] = None) -> None:
-        super().__init__(x, fval, results or state)
-        self._state = state
+    def __init__(self, x: np.ndarray, fval: float, variables: List[Variable],
+                 state: ADMMState) -> None:
+        """
+        Args:
+            x: the optimal value found by ADMM.
+            fval: the optimal function value.
+            variables: the list of variables of the optimization problem.
+            state: the internal computation state of ADMM.
+        """
+        super().__init__(x=x, fval=fval, variables=variables, raw_results=state)
 
     @property
-    def state(self) -> Optional[ADMMState]:
+    def state(self) -> ADMMState:
         """ returns state """
-        return self._state
+        return self._raw_results
 
 
 class ADMMOptimizer(OptimizationAlgorithm):
@@ -195,13 +208,11 @@ class ADMMOptimizer(OptimizationAlgorithm):
         """
         Args:
             qubo_optimizer: An instance of OptimizationAlgorithm that can effectively solve
-                QUBO problems.
+                QUBO problems. If not specified then :class:`MinimumEigenOptimizer` initialized
+                with an instance of :class:`NumPyMinimumEigensolver` will be used.
             continuous_optimizer: An instance of OptimizationAlgorithm that can solve
-                continuous problems.
+                continuous problems. If not specified then :class:`SlsqpOptimizer` will be used.
             params: An instance of ADMMParameters.
-
-        Raises:
-            NameError: CPLEX is not installed.
         """
         super().__init__()
         self._log = logging.getLogger(__name__)
@@ -210,8 +221,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
         self._params = params or ADMMParameters()
 
         # create optimizers if not specified
-        self._qubo_optimizer = qubo_optimizer or CplexOptimizer()
-        self._continuous_optimizer = continuous_optimizer or CplexOptimizer()
+        self._qubo_optimizer = qubo_optimizer or MinimumEigenOptimizer(NumPyMinimumEigensolver())
+        self._continuous_optimizer = continuous_optimizer or SlsqpOptimizer()
 
         # internal state where we'll keep intermediate solution
         # here, we just declare the class variable, the variable is initialized in kept in
@@ -268,7 +279,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # map integer variables to binary variables
         from ..converters.integer_to_binary import IntegerToBinary
         int2bin = IntegerToBinary()
-        problem = int2bin.encode(problem)
+        original_variables = problem.variables
+        problem = int2bin.convert(problem)
 
         # we deal with minimization in the optimizer, so turn the problem to minimization
         problem, sense = self._turn_to_minimization(problem)
@@ -354,11 +366,15 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # flip the objective sign again if required
         objective_value = objective_value * sense
 
-        # third parameter is our internal state of computations.
-        result = ADMMOptimizationResult(solution, objective_value, self._state)
-
         # convert back integer to binary
-        result = cast(ADMMOptimizationResult, int2bin.decode(result))
+        base_result = OptimizationResult(solution, objective_value, original_variables)
+        base_result = int2bin.interpret(base_result)
+
+        # third parameter is our internal state of computations.
+        result = ADMMOptimizationResult(x=base_result.x, fval=base_result.fval,
+                                        variables=base_result.variables,
+                                        state=self._state)
+
         # debug
         self._log.debug("solution=%s, objective=%s at iteration=%s",
                         solution, objective_value, iteration)
@@ -813,3 +829,21 @@ class ADMMOptimizer(OptimizationAlgorithm):
         dual_residual = self._state.rho * np.linalg.norm(elements_dual)
 
         return primal_residual, dual_residual
+
+    @property
+    def parameters(self) -> ADMMParameters:
+        """Returns current parameters of the optimizer.
+
+        Returns:
+            The parameters.
+        """
+        return self._params
+
+    @parameters.setter
+    def parameters(self, params: ADMMParameters) -> None:
+        """Sets the parameters of the optimizer.
+
+        Args:
+            params: New parameters to set.
+        """
+        self._params = params

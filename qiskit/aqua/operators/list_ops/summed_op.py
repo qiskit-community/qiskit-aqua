@@ -15,6 +15,7 @@
 """ SummedOp Class """
 
 from typing import List, Union, cast
+import warnings
 
 import numpy as np
 
@@ -131,6 +132,15 @@ class SummedOp(ListOp):
         else:
             return cast(OperatorBase, reduced_ops)
 
+    def to_matrix_op(self, massive: bool = False) -> OperatorBase:
+        """ Returns an equivalent Operator composed of only NumPy-based primitives, such as
+        ``MatrixOp`` and ``VectorStateFn``. """
+        accum = self.oplist[0].to_matrix_op(massive=massive)  # type: ignore
+        for i in range(1, len(self.oplist)):
+            accum += self.oplist[i].to_matrix_op(massive=massive)  # type: ignore
+
+        return accum * self.coeff
+
     def to_legacy_op(self, massive: bool = False) -> LegacyBaseOperator:
         # We do this recursively in case there are SummedOps of PauliOps in oplist.
         legacy_ops = [op.to_legacy_op(massive=massive) for op in self.oplist]
@@ -150,6 +160,19 @@ class SummedOp(ListOp):
             coeff = cast(float, self.coeff)
 
         return self.combo_fn(legacy_ops) * coeff
+
+    def print_details(self):
+        """
+        Print out the operator in details.
+        Returns:
+            str: a formatted string describes the operator.
+        """
+        warnings.warn("print_details() is deprecated and will be removed in "
+                      "a future release. Instead you can use .to_legacy_op() "
+                      "and call print_details() on it's output",
+                      DeprecationWarning)
+        ret = self.to_legacy_op().print_details()
+        return ret
 
     def equals(self, other: OperatorBase) -> bool:
         """Check if other is equal to self.
