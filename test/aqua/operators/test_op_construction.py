@@ -473,11 +473,10 @@ class TestOpConstruction(QiskitAquaTestCase):
         self.assertRaises(TypeError, circuit_op.to_matrix)
 
     def test_list_op_to_circuit(self):
-        """
-        unitary composed/tensored/summed operator should transpile to circuit
-        """
+        """Test if unitary ListOps transpile to circuit. """
 
-        # generate unitary matrices of dimension 2,4,8
+        # generate unitary matrices of dimension 2,4,8, seed is fixed
+        np.random.seed(233423)
         u2 = unitary_group.rvs(2)
         u4 = unitary_group.rvs(4)
         u8 = unitary_group.rvs(8)
