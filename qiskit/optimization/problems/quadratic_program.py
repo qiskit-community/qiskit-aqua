@@ -19,12 +19,7 @@ from typing import cast, List, Union, Dict, Optional, Tuple
 import logging
 from collections import defaultdict
 from enum import Enum
-<<<<<<< HEAD
 from math import fsum, isclose
-=======
-from math import fsum
-import warnings
->>>>>>> master
 
 from docplex.mp.constr import (LinearConstraint as DocplexLinearConstraint,
                                QuadraticConstraint as DocplexQuadraticConstraint,
