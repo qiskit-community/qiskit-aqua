@@ -441,9 +441,8 @@ class TestOpConstruction(QiskitAquaTestCase):
                 self.assertRaises(QiskitError, getattr(matrix_op, method))
 
     def test_primitive_op_to_matrix(self):
-        """Test to reveal the exception that is raised when .to_matrix is called on PrimitiveOps
-        with parameter.
-        """
+        """Test to reveal TypeError: multiplication of 'complex' and 'Parameter' is not
+        implemented, which is raised on PrimitiveOps with parameter, when to_matrix is called. """
         # MatrixOp
         m = np.array([[0, 0, 1, 0], [0, 0, 0, -1], [1, 0, 0, 0], [0, -1, 0, 0]])
         matrix_op = MatrixOp(m, Parameter('beta'))
@@ -459,7 +458,6 @@ class TestOpConstruction(QiskitAquaTestCase):
 
         for operator in [matrix_op, pauli_op, circuit_op]:
             with self.subTest(operator):
-                # TypeError: multiplication of 'complex' and 'Parameter' is not implemented
                 self.assertRaises(TypeError, operator.to_matrix)
 
     def test_list_op_to_circuit(self):

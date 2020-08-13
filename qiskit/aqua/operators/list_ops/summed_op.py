@@ -141,15 +141,14 @@ class SummedOp(ListOp):
             The circuit representation of the summed operator.
 
         Raises:
-            ExtensionError: if operator is not unitary
             AquaError: if SummedOp can not be converted to MatrixOp
         """
         from qiskit.aqua.operators import MatrixOp
         matrix_op = self.to_matrix_op()
         if isinstance(matrix_op, MatrixOp):
             return matrix_op.to_circuit()
-        raise AquaError("The SummedOp can not be converted to circuit, because conversion to "
-                        "MatrixOp failed.")
+        raise AquaError("The SummedOp can not be converted to circuit, because to_matrix_op did "
+                        "not return a MatrixOp.")
 
     def to_matrix_op(self, massive: bool = False) -> OperatorBase:
         """ Returns an equivalent Operator composed of only NumPy-based primitives, such as
