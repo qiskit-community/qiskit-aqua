@@ -19,7 +19,7 @@ better results. This implementation is suitable for local optimizers."""
 import logging
 import time
 from abc import ABC
-from typing import Optional, Callable
+from typing import Optional, Callable, Tuple, Any
 
 import numpy as np
 from scipy.stats import uniform
@@ -57,7 +57,7 @@ class MultiStartOptimizer(OptimizationAlgorithm, ABC):
         self._trials = trials
         self._clip = clip
 
-    def multi_start_solve(self, minimize: Callable[[np.array], np.array],
+    def multi_start_solve(self, minimize: Callable[[np.array], Tuple[np.array, Any]],
                           problem: QuadraticProgram) -> OptimizationResult:
         """Applies a multi start method given a local optimizer.
 
@@ -69,7 +69,8 @@ class MultiStartOptimizer(OptimizationAlgorithm, ABC):
             The result of the multi start algorithm applied to the problem.
         """
         fval_sol = INFINITY
-        x_sol = None    # type: Optional[np.array]
+        x_sol = None        # type: Optional[np.array]
+        rest_sol = None     # type: Optional[Tuple]
 
         # Implementation of multi-start optimizer
         for trial in range(self._trials):
@@ -81,7 +82,7 @@ class MultiStartOptimizer(OptimizationAlgorithm, ABC):
                     x_0[i] = uniform.rvs(lowerbound, (upperbound - lowerbound))
             # run optimization
             t_0 = time.time()
-            x = minimize(x_0)
+            x, rest = minimize(x_0)
             logger.debug("minimize done in: %s seconds", str(time.time() - t_0))
 
             # we minimize, to get actual objective value we must multiply by the sense value
@@ -91,9 +92,10 @@ class MultiStartOptimizer(OptimizationAlgorithm, ABC):
                 # here we get back to the original sense of the problem
                 fval_sol = fval * problem.objective.sense.value
                 x_sol = x
+                rest_sol = rest
 
         return OptimizationResult(x=x_sol, fval=fval_sol, variables=problem.variables,
-                                  raw_results=x_sol)
+                                  raw_results=rest_sol)
 
     @property
     def trials(self) -> int:
