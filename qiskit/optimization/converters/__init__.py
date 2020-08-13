@@ -21,6 +21,15 @@ Optimization converters (:mod:`qiskit.optimization.converters`)
 This is selection of converters having encode, decode functionality to go between different
 forms.
 
+Base class for converters
+=========================
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   QuadraticProgramConverter
+
 Converters
 ==========
 
@@ -30,27 +39,27 @@ Converters
 
    InequalityToEquality
    IntegerToBinary
-   QuadraticProgramToQubo
+   IsingToQuadraticProgram
    LinearEqualityToPenalty
    QuadraticProgramToIsing
-   IsingToQuadraticProgram
+   QuadraticProgramToQubo
 
 """
 
-# opt problem dependency
-from .integer_to_binary import IntegerToBinary
 from .inequality_to_equality import InequalityToEquality
-from .linear_equality_to_penalty import LinearEqualityToPenalty
-from .quadratic_program_to_qubo import QuadraticProgramToQubo
-from .quadratic_program_to_ising import QuadraticProgramToIsing
+from .integer_to_binary import IntegerToBinary
 from .ising_to_quadratic_program import IsingToQuadraticProgram
-
+from .linear_equality_to_penalty import LinearEqualityToPenalty
+from .quadratic_program_converter import QuadraticProgramConverter
+from .quadratic_program_to_ising import QuadraticProgramToIsing
+from .quadratic_program_to_qubo import QuadraticProgramToQubo
 
 __all__ = [
     "InequalityToEquality",
     "IntegerToBinary",
-    "QuadraticProgramToQubo",
+    "IsingToQuadraticProgram",
     "LinearEqualityToPenalty",
+    "QuadraticProgramConverter",
     "QuadraticProgramToIsing",
-    "IsingToQuadraticProgram"
+    "QuadraticProgramToQubo",
 ]
