@@ -101,7 +101,7 @@ class OptimizationResultStatus(Enum):
 
 
 class OptimizationResult:
-    """An abstract class for optimization results.
+    """A base class for optimization results.
 
     The optimization algorithms return an object of the type ``OptimizationResult``
     with the information about the solution obtained.
