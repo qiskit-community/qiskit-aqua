@@ -13,11 +13,10 @@
 # that they have been altered from the originals.
 
 """A wrapper for minimum eigen solvers from Aqua to be used within the optimization module."""
-from copy import deepcopy
 from typing import Optional, Any, Union, Tuple, List
 
 import numpy as np
-from qiskit.aqua.algorithms import MinimumEigensolver
+from qiskit.aqua.algorithms import MinimumEigensolver, MinimumEigensolverResult
 from qiskit.aqua.operators import StateFn, DictStateFn
 
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
@@ -25,30 +24,37 @@ from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
 from ..problems.quadratic_program import QuadraticProgram, Variable
 
 
-class MinimumEigenOptimizerResult(OptimizationResult):
+class MinimumEigenOptimizationResult(OptimizationResult):
     """ Minimum Eigen Optimizer Result."""
 
-    def __init__(self, x: Union[List[float], np.ndarray], fval: float, variables: List[Variable],
+    def __init__(self, x: Union[List[float], np.ndarray], fval: float,
+                 variables: List[Variable],
                  samples: List[Tuple[str, float, float]],
-                 qubo_converter: QuadraticProgramToQubo) -> None:
+                 min_eigen_solver_result: Optional[MinimumEigensolverResult] = None) -> None:
         """
         Args:
             x: the optimal value found by ``MinimumEigensolver``.
             fval: the optimal function value.
             variables: the list of variables of the optimization problem.
             samples: the basis state as bitstring, the QUBO value, and the probability of sampling.
-            qubo_converter: ``QuadraticProgram`` to QUBO converter.
+            min_eigen_solver_result: the result obtained from the underlying algorithm.
         """
-        super().__init__(x=x, fval=fval, variables=variables,
-                         raw_results={'samples': samples, 'qubo_converter': qubo_converter})
+        super().__init__(x, fval, variables, None)
+        self._samples = samples
+        self._min_eigen_solver_result = min_eigen_solver_result
 
     @property
     def samples(self) -> List[Tuple[str, float, float]]:
-        """ returns samples """
-        return self._raw_results['samples']
+        """Returns samples."""
+        return self._samples
+
+    @property
+    def min_eigen_solver_result(self) -> MinimumEigensolverResult:
+        """Returns a result object obtained from the instance of :class:`MinimumEigensolver`."""
+        return self._min_eigen_solver_result
 
     def get_correlations(self) -> np.ndarray:
-        """ get <Zi x Zj> correlation matrix from samples """
+        """Get <Zi x Zj> correlation matrix from samples."""
 
         states = [v[0] for v in self.samples]
         probs = [v[2] for v in self.samples]
@@ -126,7 +132,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         """
         return QuadraticProgramToQubo.get_compatibility_msg(problem)
 
-    def solve(self, problem: QuadraticProgram) -> MinimumEigenOptimizerResult:
+    def solve(self, problem: QuadraticProgram) -> MinimumEigenOptimizationResult:
         """Tries to solves the given problem using the optimizer.
 
         Runs the optimizer to try to solve the optimization problem.
@@ -150,14 +156,15 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
 
         # only try to solve non-empty Ising Hamiltonians
         x = None  # type: Optional[Any]
+        eigen_result = None     # type: MinimumEigensolverResult
         if operator.num_qubits > 0:
 
             # approximate ground state of operator using min eigen solver
-            eigen_results = self._min_eigen_solver.compute_minimum_eigenvalue(operator)
+            eigen_result = self._min_eigen_solver.compute_minimum_eigenvalue(operator)
 
             # analyze results
             # backend = getattr(self._min_eigen_solver, 'quantum_instance', None)
-            samples = _eigenvector_to_solutions(eigen_results.eigenstate, problem_)
+            samples = _eigenvector_to_solutions(eigen_result.eigenstate, problem_)
             # print(offset, samples)
             # samples = [(res[0], problem_.objective.sense.value * (res[1] + offset), res[2])
             #    for res in samples]
@@ -173,13 +180,12 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
             samples = [(x_str, offset, 1.0)]
 
         # translate result back to integers
-        base_res = OptimizationResult(x=x, fval=fval, variables=problem_.variables)
-        base_res = self._qubo_converter.interpret(base_res)
-        opt_res = MinimumEigenOptimizerResult(x=base_res.x, fval=base_res.fval,
-                                              variables=problem.variables,
+        result = OptimizationResult(x=x, fval=fval, variables=problem_.variables)
+        result = self._qubo_converter.interpret(result)
+        return MinimumEigenOptimizationResult(x=result.x, fval=result.fval,
+                                              variables=result.variables,
                                               samples=samples,
-                                              qubo_converter=deepcopy(self._qubo_converter))
-        return opt_res
+                                              min_eigen_solver_result=eigen_result)
 
 
 def _eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray, StateFn],

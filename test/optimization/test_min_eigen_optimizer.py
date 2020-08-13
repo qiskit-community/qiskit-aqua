@@ -76,9 +76,13 @@ class TestMinEigenOptimizer(QiskitOptimizationTestCase):
 
             # solve problem
             result = min_eigen_optimizer.solve(problem)
+            self.assertIsNotNone(result)
 
             # analyze results
             self.assertAlmostEqual(cplex_result.fval, result.fval)
+
+            # check that eigensolver result is present
+            self.assertIsNotNone(result.min_eigen_solver_result)
         except MissingOptionalLibraryError as ex:
             self.skipTest(str(ex))
         except RuntimeError as ex:

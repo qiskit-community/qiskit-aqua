@@ -14,15 +14,13 @@
 
 """Quantum Phase Estimation for getting the eigenvalues of a matrix."""
 
-import warnings
-from typing import Optional, List, Union
+from typing import Optional, List
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 
 from qiskit.aqua.circuits import PhaseEstimationCircuit
 from qiskit.aqua.operators import LegacyBaseOperator
 from qiskit.aqua.operators.legacy import op_converter
-from qiskit.aqua.components.iqfts import IQFT
 from qiskit.aqua.utils.validation import validate_min, validate_in_set
 from .eigs import Eigenvalues
 
@@ -34,13 +32,12 @@ class EigsQPE(Eigenvalues):
 
     Specifically, this class is based on PhaseEstimationCircuit with no measurements and
     has additional handling of negative eigenvalues, e.g. for :class:`~qiskit.aqua.algorithms.HHL`.
-    It depends on :mod:`QFT <qiskit.aqua.components.qfts>` and
-    :mod:`IQFT <qiskit.aqua.components.iqfts>` components.
+    It depends on the :class:`QFT <qiskit.circuit.library.QFT>` class.
     """
 
     def __init__(self,
                  operator: LegacyBaseOperator,
-                 iqft: Union[QuantumCircuit, IQFT],
+                 iqft: QuantumCircuit,
                  num_time_slices: int = 1,
                  num_ancillae: int = 1,
                  expansion_mode: str = 'trotter',
@@ -51,7 +48,7 @@ class EigsQPE(Eigenvalues):
         """
         Args:
             operator: The Hamiltonian Operator object
-            iqft: The Inverse Quantum Fourier Transform component
+            iqft: The Inverse Quantum Fourier Transform circuit
             num_time_slices: The number of time slices, has a minimum value of 1.
             num_ancillae: The number of ancillary qubits to use for the measurement,
                 has a minimum value of 1.
@@ -61,7 +58,7 @@ class EigsQPE(Eigenvalues):
                 :math:`(0,1]` (or :math:`(-0.5,0.5]` for negative eigenvalues). Defaults to
                 ``None`` in which case a suitably estimated evolution time is internally computed.
             negative_evals: Set ``True`` to indicate negative eigenvalues need to be handled
-            ne_qfts: The QFT and IQFT components for handling negative eigenvalues
+            ne_qfts: The QFT and IQFT circuits for handling negative eigenvalues
         """
         super().__init__()
         ne_qfts = ne_qfts if ne_qfts is not None else [None, None]
@@ -71,29 +68,13 @@ class EigsQPE(Eigenvalues):
         validate_min('expansion_order', expansion_order, 1)
         self._operator = op_converter.to_weighted_pauli_operator(operator)
 
-        if isinstance(iqft, IQFT):
-            warnings.warn('Providing a qiskit.aqua.components.iqfts.IQFT module as `iqft` argument '
-                          'to HHL is deprecated as of 0.7.0 and will be removed no earlier than '
-                          '3 months after the release. '
-                          'You should pass a QuantumCircuit instead, see '
-                          'qiskit.circuit.library.QFT and the .inverse() method.',
-                          DeprecationWarning, stacklevel=2)
         self._iqft = iqft
-
         self._num_ancillae = num_ancillae
         self._num_time_slices = num_time_slices
         self._expansion_mode = expansion_mode
         self._expansion_order = expansion_order
         self._evo_time = evo_time
         self._negative_evals = negative_evals
-
-        if ne_qfts and any(isinstance(ne_qft, IQFT) for ne_qft in ne_qfts):
-            warnings.warn('Providing a qiskit.aqua.components.iqfts.IQFT module in the `ne_qft` '
-                          'argument to HHL is deprecated as of 0.7.0 and will be removed no '
-                          'earlier than 3 months after the release. '
-                          'You should pass a QuantumCircuit instead, see '
-                          'qiskit.circuit.library.QFT and the .inverse() method.',
-                          DeprecationWarning, stacklevel=2)
         self._ne_qfts = ne_qfts
 
         self._circuit = None
