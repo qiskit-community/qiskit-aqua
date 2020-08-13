@@ -1,5 +1,3 @@
-.. module:: qiskit
-
 =========================
 Qiskit Aqua API Reference
 =========================

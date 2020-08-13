@@ -78,6 +78,10 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
         results = gmf.solve(op)
         self.validate_results(op, results)
 
+        self.assertIsNotNone(results.operation_counts)
+        self.assertEqual(results.n_input_qubits, 2)
+        self.assertEqual(results.n_output_qubits, 4)
+
     def test_qubo_gas_int_simple_maximize(self):
         """Test for simple case, but with maximization."""
 
