@@ -17,6 +17,7 @@
 import logging
 from typing import Optional, Dict, Union, List
 import math
+from copy import deepcopy
 
 import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister
@@ -152,6 +153,7 @@ class GroverOptimizer(OptimizationAlgorithm):
 
         # convert problem to QUBO
         problem_ = self._qubo_converter.convert(problem)
+        problem0 = deepcopy(problem_)
 
         # convert to minimization problem
         sense = problem_.objective.sense
@@ -260,7 +262,7 @@ class GroverOptimizer(OptimizationAlgorithm):
         opt_x = np.array([1 if s == '1' else 0 for s in ('{0:%sb}' % n_key).format(optimum_key)])
 
         # Compute function value
-        fval = problem_.objective.evaluate(opt_x)
+        fval = problem0.objective.evaluate(opt_x)
         result = OptimizationResult(x=opt_x, fval=fval, variables=problem_.variables)
 
         # cast binaries back to integers
