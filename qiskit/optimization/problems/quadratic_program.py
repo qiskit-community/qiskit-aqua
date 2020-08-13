@@ -14,13 +14,14 @@
 
 """Quadratic Program."""
 
-from typing import cast, List, Union, Dict, Optional, Tuple
 import logging
+import warnings
 from collections import defaultdict
 from enum import Enum
 from math import fsum
-import warnings
+from typing import cast, List, Union, Dict, Optional, Tuple
 
+import numpy as np
 from docplex.mp.constr import (LinearConstraint as DocplexLinearConstraint,
                                QuadraticConstraint as DocplexQuadraticConstraint,
                                NotEqualConstraint)
@@ -30,10 +31,10 @@ from docplex.mp.model_reader import ModelReader
 from docplex.mp.quad import QuadExpr
 from numpy import (ndarray, zeros, bool as nbool)
 from scipy.sparse import spmatrix
-
 from qiskit.aqua import MissingOptionalLibraryError
 from qiskit.aqua.operators import I, OperatorBase, PauliOp, WeightedPauliOperator, SummedOp, ListOp
 from qiskit.quantum_info import Pauli
+
 from .constraint import Constraint, ConstraintSense
 from .linear_constraint import LinearConstraint
 from .linear_expression import LinearExpression
@@ -665,7 +666,7 @@ class QuadraticProgram:
             if right_expr.is_quad_expr():
                 for x in right_expr.linear_part.iter_variables():
                     linear[var_names[x]] = linear.get(var_names[x], 0.0) - \
-                        right_expr.linear_part.get_coef(x)
+                                           right_expr.linear_part.get_coef(x)
                 for quad_triplet in right_expr.iter_quad_triplets():
                     i = var_names[quad_triplet[0]]
                     j = var_names[quad_triplet[1]]
@@ -1091,6 +1092,32 @@ class QuadraticProgram:
         # Set the objective function
         self.minimize(constant=offset, linear=linear_terms, quadratic=quadratic_terms)
         offset -= offset
+
+    def is_feasible(self, x: np.ndarray) -> bool:
+        """Check whether this optimization problem is feasible or not with given variables.
+
+        Args:
+            x: value of variables.
+
+        Returns:
+            ``True`` if the problem is feasible with ``x``.
+
+        Raises:
+            QiskitOptimizationError: if size of `x` differs from the number of variables.
+        """
+
+        if len(x) != self.get_num_vars():
+            raise QiskitOptimizationError(
+                'The size of `x` differs from the number of variables.'
+                ' size of `x`: {}, num. of vars: {}'.format(len(x), self.get_num_vars())
+            )
+        # Substitute variables to obtain the function value and feasibility in the original problem
+        var = {}  # type: Dict[Union[str, int], float]
+        for i, val in enumerate(x):
+            var[self.variables[i].name] = val
+        new_qp = self.substitute_variables(var)
+
+        return new_qp.status == QuadraticProgramStatus.VALID
 
 
 class SubstituteVariables:

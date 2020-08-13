@@ -15,22 +15,23 @@
 """GroverOptimizer module"""
 
 import logging
-from typing import Optional, Dict, Union, List
 import math
+from typing import Optional, Dict, Union, List
 
 import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister
-from qiskit.circuit.library import QuadraticForm
-from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms.amplitude_amplifiers.grover import Grover
 from qiskit.aqua.components.initial_states import Custom
 from qiskit.aqua.components.oracles import CustomCircuitOracle
-from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
+from qiskit.circuit.library import QuadraticForm
+from qiskit.providers import BaseBackend
+
+from .optimization_algorithm import (OptimizationAlgorithm, OptimizationResult,
+                                     OptimizationResultStatus)
+from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
 from ..problems import Variable
 from ..problems.quadratic_program import QuadraticProgram
-from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
-
 
 logger = logging.getLogger(__name__)
 
@@ -259,14 +260,15 @@ class GroverOptimizer(OptimizationAlgorithm):
 
         opt_x = np.array([1 if s == '1' else 0 for s in ('{0:%sb}' % n_key).format(optimum_key)])
 
-        # Compute function value
-        fval = problem_.objective.evaluate(opt_x)
-        result = OptimizationResult(x=opt_x, fval=fval, variables=problem_.variables)
-
         # cast binaries back to integers
-        result = self._qubo_converter.interpret(result)
+        new_x = self._qubo_converter.interpret(opt_x)
+        # Compute function value
+        fval = problem.objective.evaluate(new_x)
+        status = OptimizationResultStatus.SUCCESS if problem.is_feasible(new_x) \
+            else OptimizationResultStatus.INFEASIBLE
 
-        return GroverOptimizationResult(x=result.x, fval=result.fval, variables=result.variables,
+        return GroverOptimizationResult(x=new_x, fval=fval, variables=problem.variables,
+                                        status=status,
                                         operation_counts=operation_count, n_input_qubits=n_key,
                                         n_output_qubits=n_value)
 
@@ -332,7 +334,8 @@ class GroverOptimizationResult(OptimizationResult):
 
     def __init__(self, x: Union[List[float], np.ndarray], fval: float, variables: List[Variable],
                  operation_counts: Dict[int, Dict[str, int]], n_input_qubits: int,
-                 n_output_qubits: int) -> None:
+                 n_output_qubits: int,
+                 status: OptimizationResultStatus = OptimizationResultStatus.SUCCESS) -> None:
         """
         Constructs a result object with the specific Grover properties.
 
@@ -343,8 +346,9 @@ class GroverOptimizationResult(OptimizationResult):
             operation_counts: The counts of each operation performed per iteration.
             n_input_qubits: The number of qubits used to represent the input.
             n_output_qubits: The number of qubits used to represent the output.
+            status: the termination status of the optimization algorithm.
         """
-        super().__init__(x, fval, variables, None)
+        super().__init__(x, fval, variables, None, status)
         self._operation_counts = operation_counts
         self._n_input_qubits = n_input_qubits
         self._n_output_qubits = n_output_qubits

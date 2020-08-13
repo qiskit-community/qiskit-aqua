@@ -17,15 +17,16 @@
 import copy
 import logging
 from math import fsum
-from typing import Optional, cast, Union, Tuple, Dict
+from typing import Optional, cast, Union, Tuple
 
-from ..algorithms.optimization_algorithm import OptimizationResult, OptimizationResultStatus
+import numpy as np
+
+from .quadratic_program_converter import QuadraticProgramConverter
 from ..exceptions import QiskitOptimizationError
 from ..problems.constraint import Constraint
 from ..problems.quadratic_objective import QuadraticObjective
-from ..problems.quadratic_program import QuadraticProgram, QuadraticProgramStatus
+from ..problems.quadratic_program import QuadraticProgram
 from ..problems.variable import Variable
-from .quadratic_program_converter import QuadraticProgramConverter
 
 logger = logging.getLogger(__name__)
 
@@ -160,40 +161,24 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
 
         return fsum(penalties)
 
-    def interpret(self, result: OptimizationResult) -> OptimizationResult:
+    def interpret(self, x: np.ndarray) -> np.ndarray:
         """Convert the result of the converted problem back to that of the original problem
 
         Args:
-            result: The result of the converted problem.
+            x: The result of the converted problem.
 
         Returns:
             The result of the original problem.
 
         Raises:
-            QiskitOptimizationError: if the number of variables in the result differs from
-                                     that of the original problem.
+            QiskitOptimizationError: if size of `x` differs from the number of variables.
         """
-        if len(result.x) != self._src.get_num_vars():
+        if len(x) != self._dst.get_num_vars():
             raise QiskitOptimizationError(
-                'The number of variables in the passed result differs from '
-                'that of the original problem.'
+                'The size of `x` differs from the the number of variables.'
+                ' size of `x`: {}, num. of vars: {}'.format(len(x), self._dst.get_num_vars())
             )
-        # Substitute variables to obtain the function value and feasibility in the original problem
-        substitute_dict = {}  # type: Dict[Union[str, int], float]
-        variables = self._src.variables
-        for i in range(len(result.x)):
-            substitute_dict[variables[i].name] = float(result.x[i])
-        substituted_qp = self._src.substitute_variables(substitute_dict)
-
-        # Set the new status of optimization result
-        if substituted_qp.status == QuadraticProgramStatus.VALID:
-            new_status = OptimizationResultStatus.SUCCESS
-        else:
-            new_status = OptimizationResultStatus.INFEASIBLE
-
-        return OptimizationResult(x=result.x, fval=substituted_qp.objective.constant,
-                                  variables=self._src.variables, raw_results=result.raw_results,
-                                  status=new_status)
+        return x
 
     @property
     def penalty(self) -> Optional[float]:

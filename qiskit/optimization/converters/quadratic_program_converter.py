@@ -15,8 +15,9 @@
 """An abstract class for optimization algorithms in Qiskit's optimization module."""
 
 import warnings
-
 from abc import ABC, abstractmethod
+
+import numpy as np
 
 from ..algorithms.optimization_algorithm import OptimizationResult
 from ..problems.quadratic_program import QuadraticProgram
@@ -26,6 +27,7 @@ class QuadraticProgramConverter(ABC):
     """
     An abstract class for converters of quadratic programs in Qiskit's optimization module.
     """
+
     @abstractmethod
     def convert(self, problem: QuadraticProgram) -> QuadraticProgram:
         """Convert a QuadraticProgram into another form
@@ -35,7 +37,7 @@ class QuadraticProgramConverter(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def interpret(self, result: OptimizationResult) -> OptimizationResult:
+    def interpret(self, x: np.ndarray) -> np.ndarray:
         """ Interpret a result into another form using the information of conversion"""
 
         raise NotImplementedError
@@ -60,4 +62,5 @@ class QuadraticProgramConverter(ABC):
                       'qiskit.optimization.converters.QuadraticProgramConverter.interpret() '
                       'instead.',
                       DeprecationWarning, stacklevel=1)
+        # TODO: interpret of OptimizationResult
         return self.interpret(result)

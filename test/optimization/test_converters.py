@@ -148,10 +148,8 @@ class TestConverters(QiskitOptimizationTestCase):
         self.assertListEqual(lst, [0, 4])
 
         result = OptimizationResult(x=np.arange(7), fval=0, variables=op2.variables)
-        new_result = conv.interpret(result)
-        np.testing.assert_array_almost_equal(new_result.x, np.arange(3))
-        self.assertListEqual(new_result.variable_names, ['x0', 'x1', 'x2'])
-        self.assertDictEqual(new_result.variables_dict, {'x0': 0, 'x1': 1, 'x2': 2})
+        new_x = conv.interpret(result.x)
+        np.testing.assert_array_almost_equal(new_x, np.arange(3))
 
     def test_inequality_integer(self):
         """ Test InequalityToEqualityConverter with integer variables """
@@ -219,10 +217,8 @@ class TestConverters(QiskitOptimizationTestCase):
         self.assertListEqual(lst, [0, 60])
 
         result = OptimizationResult(x=np.arange(7), fval=0, variables=op2.variables)
-        new_result = conv.interpret(result)
-        np.testing.assert_array_almost_equal(new_result.x, np.arange(3))
-        self.assertListEqual(new_result.variable_names, ['x0', 'x1', 'x2'])
-        self.assertDictEqual(new_result.variables_dict, {'x0': 0, 'x1': 1, 'x2': 2})
+        new_x = conv.interpret(result.x)
+        np.testing.assert_array_almost_equal(new_x, np.arange(3))
 
     def test_inequality_mode_integer(self):
         """ Test integer mode of InequalityToEqualityConverter() """
@@ -310,11 +306,9 @@ class TestConverters(QiskitOptimizationTestCase):
         self.assertEqual(op2.get_num_linear_constraints(), 0)
 
         result = OptimizationResult(x=np.arange(3), fval=0, variables=op2.variables)
-        new_result = conv.interpret(result)
-        self.assertEqual(new_result.status, OptimizationResultStatus.INFEASIBLE)
-        np.testing.assert_array_almost_equal(new_result.x, np.arange(3))
-        self.assertListEqual(result.variable_names, ['x0', 'x1', 'x2'])
-        self.assertDictEqual(result.variables_dict, {'x0': 0, 'x1': 1, 'x2': 2})
+        new_x = conv.interpret(result.x)
+        np.testing.assert_array_almost_equal(new_x, np.arange(3))
+        self.assertFalse(op.is_feasible(new_x))
 
     def test_penalize_integer(self):
         """ Test PenalizeLinearEqualityConstraints with integer variables """
@@ -335,12 +329,9 @@ class TestConverters(QiskitOptimizationTestCase):
         self.assertEqual(op2.get_num_linear_constraints(), 0)
 
         result = OptimizationResult(x=[0, 1, -1], fval=1, variables=op2.variables)
-        new_result = conv.interpret(result)
-        self.assertAlmostEqual(new_result.fval, 1)
-        self.assertEqual(new_result.status, OptimizationResultStatus.SUCCESS)
-        np.testing.assert_array_almost_equal(new_result.x, [0, 1, -1])
-        self.assertListEqual(result.variable_names, ['x0', 'x1', 'x2'])
-        self.assertDictEqual(result.variables_dict, {'x0': 0, 'x1': 1, 'x2': -1})
+        new_x = conv.interpret(result.x)
+        np.testing.assert_array_almost_equal(new_x, [0, 1, -1])
+        self.assertTrue(op.is_feasible(new_x))
 
     def test_integer_to_binary(self):
         """ Test integer to binary """
@@ -377,11 +368,8 @@ class TestConverters(QiskitOptimizationTestCase):
         conv = IntegerToBinary()
         op2 = conv.convert(op)
         result = OptimizationResult(x=[0, 1, 1, 1, 1], fval=17, variables=op2.variables)
-        new_result = conv.interpret(result)
-        np.testing.assert_array_almost_equal(new_result.x, [0, 1, 5])
-        self.assertEqual(new_result.fval, 17)
-        self.assertListEqual(new_result.variable_names, ['x0', 'x1', 'x2'])
-        self.assertDictEqual(new_result.variables_dict, {'x0': 0, 'x1': 1, 'x2': 5})
+        new_x = conv.interpret(result.x)
+        np.testing.assert_array_almost_equal(new_x, [0, 1, 5])
 
     def test_optimizationproblem_to_ising(self):
         """ Test optimization problem to operators"""
@@ -487,10 +475,8 @@ class TestConverters(QiskitOptimizationTestCase):
                 params=admm_params,
             )
             result = solver.solve(op)
-            result = converter.interpret(result)
-            self.assertEqual(result.x[0], 10.9)
-            self.assertListEqual(result.variable_names, ['c', 'x'])
-            self.assertDictEqual(result.variables_dict, {'c': 10.9, 'x': 0})
+            new_x = converter.interpret(result.x)
+            self.assertEqual(new_x[0], 10.9)
         except MissingOptionalLibraryError as ex:
             self.skipTest(str(ex))
 
@@ -546,20 +532,15 @@ class TestConverters(QiskitOptimizationTestCase):
         exact = MinimumEigenOptimizer(exact_mes)
         result = exact.solve(qubo)
 
-        decoded_result = lineq2penalty.interpret(result)
-        self.assertEqual(decoded_result.fval, 4)
-        np.testing.assert_array_almost_equal(decoded_result.x, [1, 1, 0])
-        self.assertEqual(decoded_result.status, OptimizationResultStatus.SUCCESS)
-        self.assertListEqual(decoded_result.variable_names, ['x', 'y', 'z'])
-        self.assertDictEqual(decoded_result.variables_dict, {'x': 1.0, 'y': 1.0, 'z': 0.0})
+        decoded_feasible_x = lineq2penalty.interpret(result.x)
+        np.testing.assert_array_almost_equal(decoded_feasible_x, [1, 1, 0])
+        self.assertTrue(qprog.is_feasible(decoded_feasible_x))
 
         infeasible_result = OptimizationResult(x=[1, 1, 1], fval=0, variables=qprog.variables)
-        decoded_infeasible_result = lineq2penalty.interpret(infeasible_result)
-        self.assertEqual(decoded_infeasible_result.fval, 5)
-        np.testing.assert_array_almost_equal(decoded_infeasible_result.x, [1, 1, 1])
-        self.assertEqual(decoded_infeasible_result.status, OptimizationResultStatus.INFEASIBLE)
-        self.assertListEqual(infeasible_result.variable_names, ['x', 'y', 'z'])
-        self.assertDictEqual(infeasible_result.variables_dict, {'x': 1.0, 'y': 1.0, 'z': 1.0})
+        decoded_infeasible_x = lineq2penalty.interpret(infeasible_result.x)
+        np.testing.assert_array_almost_equal(decoded_infeasible_x, [1, 1, 1])
+        self.assertFalse(qprog.is_feasible(decoded_infeasible_x),
+                         OptimizationResultStatus.INFEASIBLE)
 
     def test_empty_problem_deprecated(self):
         """ Test empty problem """

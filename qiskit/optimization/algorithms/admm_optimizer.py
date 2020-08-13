@@ -23,7 +23,8 @@ import numpy as np
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 
 from .minimum_eigen_optimizer import MinimumEigenOptimizer
-from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
+from .optimization_algorithm import (OptimizationAlgorithm, OptimizationResult,
+                                     OptimizationResultStatus)
 from .slsqp_optimizer import SlsqpOptimizer
 from ..problems.constraint import Constraint
 from ..problems.linear_constraint import LinearConstraint
@@ -175,15 +176,16 @@ class ADMMOptimizationResult(OptimizationResult):
     """ ADMMOptimization Result."""
 
     def __init__(self, x: np.ndarray, fval: float, variables: List[Variable],
-                 state: ADMMState) -> None:
+                 state: ADMMState, status: OptimizationResultStatus) -> None:
         """
         Args:
             x: the optimal value found by ADMM.
             fval: the optimal function value.
             variables: the list of variables of the optimization problem.
             state: the internal computation state of ADMM.
+            status: the termination status of the optimization algorithm.
         """
-        super().__init__(x=x, fval=fval, variables=variables, raw_results=state)
+        super().__init__(x=x, fval=fval, variables=variables, raw_results=state, status=status)
 
     @property
     def state(self) -> ADMMState:
@@ -279,7 +281,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # map integer variables to binary variables
         from ..converters.integer_to_binary import IntegerToBinary
         int2bin = IntegerToBinary()
-        original_variables = problem.variables
+        original_problem = problem
         problem = int2bin.convert(problem)
 
         # we deal with minimization in the optimizer, so turn the problem to minimization
@@ -366,14 +368,13 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # flip the objective sign again if required
         objective_value = objective_value * sense
 
-        # convert back integer to binary
-        base_result = OptimizationResult(solution, objective_value, original_variables)
-        base_result = int2bin.interpret(base_result)
-
         # third parameter is our internal state of computations.
-        result = ADMMOptimizationResult(x=base_result.x, fval=base_result.fval,
-                                        variables=base_result.variables,
-                                        state=self._state)
+        new_x = int2bin.interpret(solution)
+        status = OptimizationResultStatus.SUCCESS if original_problem.is_feasible(new_x) \
+            else OptimizationResultStatus.INFEASIBLE
+        result = ADMMOptimizationResult(x=new_x, fval=objective_value,
+                                        variables=original_problem.variables,
+                                        state=self._state, status=status)
 
         # debug
         self._log.debug("solution=%s, objective=%s at iteration=%s",

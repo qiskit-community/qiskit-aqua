@@ -18,8 +18,9 @@ import logging
 import math
 from typing import List, Optional, Union
 
+import numpy as np
+
 from .quadratic_program_converter import QuadraticProgramConverter
-from ..algorithms.optimization_algorithm import OptimizationResult
 from ..exceptions import QiskitOptimizationError
 from ..problems.constraint import Constraint
 from ..problems.quadratic_objective import QuadraticObjective
@@ -341,29 +342,29 @@ class InequalityToEquality(QuadraticProgramConverter):
             )
         return lhs_lb, lhs_ub
 
-    def interpret(self, result: OptimizationResult) -> OptimizationResult:
+    def interpret(self, x: np.ndarray) -> np.ndarray:
         """Convert a result of a converted problem into that of the original problem.
 
         Args:
-            result: The result of the converted problem.
+            x: The result of the converted problem.
 
         Returns:
             The result of the original problem.
+
+        Raises:
+            QiskitOptimizationError: if size of `x` differs from the number of variables.
         """
-        # convert back the optimization result into that of the original problem
-        names = [x.name for x in self._dst.variables]
-        new_x = self._interpret_var(names, result.x)
-        return OptimizationResult(x=new_x, fval=result.fval, variables=self._src.variables,
-                                  raw_results=result.raw_results, status=result.status)
+        if len(x) != self._dst.get_num_vars():
+            raise QiskitOptimizationError(
+                'The size of `x` differs from the the number of variables.'
+                ' size of `x`: {}, num. of vars: {}'.format(len(x), self._dst.get_num_vars())
+            )
 
-    def _interpret_var(self, names, vals) -> List[int]:
-        # interpret slack variables
-        sol = {name: vals[i] for i, name in enumerate(names)}
-
+        sol = {var.name: x[i] for i, var in enumerate(self._dst.variables)}
         new_vals = []
-        for x in self._src.variables:
-            new_vals.append(sol[x.name])
-        return new_vals
+        for var in self._src.variables:
+            new_vals.append(sol[var.name])
+        return np.array(new_vals)
 
     @staticmethod
     def _contains_any_float_value(values: List[Union[int, float]]) -> bool:
