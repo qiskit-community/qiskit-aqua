@@ -107,7 +107,7 @@ def transpositions(permutation: List[int]) -> List[Tuple[int, int]]:
 
     Returns:
         List of transpositions, corresponding to the permutation. For permutation = [3, 0, 2, 1],
-        returns [ (0,1), (0,3) ]
+        returns [(0,1), (0,3)]
     """
     unchecked = [True] * len(permutation)
     cyclic_form = []
@@ -132,4 +132,4 @@ def transpositions(permutation: List[int]) -> List[Tuple[int, int]]:
             first = x[0]
             for y in x[len_x - 1:0:-1]:
                 res.append((first, y))
-    return res
+    return res  # type: ignore
