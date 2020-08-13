@@ -14,9 +14,8 @@
 
 """GroverOptimizer module"""
 
-import copy
 import logging
-from typing import Optional, Dict, Union
+from typing import Optional, Dict, Union, List
 import math
 
 import numpy as np
@@ -28,6 +27,7 @@ from qiskit.aqua.algorithms.amplitude_amplifiers.grover import Grover
 from qiskit.aqua.components.initial_states import Custom
 from qiskit.aqua.components.oracles import CustomCircuitOracle
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
+from ..problems import Variable
 from ..problems.quadratic_program import QuadraticProgram
 from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
 
@@ -259,20 +259,16 @@ class GroverOptimizer(OptimizationAlgorithm):
 
         opt_x = np.array([1 if s == '1' else 0 for s in ('{0:%sb}' % n_key).format(optimum_key)])
 
-        # Build the results object.
-        grover_results = GroverOptimizationRawResult(operation_count, n_key, n_value)
-
         # Compute function value
-        fval = problem.objective.evaluate(opt_x)
-        result = OptimizationResult(x=opt_x, fval=fval, variables=problem.variables,
-                                    raw_results={
-                                        "grover_results": grover_results,
-                                        "qubo_converter": copy.deepcopy(self._qubo_converter)})
+        fval = problem_.objective.evaluate(opt_x)
+        result = OptimizationResult(x=opt_x, fval=fval, variables=problem_.variables)
 
         # cast binaries back to integers
         result = self._qubo_converter.interpret(result)
 
-        return result
+        return GroverOptimizationResult(x=result.x, fval=result.fval, variables=result.variables,
+                                        operation_counts=operation_count, n_input_qubits=n_key,
+                                        n_output_qubits=n_value)
 
     def _measure(self, circuit: QuantumCircuit) -> str:
         """Get probabilities from the given backend, and picks a random outcome."""
@@ -331,17 +327,24 @@ class GroverOptimizer(OptimizationAlgorithm):
         return int_v
 
 
-class GroverOptimizationRawResult:
-    """A raw result object for Grover Optimization methods."""
+class GroverOptimizationResult(OptimizationResult):
+    """A result object for Grover Optimization methods."""
 
-    def __init__(self, operation_counts: Dict[int, Dict[str, int]],
-                 n_input_qubits: int, n_output_qubits: int) -> None:
+    def __init__(self, x: Union[List[float], np.ndarray], fval: float, variables: List[Variable],
+                 operation_counts: Dict[int, Dict[str, int]], n_input_qubits: int,
+                 n_output_qubits: int) -> None:
         """
+        Constructs a result object with the specific Grover properties.
+
         Args:
+            x: The solution of the problem
+            fval: The value of the objective function of the solution
+            variables: A list of variables defined in the problem
             operation_counts: The counts of each operation performed per iteration.
             n_input_qubits: The number of qubits used to represent the input.
             n_output_qubits: The number of qubits used to represent the output.
         """
+        super().__init__(x, fval, variables, None)
         self._operation_counts = operation_counts
         self._n_input_qubits = n_input_qubits
         self._n_output_qubits = n_output_qubits
