@@ -23,7 +23,7 @@ import numpy as np
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 
 from .minimum_eigen_optimizer import MinimumEigenOptimizer
-from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
+from .optimization_algorithm import OptimizationResultStatus, OptimizationAlgorithm, OptimizationResult
 from .slsqp_optimizer import SlsqpOptimizer
 from ..problems.constraint import Constraint
 from ..problems.linear_constraint import LinearConstraint
@@ -371,6 +371,13 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         # convert back integer to binary
         result = cast(ADMMOptimizationResult, int2bin.decode(result))
+
+        # check for feasibility
+        if QuadraticProgram.is_feasible(problem, result.x):
+            result.status = OptimizationResultStatus.SUCCESS
+        else:
+            result.status = OptimizationResultStatus.INFEASIBLE
+
         # debug
         self._log.debug("solution=%s, objective=%s at iteration=%s",
                         solution, objective_value, iteration)

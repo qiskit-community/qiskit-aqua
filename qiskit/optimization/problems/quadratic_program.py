@@ -14,11 +14,12 @@
 
 """Quadratic Program."""
 
+import numpy as np
 from typing import cast, List, Union, Dict, Optional, Tuple
 import logging
 from collections import defaultdict
 from enum import Enum
-from math import fsum
+from math import fsum, isclose
 
 from docplex.mp.constr import (LinearConstraint as DocplexLinearConstraint,
                                QuadraticConstraint as DocplexQuadraticConstraint,
@@ -850,6 +851,62 @@ class QuadraticProgram:
                 - Coefficient of variable substitution is zero.
         """
         return SubstituteVariables().substitute_variables(self, constants, variables)
+
+
+    def is_feasible(self, x: Union[List[float], np.ndarray], detailed = False) -> bool:
+
+        satisfied_variables = []
+        for i, v in enumerate(x):    
+            variable = self.get_variable(i)
+            if variable._lowerbound <= v <= variable._upperbound :
+                satisfied_variables.append(True)
+                # print(f'{variable._name} is within the bounds') 
+            else :
+                satisfied_variables.append(False)
+                # print(f'{variable._name} is outside the bounds')
+
+        satisfied_linear_constraints = []
+        for constraint in self._linear_constraints:
+            lhs = constraint.evaluate(x)
+            if constraint.sense == ConstraintSense.LE:
+                satisfied_linear_constraints.append(lhs <= constraint.rhs)
+            elif constraint.sense == ConstraintSense.GE:
+                satisfied_linear_constraints.append(lhs >= constraint.rhs)
+            elif constraint.sense == ConstraintSense.EQ:
+                satisfied_linear_constraints.append(isclose(lhs, constraint.rhs))
+            else:
+                raise QiskitOptimizationError("Invalid sense!")
+
+        satisfied_quadratic_constraints = []    
+        for constraint in self._quadratic_constraints:
+            lhs = constraint.evaluate(x)
+            if constraint.sense == ConstraintSense.LE:
+                satisfied_quadratic_constraints.append(lhs <= constraint.rhs)
+            elif constraint.sense == ConstraintSense.GE:
+                satisfied_quadratic_constraints.append(lhs >= constraint.rhs)
+            elif constraint.sense == ConstraintSense.EQ:
+                satisfied_quadratic_constraints.append(isclose(lhs, constraint.rhs))
+            else:
+                raise QiskitOptimizationError("Invalid sense!")
+            
+            
+        if(detailed == True):
+
+            for i in range(len(satisfied_variables)):
+                (print(f'{self.get_variable(i)._name} is within the bounds') if satisfied_variables[i]
+                else logger.warning(f'{self.get_variable(i)._name} is outside the bounds'))
+
+            for i in range(len(satisfied_linear_constraints)):
+                (print(f'{self.get_linear_constraint(i).name} is statisfied') if satisfied_linear_constraints[i] 
+                else logger.warning(f'{self.get_linear_constraint(i).name} is not statisfied'))
+
+            for i in range(len(satisfied_quadratic_constraints)):
+                (print(f'{self.get_quadratic_constraint(i).name} is statisfied') if satisfied_linear_constraints[i] 
+                else logger.warning(f'{self.get_quadratic_constraint(i).name} is not statisfied'))
+
+        return (np.sum(satisfied_variables) == len(self._variables) and
+            np.sum(satisfied_linear_constraints) == len(self._linear_constraints) and 
+        np.sum(satisfied_quadratic_constraints) == len(self._quadratic_constraints))
 
 
 class SubstituteVariables:
