@@ -1,0 +1,418 @@
+# This code is part of Qiskit.
+#
+# (C) Copyright IBM 2020.
+#
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
+#
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
+
+name: Aqua Unit Tests
+
+on:
+  push:
+    branches:
+      - master
+      - 'stable/**'
+  pull_request:
+    branches:
+      - master
+      - 'stable/**'
+
+jobs:
+  Checks:
+    runs-on: ubuntu-16.04
+    strategy:
+      matrix:
+        python-version: [3.7]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: ./.github/actions/install-libraries
+      - uses: ./.github/actions/install-master-dependencies
+        if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
+      - uses: ./.github/actions/install-aqua
+      - name: Install Dependencies
+        run: |
+          sudo apt-get -y install python3-enchant
+          sudo apt-get -y install hunspell-en-us
+          pip install pyenchant
+          pip install cplex
+          pip install "cvxpy>1.0.0"
+          pip install https://github.com/rpmuller/pyquante2/archive/master.zip --progress-bar off
+        shell: bash
+      - name: terminate if failure above
+        run: exit 1
+        if: ${{ !success() }}
+        shell: bash
+      - run:  pip check
+        if: ${{ !cancelled() }}
+        shell: bash
+      - run:  make copyright
+        if: ${{ !cancelled() }}
+        shell: bash
+      - run:  make spell
+        if: ${{ !cancelled() }}
+        shell: bash
+      - run:  make style
+        if: ${{ !cancelled() }}
+        shell: bash
+      - run:  make lint
+        if: ${{ !cancelled() }}
+        shell: bash
+      - name: run make lint latest version
+        run: |
+          pip install -U pylint
+          make lint
+        if: ${{ !cancelled() }}
+        shell: bash
+      - run:  make html SPHINXOPTS=-W
+        if: ${{ !cancelled() }}
+        shell: bash
+      - run:  make doctest
+        if: ${{ !cancelled() }}
+        shell: bash
+  Lint:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.8]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: ./.github/actions/install-libraries
+      - uses: ./.github/actions/install-master-dependencies
+        if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
+      - uses: ./.github/actions/install-aqua
+      - name: Install Dependencies
+        run: |
+          pip install "cvxpy>1.0.0"
+          pip install https://github.com/rpmuller/pyquante2/archive/master.zip --progress-bar off
+      - name: terminate if failure above
+        run: exit 1
+        if: ${{ !success() }}
+        shell: bash
+      - run: make lint
+        if: ${{ !cancelled() }}
+        shell: bash
+      - name: run make lint latest version
+        run: |
+          pip install -U pylint
+          make lint
+        if: ${{ !cancelled() }}
+        shell: bash
+  Mypy:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.5]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: ./.github/actions/install-libraries
+      - uses: ./.github/actions/install-master-dependencies
+        if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
+      - uses: ./.github/actions/install-aqua
+      - name: Mypy under Python ${{ matrix.python-version }}
+        run: |
+          pip install cplex
+          make mypy
+        shell: bash
+  Aqua:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7, 3.8]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: ./.github/actions/install-libraries
+      - uses: ./.github/actions/install-master-dependencies
+        if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
+      - uses: ./.github/actions/install-aqua
+      - name: Install Dependencies
+        run: pip install "cvxpy>1.0.0"
+        shell: bash
+      - name: Install cplex
+        run: pip install cplex
+        if: ${{ matrix.python-version == 3.7 }}
+        shell: bash
+      - name: Aqua Unit Tests under Python ${{ matrix.python-version }}
+        uses: ./.github/actions/run-tests
+        with:
+          domain: aqua
+          python-version: ${{ matrix.python-version }}
+      - name: Deprecation Messages
+        run: |
+          mkdir ./a${{ matrix.python-version }}
+          python tools/extract_deprecation.py -file out.txt -output ./a${{ matrix.python-version }}/aqua.dep
+        shell: bash
+      - name: Coverage combine
+        run: |
+          coverage3 combine
+          mv .coverage ./a${{ matrix.python-version }}/aqua.dat
+        if: ${{ matrix.python-version == 3.7 }}
+        shell: bash
+      - uses: actions/upload-artifact@v2
+        with:
+          name: aqua${{ matrix.python-version }}
+          path: ./a${{ matrix.python-version }}/*
+  Chemistry:
+    runs-on: ubuntu-16.04
+    strategy:
+      matrix:
+        python-version: [3.7, 3.8]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: ./.github/actions/install-psi4
+        if: ${{ matrix.python-version == 3.7 }}
+      - uses: ./.github/actions/install-libraries
+      - uses: ./.github/actions/install-master-dependencies
+        if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
+      - uses: ./.github/actions/install-aqua
+      - name: Install Dependencies
+        run: |
+          if [ -f "$HOME/miniconda/etc/profile.d/conda.sh" ]; then
+            source "$HOME/miniconda/etc/profile.d/conda.sh"
+            conda activate
+          fi
+          sudo apt-get -y update
+          sudo apt-get -y install libgfortran5
+          pip install https://github.com/rpmuller/pyquante2/archive/master.zip --progress-bar off
+          pip install pyscf
+        shell: bash
+      - name: Install cplex
+        run: |
+          if [ -f "$HOME/miniconda/etc/profile.d/conda.sh" ]; then
+            source "$HOME/miniconda/etc/profile.d/conda.sh"
+            conda activate
+          fi
+          pip install cplex
+        if: ${{ matrix.python-version == 3.7 }}
+        shell: bash
+      - name: Chemistry Unit Tests under Python ${{ matrix.python-version }}
+        env: 
+          OPENBLAS_NUM_THREADS: 1
+        uses: ./.github/actions/run-tests
+        with:
+          domain: chemistry
+          python-version: ${{ matrix.python-version }}
+      - name: Deprecation Messages
+        run: |
+          mkdir ./c${{ matrix.python-version }}
+          python tools/extract_deprecation.py -file out.txt -output ./c${{ matrix.python-version }}/chem.dep
+        shell: bash
+      - name: Coverage combine
+        run: |
+          if [ -f "$HOME/miniconda/etc/profile.d/conda.sh" ]; then
+            source "$HOME/miniconda/etc/profile.d/conda.sh"
+            conda activate
+          fi
+          coverage3 combine
+          mv .coverage ./c${{ matrix.python-version }}/chem.dat
+        if: ${{ matrix.python-version == 3.7 }}
+        shell: bash
+      - uses: actions/upload-artifact@v2
+        with:
+          name: chemistry${{ matrix.python-version }}
+          path: ./c${{ matrix.python-version }}/*
+  Finance:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7, 3.8]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: ./.github/actions/install-libraries
+      - uses: ./.github/actions/install-master-dependencies
+        if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
+      - uses: ./.github/actions/install-aqua
+      - name: Install cplex
+        run: pip install cplex
+        if: ${{ matrix.python-version == 3.7 }}
+        shell: bash
+      - name: Finance Unit Tests under Python ${{ matrix.python-version }}
+        uses: ./.github/actions/run-tests
+        with:
+          domain: finance
+          python-version: ${{ matrix.python-version }}
+      - name: Deprecation Messages
+        run: |
+          mkdir ./f${{ matrix.python-version }}
+          python tools/extract_deprecation.py -file out.txt -output ./f${{ matrix.python-version }}/fin.dep
+        shell: bash
+      - name: Coverage combine
+        run: |
+          coverage3 combine
+          mv .coverage ./f${{ matrix.python-version }}/fin.dat
+        if: ${{ matrix.python-version == 3.7 }}
+        shell: bash
+      - uses: actions/upload-artifact@v2
+        with:
+          name: finance${{ matrix.python-version }}
+          path: ./f${{ matrix.python-version }}/*
+  MachineLearning:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7, 3.8]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: ./.github/actions/install-libraries
+      - uses: ./.github/actions/install-master-dependencies
+        if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
+      - uses: ./.github/actions/install-aqua
+      - name: Install cplex
+        run: pip install cplex
+        if: ${{ matrix.python-version == 3.7 }}
+        shell: bash
+      - name: Machine Learning Unit Tests under Python ${{ matrix.python-version }}
+        uses: ./.github/actions/run-tests
+        with:
+          domain: ml
+          python-version: ${{ matrix.python-version }}
+      - name: Deprecation Messages
+        run: |
+          mkdir ./m${{ matrix.python-version }}
+          python tools/extract_deprecation.py -file out.txt -output ./m${{ matrix.python-version }}/ml.dep
+        shell: bash
+      - name: Coverage combine
+        run: |
+          coverage3 combine
+          mv .coverage ./m${{ matrix.python-version }}/ml.dat
+        if: ${{ matrix.python-version == 3.7 }}
+        shell: bash
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ml${{ matrix.python-version }}
+          path: ./m${{ matrix.python-version }}/*
+  Optimization:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7, 3.8]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: ./.github/actions/install-libraries
+      - uses: ./.github/actions/install-master-dependencies
+        if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
+      - uses: ./.github/actions/install-aqua
+      - name: Install cplex
+        run: pip install cplex
+        if: ${{ matrix.python-version == 3.7 }}
+        shell: bash
+      - name: Optimization Unit Tests under Python ${{ matrix.python-version }}
+        uses: ./.github/actions/run-tests
+        with:
+          domain: optimization
+          python-version: ${{ matrix.python-version }}
+      - name: Deprecation Messages
+        run: |
+          mkdir ./o${{ matrix.python-version }}
+          python tools/extract_deprecation.py -file out.txt -output ./o${{ matrix.python-version }}/opt.dep
+        shell: bash
+      - name: Coverage combine
+        run: |
+          coverage3 combine
+          mv .coverage ./o${{ matrix.python-version }}/opt.dat
+        if: ${{ matrix.python-version == 3.7 }}
+        shell: bash
+      - uses: actions/upload-artifact@v2
+        with:
+          name: optimization${{ matrix.python-version }}
+          path: ./o${{ matrix.python-version }}/*
+  Deprecation_Messages_and_Coverage:
+    needs: [Checks, Lint, Mypy, Aqua, Chemistry, Finance, MachineLearning, Optimization]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.7]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: actions/download-artifact@v2
+        with:
+          name: aqua3.7
+          path: /tmp/a37
+      - uses: actions/download-artifact@v2
+        with:
+          name: aqua3.8
+          path: /tmp/a38
+      - uses: actions/download-artifact@v2
+        with:
+          name: chemistry3.7
+          path: /tmp/c37
+      - uses: actions/download-artifact@v2
+        with:
+          name: chemistry3.8
+          path: /tmp/c38
+      - uses: actions/download-artifact@v2
+        with:
+          name: finance3.7
+          path: /tmp/f37
+      - uses: actions/download-artifact@v2
+        with:
+          name: finance3.8
+          path: /tmp/f38
+      - uses: actions/download-artifact@v2
+        with:
+          name: ml3.7
+          path: /tmp/m37
+      - uses: actions/download-artifact@v2
+        with:
+          name: ml3.8
+          path: /tmp/m38
+      - uses: actions/download-artifact@v2
+        with:
+          name: optimization3.7
+          path: /tmp/o37
+      - uses: actions/download-artifact@v2
+        with:
+          name: optimization3.8
+          path: /tmp/o38
+      - name: Install Dependencies
+        run: pip install -U coverage coveralls diff-cover
+        shell: bash
+      - name: Combined Deprecation Messages
+        run: |
+          sort -f -u /tmp/a37/aqua.dep /tmp/a38/aqua.dep /tmp/c37/chem.dep /tmp/c38/chem.dep /tmp/f37/fin.dep /tmp/f38/fin.dep /tmp/m37/ml.dep /tmp/m38/ml.dep /tmp/o37/opt.dep /tmp/o38/opt.dep || true
+        shell: bash
+      - name: Coverage combine
+        run: coverage3 combine /tmp/a37/aqua.dat /tmp/c37/chem.dat /tmp/f37/fin.dat /tmp/m37/ml.dat /tmp/o37/opt.dat
+        shell: bash
+      - name: Upload to Coveralls
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: coveralls || true
+        shell: bash
+      - run: coverage3 xml
+        shell: bash
+      - run: diff-cover --compare-branch master coverage.xml || true
+        shell: bash
