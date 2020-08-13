@@ -15,8 +15,8 @@
 
 """The CPLEX optimizer wrapped to be used within Qiskit's optimization module."""
 
-from typing import Optional
 import logging
+from typing import Optional
 
 from .optimization_algorithm import OptimizationResultStatus, OptimizationAlgorithm, OptimizationResult
 from ..exceptions import QiskitOptimizationError
@@ -24,12 +24,11 @@ from ..problems.quadratic_program import QuadraticProgram
 
 logger = logging.getLogger(__name__)
 
-_HAS_CPLEX = False
 try:
     from cplex.exceptions import CplexSolverError
     _HAS_CPLEX = True
 except ImportError:
-    logger.info('CPLEX is not installed.')
+    _HAS_CPLEX = False
 
 
 class CplexOptimizer(OptimizationAlgorithm):
@@ -54,10 +53,13 @@ class CplexOptimizer(OptimizationAlgorithm):
             disp: Whether to print CPLEX output or not.
 
         Raises:
-            NameError: CPLEX is not installed.
+            MissingOptionalLibraryError: CPLEX is not installed.
         """
         if not _HAS_CPLEX:
-            raise NameError('CPLEX is not installed.')
+            raise MissingOptionalLibraryError(
+                libname='CPLEX',
+                name='CplexOptimizer',
+                pip_install='pip install qiskit-aqua[cplex]')
 
         self._disp = disp
 
@@ -142,7 +144,6 @@ class CplexOptimizer(OptimizationAlgorithm):
 
         # create results
         result = OptimizationResult(x=sol.get_values(),
-                                    variables=problem.variables,
                                     fval=sol.get_objective_value(),
                                     results=sol,
                                     status=status)

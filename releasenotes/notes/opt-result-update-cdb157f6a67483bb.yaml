@@ -1,0 +1,28 @@
+features:
+  - |
+    ``MinimumEigenOptimizationResult`` now exposes properties: ``samples`` and
+    ``eigensolver_result``. The latter is obtained from the underlying algorithm used by the
+    optimizer and specific to the algorithm.
+    ``RecursiveMinimumEigenOptimizer`` now returns an instance of the result class
+    ``RecursiveMinimumEigenOptimizationResult`` which in turn may contains intermediate results
+    obtained from the underlying algorithms. The dedicated result class exposes properties
+    ``replacements`` and ``history`` that are specific to this optimizer. The depth of the history
+    is managed by the ``history`` parameter of the optimizer.
+  - |
+    ``GroverOptimizer`` now returns an instance of ``GroverOptimizationResult`` and this result
+    class exposes properties ``operation_counts``, ``n_input_qubits``, and ``n_output_qubits``
+    directly. These properties are not available in the ``raw_results`` dictionary anymore.
+  - |
+    ``SlsqpOptimizer`` now returns an instance of ``SlsqpOptimizationResult`` and this result class
+    exposes additional properties specific to the SLSQP implementation.
+fixes:
+  - |
+    ``OptimizationResult`` included some public setters and class variables
+    were ``Optional``. This fix makes all class variables read-only so that
+    mypy and pylint can check types more effectively.
+    ``MinimumEigenOptimizer.solve`` generated bitstrings in a result as ``str``.
+    This fix changed the result into ``List[float]`` as the other algorithms do.
+    Some public classes related to optimization algorithms were missing in
+    the documentation of ``qiskit.optimization.algorithms``. This fix added
+    all such classes to the docstring.
+    `#1131 <https://github.com/Qiskit/qiskit-aqua/issues/1131>` for more details.

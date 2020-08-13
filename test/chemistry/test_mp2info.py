@@ -69,6 +69,18 @@ class TestMP2Info(QiskitChemistryTestCase):
         np.testing.assert_array_almost_equal([-0.0010006159224579285, -0.009218577508137853],
                                              e_deltas, decimal=6)
 
+    def test_mp2_h2(self):
+        """ Just one double excitation expected - see issue 1151 """
+        driver = PySCFDriver(atom="H 0 0 0; H 0 0 0.7", unit=UnitsType.ANGSTROM,
+                             charge=0, spin=0, basis='sto3g')
+        molecule = driver.run()
+
+        mp2info = MP2Info(molecule)
+        terms = mp2info.mp2_terms()
+        self.assertEqual(1, len(terms.keys()))
+        np.testing.assert_array_almost_equal([-0.06834019757197064, -0.012232934733533095],
+                                             terms['0_1_2_3'], decimal=6)
+
 
 if __name__ == '__main__':
     unittest.main()

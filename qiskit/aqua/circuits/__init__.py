@@ -40,11 +40,6 @@ Circuits
     ESOP
     PhaseEstimationCircuit
     StateVectorCircuit
-    FourierTransformCircuits
-    FixedValueComparator
-    LinearRotation
-    PiecewiseLinearRotation
-    PolynomialRotation
     WeightedSumOperator
 
 """
@@ -52,11 +47,6 @@ Circuits
 from .boolean_logical_circuits import CNF, DNF, ESOP
 from .phase_estimation_circuit import PhaseEstimationCircuit
 from .statevector_circuit import StateVectorCircuit
-from .fourier_transform_circuits import FourierTransformCircuits
-from .fixed_value_comparator import FixedValueComparator
-from .linear_rotation import LinearRotation
-from .piecewise_linear_rotation import PiecewiseLinearRotation
-from .polynomial_rotation import PolynomialRotation
 from .weighted_sum_operator import WeightedSumOperator
 
 __all__ = [
@@ -65,10 +55,5 @@ __all__ = [
     'ESOP',
     'PhaseEstimationCircuit',
     'StateVectorCircuit',
-    'FourierTransformCircuits',
-    'FixedValueComparator',
-    'LinearRotation',
-    'PiecewiseLinearRotation',
-    'PolynomialRotation',
     'WeightedSumOperator'
 ]

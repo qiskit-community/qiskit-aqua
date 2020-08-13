@@ -14,21 +14,17 @@
 
 """Test of ExcitationPreserving from the circuit library."""
 
-import warnings
 from test.chemistry import QiskitChemistryTestCase
-from ddt import ddt, data
 from qiskit import BasicAer
 from qiskit.circuit.library import ExcitationPreserving
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms import VQE
 from qiskit.aqua.components.optimizers import SLSQP
-from qiskit.aqua.components.variational_forms import SwapRZ
 from qiskit.chemistry.components.initial_states import HartreeFock
 from qiskit.chemistry.drivers import HDF5Driver
 from qiskit.chemistry.core import Hamiltonian, QubitMappingType
 
 
-@ddt
 class TestExcitationPreserving(QiskitChemistryTestCase):
     """The ExcitationPresering wavefunction was design to preserve the excitation of the system.
 
@@ -43,8 +39,7 @@ class TestExcitationPreserving(QiskitChemistryTestCase):
         aqua_globals.random_seed = self.seed
         self.reference_energy = -1.137305593252385
 
-    @data('library', 'component')
-    def test_excitation_preserving(self, mode):
+    def test_excitation_preserving(self):
         """Test the excitation preserving wavefunction on a chemistry example."""
 
         driver = HDF5Driver(self.get_resource_path('test_driver_hdf5.hdf5'))
@@ -59,14 +54,8 @@ class TestExcitationPreserving(QiskitChemistryTestCase):
                                     qubit_mapping=operator._qubit_mapping,
                                     two_qubit_reduction=operator._two_qubit_reduction)
 
-        if mode == 'component':
-            warnings.filterwarnings('ignore', category=DeprecationWarning)
-            wavefunction = SwapRZ(qubit_op.num_qubits, initial_state=initial_state)
-        else:
-            wavefunction = ExcitationPreserving(qubit_op.num_qubits, initial_state=initial_state)
+        wavefunction = ExcitationPreserving(qubit_op.num_qubits, initial_state=initial_state)
         algo = VQE(qubit_op, wavefunction, optimizer)
-        if mode == 'component':
-            warnings.filterwarnings('always', category=DeprecationWarning)
 
         result = algo.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),
                                           seed_simulator=aqua_globals.random_seed,

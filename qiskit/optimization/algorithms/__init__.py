@@ -28,34 +28,48 @@ Base class
    :nosignatures:
 
    OptimizationAlgorithm
+   MultiStartOptimizer
 
-Algorithms
-==========
+Algorithms and results
+======================
 
 .. autosummary::
    :toctree: ../stubs/
    :nosignatures:
 
+   ADMMOptimizationResult
    ADMMOptimizer
+   ADMMParameters
+   ADMMState
    CobylaOptimizer
    CplexOptimizer
+   GroverOptimizationResult
    GroverOptimizer
+   MinimumEigenOptimizationResult
    MinimumEigenOptimizer
+   OptimizationResult
+   OptimizationResultStatus
+   RecursiveMinimumEigenOptimizationResult
    RecursiveMinimumEigenOptimizer
+   SlsqpOptimizationResult
    SlsqpOptimizer
 
 """
 
-from .optimization_algorithm import OptimizationResult
-from .optimization_algorithm import OptimizationAlgorithm
-from .admm_optimizer import ADMMOptimizer
-from .cplex_optimizer import CplexOptimizer
+from .admm_optimizer import ADMMOptimizer, ADMMOptimizationResult, ADMMState, ADMMParameters
 from .cobyla_optimizer import CobylaOptimizer
-from .minimum_eigen_optimizer import MinimumEigenOptimizer
-from .recursive_minimum_eigen_optimizer import RecursiveMinimumEigenOptimizer
-from .grover_optimizer import GroverOptimizer, GroverOptimizationResults
-from .slsqp_optimizer import SlsqpOptimizer
+from .cplex_optimizer import CplexOptimizer
+from .grover_optimizer import GroverOptimizer, GroverOptimizationResult
+from .minimum_eigen_optimizer import MinimumEigenOptimizer, MinimumEigenOptimizationResult
+from .multistart_optimizer import MultiStartOptimizer
+from .optimization_algorithm import (OptimizationAlgorithm, OptimizationResult,
+                                     OptimizationResultStatus)
+from .recursive_minimum_eigen_optimizer import (RecursiveMinimumEigenOptimizer,
+                                                RecursiveMinimumEigenOptimizationResult)
+from .slsqp_optimizer import SlsqpOptimizer, SlsqpOptimizationResult
 
 __all__ = ["ADMMOptimizer", "OptimizationAlgorithm", "OptimizationResult", "CplexOptimizer",
-           "CobylaOptimizer", "MinimumEigenOptimizer", "RecursiveMinimumEigenOptimizer",
-           "GroverOptimizer", "GroverOptimizationResults", "SlsqpOptimizer"]
+           "CobylaOptimizer", "MinimumEigenOptimizer", "MinimumEigenOptimizationResult",
+           "RecursiveMinimumEigenOptimizer", "RecursiveMinimumEigenOptimizationResult",
+           "GroverOptimizer", "GroverOptimizationResult", "SlsqpOptimizer",
+           "SlsqpOptimizationResult"]
