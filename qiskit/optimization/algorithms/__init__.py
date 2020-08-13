@@ -43,13 +43,15 @@ Algorithms and results
    ADMMState
    CobylaOptimizer
    CplexOptimizer
-   GroverOptimizationRawResult
+   GroverOptimizationResult
    GroverOptimizer
-   MinimumEigenOptimizerResult
+   MinimumEigenOptimizationResult
    MinimumEigenOptimizer
    OptimizationResult
    OptimizationResultStatus
+   RecursiveMinimumEigenOptimizationResult
    RecursiveMinimumEigenOptimizer
+   SlsqpOptimizationResult
    SlsqpOptimizer
 
 """
@@ -57,14 +59,17 @@ Algorithms and results
 from .admm_optimizer import ADMMOptimizer, ADMMOptimizationResult, ADMMState, ADMMParameters
 from .cobyla_optimizer import CobylaOptimizer
 from .cplex_optimizer import CplexOptimizer
-from .grover_optimizer import GroverOptimizer, GroverOptimizationRawResult
-from .minimum_eigen_optimizer import MinimumEigenOptimizer, MinimumEigenOptimizerResult
+from .grover_optimizer import GroverOptimizer, GroverOptimizationResult
+from .minimum_eigen_optimizer import MinimumEigenOptimizer, MinimumEigenOptimizationResult
 from .multistart_optimizer import MultiStartOptimizer
 from .optimization_algorithm import (OptimizationAlgorithm, OptimizationResult,
                                      OptimizationResultStatus)
-from .recursive_minimum_eigen_optimizer import RecursiveMinimumEigenOptimizer
-from .slsqp_optimizer import SlsqpOptimizer
+from .recursive_minimum_eigen_optimizer import (RecursiveMinimumEigenOptimizer,
+                                                RecursiveMinimumEigenOptimizationResult)
+from .slsqp_optimizer import SlsqpOptimizer, SlsqpOptimizationResult
 
 __all__ = ["ADMMOptimizer", "OptimizationAlgorithm", "OptimizationResult", "CplexOptimizer",
-           "CobylaOptimizer", "MinimumEigenOptimizer", "RecursiveMinimumEigenOptimizer",
-           "GroverOptimizer", "GroverOptimizationRawResult", "SlsqpOptimizer"]
+           "CobylaOptimizer", "MinimumEigenOptimizer", "MinimumEigenOptimizationResult",
+           "RecursiveMinimumEigenOptimizer", "RecursiveMinimumEigenOptimizationResult",
+           "GroverOptimizer", "GroverOptimizationResult", "SlsqpOptimizer",
+           "SlsqpOptimizationResult"]
