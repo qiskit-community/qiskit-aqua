@@ -24,7 +24,6 @@ from qiskit.circuit import ParameterExpression, Instruction
 from ..operator_base import OperatorBase
 from ..primitive_ops.primitive_op import PrimitiveOp
 from ..primitive_ops.matrix_op import MatrixOp
-from ..primitive_ops.pauli_op import PauliOp  # pylint: disable=cyclic-import
 from ..list_ops import ListOp
 from ..list_ops.summed_op import SummedOp
 from ..list_ops.composed_op import ComposedOp
