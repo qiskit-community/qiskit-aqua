@@ -25,7 +25,6 @@ from .list_op import ListOp
 from ..legacy.base_operator import LegacyBaseOperator
 from ..legacy.weighted_pauli_operator import WeightedPauliOperator
 from ..operator_base import OperatorBase
-from ..primitive_ops.primitive_op import PrimitiveOp
 from ... import AquaError
 
 
@@ -91,6 +90,7 @@ class SummedOp(ListOp):
         Returns:
             A simplified ``SummedOp`` equivalent to self.
         """
+        from qiskit.aqua.operators import PrimitiveOp
         oplist = []  # type: List[OperatorBase]
         coeffs = []  # type: List[Union[int, float, complex, ParameterExpression]]
         for op in self.oplist:

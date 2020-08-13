@@ -23,7 +23,6 @@ from qiskit.circuit import ParameterExpression
 
 from ..operator_base import OperatorBase
 from .list_op import ListOp
-from ..primitive_ops.primitive_op import PrimitiveOp
 from ..state_fns.state_fn import StateFn
 from ..state_fns.circuit_state_fn import CircuitStateFn
 from ... import AquaError
@@ -75,6 +74,7 @@ class ComposedOp(ListOp):
         Raises:
             AquaError: for operators where a single underlying circuit can not be obtained.
         """
+        from qiskit.aqua.operators import PrimitiveOp
         circuit_op = self.to_circuit_op()
         if isinstance(circuit_op, (PrimitiveOp, CircuitStateFn)):
             return circuit_op.to_circuit()
