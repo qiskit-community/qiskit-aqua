@@ -18,6 +18,7 @@ import unittest
 from os import path
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 from ddt import ddt, data
+from qiskit.aqua import MissingOptionalLibraryError
 from qiskit.optimization.algorithms import CplexOptimizer
 from qiskit.optimization.problems import QuadraticProgram
 
@@ -30,7 +31,7 @@ class TestCplexOptimizer(QiskitOptimizationTestCase):
         super().setUp()
         try:
             self.cplex_optimizer = CplexOptimizer(disp=False)
-        except NameError as ex:
+        except MissingOptionalLibraryError as ex:
             self.skipTest(str(ex))
 
     @data(
