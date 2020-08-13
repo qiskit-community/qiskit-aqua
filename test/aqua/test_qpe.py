@@ -15,7 +15,6 @@
 """ Test QPE """
 
 import unittest
-import warnings
 from test.aqua import QiskitAquaTestCase
 import numpy as np
 from ddt import ddt, data, unpack
@@ -28,7 +27,6 @@ from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.aqua.algorithms import QPE
 from qiskit.circuit.library import QFT
 from qiskit.aqua.components.initial_states import Custom
-from qiskit.aqua.components.iqfts import Standard
 
 # pylint: disable=invalid-name
 
@@ -71,29 +69,6 @@ class TestQPE(QiskitAquaTestCase):
             'QUBIT_OP_ZZ': qubit_op_zz.to_opflow(),
             'QUBIT_OP_H2_WITH_2_QUBIT_REDUCTION': qubit_op_h2_with_2_qubit_reduction.to_opflow()
         }
-
-    def test_deprecated_qft(self):
-        """Test the QPE algorithm on the deprecated QFT component."""
-        qubit_op = self._dict['QUBIT_OP_SIMPLE']
-        exact_eigensolver = NumPyMinimumEigensolver(qubit_op)
-        results = exact_eigensolver.run()
-        ref_eigenval = results.eigenvalue
-        ref_eigenvec = results.eigenstate
-        state_in = Custom(qubit_op.num_qubits, state_vector=ref_eigenvec)
-
-        warnings.filterwarnings('ignore', category=DeprecationWarning)
-        iqft = Standard(5)
-        qpe = QPE(qubit_op, state_in, iqft, num_time_slices=1, num_ancillae=5,
-                  expansion_mode='suzuki', expansion_order=2,
-                  shallow_circuit_concat=True)
-
-        backend = BasicAer.get_backend('qasm_simulator')
-        quantum_instance = QuantumInstance(backend, shots=100, seed_transpiler=1, seed_simulator=1)
-
-        # run qpe
-        result = qpe.run(quantum_instance)
-        warnings.filterwarnings('always', category=DeprecationWarning)
-        self.assertAlmostEqual(result.eigenvalue.real, ref_eigenval.real, delta=2e-2)
 
     @data(
         ('QUBIT_OP_SIMPLE', 'qasm_simulator', 1, 5),

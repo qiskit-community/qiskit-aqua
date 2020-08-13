@@ -16,7 +16,9 @@
 
 import unittest
 from os import path
+
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
+from qiskit.optimization.algorithms.recursive_minimum_eigen_optimizer import IntermediateResult
 
 from qiskit.aqua import MissingOptionalLibraryError
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
@@ -55,6 +57,60 @@ class TestRecursiveMinEigenOptimizer(QiskitOptimizationTestCase):
 
             # analyze results
             self.assertAlmostEqual(cplex_result.fval, result.fval)
+        except MissingOptionalLibraryError as ex:
+            self.skipTest(str(ex))
+
+    def test_min_eigen_optimizer_history(self):
+        """Tests different options for history."""
+        try:
+            filename = 'op_ip1.lp'
+            # load optimization problem
+            problem = QuadraticProgram()
+            lp_file = self.get_resource_path(path.join('resources', filename))
+            problem.read_from_lp_file(lp_file)
+
+            # get minimum eigen solver
+            min_eigen_solver = NumPyMinimumEigensolver()
+
+            # construct minimum eigen optimizer
+            min_eigen_optimizer = MinimumEigenOptimizer(min_eigen_solver)
+
+            # no history
+            recursive_min_eigen_optimizer = \
+                RecursiveMinimumEigenOptimizer(min_eigen_optimizer,
+                                               min_num_vars=4,
+                                               history=IntermediateResult.NO_ITERATIONS)
+            result = recursive_min_eigen_optimizer.solve(problem)
+            self.assertIsNotNone(result.replacements)
+            self.assertIsNotNone(result.history)
+            self.assertIsNotNone(result.history[0])
+            self.assertEqual(len(result.history[0]), 0)
+            self.assertIsNone(result.history[1])
+
+            # only last iteration in the history
+            recursive_min_eigen_optimizer = \
+                RecursiveMinimumEigenOptimizer(min_eigen_optimizer,
+                                               min_num_vars=4,
+                                               history=IntermediateResult.LAST_ITERATION)
+            result = recursive_min_eigen_optimizer.solve(problem)
+            self.assertIsNotNone(result.replacements)
+            self.assertIsNotNone(result.history)
+            self.assertIsNotNone(result.history[0])
+            self.assertEqual(len(result.history[0]), 0)
+            self.assertIsNotNone(result.history[1])
+
+            # full history
+            recursive_min_eigen_optimizer = \
+                RecursiveMinimumEigenOptimizer(min_eigen_optimizer,
+                                               min_num_vars=4,
+                                               history=IntermediateResult.ALL_ITERATIONS)
+            result = recursive_min_eigen_optimizer.solve(problem)
+            self.assertIsNotNone(result.replacements)
+            self.assertIsNotNone(result.history)
+            self.assertIsNotNone(result.history[0])
+            self.assertGreater(len(result.history[0]), 1)
+            self.assertIsNotNone(result.history[1])
+
         except MissingOptionalLibraryError as ex:
             self.skipTest(str(ex))
 

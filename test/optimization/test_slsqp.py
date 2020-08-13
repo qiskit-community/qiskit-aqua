@@ -42,6 +42,26 @@ class TestSlsqpOptimizer(QiskitOptimizationTestCase):
 
         self.assertAlmostEqual(result.fval, 5.8750)
 
+    def test_slsqp_optimizer_full_output(self):
+        """ Generic SLSQP Optimizer Test. """
+
+        problem = QuadraticProgram()
+        problem.continuous_var(upperbound=4)
+        problem.continuous_var(upperbound=4)
+        problem.linear_constraint(linear=[1, 1], sense='=', rhs=2)
+        problem.minimize(linear=[2, 2], quadratic=[[2, 0.25], [0.25, 0.5]])
+
+        # solve problem with SLSQP
+        slsqp = SlsqpOptimizer(trials=3, full_output=True)
+        result = slsqp.solve(problem)
+
+        self.assertAlmostEqual(result.fval, 5.8750)
+
+        self.assertAlmostEqual(result.fx, 5.8750)
+        self.assertGreaterEqual(result.its, 1)
+        self.assertEqual(result.imode, 0)
+        self.assertIsNotNone(result.smode)
+
     def test_slsqp_unbounded(self):
         """Unbounded test for optimization"""
         problem = QuadraticProgram()
