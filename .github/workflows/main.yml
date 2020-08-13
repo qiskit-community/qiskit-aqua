@@ -12,7 +12,15 @@
 
 name: Aqua Unit Tests
 
-on: [push, pull_request]
+on:
+  push:
+    branches:
+      - master
+      - stable/*
+  pull_request:
+    branches:
+      - master
+      - 'stable/**'
 
 jobs:
   Checks:
