@@ -46,14 +46,18 @@ Converters
 
 from .inequality_to_equality import InequalityToEquality
 from .integer_to_binary import IntegerToBinary
+from .ising_to_quadratic_program import IsingToQuadraticProgram
 from .linear_equality_to_penalty import LinearEqualityToPenalty
 from .quadratic_program_converter import QuadraticProgramConverter
+from .quadratic_program_to_ising import QuadraticProgramToIsing
 from .quadratic_program_to_qubo import QuadraticProgramToQubo
 
 __all__ = [
     "InequalityToEquality",
     "IntegerToBinary",
+    "IsingToQuadraticProgram",
     "LinearEqualityToPenalty",
     "QuadraticProgramConverter",
+    "QuadraticProgramToIsing",
     "QuadraticProgramToQubo",
 ]
