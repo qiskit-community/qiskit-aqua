@@ -16,8 +16,8 @@
 Arithmetic Utilities
 """
 
+from typing import List, Tuple
 import numpy as np
-from typing import List
 
 
 def normalize_vector(vector):
@@ -98,7 +98,7 @@ def next_power_of_2_base(n):
     return base
 
 
-def transpositions(permutation: List[int]):
+def transpositions(permutation: List[int]) -> List[Tuple[int, int]]:
     """Return a sequence of transpositions, corresponding to the permutation.
 
     Args:
