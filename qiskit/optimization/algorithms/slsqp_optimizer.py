@@ -14,7 +14,7 @@
 
 """The SLSQP optimizer wrapped to be used within Qiskit's optimization module."""
 import logging
-from typing import List, cast
+from typing import List, cast, Tuple, Any, Union, Optional
 
 import numpy as np
 from scipy.optimize import fmin_slsqp
@@ -22,10 +22,59 @@ from scipy.optimize import fmin_slsqp
 from .multistart_optimizer import MultiStartOptimizer
 from .optimization_algorithm import OptimizationResult
 from ..exceptions import QiskitOptimizationError
+from ..problems import Variable
 from ..problems.constraint import Constraint
 from ..problems.quadratic_program import QuadraticProgram
 
 logger = logging.getLogger(__name__)
+
+
+class SlsqpOptimizationResult(OptimizationResult):
+    """
+    SLSQP optimization result, defines additional properties that may be returned by the optimizer.
+    """
+    def __init__(self, x: Union[List[float], np.ndarray], fval: float, variables: List[Variable],
+                 fx: Optional[np.ndarray] = None, its: Optional[int] = None,
+                 imode: Optional[int] = None, smode: Optional[str] = None) -> None:
+        """
+        Constructs a result object with properties specific to SLSQP.
+
+        Args:
+            x: The solution of the problem
+            fval: The value of the objective function of the solution
+            variables: A list of variables defined in the problem
+            fx: The value of the objective function being optimized, may be different from ``fval``
+            its: The number of iterations.
+            imode: The exit mode from the optimizer
+                (see the documentation of ``scipy.optimize.fmin_slsqp``).
+            smode: Message describing the exit mode from the optimizer.
+        """
+        super().__init__(x, fval, variables, None)
+        self._fx = fx
+        self._its = its
+        self._imode = imode
+        self._smode = smode
+
+    # pylint:disable=invalid-name
+    @property
+    def fx(self) -> Optional[np.ndarray]:
+        """Returns the final value of the objective function being actually optimized."""
+        return self._fx
+
+    @property
+    def its(self) -> Optional[int]:
+        """Returns the number of iterations"""
+        return self._its
+
+    @property
+    def imode(self) -> Optional[int]:
+        """Returns the exit mode from the optimizer."""
+        return self._imode
+
+    @property
+    def smode(self) -> Optional[str]:
+        """Returns message describing the exit mode from the optimizer."""
+        return self._smode
 
 
 class SlsqpOptimizer(MultiStartOptimizer):
@@ -50,7 +99,7 @@ class SlsqpOptimizer(MultiStartOptimizer):
 
     # pylint: disable=redefined-builtin
     def __init__(self, iter: int = 100, acc: float = 1.0E-6, iprint: int = 0, trials: int = 1,
-                 clip: float = 100.) -> None:
+                 clip: float = 100., full_output: bool = False) -> None:
         """Initializes the SlsqpOptimizer.
 
         This initializer takes the algorithmic parameters of SLSQP and stores them for later use
@@ -74,6 +123,8 @@ class SlsqpOptimizer(MultiStartOptimizer):
             clip: Clipping parameter for the initial guesses in the multi-start method.
                 If a variable is unbounded then the lower bound and/or upper bound are replaced
                 with the ``-clip`` or ``clip`` values correspondingly for the initial guesses.
+            full_output: If ``False``, return only the minimizer of func (default).
+                Otherwise, output final objective function and summary information.
         """
 
         super().__init__(trials, clip)
@@ -82,6 +133,7 @@ class SlsqpOptimizer(MultiStartOptimizer):
         self._iprint = iprint
         self._trials = trials
         self._clip = clip
+        self._full_output = full_output
 
     def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
         """Checks whether a given problem can be solved with this optimizer.
@@ -152,10 +204,23 @@ class SlsqpOptimizer(MultiStartOptimizer):
                 raise QiskitOptimizationError('Unsupported constraint type!')
 
         # actual minimization function to be called by multi_start_solve
-        def _minimize(x_0: np.array) -> np.array:
-            return fmin_slsqp(_objective, x_0, eqcons=slsqp_eq_constraints,
-                              ieqcons=slsqp_ineq_constraints, bounds=slsqp_bounds,
-                              fprime=_objective_gradient, iter=self._iter, acc=self._acc,
-                              iprint=self._iprint)
+        def _minimize(x_0: np.array) -> Tuple[np.array, Any]:
+            output = fmin_slsqp(_objective, x_0, eqcons=slsqp_eq_constraints,
+                                ieqcons=slsqp_ineq_constraints, bounds=slsqp_bounds,
+                                fprime=_objective_gradient, iter=self._iter, acc=self._acc,
+                                iprint=self._iprint, full_output=self._full_output)
+            if self._full_output:
+                x, *rest = output
+            else:
+                x, rest = output, None
+            return np.asarray(x), rest
 
-        return self.multi_start_solve(_minimize, problem)
+        # actual optimization goes here
+        result = self.multi_start_solve(_minimize, problem)
+
+        if self._full_output:
+            return SlsqpOptimizationResult(result.x, result.fval, result.variables,
+                                           fx=result.raw_results[0], its=result.raw_results[1],
+                                           imode=result.raw_results[2], smode=result.raw_results[3])
+        else:
+            return SlsqpOptimizationResult(result.x, result.fval, result.variables)

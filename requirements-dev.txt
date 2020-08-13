@@ -14,5 +14,6 @@ jupyter-sphinx
 discover
 torch; sys_platform == 'linux' or (python_version < '3.8' and sys_platform != 'win32')
 qiskit-aer
+qiskit-ibmq-provider
 mypy>=0.780
 mypy-extensions>=0.4.3
