@@ -430,47 +430,37 @@ class TestOpConstruction(QiskitAquaTestCase):
 
         self.assertEqual(composed.num_qubits, 2)
 
-    def test_matrix_op_to_instruction(self):
-        """Test to reveal the exception that is raised when .to_instruction is called on
-        parametrized matrix op.
-        """
+    def test_matrix_op_conversions(self):
+        """Test to reveal QiskitError when to_instruction or to_circuit method is called on
+        parametrized matrix op."""
         m = np.array([[0, 0, 1, 0], [0, 0, 0, -1], [1, 0, 0, 0], [0, -1, 0, 0]])
         matrix_op = MatrixOp(m, Parameter('beta'))
-
-        # QiskitError: multiplication of Operator with ParameterExpression is not implemented
-        self.assertRaises(QiskitError, matrix_op.to_instruction)
-
-    def test_matrix_op_to_circuit(self):
-        """Test to reveal the exception that is raised when .to_circuit is called on MatrixOp
-        with parameter.
-        """
-        m = np.array([[0, 0, 1, 0], [0, 0, 0, -1], [1, 0, 0, 0], [0, -1, 0, 0]])
-        matrix_op = MatrixOp(m, Parameter('alpha'))
-
-        # QiskitError: multiplication of Operator with ParameterExpression is not implemented
-        self.assertRaises(QiskitError, matrix_op.to_circuit)
+        for method in ['to_instruction', 'to_circuit']:
+            with self.subTest(method):
+                # QiskitError: multiplication of Operator with ParameterExpression isn't implemented
+                self.assertRaises(QiskitError, getattr(matrix_op, method))
 
     def test_primitive_op_to_matrix(self):
-        """ Test to reveal the exception that is raised when .to_matrix is called on PrimitiveOps
+        """Test to reveal the exception that is raised when .to_matrix is called on PrimitiveOps
         with parameter.
         """
         # MatrixOp
         m = np.array([[0, 0, 1, 0], [0, 0, 0, -1], [1, 0, 0, 0], [0, -1, 0, 0]])
         matrix_op = MatrixOp(m, Parameter('beta'))
-        # TypeError: multiplication of 'complex' and 'Parameter' is not implemented
-        self.assertRaises(TypeError, matrix_op.to_matrix)
 
         # PauliOp
         pauli_op = PauliOp(primitive=Pauli(label='XYZ'), coeff=Parameter('beta'))
-        # TypeError: multiplication of 'complex' and 'Parameter' is not implemented
         self.assertRaises(TypeError, pauli_op.to_matrix)
 
         # CircuitOp
         qc = QuantumCircuit(2)
         qc.cx(0, 1)
         circuit_op = CircuitOp(qc, coeff=Parameter('alpha'))
-        # TypeError: multiplication of 'complex' and 'Parameter' is not implemented
-        self.assertRaises(TypeError, circuit_op.to_matrix)
+
+        for operator in [matrix_op, pauli_op, circuit_op]:
+            with self.subTest(operator):
+                # TypeError: multiplication of 'complex' and 'Parameter' is not implemented
+                self.assertRaises(TypeError, operator.to_matrix)
 
     def test_list_op_to_circuit(self):
         """Test if unitary ListOps transpile to circuit. """
