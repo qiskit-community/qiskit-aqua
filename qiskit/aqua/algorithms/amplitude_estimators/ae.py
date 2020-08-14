@@ -15,7 +15,6 @@
 """The Quantum Phase Estimation-based Amplitude Estimation algorithm."""
 
 from typing import Optional, Union, List, Tuple, Dict, Any
-import warnings
 import logging
 from collections import OrderedDict
 import numpy as np
@@ -28,7 +27,6 @@ from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.utils import CircuitFactory
 from qiskit.aqua.circuits import PhaseEstimationCircuit
-from qiskit.aqua.components.iqfts import IQFT
 from qiskit.aqua.utils.validation import validate_min
 from .ae_algorithm import AmplitudeEstimationAlgorithm
 from .ae_utils import pdf_a, derivative_log_pdf_a, bisect_max
@@ -57,7 +55,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
                  a_factory: Optional[CircuitFactory] = None,
                  q_factory: Optional[CircuitFactory] = None,
                  i_objective: Optional[int] = None,
-                 iqft: Optional[Union[QuantumCircuit, IQFT]] = None,
+                 iqft: Optional[QuantumCircuit] = None,
                  quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
         r"""
         Args:
@@ -77,13 +75,6 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         # get parameters
         self._m = num_eval_qubits
         self._M = 2 ** num_eval_qubits
-
-        if isinstance(iqft, IQFT):
-            warnings.warn('The qiskit.aqua.components.iqfts.IQFT module is deprecated as of 0.7.0 '
-                          'and will be removed no earlier than 3 months after the release. '
-                          'You should pass a QuantumCircuit instead, see '
-                          'qiskit.circuit.library.QFT and the .inverse() method.',
-                          DeprecationWarning, stacklevel=2)
         self._iqft = iqft or QFT(self._m).inverse()
         self._circuit = None
         self._ret = {}  # type: Dict[str, Any]

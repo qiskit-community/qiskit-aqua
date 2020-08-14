@@ -1,0 +1,9 @@
+---
+features:
+  - |
+    Adds ``max_iterations`` to the ``VQEAdapt`` class in order to allow
+    limiting the maximum number of iterations performed by the algorithm.
+fixes:
+  - |
+    Fixes the cyclicity detection as reported buggy in
+    https://github.com/Qiskit/qiskit-aqua/issues/1184.
