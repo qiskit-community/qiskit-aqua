@@ -214,6 +214,7 @@ func
 functionals
 functools
 fval
+fx
 gambella
 gambetta
 gauopen
@@ -267,6 +268,7 @@ ij
 ijkl
 ik
 imag
+imode
 implicant
 implicants
 indices
@@ -366,6 +368,7 @@ minibatched
 minibatches
 minibatching
 minima
+minimumeigenoptimizationresult
 mintert
 minwidth
 mitarai
@@ -436,6 +439,7 @@ operatorbase
 oplist
 oplus
 optim
+optimizationresult
 optimizer's
 optimizers
 opv
@@ -583,6 +587,7 @@ simonetto
 sj
 sklearn
 slsqp
+smode
 spsa
 sqrt
 srange

@@ -31,7 +31,6 @@ from qiskit.aqua.circuits import WeightedSumOperator
 from qiskit.aqua.algorithms import (AmplitudeEstimation, MaximumLikelihoodAmplitudeEstimation,
                                     IterativeAmplitudeEstimation)
 from qiskit.aqua.algorithms.amplitude_estimators.q_factory import QFactory
-from qiskit.aqua.components.iqfts import Standard
 
 
 class BernoulliAFactory(UncertaintyProblem):
@@ -164,24 +163,6 @@ class TestBernoulli(QiskitAquaTestCase):
         result = qae.run(self._statevector)
 
         for key, value in expect.items():
-            self.assertAlmostEqual(value, result[key], places=3,
-                                   msg="estimate `{}` failed".format(key))
-
-    def test_deprecated_qft(self):
-        """Test running QAE on the deprecated QFT."""
-        prob = 0.2
-        a_factory = BernoulliAFactory(prob)
-        q_factory = BernoulliQFactory(a_factory)
-
-        warnings.filterwarnings('ignore', category=DeprecationWarning)
-        iqft = Standard(2)
-        qae = AmplitudeEstimation(2, a_factory=a_factory, q_factory=q_factory, iqft=iqft)
-
-        result = qae.run(self._statevector)
-        warnings.filterwarnings('always', category=DeprecationWarning)
-
-        expected = {'estimation': 0.5, 'mle': 0.2}
-        for key, value in expected.items():
             self.assertAlmostEqual(value, result[key], places=3,
                                    msg="estimate `{}` failed".format(key))
 

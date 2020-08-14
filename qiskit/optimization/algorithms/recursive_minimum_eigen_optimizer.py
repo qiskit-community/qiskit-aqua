@@ -14,21 +14,84 @@
 
 """A recursive minimal eigen optimizer in Qiskit's optimization module."""
 
-import logging
 from copy import deepcopy
-from typing import Optional
-
+from enum import Enum
+from typing import Optional, Union, List, Tuple, Dict
+import logging
 import numpy as np
+
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.aqua.utils.validation import validate_min
 
-from .minimum_eigen_optimizer import MinimumEigenOptimizer, MinimumEigenOptimizerResult
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
+from .minimum_eigen_optimizer import MinimumEigenOptimizer, MinimumEigenOptimizationResult
 from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
 from ..exceptions import QiskitOptimizationError
+from ..problems import Variable
 from ..problems.quadratic_program import QuadraticProgram
 
 logger = logging.getLogger(__name__)
+
+
+class IntermediateResult(Enum):
+    """
+    Defines whether the intermediate results at each iteration should be stored
+    and returned to the end user.
+    """
+
+    NO_ITERATIONS = 0
+    """No intermediate results are stored."""
+
+    LAST_ITERATION = 1
+    """Only results from the last iteration are stored."""
+
+    ALL_ITERATIONS = 2
+    """All intermediate results are stored."""
+
+
+class RecursiveMinimumEigenOptimizationResult(OptimizationResult):
+    """Recursive Eigen Optimizer Result."""
+    def __init__(self, x: Union[List[float], np.ndarray], fval: float,
+                 variables: List[Variable],
+                 replacements: Dict[str, Tuple[str, int]],
+                 history: Tuple[List[MinimumEigenOptimizationResult], OptimizationResult]) -> None:
+        """
+        Constructs an instance of the result class.
+
+        Args:
+            x: the optimal value found in the optimization.
+            fval: the optimal function value.
+            variables: the list of variables of the optimization problem.
+            replacements: a dictionary of substituted variables. Key is a variable being
+                substituted, value is a tuple of substituting variable and a weight, either 1 or -1.
+            history: a tuple containing intermediate results. The first element is a list of
+                :class:`~qiskit.optimization.algorithms.MinimumEigenOptimizerResult` obtained by
+                invoking :class:`~qiskit.optimization.algorithms.MinimumEigenOptimizer` iteratively,
+                the second element is an instance of
+                :class:`~qiskit.optimization.algorithm.OptimizationResult` obtained at the last step
+                via `min_num_vars_optimizer`.
+        """
+        super().__init__(x, fval, variables, None)
+        self._replacements = replacements
+        self._history = history
+
+    @property
+    def replacements(self) -> Dict[str, Tuple[str, int]]:
+        """
+        Returns a dictionary of substituted variables. Key is a variable being substituted,  value
+        is a tuple of substituting variable and a weight, either 1 or -1."""
+        return self._replacements
+
+    @property
+    def history(self) -> Tuple[List[MinimumEigenOptimizationResult], OptimizationResult]:
+        """
+        Returns intermediate results. The first element is a list of
+        :class:`~qiskit.optimization.algorithms.MinimumEigenOptimizerResult` obtained by invoking
+        :class:`~qiskit.optimization.algorithms.MinimumEigenOptimizer` iteratively, the second
+        element is an instance of :class:`~qiskit.optimization.algorithm.OptimizationResult`
+        obtained at the last step via `min_num_vars_optimizer`.
+        """
+        return self._history
 
 
 class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
@@ -60,7 +123,8 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
 
     def __init__(self, min_eigen_optimizer: MinimumEigenOptimizer, min_num_vars: int = 1,
                  min_num_vars_optimizer: Optional[OptimizationAlgorithm] = None,
-                 penalty: Optional[float] = None) -> None:
+                 penalty: Optional[float] = None,
+                 history: Optional[IntermediateResult] = IntermediateResult.LAST_ITERATION) -> None:
         """ Initializes the recursive minimum eigen optimizer.
 
         This initializer takes a ``MinimumEigenOptimizer``, the parameters to specify until when to
@@ -75,8 +139,8 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
                 problem with the remaining variables.
             penalty: The factor that is used to scale the penalty terms corresponding to linear
                 equality constraints.
-
-        TODO: add flag to store full history.
+            history: Whether the intermediate results are stored.
+                Default value is :py:obj:`~IntermediateResult.LAST_ITERATION`.
 
         Raises:
             QiskitOptimizationError: In case of invalid parameters (num_min_vars < 1).
@@ -91,6 +155,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         else:
             self._min_num_vars_optimizer = MinimumEigenOptimizer(NumPyMinimumEigensolver())
         self._penalty = penalty
+        self._history = history
         self._qubo_converter = QuadraticProgramToQubo()
 
     def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
@@ -129,11 +194,14 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         problem_ref = deepcopy(problem_)
 
         # run recursive optimization until the resulting problem is small enough
-        replacements = {}
+        replacements = {}   # type: Dict[str, Tuple[str, int]]
+        min_eigen_results = []        # type: List[MinimumEigenOptimizationResult]
         while problem_.get_num_vars() > self._min_num_vars:
 
             # solve current problem with optimizer
-            res = self._min_eigen_optimizer.solve(problem_)  # type: MinimumEigenOptimizerResult
+            res = self._min_eigen_optimizer.solve(problem_)   # type: MinimumEigenOptimizationResult
+            if self._history == IntermediateResult.ALL_ITERATIONS:
+                min_eigen_results.append(res)
 
             # analyze results to get strongest correlation
             correlations = res.get_correlations()
@@ -206,14 +274,21 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
             if x_i.name not in var_values:
                 find_value(x_i.name, replacements, var_values)
 
+        # build history before any translations are applied
+        # min_eigen_results is an empty list if history is set to NO or LAST.
+        history = (min_eigen_results,
+                   None if self._history == IntermediateResult.NO_ITERATIONS else result)
+
         # construct result
         x_v = [var_values[x_aux.name] for x_aux in problem_ref.variables]
         fval = result.fval
-        results = OptimizationResult(x=x_v, fval=fval,
-                                     raw_results=(replacements, deepcopy(self._qubo_converter)),
-                                     variables=problem_ref.variables)
-        results = self._qubo_converter.interpret(results)
-        return results
+        result = OptimizationResult(x=x_v, fval=fval, variables=problem_ref.variables)
+        result = self._qubo_converter.interpret(result)
+
+        return RecursiveMinimumEigenOptimizationResult(x=result.x, fval=result.fval,
+                                                       variables=result.variables,
+                                                       replacements=replacements,
+                                                       history=history)
 
     def _find_strongest_correlation(self, correlations):
 
