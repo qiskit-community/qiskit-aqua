@@ -53,7 +53,7 @@ class ADMMParameters:
                  tau_decr: float = 2,
                  mu_res: float = 10,
                  mu_merit: float = 1000,
-                 warm_start: Optional[bool] = False,
+                 warm_start: bool = False,
                  max_iter: Optional[int] = None) -> None:
         """Defines parameters for ADMM optimizer and their default values.
 
