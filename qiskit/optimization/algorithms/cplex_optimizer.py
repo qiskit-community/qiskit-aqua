@@ -137,15 +137,13 @@ class CplexOptimizer(OptimizationAlgorithm):
         sol = cplex.solution
 
         # check for feasibility
-        if QuadraticProgram.is_feasible(problem, sol.get_values()):
-            status = OptimizationResultStatus.SUCCESS
-        else:
-            status = OptimizationResultStatus.INFEASIBLE
+        status = OptimizationResultStatus.SUCCESS if problem.is_feasible(sol.get_values()) else OptimizationResultStatus.INFEASIBLE
 
         # create results
         result = OptimizationResult(x=sol.get_values(),
                                     fval=sol.get_objective_value(),
-                                    results=sol,
+                                    variables=problem.variables,
+                                    raw_results=problem.variables,
                                     status=status)
 
         # return solution

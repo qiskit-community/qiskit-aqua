@@ -175,7 +175,7 @@ class ADMMOptimizationResult(OptimizationResult):
     """ ADMMOptimization Result."""
 
     def __init__(self, x: np.ndarray, fval: float, variables: List[Variable],
-                 state: ADMMState) -> None:
+                 state: ADMMState, status: OptimizationResultStatus) -> None:
         """
         Args:
             x: the optimal value found by ADMM.
@@ -183,7 +183,7 @@ class ADMMOptimizationResult(OptimizationResult):
             variables: the list of variables of the optimization problem.
             state: the internal computation state of ADMM.
         """
-        super().__init__(x=x, fval=fval, variables=variables, raw_results=state)
+        super().__init__(x=x, fval=fval, variables=variables, raw_results=state, status=status)
 
     @property
     def state(self) -> ADMMState:
@@ -379,11 +379,12 @@ class ADMMOptimizer(OptimizationAlgorithm):
         result = cast(ADMMOptimizationResult, int2bin.decode(result))
 
         # check for feasibility
-        if QuadraticProgram.is_feasible(problem, result.x):
-            result.status = OptimizationResultStatus.SUCCESS
-        else:
-            result.status = OptimizationResultStatus.INFEASIBLE
+        status = OptimizationResultStatus.SUCCESS if problem.is_feasible(result.x) else OptimizationResultStatus.INFEASIBLE
 
+        result = ADMMOptimizationResult(x=result.x, fval=result.fval,
+                                        variables=result.variables,
+                                        state=self._state,
+                                        status=status)
         # debug
         self._log.debug("solution=%s, objective=%s at iteration=%s",
                         solution, objective_value, iteration)

@@ -20,6 +20,7 @@ import logging
 from collections import defaultdict
 from enum import Enum
 from math import fsum, isclose
+import warnings
 
 from docplex.mp.constr import (LinearConstraint as DocplexLinearConstraint,
                                QuadraticConstraint as DocplexQuadraticConstraint,
@@ -1095,59 +1096,47 @@ class QuadraticProgram:
 
     def is_feasible(self, x: Union[List[float], np.ndarray], detailed = False) -> bool:
 
-        satisfied_variables = []
+        if len(x) != self.get_num_vars():
+            raise QiskitOptimizationError(
+                'The size of `x` differs from the total number of variables.'
+                ' size of `x`: {}, num. of vars: {}'.format(len(x), self.get_num_vars())
+            )
+
+        satisfied_variables = {}
         for i, v in enumerate(x):    
             variable = self.get_variable(i)
             if variable._lowerbound <= v <= variable._upperbound :
-                satisfied_variables.append(True)
+                satisfied_variables[variable.name] = True
                 # print(f'{variable._name} is within the bounds') 
             else :
-                satisfied_variables.append(False)
+                satisfied_variables[variable.name] = False
                 # print(f'{variable._name} is outside the bounds')
 
-        satisfied_linear_constraints = []
-        for constraint in self._linear_constraints:
+        satisfied_constraints = {} 
+        for constraint in self._linear_constraints +  self._quadratic_constraints:
             lhs = constraint.evaluate(x)
             if constraint.sense == ConstraintSense.LE:
-                satisfied_linear_constraints.append(lhs <= constraint.rhs)
+                satisfied_constraints[constraint.name] = lhs <= constraint.rhs
             elif constraint.sense == ConstraintSense.GE:
-                satisfied_linear_constraints.append(lhs >= constraint.rhs)
+                satisfied_constraints[constraint.name] = lhs >= constraint.rhs
             elif constraint.sense == ConstraintSense.EQ:
-                satisfied_linear_constraints.append(isclose(lhs, constraint.rhs))
-            else:
-                raise QiskitOptimizationError("Invalid sense!")
+                satisfied_constraints[constraint.name] = isclose(lhs, constraint.rhs)
 
-        satisfied_quadratic_constraints = []    
-        for constraint in self._quadratic_constraints:
-            lhs = constraint.evaluate(x)
-            if constraint.sense == ConstraintSense.LE:
-                satisfied_quadratic_constraints.append(lhs <= constraint.rhs)
-            elif constraint.sense == ConstraintSense.GE:
-                satisfied_quadratic_constraints.append(lhs >= constraint.rhs)
-            elif constraint.sense == ConstraintSense.EQ:
-                satisfied_quadratic_constraints.append(isclose(lhs, constraint.rhs))
-            else:
-                raise QiskitOptimizationError("Invalid sense!")
-            
+
+        final_dict = { k:v for k, v in {**satisfied_variables, **satisfied_constraints}.items() if not v }
             
         if(detailed == True):
 
-            for i in range(len(satisfied_variables)):
-                (print(f'{self.get_variable(i)._name} is within the bounds') if satisfied_variables[i]
-                else logger.warning(f'{self.get_variable(i)._name} is outside the bounds'))
+            print(list(final_dict.values))            
+            # if (final_dict.keys()):
+            #     return False, list(final_dict.keys())
 
-            for i in range(len(satisfied_linear_constraints)):
-                (print(f'{self.get_linear_constraint(i).name} is statisfied') if satisfied_linear_constraints[i] 
-                else logger.warning(f'{self.get_linear_constraint(i).name} is not statisfied'))
+            # else:
+            #     return True, []
 
-            for i in range(len(satisfied_quadratic_constraints)):
-                (print(f'{self.get_quadratic_constraint(i).name} is statisfied') if satisfied_linear_constraints[i] 
-                else logger.warning(f'{self.get_quadratic_constraint(i).name} is not statisfied'))
-
-        return (np.sum(satisfied_variables) == len(self._variables) and
-            np.sum(satisfied_linear_constraints) == len(self._linear_constraints) and 
-        np.sum(satisfied_quadratic_constraints) == len(self._quadratic_constraints))
-
+        return (len(satisfied_variables) == len(self._variables) and
+            len(satisfied_constraints) == (len(self._linear_constraints) + len(self._quadratic_constraints)))
+        
 
 class SubstituteVariables:
     """A class to substitute variables of an optimization problem with constants for other
