@@ -46,7 +46,7 @@ jobs:
           pip install pyenchant
           pip install cplex
           pip install "cvxpy>1.0.0"
-          pip install https://github.com/rpmuller/pyquante2/archive/master.zip --progress-bar off
+          pip install https://github.com/rpmuller/pyquante2/archive/master.zip
         shell: bash
       - name: terminate if failure above
         run: exit 1
@@ -96,7 +96,7 @@ jobs:
       - name: Install Dependencies
         run: |
           pip install "cvxpy>1.0.0"
-          pip install https://github.com/rpmuller/pyquante2/archive/master.zip --progress-bar off
+          pip install https://github.com/rpmuller/pyquante2/archive/master.zip
       - name: terminate if failure above
         run: exit 1
         if: ${{ !success() }}
@@ -194,7 +194,7 @@ jobs:
           fi
           sudo apt-get -y update
           sudo apt-get -y install libgfortran5
-          pip install https://github.com/rpmuller/pyquante2/archive/master.zip --progress-bar off
+          pip install https://github.com/rpmuller/pyquante2/archive/master.zip
           pip install pyscf
         shell: bash
       - name: Install cplex
@@ -411,8 +411,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: coveralls || true
-        shell: bash
-      - run: coverage3 xml
-        shell: bash
-      - run: diff-cover --compare-branch master coverage.xml || true
         shell: bash

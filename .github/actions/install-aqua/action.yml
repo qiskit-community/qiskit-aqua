@@ -21,6 +21,6 @@ runs:
           source "$HOME/miniconda/etc/profile.d/conda.sh"
           conda activate
         fi
-        pip install -e . --progress-bar off
-        pip install -U -c constraints.txt -r requirements-dev.txt --progress-bar off
+        pip install -e .
+        pip install -U -c constraints.txt -r requirements-dev.txt
       shell: bash
