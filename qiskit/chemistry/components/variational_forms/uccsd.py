@@ -527,7 +527,7 @@ class UCCSD(VariationalForm):
                     raise ValueError(
                         'Invalid index {} in active active_occ_list {}'.format(i, active_occ_list))
                 if i < num_beta:
-                    active_occ_list_beta.append(i)
+                    active_occ_list_beta.append(i + beta_idx)
                 else:
                     raise ValueError(
                         'Invalid index {} in active active_occ_list {}'.format(i, active_occ_list))
@@ -545,7 +545,7 @@ class UCCSD(VariationalForm):
                     raise ValueError('Invalid index {} in active active_unocc_list {}'
                                      .format(i, active_unocc_list))
                 if i >= num_beta:
-                    active_unocc_list_beta.append(i)
+                    active_unocc_list_beta.append(i + beta_idx)
                 else:
                     raise ValueError('Invalid index {} in active active_unocc_list {}'
                                      .format(i, active_unocc_list))
