@@ -21,15 +21,15 @@ runs:
           source "$HOME/miniconda/etc/profile.d/conda.sh"
           conda activate
         fi
-        pip install https://github.com/Qiskit/qiskit-terra/archive/master.zip --progress-bar off
-        pip install https://github.com/Qiskit/qiskit-ignis/archive/master.zip --progress-bar off
-        pip install https://github.com/Qiskit/qiskit-ibmq-provider/archive/master.zip --progress-bar off
+        pip install https://github.com/Qiskit/qiskit-terra/archive/master.zip
+        pip install https://github.com/Qiskit/qiskit-ignis/archive/master.zip
+        pip install https://github.com/Qiskit/qiskit-ibmq-provider/archive/master.zip
         sudo apt-get -y update
         sudo apt-get -y install g++-7
         sudo apt-get -y install libopenblas-dev
         git clone https://github.com/Qiskit/qiskit-aer.git /tmp/qiskit-aer
         cd /tmp/qiskit-aer
-        pip install -U -c /tmp/qiskit-aer/constraints.txt -r /tmp/qiskit-aer/requirements-dev.txt --progress-bar off
+        pip install -U -c /tmp/qiskit-aer/constraints.txt -r /tmp/qiskit-aer/requirements-dev.txt
         python /tmp/qiskit-aer/setup.py bdist_wheel -- -DCMAKE_CXX_COMPILER=g++-7 -DAER_THRUST_BACKEND=OMP -- -j4
         pip install /tmp/qiskit-aer/dist/qiskit_aer*whl
       shell: bash

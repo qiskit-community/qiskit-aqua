@@ -20,8 +20,11 @@ runs:
         if [ -f "$HOME/miniconda/etc/profile.d/conda.sh" ]; then
           source "$HOME/miniconda/etc/profile.d/conda.sh"
           conda activate
+          # for this version of miniconda downgrade pip
+          pip install --upgrade --force-reinstall pip==9.0.3
+        else
+          pip install -U pip
+          pip install -U setuptools wheel
         fi
-        pip install -U pip
-        pip install -U setuptools wheel
         sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
       shell: bash

@@ -777,7 +777,7 @@ class QuadraticProgram:
         return self.to_docplex().export_as_lp_string()
 
     def pprint_as_string(self) -> str:
-        """Returns the quadratic program as a string in Docplex's pretty print format.
+        """DEPRECATED Returns the quadratic program as a string in Docplex's pretty print format.
         Returns:
             A string representing the quadratic program.
         """
@@ -788,7 +788,7 @@ class QuadraticProgram:
         return self.to_docplex().pprint_as_string()
 
     def prettyprint(self, out: Optional[str] = None) -> None:
-        """Pretty prints the quadratic program to a given output stream (None = default).
+        """DEPRECATED Pretty prints the quadratic program to a given output stream (None = default).
 
         Args:
             out: The output stream or file name to print to.
