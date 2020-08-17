@@ -48,7 +48,7 @@ jobs:
           pip install "cvxpy>1.0.0"
           pip install https://github.com/rpmuller/pyquante2/archive/master.zip
         shell: bash
-      - name: terminate if failure above
+      - name: Terminate if failure above
         run: exit 1
         if: ${{ !success() }}
         shell: bash
@@ -67,15 +67,26 @@ jobs:
       - run:  make lint
         if: ${{ !cancelled() }}
         shell: bash
-      - name: run make lint latest version
+      - name: Run make lint latest version
         run: |
           pip install -U pylint
           make lint
         if: ${{ !cancelled() }}
         shell: bash
-      - run:  make html SPHINXOPTS=-W
+      - name: Run make html
+        run:  |
+          make html SPHINXOPTS=-W
+          cd docs/_build/html
+          mkdir artifacts
+          tar -zcvf artifacts/documentation.tar.gz --exclude=./artifacts .
         if: ${{ !cancelled() }}
         shell: bash
+      - name: Run upload documentation
+        uses: actions/upload-artifact@v2
+        with:
+          name: documentation
+          path: docs/_build/html/artifacts/documentation.tar.gz
+        if: ${{ !cancelled() }}
       - run:  make doctest
         if: ${{ !cancelled() }}
         shell: bash
@@ -97,14 +108,14 @@ jobs:
         run: |
           pip install "cvxpy>1.0.0"
           pip install https://github.com/rpmuller/pyquante2/archive/master.zip
-      - name: terminate if failure above
+      - name: Terminate if failure above
         run: exit 1
         if: ${{ !success() }}
         shell: bash
       - run: make lint
         if: ${{ !cancelled() }}
         shell: bash
-      - name: run make lint latest version
+      - name: Run make lint latest version
         run: |
           pip install -U pylint
           make lint
