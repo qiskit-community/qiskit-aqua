@@ -41,7 +41,7 @@ class QuadraticProgramConverter(ABC):
         raise NotImplementedError
 
     def encode(self, problem: QuadraticProgram) -> QuadraticProgram:  # type: ignore
-        """Encode a QuadraticProgram into another form
+        """DEPRECATED Encode a QuadraticProgram into another form
         and keep the information required to decode the result.
         """
         warnings.warn('The qiskit.optimization.converters.QuadraticProgramConverter.encode() '
@@ -53,7 +53,7 @@ class QuadraticProgramConverter(ABC):
         return self.convert(problem)
 
     def decode(self, result: OptimizationResult) -> OptimizationResult:  # type: ignore
-        """Decode a result into"""
+        """DEPRECATED Decode a result into another form using the information of conversion."""
         warnings.warn('The qiskit.optimization.converters.QuadraticProgramConverter.decode() '
                       'method is deprecated as of 0.7.4 and will be removed no sooner '
                       'than 3 months after the release. You should use '
