@@ -4,3 +4,8 @@ features:
     Removed soft dependency on CPLEX in ADMMOptimizer. Now default optimizers used by ADMMOptimizer
     are MinimumEigenOptimizer for QUBO problems and SlsqpOptimizer as a continuous optimizer. You
     can still use CplexOptimizer as an optimizer for ADMMOptimizer, but it should be set explicitly.
+  - |
+    Introduced an option `warm_start` that should be used when tuning other options does not help.
+    When this option is enabled, a relaxed problem (all variables are continuous) is solved first
+    and the solution is used to initialize the state of the optimizer before its starts the
+    iterative process in the `solve` method.

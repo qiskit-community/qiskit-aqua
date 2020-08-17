@@ -78,7 +78,10 @@ class ADMMParameters:
             mu_res: Parameter used in the rho update (UPDATE_RHO_BY_RESIDUALS).
             mu_merit: Penalization for constraint residual. Used to compute the merit values.
             warm_start: Start ADMM with pre-initialized values for binary and continuous variables
-                by solving a relaxed (all variables are continuous) problem first.
+                by solving a relaxed (all variables are continuous) problem first. This option does
+                not guarantee the solution will optimal or even feasible. The option should be
+                used when tuning other options does not help and should be considered as a hint
+                to the optimizer where to start its iterative process.
             max_iter: Deprecated, use maxiter.
         """
         super().__init__()
@@ -838,6 +841,15 @@ class ADMMOptimizer(OptimizationAlgorithm):
         return primal_residual, dual_residual
 
     def _warm_start(self, problem: QuadraticProgram) -> None:
+        """Solves a relaxed (all variables are continuous) and initializes the optimizer state with
+            the found solution.
+
+        Args:
+            problem: a problem to solve.
+
+        Returns:
+            None
+        """
         qp_copy = copy.deepcopy(problem)
         for variable in qp_copy.variables:
             variable.vartype = VarType.CONTINUOUS
