@@ -18,8 +18,10 @@ Optimization converters (:mod:`qiskit.optimization.converters`)
 
 .. currentmodule:: qiskit.optimization.converters
 
-This is selection of converters having encode, decode functionality to go between different
-forms.
+This is a set of converters having `convert` functionality to go between different representations
+of a given :class:`~qiskit.optimization.problems.QuadraticProgram` and to `interpret` a given
+result for the problem, based on the original problem before conversion, to return an appropriate
+:class:`~qiskit.optimization.algorithms.OptimizationResult`.
 
 Base class for converters
 =========================
