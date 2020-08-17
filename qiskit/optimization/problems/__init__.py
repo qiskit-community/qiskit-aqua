@@ -18,9 +18,9 @@ Optimization problems (:mod:`qiskit.optimization.problems`)
 
 .. currentmodule:: qiskit.optimization.problems
 
-Problems
-========
-Structures for defining an optimization problem and its solution.
+Quadratic program
+=================
+Structures for defining an optimization problem.
 
 .. autosummary::
    :toctree: ../stubs/
@@ -42,6 +42,7 @@ Note:
    QuadraticExpression
    QuadraticConstraint
    QuadraticObjective
+   QuadraticProgramElement
    Variable
 
 """
@@ -53,6 +54,7 @@ from .quadratic_constraint import QuadraticConstraint
 from .quadratic_expression import QuadraticExpression
 from .quadratic_objective import QuadraticObjective
 from .quadratic_program import QuadraticProgram
+from .quadratic_program_element import QuadraticProgramElement
 from .variable import Variable
 
 __all__ = ['Constraint',
@@ -62,5 +64,6 @@ __all__ = ['Constraint',
            'QuadraticConstraint',
            'QuadraticObjective',
            'QuadraticProgram',
+           'QuadraticProgramElement',
            'Variable',
            ]
