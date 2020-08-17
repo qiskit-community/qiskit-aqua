@@ -16,23 +16,19 @@
 
 import unittest
 from test.finance import QiskitFinanceTestCase
-import warnings
-from ddt import ddt, data
 
 import numpy as np
 
 from qiskit import BasicAer
-from qiskit.circuit import ParameterVector
+from qiskit.circuit.library import TwoLocal
 from qiskit.aqua import aqua_globals, QuantumInstance
 from qiskit.aqua.algorithms import AmplitudeEstimation
 from qiskit.aqua.components.initial_states import Custom
 from qiskit.aqua.components.uncertainty_models import (UnivariateVariationalDistribution,
                                                        NormalDistribution)
-from qiskit.aqua.components.variational_forms import RY
 from qiskit.finance.components.uncertainty_problems import EuropeanCallExpectedValue
 
 
-@ddt
 class TestEuropeanCallExpectedValue(QiskitFinanceTestCase):
     """Tests European Call Expected Value uncertainty problem """
 
@@ -41,18 +37,8 @@ class TestEuropeanCallExpectedValue(QiskitFinanceTestCase):
         self.seed = 457
         aqua_globals.random_seed = self.seed
 
-    def tearDown(self):
-        super().tearDown()
-        warnings.filterwarnings(action="always", category=DeprecationWarning)
-
-    @data(False, True)
-    def test_ecev(self, use_circuits):
+    def test_ecev(self):
         """ European Call Expected Value test """
-        if not use_circuits:
-            # ignore deprecation warnings from the deprecation of VariationalForm as input for
-            # the univariate variational distribution
-            warnings.filterwarnings("ignore", category=DeprecationWarning)
-
         bounds = np.array([0., 7.])
         num_qubits = [3]
         entangler_map = []
@@ -66,19 +52,13 @@ class TestEuropeanCallExpectedValue(QiskitFinanceTestCase):
         init_distribution = np.sqrt(init_dist.probabilities)
         init_distribution = Custom(num_qubits=sum(num_qubits),
                                    state_vector=init_distribution)
-        var_form = RY(int(np.sum(num_qubits)), depth=1,
-                      initial_state=init_distribution,
-                      entangler_map=entangler_map, entanglement_gate='cz')
-        if use_circuits:
-            theta = ParameterVector('θ', var_form.num_parameters)
-            var_form = var_form.construct_circuit(theta)
+        var_form = TwoLocal(int(np.sum(num_qubits)), 'ry', 'cz', reps=1,
+                            initial_state=init_distribution,
+                            entanglement=entangler_map)
 
         uncertainty_model = UnivariateVariationalDistribution(
             int(sum(num_qubits)), var_form, g_params,
             low=bounds[0], high=bounds[1])
-
-        if use_circuits:
-            uncertainty_model._var_form_params = theta
 
         strike_price = 2
         c_approx = 0.25
@@ -93,9 +73,6 @@ class TestEuropeanCallExpectedValue(QiskitFinanceTestCase):
         result = algo.run(quantum_instance=BasicAer.get_backend('statevector_simulator'))
         self.assertAlmostEqual(result['estimation'], 1.2580, places=4)
         self.assertAlmostEqual(result['max_probability'], 0.8785, places=4)
-
-        if not use_circuits:
-            warnings.filterwarnings(action="always", category=DeprecationWarning)
 
 
 if __name__ == '__main__':

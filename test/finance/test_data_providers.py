@@ -20,6 +20,7 @@ import datetime
 from test.finance import QiskitFinanceTestCase
 import warnings
 import numpy as np
+from qiskit.aqua import MissingOptionalLibraryError
 from qiskit.finance import QiskitFinanceError
 from qiskit.finance.data_providers import (RandomDataProvider,
                                            WikipediaDataProvider,
@@ -66,7 +67,7 @@ class TestDataProviders(QiskitFinanceTestCase):
                 self.assertRaises(QiskitFinanceError, wiki.get_covariance_matrix)
             with self.subTest('test WikipediaDataProvider get_similarity_matrix'):
                 self.assertRaises(QiskitFinanceError, wiki.get_similarity_matrix)
-        except NameError as ex:
+        except MissingOptionalLibraryError as ex:
             self.skipTest(str(ex))
 
     def test_yahoo_wrong_use(self):
@@ -82,7 +83,7 @@ class TestDataProviders(QiskitFinanceTestCase):
                 self.assertRaises(QiskitFinanceError, yahoo.get_covariance_matrix)
             with self.subTest('test YahooDataProvider get_similarity_matrix'):
                 self.assertRaises(QiskitFinanceError, yahoo.get_similarity_matrix)
-        except NameError as ex:
+        except MissingOptionalLibraryError as ex:
             self.skipTest(str(ex))
 
     def test_random(self):
@@ -98,7 +99,7 @@ class TestDataProviders(QiskitFinanceTestCase):
             with self.subTest('test RandomDataProvider get_similarity_matrix'):
                 np.testing.assert_array_almost_equal(rnd.get_similarity_matrix(),
                                                      similarity, decimal=3)
-        except NameError as ex:
+        except MissingOptionalLibraryError as ex:
             self.skipTest(str(ex))
 
     def test_random_divide_0(self):
@@ -120,7 +121,7 @@ class TestDataProviders(QiskitFinanceTestCase):
                 self.assertIsInstance(mu_value, np.ndarray)
             with self.subTest('test get_period_return_covariance_matrix is numpy array'):
                 self.assertIsInstance(sigma_value, np.ndarray)
-        except NameError as ex:
+        except MissingOptionalLibraryError as ex:
             self.skipTest(str(ex))
 
     def test_wikipedia(self):
@@ -147,7 +148,7 @@ class TestDataProviders(QiskitFinanceTestCase):
             with self.subTest('test WikipediaDataProvider get_similarity_matrix'):
                 np.testing.assert_array_almost_equal(wiki.get_similarity_matrix(),
                                                      similarity, decimal=3)
-        except NameError as ex:
+        except MissingOptionalLibraryError as ex:
             self.skipTest(str(ex))
         except QiskitFinanceError as ex:
             self.skipTest("Test of WikipediaDataProvider skipped: {}".format(str(ex)))
@@ -198,7 +199,7 @@ class TestDataProviders(QiskitFinanceTestCase):
             with self.subTest('test ExchangeDataProvider get_similarity_matrix'):
                 np.testing.assert_array_almost_equal(lse.get_similarity_matrix(),
                                                      similarity, decimal=3)
-        except NameError as ex:
+        except MissingOptionalLibraryError as ex:
             self.skipTest(str(ex))
         except QiskitFinanceError as ex:
             self.skipTest("Test of ExchangeDataProvider skipped {}".format(str(ex)))
@@ -225,7 +226,7 @@ class TestDataProviders(QiskitFinanceTestCase):
             with self.subTest('test YahooDataProvider get_similarity_matrix'):
                 np.testing.assert_array_almost_equal(yahoo.get_similarity_matrix(),
                                                      similarity, decimal=3)
-        except NameError as ex:
+        except MissingOptionalLibraryError as ex:
             self.skipTest(str(ex))
         except QiskitFinanceError as ex:
             self.skipTest("Test of YahooDataProvider skipped {}".format(str(ex)))
