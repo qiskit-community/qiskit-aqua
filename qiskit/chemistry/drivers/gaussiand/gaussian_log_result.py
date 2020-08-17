@@ -246,36 +246,41 @@ class GaussianLogResult:
         return modes
 
     @staticmethod
-    def _harmonic_integrals(m: int, n: int, power: int, omega: int):
+    def _harmonic_integrals(m: int, n: int, power: int, kinetic_term = False):
         coeff = 0
         if power == 1:
             if abs(n - m) == 1:
-                coeff = np.sqrt(n / (2 * omega))
-        elif power == 2:
+                coeff = np.sqrt(n / 2 )
+        elif power == 2 and kinetic_term==True:
+            if abs(n-m) == 0:
+                coeff = (n + 1/2)
+            elif abs(n-m) ==2:
+                coeff = - np.sqrt(n*(n-1))/2
+        elif power == 2 and kinetic_term==False:
             if abs(n - m) == 0:
-                coeff = (n + 1 / 2) / omega
+                coeff = (n + 1 / 2)
             elif abs(n - m) == 2:
-                coeff = np.sqrt(n * (n - 1)) / (2 * omega)
+                coeff = np.sqrt(n * (n - 1)) / 2
         elif power == 3:
             if abs(n - m) == 1:
-                coeff = 3 * np.power(n / (2 * omega), 3 / 2)
+                coeff = 3 * np.power(n / 2 , 3 / 2)
             elif abs(n - m) == 3:
-                coeff = np.sqrt(n * (n - 1) * (n - 2)) / np.power(2 * omega, 3 / 2)
+                coeff = np.sqrt(n * (n - 1) * (n - 2)) / np.power(2, 3 / 2)
         elif power == 4:
             if abs(n - m) == 0:
-                coeff = (6 * n * (n + 1) + 3) / (4 * omega ** 2)
+                coeff = (6 * n * (n + 1) + 3) / (4 ** 2)
             elif abs(n - m) == 2:
-                coeff = (n - 1 / 2) * np.sqrt(n * (n - 1)) / omega ** 2
+                coeff = (n - 1 / 2) * np.sqrt(n * (n - 1))
             elif abs(n - m) == 4:
-                coeff = np.sqrt(n * (n - 1) * (n - 2) * (n - 3)) / (4 * omega ** 2)
+                coeff = np.sqrt(n * (n - 1) * (n - 2) * (n - 3)) / 4
         else:
             raise ValueError('The expansion order of the PES is too high.')
         return coeff
 
-    def compute_harmonic_modes(self, threshold=1e-6):
-        omega = {1: 1, 2: 1, 3: 1, 4: 1}
+    def compute_harmonic_modes(self, num_modals, threshold=1e-6):
+        #omega = {1: 1, 2: 1, 3: 1, 4: 1}
         # num_modes = 4  # unused
-        num_modals = 3
+        #num_modals = 3 # this should be an argument of the function
 
         harmonics = []
 
@@ -284,10 +289,12 @@ class GaussianLogResult:
             coeff0 = entry[0]
             indices = entry[1:]
 
+            kinetic_term = False
+
             # Note: these negative indices as detected below are explicitly generated in
             # _compute_modes for other potential uses. They are not wanted by this logic.
             if any([index < 0 for index in indices]):
-                continue
+                kinetic_term = True
             indexes = {}  # type: Dict[int, int]
             for i in indices:
                 if indexes.get(i) is None:
@@ -302,7 +309,7 @@ class GaussianLogResult:
                 for m in range(num_modals):
                     for n in range(num_modals):
                         coeff = coeff0 * self._harmonic_integrals(m, n, indexes[modes[0]],
-                                                                  omega[modes[0]])
+                                                                  kinetic_term=kinetic_term)
                         if abs(coeff) > threshold:
                             harmonics.append([modes[0], n, m, coeff])
 
@@ -310,11 +317,11 @@ class GaussianLogResult:
                 for m in range(num_modals):
                     for n in range(num_modals):
                         coeff = coeff0 * self._harmonic_integrals(m, n, indexes[modes[0]],
-                                                                  omega[modes[0]])
+                                                                  kinetic_term=kinetic_term)
                         for j in range(num_modals):
                             for k in range(num_modals):
                                 coeff *= self._harmonic_integrals(j, k, indexes[modes[1]],
-                                                                  omega[modes[1]])
+                                                                  kinetic_term=kinetic_term)
                                 if abs(coeff) > threshold:
                                     harmonics.append([modes[0], n, m,
                                                       modes[1], j, k, coeff])
@@ -322,15 +329,15 @@ class GaussianLogResult:
                 for m in range(num_modals):
                     for n in range(num_modals):
                         coeff = coeff0 * self._harmonic_integrals(m, n, indexes[modes[0]],
-                                                                  omega[modes[0]])
+                                                                  kinetic_term=kinetic_term)
                         for j in range(num_modals):
                             for k in range(num_modals):
                                 coeff *= self._harmonic_integrals(j, k, indexes[modes[1]],
-                                                                  omega[modes[1]])
+                                                                  kinetic_term=kinetic_term)
                                 for p in range(num_modals):
                                     for q in range(num_modals):
                                         coeff *= self._harmonic_integrals(p, q, indexes[modes[2]],
-                                                                          omega[modes[2]])
+                                                                          kinetic_term=kinetic_term)
                                         if abs(coeff) > threshold:
                                             harmonics.append([modes[0], n, m,
                                                               modes[1], j, k,
