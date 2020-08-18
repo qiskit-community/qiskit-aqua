@@ -25,7 +25,7 @@ from ..problems.quadratic_program import QuadraticProgram
 
 
 class IsingToQuadraticProgram:
-    """Convert a qubit operator into a quadratic program"""
+    """DEPRECATED Convert a qubit operator into a quadratic program"""
 
     def __init__(self, linear: bool = False) -> None:
         r"""

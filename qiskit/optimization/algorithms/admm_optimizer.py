@@ -53,6 +53,7 @@ class ADMMParameters:
                  tau_decr: float = 2,
                  mu_res: float = 10,
                  mu_merit: float = 1000,
+                 warm_start: bool = False,
                  max_iter: Optional[int] = None) -> None:
         """Defines parameters for ADMM optimizer and their default values.
 
@@ -76,6 +77,11 @@ class ADMMParameters:
             tau_decr: Parameter used in the rho update (UPDATE_RHO_BY_RESIDUALS).
             mu_res: Parameter used in the rho update (UPDATE_RHO_BY_RESIDUALS).
             mu_merit: Penalization for constraint residual. Used to compute the merit values.
+            warm_start: Start ADMM with pre-initialized values for binary and continuous variables
+                by solving a relaxed (all variables are continuous) problem first. This option does
+                not guarantee the solution will optimal or even feasible. The option should be
+                used when tuning other options does not help and should be considered as a hint
+                to the optimizer where to start its iterative process.
             max_iter: Deprecated, use maxiter.
         """
         super().__init__()
@@ -97,6 +103,7 @@ class ADMMParameters:
         self.factor_c = factor_c
         self.beta = beta
         self.rho_initial = rho_initial
+        self.warm_start = warm_start
 
     def __repr__(self) -> str:
         props = ", ".join(["{}={}".format(key, value) for (key, value) in vars(self).items()])
@@ -292,6 +299,9 @@ class ADMMOptimizer(OptimizationAlgorithm):
         self._state.binary_indices = self._get_variable_indices(problem, Variable.Type.BINARY)
         self._state.continuous_indices = self._get_variable_indices(problem,
                                                                     Variable.Type.CONTINUOUS)
+        if self._params.warm_start:
+            # warm start injection for the initial values of the variables
+            self._warm_start(problem)
 
         # convert optimization problem to a set of matrices and vector that are used
         # at each iteration.
@@ -829,6 +839,26 @@ class ADMMOptimizer(OptimizationAlgorithm):
         dual_residual = self._state.rho * np.linalg.norm(elements_dual)
 
         return primal_residual, dual_residual
+
+    def _warm_start(self, problem: QuadraticProgram) -> None:
+        """Solves a relaxed (all variables are continuous) and initializes the optimizer state with
+            the found solution.
+
+        Args:
+            problem: a problem to solve.
+
+        Returns:
+            None
+        """
+        qp_copy = copy.deepcopy(problem)
+        for variable in qp_copy.variables:
+            variable.vartype = VarType.CONTINUOUS
+        cts_result = self._continuous_optimizer.solve(qp_copy)
+        logger.debug("Continuous relaxation: %s", cts_result.x)
+
+        self._state.x0 = cts_result.x[self._state.binary_indices]
+        self._state.u = cts_result.x[self._state.continuous_indices]
+        self._state.z = cts_result.x[self._state.binary_indices]
 
     @property
     def parameters(self) -> ADMMParameters:

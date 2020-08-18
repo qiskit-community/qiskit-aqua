@@ -163,6 +163,40 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
         self.assertIsNotNone(solution.state)
         self.assertIsInstance(solution.state, ADMMState)
 
+    def test_admm_ex5_warm_start(self):
+        """Example 5 but with a warm start"""
+        mdl = Model('ex5')
+
+        # pylint:disable=invalid-name
+        v = mdl.binary_var(name='v')
+        w = mdl.binary_var(name='w')
+        t = mdl.binary_var(name='t')
+
+        mdl.minimize(v + w + t)
+        mdl.add_constraint(2 * v + 2 * w + t <= 3, "cons1")
+        mdl.add_constraint(v + w + t >= 1, "cons2")
+        mdl.add_constraint(v + w == 1, "cons3")
+
+        op = QuadraticProgram()
+        op.from_docplex(mdl)
+
+        admm_params = ADMMParameters(
+            rho_initial=1001, beta=1000, factor_c=900,
+            maxiter=100, three_block=False, warm_start=True
+        )
+
+        solver = ADMMOptimizer(params=admm_params)
+        solution = solver.solve(op)
+
+        self.assertIsNotNone(solution)
+        self.assertIsInstance(solution, ADMMOptimizationResult)
+        self.assertIsNotNone(solution.x)
+        np.testing.assert_almost_equal([0., 1., 0.], solution.x, 3)
+        self.assertIsNotNone(solution.fval)
+        np.testing.assert_almost_equal(1., solution.fval, 3)
+        self.assertIsNotNone(solution.state)
+        self.assertIsInstance(solution.state, ADMMState)
+
     def test_admm_ex6(self):
         """Example 6 as a unit test. Example 6 is reported in:
         Gambella, C., & Simonetto, A. (2020).
