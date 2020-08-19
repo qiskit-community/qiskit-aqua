@@ -454,7 +454,7 @@ class OperatorBase(ABC):
 
     @abstractmethod
     def permute(self, permutation: List[int]) -> 'OperatorBase':
-        r""" Permutes the qubits of the operator.
+        """Permutes the qubits of the operator.
 
         Args:
             permutation: A list defining where each qubit should be permuted. The qubit at index
