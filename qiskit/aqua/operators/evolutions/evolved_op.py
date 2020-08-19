@@ -98,12 +98,11 @@ class EvolvedOp(PrimitiveOp):
     def compose(self, other: OperatorBase,
                 permutation: List[int] = None, front: bool = False) -> OperatorBase:
 
-        self, other = self._expand_shorter_operator_and_permute(other,  # type: ignore
-                                                                permutation)
+        new_self, other = self._expand_shorter_operator_and_permute(other, permutation)
         if front:
-            return other.compose(self)
+            return other.compose(new_self)
         if isinstance(other, ComposedOp):
-            return ComposedOp([self] + other.oplist)  # type: ignore
+            return ComposedOp([new_self] + other.oplist)  # type: ignore
 
         return ComposedOp([self, other])
 

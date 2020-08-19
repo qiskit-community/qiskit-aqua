@@ -532,7 +532,6 @@ class OperatorBase(ABC):
             elif other.num_qubits < self.num_qubits:
                 other = other._expand_dim(self.num_qubits - other.num_qubits)
             elif other.num_qubits > self.num_qubits:
-                # type: ignore
                 new_self = self._expand_dim(other.num_qubits - self.num_qubits)
         return new_self, other
 

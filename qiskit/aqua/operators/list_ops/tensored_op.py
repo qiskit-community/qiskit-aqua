@@ -61,8 +61,8 @@ class TensoredOp(ListOp):
         Returns:
             TensoredOp expanded with identity operator.
         """
-        from qiskit.aqua.operators import PauliOp
-        return TensoredOp(self.oplist + [PauliOp(Pauli(label='I' * num_qubits))], coeff=self.coeff)
+        from qiskit.aqua.operators import I
+        return TensoredOp(self.oplist + [I ^ num_qubits], coeff=self.coeff)
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
         if isinstance(other, TensoredOp):
