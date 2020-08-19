@@ -66,7 +66,7 @@ class ComposedOp(ListOp):
         return ComposedOp([op.adjoint() for op in reversed(self.oplist)], coeff=self.coeff)
 
     def compose(self, other: OperatorBase,
-                permutation: List[int] = None, front: bool = False) -> OperatorBase:
+                permutation: Optional[List[int]] = None, front: bool = False) -> OperatorBase:
 
         self, other = self._expand_shorter_operator_and_permute(other,  # type: ignore
                                                                 permutation)
