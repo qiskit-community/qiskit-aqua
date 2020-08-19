@@ -350,12 +350,12 @@ class GroverOptimizationResult(OptimizationResult):
                 that is expected to be identical with ``fval``.
             threshold: The threshold of Grover algorithm.
         """
-        raw_results = {'intermediate_fval': fval, 'threshold': threshold}
-        super().__init__(x, fval, variables, raw_results)
+        super().__init__(x, fval, variables, None)
         self._operation_counts = operation_counts
         self._n_input_qubits = n_input_qubits
         self._n_output_qubits = n_output_qubits
         self._intermediate_fval = intermediate_fval
+        self._threshold = threshold
 
     @property
     def operation_counts(self) -> Dict[int, Dict[str, int]]:
@@ -383,3 +383,21 @@ class GroverOptimizationResult(OptimizationResult):
             The number of qubits used to represent the output.
         """
         return self._n_output_qubits
+
+    @property
+    def intermediate_fval(self) -> float:
+        """Getter of the intermediate fval
+
+        Returns:
+            The intermediate value of fval before interpret.
+        """
+        return self._intermediate_fval
+
+    @property
+    def threshold(self) -> float:
+        """Getter of the threshold of Grover algorithm.
+
+        Returns:
+            The threshold of Grover algorithm.
+        """
+        return self._threshold
