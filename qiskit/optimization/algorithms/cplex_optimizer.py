@@ -18,7 +18,8 @@
 import logging
 from typing import Optional
 
-from .optimization_algorithm import OptimizationResultStatus, OptimizationAlgorithm, OptimizationResult
+from .optimization_algorithm import (OptimizationResultStatus, OptimizationAlgorithm,
+                                     OptimizationResult)
 from ..exceptions import QiskitOptimizationError
 from ..problems.quadratic_program import QuadraticProgram
 
@@ -137,7 +138,8 @@ class CplexOptimizer(OptimizationAlgorithm):
         sol = cplex.solution
 
         # check for feasibility
-        status = OptimizationResultStatus.SUCCESS if problem.is_feasible(sol.get_values()) else OptimizationResultStatus.INFEASIBLE
+        status = OptimizationResultStatus.SUCCESS if problem.is_feasible(sol.get_values()) \
+            else OptimizationResultStatus.INFEASIBLE
 
         # create results
         result = OptimizationResult(x=sol.get_values(),

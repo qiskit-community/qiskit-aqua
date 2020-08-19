@@ -17,13 +17,14 @@ import copy
 import logging
 import time
 import warnings
-from typing import List, Optional, Tuple
+from typing import cast, List, Optional, Tuple
 
 import numpy as np
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 
 from .minimum_eigen_optimizer import MinimumEigenOptimizer
-from .optimization_algorithm import OptimizationResultStatus, OptimizationAlgorithm, OptimizationResult
+from .optimization_algorithm import (OptimizationResultStatus, OptimizationAlgorithm,
+                                     OptimizationResult)
 from .slsqp_optimizer import SlsqpOptimizer
 from ..problems.constraint import Constraint
 from ..problems.linear_constraint import LinearConstraint
@@ -189,6 +190,7 @@ class ADMMOptimizationResult(OptimizationResult):
             fval: the optimal function value.
             variables: the list of variables of the optimization problem.
             state: the internal computation state of ADMM.
+            status: Termination status of an optimization algorithm
         """
         super().__init__(x=x, fval=fval, variables=variables, raw_results=state, status=status)
 
@@ -383,13 +385,15 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # third parameter is our internal state of computations.
         result = ADMMOptimizationResult(x=base_result.x, fval=base_result.fval,
                                         variables=base_result.variables,
-                                        state=self._state)
+                                        state=self._state,
+                                        status=base_result.status)
 
         # convert back integer to binary
         result = cast(ADMMOptimizationResult, int2bin.decode(result))
 
         # check for feasibility
-        status = OptimizationResultStatus.SUCCESS if problem.is_feasible(result.x) else OptimizationResultStatus.INFEASIBLE
+        status = OptimizationResultStatus.SUCCESS if problem.is_feasible(result.x) \
+            else OptimizationResultStatus.INFEASIBLE
 
         result = ADMMOptimizationResult(x=result.x, fval=result.fval,
                                         variables=result.variables,

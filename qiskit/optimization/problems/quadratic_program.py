@@ -14,13 +14,15 @@
 
 """Quadratic Program."""
 
-import numpy as np
 from typing import cast, List, Union, Dict, Optional, Tuple
 import logging
 from collections import defaultdict
 from enum import Enum
 from math import fsum, isclose
 import warnings
+import numpy as np
+from numpy import (ndarray, zeros, bool as nbool)
+from scipy.sparse import spmatrix
 
 from docplex.mp.constr import (LinearConstraint as DocplexLinearConstraint,
                                QuadraticConstraint as DocplexQuadraticConstraint,
@@ -29,8 +31,6 @@ from docplex.mp.linear import Var
 from docplex.mp.model import Model
 from docplex.mp.model_reader import ModelReader
 from docplex.mp.quad import QuadExpr
-from numpy import (ndarray, zeros, bool as nbool)
-from scipy.sparse import spmatrix
 
 from qiskit.aqua import MissingOptionalLibraryError
 from qiskit.aqua.operators import I, OperatorBase, PauliOp, WeightedPauliOperator, SummedOp, ListOp
@@ -1093,27 +1093,38 @@ class QuadraticProgram:
         self.minimize(constant=offset, linear=linear_terms, quadratic=quadratic_terms)
         offset -= offset
 
+    def is_feasible(self, x: Union[List[float], np.ndarray], detailed: bool = False) -> bool:
+        """Returns whether a solution provided by the optimizer is feasible or not
+        Args:
+            x: the input result list returned by the optimizer
+            detailed: whether or not to print the violations
+        Returns:
+            is_feasible: Whether the solution provided by the optimizer is feasible or not.
 
-    def is_feasible(self, x: Union[List[float], np.ndarray], detailed = False) -> bool:
-
+        Raises:
+            QiskitOptimizationError: If the input `x` is not same len as total vars
+        """
+        # if input `x` is not the same len as the total vars, raise an error
         if len(x) != self.get_num_vars():
             raise QiskitOptimizationError(
                 'The size of `x` differs from the total number of variables.'
                 ' size of `x`: {}, num. of vars: {}'.format(len(x), self.get_num_vars())
             )
 
+        # check whether the input satisfy the bounds of the problem
         satisfied_variables = {}
-        for i, v in enumerate(x):    
+        for i, val in enumerate(x):
             variable = self.get_variable(i)
-            if variable._lowerbound <= v <= variable._upperbound :
+            if variable._lowerbound <= val <= variable._upperbound:
                 satisfied_variables[variable.name] = True
-                # print(f'{variable._name} is within the bounds') 
-            else :
+                # print(f'{variable._name} is within the bounds')
+            else:
                 satisfied_variables[variable.name] = False
                 # print(f'{variable._name} is outside the bounds')
 
-        satisfied_constraints = {} 
-        for constraint in self._linear_constraints +  self._quadratic_constraints:
+        # check whether the input satisfy the constraints of the problem
+        satisfied_constraints = {}
+        for constraint in self._linear_constraints + self._quadratic_constraints:
             lhs = constraint.evaluate(x)
             if constraint.sense == ConstraintSense.LE:
                 satisfied_constraints[constraint.name] = lhs <= constraint.rhs
@@ -1122,12 +1133,13 @@ class QuadraticProgram:
             elif constraint.sense == ConstraintSense.EQ:
                 satisfied_constraints[constraint.name] = isclose(lhs, constraint.rhs)
 
+        # create a dict containing only unsatisfied variable(s)/constraint(s)
+        final_dict = {k: v for k, v in {**satisfied_variables, **satisfied_constraints}
+                      .items() if not v}
 
-        final_dict = { k:v for k, v in {**satisfied_variables, **satisfied_constraints}.items() if not v }
-            
-        if(detailed == True):
+        if detailed:
 
-            print(list(final_dict.values))            
+            print(list(final_dict.values))
             # if (final_dict.keys()):
             #     return False, list(final_dict.keys())
 
@@ -1135,8 +1147,9 @@ class QuadraticProgram:
             #     return True, []
 
         return (len(satisfied_variables) == len(self._variables) and
-            len(satisfied_constraints) == (len(self._linear_constraints) + len(self._quadratic_constraints)))
-        
+                len(satisfied_constraints) == (len(self._linear_constraints) +
+                                               len(self._quadratic_constraints)))
+
 
 class SubstituteVariables:
     """A class to substitute variables of an optimization problem with constants for other
