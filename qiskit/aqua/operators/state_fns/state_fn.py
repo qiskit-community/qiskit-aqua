@@ -206,7 +206,7 @@ class StateFn(OperatorBase):
         return temp
 
     def _expand_shorter_operator_and_permute(self, other: OperatorBase,
-                                             permutation: List[int] = None) \
+                                             permutation: Optional[List[int]] = None) \
             -> Tuple[OperatorBase, OperatorBase]:
 
         from qiskit.aqua.operators import Zero
