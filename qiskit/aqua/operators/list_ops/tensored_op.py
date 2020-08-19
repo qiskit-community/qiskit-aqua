@@ -55,7 +55,7 @@ class TensoredOp(ListOp):
         return False
 
     def _expand_dim(self, num_qubits: int) -> 'TensoredOp':
-        """ Appends I ^ num_qubits to ``oplist``. Choice of PauliOp as
+        """Appends I ^ num_qubits to ``oplist``. Choice of PauliOp as
         identity is arbitrary and can be substituted for other PrimitiveOp identity.
 
         Returns:
