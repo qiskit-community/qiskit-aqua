@@ -18,6 +18,7 @@ from typing import Union, Set
 import numpy as np
 
 from qiskit.circuit import ParameterExpression
+from qiskit.quantum_info import Statevector
 
 from ..operator_base import OperatorBase
 from .state_fn import StateFn
@@ -181,6 +182,10 @@ class OperatorStateFn(StateFn):
     def eval(self,
              front: Union[str, dict, np.ndarray,
                           OperatorBase] = None) -> Union[OperatorBase, float, complex]:
+        if front is None:
+            matrix = self.to_matrix_op().primitive.primitive.data
+            return Statevector(matrix[0, :])
+
         if not self.is_measurement and isinstance(front, OperatorBase):
             raise ValueError(
                 'Cannot compute overlap with StateFn or Operator if not Measurement. Try taking '

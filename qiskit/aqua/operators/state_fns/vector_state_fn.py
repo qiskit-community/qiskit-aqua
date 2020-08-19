@@ -130,6 +130,11 @@ class VectorStateFn(StateFn):
     def eval(self,
              front: Union[str, dict, np.ndarray,
                           OperatorBase] = None) -> Union[OperatorBase, float, complex]:
+        # If eval is called on a state, just return the sampling probabilities
+        if front is None:
+            print('front is none, returning primitive')
+            return self.primitive
+
         if not self.is_measurement and isinstance(front, OperatorBase):
             raise ValueError(
                 'Cannot compute overlap with StateFn or Operator if not Measurement. Try taking '
