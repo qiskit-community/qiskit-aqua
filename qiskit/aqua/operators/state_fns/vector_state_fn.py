@@ -132,7 +132,6 @@ class VectorStateFn(StateFn):
                           OperatorBase] = None) -> Union[OperatorBase, float, complex]:
         # If eval is called on a state, just return the sampling probabilities
         if front is None:
-            print('front is none, returning primitive')
             return self.primitive
 
         if not self.is_measurement and isinstance(front, OperatorBase):

@@ -23,12 +23,12 @@ from ddt import ddt, data
 
 from qiskit.circuit import QuantumCircuit, QuantumRegister, Instruction, Parameter, ParameterVector
 from qiskit.extensions.exceptions import ExtensionError
-from qiskit.quantum_info.operators import Operator, Pauli
+from qiskit.quantum_info import Operator, Pauli, Statevector
 from qiskit.circuit.library import CZGate, ZGate
 
 from qiskit.aqua.operators import (
     X, Y, Z, I, CX, T, H, PrimitiveOp, SummedOp, PauliOp, Minus, CircuitOp, MatrixOp, ListOp,
-    ComposedOp, StateFn
+    ComposedOp, StateFn, VectorStateFn, OperatorStateFn, CircuitStateFn, DictStateFn,
 )
 
 
@@ -499,6 +499,21 @@ class TestOpConstruction(QiskitAquaTestCase):
 
         params.append(lam)
         self.assertEqual(list_op.parameters, set(params))
+
+    def test_statefn_eval(self):
+        """Test calling eval on StateFn returns the statevector."""
+        qc = QuantumCircuit(1)
+        ops = [VectorStateFn([1, 0]), 
+                DictStateFn({'0': 1}),
+                CircuitStateFn(qc),
+                OperatorStateFn(I),
+                OperatorStateFn(MatrixOp([[1, 0], [0, 1]])),
+                OperatorStateFn(CircuitOp(qc))]
+
+        expected = Statevector([1, 0])
+        for op in ops:
+            with self.subTest(op):
+                self.assertEqual(op.eval(), expected)
 
 
 class TestListOpComboFn(QiskitAquaTestCase):
