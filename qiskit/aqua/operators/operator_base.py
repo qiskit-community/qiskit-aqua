@@ -551,7 +551,7 @@ class OperatorBase(ABC):
 
     @abstractmethod
     def compose(self, other: 'OperatorBase',
-                permutation: List[int] = None, front: bool = False) -> 'OperatorBase':
+                permutation: Optional[List[int]] = None, front: bool = False) -> 'OperatorBase':
         r""" Return Operator Composition between self and other (linear algebra-style:
         A@B(x) = A(B(x))), overloaded by ``@``.
 
