@@ -444,7 +444,7 @@ class OperatorBase(ABC):
 
     @abstractmethod
     def _expand_dim(self, num_qubits: int) -> 'OperatorBase':
-        r""" Expands the operator with identity operator of dimension 2**num_qubits.
+        """Expands the operator with identity operator of dimension 2**num_qubits.
 
         Returns:
             Operator corresponding to self.tensor(identity_operator), where dimension of identity
