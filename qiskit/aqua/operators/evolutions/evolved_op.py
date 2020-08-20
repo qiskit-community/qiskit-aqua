@@ -104,7 +104,7 @@ class EvolvedOp(PrimitiveOp):
         if isinstance(other, ComposedOp):
             return ComposedOp([new_self] + other.oplist)  # type: ignore
 
-        return ComposedOp([self, other])
+        return ComposedOp([new_self, other])
 
     def __str__(self) -> str:
         prim_str = str(self.primitive)
