@@ -17,7 +17,7 @@ import copy
 import logging
 import time
 import warnings
-from typing import cast, List, Optional, Tuple
+from typing import List, Optional, Tuple
 
 import numpy as np
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
