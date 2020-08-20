@@ -47,10 +47,10 @@ class TestAerPauliExpectation(QiskitAquaTestCase):
     def test_pauli_expect_pair(self):
         """ pauli expect pair test """
         op = (Z ^ Z)
-        # wf = (Pl^Pl) + (Ze^Ze)
-        wf = CX @ (H ^ I) @ Zero
+        # wvf = (Pl^Pl) + (Ze^Ze)
+        wvf = CX @ (H ^ I) @ Zero
 
-        converted_meas = self.expect.convert(~StateFn(op) @ wf)
+        converted_meas = self.expect.convert(~StateFn(op) @ wvf)
         sampled = self.sampler.convert(converted_meas)
         self.assertAlmostEqual(sampled.eval(), 0, delta=.1)
 
