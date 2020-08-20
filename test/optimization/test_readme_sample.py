@@ -67,7 +67,7 @@ class TestReadmeSample(QiskitOptimizationTestCase):
         problem.linear_constraint([1, 0, 0, 0], '==', 1)
 
         # Run quantum algorithm QAOA on qasm simulator
-        spsa = SPSA(max_trials=250)
+        spsa = SPSA(maxiter=250)
         backend = BasicAer.get_backend('qasm_simulator')
         qaoa = QAOA(optimizer=spsa, p=5, quantum_instance=backend)
         algorithm = MinimumEigenOptimizer(qaoa)
@@ -75,7 +75,7 @@ class TestReadmeSample(QiskitOptimizationTestCase):
         print(result)  # prints solution, x=[1, 0, 1, 0], the cost, fval=4
         # ----------------------------------------------------------------------
 
-        self.assertListEqual(result.x, [1, 0, 1, 0])
+        np.testing.assert_array_almost_equal(result.x, [1, 0, 1, 0])
         self.assertAlmostEqual(result.fval, 4.0)
 
 

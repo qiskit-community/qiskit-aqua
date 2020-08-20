@@ -16,14 +16,17 @@
 
 from typing import Optional, Union, List
 import datetime
-import importlib
 import logging
 
-import quandl
-from quandl.errors.quandl_error import NotFoundError
-
-from ._base_data_provider import BaseDataProvider, StockMarket
+from qiskit.aqua import MissingOptionalLibraryError
+from ._base_data_provider import BaseDataProvider
 from ..exceptions import QiskitFinanceError
+
+try:
+    import quandl
+    _HAS_QUANDL = True
+except ImportError:
+    _HAS_QUANDL = False
 
 logger = logging.getLogger(__name__)
 
@@ -32,14 +35,13 @@ class WikipediaDataProvider(BaseDataProvider):
     """Wikipedia data provider.
 
     Please see:
-    https://github.com/Qiskit/qiskit-tutorials/blob/stable/0.14.x/qiskit/advanced/aqua/finance/data_providers/time_series.ipynb
+    https://github.com/Qiskit/qiskit-tutorials/blob/master/legacy_tutorials/aqua/finance/data_providers/time_series.ipynb
     for instructions on use.
     """
 
     def __init__(self,
                  token: Optional[str] = None,
                  tickers: Optional[Union[str, List[str]]] = None,
-                 stockmarket: StockMarket = StockMarket.NASDAQ,
                  start: datetime.datetime = datetime.datetime(2016, 1, 1),
                  end: datetime.datetime = datetime.datetime(2016, 1, 30)) -> None:
         """
@@ -47,13 +49,17 @@ class WikipediaDataProvider(BaseDataProvider):
         Args:
             token: quandl access token, which is not needed, strictly speaking
             tickers: tickers
-            stockmarket: NASDAQ, NYSE
             start: start time
             end: end time
-        Raises:
-            QiskitFinanceError: provider doesn't support stock market input
+         Raises:
+            MissingOptionalLibraryError: Quandl not installed
         """
         super().__init__()
+        if not _HAS_QUANDL:
+            raise MissingOptionalLibraryError(
+                libname='Quandl',
+                name='WikipediaDataProvider',
+                pip_install='pip install quandl')
         self._tickers = None  # type: Optional[Union[str, List[str]]]
         tickers = tickers if tickers is not None else []
         if isinstance(tickers, list):
@@ -62,59 +68,40 @@ class WikipediaDataProvider(BaseDataProvider):
             self._tickers = tickers.replace('\n', ';').split(";")
         self._n = len(self._tickers)
 
-        if stockmarket not in [StockMarket.NASDAQ, StockMarket.NYSE]:
-            msg = "WikipediaDataProvider does not support "
-            msg += stockmarket.value
-            msg += " as a stock market."
-            raise QiskitFinanceError(msg)
-
-        # This is to aid serialization; string is ok to serialize
-        self._stockmarket = str(stockmarket.value)
-
         self._token = token
         self._tickers = tickers
-        self._start = start
-        self._end = end
+        self._start = start.strftime('%Y-%m-%d')
+        self._end = end.strftime('%Y-%m-%d')
         self._data = []
 
-    @staticmethod
-    def _check_provider_valid():
-        """ checks if provider is valid """
-        err_msg = 'quandl is not installed.'
-        try:
-            spec = importlib.util.find_spec('quandl')
-            if spec is not None:
-                return
-        except Exception as ex:  # pylint: disable=broad-except
-            logger.debug('quandl check error %s', str(ex))
-            raise QiskitFinanceError(err_msg) from ex
-
-        raise QiskitFinanceError(err_msg)
-
-    def run(self):
+    def run(self) -> None:
         """
         Loads data, thus enabling get_similarity_matrix and
         get_covariance_matrix methods in the base class.
         """
-        self._check_provider_valid()
-        if self._token:
-            quandl.ApiConfig.api_key = self._token
+        quandl.ApiConfig.api_key = self._token
         quandl.ApiConfig.api_version = '2015-04-09'
         self._data = []
-        for _, __s in enumerate(self._tickers):
+        stocks_notfound = []
+        for _, ticker_name in enumerate(self._tickers):
+            stock_data = None
+            name = 'WIKI' + "/" + ticker_name
             try:
-                __d = quandl.get("WIKI/" + __s,
-                                 start_date=self._start,
-                                 end_date=self._end)
-            except NotFoundError as ex:
-                raise QiskitFinanceError(
-                    "Cannot retrieve Wikipedia data due to an invalid token."
-                ) from ex
-            # The exception will be urllib3 NewConnectionError, but it can get dressed by quandl
-            except Exception as ex:  # pylint: disable=broad-except
-                raise QiskitFinanceError(
-                    "Cannot retrieve Wikipedia data.") from ex
+                stock_data = quandl.get(name,
+                                        start_date=self._start,
+                                        end_date=self._end)
+            except quandl.AuthenticationError as ex:
+                raise QiskitFinanceError("Quandl invalid token.") from ex
+            except quandl.NotFoundError as ex:
+                stocks_notfound.append(name)
+                continue
+            except quandl.QuandlError as ex:
+                raise QiskitFinanceError("Quandl Error for '{}'.".format(name)) from ex
+
             try:
-                self._data.append(__d["Adj. Close"])
+                self._data.append(stock_data["Adj. Close"])
             except KeyError as ex:
                 raise QiskitFinanceError("Cannot parse quandl output.") from ex
+
+        if stocks_notfound:
+            raise QiskitFinanceError('Stocks not found: {}. '.format(stocks_notfound))

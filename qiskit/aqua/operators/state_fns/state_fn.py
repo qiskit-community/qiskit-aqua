@@ -292,6 +292,15 @@ class StateFn(OperatorBase):
                           OperatorBase] = None) -> Union[OperatorBase, float, complex]:
         raise NotImplementedError
 
+    @property
+    def parameters(self):
+        params = set()
+        if isinstance(self.primitive, (OperatorBase, QuantumCircuit)):
+            params.update(self.primitive.parameters)
+        if isinstance(self.coeff, ParameterExpression):
+            params.update(self.coeff.parameters)
+        return params
+
     def assign_parameters(self, param_dict: dict) -> OperatorBase:
         param_value = self.coeff
         if isinstance(self.coeff, ParameterExpression):
@@ -303,7 +312,7 @@ class StateFn(OperatorBase):
             if self.coeff.parameters <= set(unrolled_dict.keys()):
                 binds = {param: unrolled_dict[param] for param in self.coeff.parameters}
                 param_value = float(self.coeff.bind(binds))
-        return self.__class__(self.primitive, is_measurement=self.is_measurement, coeff=param_value)
+        return self.traverse(lambda x: x.assign_parameters(param_dict), coeff=param_value)
 
     # Try collapsing primitives where possible. Nothing to collapse here.
     def reduce(self) -> OperatorBase:

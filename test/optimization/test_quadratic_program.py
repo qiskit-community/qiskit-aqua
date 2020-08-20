@@ -21,6 +21,7 @@ from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 
 from docplex.mp.model import Model, DOcplexException
 
+from qiskit.aqua import MissingOptionalLibraryError
 from qiskit.optimization import QuadraticProgram, QiskitOptimizationError, INFINITY
 from qiskit.optimization.problems import Variable, Constraint, QuadraticObjective
 
@@ -459,12 +460,10 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
                                  {('x', 'x'): 1, ('y', 'z'): -1, ('z', 'z'): 2})
             self.assertEqual(cst[2].sense, Constraint.Sense.GE)
             self.assertEqual(cst[2].rhs, 1)
+        except MissingOptionalLibraryError as ex:
+            self.skipTest(str(ex))
         except RuntimeError as ex:
-            msg = str(ex)
-            if 'CPLEX' in msg:
-                self.skipTest(msg)
-            else:
-                self.fail(msg)
+            self.fail(str(ex))
 
     def test_write_to_lp_file(self):
         """test write problem"""
@@ -520,7 +519,6 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         q_p.quadratic_constraint({'x': 2, 'z': -1}, {('y', 'z'): 3}, '==', 1)
         q_p2 = QuadraticProgram()
         q_p2.from_docplex(q_p.to_docplex())
-        self.assertEqual(q_p.pprint_as_string(), q_p2.pprint_as_string())
         self.assertEqual(q_p.export_as_lp_string(), q_p2.export_as_lp_string())
 
         mod = Model('test')
@@ -530,7 +528,6 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         mod.minimize(1 + x + 2 * y - x * y + 2 * z * z)
         mod.add(2 * x - z == 1, 'c0')
         mod.add(2 * x - z + 3 * y * z == 1, 'q0')
-        self.assertEqual(q_p.pprint_as_string(), mod.pprint_as_string())
         self.assertEqual(q_p.export_as_lp_string(), mod.export_as_lp_string())
 
         with self.assertRaises(QiskitOptimizationError):

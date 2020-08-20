@@ -17,6 +17,7 @@
 import unittest
 from test.optimization import QiskitOptimizationTestCase
 from docplex.mp.model import Model
+import numpy as np
 from qiskit import Aer
 from qiskit.aqua import aqua_globals, QuantumInstance
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
@@ -40,8 +41,8 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
         comp_result = solver.solve(problem)
 
         # Validate results.
-        self.assertTrue(comp_result.x == results.x)
-        self.assertTrue(comp_result.fval == results.fval)
+        np.testing.assert_array_almost_equal(comp_result.x, results.x)
+        self.assertEqual(comp_result.fval, results.fval)
 
     def test_qubo_gas_int_zero(self):
         """Test for when the answer is zero."""
@@ -57,7 +58,7 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
         # Will not find a negative, should return 0.
         gmf = GroverOptimizer(1, num_iterations=1, quantum_instance=self.q_instance)
         results = gmf.solve(op)
-        self.assertEqual(results.x, [0, 0])
+        np.testing.assert_array_almost_equal(results.x, [0, 0])
         self.assertEqual(results.fval, 0.0)
 
     def test_qubo_gas_int_simple(self):
@@ -76,6 +77,10 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
         gmf = GroverOptimizer(4, num_iterations=n_iter, quantum_instance=self.q_instance)
         results = gmf.solve(op)
         self.validate_results(op, results)
+
+        self.assertIsNotNone(results.operation_counts)
+        self.assertEqual(results.n_input_qubits, 2)
+        self.assertEqual(results.n_output_qubits, 4)
 
     def test_qubo_gas_int_simple_maximize(self):
         """Test for simple case, but with maximization."""

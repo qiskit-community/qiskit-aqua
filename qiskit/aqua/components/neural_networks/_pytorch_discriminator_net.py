@@ -17,7 +17,7 @@ Discriminator
 """
 
 import logging
-
+from qiskit.aqua import MissingOptionalLibraryError
 
 logger = logging.getLogger(__name__)
 
@@ -25,11 +25,22 @@ try:
     import torch
     from torch import nn
 except ImportError:
-    logger.info('Pytorch is not installed. For installation instructions '
-                'see https://pytorch.org/get-started/locally/')
+    if logger.isEnabledFor(logging.INFO):
+        EXC = MissingOptionalLibraryError(
+            libname='Pytorch',
+            name='DiscriminatorNet',
+            pip_install='pip install qiskit-aqua[torch]')
+        logger.info(str(EXC))
+
+# torch 1.6.0 fixed a mypy error about not applying contravariance rules
+# to inputs by defining forward as a value, rather than a function.  See also
+# https://github.com/python/mypy/issues/8795
+# The fix introduced an error on Module class about '_forward_unimplemented'
+# not being implemented.
+# The pylint disable=abstract-method fixes it.
 
 
-class DiscriminatorNet(torch.nn.Module):
+class DiscriminatorNet(torch.nn.Module):  # pylint: disable=abstract-method
     """
     Discriminator
     """

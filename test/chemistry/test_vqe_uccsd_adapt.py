@@ -80,12 +80,51 @@ class TestVQEAdaptUCCSD(QiskitChemistryTestCase):
         backend = Aer.get_backend('statevector_simulator')
         optimizer = L_BFGS_B()
         algorithm = VQEAdapt(self.qubit_op, self.var_form_base, optimizer,
+                             threshold=0.00001, delta=0.1, max_iterations=1)
+        result = algorithm.run(backend)
+        self.assertEqual(result.num_iterations, 1)
+        self.assertEqual(result.finishing_criterion, 'Maximum number of iterations reached')
+
+        algorithm = VQEAdapt(self.qubit_op, self.var_form_base, optimizer,
                              threshold=0.00001, delta=0.1)
         result = algorithm.run(backend)
         self.assertAlmostEqual(result.eigenvalue.real, -1.85727503, places=2)
-        self.assertIsNotNone(result.num_iterations)
-        self.assertIsNotNone(result.final_max_gradient)
-        self.assertIsNotNone(result.finishing_criterion)
+        self.assertEqual(result.num_iterations, 2)
+        self.assertAlmostEqual(result.final_max_gradient, 0.0, places=5)
+        self.assertEqual(result.finishing_criterion, 'Threshold converged')
+
+    def test_vqe_adapt_check_cyclicity(self):
+        """ VQEAdapt index cycle detection """
+        param_list = [
+            ([1, 1], True),
+            ([1, 11], False),
+            ([11, 1], False),
+            ([1, 12], False),
+            ([12, 2], False),
+            ([1, 1, 1], True),
+            ([1, 2, 1], False),
+            ([1, 2, 2], True),
+            ([1, 2, 21], False),
+            ([1, 12, 2], False),
+            ([11, 1, 2], False),
+            ([1, 2, 1, 1], True),
+            ([1, 2, 1, 2], True),
+            ([1, 2, 1, 21], False),
+            ([11, 2, 1, 2], False),
+            ([1, 11, 1, 111], False),
+            ([11, 1, 111, 1], False),
+            ([1, 2, 3, 1, 2, 3], True),
+            ([1, 2, 3, 4, 1, 2, 3], False),
+            ([11, 2, 3, 1, 2, 3], False),
+            ([1, 2, 3, 1, 2, 31], False),
+            ([1, 2, 3, 4, 1, 2, 3, 4], True),
+            ([11, 2, 3, 4, 1, 2, 3, 4], False),
+            ([1, 2, 3, 4, 1, 2, 3, 41], False),
+            ([1, 2, 3, 4, 5, 1, 2, 3, 4], False),
+        ]
+        for seq, is_cycle in param_list:
+            with self.subTest(msg="Checking index cyclicity in:", seq=seq):
+                self.assertEqual(is_cycle, VQEAdapt._check_cyclicity(seq))
 
 
 if __name__ == '__main__':

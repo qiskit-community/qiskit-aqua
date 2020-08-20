@@ -281,13 +281,13 @@ class Hamiltonian(ChemistryOperator):
         if z2_symmetries.is_empty():
             logger.debug('No Z2 symmetries found')
             z2_qubit_op = qubit_op
-            z2_aux_ops = []
-            z2_symmetries = None
+            z2_aux_ops = aux_ops
+            z2_symmetries = Z2Symmetries([], [], [], None)
         else:
             logger.debug('%s Z2 symmetries found: %s', len(z2_symmetries.symmetries),
                          ','.join([symm.to_label() for symm in z2_symmetries.symmetries]))
 
-            # Check auxiliary operators commute with man operator's symmetry
+            # Check auxiliary operators commute with main operator's symmetry
             logger.debug('Checking operators commute with symmetry:')
             symmetry_ops = []
             for symmetry in z2_symmetries.symmetries:
@@ -321,10 +321,12 @@ class Hamiltonian(ChemistryOperator):
                 z2_symmetries.tapering_values = self._z2symmetry_reduction
 
             logger.debug('Apply symmetry with tapering values %s', z2_symmetries.tapering_values)
-            z2_qubit_op = z2_symmetries.taper(qubit_op)
+            chop_to = 0.00000001  # Use same threshold as qubit mapping to chop tapered operator
+            z2_qubit_op = z2_symmetries.taper(qubit_op).chop(chop_to)
             z2_aux_ops = []
             for aux_op in aux_ops:
-                z2_aux_ops.append(z2_symmetries.taper(aux_op) if aux_op is not None else None)
+                z2_aux_ops.append(z2_symmetries.taper(aux_op).chop(chop_to) if aux_op is not None
+                                  else None)
 
         return z2_qubit_op, z2_aux_ops, z2_symmetries
 

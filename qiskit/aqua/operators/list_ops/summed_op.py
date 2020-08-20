@@ -14,8 +14,8 @@
 
 """ SummedOp Class """
 
-from functools import reduce
 from typing import List, Union, cast
+import warnings
 
 import numpy as np
 
@@ -72,9 +72,6 @@ class SummedOp(ListOp):
         Returns:
             A ``SummedOp`` equivalent to the sum of self and other.
         """
-        if self == other:
-            return self.mul(2.0)
-
         self_new_ops = self.oplist if self.coeff == 1 \
             else [op.mul(self.coeff) for op in self.oplist]
         if isinstance(other, SummedOp):
@@ -84,10 +81,10 @@ class SummedOp(ListOp):
             other_new_ops = [other]
         return SummedOp(self_new_ops + other_new_ops)
 
-    def simplify(self) -> 'SummedOp':
+    def collapse_summands(self) -> 'SummedOp':
         """Return Operator by simplifying duplicate operators.
 
-        E.g., ``SummedOp([2 * X ^ Y, X ^ Y]).simplify() -> SummedOp([3 * X ^ Y])``.
+        E.g., ``SummedOp([2 * X ^ Y, X ^ Y]).collapse_summands() -> SummedOp([3 * X ^ Y])``.
 
         Returns:
             A simplified ``SummedOp`` equivalent to self.
@@ -113,15 +110,36 @@ class SummedOp(ListOp):
                     coeffs.append(self.coeff)
         return SummedOp([op * coeff for op, coeff in zip(oplist, coeffs)])  # type: ignore
 
-    # Try collapsing list or trees of Sums.
     # TODO be smarter about the fact that any two ops in oplist could be evaluated for sum.
     def reduce(self) -> OperatorBase:
-        reduced_ops = [op.reduce() for op in self.oplist]
-        reduced_ops = reduce(lambda x, y: x.add(y), reduced_ops) * self.coeff
+        """Try collapsing list or trees of sums.
+
+        Tries to sum up duplicate operators and reduces the operators
+        in the sum.
+
+        Returns:
+            A collapsed version of self, if possible.
+        """
+        # reduce constituents
+        reduced_ops = sum(op.reduce() for op in self.oplist) * self.coeff
+
+        # group duplicate operators
+        if isinstance(reduced_ops, SummedOp):
+            reduced_ops = reduced_ops.collapse_summands()
+
         if isinstance(reduced_ops, SummedOp) and len(reduced_ops.oplist) == 1:
             return reduced_ops.oplist[0]
         else:
             return cast(OperatorBase, reduced_ops)
+
+    def to_matrix_op(self, massive: bool = False) -> OperatorBase:
+        """ Returns an equivalent Operator composed of only NumPy-based primitives, such as
+        ``MatrixOp`` and ``VectorStateFn``. """
+        accum = self.oplist[0].to_matrix_op(massive=massive)  # type: ignore
+        for i in range(1, len(self.oplist)):
+            accum += self.oplist[i].to_matrix_op(massive=massive)  # type: ignore
+
+        return accum * self.coeff
 
     def to_legacy_op(self, massive: bool = False) -> LegacyBaseOperator:
         # We do this recursively in case there are SummedOps of PauliOps in oplist.
@@ -142,3 +160,62 @@ class SummedOp(ListOp):
             coeff = cast(float, self.coeff)
 
         return self.combo_fn(legacy_ops) * coeff
+
+    def print_details(self):
+        """
+        Print out the operator in details.
+        Returns:
+            str: a formatted string describes the operator.
+        """
+        warnings.warn("print_details() is deprecated and will be removed in "
+                      "a future release. Instead you can use .to_legacy_op() "
+                      "and call print_details() on it's output",
+                      DeprecationWarning)
+        ret = self.to_legacy_op().print_details()
+        return ret
+
+    def equals(self, other: OperatorBase) -> bool:
+        """Check if other is equal to self.
+
+        Note:
+            This is not a mathematical check for equality.
+            If ``self`` and ``other`` implement the same operation but differ
+            in the representation (e.g. different type of summands)
+            ``equals`` will evaluate to ``False``.
+
+        Args:
+            other: The other operator to check for equality.
+
+        Returns:
+            True, if other and self are equal, otherwise False.
+
+        Examples:
+            >>> from qiskit.aqua.operators import X, Z
+            >>> 2 * X == X + X
+            True
+            >>> X + Z == Z + X
+            True
+        """
+        self_reduced, other_reduced = self.reduce(), other.reduce()
+        if not isinstance(other_reduced, type(self_reduced)):
+            return False
+
+        # check if reduced op is still a SummedOp
+        if not isinstance(self_reduced, SummedOp):
+            return self_reduced == other_reduced
+
+        self_reduced = cast(SummedOp, self_reduced)
+        other_reduced = cast(SummedOp, other_reduced)
+        if len(self_reduced.oplist) != len(other_reduced.oplist):
+            return False
+
+        # absorb coeffs into the operators
+        if self_reduced.coeff != 1:
+            self_reduced = SummedOp(
+                [op * self_reduced.coeff for op in self_reduced.oplist])  # type: ignore
+        if other_reduced.coeff != 1:
+            other_reduced = SummedOp(
+                [op * other_reduced.coeff for op in other_reduced.oplist])  # type: ignore
+
+        # compare independent of order
+        return set(self_reduced) == set(other_reduced)
