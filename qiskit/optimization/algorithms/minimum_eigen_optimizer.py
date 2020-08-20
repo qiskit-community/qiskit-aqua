@@ -19,7 +19,8 @@ import numpy as np
 from qiskit.aqua.algorithms import MinimumEigensolver, MinimumEigensolverResult
 from qiskit.aqua.operators import StateFn, DictStateFn
 
-from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
+from .optimization_algorithm import (OptimizationResultStatus, OptimizationAlgorithm,
+                                     OptimizationResult)
 from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
 from ..problems.quadratic_program import QuadraticProgram, Variable
 
@@ -30,7 +31,8 @@ class MinimumEigenOptimizationResult(OptimizationResult):
     def __init__(self, x: Union[List[float], np.ndarray], fval: float,
                  variables: List[Variable],
                  samples: List[Tuple[str, float, float]],
-                 min_eigen_solver_result: Optional[MinimumEigensolverResult] = None) -> None:
+                 min_eigen_solver_result: Optional[MinimumEigensolverResult] = None,
+                 status: OptimizationResultStatus = OptimizationResultStatus.SUCCESS) -> None:
         """
         Args:
             x: the optimal value found by ``MinimumEigensolver``.
@@ -38,8 +40,9 @@ class MinimumEigenOptimizationResult(OptimizationResult):
             variables: the list of variables of the optimization problem.
             samples: the basis state as bitstring, the QUBO value, and the probability of sampling.
             min_eigen_solver_result: the result obtained from the underlying algorithm.
+            status: the termination status of the optimization algorithm.
         """
-        super().__init__(x, fval, variables, None)
+        super().__init__(x, fval, variables, None, status)
         self._samples = samples
         self._min_eigen_solver_result = min_eigen_solver_result
 
@@ -182,10 +185,16 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         # translate result back to integers
         result = OptimizationResult(x=x, fval=fval, variables=problem_.variables)
         result = self._qubo_converter.interpret(result)
+
+        # check for feasibility
+        status = OptimizationResultStatus.SUCCESS if problem.is_feasible(result.x) \
+            else OptimizationResultStatus.INFEASIBLE
+
         return MinimumEigenOptimizationResult(x=result.x, fval=result.fval,
                                               variables=result.variables,
                                               samples=samples,
-                                              min_eigen_solver_result=eigen_result)
+                                              min_eigen_solver_result=eigen_result,
+                                              status=status)
 
 
 def _eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray, StateFn],

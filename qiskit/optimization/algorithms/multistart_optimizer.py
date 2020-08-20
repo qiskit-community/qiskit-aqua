@@ -25,8 +25,8 @@ import numpy as np
 from scipy.stats import uniform
 
 from qiskit.optimization import QuadraticProgram, INFINITY
-from qiskit.optimization.algorithms.optimization_algorithm import (OptimizationAlgorithm,
-                                                                   OptimizationResult)
+from .optimization_algorithm import (OptimizationResultStatus, OptimizationAlgorithm,
+                                     OptimizationResult)
 
 logger = logging.getLogger(__name__)
 
@@ -94,8 +94,14 @@ class MultiStartOptimizer(OptimizationAlgorithm, ABC):
                 x_sol = x
                 rest_sol = rest
 
-        return OptimizationResult(x=x_sol, fval=fval_sol, variables=problem.variables,
-                                  raw_results=rest_sol)
+        # check for feasibility
+        status = OptimizationResultStatus.SUCCESS if problem.is_feasible(x_sol) \
+            else OptimizationResultStatus.INFEASIBLE
+
+        return OptimizationResult(x=x_sol, fval=fval_sol,
+                                  variables=problem.variables,
+                                  raw_results=rest_sol,
+                                  status=status)
 
     @property
     def trials(self) -> int:

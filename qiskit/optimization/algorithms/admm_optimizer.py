@@ -388,9 +388,6 @@ class ADMMOptimizer(OptimizationAlgorithm):
                                         state=self._state,
                                         status=base_result.status)
 
-        # convert back integer to binary
-        result = cast(ADMMOptimizationResult, int2bin.decode(result))
-
         # check for feasibility
         status = OptimizationResultStatus.SUCCESS if problem.is_feasible(result.x) \
             else OptimizationResultStatus.INFEASIBLE

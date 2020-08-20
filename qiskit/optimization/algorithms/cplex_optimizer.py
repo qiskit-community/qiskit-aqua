@@ -18,6 +18,7 @@
 import logging
 from typing import Optional
 
+from qiskit.aqua import MissingOptionalLibraryError
 from .optimization_algorithm import (OptimizationResultStatus, OptimizationAlgorithm,
                                      OptimizationResult)
 from ..exceptions import QiskitOptimizationError

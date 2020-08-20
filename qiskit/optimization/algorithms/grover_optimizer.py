@@ -26,7 +26,8 @@ from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms.amplitude_amplifiers.grover import Grover
 from qiskit.aqua.components.initial_states import Custom
 from qiskit.aqua.components.oracles import CustomCircuitOracle
-from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
+from .optimization_algorithm import (OptimizationResultStatus, OptimizationAlgorithm,
+                                     OptimizationResult)
 from ..problems import Variable
 from ..problems.quadratic_program import QuadraticProgram
 from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
@@ -266,9 +267,13 @@ class GroverOptimizer(OptimizationAlgorithm):
         # cast binaries back to integers
         result = self._qubo_converter.interpret(result)
 
+        # check for feasibility
+        status = OptimizationResultStatus.SUCCESS if problem.is_feasible(result.x) \
+            else OptimizationResultStatus.INFEASIBLE
+
         return GroverOptimizationResult(x=result.x, fval=result.fval, variables=result.variables,
                                         operation_counts=operation_count, n_input_qubits=n_key,
-                                        n_output_qubits=n_value)
+                                        n_output_qubits=n_value, status=status)
 
     def _measure(self, circuit: QuantumCircuit) -> str:
         """Get probabilities from the given backend, and picks a random outcome."""
@@ -332,7 +337,8 @@ class GroverOptimizationResult(OptimizationResult):
 
     def __init__(self, x: Union[List[float], np.ndarray], fval: float, variables: List[Variable],
                  operation_counts: Dict[int, Dict[str, int]], n_input_qubits: int,
-                 n_output_qubits: int) -> None:
+                 n_output_qubits: int,
+                 status: OptimizationResultStatus) -> None:
         """
         Constructs a result object with the specific Grover properties.
 
@@ -343,8 +349,9 @@ class GroverOptimizationResult(OptimizationResult):
             operation_counts: The counts of each operation performed per iteration.
             n_input_qubits: The number of qubits used to represent the input.
             n_output_qubits: The number of qubits used to represent the output.
+            status: the termination status of the optimization algorithm.
         """
-        super().__init__(x, fval, variables, None)
+        super().__init__(x, fval, variables, None, status)
         self._operation_counts = operation_counts
         self._n_input_qubits = n_input_qubits
         self._n_output_qubits = n_output_qubits

@@ -1094,12 +1094,12 @@ class QuadraticProgram:
         offset -= offset
 
     def is_feasible(self, x: Union[List[float], np.ndarray], detailed: bool = False) -> bool:
-        """Returns whether a solution provided by the optimizer is feasible or not
+        """Returns whether a solution is feasible or not
         Args:
             x: the input result list returned by the optimizer
-            detailed: whether or not to print the violations
+            detailed: [not implemented] returns the violations if set to True
         Returns:
-            is_feasible: Whether the solution provided by the optimizer is feasible or not.
+            is_feasible: Whether the solution provided is feasible or not.
 
         Raises:
             QiskitOptimizationError: If the input `x` is not same len as total vars
@@ -1107,8 +1107,8 @@ class QuadraticProgram:
         # if input `x` is not the same len as the total vars, raise an error
         if len(x) != self.get_num_vars():
             raise QiskitOptimizationError(
-                'The size of `x` differs from the total number of variables.'
-                ' size of `x`: {}, num. of vars: {}'.format(len(x), self.get_num_vars())
+                'The size of solution `x`: {}, does not match the number of problem variables: {}'
+                .format(len(x), self.get_num_vars())
             )
 
         # check whether the input satisfy the bounds of the problem
@@ -1117,14 +1117,13 @@ class QuadraticProgram:
             variable = self.get_variable(i)
             if variable._lowerbound <= val <= variable._upperbound:
                 satisfied_variables[variable.name] = True
-                # print(f'{variable._name} is within the bounds')
             else:
                 satisfied_variables[variable.name] = False
-                # print(f'{variable._name} is outside the bounds')
 
         # check whether the input satisfy the constraints of the problem
         satisfied_constraints = {}
-        for constraint in self._linear_constraints + self._quadratic_constraints:
+        for constraint in cast(List[Constraint], self._linear_constraints) + \
+                cast(List[Constraint], self._quadratic_constraints):
             lhs = constraint.evaluate(x)
             if constraint.sense == ConstraintSense.LE:
                 satisfied_constraints[constraint.name] = lhs <= constraint.rhs
@@ -1137,9 +1136,12 @@ class QuadraticProgram:
         final_dict = {k: v for k, v in {**satisfied_variables, **satisfied_constraints}
                       .items() if not v}
 
+        # debug
+        logger.debug("Violations: %s", final_dict)
+
         if detailed:
 
-            print(list(final_dict.values))
+            print(list(final_dict.keys()))
             # if (final_dict.keys()):
             #     return False, list(final_dict.keys())
 
