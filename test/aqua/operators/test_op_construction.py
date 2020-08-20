@@ -584,9 +584,6 @@ class TestOpConstruction(QiskitAquaTestCase):
         composed_primitive_op = \
             evolved_op @ pauli_op.compose(circuit_op, permutation=indices, front=True) @ matrix_op
 
-        mat1 = permuted_primitive_op.to_matrix()
-        mat2 = composed_primitive_op.to_matrix()
-
         self.assertTrue(np.allclose(permuted_primitive_op.to_matrix(),
                                     composed_primitive_op.to_matrix()))
         self.assertEqual(num_qubits, permuted_primitive_op.num_qubits)
