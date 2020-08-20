@@ -130,19 +130,6 @@ class DictStateFn(StateFn):
         new_dict = {key + pad: value for key, value in self.primitive.items()}
         return DictStateFn(new_dict, coeff=self.coeff, is_measurement=self.is_measurement)
 
-    def to_vector_state_fn(self) -> 'VectorStateFn':  # type: ignore
-        r"""
-        Creates the equivalent state function of type VectorStateFn.
-
-        Returns:
-            A new VectorStateFn equivalent to ``self``.
-        """
-        states = int(2 ** self.num_qubits)
-        probs = np.zeros(states) + 0.j
-        for k, v in self.primitive.items():
-            probs[int(k, 2)] = v
-        return VectorStateFn(probs, coeff=self.coeff, is_measurement=self.is_measurement)
-
     def tensor(self, other: OperatorBase) -> OperatorBase:
         # Both dicts
         if isinstance(other, DictStateFn):
