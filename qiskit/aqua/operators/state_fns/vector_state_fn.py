@@ -130,9 +130,8 @@ class VectorStateFn(StateFn):
     def eval(self,
              front: Union[str, dict, np.ndarray,
                           OperatorBase] = None) -> Union[OperatorBase, float, complex]:
-        # If eval is called on a state, just return the sampling probabilities
-        if front is None:
-            return self.primitive
+        if front is None:  # this object is already a VectorStateFn
+            return self
 
         if not self.is_measurement and isinstance(front, OperatorBase):
             raise ValueError(

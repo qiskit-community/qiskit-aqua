@@ -18,10 +18,10 @@ from typing import Union, Set
 import numpy as np
 
 from qiskit.circuit import ParameterExpression
-from qiskit.quantum_info import Statevector
 
 from ..operator_base import OperatorBase
 from .state_fn import StateFn
+from .vector_state_fn import VectorStateFn
 from ..list_ops.list_op import ListOp
 from ..list_ops.summed_op import SummedOp
 
@@ -183,8 +183,8 @@ class OperatorStateFn(StateFn):
              front: Union[str, dict, np.ndarray,
                           OperatorBase] = None) -> Union[OperatorBase, float, complex]:
         if front is None:
-            matrix = self.to_matrix_op().primitive.primitive.data
-            return Statevector(matrix[0, :])
+            matrix = self.primitive.to_matrix_op().primitive.data
+            return VectorStateFn(matrix[0, :])
 
         if not self.is_measurement and isinstance(front, OperatorBase):
             raise ValueError(

@@ -290,9 +290,7 @@ class StateFn(OperatorBase):
     def eval(self,
              front: Union[str, dict, np.ndarray,
                           OperatorBase] = None) -> Union[OperatorBase, float, complex]:
-        # by default to the inefficient matrix evaluation
-        print('base: returning matrixop eval')
-        return self.to_matrix_op().eval(front)
+        raise NotImplementedError
 
     @property
     def parameters(self):
