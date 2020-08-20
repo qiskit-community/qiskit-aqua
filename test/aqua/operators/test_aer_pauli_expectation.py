@@ -25,21 +25,24 @@ from qiskit.aqua.operators import (X, Y, Z, I, CX, H, S,
                                    ListOp, Zero, One, Plus, Minus, StateFn,
                                    AerPauliExpectation, CircuitSampler)
 
-from qiskit import Aer
-
-
-# pylint: disable=invalid-name
 
 class TestAerPauliExpectation(QiskitAquaTestCase):
     """Pauli Change of Basis Expectation tests."""
 
     def setUp(self) -> None:
         super().setUp()
-        self.seed = 97
-        backend = Aer.get_backend('qasm_simulator')
-        q_instance = QuantumInstance(backend, seed_simulator=self.seed, seed_transpiler=self.seed)
-        self.sampler = CircuitSampler(q_instance, attach_results=True)
-        self.expect = AerPauliExpectation()
+        try:
+            from qiskit import Aer
+
+            self.seed = 97
+            backend = Aer.get_backend('qasm_simulator')
+            q_instance = QuantumInstance(backend, seed_simulator=self.seed,
+                                         seed_transpiler=self.seed)
+            self.sampler = CircuitSampler(q_instance, attach_results=True)
+            self.expect = AerPauliExpectation()
+        except Exception as ex:  # pylint: disable=broad-except
+            self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(ex)))
+            return
 
     def test_pauli_expect_pair(self):
         """ pauli expect pair test """
