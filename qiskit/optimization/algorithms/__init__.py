@@ -20,8 +20,8 @@ Algorithms for optimization problems.
 
 .. currentmodule:: qiskit.optimization.algorithms
 
-Base class
-==========
+Base classes for algorithms and results
+=======================================
 
 .. autosummary::
    :toctree: ../stubs/
@@ -29,6 +29,7 @@ Base class
 
    OptimizationAlgorithm
    MultiStartOptimizer
+   OptimizationResult
 
 Algorithms and results
 ======================
@@ -47,10 +48,10 @@ Algorithms and results
    GroverOptimizer
    MinimumEigenOptimizationResult
    MinimumEigenOptimizer
-   OptimizationResult
    OptimizationResultStatus
    RecursiveMinimumEigenOptimizationResult
    RecursiveMinimumEigenOptimizer
+   IntermediateResult
    SlsqpOptimizationResult
    SlsqpOptimizer
 
@@ -65,7 +66,8 @@ from .multistart_optimizer import MultiStartOptimizer
 from .optimization_algorithm import (OptimizationAlgorithm, OptimizationResult,
                                      OptimizationResultStatus)
 from .recursive_minimum_eigen_optimizer import (RecursiveMinimumEigenOptimizer,
-                                                RecursiveMinimumEigenOptimizationResult)
+                                                RecursiveMinimumEigenOptimizationResult,
+                                                IntermediateResult)
 from .slsqp_optimizer import SlsqpOptimizer, SlsqpOptimizationResult
 
 __all__ = ["ADMMOptimizer", "OptimizationAlgorithm", "OptimizationResult", "CplexOptimizer",
