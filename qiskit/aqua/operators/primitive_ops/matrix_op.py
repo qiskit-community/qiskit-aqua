@@ -122,7 +122,7 @@ class MatrixOp(PrimitiveOp):
         return TensoredOp([self, other])
 
     def compose(self, other: OperatorBase,
-                permutation: Operator[List[int]] = None, front: bool = False) -> OperatorBase:
+                permutation: Optional[List[int]] = None, front: bool = False) -> OperatorBase:
 
         self, other = self._expand_shorter_operator_and_permute(other,  # type: ignore
                                                                 permutation)
@@ -134,7 +134,7 @@ class MatrixOp(PrimitiveOp):
 
         return super(MatrixOp, self).compose(other)
 
-    def permute(self, permutation: Operator[List[int]] = None) -> 'MatrixOp':
+    def permute(self, permutation: Optional[List[int]] = None) -> 'MatrixOp':
         """Creates a new MatrixOp that acts on the permuted qubits.
 
         Args:

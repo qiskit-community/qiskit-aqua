@@ -19,7 +19,6 @@ from functools import reduce, partial
 import numpy as np
 
 from qiskit.circuit import ParameterExpression
-from qiskit.quantum_info import Pauli
 
 from ..operator_base import OperatorBase
 from .list_op import ListOp

@@ -14,7 +14,7 @@
 
 """ ComposedOp Class """
 
-from typing import List, Union, cast
+from typing import List, Union, cast, Optional
 from functools import reduce, partial
 import numpy as np
 

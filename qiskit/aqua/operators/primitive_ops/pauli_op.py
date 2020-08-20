@@ -14,7 +14,7 @@
 
 """ PauliOp Class """
 
-from typing import Union, Set, Dict, cast, List
+from typing import Union, Set, Dict, cast, List, Optional
 import logging
 import numpy as np
 from scipy.sparse import spmatrix
@@ -101,7 +101,7 @@ class PauliOp(PrimitiveOp):
 
         return TensoredOp([self, other])
 
-    def permute(self, permutation: List[int] = None) -> 'PauliOp':
+    def permute(self, permutation: List[int]) -> 'PauliOp':
         """Permutes the sequence of Pauli matrices.
 
         Args:
@@ -125,7 +125,7 @@ class PauliOp(PrimitiveOp):
         return PauliOp(Pauli(label=''.join(new_pauli_list)), self.coeff)
 
     def compose(self, other: OperatorBase,
-                permutation: List[int] = None, front: bool = False) -> OperatorBase:
+                permutation: Optional[List[int]] = None, front: bool = False) -> OperatorBase:
 
         self, other = self._expand_shorter_operator_and_permute(other,  # type: ignore
                                                                 permutation)

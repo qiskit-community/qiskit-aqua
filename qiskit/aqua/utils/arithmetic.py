@@ -127,9 +127,9 @@ def transpositions(permutation: List[int]) -> List[Tuple[int, int]]:
     for x in cyclic_form:
         len_x = len(x)
         if len_x == 2:
-            res.append(tuple(x))
+            res.append((x[0], x[1]))
         elif len_x > 2:
             first = x[0]
             for y in x[len_x - 1:0:-1]:
                 res.append((first, y))
-    return res  # type: ignore
+    return res
