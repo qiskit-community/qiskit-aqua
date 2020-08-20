@@ -132,8 +132,8 @@ class CplexOptimizer(OptimizationAlgorithm):
         # solve problem
         try:
             cplex.solve()
-        except CplexSolverError:
-            raise QiskitOptimizationError('Non convex/symmetric matrix.')
+        except CplexSolverError as ex:
+            raise QiskitOptimizationError(str(ex))
 
         # process results
         sol = cplex.solution
