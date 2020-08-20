@@ -15,6 +15,9 @@
 """ Test of UCCSD and HartreeFock Aqua extensions """
 
 from test.chemistry import QiskitChemistryTestCase
+
+from ddt import ddt, idata, unpack
+
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import VQE
@@ -25,6 +28,7 @@ from qiskit.chemistry.drivers import HDF5Driver
 from qiskit.chemistry.core import Hamiltonian, QubitMappingType
 
 
+@ddt
 class TestUCCSDHartreeFock(QiskitChemistryTestCase):
     """Test for these aqua extensions."""
 
@@ -55,3 +59,54 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         result = algo.run(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
         result = core.process_algorithm_result(result)
         self.assertAlmostEqual(result.energy, self.reference_energy, places=6)
+
+    EXCITATION_RESULTS = \
+        [[[[0, 1], [0, 2], [3, 4], [3, 5]],
+          [[0, 1, 3, 4], [0, 1, 3, 5], [0, 2, 3, 4], [0, 2, 3, 5]]],  # 0 full: 6 orbs, 2 particles
+         [[[0, 2], [3, 5]], [[0, 2, 3, 5]]],  # 1 limited active space
+         [[[0, 1], [0, 2], [3, 4], [3, 5]], []],  # 2 singles only
+         [[], [[0, 1, 3, 4], [0, 1, 3, 5], [0, 2, 3, 4], [0, 2, 3, 5]]],  # 3 doubles only
+         [[[0, 1], [3, 4]], []],  # 4 singles only limited active space
+         [[[0, 2], [1, 2], [3, 5], [4, 5]],
+          [[0, 2, 3, 5], [0, 2, 4, 5], [1, 2, 3, 5], [1, 2, 4, 5]]],  # 5 full: 6 orbs, 4 particles
+         [[[1, 2], [4, 5]], [[1, 2, 4, 5]]],  # 6 limited active space
+         [[[0, 2], [0, 3], [1, 2], [1, 3], [4, 6], [4, 7], [5, 6], [5, 7]],  # 7
+          [[0, 2, 4, 6], [0, 2, 4, 7], [0, 2, 5, 6], [0, 2, 5, 7], [0, 3, 4, 6], [0, 3, 4, 7],
+           [0, 3, 5, 6], [0, 3, 5, 7], [1, 2, 4, 6], [1, 2, 4, 7], [1, 2, 5, 6], [1, 2, 5, 7],
+           [1, 3, 4, 6], [1, 3, 4, 7], [1, 3, 5, 6], [1, 3, 5, 7], [0, 2, 1, 3], [4, 6, 5, 7]]],
+         [[[0, 2], [0, 3], [1, 2], [1, 3], [4, 6], [4, 7], [5, 6], [5, 7]],  # 8 No same spins
+          [[0, 2, 4, 6], [0, 2, 4, 7], [0, 2, 5, 6], [0, 2, 5, 7], [0, 3, 4, 6], [0, 3, 4, 7],
+           [0, 3, 5, 6], [0, 3, 5, 7], [1, 2, 4, 6], [1, 2, 4, 7], [1, 2, 5, 6], [1, 2, 5, 7],
+           [1, 3, 4, 6], [1, 3, 4, 7], [1, 3, 5, 6], [1, 3, 5, 7]]],
+         ]
+
+    @idata([[0, 6, 2],
+            [0, 6, 2, [0], [0, 1]],  # Full active space
+            [1, 6, 2, [0], [1]],     # Restrict active space
+            [0, 6, 2, [0], [0, 1], False],
+            [2, 6, 2, None, None, True, 'both', 'ucc', 's'],
+            [3, 6, 2, None, [0, 1], True, 'both', 'ucc', 'd'],
+            [4, 6, 2, [0], [0], False, 'both', 'ucc', 's'],
+            [5, 6, 4],
+            [5, 6, 4, [0, 1], [0]],  # Full active space
+            [6, 6, 4, [1], [0]],     # Restrict active space
+            [7, 8, 4],
+            [8, 8, 4, None, None, False],
+            ])
+    @unpack
+    def test_uccsd_excitations(self, expected_result_idx, num_orbitals, num_particles,
+                               active_occupied=None, active_unoccupied=None,
+                               same_spin_doubles=True,
+                               method_singles='both', method_doubles='ucc',
+                               excitation_type='sd'
+                               ):
+        """ Test generated excitation lists in conjunction with active space """
+
+        excitations = UCCSD.compute_excitation_lists(
+            num_orbitals=num_orbitals, num_particles=num_particles,
+            active_occ_list=active_occupied, active_unocc_list=active_unoccupied,
+            same_spin_doubles=same_spin_doubles,
+            method_singles=method_singles, method_doubles=method_doubles,
+            excitation_type=excitation_type)
+
+        self.assertListEqual(list(excitations), self.EXCITATION_RESULTS[expected_result_idx])
