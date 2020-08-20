@@ -77,8 +77,52 @@ class Grover(QuantumAlgorithm):
     and be used with Grover algorithm to find a satisfiable assignment.
     """
 
+    """
+    Signature: 
+    Q = A S_0 A_dg S_f 
+    Grover(bad_state_reflection, (or marker, oracle? should be the same name as the circuit library)
+                 state_in: H^n, (maybe state is not a good name)
+                 zero_reflection, 
+     is_good_state: callable | List[int] | Statevector),
+     num_iterations: None,
+     num_solutions: None / incremental = False,
+     lam = 1.34,
+     grover_operator=None (just pass custom grover operator)
+    )
+
+    Should internally use Grover operator to construct Q, then "applying j iterations of Grover" only means 
+    apply Q j-times where, Q is the grover op)
+
+
+    num_solutions: is used to decide num_iterations
+    is_good_state: using for what? Is this the answer of the problem? If so, we don't need to run the Grover algorithm.
+    """
+
+    # Constructor of the Grover operator. For the reference.
+    def __init__(self, oracle: Union[QuantumCircuit, Statevector],
+                  state_in: Optional[QuantumCircuit] = None,
+                  zero_reflection: Optional[Union[QuantumCircuit, DensityMatrix, Operator]] = None,
+                  reflection_qubits: Optional[List[int]] = None,
+                  insert_barriers: bool = False,
+                  mcx: str = 'noancilla',
+                  name: str = 'Q') -> None:
+
+    # The new constructor for Grover class
+    def __int__new(self, oracle: Union[Oracle, QuantumCircuit],
+                    state_in: Union[InitialState, QuantumCircuit]=H^n, (maybe state is not a good name) # I feel init_state is more intuitive
+                    zero_reflection, 
+                    is_good_state: callable | List[int] | Statevector),
+                    num_iterations: None,
+                    num_solutions: None / incremental = False,
+                    lam = 1.34,
+                    grover_operator=None (just pass custom grover operator),
+                    rotation_counts: Optional[list] = None,
+                    mct_mode: str = 'basic',
+                    quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
+
+    # The original constructor for Grover class
     def __init__(self,
-                 oracle: Union[Oracle, QuantumCircuit] init_state: Union[InitialState, QuantumCircuit] = None,
+                 oracle: Oracle, init_state: Optional[InitialState = None],
                  incremental: bool = False,
                  num_iterations: int = 1,
                  lam: float = 1.34,
