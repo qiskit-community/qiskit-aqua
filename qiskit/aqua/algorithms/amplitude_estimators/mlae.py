@@ -189,8 +189,8 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 for c in self._ret['counts']:
                     one_hits += [c.get('1', 0)]  # return 0 if no key '1' found
                     all_hits += [sum(c.values())]
-        except KeyError:
-            raise AquaError('Call run() first!')
+        except KeyError as ex:
+            raise AquaError('Call run() first!') from ex
 
         return one_hits, all_hits
 
@@ -227,8 +227,8 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         if a is None:
             try:
                 a = self._ret['value']
-            except KeyError:
-                raise KeyError('Call run() first!')
+            except KeyError as ex:
+                raise KeyError('Call run() first!') from ex
 
         # Corresponding angle to the value a (only use real part of 'a')
         theta_a = np.arcsin(np.sqrt(np.real(a)))
@@ -279,8 +279,8 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         fisher_information = None
         try:
             fisher_information = self._ret['fisher_information']
-        except KeyError:
-            raise AssertionError("Call run() first!")
+        except KeyError as ex:
+            raise AssertionError("Call run() first!") from ex
 
         if observed:
             fisher_information = self._compute_fisher_information(observed=True)
