@@ -815,11 +815,11 @@ class QuadraticProgram:
         """
         try:
             import cplex  # pylint: disable=unused-import
-        except ImportError:
+        except ImportError as ex:
             raise MissingOptionalLibraryError(
                 libname='CPLEX',
                 name='QuadraticProgram.read_from_lp_file',
-                pip_install='pip install qiskit-aqua[cplex]')
+                pip_install='pip install qiskit-aqua[cplex]') from ex
 
         def _parse_problem_name(filename: str) -> str:
             # Because docplex model reader uses the base name as model name,

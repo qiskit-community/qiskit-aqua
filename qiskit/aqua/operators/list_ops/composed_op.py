@@ -18,11 +18,14 @@ from typing import List, Union, cast
 from functools import reduce, partial
 import numpy as np
 
+from qiskit import QuantumCircuit
 from qiskit.circuit import ParameterExpression
 
 from ..operator_base import OperatorBase
 from .list_op import ListOp
 from ..state_fns.state_fn import StateFn
+from ..state_fns.circuit_state_fn import CircuitStateFn
+from ... import AquaError
 
 
 # pylint: disable=invalid-name
@@ -62,6 +65,22 @@ class ComposedOp(ListOp):
     #     """ Tensor product with Self Multiple Times """
     #     raise NotImplementedError
 
+    def to_circuit(self) -> QuantumCircuit:
+        """Returns the quantum circuit, representing the composed operator.
+
+        Returns:
+            The circuit representation of the composed operator.
+
+        Raises:
+            AquaError: for operators where a single underlying circuit can not be obtained.
+        """
+        from qiskit.aqua.operators import PrimitiveOp
+        circuit_op = self.to_circuit_op()
+        if isinstance(circuit_op, (PrimitiveOp, CircuitStateFn)):
+            return circuit_op.to_circuit()
+        raise AquaError('Conversion to_circuit supported only for operators, where a single '
+                        'underlying circuit can be produced.')
+
     def adjoint(self) -> OperatorBase:
         return ComposedOp([op.adjoint() for op in reversed(self.oplist)], coeff=self.coeff)
 
@@ -93,7 +112,7 @@ class ComposedOp(ListOp):
             else:
                 return l.eval(r)
 
-        eval_list = self.oplist
+        eval_list = self.oplist.copy()
         # Only one op needs to be multiplied, so just multiply the first.
         eval_list[0] = eval_list[0] * self.coeff  # type: ignore
         if front and isinstance(front, OperatorBase):
