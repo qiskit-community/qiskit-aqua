@@ -127,11 +127,12 @@ class TestDriverGaussianLog(QiskitChemistryTestCase):
     # This is just a dummy test at present to print out the stages of the computation
     # to get to the array that will be sed as input for Bosonic Operator
     def test_modes(self):
+        """ Placeholder """
         result = GaussianLogResult(self.logfile)
         print("---------- OUT file equivalent ------------")
         print(result._compute_modes())
         print("---------- HAM file equivalent ------------")
-        print(result.compute_harmonic_modes())
+        print(result.compute_harmonic_modes(num_modals=3))
 
 
 if __name__ == '__main__':
