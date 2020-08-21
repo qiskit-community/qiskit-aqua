@@ -414,6 +414,13 @@ class OperatorBase(ABC):
         """
         raise NotImplementedError
 
+    @property
+    @abstractmethod
+    def parameters(self):
+        r""" Return a set of Parameter objects contained in the Operator.
+        """
+        raise NotImplementedError
+
     # Utility functions for parameter binding
 
     @abstractmethod
@@ -481,8 +488,8 @@ class OperatorBase(ABC):
                         OperatorBase._get_param_dict_for_index(unrolled_value_dict,  # type: ignore
                                                                i))
                 return unrolled_value_dict_list
-            except IndexError:
-                raise AquaError('Parameter binding lists must all be the same length.')
+            except IndexError as ex:
+                raise AquaError('Parameter binding lists must all be the same length.') from ex
         return unrolled_value_dict  # type: ignore
 
     @staticmethod

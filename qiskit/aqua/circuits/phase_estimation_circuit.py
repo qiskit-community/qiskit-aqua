@@ -214,9 +214,9 @@ class PhaseEstimationCircuit:
             if self._iqft.num_qubits != len(a):  # check if QFT has the right size
                 try:  # try resizing
                     self._iqft.num_qubits = len(a)
-                except AttributeError:
+                except AttributeError as ex:
                     raise ValueError('The IQFT cannot be resized and does not have the '
-                                     'required size of {}'.format(len(a)))
+                                     'required size of {}'.format(len(a))) from ex
 
             if hasattr(self._iqft, 'do_swaps'):
                 self._iqft.do_swaps = False

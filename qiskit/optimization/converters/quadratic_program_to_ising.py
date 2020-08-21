@@ -22,7 +22,7 @@ from ..problems.quadratic_program import QuadraticProgram
 
 
 class QuadraticProgramToIsing:
-    """Convert an optimization problem into a qubit operator."""
+    """DEPRECATED Convert an optimization problem into a qubit operator."""
 
     def __init__(self) -> None:
         """Initialize the internal data structure."""

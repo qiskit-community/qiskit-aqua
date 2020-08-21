@@ -38,8 +38,8 @@ def parse(fcidump: str) -> Dict[str, Any]:
     try:
         with open(fcidump, 'r') as file:
             fcidump_str = file.read()
-    except OSError:
-        raise QiskitChemistryError("Input file '{}' cannot be read!".format(fcidump))
+    except OSError as ex:
+        raise QiskitChemistryError("Input file '{}' cannot be read!".format(fcidump)) from ex
 
     output = {}  # type: Dict[str, Any]
 
@@ -139,18 +139,18 @@ def parse(fcidump: str) -> Dict[str, Any]:
             try:
                 hij_elements.remove((i-1, a-1))
                 hij[i-1][a-1] = x
-            except KeyError:
+            except KeyError as ex:
                 if _uhf:
                     hij_b_elements.remove((i-1, a-1))
                     hij_b[i-1-norb][a-1-norb] = x
                 else:
                     raise QiskitChemistryError("Unkown 1-electron integral indices encountered in \
-                            '{}'".format((i, a)))
+                            '{}'".format((i, a))) from ex
         else:
             try:
                 hijkl_elements.remove((i-1, a-1, j-1, b-1))
                 hijkl[i-1][a-1][j-1][b-1] = x
-            except KeyError:
+            except KeyError as ex:
                 if _uhf:
                     try:
                         hijkl_ab_elements.remove((i-1, a-1, j-1, b-1))
@@ -164,7 +164,7 @@ def parse(fcidump: str) -> Dict[str, Any]:
                             hijkl_bb[i-1-norb][a-1-norb][j-1-norb][b-1-norb] = x
                 else:
                     raise QiskitChemistryError("Unkown 2-electron integral indices encountered in \
-                            '{}'".format((i, a, j, b)))
+                            '{}'".format((i, a, j, b))) from ex
 
     # iterate over still empty elements in 1-electron matrix and populate with symmetric ones
     # if any elements are not populated these will be zero

@@ -1,6 +1,6 @@
 # Qiskit Aqua
 
-[![License](https://img.shields.io/github/license/Qiskit/qiskit-aqua.svg?style=popout-square)](https://opensource.org/licenses/Apache-2.0)[![Build Status](https://img.shields.io/travis/Qiskit/qiskit-aqua/master.svg?style=popout-square)](https://travis-ci.org/Qiskit/qiskit-aqua)[![](https://img.shields.io/github/release/Qiskit/qiskit-aqua.svg?style=popout-square)](https://github.com/Qiskit/qiskit-aqua/releases)[![](https://img.shields.io/pypi/dm/qiskit-aqua.svg?style=popout-square)](https://pypi.org/project/qiskit-aqua/)[![Coverage Status](https://coveralls.io/repos/github/Qiskit/qiskit-aqua/badge.svg?branch=master)](https://coveralls.io/github/Qiskit/qiskit-aqua?branch=master)
+[![License](https://img.shields.io/github/license/Qiskit/qiskit-aqua.svg?style=popout-square)](https://opensource.org/licenses/Apache-2.0)[![Build Status](https://github.com/Qiskit/qiskit-aqua/workflows/Aqua%20Unit%20Tests/badge.svg?branch=master)](https://github.com/Qiskit/qiskit-aqua/actions?query=workflow%3A"Aqua%20Unit%20Tests"+branch%3Amaster+event%3Apush)[![](https://img.shields.io/github/release/Qiskit/qiskit-aqua.svg?style=popout-square)](https://github.com/Qiskit/qiskit-aqua/releases)[![](https://img.shields.io/pypi/dm/qiskit-aqua.svg?style=popout-square)](https://pypi.org/project/qiskit-aqua/)[![Coverage Status](https://coveralls.io/repos/github/Qiskit/qiskit-aqua/badge.svg?branch=master)](https://coveralls.io/github/Qiskit/qiskit-aqua?branch=master)
 
 **Qiskit** is an open-source framework for working with noisy quantum computers at the level of
 pulses, circuits, and algorithms.
@@ -70,13 +70,19 @@ these on a quantum backend, whether a real device or simulator.
 
 ### Optional Installs
 
+_**Note:** while the packages below can be installed directly by pip install, e.g. `pip install cplex`
+by doing so via the Aqua extra_requires, in this case `pip install qiskit-aqua[cplex]` will ensure
+that a version compatible with Qiskit is installed._
+
 * **IBM CPLEX** may be [installed](https://qiskit.org/documentation/apidoc/qiskit.aqua.algorithms.minimum_eigen_solvers.cplex.html)
-  to allow the use of the `ClassicalCPLEX` classical solver algorithm. `pip install cplex` may be used
-  as an alternative.
-* **PyTorch**, may be installed either using command `pip install torch` to install the
+  to allow the use of the `ClassicalCPLEX` classical solver algorithm. 
+  `pip install qiskit-aqua[cplex]` may be used to install the community version.
+* **PyTorch**, may be installed either using command `pip install qiskit-aqua[torch]` to install the
   package or refer to PyTorch [getting started](https://pytorch.org/get-started/locally/). PyTorch
   being installed will enable the neural networks `PyTorchDiscriminator` component to be used with
   the QGAN algorithm.
+* **CVXPY**, may be installed using command `pip install qiskit-aqua[cvpxy]` to enable use of the
+  `QSVM` and the classical `SklearnSVM` algorithms. 
 
 
 ### Creating Your First Quantum Program in Qiskit Aqua
@@ -399,8 +405,8 @@ validation, and benchmarking.
 
 ### Optional Installs
 
-* **IBM CPLEX** may be installed using `pip install cplex` to allow the use of the `CplexOptimzer`
-  classical solver algorithm, as well as enabling the reading of `LP` files.
+* **IBM CPLEX** may be installed using `pip install qiskit-aqua[cplex]` to allow the use of the
+ `CplexOptimzer` classical solver algorithm, as well as enabling the reading of `LP` files.
 
 ### Creating Your First Optimization Programming Experiment in Qiskit
 
@@ -485,7 +491,7 @@ This project adheres to Qiskit's [code of conduct](./CODE_OF_CONDUCT.md).
 By participating, you are expected to uphold this code.
 
 We use [GitHub issues](https://github.com/Qiskit/qiskit-aqua/issues) for tracking requests and bugs. Please
-[join the Qiskit Slack community](https://join.slack.com/t/qiskit/shared_invite/enQtODQ2NTIyOTgwMTQ3LTI0NzM2NzkzZjJhNDgzZjY5MTQzNDY3MGNiZGQzNTNkZTE4Nzg1MjMwMmFjY2UwZTgyNDlmYWQwYmZjMjE1ZTM)
+[join the Qiskit Slack community](https://ibm.co/joinqiskitslack)
 and use the [Aqua Slack channel](https://qiskit.slack.com/messages/aqua) for discussion and simple questions.
 For questions that are more suited for a forum, we use the **Qiskit** tag in [Stack Overflow](https://stackoverflow.com/questions/tagged/qiskit).
 
