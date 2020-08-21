@@ -43,6 +43,7 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
         # Validate results.
         np.testing.assert_array_almost_equal(comp_result.x, results.x)
         self.assertEqual(comp_result.fval, results.fval)
+        self.assertAlmostEqual(results.fval, results.intermediate_fval)
 
     def test_qubo_gas_int_zero(self):
         """Test for when the answer is zero."""
@@ -60,6 +61,7 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
         results = gmf.solve(op)
         np.testing.assert_array_almost_equal(results.x, [0, 0])
         self.assertEqual(results.fval, 0.0)
+        self.assertAlmostEqual(results.fval, results.intermediate_fval)
 
     def test_qubo_gas_int_simple(self):
         """Test for simple case, with 2 linear coeffs and no quadratic coeffs or constants."""
