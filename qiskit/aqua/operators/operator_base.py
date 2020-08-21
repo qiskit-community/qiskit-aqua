@@ -34,6 +34,9 @@ class OperatorBase(ABC):
     building blocks for algorithms in Aqua.
 
     """
+    # Indentation used in string representation of list operators
+    # Can be changed to use another indentation than two whitespaces
+    INDENTATION = '  '
 
     @property
     @abstractmethod
@@ -134,6 +137,14 @@ class OperatorBase(ABC):
                 unbound coeff Parameter.
         """
         raise NotImplementedError
+
+    @staticmethod
+    def _indent(lines: str, indentation: str = INDENTATION) -> str:
+        """ Indented representation to allow pretty representation of nested operators. """
+        indented_str = indentation + lines.replace("\n", "\n{}".format(indentation))
+        if indented_str.endswith("\n{}".format(indentation)):
+            indented_str = indented_str[:-len(indentation)]
+        return indented_str
 
     # Addition / Subtraction
 
@@ -403,6 +414,13 @@ class OperatorBase(ABC):
         """
         raise NotImplementedError
 
+    @property
+    @abstractmethod
+    def parameters(self):
+        r""" Return a set of Parameter objects contained in the Operator.
+        """
+        raise NotImplementedError
+
     # Utility functions for parameter binding
 
     @abstractmethod
@@ -470,8 +488,8 @@ class OperatorBase(ABC):
                         OperatorBase._get_param_dict_for_index(unrolled_value_dict,  # type: ignore
                                                                i))
                 return unrolled_value_dict_list
-            except IndexError:
-                raise AquaError('Parameter binding lists must all be the same length.')
+            except IndexError as ex:
+                raise AquaError('Parameter binding lists must all be the same length.') from ex
         return unrolled_value_dict  # type: ignore
 
     @staticmethod

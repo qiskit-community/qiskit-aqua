@@ -18,8 +18,19 @@ Optimization converters (:mod:`qiskit.optimization.converters`)
 
 .. currentmodule:: qiskit.optimization.converters
 
-This is selection of converters having encode, decode functionality to go between different
-forms.
+This is a set of converters having `convert` functionality to go between different representations
+of a given :class:`~qiskit.optimization.problems.QuadraticProgram` and to `interpret` a given
+result for the problem, based on the original problem before conversion, to return an appropriate
+:class:`~qiskit.optimization.algorithms.OptimizationResult`.
+
+Base class for converters
+=========================
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   QuadraticProgramConverter
 
 Converters
 ==========
@@ -30,31 +41,25 @@ Converters
 
    InequalityToEquality
    IntegerToBinary
-   QuadraticProgramToNegativeValueOracle
-   QuadraticProgramToIsing
-   QuadraticProgramToQubo
    LinearEqualityToPenalty
-   IsingToQuadraticProgram
+   QuadraticProgramToQubo
 
 """
 
-# no opt problem dependency
-from .linear_equality_to_penalty import LinearEqualityToPenalty
-from .quadratic_program_to_ising import QuadraticProgramToIsing
-from .quadratic_program_to_negative_value_oracle import QuadraticProgramToNegativeValueOracle
-from .ising_to_quadratic_program import IsingToQuadraticProgram
-
-# opt problem dependency
 from .integer_to_binary import IntegerToBinary
 from .inequality_to_equality import InequalityToEquality
+from .linear_equality_to_penalty import LinearEqualityToPenalty
 from .quadratic_program_to_qubo import QuadraticProgramToQubo
+from .quadratic_program_to_ising import QuadraticProgramToIsing
+from .ising_to_quadratic_program import IsingToQuadraticProgram
+from .quadratic_program_converter import QuadraticProgramConverter
 
 __all__ = [
     "InequalityToEquality",
     "IntegerToBinary",
-    "QuadraticProgramToNegativeValueOracle",
+    "IsingToQuadraticProgram",
+    "LinearEqualityToPenalty",
+    "QuadraticProgramConverter",
     "QuadraticProgramToIsing",
     "QuadraticProgramToQubo",
-    "LinearEqualityToPenalty",
-    "IsingToQuadraticProgram"
 ]

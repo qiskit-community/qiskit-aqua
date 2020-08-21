@@ -14,15 +14,18 @@
 
 """ qp solver """
 
+import warnings
 from typing import Optional, Tuple
 import logging
 
 import numpy as np
 try:
     import cvxpy
-    HAS_CVX = True
+    _HAS_CVX = True
 except ImportError:
-    HAS_CVX = False
+    _HAS_CVX = False
+
+from qiskit.aqua import MissingOptionalLibraryError
 
 logger = logging.getLogger(__name__)
 
@@ -30,8 +33,9 @@ logger = logging.getLogger(__name__)
 def optimize_svm(kernel_matrix: np.ndarray,
                  y: np.ndarray,
                  scaling: Optional[float] = None,
-                 max_iters: int = 500,
-                 show_progress: bool = False) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+                 maxiter: int = 500,
+                 show_progress: bool = False,
+                 max_iters: Optional[int] = None) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Solving quadratic programming problem for SVM; thus, some constraints are fixed.
 
@@ -40,8 +44,9 @@ def optimize_svm(kernel_matrix: np.ndarray,
         y: Nx1 array
         scaling: the scaling factor to renormalize the `y`, if it is None,
                  use L2-norm of `y` for normalization
-        max_iters: number of iterations for QP solver
+        maxiter: number of iterations for QP solver
         show_progress: showing the progress of QP solver
+        max_iters: Deprecated, use maxiter.
 
     Returns:
         np.ndarray: Sx1 array, where S is the number of supports
@@ -49,13 +54,21 @@ def optimize_svm(kernel_matrix: np.ndarray,
         np.ndarray: Sx1 array, where S is the number of supports
 
     Raises:
-        NameError: If cvxpy is not installed
+        MissingOptionalLibraryError: If cvxpy is not installed
     """
     # pylint: disable=invalid-name, unused-argument
-    if not HAS_CVX:
-        raise NameError("The CVXPY package is required to use the "
-                        "optimize_svm() function. You can install it with "
-                        "'pip install qiskit-aqua[cvx]'.")
+    if not _HAS_CVX:
+        raise MissingOptionalLibraryError(
+            libname='CVXPY',
+            name='optimize_svm',
+            pip_install='pip install qiskit-aqua[cvx]')
+
+    if max_iters is not None:
+        warnings.warn('The max_iters parameter is deprecated as of '
+                      '0.8.0 and will be removed no sooner than 3 months after the release. '
+                      'You should use maxiter instead.',
+                      DeprecationWarning)
+        maxiter = max_iters
     if y.ndim == 1:
         y = y[:, np.newaxis]
     H = np.outer(y, y) * kernel_matrix
@@ -78,7 +91,7 @@ def optimize_svm(kernel_matrix: np.ndarray,
         cvxpy.Minimize((1 / 2) * cvxpy.quad_form(x, P) + q.T@x),
         [G@x <= h,
          A@x == b])
-    prob.solve(verbose=show_progress)
+    prob.solve(verbose=show_progress, qcp=True)
     result = np.asarray(x.value).reshape((n, 1))
     alpha = result * scaling
     avg_y = np.sum(y)
