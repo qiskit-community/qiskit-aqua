@@ -137,8 +137,9 @@ class LogicalExpressionOracle(Oracle):
             try:
                 expression = LogicalExpressionOracle._dimacs_cnf_to_expression(expression)
                 raw_expr = parse_expr(expression)
-            except Exception:
-                raise AquaError('Failed to parse the input expression: {}.'.format(orig_expression))
+            except Exception as ex:
+                raise AquaError(
+                    'Failed to parse the input expression: {}.'.format(orig_expression)) from ex
         self._expr = raw_expr
         self._process_expr()
         self.construct_circuit()
