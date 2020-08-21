@@ -208,8 +208,10 @@ class GaussianLogResult:
         a2h = self.a_to_h_numbering
         a2h_vals = max(list(a2h.values()))
 
+        # There are 3 float entries in the list at the end, the other entries up
+        # front are the indices (string type).
         num_indices = len(entry) - 3
-        return [a2h_vals + 1 - a2h[x] for x in entry[0:num_indices]]
+        return [a2h_vals + 1 - a2h[cast(str, x)] for x in entry[0:num_indices]]
 
     def _compute_modes(self, normalize: bool = True) -> List[List[Union[int, float]]]:
         # Returns [value, idx0, idx1...] from 2 indices (quadratic) to 4 (quartic)
@@ -226,20 +228,20 @@ class GaussianLogResult:
                 line.extend(indices)
                 modes.append(line)
                 modes.append([-x for x in line])
-        for entry in cub:
-            indices = self._process_entry_indices(list(entry))
+        for entry_c in cub:
+            indices = self._process_entry_indices(list(entry_c))
             if indices:
                 factor = 2.0 * math.sqrt(2.0)
                 factor *= self._multinomial(indices) if normalize else 1.0
-                line = [entry[3] / factor]
+                line = [entry_c[3] / factor]
                 line.extend(indices)
                 modes.append(line)
-        for entry in qrt:
-            indices = self._process_entry_indices(list(entry))
+        for entry_q in qrt:
+            indices = self._process_entry_indices(list(entry_q))
             if indices:
                 factor = 4.0
                 factor *= self._multinomial(indices) if normalize else 1.0
-                line = [entry[4] / factor]
+                line = [entry_q[4] / factor]
                 line.extend(indices)
                 modes.append(line)
 
@@ -265,7 +267,7 @@ class GaussianLogResult:
         Raises:
             ValueError: If power is invalid
         """
-        coeff = 0
+        coeff = 0.0
         if power == 1:
             if abs(n - m) == 1:
                 coeff = np.sqrt(n / 2)
@@ -296,7 +298,7 @@ class GaussianLogResult:
         return coeff
 
     def compute_harmonic_modes(self, num_modals: int, threshold: float = 1e-6) \
-            -> List[Tuple[List[List[int]], float]]:
+            -> List[List[Tuple[List[List[int]], float]]]:
         """
         This prepares an array object representing a bosonic hamiltonian expressed
         in the harmonic basis. This object can directly be given to the BosonicOperator
@@ -322,9 +324,9 @@ class GaussianLogResult:
                                       num_modes, num_modals, num_modals))}
 
         entries = self._compute_modes()
-        for entry in entries:
-            coeff0 = entry[0]
-            indices = entry[1:]
+        for entry in entries:  # Entry is coeff (float) followed by indices (ints)
+            coeff0 = cast(float, entry[0])
+            indices = cast(List[int], entry[1:])
 
             kinetic_term = False
 
@@ -383,15 +385,15 @@ class GaussianLogResult:
             else:
                 raise ValueError('Unexpected order value of {}'.format(order))
 
-        harmonics = []
+        harmonics = []  # type: List[List[Tuple[List[List[int]], float]]]
         for idx in [1, 2, 3]:
             all_indices = np.nonzero(harmonic_dict[idx] > threshold)
             if len(all_indices[0]) != 0:
                 harmonics.append([])
             values = harmonic_dict[idx][all_indices]
             for i in range(len(all_indices[0])):
-                harmonics[idx - 1].append([[[all_indices[3 * j][i], all_indices[3 * j + 1][i],
+                harmonics[idx - 1].append(([[all_indices[3 * j][i], all_indices[3 * j + 1][i],
                                              all_indices[3 * j + 2][i]] for j in range(idx)],
-                                           values[i]])
+                                           values[i]))
 
         return harmonics
