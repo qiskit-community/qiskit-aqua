@@ -35,8 +35,9 @@ logger = logging.getLogger(__name__)
 
 class IntermediateResult(Enum):
     """
-    Defines whether the intermediate results at each iteration should be stored
-    and returned to the end user.
+    Defines whether the intermediate results of
+    :class:`~qiskit.optimization.algorithms.RecursiveMinimumEigenOptimizer`
+    at each iteration should be stored and returned to the end user.
     """
 
     NO_ITERATIONS = 0
