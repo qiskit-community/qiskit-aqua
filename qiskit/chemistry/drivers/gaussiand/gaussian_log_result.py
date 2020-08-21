@@ -246,7 +246,20 @@ class GaussianLogResult:
         return modes
 
     @staticmethod
-    def _harmonic_integrals(m: int, n: int, power: int, kinetic_term = False):
+    def _harmonic_integrals(m: int, n: int, power: int, kinetic_term: bool = False) -> float:
+        """
+        This computes the integrals of the Hamiltonian with the harmonic basis as shown in
+        ﻿J. Chem. Phys. 135, 134108 (2011); https://doi.org/10.1063/1.3644895 (Table 1)
+        Args:
+            m: first modal index
+            n: second modal index
+            power: the exponent on the coordinate (Q, Q^2, Q^3 or Q^4)
+            kinetic_term: needs to be set to true to do the integral of the
+                          kinetic part of the hamiltonian d^2/dQ^2
+
+        Returns: the value of the integral
+
+        """
         coeff = 0
         if power == 1:
             if abs(n - m) == 1:
@@ -254,11 +267,11 @@ class GaussianLogResult:
         elif power == 2 and kinetic_term==True:
             if abs(n-m) == 0:
                 coeff = (n + 1/2)
-            elif abs(n-m) ==2:
-                coeff = - np.sqrt(n*(n-1))/2
+            elif abs(n-m) == 2:
+                coeff = - np.sqrt(n * (n - 1)) / 2
         elif power == 2 and kinetic_term==False:
             if abs(n - m) == 0:
-                coeff = (n + 1 / 2)
+                coeff = (n + 1/2)
             elif abs(n - m) == 2:
                 coeff = np.sqrt(n * (n - 1)) / 2
         elif power == 3:
@@ -277,12 +290,28 @@ class GaussianLogResult:
             raise ValueError('The expansion order of the PES is too high.')
         return coeff
 
-    def compute_harmonic_modes(self, num_modals, threshold=1e-6):
-        #omega = {1: 1, 2: 1, 3: 1, 4: 1}
-        # num_modes = 4  # unused
-        #num_modals = 3 # this should be an argument of the function
+    def compute_harmonic_modes(self, num_modals: int, threshold: float = 1e-6) -> List[
+            Tuple[List[List[int]], float]]:
+        """
+        This prepares an array object representing a bosonic hamiltonian expressed
+        in the harmonic basis. This object can directly be given to the BosonicOperator
+        class to be mapped to a qubit hamiltonian.
+        Args:
+            num_modals: number of modals per mode
+            threshold: the matrix elements of value below this threshold are discarded
 
-        harmonics = []
+        Returns: a bosonic hamiltonian in the harmonic basis
+
+        """
+
+        num_modes = len(self.a_to_h_numbering)
+
+        harmonic_dict = {1:np.zeros((num_modes, num_modals, num_modals)),
+                         2:np.zeros((num_modes, num_modals, num_modals,
+                                     num_modes, num_modals, num_modals)),
+                         3:np.zeros((num_modes, num_modals, num_modals,
+                                     num_modes, num_modals, num_modals,
+                                     num_modes, num_modals, num_modals))}
 
         entries = self._compute_modes()
         for entry in entries:
@@ -295,6 +324,7 @@ class GaussianLogResult:
             # _compute_modes for other potential uses. They are not wanted by this logic.
             if any([index < 0 for index in indices]):
                 kinetic_term = True
+                indices = np.absolute(indices)
             indexes = {}  # type: Dict[int, int]
             for i in indices:
                 if indexes.get(i) is None:
@@ -311,7 +341,7 @@ class GaussianLogResult:
                         coeff = coeff0 * self._harmonic_integrals(m, n, indexes[modes[0]],
                                                                   kinetic_term=kinetic_term)
                         if abs(coeff) > threshold:
-                            harmonics.append([modes[0], n, m, coeff])
+                            harmonic_dict[1][modes[0]-1, n, m] += coeff
 
             elif order == 2:
                 for m in range(num_modals):
@@ -323,8 +353,8 @@ class GaussianLogResult:
                                 coeff *= self._harmonic_integrals(j, k, indexes[modes[1]],
                                                                   kinetic_term=kinetic_term)
                                 if abs(coeff) > threshold:
-                                    harmonics.append([modes[0], n, m,
-                                                      modes[1], j, k, coeff])
+                                    harmonic_dict[2][modes[0]-1, n, m,
+                                                      modes[1]-1, j, k] += coeff
             elif order == 3:
                 for m in range(num_modals):
                     for n in range(num_modals):
@@ -339,10 +369,22 @@ class GaussianLogResult:
                                         coeff *= self._harmonic_integrals(p, q, indexes[modes[2]],
                                                                           kinetic_term=kinetic_term)
                                         if abs(coeff) > threshold:
-                                            harmonics.append([modes[0], n, m,
-                                                              modes[1], j, k,
-                                                              modes[2], p, q, coeff])
+                                            harmonic_dict[3][modes[0]-1, n, m,
+                                                              modes[1]-1, j, k,
+                                                              modes[2]-1, p, q] += coeff
             else:
                 raise ValueError('Unexpected order value of {}'.format(order))
 
+        harmonics = []
+        for idx in [1, 2, 3]:
+            all_indices = np.nonzero(harmonic_dict[idx] > threshold)
+            if len(all_indices[0]) != 0:
+                harmonics.append([])
+            values = harmonic_dict[idx][all_indices]
+            for i in range(len(all_indices[0])):
+                harmonics[idx - 1].append([[[all_indices[3 * j][i], all_indices[3 * j + 1][i],
+                                             all_indices[3 * j + 2][i]] for j in range(idx)],
+                                           values[i]])
+
         return harmonics
+
