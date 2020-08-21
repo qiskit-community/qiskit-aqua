@@ -75,10 +75,10 @@ class BaseDataProvider(ABC):
                 raise QiskitFinanceError(
                     'No data loaded, yet. Please run the method run() first to load the data.'
                 )
-        except AttributeError:
+        except AttributeError as ex:
             raise QiskitFinanceError(
                 'No data loaded, yet. Please run the method run() first to load the data.'
-            )
+            ) from ex
         self.mean = np.mean(self._data, axis=1)
         return self.mean
 
@@ -106,10 +106,10 @@ class BaseDataProvider(ABC):
                 raise QiskitFinanceError(
                     'No data loaded, yet. Please run the method run() first to load the data.'
                 )
-        except AttributeError:
+        except AttributeError as ex:
             raise QiskitFinanceError(
                 'No data loaded, yet. Please run the method run() first to load the data.'
-            )
+            ) from ex
         _div_func = np.vectorize(BaseDataProvider._divide)
         period_returns = _div_func(np.array(self._data)[:, 1:], np.array(self._data)[:, :-1]) - 1
         self.period_return_mean = np.mean(period_returns, axis=1)
@@ -130,10 +130,10 @@ class BaseDataProvider(ABC):
                 raise QiskitFinanceError(
                     'No data loaded, yet. Please run the method run() first to load the data.'
                 )
-        except AttributeError:
+        except AttributeError as ex:
             raise QiskitFinanceError(
                 'No data loaded, yet. Please run the method run() first to load the data.'
-            )
+            ) from ex
         self.cov = np.cov(self._data, rowvar=True)
         return self.cov
 
@@ -152,10 +152,10 @@ class BaseDataProvider(ABC):
                 raise QiskitFinanceError(
                     'No data loaded, yet. Please run the method run() first to load the data.'
                 )
-        except AttributeError:
+        except AttributeError as ex:
             raise QiskitFinanceError(
                 'No data loaded, yet. Please run the method run() first to load the data.'
-            )
+            ) from ex
         _div_func = np.vectorize(BaseDataProvider._divide)
         period_returns = _div_func(np.array(self._data)[:, 1:], np.array(self._data)[:, :-1]) - 1
         self.period_return_cov = np.cov(period_returns)
@@ -176,10 +176,10 @@ class BaseDataProvider(ABC):
                 raise QiskitFinanceError(
                     'No data loaded, yet. Please run the method run() first to load the data.'
                 )
-        except AttributeError:
+        except AttributeError as ex:
             raise QiskitFinanceError(
                 'No data loaded, yet. Please run the method run() first to load the data.'
-            )
+            ) from ex
         self.rho = np.zeros((self._n, self._n))
         for i_i in range(0, self._n):
             self.rho[i_i, i_i] = 1.
