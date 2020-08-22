@@ -14,7 +14,7 @@
 
 """ DictStateFn Class """
 
-from typing import Optional, Union, Set, cast
+from typing import Optional, Union, Set, Dict, cast
 import itertools
 import numpy as np
 from scipy import sparse
