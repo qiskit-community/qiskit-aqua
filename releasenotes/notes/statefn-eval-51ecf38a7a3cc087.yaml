@@ -3,6 +3,5 @@ features:
   - |
     Allow calling ``eval`` on state function objects with no argument, which returns the 
     ``VectorStateFn`` representation of the state function.
-    This is consistent behaviour with ``OperatorBase.eval``, which returns the 
+    This is consistent behavior with ``OperatorBase.eval``, which returns the 
     ``MatrixOp`` representation, if no argument is passed.
-
