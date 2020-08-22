@@ -23,7 +23,6 @@ from qiskit.quantum_info import Statevector
 from qiskit.circuit import ParameterExpression
 from qiskit.aqua import aqua_globals
 
-from .. import CircuitOp
 from ..operator_base import OperatorBase
 from .state_fn import StateFn
 from ..list_ops.list_op import ListOp
@@ -101,6 +100,7 @@ class VectorStateFn(StateFn):
         transpositions = arithmetic.transpositions(permutation)
         for trans in transpositions:
             qc.swap(trans[0], trans[1])
+        from .. import CircuitOp
         matrix = CircuitOp(qc).to_matrix()
         vector = new_self.primitive.data
         return VectorStateFn(primitive=matrix.dot(vector),
