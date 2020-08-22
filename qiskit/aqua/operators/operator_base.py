@@ -77,7 +77,7 @@ class OperatorBase(ABC):
         defined to be evaluated from Zero implicitly (i.e. it is as if ``.eval('0000')`` is already
         called implicitly to always "indexing" from column 0).
 
-        If ``front`` is None, the matrix-represenation of the operator is returned.
+        If ``front`` is None, the matrix-representation of the operator is returned.
 
         Args:
             front: The bitstring, dict of bitstrings (with values being coefficients), or
