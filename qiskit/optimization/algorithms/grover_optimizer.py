@@ -15,22 +15,23 @@
 """GroverOptimizer module"""
 
 import logging
-from typing import Optional, Dict, Union, List
 import math
+from copy import deepcopy
+from typing import Optional, Dict, Union, List
 
 import numpy as np
+
 from qiskit import QuantumCircuit, QuantumRegister
-from qiskit.circuit.library import QuadraticForm
-from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms.amplitude_amplifiers.grover import Grover
 from qiskit.aqua.components.initial_states import Custom
 from qiskit.aqua.components.oracles import CustomCircuitOracle
+from qiskit.circuit.library import QuadraticForm
+from qiskit.providers import BaseBackend
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
+from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
 from ..problems import Variable
 from ..problems.quadratic_program import QuadraticProgram
-from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
-
 
 logger = logging.getLogger(__name__)
 
@@ -152,6 +153,7 @@ class GroverOptimizer(OptimizationAlgorithm):
 
         # convert problem to QUBO
         problem_ = self._qubo_converter.convert(problem)
+        problem_init = deepcopy(problem_)
 
         # convert to minimization problem
         sense = problem_.objective.sense
@@ -260,7 +262,7 @@ class GroverOptimizer(OptimizationAlgorithm):
         opt_x = np.array([1 if s == '1' else 0 for s in ('{0:%sb}' % n_key).format(optimum_key)])
 
         # Compute function value
-        fval = problem_.objective.evaluate(opt_x)
+        fval = problem_init.objective.evaluate(opt_x)
         result = OptimizationResult(x=opt_x, fval=fval, variables=problem_.variables)
 
         # cast binaries back to integers
@@ -268,7 +270,8 @@ class GroverOptimizer(OptimizationAlgorithm):
 
         return GroverOptimizationResult(x=result.x, fval=result.fval, variables=result.variables,
                                         operation_counts=operation_count, n_input_qubits=n_key,
-                                        n_output_qubits=n_value)
+                                        n_output_qubits=n_value, intermediate_fval=fval,
+                                        threshold=threshold)
 
     def _measure(self, circuit: QuantumCircuit) -> str:
         """Get probabilities from the given backend, and picks a random outcome."""
@@ -332,7 +335,7 @@ class GroverOptimizationResult(OptimizationResult):
 
     def __init__(self, x: Union[List[float], np.ndarray], fval: float, variables: List[Variable],
                  operation_counts: Dict[int, Dict[str, int]], n_input_qubits: int,
-                 n_output_qubits: int) -> None:
+                 n_output_qubits: int, intermediate_fval: float, threshold: float) -> None:
         """
         Constructs a result object with the specific Grover properties.
 
@@ -343,11 +346,16 @@ class GroverOptimizationResult(OptimizationResult):
             operation_counts: The counts of each operation performed per iteration.
             n_input_qubits: The number of qubits used to represent the input.
             n_output_qubits: The number of qubits used to represent the output.
+            intermediate_fval: The intermediate value of the objective function of the solution,
+                that is expected to be identical with ``fval``.
+            threshold: The threshold of Grover algorithm.
         """
         super().__init__(x, fval, variables, None)
         self._operation_counts = operation_counts
         self._n_input_qubits = n_input_qubits
         self._n_output_qubits = n_output_qubits
+        self._intermediate_fval = intermediate_fval
+        self._threshold = threshold
 
     @property
     def operation_counts(self) -> Dict[int, Dict[str, int]]:
@@ -375,3 +383,21 @@ class GroverOptimizationResult(OptimizationResult):
             The number of qubits used to represent the output.
         """
         return self._n_output_qubits
+
+    @property
+    def intermediate_fval(self) -> float:
+        """Getter of the intermediate fval
+
+        Returns:
+            The intermediate value of fval before interpret.
+        """
+        return self._intermediate_fval
+
+    @property
+    def threshold(self) -> float:
+        """Getter of the threshold of Grover algorithm.
+
+        Returns:
+            The threshold of Grover algorithm.
+        """
+        return self._threshold
