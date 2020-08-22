@@ -14,7 +14,7 @@
 
 """ PauliOp Class """
 
-from typing import Union, Set, Dict, cast
+from typing import Union, Set, Dict, Optional, cast
 import logging
 import numpy as np
 from scipy.sparse import spmatrix

@@ -15,7 +15,7 @@
 """ VectorStateFn Class """
 
 
-from typing import Union, Set
+from typing import Union, Set, Optional, Dict
 import numpy as np
 
 from qiskit.quantum_info import Statevector

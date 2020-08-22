@@ -15,7 +15,7 @@
 """ CircuitStateFn Class """
 
 
-from typing import Union, Set, List, cast
+from typing import Union, Set, List, Optional, Dict, cast
 import numpy as np
 
 from qiskit import QuantumCircuit, BasicAer, execute, ClassicalRegister

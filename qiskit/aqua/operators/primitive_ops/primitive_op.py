@@ -14,7 +14,7 @@
 
 """ PrimitiveOp Class """
 
-from typing import Optional, Union, Set, List
+from typing import Optional, Union, Set, List, Dict
 import logging
 import numpy as np
 from scipy.sparse import spmatrix

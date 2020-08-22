@@ -14,7 +14,7 @@
 
 """ MatrixOp Class """
 
-from typing import Union, Optional, Set
+from typing import Union, Optional, Set, Dict
 import logging
 import numpy as np
 from scipy.sparse import spmatrix

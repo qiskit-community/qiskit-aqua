@@ -14,7 +14,7 @@
 
 """ CircuitOp Class """
 
-from typing import Union, Optional, Set, List, cast
+from typing import Union, Optional, Set, List, Dict, cast
 import logging
 import numpy as np
 
