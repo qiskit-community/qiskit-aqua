@@ -275,8 +275,8 @@ class CircuitStateFn(StateFn):
         return self.__class__(qc, coeff=param_value, is_measurement=self.is_measurement)
 
     def eval(self,
-             front: Union[str, dict, np.ndarray,
-                          OperatorBase] = None) -> Union[OperatorBase, float, complex]:
+             front: Optional[Union[str, Dict[str, complex], np.ndarray, OperatorBase]] = None
+             ) -> Union[OperatorBase, float, complex]:
         if front is None:
             vector_state_fn = self.to_matrix_op().eval()
             vector_state_fn = cast(OperatorBase, vector_state_fn)
