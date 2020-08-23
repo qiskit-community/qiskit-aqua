@@ -15,15 +15,17 @@
 """ SummedOp Class """
 
 from typing import List, Union, cast
+import warnings
 
 import numpy as np
 
+from qiskit import QuantumCircuit
 from qiskit.circuit import ParameterExpression
 from .list_op import ListOp
 from ..legacy.base_operator import LegacyBaseOperator
 from ..legacy.weighted_pauli_operator import WeightedPauliOperator
 from ..operator_base import OperatorBase
-from ..primitive_ops.primitive_op import PrimitiveOp
+from ... import AquaError
 
 
 class SummedOp(ListOp):
@@ -88,6 +90,7 @@ class SummedOp(ListOp):
         Returns:
             A simplified ``SummedOp`` equivalent to self.
         """
+        from qiskit.aqua.operators import PrimitiveOp
         oplist = []  # type: List[OperatorBase]
         coeffs = []  # type: List[Union[int, float, complex, ParameterExpression]]
         for op in self.oplist:
@@ -131,6 +134,29 @@ class SummedOp(ListOp):
         else:
             return cast(OperatorBase, reduced_ops)
 
+    def to_circuit(self) -> QuantumCircuit:
+        """Returns the quantum circuit, representing the SummedOp. In the first step,
+        the SummedOp is converted to MatrixOp. This is straightforward for most operators,
+        but it is not supported for operators containing parametrized PrimitiveOps (in that case,
+        AquaError is raised). In the next step, the MatrixOp representation of SummedOp is
+        converted to circuit. In most cases, if the summands themselves are unitary operators,
+        the SummedOp itself is non-unitary and can not be converted to circuit. In that case,
+        ExtensionError is raised in the underlying modules.
+
+        Returns:
+            The circuit representation of the summed operator.
+
+        Raises:
+            AquaError: if SummedOp can not be converted to MatrixOp (e.g. SummedOp is composed of
+            parametrized PrimitiveOps).
+        """
+        from qiskit.aqua.operators import MatrixOp
+        matrix_op = self.to_matrix_op()
+        if isinstance(matrix_op, MatrixOp):
+            return matrix_op.to_circuit()
+        raise AquaError("The SummedOp can not be converted to circuit, because to_matrix_op did "
+                        "not return a MatrixOp.")
+
     def to_matrix_op(self, massive: bool = False) -> OperatorBase:
         """ Returns an equivalent Operator composed of only NumPy-based primitives, such as
         ``MatrixOp`` and ``VectorStateFn``. """
@@ -152,13 +178,26 @@ class SummedOp(ListOp):
         if isinstance(self.coeff, ParameterExpression):
             try:
                 coeff = float(self.coeff)
-            except TypeError:
+            except TypeError as ex:
                 raise TypeError('Cannot convert Operator with unbound parameter {} to Legacy '
-                                'Operator'.format(self.coeff))
+                                'Operator'.format(self.coeff)) from ex
         else:
             coeff = cast(float, self.coeff)
 
         return self.combo_fn(legacy_ops) * coeff
+
+    def print_details(self):
+        """
+        Print out the operator in details.
+        Returns:
+            str: a formatted string describes the operator.
+        """
+        warnings.warn("print_details() is deprecated and will be removed in "
+                      "a future release. Instead you can use .to_legacy_op() "
+                      "and call print_details() on it's output",
+                      DeprecationWarning)
+        ret = self.to_legacy_op().print_details()
+        return ret
 
     def equals(self, other: OperatorBase) -> bool:
         """Check if other is equal to self.

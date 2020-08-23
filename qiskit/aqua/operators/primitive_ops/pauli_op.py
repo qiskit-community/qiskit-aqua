@@ -27,7 +27,6 @@ from qiskit.circuit.library import RZGate, RYGate, RXGate, XGate, YGate, ZGate, 
 from ..operator_base import OperatorBase
 from .primitive_op import PrimitiveOp
 from ..list_ops.summed_op import SummedOp
-from ..list_ops.composed_op import ComposedOp
 from ..list_ops.tensored_op import TensoredOp
 from ..legacy.weighted_pauli_operator import WeightedPauliOperator
 
@@ -116,7 +115,7 @@ class PauliOp(PrimitiveOp):
         if isinstance(other, (CircuitOp, CircuitStateFn)):
             return self.to_circuit_op().compose(other)
 
-        return ComposedOp([self, other])
+        return super().compose(other)
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
         if self.num_qubits > 16 and not massive:
@@ -284,9 +283,9 @@ class PauliOp(PrimitiveOp):
         if isinstance(self.coeff, ParameterExpression):
             try:
                 coeff = float(self.coeff)
-            except TypeError:
+            except TypeError as ex:
                 raise TypeError('Cannot convert Operator with unbound parameter {} to Legacy '
-                                'Operator'.format(self.coeff))
+                                'Operator'.format(self.coeff)) from ex
         else:
             coeff = cast(float, self.coeff)
         return WeightedPauliOperator(paulis=[(coeff, self.primitive)])  # type: ignore

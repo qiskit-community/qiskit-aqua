@@ -156,7 +156,15 @@ class PrimitiveOp(OperatorBase):
         return temp
 
     def compose(self, other: OperatorBase) -> OperatorBase:
-        raise NotImplementedError
+        from ..list_ops.composed_op import ComposedOp
+        if isinstance(other, ComposedOp):
+            comp_with_first = self.compose(other.oplist[0])
+            if not isinstance(comp_with_first, ComposedOp):
+                new_oplist = [comp_with_first] + other.oplist[1:]
+                return ComposedOp(new_oplist, coeff=other.coeff)
+            return ComposedOp([self] + other.oplist, coeff=other.coeff)  # type: ignore
+
+        return ComposedOp([self, other])
 
     def _check_zero_for_composition_and_expand(self, other: OperatorBase) -> OperatorBase:
         if not self.num_qubits == other.num_qubits:
@@ -208,6 +216,15 @@ class PrimitiveOp(OperatorBase):
              front: Union[str, dict, np.ndarray,
                           OperatorBase] = None) -> Union[OperatorBase, float, complex]:
         raise NotImplementedError
+
+    @property
+    def parameters(self):
+        params = set()
+        if isinstance(self.primitive, (OperatorBase, QuantumCircuit)):
+            params.update(self.primitive.parameters)
+        if isinstance(self.coeff, ParameterExpression):
+            params.update(self.coeff.parameters)
+        return params
 
     def assign_parameters(self, param_dict: dict) -> OperatorBase:
         param_value = self.coeff

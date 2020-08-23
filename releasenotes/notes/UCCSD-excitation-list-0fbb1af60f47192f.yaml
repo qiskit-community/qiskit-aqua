@@ -1,0 +1,6 @@
+---
+fixes:
+  - |
+    The UCCSD excitation list, comprising single and double excitations, was not being
+    generated correctly when an active space was explicitly provided to UCSSD via the
+    active_(un)occupied parameters.

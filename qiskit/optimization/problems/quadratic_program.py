@@ -19,6 +19,7 @@ import logging
 from collections import defaultdict
 from enum import Enum
 from math import fsum
+import warnings
 
 from docplex.mp.constr import (LinearConstraint as DocplexLinearConstraint,
                                QuadraticConstraint as DocplexQuadraticConstraint,
@@ -30,6 +31,7 @@ from docplex.mp.quad import QuadExpr
 from numpy import (ndarray, zeros, bool as nbool)
 from scipy.sparse import spmatrix
 
+from qiskit.aqua import MissingOptionalLibraryError
 from qiskit.aqua.operators import I, OperatorBase, PauliOp, WeightedPauliOperator, SummedOp, ListOp
 from qiskit.quantum_info import Pauli
 from .constraint import Constraint, ConstraintSense
@@ -774,6 +776,30 @@ class QuadraticProgram:
         """
         return self.to_docplex().export_as_lp_string()
 
+    def pprint_as_string(self) -> str:
+        """DEPRECATED Returns the quadratic program as a string in Docplex's pretty print format.
+        Returns:
+            A string representing the quadratic program.
+        """
+        warnings.warn("The pprint_as_string method is deprecated and will be "
+                      "removed in a future release. Instead use the"
+                      "to_docplex() method and run pprint_as_string() on that "
+                      "output", DeprecationWarning)
+        return self.to_docplex().pprint_as_string()
+
+    def prettyprint(self, out: Optional[str] = None) -> None:
+        """DEPRECATED Pretty prints the quadratic program to a given output stream (None = default).
+
+        Args:
+            out: The output stream or file name to print to.
+              if you specify a file name, the output file name is has '.mod' as suffix.
+        """
+        warnings.warn("The prettyprint method is deprecated and will be "
+                      "removed in a future release. Instead use the"
+                      "to_docplex() method and run prettyprint() on that "
+                      "output", DeprecationWarning)
+        self.to_docplex().prettyprint(out)
+
     def read_from_lp_file(self, filename: str) -> None:
         """Loads the quadratic program from a LP file.
 
@@ -782,16 +808,18 @@ class QuadraticProgram:
 
         Raises:
             FileNotFoundError: If the file does not exist.
-            RuntimeError: If CPLEX is not installed.
+            MissingOptionalLibraryError: If CPLEX is not installed.
 
         Note:
             This method requires CPLEX to be installed and present in ``PYTHONPATH``.
         """
         try:
             import cplex  # pylint: disable=unused-import
-        except ImportError:
-            raise RuntimeError('The QuadraticProgram.read_from_lp_file method requires CPLEX to '
-                               'be installed, but CPLEX could not be found.')
+        except ImportError as ex:
+            raise MissingOptionalLibraryError(
+                libname='CPLEX',
+                name='QuadraticProgram.read_from_lp_file',
+                pip_install='pip install qiskit-aqua[cplex]') from ex
 
         def _parse_problem_name(filename: str) -> str:
             # Because docplex model reader uses the base name as model name,

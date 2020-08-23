@@ -353,7 +353,7 @@ class InequalityToEquality(QuadraticProgramConverter):
         # convert back the optimization result into that of the original problem
         names = [x.name for x in self._dst.variables]
         new_x = self._interpret_var(names, result.x)
-        return OptimizationResult(x=new_x, fval=result.fval, variables=self._dst.variables,
+        return OptimizationResult(x=new_x, fval=result.fval, variables=self._src.variables,
                                   raw_results=result.raw_results, status=result.status)
 
     def _interpret_var(self, names, vals) -> List[int]:

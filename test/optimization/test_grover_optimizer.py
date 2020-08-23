@@ -43,6 +43,7 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
         # Validate results.
         np.testing.assert_array_almost_equal(comp_result.x, results.x)
         self.assertEqual(comp_result.fval, results.fval)
+        self.assertAlmostEqual(results.fval, results.intermediate_fval)
 
     def test_qubo_gas_int_zero(self):
         """Test for when the answer is zero."""
@@ -60,6 +61,7 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
         results = gmf.solve(op)
         np.testing.assert_array_almost_equal(results.x, [0, 0])
         self.assertEqual(results.fval, 0.0)
+        self.assertAlmostEqual(results.fval, results.intermediate_fval)
 
     def test_qubo_gas_int_simple(self):
         """Test for simple case, with 2 linear coeffs and no quadratic coeffs or constants."""
@@ -77,6 +79,10 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
         gmf = GroverOptimizer(4, num_iterations=n_iter, quantum_instance=self.q_instance)
         results = gmf.solve(op)
         self.validate_results(op, results)
+
+        self.assertIsNotNone(results.operation_counts)
+        self.assertEqual(results.n_input_qubits, 2)
+        self.assertEqual(results.n_output_qubits, 4)
 
     def test_qubo_gas_int_simple_maximize(self):
         """Test for simple case, but with maximization."""

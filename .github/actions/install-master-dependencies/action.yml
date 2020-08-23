@@ -1,0 +1,35 @@
+# This code is part of Qiskit.
+#
+# (C) Copyright IBM 2020.
+#
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
+#
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
+
+name: 'Install Qiskit Aqua Master Dependencies'
+description: 'Installs Python dependencies from Master'
+
+runs:
+  using: "composite"
+  steps: 
+    - run : |
+        if [ -f "$HOME/miniconda/etc/profile.d/conda.sh" ]; then
+          source "$HOME/miniconda/etc/profile.d/conda.sh"
+          conda activate
+        fi
+        pip install https://github.com/Qiskit/qiskit-terra/archive/master.zip
+        pip install https://github.com/Qiskit/qiskit-ignis/archive/master.zip
+        pip install https://github.com/Qiskit/qiskit-ibmq-provider/archive/master.zip
+        sudo apt-get -y update
+        sudo apt-get -y install g++-7
+        sudo apt-get -y install libopenblas-dev
+        git clone https://github.com/Qiskit/qiskit-aer.git /tmp/qiskit-aer
+        cd /tmp/qiskit-aer
+        pip install -U -c /tmp/qiskit-aer/constraints.txt -r /tmp/qiskit-aer/requirements-dev.txt
+        python /tmp/qiskit-aer/setup.py bdist_wheel -- -DCMAKE_CXX_COMPILER=g++-7 -DAER_THRUST_BACKEND=OMP -- -j4
+        pip install /tmp/qiskit-aer/dist/qiskit_aer*whl
+      shell: bash

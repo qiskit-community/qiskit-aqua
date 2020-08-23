@@ -12,18 +12,19 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-
 """
 Exception for errors raised by Aqua.
 """
 
+from qiskit import QiskitError
 
-class AquaError(Exception):
+
+class AquaError(QiskitError):
     """Base class for errors raised by Aqua."""
 
-    def __init__(self, *message):
+    def __init__(self, *message) -> None:
         """Set the error message."""
-        super(AquaError, self).__init__(' '.join(message))
+        super().__init__(' '.join(message))
         self.message = ' '.join(message)
 
     def __str__(self) -> str:

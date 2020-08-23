@@ -16,7 +16,6 @@
 
 import logging
 from typing import Optional, List, Dict, Union, Any
-import warnings
 
 import numpy as np
 from qiskit import QuantumCircuit
@@ -31,7 +30,6 @@ from qiskit.aqua.circuits import PhaseEstimationCircuit
 from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.aqua.operators import LegacyBaseOperator
 from qiskit.aqua.components.initial_states import InitialState
-from qiskit.aqua.components.iqfts import IQFT
 from qiskit.aqua.utils.validation import validate_min, validate_in_set
 from .minimum_eigen_solver import MinimumEigensolver, MinimumEigensolverResult
 
@@ -60,7 +58,7 @@ class QPE(QuantumAlgorithm, MinimumEigensolver):
     def __init__(self,
                  operator: Optional[Union[OperatorBase, LegacyBaseOperator]] = None,
                  state_in: Optional[InitialState] = None,
-                 iqft: Optional[Union[QuantumCircuit, IQFT]] = None,
+                 iqft: Optional[QuantumCircuit] = None,
                  num_time_slices: int = 1,
                  num_ancillae: int = 1,
                  expansion_mode: str = 'trotter',
@@ -89,16 +87,9 @@ class QPE(QuantumAlgorithm, MinimumEigensolver):
         validate_in_set('expansion_mode', expansion_mode, {'trotter', 'suzuki'})
         validate_min('expansion_order', expansion_order, 1)
         super().__init__(quantum_instance)
+
         self._state_in = state_in
-
-        if isinstance(iqft, IQFT):
-            warnings.warn('The qiskit.aqua.components.iqfts.IQFT module is deprecated as of 0.7.0 '
-                          'and will be removed no earlier than 3 months after the release. '
-                          'You should pass a QuantumCircuit instead, see '
-                          'qiskit.circuit.library.QFT and the .inverse() method.',
-                          DeprecationWarning, stacklevel=2)
         self._iqft = iqft
-
         self._num_time_slices = num_time_slices
         self._num_ancillae = num_ancillae
         self._expansion_mode = expansion_mode
