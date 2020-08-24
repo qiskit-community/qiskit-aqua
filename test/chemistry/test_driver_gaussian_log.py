@@ -18,6 +18,8 @@ import unittest
 
 from test.chemistry import QiskitChemistryTestCase
 
+import numpy as np
+
 from qiskit.chemistry.drivers import GaussianLogDriver, GaussianLogResult
 from qiskit.chemistry import QiskitChemistryError
 
@@ -124,14 +126,85 @@ class TestDriverGaussianLog(QiskitChemistryTestCase):
                     ('3b', '3b', '3b', '3b', 220.54851, 0.82484, 0.01484)]
         self.assertListEqual(qfc, expected)
 
+    def test_compute_modes(self):
+        """ Test the internal function that is computing modes """
+        result = GaussianLogResult(self.logfile)
+        modes = result._compute_modes()
+        expected = [[352.3005875, 2, 2],
+                    [-352.3005875, -2, -2],
+                    [631.6153975, 1, 1],
+                    [-631.6153975, -1, -1],
+                    [115.653915, 4, 4],
+                    [-115.653915, -4, -4],
+                    [115.653915, 3, 3],
+                    [-115.653915, -3, -3],
+                    [-15.341901966295344, 2, 2, 2],
+                    [-88.2017421687633, 1, 1, 2],
+                    [42.40478531359112, 4, 4, 2],
+                    [26.25167512727164, 4, 3, 2],
+                    [2.2874639206341865, 3, 3, 2],
+                    [0.4207357291666667, 2, 2, 2, 2],
+                    [4.9425425, 1, 1, 2, 2],
+                    [1.6122932291666665, 1, 1, 1, 1],
+                    [-4.194299375, 4, 4, 2, 2],
+                    [-4.194299375, 3, 3, 2, 2],
+                    [-10.20589125, 4, 4, 1, 1],
+                    [-10.20589125, 3, 3, 1, 1],
+                    [2.2973803125, 4, 4, 4, 4],
+                    [2.7821204166666664, 4, 4, 4, 3],
+                    [7.329224375, 4, 4, 3, 3],
+                    [-2.7821200000000004, 4, 3, 3, 3],
+                    [2.2973803125, 3, 3, 3, 3]
+                    ]
+        for i, entry in enumerate(modes):
+            with self.subTest(i=i, entry=entry):
+                self.assertAlmostEqual(entry[0], expected[i][0])
+                self.assertListEqual(entry[1:], expected[i][1:])
+
+    def test_harmonic_modes(self):
+        """ Test harmonic modes """
+        result = GaussianLogResult(self.logfile)
+        hmodes = result.compute_harmonic_modes(num_modals=3)
+        expected = [[([[0, 0, 0]], 0.30230498046875),
+                     ([[0, 1, 1]], 1.5115249023437498),
+                     ([[0, 2, 0]], 896.6592517749883),
+                     ([[0, 2, 2]], 3.9299647460937495),
+                     ([[1, 0, 0]], 0.07888794921875),
+                     ([[1, 1, 1]], 0.39443974609375),
+                     ([[1, 2, 0]], 499.120784136053),
+                     ([[1, 2, 2]], 1.0255433398437501),
+                     ([[2, 0, 0]], 0.43075880859375004),
+                     ([[2, 1, 1]], 2.15379404296875),
+                     ([[2, 2, 0]], 168.4328147283448),
+                     ([[2, 2, 2]], 5.59986451171875),
+                     ([[3, 0, 0]], 0.43075880859375004),
+                     ([[3, 1, 1]], 2.15379404296875),
+                     ([[3, 2, 0]], 168.4328147283448),
+                     ([[3, 2, 2]], 5.59986451171875)],
+                    [([[0, 0, 0], [1, 0, 0]], 1.235635625),
+                     ([[0, 1, 1], [1, 0, 0]], 3.706906875),
+                     ([[0, 2, 0], [1, 0, 0]], 1.747452659026356),
+                     ([[0, 2, 2], [1, 0, 0]], 6.1781781250000005),
+                     ([[3, 0, 0], [2, 0, 0]], 1.83230609375),
+                     ([[3, 1, 1], [2, 0, 0]], 5.49691828125),
+                     ([[3, 2, 0], [2, 0, 0]], 2.591272128200118),
+                     ([[3, 2, 2], [2, 0, 0]], 9.16153046875)]]
+
+        for i, hmode in enumerate(hmodes):
+            for j, entry in enumerate(hmode):
+                with self.subTest(i=i, j=j, entry=entry):
+                    self.assertListEqual(entry[0], expected[i][j][0])
+                    self.assertAlmostEqual(entry[1], expected[i][j][1])
+
     # This is just a dummy test at present to print out the stages of the computation
-    # to get to the array that will be sed as input for Bosonic Operator
-    def test_modes(self):
+    # to get to the arrays that will be used to compute input for Bosonic Operator
+    def _test_modes(self):
+        """ Placeholder """
         result = GaussianLogResult(self.logfile)
         print("---------- OUT file equivalent ------------")
         print(result._compute_modes())
         print("---------- HAM file equivalent ------------")
-        print(result.compute_harmonic_modes())
+        print(result.compute_harmonic_modes(num_modals=3))
 
 
 if __name__ == '__main__':

@@ -196,7 +196,7 @@ class GaussianLogResult:
         # For a given list of integers, computes the associated multinomial
         tmp = set(indices)  # Set of uniques indices
         multinomial = 1
-        for i, val in enumerate(tmp):
+        for val in tmp:
             count = indices.count(val)
             multinomial = multinomial * math.factorial(count)
         return multinomial
@@ -208,8 +208,10 @@ class GaussianLogResult:
         a2h = self.a_to_h_numbering
         a2h_vals = max(list(a2h.values()))
 
+        # There are 3 float entries in the list at the end, the other entries up
+        # front are the indices (string type).
         num_indices = len(entry) - 3
-        return [a2h_vals + 1 - a2h[x] for x in entry[0:num_indices]]
+        return [a2h_vals + 1 - a2h[cast(str, x)] for x in entry[0:num_indices]]
 
     def _compute_modes(self, normalize: bool = True) -> List[List[Union[int, float]]]:
         # Returns [value, idx0, idx1...] from 2 indices (quadratic) to 4 (quartic)
@@ -226,20 +228,20 @@ class GaussianLogResult:
                 line.extend(indices)
                 modes.append(line)
                 modes.append([-x for x in line])
-        for entry in cub:
-            indices = self._process_entry_indices(list(entry))
+        for entry_c in cub:
+            indices = self._process_entry_indices(list(entry_c))
             if indices:
                 factor = 2.0 * math.sqrt(2.0)
                 factor *= self._multinomial(indices) if normalize else 1.0
-                line = [entry[3] / factor]
+                line = [entry_c[3] / factor]
                 line.extend(indices)
                 modes.append(line)
-        for entry in qrt:
-            indices = self._process_entry_indices(list(entry))
+        for entry_q in qrt:
+            indices = self._process_entry_indices(list(entry_q))
             if indices:
                 factor = 4.0
                 factor *= self._multinomial(indices) if normalize else 1.0
-                line = [entry[4] / factor]
+                line = [entry_q[4] / factor]
                 line.extend(indices)
                 modes.append(line)
 
@@ -247,9 +249,11 @@ class GaussianLogResult:
 
     @staticmethod
     def _harmonic_integrals(m: int, n: int, power: int, kinetic_term: bool = False) -> float:
-        """
-        This computes the integrals of the Hamiltonian with the harmonic basis as shown in
-        ﻿J. Chem. Phys. 135, 134108 (2011); https://doi.org/10.1063/1.3644895 (Table 1)
+        r""" Computes the integral of the Hamiltonian with the harmonic basis.
+
+        This computation is as shown in J. Chem. Phys. 135, 134108 (2011);
+        https://doi.org/10.1063/1.3644895 (Table 1)
+
         Args:
             m: first modal index
             n: second modal index
@@ -257,26 +261,29 @@ class GaussianLogResult:
             kinetic_term: needs to be set to true to do the integral of the
                           kinetic part of the hamiltonian d^2/dQ^2
 
-        Returns: the value of the integral
+        Returns:
+            The value of the integral
 
+        Raises:
+            ValueError: If power is invalid
         """
-        coeff = 0
+        coeff = 0.0
         if power == 1:
             if abs(n - m) == 1:
-                coeff = np.sqrt(n / 2 )
-        elif power == 2 and kinetic_term==True:
+                coeff = np.sqrt(n / 2)
+        elif power == 2 and kinetic_term is True:
             if abs(n-m) == 0:
                 coeff = (n + 1/2)
             elif abs(n-m) == 2:
                 coeff = - np.sqrt(n * (n - 1)) / 2
-        elif power == 2 and kinetic_term==False:
+        elif power == 2 and kinetic_term is False:
             if abs(n - m) == 0:
                 coeff = (n + 1/2)
             elif abs(n - m) == 2:
                 coeff = np.sqrt(n * (n - 1)) / 2
         elif power == 3:
             if abs(n - m) == 1:
-                coeff = 3 * np.power(n / 2 , 3 / 2)
+                coeff = 3 * np.power(n / 2, 3 / 2)
             elif abs(n - m) == 3:
                 coeff = np.sqrt(n * (n - 1) * (n - 2)) / np.power(2, 3 / 2)
         elif power == 4:
@@ -287,11 +294,11 @@ class GaussianLogResult:
             elif abs(n - m) == 4:
                 coeff = np.sqrt(n * (n - 1) * (n - 2) * (n - 3)) / 4
         else:
-            raise ValueError('The expansion order of the PES is too high.')
+            raise ValueError('The expansion power {} is not supported.'.format(power))
         return coeff
 
-    def compute_harmonic_modes(self, num_modals: int, threshold: float = 1e-6) -> List[
-            Tuple[List[List[int]], float]]:
+    def compute_harmonic_modes(self, num_modals: int, threshold: float = 1e-6) \
+            -> List[List[Tuple[List[List[int]], float]]]:
         """
         This prepares an array object representing a bosonic hamiltonian expressed
         in the harmonic basis. This object can directly be given to the BosonicOperator
@@ -300,23 +307,26 @@ class GaussianLogResult:
             num_modals: number of modals per mode
             threshold: the matrix elements of value below this threshold are discarded
 
-        Returns: a bosonic hamiltonian in the harmonic basis
+        Returns:
+            Array as input to creation of a bosonic hamiltonian in the harmonic basis
 
+        Raises:
+            ValueError: If problem with order value from computed modes
         """
 
         num_modes = len(self.a_to_h_numbering)
 
-        harmonic_dict = {1:np.zeros((num_modes, num_modals, num_modals)),
-                         2:np.zeros((num_modes, num_modals, num_modals,
-                                     num_modes, num_modals, num_modals)),
-                         3:np.zeros((num_modes, num_modals, num_modals,
-                                     num_modes, num_modals, num_modals,
-                                     num_modes, num_modals, num_modals))}
+        harmonic_dict = {1: np.zeros((num_modes, num_modals, num_modals)),
+                         2: np.zeros((num_modes, num_modals, num_modals,
+                                      num_modes, num_modals, num_modals)),
+                         3: np.zeros((num_modes, num_modals, num_modals,
+                                      num_modes, num_modals, num_modals,
+                                      num_modes, num_modals, num_modals))}
 
         entries = self._compute_modes()
-        for entry in entries:
-            coeff0 = entry[0]
-            indices = entry[1:]
+        for entry in entries:  # Entry is coeff (float) followed by indices (ints)
+            coeff0 = cast(float, entry[0])
+            indices = cast(List[int], entry[1:])
 
             kinetic_term = False
 
@@ -354,7 +364,7 @@ class GaussianLogResult:
                                                                   kinetic_term=kinetic_term)
                                 if abs(coeff) > threshold:
                                     harmonic_dict[2][modes[0]-1, n, m,
-                                                      modes[1]-1, j, k] += coeff
+                                                     modes[1]-1, j, k] += coeff
             elif order == 3:
                 for m in range(num_modals):
                     for n in range(num_modals):
@@ -364,27 +374,26 @@ class GaussianLogResult:
                             for k in range(num_modals):
                                 coeff *= self._harmonic_integrals(j, k, indexes[modes[1]],
                                                                   kinetic_term=kinetic_term)
-                                for p in range(num_modals):
-                                    for q in range(num_modals):
-                                        coeff *= self._harmonic_integrals(p, q, indexes[modes[2]],
+                                for q in range(num_modals):
+                                    for r in range(num_modals):
+                                        coeff *= self._harmonic_integrals(q, r, indexes[modes[2]],
                                                                           kinetic_term=kinetic_term)
                                         if abs(coeff) > threshold:
                                             harmonic_dict[3][modes[0]-1, n, m,
-                                                              modes[1]-1, j, k,
-                                                              modes[2]-1, p, q] += coeff
+                                                             modes[1]-1, j, k,
+                                                             modes[2]-1, q, r] += coeff
             else:
                 raise ValueError('Unexpected order value of {}'.format(order))
 
-        harmonics = []
+        harmonics = []  # type: List[List[Tuple[List[List[int]], float]]]
         for idx in [1, 2, 3]:
             all_indices = np.nonzero(harmonic_dict[idx] > threshold)
             if len(all_indices[0]) != 0:
                 harmonics.append([])
             values = harmonic_dict[idx][all_indices]
             for i in range(len(all_indices[0])):
-                harmonics[idx - 1].append([[[all_indices[3 * j][i], all_indices[3 * j + 1][i],
+                harmonics[idx - 1].append(([[all_indices[3 * j][i], all_indices[3 * j + 1][i],
                                              all_indices[3 * j + 2][i]] for j in range(idx)],
-                                           values[i]])
+                                           values[i]))
 
         return harmonics
-

@@ -188,7 +188,7 @@ class GaussianDriver(BaseDriver):
                 if mnfe.name == 'qcmatrixio' else str(mnfe)
 
             logger.info(msg)
-            raise QiskitChemistryError(msg)
+            raise QiskitChemistryError(msg) from mnfe
 
         mel = MatEl(file=fname)
         logger.debug('MatrixElement file:\n%s', mel)
@@ -344,11 +344,11 @@ class GaussianDriver(BaseDriver):
             process = Popen(GAUSSIAN_16, stdin=PIPE, stdout=PIPE, universal_newlines=True)
             stdout, _ = process.communicate(cfg)
             process.wait()
-        except Exception:
+        except Exception as ex:
             if process is not None:
                 process.kill()
 
-            raise QiskitChemistryError('{} run has failed'.format(GAUSSIAN_16_DESC))
+            raise QiskitChemistryError('{} run has failed'.format(GAUSSIAN_16_DESC)) from ex
 
         if process.returncode != 0:
             errmsg = ""
