@@ -14,11 +14,13 @@
 
 """ Compact heuristic ansatz for Chemistry """
 
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import numpy as np
 
 from qiskit import QuantumRegister, QuantumCircuit
+
+from qiskit.circuit import ParameterVector, Parameter
 
 from qiskit.aqua.components.variational_forms import VariationalForm
 from qiskit.aqua.components.initial_states import InitialState
@@ -69,10 +71,10 @@ class CHC(VariationalForm):
         else:
             self._entangler_map = VariationalForm.validate_entangler_map(entangler_map, num_qubits)
         self._initial_state = initial_state
-        self._support_parameterized_circuit = False
+        self._support_parameterized_circuit = True
 
-    def construct_circuit(self, parameters: np.ndarray, q: Optional[QuantumRegister] = None) \
-            -> QuantumCircuit:
+    def construct_circuit(self, parameters: Union(np.ndarray, list[Parameter], ParameterVector),
+                              q: Optional[QuantumRegister] = None) -> QuantumCircuit:
         """
         Construct the variational form, given its parameters.
 

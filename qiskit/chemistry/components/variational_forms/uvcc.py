@@ -15,13 +15,15 @@
 
 import logging
 import sys
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Union
 
 import numpy as np
 
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
+
+from qiskit.circuit import ParameterVector, Parameter
 
 from qiskit.aqua import aqua_globals
 from qiskit.aqua.operators import WeightedPauliOperator
@@ -84,7 +86,7 @@ class UVCC(VariationalForm):
 
         self._logging_construct_circuit = True
         self._shallow_circuit_concat = shallow_circuit_concat
-        self._support_parameterized_circuit = False
+        self._support_parameterized_circuit = True
 
     def _build_hopping_operators(self):
         if logger.isEnabledFor(logging.DEBUG):
@@ -137,8 +139,8 @@ class UVCC(VariationalForm):
 
         return qubit_op
 
-    def construct_circuit(self, parameters: np.ndarray, q: Optional[QuantumRegister] = None) \
-            -> QuantumCircuit:
+    def construct_circuit(self, parameters: Union(np.ndarray, list[Parameter], ParameterVector),
+                              q: Optional[QuantumRegister] = None) -> QuantumCircuit:
         """Construct the variational form, given its parameters.
 
         Args:
@@ -198,7 +200,8 @@ class UVCC(VariationalForm):
              The quantum circuit
         """
         qubit_op, param = qubit_op_and_param
-        qc = qubit_op.evolve(state_in=None, evo_time=param * -1j, num_time_slices=num_time_slices,
+        qubit_op = qubit_op * -1j
+        qc = qubit_op.evolve(state_in=None, evo_time=param, num_time_slices=num_time_slices,
                              quantum_registers=qr)
 
         return qc
