@@ -619,20 +619,16 @@ class TestOpConstruction(QiskitAquaTestCase):
         params.append(lam)
         self.assertEqual(list_op.parameters, set(params))
 
-    def test_statefn_eval(self):
+    @data(VectorStateFn([1, 0]),
+          DictStateFn({'0': 1}),
+          CircuitStateFn(QuantumCircuit(1)),
+          OperatorStateFn(I),
+          OperatorStateFn(MatrixOp([[1, 0], [0, 1]])),
+          OperatorStateFn(CircuitOp(QuantumCircuit(1))))
+    def test_statefn_eval(self, op):
         """Test calling eval on StateFn returns the statevector."""
-        qc = QuantumCircuit(1)
-        ops = [VectorStateFn([1, 0]),
-               DictStateFn({'0': 1}),
-               CircuitStateFn(qc),
-               OperatorStateFn(I),
-               OperatorStateFn(MatrixOp([[1, 0], [0, 1]])),
-               OperatorStateFn(CircuitOp(qc))]
-
         expected = Statevector([1, 0])
-        for op in ops:
-            with self.subTest(op):
-                self.assertEqual(op.eval().primitive, expected)
+        self.assertEqual(op.eval().primitive, expected)
 
 
 class TestOpMethods(QiskitAquaTestCase):
