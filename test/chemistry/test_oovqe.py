@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -29,6 +29,7 @@ from qiskit.chemistry.algorithms.minimum_eigen_solvers import OOVQE
 from qiskit.aqua.operators.expectations import MatrixExpectation
 from qiskit import Aer
 
+
 @ddt
 class TestOOVQE(QiskitAquaTestCase):
     """ Test of the OOVQE algorithm"""
@@ -36,8 +37,8 @@ class TestOOVQE(QiskitAquaTestCase):
     def setUp(self):
         super().setUp()
         self.energy_vqe = -2.77  # energy of the VQE with pUCCD ansatz and LBFGSB optimizer
-        self.initial_point = [0.039374, -0.47225463, -0.61891996, 0.02598386,   0.79045546,
-                              -0.04134567,  0.04944946, -0.02971617, -0.00374005, 0.77542149]
+        self.initial_point = [0.039374, -0.47225463, -0.61891996, 0.02598386, 0.79045546,
+                              -0.04134567, 0.04944946, -0.02971617, -0.00374005, 0.77542149]
         self.seed = 50
         aqua_globals.random_seed = self.seed
         driver = PySCFDriver(
@@ -77,18 +78,17 @@ class TestOOVQE(QiskitAquaTestCase):
             excitation_type='d')
 
         self.quantum_instance = QuantumInstance(Aer.get_backend('statevector_simulator'),
-                                           shots=1,
-                                           seed_simulator=self.seed,
-                                           seed_transpiler=self.seed)
+                                                shots=1,
+                                                seed_simulator=self.seed,
+                                                seed_transpiler=self.seed)
         self.optimizer = COBYLA(maxiter=1)
         self.algo = OOVQE(operator=self.qubit_op,
-                     var_form=self.var_form,
-                     optimizer=self.optimizer,
-                     core=self.core,
-                     qmolecule=self.qmolecule,
-                     expectation=MatrixExpectation(),
-                     initial_point=self.initial_point
-                     )
+                          var_form=self.var_form,
+                          optimizer=self.optimizer,
+                          core=self.core,
+                          qmolecule=self.qmolecule,
+                          expectation=MatrixExpectation(),
+                          initial_point=self.initial_point)
 
     def test_orbital_rotations(self):
         """Test that orbital rotations are performed correctly."""
@@ -115,6 +115,7 @@ class TestOOVQE(QiskitAquaTestCase):
         self.algo.iterative_oo_iterations = 2
         algo_result = self.algo.run(self.quantum_instance)
         self.assertLessEqual(algo_result['optimal_value'], self.energy_vqe)
+
 
 if __name__ == '__main__':
     unittest.main()
