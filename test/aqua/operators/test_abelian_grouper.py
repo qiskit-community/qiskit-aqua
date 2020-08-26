@@ -54,9 +54,10 @@ class TestAbelianGrouper(QiskitAquaTestCase):
                 self.assertTrue(op_1.commutes(op_2))
 
     def test_ablian_grouper_no_commute(self):
+        """Abelian groupter test when non-PauliOp is given"""
         ops = Zero ^ Plus + X ^ Y
         with self.assertRaises(AquaError):
-            grouped_sum = AbelianGrouper.group_subops(ops)
+            _ = AbelianGrouper.group_subops(ops)
 
     def test_group_subops(self):
         """grouper subroutine test"""
