@@ -14,6 +14,7 @@
 
 """AbelianGrouper Class"""
 
+import warnings
 from typing import List, Tuple, Dict, cast
 
 import numpy as np
@@ -81,11 +82,15 @@ class AbelianGrouper(ConverterBase):
             return operator
 
     @classmethod
-    def group_subops(cls, list_op: ListOp) -> ListOp:
+    def group_subops(cls, list_op: ListOp, fast: bool = True, use_nx: bool = False) -> ListOp:
         """Given a ListOp, attempt to group into Abelian ListOps of the same type.
 
         Args:
             list_op: The Operator to group into Abelian groups
+            fast: DEPRECATED. Enable the fast commutation graph generation if all operators are
+                Pauli operators
+            use_nx: DEPRECATED. Enable networkx.coloring.greedy_color instead of the numpy-based
+                coloring
 
         Returns:
             The grouped Operator.
@@ -93,6 +98,11 @@ class AbelianGrouper(ConverterBase):
         Raises:
             AquaError: Any of list_op's sub-ops do not have a ``commutes`` method.
         """
+        if not fast or use_nx:
+            warnings.warn('Options `fast` and `use_nx` of `AbelianGrouper.group_subops` are '
+                          'deprecated as of 0.7.5 and will be removed no sooner than 3 months '
+                          'after the release.')
+
         for op in list_op.oplist:
             if not isinstance(op, PauliOp):
                 raise AquaError(
