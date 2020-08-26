@@ -132,7 +132,7 @@ class CplexOptimizer(OptimizationAlgorithm):
         try:
             cplex.solve()
         except CplexSolverError as ex:
-            raise QiskitOptimizationError(str(ex))
+            raise QiskitOptimizationError(str(ex)) from ex
 
         # process results
         sol = cplex.solution
