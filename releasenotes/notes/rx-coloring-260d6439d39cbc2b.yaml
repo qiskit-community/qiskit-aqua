@@ -1,0 +1,4 @@
+features:
+  - |
+    Simplified `AbelianGrouper` using a graph coloring algorithm of retworkx.
+    It is faster than the numpy-based coloring algorithm.
