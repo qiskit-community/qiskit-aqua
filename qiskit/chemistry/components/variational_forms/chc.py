@@ -73,7 +73,7 @@ class CHC(VariationalForm):
         self._initial_state = initial_state
         self._support_parameterized_circuit = True
 
-    def construct_circuit(self, parameters: Union(np.ndarray, list[Parameter], ParameterVector),
+    def construct_circuit(self, parameters: Union[np.ndarray, List[Parameter], ParameterVector],
                               q: Optional[QuantumRegister] = None) -> QuantumCircuit:
         """
         Construct the variational form, given its parameters.
