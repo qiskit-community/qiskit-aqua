@@ -209,6 +209,43 @@ class BosonicOperator:
 
         return qubit_op
 
+    def ground_state_energy(self, vecs:np.ndarray, energies: np.ndarray):
+        """
+        Returns the relevant ground state energy given the list of eigenvectors and eigenenergies
+        are provided
+        Args:
+            vecs: contains all the eigenvectors
+            energies: contains all the corresponding eigenenergies
+
+        Returns: the relevant ground state energy
+
+        """
+        gs_energy = 0
+        found_gs_energy = False
+        for v, vec in enumerate(vecs):
+            indices = np.nonzero(np.conj(vec.primitive.data)*vec.primitive.data > 1e-5)[0]
+            for i in indices:
+                bin_i = np.frombuffer(np.binary_repr(i, width=sum(self._basis)).encode('utf-8'),
+                                      dtype='S1').astype(int)
+                count = 0
+                nqi = 0
+                for m in range(self._num_modes):
+                    sub_bin = bin_i[nqi:nqi + self._basis[m]]
+                    occ_i = 0
+                    for idx_i in sub_bin:
+                        occ_i += idx_i
+                    if occ_i != 1:
+                        break
+                    count += 1
+                    nqi += self._basis[m]
+                if count == self._num_modes:
+                    gs_energy = energies[v]
+                    found_gs_energy = True
+                    break
+            if found_gs_energy:
+                break
+        return np.real(gs_energy)
+
     def print_exact_states(self, vecs: np.ndarray, energies: np.ndarray, threshold: float = 1e-3):
         """
         Prints the relevant states (the ones with the correct symmetries) out of a list of states
@@ -221,12 +258,7 @@ class BosonicOperator:
         """
 
         for v, vec in enumerate(vecs):
-            new_vec = np.zeros(len(vec), dtype=np.complex64)
-            for i, vec_i in enumerate(vec):
-                if np.real(np.conj(vec_i) * vec_i) > threshold:
-                    new_vec[i] = vec_i
-
-            indices = np.nonzero(new_vec)[0]
+            indices = np.nonzero(np.conj(vec.primitive.data) * vec.primitive.data > 1e-5)[0]
             printmsg = True
             for i in indices:
                 bin_i = np.frombuffer(np.binary_repr(i, width=sum(self._basis)).encode('utf-8'),
