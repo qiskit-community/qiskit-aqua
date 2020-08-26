@@ -34,6 +34,7 @@ from qiskit.aqua.operators import (OperatorBase, ExpectationBase, ExpectationFac
 from qiskit.aqua.components.optimizers import Optimizer, SLSQP
 from qiskit.aqua.components.variational_forms import VariationalForm
 from qiskit.aqua.utils.validation import validate_min
+from qiskit.aqua.utils.backend_utils import is_aer_provider
 from ..vq_algorithm import VQAlgorithm, VQResult
 from .minimum_eigen_solver import MinimumEigensolver, MinimumEigensolverResult
 
@@ -150,6 +151,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         self._max_evals_grouped = max_evals_grouped
         self._circuit_sampler = None  # type: Optional[CircuitSampler]
         self._expectation = expectation
+        self._user_valid_expectation = self._expectation is not None
         self._include_custom = include_custom
         self._expect_op = None
         self._operator = None
@@ -184,26 +186,32 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         self._operator = operator
         self._expect_op = None
         self._check_operator_varform()
-        if self._expectation is None:
+        # Expectation was not passed by user, try to create one
+        if not self._user_valid_expectation:
             self._try_set_expectation_value_from_factory()
 
-    def _try_set_expectation_value_from_factory(self):
-        if self.operator and self.quantum_instance:
-            self.expectation = ExpectationFactory.build(operator=self.operator,
-                                                        backend=self.quantum_instance,
-                                                        include_custom=self._include_custom)
+    def _try_set_expectation_value_from_factory(self) -> None:
+        if self.operator is not None and self.quantum_instance is not None:
+            self._set_expectation(ExpectationFactory.build(operator=self.operator,
+                                                           backend=self.quantum_instance,
+                                                           include_custom=self._include_custom))
+
+    def _set_expectation(self, exp: ExpectationBase) -> None:
+        self._expectation = exp
+        self._user_valid_expectation = False
+        self._expect_op = None
 
     @QuantumAlgorithm.quantum_instance.setter
     def quantum_instance(self, quantum_instance: Union[QuantumInstance, BaseBackend]) -> None:
         """ set quantum_instance """
         super(VQE, self.__class__).quantum_instance.__set__(self, quantum_instance)
 
-        if self._circuit_sampler is None:
-            self._circuit_sampler = CircuitSampler(self._quantum_instance)
-        else:
-            self._circuit_sampler.quantum_instance = self._quantum_instance
+        self._circuit_sampler = CircuitSampler(
+            self._quantum_instance,
+            param_qobj=is_aer_provider(self._quantum_instance.backend))
 
-        if self._expectation is None:
+        # Expectation was not passed by user, try to create one
+        if not self._user_valid_expectation:
             self._try_set_expectation_value_from_factory()
 
     @property
@@ -214,8 +222,8 @@ class VQE(VQAlgorithm, MinimumEigensolver):
 
     @expectation.setter
     def expectation(self, exp: ExpectationBase) -> None:
-        self._expectation = exp
-        self._expect_op = None
+        self._set_expectation(exp)
+        self._user_valid_expectation = self._expectation is not None
 
     @property
     def aux_operators(self) -> Optional[List[Optional[OperatorBase]]]:
@@ -248,10 +256,10 @@ class VQE(VQAlgorithm, MinimumEigensolver):
                 try:
                     self.var_form.num_qubits = self.operator.num_qubits
                     self._var_form_params = sorted(self.var_form.parameters, key=lambda p: p.name)
-                except AttributeError:
+                except AttributeError as ex:
                     raise AquaError("The number of qubits of the variational form does not match "
                                     "the operator, and the variational form does not allow setting "
-                                    "the number of qubits using `num_qubits`.")
+                                    "the number of qubits using `num_qubits`.") from ex
 
     @VQAlgorithm.optimizer.setter  # type: ignore
     def optimizer(self, optimizer: Optimizer):
@@ -299,9 +307,9 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         ret += "===============================================================\n"
         return ret
 
-    def construct_circuit(self,
-                          parameter: Union[List[float], List[Parameter], np.ndarray]
-                          ) -> OperatorBase:
+    def construct_expectation(self,
+                              parameter: Union[List[float], List[Parameter], np.ndarray]
+                              ) -> OperatorBase:
         r"""
         Generate the ansatz circuit and expectation value measurement, and return their
         runnable composition.
@@ -328,13 +336,46 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         else:
             wave_function = self.var_form.construct_circuit(parameter)
 
-        # If ExpectationValue was never created, create one now.
-        if not self.expectation:
+        # Expectation was never created, try to create one
+        if self._expectation is None:
             self._try_set_expectation_value_from_factory()
+
+        # If setting the expectation failed, raise an Error:
+        if self._expectation is None:
+            raise AquaError('No expectation set and could not automatically set one, please '
+                            'try explicitly setting an expectation or specify a backend so it '
+                            'can be chosen automatically.')
 
         observable_meas = self.expectation.convert(StateFn(self.operator, is_measurement=True))
         ansatz_circuit_op = CircuitStateFn(wave_function)
         return observable_meas.compose(ansatz_circuit_op).reduce()
+
+    def construct_circuit(self,
+                          parameter: Union[List[float], List[Parameter], np.ndarray]
+                          ) -> List[QuantumCircuit]:
+        """Return the circuits used to compute the expectation value.
+
+        Args:
+            parameter: Parameters for the ansatz circuit.
+
+        Returns:
+            A list of the circuits used to compute the expectation value.
+        """
+        expect_op = self.construct_expectation(parameter).to_circuit_op()
+
+        circuits = []
+
+        # recursively extract circuits
+        def extract_circuits(op):
+            if isinstance(op, CircuitStateFn):
+                circuits.append(op.primitive)
+            elif isinstance(op, ListOp):
+                for op_i in op.oplist:
+                    extract_circuits(op_i)
+
+        extract_circuits(expect_op)
+
+        return circuits
 
     def supports_aux_operators(self) -> bool:
         return True
@@ -436,7 +477,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
             RuntimeError: If the variational form has no parameters.
         """
         if not self._expect_op:
-            self._expect_op = self.construct_circuit(self._var_form_params)
+            self._expect_op = self.construct_expectation(self._var_form_params)
 
         num_parameters = self.var_form.num_parameters
         if self._var_form.num_parameters == 0:

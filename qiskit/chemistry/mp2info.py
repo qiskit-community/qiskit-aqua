@@ -116,7 +116,7 @@ class MP2Info:
         ret_terms = {}
         for k, v in self._terms.items():
             orbs = _str_to_list(k)
-            if set(orbs) < set(full_spin_orbs):
+            if set(orbs) <= set(full_spin_orbs):
                 new_idxs = [remain_spin_orbs[elem] for elem in orbs]
                 coeff, e_delta = v
                 ret_terms[_list_to_str(new_idxs)] = (coeff, e_delta)

@@ -14,7 +14,7 @@
 
 """ MatrixOp Class """
 
-from typing import Union, Optional, Set
+from typing import Union, Optional, Set, Dict
 import logging
 import numpy as np
 from scipy.sparse import spmatrix
@@ -26,7 +26,6 @@ from qiskit.extensions.hamiltonian_gate import HamiltonianGate
 from ..operator_base import OperatorBase
 from ..primitive_ops.circuit_op import CircuitOp
 from ..list_ops.summed_op import SummedOp
-from ..list_ops.composed_op import ComposedOp
 from ..list_ops.tensored_op import TensoredOp
 from .primitive_op import PrimitiveOp
 from ..legacy.matrix_operator import MatrixOperator
@@ -80,6 +79,9 @@ class MatrixOp(PrimitiveOp):
                 'Sum over operators with different numbers of qubits, {} and {}, is not well '
                 'defined'.format(self.num_qubits, other.num_qubits))
 
+        if isinstance(other, MatrixOp) and self.primitive == other.primitive:
+            return MatrixOp(self.primitive, coeff=self.coeff + other.coeff)
+
         # Terra's Operator cannot handle ParameterExpressions
         if isinstance(other, MatrixOp) and \
                 not isinstance(self.coeff, ParameterExpression) and \
@@ -95,10 +97,15 @@ class MatrixOp(PrimitiveOp):
                         coeff=np.conj(self.coeff))
 
     def equals(self, other: OperatorBase) -> bool:
-        if not isinstance(other, MatrixOp) or not self.coeff == other.coeff:
+        if not isinstance(other, MatrixOp):
             return False
-
-        return self.primitive == other.primitive
+        if isinstance(self.coeff, ParameterExpression) ^ \
+                isinstance(other.coeff, ParameterExpression):
+            return False
+        if isinstance(self.coeff, ParameterExpression) and \
+                isinstance(other.coeff, ParameterExpression):
+            return self.coeff == other.coeff and self.primitive == other.primitive
+        return self.coeff * self.primitive == other.coeff * other.primitive  # type: ignore
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
         if isinstance(other.primitive, Operator):  # type: ignore
@@ -114,7 +121,7 @@ class MatrixOp(PrimitiveOp):
             return MatrixOp(self.primitive.compose(other.primitive, front=True),  # type: ignore
                             coeff=self.coeff * other.coeff)
 
-        return ComposedOp([self, other])
+        return super().compose(other)
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
         return self.primitive.data * self.coeff  # type: ignore
@@ -127,8 +134,8 @@ class MatrixOp(PrimitiveOp):
             return "{} * {}".format(self.coeff, prim_str)
 
     def eval(self,
-             front: Union[str, dict, np.ndarray,
-                          OperatorBase] = None) -> Union[OperatorBase, float, complex]:
+             front: Optional[Union[str, Dict[str, complex], np.ndarray, OperatorBase]] = None
+             ) -> Union[OperatorBase, float, complex]:
         # For other ops' eval we return self.to_matrix_op() here, but that's unnecessary here.
         if front is None:
             return self

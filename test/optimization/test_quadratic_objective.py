@@ -63,6 +63,10 @@ class TestQuadraticObjective(QiskitOptimizationTestCase):
 
         self.assertEqual(quadratic_program.objective.evaluate(linear_coeffs), 931.0)
 
+        grad_values = [0., 61., 122., 183., 244.]
+        np.testing.assert_almost_equal(quadratic_program.objective.evaluate_gradient(linear_coeffs),
+                                       grad_values)
+
     def test_setters(self):
         """ test setters. """
 

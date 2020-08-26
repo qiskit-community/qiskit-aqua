@@ -14,7 +14,7 @@
 
 """ CircuitOp Class """
 
-from typing import Union, Optional, Set, List, cast
+from typing import Union, Optional, Set, List, Dict, cast
 import logging
 import numpy as np
 
@@ -24,7 +24,6 @@ from qiskit.circuit import Instruction, ParameterExpression
 
 from ..operator_base import OperatorBase
 from ..list_ops.summed_op import SummedOp
-from ..list_ops.composed_op import ComposedOp
 from ..list_ops.tensored_op import TensoredOp
 from .primitive_op import PrimitiveOp
 
@@ -133,7 +132,7 @@ class CircuitOp(PrimitiveOp):
             else:
                 return CircuitOp(new_qc, coeff=self.coeff * other.coeff)
 
-        return ComposedOp([self, other])
+        return super().compose(other)
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
         if self.num_qubits > 16 and not massive:
@@ -187,8 +186,8 @@ class CircuitOp(PrimitiveOp):
         return self.__class__(qc, coeff=param_value)
 
     def eval(self,
-             front: Union[str, dict, np.ndarray,
-                          OperatorBase] = None) -> Union[OperatorBase, float, complex]:
+             front: Optional[Union[str, Dict[str, complex], np.ndarray, OperatorBase]] = None
+             ) -> Union[OperatorBase, float, complex]:
         # pylint: disable=import-outside-toplevel
         from ..state_fns import CircuitStateFn
         from ..list_ops import ListOp
