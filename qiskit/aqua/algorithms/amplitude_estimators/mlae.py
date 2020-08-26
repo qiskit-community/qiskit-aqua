@@ -22,7 +22,7 @@ from qiskit import ClassicalRegister, QuantumRegister, QuantumCircuit
 from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.utils.circuit_factory import CircuitFactory
 from qiskit.aqua.utils.validation import validate_min
-from .ae_algorithm import AmplitudeEstimationAlgorithm
+from .ae_algorithm import AmplitudeEstimationAlgorithm, AmplitudeEstimationAlgorithmResult
 
 logger = logging.getLogger(__name__)
 
@@ -405,7 +405,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         # TODO implement a **reliable**, fast method to find the maximum of the likelihood function
         return self._compute_mle_safe()
 
-    def _run(self) -> dict:
+    def _run(self) -> 'MaximumLikelihoodAmplitudeEstimationResult':
         # check if A factory has been set
         if self.a_factory is None:
             raise AquaError("a_factory must be set!")
@@ -444,4 +444,67 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         confidence_interval = self._fisher_confint(alpha=0.05)
         self._ret['95%_confidence_interval'] = confidence_interval
 
-        return self._ret
+        ae_result = AmplitudeEstimationAlgorithmResult()
+        ae_result.value = self._ret['value']
+        ae_result.estimation = self._ret['estimation']
+        ae_result.num_oracle_queries = self._ret['num_oracle_queries']
+        ae_result.confidence_interval = self._ret['95%_confidence_interval']
+
+        result = MaximumLikelihoodAmplitudeEstimationResult()
+        result.combine(ae_result)
+        if 'statevectors' in self._ret:
+            result.statevectors = self._ret['statevectors']
+        if 'counts' in self._ret:
+            result.counts = self._ret['counts']
+        result.theta = self._ret['theta']
+        result.fisher_information = self._ret['fisher_information']
+        return result
+
+
+class MaximumLikelihoodAmplitudeEstimationResult(AmplitudeEstimationAlgorithmResult):
+    """ MaximumLikelihoodAmplitudeEstimation Result."""
+
+    @property
+    def statevectors(self) -> Union[None, List[np.ndarray]]:
+        """ return statevectors """
+        return self.get('statevectors')
+
+    @statevectors.setter
+    def statevectors(self, value: List[np.ndarray]) -> None:
+        """ set statevectors """
+        self.data['statevectors'] = value
+
+    @property
+    def counts(self) -> Union[List[Dict[str, int]]]:
+        """ return counts """
+        return self.get('counts')
+
+    @counts.setter
+    def counts(self, value: List[Dict[str, int]]) -> None:
+        """ set counts """
+        self.data['counts'] = value
+
+    @property
+    def theta(self) -> float:
+        """ returns theta """
+        return self.get('theta')
+
+    @theta.setter
+    def theta(self, value: float) -> None:
+        """ set theta """
+        self.data['theta'] = value
+
+    @property
+    def fisher_information(self) -> float:
+        """ return fisher_information  """
+        return self.get('fisher_information')
+
+    @fisher_information.setter
+    def fisher_information(self, value: float) -> None:
+        """ set fisher_information """
+        self.data['fisher_information'] = value
+
+    @staticmethod
+    def from_dict(a_dict: Dict) -> 'MaximumLikelihoodAmplitudeEstimationResult':
+        """ create new object from a dictionary """
+        return MaximumLikelihoodAmplitudeEstimationResult(a_dict)

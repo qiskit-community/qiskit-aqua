@@ -14,6 +14,7 @@
 
 from typing import Optional, Union, List, Tuple, Dict, Any
 import logging
+import warnings
 from collections import OrderedDict
 import numpy as np
 from scipy.stats import chi2, norm
@@ -22,11 +23,12 @@ from scipy.optimize import bisect
 from qiskit import QuantumCircuit
 from qiskit.circuit.library import QFT
 from qiskit.providers import BaseBackend
+from qiskit.result.counts import Counts
 from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.utils import CircuitFactory
 from qiskit.aqua.circuits import PhaseEstimationCircuit
 from qiskit.aqua.utils.validation import validate_min
-from .ae_algorithm import AmplitudeEstimationAlgorithm
+from .ae_algorithm import AmplitudeEstimationAlgorithm, AmplitudeEstimationAlgorithmResult
 from .ae_utils import pdf_a, derivative_log_pdf_a, bisect_max
 
 logger = logging.getLogger(__name__)
@@ -356,7 +358,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         self._ret['ml_value'] = a_opt
         self._ret['mle'] = val_opt
 
-    def _run(self) -> dict:
+    def _run(self) -> 'AmplitudeEstimationResult':
         # check if A factory has been set
         if self.a_factory is None:
             raise AquaError("a_factory must be set!")
@@ -444,4 +446,151 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         kind = 'likelihood_ratio'  # empirically the most precise kind
         self._ret['95%_confidence_interval'] = self.confidence_interval(alpha, kind)
 
-        return self._ret
+        ae_result = AmplitudeEstimationAlgorithmResult()
+        ae_result.value = self._ret['value']
+        ae_result.estimation = self._ret['estimation']
+        ae_result.num_oracle_queries = self._ret['num_oracle_queries']
+        ae_result.confidence_interval = self._ret['95%_confidence_interval']
+
+        result = AmplitudeEstimationResult()
+        result.combine(ae_result)
+        result.ml_value = self._ret['ml_value']
+        result.ret_values = self._ret['values']
+        result.probabilities = self._ret['probabilities']
+        result.shots = self._ret['shots']
+        result.mle = self._ret['mle']
+        if 'statevector' in self._ret:
+            result.statevector = self._ret['statevector']
+        if 'counts' in self._ret:
+            result.counts = self._ret['counts']
+        result.a_items = self._ret['a_items']
+        result.y_items = self._ret['y_items']
+        result.mapped_values = self._ret['mapped_values']
+        result.max_probability = self._ret['max_probability']
+        return result
+
+
+class AmplitudeEstimationResult(AmplitudeEstimationAlgorithmResult):
+    """ AmplitudeEstimation Result."""
+
+    @property
+    def ml_value(self) -> float:
+        """ returns ml_value """
+        return self.get('ml_value')
+
+    @ml_value.setter
+    def ml_value(self, value: float) -> None:
+        """ set ml_value """
+        self.data['ml_value'] = value
+
+    @property
+    def ret_values(self) -> List[float]:
+        """ return ret_values  """
+        return self.get('ret_values')
+
+    @ret_values.setter
+    def ret_values(self, value: List[float]) -> None:
+        """ set ret_values """
+        self.data['ret_values'] = value
+
+    @property
+    def probabilities(self) -> List[float]:
+        """ return probabilities """
+        return self.get('probabilities')
+
+    @probabilities.setter
+    def probabilities(self, value: List[float]) -> None:
+        """ set probabilities """
+        self.data['probabilities'] = value
+
+    @property
+    def shots(self) -> int:
+        """ return shots """
+        return self.get('shots')
+
+    @shots.setter
+    def shots(self, value: int) -> None:
+        """ set shots """
+        self.data['shots'] = value
+
+    @property
+    def mle(self) -> float:
+        """ return mle """
+        return self.get('mle')
+
+    @mle.setter
+    def mle(self, value: float) -> None:
+        """ set mle """
+        self.data['mle'] = value
+
+    @property
+    def statevector(self) -> Union[None, np.ndarray]:
+        """ return statevector """
+        return self.get('statevector')
+
+    @statevector.setter
+    def statevector(self, value: np.ndarray) -> None:
+        """ set statevector """
+        self.data['statevector'] = value
+
+    @property
+    def counts(self) -> Union[None, Counts]:
+        """ return counts """
+        return self.get('counts')
+
+    @counts.setter
+    def counts(self, value: Counts) -> None:
+        """ set counts """
+        self.data['counts'] = value
+
+    @property
+    def a_items(self) -> List[Tuple[float, float]]:
+        """ return a_items """
+        return self.get('a_items')
+
+    @a_items.setter
+    def a_items(self, value: List[Tuple[float, float]]) -> None:
+        """ set a_items """
+        self.data['a_items'] = value
+
+    @property
+    def y_items(self) -> List[Tuple[int, float]]:
+        """ return y_items """
+        return self.get('y_items')
+
+    @y_items.setter
+    def y_items(self, value: List[Tuple[int, float]]) -> None:
+        """ set y_items """
+        self.data['y_items'] = value
+
+    @property
+    def mapped_values(self) -> List[float]:
+        """ return mapped_values """
+        return self.get('mapped_values')
+
+    @mapped_values.setter
+    def mapped_values(self, value: List[float]) -> None:
+        """ set mapped_values """
+        self.data['mapped_values'] = value
+
+    @property
+    def max_probability(self) -> float:
+        """ return max_probability """
+        return self.get('max_probability')
+
+    @max_probability.setter
+    def max_probability(self, value: float) -> None:
+        """ set max_probability """
+        self.data['max_probability'] = value
+
+    @staticmethod
+    def from_dict(a_dict: Dict) -> 'AmplitudeEstimationResult':
+        """ create new object from a dictionary """
+        return AmplitudeEstimationResult(a_dict)
+
+    def __getitem__(self, key: object) -> object:
+        if key == 'values':
+            warnings.warn('values deprecated, use ret_values property.', DeprecationWarning)
+            return super().__getitem__('ret_values')
+
+        return super().__getitem__(key)
