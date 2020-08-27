@@ -269,33 +269,34 @@ class GaussianLogResult:
         """
         coeff = 0.0
         if power == 1:
-            if abs(n - m) == 1:
-                coeff = np.sqrt(n / 2)
+            if m - n == 1:
+                coeff = np.sqrt(m / 2)
         elif power == 2 and kinetic_term is True:
-            if abs(n-m) == 0:
-                coeff = (n + 1/2)
-            elif abs(n-m) == 2:
-                coeff = - np.sqrt(n * (n - 1)) / 2
-        elif power == 2 and kinetic_term is False:
-            if abs(n - m) == 0:
-                coeff = (n + 1/2)
-            elif abs(n - m) == 2:
-                coeff = np.sqrt(n * (n - 1)) / 2
+            if m - n == 0:
+                coeff = -(m + 1 / 2)
+            elif m - n == 2:
+                coeff = np.sqrt(m * (m - 1)) / 2
+            # coeff = -coeff
+        elif power == 2 and kinetic_term == False:
+            if m - n == 0:
+                coeff = (m + 1 / 2)
+            elif m - n == 2:
+                coeff = np.sqrt(m * (m - 1)) / 2
         elif power == 3:
-            if abs(n - m) == 1:
-                coeff = 3 * np.power(n / 2, 3 / 2)
-            elif abs(n - m) == 3:
-                coeff = np.sqrt(n * (n - 1) * (n - 2)) / np.power(2, 3 / 2)
+            if m - n == 1:
+                coeff = 3 * np.power(m / 2, 3 / 2)
+            elif m - n == 3:
+                coeff = np.sqrt(m * (m - 1) * (m - 2)) / np.power(2, 3 / 2)
         elif power == 4:
-            if abs(n - m) == 0:
-                coeff = (6 * n * (n + 1) + 3) / (4 ** 2)
-            elif abs(n - m) == 2:
-                coeff = (n - 1 / 2) * np.sqrt(n * (n - 1))
-            elif abs(n - m) == 4:
-                coeff = np.sqrt(n * (n - 1) * (n - 2) * (n - 3)) / 4
+            if m - n == 0:
+                coeff = (6 * m * (m + 1) + 3) / 4
+            elif m - n == 2:
+                coeff = (m - 1 / 2) * np.sqrt(m * (m - 1))
+            elif m - n == 4:
+                coeff = np.sqrt(m * (m - 1) * (m - 2) * (m - 3)) / 4
         else:
-            raise ValueError('The expansion power {} is not supported.'.format(power))
-        return coeff
+            raise ValueError('The expansion order of the PES is too high.')
+        return coeff * (np.sqrt(2) ** power)
 
     def compute_harmonic_modes(self, num_modals: int, truncation_order: int = 3,
                                    threshold: float = 1e-6) \
@@ -355,9 +356,6 @@ class GaussianLogResult:
                         coeff = coeff0 * self._harmonic_integrals(m, n, indexes[modes[0]],
                                                                   kinetic_term=kinetic_term)
 
-                        if modes[0] - 1 == 1 and m in [0, 1] and n in [0, 1]:
-                            print(modes[0] - 1, m, n, coeff)
-
                         if abs(coeff) > threshold:
                             harmonic_dict[1][modes[0]-1, m, n] += coeff
                             if m != n:
@@ -381,7 +379,7 @@ class GaussianLogResult:
                                     if j != k:
                                         harmonic_dict[2][modes[0] - 1, m, n,
                                                          modes[1] - 1, k, j] += coeff
-                                    if m!=n and j!=k:
+                                    if m != n and j != k:
                                         harmonic_dict[2][modes[0] - 1, n, m,
                                                      modes[1] - 1, k, j] += coeff
             elif order == 3:
@@ -444,3 +442,5 @@ class GaussianLogResult:
                                            values[i]))
 
         return harmonics
+
+

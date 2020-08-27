@@ -278,4 +278,4 @@ class BosonicOperator:
                     if printmsg:
                         print('\n -', v, energies[v])
                         printmsg = False
-                    print(vec[i], np.binary_repr(i, width=sum(self._basis)))
+                    print(vec.primitive.data[i], np.binary_repr(i, width=sum(self._basis)))
