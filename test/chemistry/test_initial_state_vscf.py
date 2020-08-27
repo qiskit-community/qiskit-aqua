@@ -17,33 +17,31 @@
 import unittest
 from test.chemistry import QiskitChemistryTestCase
 import numpy as np
-from ddt import ddt
+
 from qiskit.chemistry.components.initial_states import VSCF
 
 
-@ddt
 class TestInitialStateVSCF(QiskitChemistryTestCase):
     """ Initial State vscf tests """
 
     def test_qubits_4(self):
         """ 2 modes 2 modals - test """
-        basis = [2,2]
+        basis = [2, 2]
         vscf = VSCF(basis)
         cct = vscf.construct_circuit('vector')
         np.testing.assert_array_equal(cct, [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-
 
     def test_qubits_5(self):
-        """ 2 modes 2 modals for the first mode 
-        and 3 modals for the second - test """
-        basis = [2,3]
+        """ 2 modes 2 modals for the first mode and 3 modals for the second - test """
+        basis = [2, 3]
         vscf = VSCF(basis)
         cct = vscf.construct_circuit('vector')
         np.testing.assert_array_equal(cct, [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+
 
 if __name__ == '__main__':
     unittest.main()

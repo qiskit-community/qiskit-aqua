@@ -209,15 +209,18 @@ class BosonicOperator:
 
         return qubit_op
 
-    def ground_state_energy(self, vecs:np.ndarray, energies: np.ndarray):
-        """
-        Returns the relevant ground state energy given the list of eigenvectors and eigenenergies
-        are provided
+    def ground_state_energy(self, vecs: np.ndarray, energies: np.ndarray) -> float:
+        """ Gets the relevant ground state energy
+
+        Returns the relevant ground state energy given the provided list of eigenvectors
+        and eigenenergies.
+
         Args:
             vecs: contains all the eigenvectors
             energies: contains all the corresponding eigenenergies
 
-        Returns: the relevant ground state energy
+        Returns:
+            The relevant ground state energy
 
         """
         gs_energy = 0
@@ -246,8 +249,10 @@ class BosonicOperator:
                 break
         return np.real(gs_energy)
 
-    def print_exact_states(self, vecs: np.ndarray, energies: np.ndarray, threshold: float = 1e-3):
-        """
+    def print_exact_states(self, vecs: np.ndarray, energies: np.ndarray, threshold: float = 1e-3)\
+            -> None:
+        """  Prints the exact states.
+
         Prints the relevant states (the ones with the correct symmetries) out of a list of states
         that are usually obtained with an exact eigensolver.
 

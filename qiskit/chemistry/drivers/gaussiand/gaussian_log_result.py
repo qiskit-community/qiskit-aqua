@@ -298,7 +298,7 @@ class GaussianLogResult:
         return coeff
 
     def compute_harmonic_modes(self, num_modals: int, truncation_order: int = 3,
-                                   threshold: float = 1e-6) \
+                               threshold: float = 1e-6) \
             -> List[List[Tuple[List[List[int]], float]]]:
         """
         This prepares an array object representing a bosonic hamiltonian expressed
@@ -311,7 +311,7 @@ class GaussianLogResult:
             threshold: the matrix elements of value below this threshold are discarded
 
         Returns:
-            Array as input to creation of a bosonic hamiltonian in the harmonic basis
+            List of modes for input to creation of a bosonic hamiltonian in the harmonic basis
 
         Raises:
             ValueError: If problem with order value from computed modes
@@ -352,8 +352,8 @@ class GaussianLogResult:
                 for m in range(num_modals):
                     for n in range(m+1):
 
-                        coeff = coeff0 * self._harmonic_integrals(m, n, indexes[modes[0]],
-                                                                  kinetic_term=kinetic_term)
+                        coeff = coeff0 * self._harmonic_integrals(
+                            m, n, indexes[modes[0]], kinetic_term=kinetic_term)
 
                         if modes[0] - 1 == 1 and m in [0, 1] and n in [0, 1]:
                             print(modes[0] - 1, m, n, coeff)
@@ -366,42 +366,43 @@ class GaussianLogResult:
             elif order == 2:
                 for m in range(num_modals):
                     for n in range(m+1):
-                        coeff1 = coeff0 * self._harmonic_integrals(m, n, indexes[modes[0]],
-                                                                  kinetic_term=kinetic_term)
+                        coeff1 = coeff0 * self._harmonic_integrals(
+                            m, n, indexes[modes[0]], kinetic_term=kinetic_term)
                         for j in range(num_modals):
                             for k in range(j+1):
-                                coeff = coeff1 * self._harmonic_integrals(j, k, indexes[modes[1]],
-                                                                  kinetic_term=kinetic_term)
+                                coeff = coeff1 * self._harmonic_integrals(
+                                    j, k, indexes[modes[1]], kinetic_term=kinetic_term)
                                 if abs(coeff) > threshold:
                                     harmonic_dict[2][modes[0] - 1, m, n,
-                                                    modes[1] - 1, j, k] += coeff
+                                                     modes[1] - 1, j, k] += coeff
                                     if m != n:
                                         harmonic_dict[2][modes[0] - 1, n, m,
                                                          modes[1] - 1, j, k] += coeff
                                     if j != k:
                                         harmonic_dict[2][modes[0] - 1, m, n,
                                                          modes[1] - 1, k, j] += coeff
-                                    if m!=n and j!=k:
+                                    if m != n and j != k:
                                         harmonic_dict[2][modes[0] - 1, n, m,
-                                                     modes[1] - 1, k, j] += coeff
+                                                         modes[1] - 1, k, j] += coeff
             elif order == 3:
                 for m in range(num_modals):
                     for n in range(m+1):
-                        coeff1 = coeff0 * self._harmonic_integrals(m, n, indexes[modes[0]],
-                                                                  kinetic_term=kinetic_term)
+                        coeff1 = coeff0 * self._harmonic_integrals(
+                            m, n, indexes[modes[0]], kinetic_term=kinetic_term)
                         for j in range(num_modals):
                             for k in range(j+1):
-                                coeff2 = coeff1 * self._harmonic_integrals(j, k, indexes[modes[1]],
-                                                                  kinetic_term=kinetic_term)
+                                coeff2 = coeff1 * self._harmonic_integrals(
+                                    j, k, indexes[modes[1]], kinetic_term=kinetic_term)
+                                # pylint: disable=locally-disabled, invalid-name
                                 for p in range(num_modals):
                                     for q in range(p+1):
-                                        coeff = coeff2 * self._harmonic_integrals(p, q, indexes[modes[2]],
-                                                                          kinetic_term=kinetic_term)
+                                        coeff = coeff2 * self._harmonic_integrals(
+                                            p, q, indexes[modes[2]], kinetic_term=kinetic_term)
                                         if abs(coeff) > threshold:
                                             harmonic_dict[3][modes[0] - 1, m, n,
-                                                            modes[1] - 1, j, k,
-                                                            modes[2] - 1, p, q] += coeff
-                                            if m != n :
+                                                             modes[1] - 1, j, k,
+                                                             modes[2] - 1, p, q] += coeff
+                                            if m != n:
                                                 harmonic_dict[3][modes[0] - 1, n, m,
                                                                  modes[1] - 1, j, k,
                                                                  modes[2] - 1, p, q] += coeff
@@ -427,12 +428,12 @@ class GaussianLogResult:
                                                                  modes[2] - 1, q, p] += coeff
                                             if m != n and j != k and p != q:
                                                 harmonic_dict[3][modes[0] - 1, n, m,
-                                                             modes[1] - 1, k, j,
-                                                             modes[2] - 1, q, p] += coeff
+                                                                 modes[1] - 1, k, j,
+                                                                 modes[2] - 1, q, p] += coeff
             else:
                 raise ValueError('Unexpected order value of {}'.format(order))
 
-        harmonics = [] # type: List[List[Tuple[List[List[int]], float]]]
+        harmonics = []  # type: List[List[Tuple[List[List[int]], float]]]
         for idx in range(1, truncation_order + 1):
             all_indices = np.nonzero(harmonic_dict[idx])
             if len(all_indices[0]) != 0:
