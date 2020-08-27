@@ -215,7 +215,7 @@ class QSVM(QuantumAlgorithm):
         return QSVM._construct_circuit((x1, x2), self.feature_map, measurement)
 
     @staticmethod
-    def get_kernel_matrix(quantum_instance, feature_map, x1_vec, x2_vec=None):
+    def get_kernel_matrix(quantum_instance, feature_map, x1_vec, x2_vec=None, enforce_psd=True):
         """
         Construct kernel matrix, if x2_vec is None, self-innerproduct is conducted.
 
@@ -234,6 +234,8 @@ class QSVM(QuantumAlgorithm):
                                     D is the feature dimension
             x2_vec (numpy.ndarray): data points, 2-D array, N2xD, where N2 is the number of data,
                                     D is the feature dimension
+            enforce_psd: enforces that the kernel matrix is positive semi-definite by setting
+                         negative eigenvalues to zero.
         Returns:
             numpy.ndarray: 2-D matrix, N1xN2
         """
@@ -356,6 +358,11 @@ class QSVM(QuantumAlgorithm):
                     mat[i, j] = value
                     if is_symmetric:
                         mat[j, i] = mat[i, j]
+
+        if enforce_psd and not is_statevector_sim:
+            # find closest positive semi-definite approximation to kernel matrix
+            D, U = np.linalg.eig(mat)
+            mat = U @ np.diag(np.maximum(0, D)) @ U.transpose()
 
         return mat
 
