@@ -361,6 +361,8 @@ class QSVM(QuantumAlgorithm):
 
         if enforce_psd and not is_statevector_sim:
             # find closest positive semi-definite approximation to kernel matrix
+            # matrix should always be PSD  by construction, but this can be violated in case of
+            # noise, thus, the adjustment is only done if NOT using the statevector simulation
             D, U = np.linalg.eig(mat)
             mat = U @ np.diag(np.maximum(0, D)) @ U.transpose()
 
