@@ -15,7 +15,7 @@
 """AbelianGrouper Class"""
 
 import warnings
-from typing import List, Tuple, Dict, cast
+from typing import List, Tuple, Dict, cast, Optional
 
 import numpy as np
 import retworkx as rx
@@ -82,38 +82,40 @@ class AbelianGrouper(ConverterBase):
             return operator
 
     @classmethod
-    def group_subops(cls, list_op: ListOp, fast: bool = True, use_nx: bool = False) -> ListOp:
+    def group_subops(cls, list_op: ListOp, fast: Optional[bool] = None,
+                     use_nx: Optional[bool] = None) -> ListOp:
         """Given a ListOp, attempt to group into Abelian ListOps of the same type.
 
         Args:
             list_op: The Operator to group into Abelian groups
-            fast: DEPRECATED. Enable the fast commutation graph generation if all operators are
-                Pauli operators
-            use_nx: DEPRECATED. Enable networkx.coloring.greedy_color instead of the numpy-based
-                coloring
+            fast: Ignored - parameter will be removed in future release
+            use_nx: Ignored - parameter will be removed in future release
 
         Returns:
             The grouped Operator.
 
         Raises:
-            AquaError: Any of list_op's sub-ops do not have a ``commutes`` method.
+            AquaError: If any of list_op's sub-ops is not ``PauliOp``.
         """
-        if not fast or use_nx:
+        if fast is not None or use_nx is not None:
             warnings.warn('Options `fast` and `use_nx` of `AbelianGrouper.group_subops` are '
-                          'deprecated as of 0.7.5 and will be removed no sooner than 3 months '
-                          'after the release.')
+                          'no longer used and are now deprecated and will be removed no '
+                          'sooner than 3 months following the 0.8.0 release.')
 
         for op in list_op.oplist:
             if not isinstance(op, PauliOp):
                 raise AquaError(
-                    'Cannot determine Abelian groups if an Operator in list_op does not contain '
-                    'a `commutes` method. E.g., {} ({})'.format(op, type(op)))
+                    'Cannot determine Abelian groups if any Operator in list_op is not '
+                    '`PauliOp`. E.g., {} ({})'.format(op, type(op)))
 
         edges = cls._commutation_graph(list_op)
         nodes = range(len(list_op))
 
+        graph = rx.PyGraph()
+        graph.add_nodes_from(nodes)
+        graph.add_edges_from_no_data(edges)
         # Keys in coloring_dict are nodes, values are colors
-        coloring_dict = cls._retworkx_coloring(nodes, edges)
+        coloring_dict = rx.graph_greedy_color(graph)
 
         groups = {}  # type: Dict
         # sort items so that the output is consistent with all options (fast and use_nx)
@@ -145,10 +147,3 @@ class AbelianGrouper(ConverterBase):
         mat3 = (((mat1 * mat2) * (mat1 - mat2)) == 0).all(axis=2)
         # return [(i, j) if mat3[i, j] is False and i < j]
         return cast(List[Tuple[int, int]], list(zip(*np.where(np.triu(np.logical_not(mat3), k=1)))))
-
-    @staticmethod
-    def _retworkx_coloring(nodes: range, edges: List[Tuple[int, int]]) -> Dict[int, List[int]]:
-        graph = rx.PyGraph()
-        graph.add_nodes_from(nodes)
-        graph.add_edges_from_no_data(edges)
-        return rx.graph_greedy_color(graph)
