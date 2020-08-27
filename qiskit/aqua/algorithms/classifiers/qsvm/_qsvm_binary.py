@@ -79,10 +79,6 @@ class _QSVM_Binary(_QSVM_ABC):
         scaling = 1.0 if self._qalgo.quantum_instance.is_statevector else None
         kernel_matrix = self._qalgo.construct_kernel_matrix(data)
 
-        # find closest positive semi-definite approximation to kernel matrix
-        D, U = np.linalg.eig(kernel_matrix)
-        kernel_matrix = U @ np.diag(np.maximum(0, D)) @ U.transpose()
-
         labels = labels * 2 - 1  # map label from 0 --> -1 and 1 --> 1
         labels = labels.astype(np.float)
         [alpha, b, support] = optimize_svm(kernel_matrix, labels, scaling=scaling)
