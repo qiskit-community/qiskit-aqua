@@ -15,20 +15,20 @@
 """ Test OOVQE """
 
 import unittest
+import logging
 from test.aqua import QiskitAquaTestCase
 from ddt import ddt
 from qiskit.aqua import aqua_globals
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.components.optimizers import COBYLA
 from qiskit.chemistry.core import Hamiltonian
-from qiskit.chemistry.drivers import PySCFDriver, UnitsType, HDF5Driver
+from qiskit.chemistry.drivers import HDF5Driver
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.components.initial_states import HartreeFock
 from qiskit.chemistry.core import TransformationType, QubitMappingType
 from qiskit.chemistry.algorithms.minimum_eigen_solvers import OOVQE
 from qiskit.aqua.operators.expectations import MatrixExpectation
 from qiskit import BasicAer
-import logging
 from qiskit.aqua import set_qiskit_aqua_logging
 set_qiskit_aqua_logging(logging.INFO)
 
@@ -44,7 +44,7 @@ class TestOOVQE(QiskitAquaTestCase):
         self.energy1 = -2.77  # energy of the VQE with pUCCD ansatz and LBFGSB optimizer
         self.energy2 = -7.70
         self.initial_point1 = [0.039374, -0.47225463, -0.61891996, 0.02598386, 0.79045546,
-                              -0.04134567, 0.04944946, -0.02971617, -0.00374005, 0.77542149]
+                               -0.04134567, 0.04944946, -0.02971617, -0.00374005, 0.77542149]
         self.seed = 50
         aqua_globals.random_seed = self.seed
         self.quantum_instance = QuantumInstance(BasicAer.get_backend('statevector_simulator'),
@@ -54,24 +54,24 @@ class TestOOVQE(QiskitAquaTestCase):
         self.optimizer = COBYLA(maxiter=1)
         self.qmolecule1, self.core1, self.qubit_op1, self.var_form1, self.algo1\
             = self._create_components_for_tests(path='test/chemistry/test_oovqe_h4.hdf5',
-                                                  freeze_core=False, two_qubit_reduction=False,
-                                                 initial_point=self.initial_point1)
+                                                freeze_core=False, two_qubit_reduction=False,
+                                                initial_point=self.initial_point1)
         self.qmolecule2, self.core2, self.qubit_op2, self.var_form2, self.algo2\
             = self._create_components_for_tests(path='test/chemistry/test_oovqe_lih.hdf5',
-                                                  freeze_core=True, two_qubit_reduction=True,
-                                                 initial_point=None)
+                                                freeze_core=True, two_qubit_reduction=True,
+                                                initial_point=None)
 
     def _create_components_for_tests(self, path='', freeze_core=False,
-                                      two_qubit_reduction=False,  initial_point=None):
+                                     two_qubit_reduction=False, initial_point=None):
         """ Instantiate classes necessary to run the test out of HDF5 files of QMolecules."""
 
         driver = HDF5Driver(path)
         qmolecule = driver.run()
         core = Hamiltonian(transformation=TransformationType.FULL,
-                                qubit_mapping=QubitMappingType.PARITY,
-                                two_qubit_reduction=two_qubit_reduction,
-                                freeze_core=freeze_core,
-                                orbital_reduction=[])
+                           qubit_mapping=QubitMappingType.PARITY,
+                           two_qubit_reduction=two_qubit_reduction,
+                           freeze_core=freeze_core,
+                           orbital_reduction=[])
         algo_input = core.run(qmolecule)
         qubit_op = algo_input[0]
         init_state = HartreeFock(
@@ -93,12 +93,12 @@ class TestOOVQE(QiskitAquaTestCase):
             skip_commute_test=True,
             excitation_type='d')
         algo = OOVQE(operator=qubit_op,
-                          var_form=var_form,
-                          optimizer=self.optimizer,
-                          core=core,
-                          qmolecule=qmolecule,
-                          expectation=MatrixExpectation(),
-                          initial_point=initial_point)
+                     var_form=var_form,
+                     optimizer=self.optimizer,
+                     core=core,
+                     qmolecule=qmolecule,
+                     expectation=MatrixExpectation(),
+                     initial_point=initial_point)
 
         return qmolecule, core, qubit_op, var_form, algo
 
