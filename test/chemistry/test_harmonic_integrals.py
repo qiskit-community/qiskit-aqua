@@ -17,25 +17,25 @@
 import unittest
 from test.chemistry import QiskitChemistryTestCase
 import numpy as np
+
 from qiskit.aqua.algorithms import NumPyEigensolver
-from qiskit.chemistry import BosonicOperator, QiskitChemistryError
+from qiskit.chemistry import BosonicOperator
 from qiskit.chemistry.drivers import GaussianLogResult
 
 
 class TestHarmonicIntegrals(QiskitChemistryTestCase):
     """Hamiltonian in harmonic basis tests."""
 
-
     def setUp(self):
         super().setUp()
 
         self.reference_energy = 2539.259482550559
-        self.gaussian_log_data = GaussianLogResult(self.get_resource_path('CO2_freq_B3LYP_ccpVDZ.log'))
-
+        self.gaussian_log_data = GaussianLogResult(
+            self.get_resource_path('CO2_freq_B3LYP_ccpVDZ.log'))
 
     def test_compute_modes(self):
         """ test for computing the general hamiltonian from the gaussian log data"""
-        REFERENCE = [[605.3643675, 1, 1],
+        reference = [[605.3643675, 1, 1],
                      [-605.3643675, -1, -1],
                      [340.5950575, 2, 2],
                      [-340.5950575, -2, -2],
@@ -73,13 +73,12 @@ class TestHarmonicIntegrals(QiskitChemistryTestCase):
                      [1.29536, 4, 4, 4, 3],
                      [0.20048104166666667, 4, 4, 4, 4]]
 
-
         result = self.gaussian_log_data._compute_modes()
 
-        check_indices = np.random.randint(0, high = len(REFERENCE), size=(10))
+        check_indices = np.random.randint(0, high=len(reference), size=10)
         for idx in check_indices:
-            for i in range(len(REFERENCE[idx])):
-                self.assertAlmostEqual(REFERENCE[idx][i], result[idx][i], places = 6)
+            for i in range(len(reference[idx])):
+                self.assertAlmostEqual(reference[idx][i], result[idx][i], places=6)
 
     def test_harmonic_basis(self):
         """test for obtaining the hamiltonian in the harmonic basis"""

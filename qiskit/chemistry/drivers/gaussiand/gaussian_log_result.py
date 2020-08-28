@@ -277,7 +277,7 @@ class GaussianLogResult:
             elif m - n == 2:
                 coeff = np.sqrt(m * (m - 1)) / 2
             # coeff = -coeff
-        elif power == 2 and kinetic_term == False:
+        elif power == 2 and kinetic_term is False:
             if m - n == 0:
                 coeff = (m + 1 / 2)
             elif m - n == 2:
@@ -443,5 +443,3 @@ class GaussianLogResult:
                                            values[i]))
 
         return harmonics
-
-
