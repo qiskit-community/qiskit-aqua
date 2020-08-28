@@ -357,18 +357,19 @@ jobs:
         with:
           name: optimization${{ matrix.python-version }}
           path: ./o${{ matrix.python-version }}/*
-  Tutorials-Stable:
+  Tutorials:
     runs-on: ubuntu-16.04
     strategy:
       matrix:
         python-version: [3.7]
-    if: ${{ startsWith(github.ref, 'refs/heads/stable') }}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
       - uses: ./.github/actions/install-libraries
+      - uses: ./.github/actions/install-master-dependencies
+        if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
       - uses: ./.github/actions/install-aqua
       - name: Install Dependencies
         run: |
@@ -404,7 +405,7 @@ jobs:
           name: tutorials
           path: ./qiskit-tutorials/_build/html/artifacts/tutorials.tar.gz
   Deprecation_Messages_and_Coverage:
-    needs: [Checks, Lint, Mypy, Aqua, Chemistry, Finance, MachineLearning, Optimization]
+    needs: [Checks, Lint, Mypy, Aqua, Chemistry, Finance, MachineLearning, Optimization, Tutorials]
     runs-on: ubuntu-latest
     strategy:
       matrix:
