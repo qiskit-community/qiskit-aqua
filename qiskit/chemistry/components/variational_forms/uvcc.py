@@ -140,7 +140,7 @@ class UVCC(VariationalForm):
         return qubit_op
 
     def construct_circuit(self, parameters: Union[np.ndarray, List[Parameter], ParameterVector],
-                              q: Optional[QuantumRegister] = None) -> QuantumCircuit:
+                          q: Optional[QuantumRegister] = None) -> QuantumCircuit:
         """Construct the variational form, given its parameters.
 
         Args:

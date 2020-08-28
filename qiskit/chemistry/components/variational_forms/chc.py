@@ -74,7 +74,7 @@ class CHC(VariationalForm):
         self._support_parameterized_circuit = True
 
     def construct_circuit(self, parameters: Union[np.ndarray, List[Parameter], ParameterVector],
-                              q: Optional[QuantumRegister] = None) -> QuantumCircuit:
+                          q: Optional[QuantumRegister] = None) -> QuantumCircuit:
         """
         Construct the variational form, given its parameters.
 
@@ -140,7 +140,7 @@ class CHC(VariationalForm):
                     i = idx[0]
                     r = idx[1]
                     j = idx[2]
-                    s = idx[3]
+                    s = idx[3]  # pylint: disable=locally-disabled, invalid-name
 
                     circuit.u1(-np.pi / 2, q[r])
 
