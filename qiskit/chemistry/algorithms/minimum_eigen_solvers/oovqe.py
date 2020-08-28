@@ -66,7 +66,7 @@ class OOVQE(VQE):
                                                              LegacyBaseOperator]]]] = None,
                  callback: Optional[Callable[[int, np.ndarray, float, float], None]] = None,
                  quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None,
-                 orbital_rotation: Optional[np.ndarray] = None,
+                 orbital_rotation: Optional['OrbitalRotation'] = None,
                  core: Optional[LegacyBaseOperator] = None,
                  qmolecule: Optional[QMolecule] = None,
                  bounds: Optional[np.ndarray] = None,
@@ -129,6 +129,8 @@ class OOVQE(VQE):
             iterative_oo_iterations: number of iterations in the iterative procedure,
                 set larger to be sure to converge to the global minimum.
 
+        Raises:
+            AquaError: if the number of orbital optimization iterations is less or equal to zero.
         """
 
         super().__init__(operator=operator,
@@ -142,12 +144,6 @@ class OOVQE(VQE):
                          callback=callback,
                          quantum_instance=quantum_instance,
                          )
-
-        # todo: these are done by a super class
-        # self._optimizer.set_max_evals_grouped(max_evals_grouped)
-        # self._callback = callback
-        # self._operator = operator
-        # self._eval_count = 0
         self._qmolecule_rotated = None
         self._fixed_wavefunction_params = None
         if aux_operators is None:
@@ -166,12 +162,16 @@ class OOVQE(VQE):
             self._set_initial_point()
         self._bounds = bounds
         if self._bounds is None:
-            self._set_bounds(self._orbital_rotation._parameter_bound_value)
+            # todo: do we need to pass parameters here?
+            self._set_bounds(self._orbital_rotation.parameter_bound_value)
         self._iterative_oo = iterative_oo
         self._iterative_oo_iterations = iterative_oo_iterations
+        if self._iterative_oo_iterations < 1:
+            raise AquaError('Please set iterative_oo_iterations parameter to a positive number,'
+                            ' got {} instead'.format(self._iterative_oo_iterations))
 
         # copies to overcome incompatibilities with error checks in VQAlgorithm class
-        # _num_parameters is actually an integer
+        # todo: _num_parameters is actually an integer, why copy.copy?
         self.var_form_num_parameters = copy.copy(self.var_form.num_parameters)
         self.var_form_bounds = copy.copy(self.var_form._bounds)
 
@@ -196,8 +196,7 @@ class OOVQE(VQE):
                 None:
             self._qmolecule_rotated = copy.copy(self._qmolecule)
             OOVQE._rotate_orbitals_in_qmolecule(self._qmolecule_rotated, self._orbital_rotation)
-            algo_input = self._core.run(self._qmolecule_rotated)
-            self._operator = algo_input[0]
+            self._operator, _ = self._core.run(self._qmolecule_rotated)
             logger.info(
                 '\n\nSetting the initial value for OO matrices and rotating Hamiltonian \n')
             logger.info('Optimising  Orbital Coefficient Rotation Alpha: \n%s',
@@ -449,7 +448,7 @@ class OrbitalRotation:
                  parameters: list = None,
                  parameter_bounds: list = None,
                  parameter_initial_value: float = 0.1,
-                 parameter_bound_value: tuple = (-2 * np.pi, 2 * np.pi)) -> None:
+                 parameter_bound_value: Tuple[float, float] = (-2 * np.pi, 2 * np.pi)) -> None:
 
         """
         Args:
@@ -478,25 +477,29 @@ class OrbitalRotation:
         self._qmolecule = qmolecule
         self._orbital_rotations = orbital_rotations
         self._orbital_rotations_beta = orbital_rotations_beta
-        self._parameters = parameters
-        self._parameter_bounds = parameter_bounds
         self._parameter_initial_value = parameter_initial_value
         self._parameter_bound_value = parameter_bound_value
-        self._num_parameters = None
-        if self._parameters is not None:
-            self._num_parameters = len(self._parameters)
+
+        self._parameters = parameters
+        if self._parameters is None:
+            # todo: we overwrite the values orbital_rotations values by calling this method.
+            self._create_parameter_list()
+        self._num_parameters = len(self._parameters)
+
+        self._parameter_bounds = parameter_bounds
+        if self._parameter_bounds is None:
+            self._create_parameter_bounds()
+
         # todo: if core is None then an exception will be raised on the next line
         self._freeze_core = self._core._freeze_core
         if self._core is not None:
             self._core_list = self._qmolecule.core_orbitals if self._freeze_core else None
+        # todo: same here, if core is None, then there's a problem on the next line
         if self._core._two_qubit_reduction is True:
             self._dim_kappa_matrix = int((self._num_qubits + 2) / 2)
         else:
             self._dim_kappa_matrix = int(self._num_qubits / 2)
-        if parameters is None:
-            self._create_parameter_list()
-        if parameter_bounds is None:
-            self._create_parameter_bounds()
+
         self._check_for_errors()
         self._matrix_a = None
         self._matrix_b = None
@@ -541,21 +544,21 @@ class OrbitalRotation:
         else:
             half_as = int(self._num_qubits / 2)
 
-        orbital_rotations_temp = []
-        parameters_temp = []
+        orbital_rotations = []
+        parameters = []
 
         for i in range(half_as):
             for j in range(half_as):
                 if i < j:
-                    orbital_rotations_temp.append([i, j])
-                    parameters_temp.append(self._parameter_initial_value)
+                    orbital_rotations.append([i, j])
+                    parameters.append(self._parameter_initial_value)
 
-        self._orbital_rotations = orbital_rotations_temp
-        self._parameters = parameters_temp
-        self._num_parameters = len(self._parameters)
+        self._orbital_rotations = orbital_rotations
+        self._parameters = parameters
 
     def _create_parameter_bounds(self) -> None:
         """ Create bounds for parameters. """
+        # todo: this 'if' always true
         if self._num_parameters is not None:
             self._parameter_bounds = []
             for _ in range(self._num_parameters):
@@ -622,3 +625,8 @@ class OrbitalRotation:
     def num_parameters(self) -> int:
         """Returns the number of parameters."""
         return self._num_parameters
+
+    @property
+    def parameter_bound_value(self) -> Tuple[float, float]:
+        """Returns a value for the bounds on all the parameters."""
+        return self._parameter_bound_value

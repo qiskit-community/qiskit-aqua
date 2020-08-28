@@ -54,15 +54,15 @@ class TestOOVQE(QiskitAquaTestCase):
                                                 seed_transpiler=self.seed)
         self.optimizer = COBYLA(maxiter=1)
         self.qmolecule1, self.core1, self.qubit_op1, self.var_form1, self.algo1\
-            = self._create_components_for_tests(path='test/chemistry/test_oovqe_h4.hdf5',
+            = self._create_components_for_tests(path='test_oovqe_h4.hdf5',
                                                 freeze_core=False, two_qubit_reduction=False,
                                                 initial_point=self.initial_point1)
         self.qmolecule2, self.core2, self.qubit_op2, self.var_form2, self.algo2\
-            = self._create_components_for_tests(path='test/chemistry/test_oovqe_lih.hdf5',
+            = self._create_components_for_tests(path='test_oovqe_lih.hdf5',
                                                 freeze_core=True, two_qubit_reduction=True,
                                                 initial_point=None)
         self.qmolecule3, self.core3, self.qubit_op3, self.var_form3, self.algo3\
-            = self._create_components_for_tests(path='test/chemistry/test_oovqe_h4_uhf.hdf5',
+            = self._create_components_for_tests(path='test_oovqe_h4_uhf.hdf5',
                                                 freeze_core=False, two_qubit_reduction=False,
                                                 initial_point=self.initial_point1)
 
