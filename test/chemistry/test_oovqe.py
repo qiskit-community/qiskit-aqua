@@ -123,8 +123,8 @@ class TestOOVQE(QiskitAquaTestCase):
 
         self.algo1.optimizer.maxiter = 2
         self.algo1.optimizer.rhobeg = 0.01
-        self.algo1.iterative_oo = True
-        self.algo1.iterative_oo_iterations = 2
+        self.algo1._iterative_oo = True
+        self.algo1._iterative_oo_iterations = 2
         algo_result = self.algo1.run(self.quantum_instance)
         self.assertLessEqual(algo_result['optimal_value'], self.energy1)
 
