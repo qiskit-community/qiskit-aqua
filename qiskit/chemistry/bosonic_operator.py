@@ -263,7 +263,7 @@ class BosonicOperator:
         """
 
         for v, vec in enumerate(vecs):
-            indices = np.nonzero(np.conj(vec.primitive.data) * vec.primitive.data > 1e-5)[0]
+            indices = np.nonzero(np.conj(vec.primitive.data) * vec.primitive.data > threshold)[0]
             printmsg = True
             for i in indices:
                 bin_i = np.frombuffer(np.binary_repr(i, width=sum(self._basis)).encode('utf-8'),

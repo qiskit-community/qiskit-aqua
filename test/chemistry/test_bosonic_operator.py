@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Test Fermionic Operator """
+""" Test Bosonic Operator """
 
 import unittest
 from test.chemistry import QiskitChemistryTestCase
@@ -22,7 +22,7 @@ from qiskit.chemistry import BosonicOperator
 
 
 class TestBosonicOperator(QiskitChemistryTestCase):
-    """Fermionic Operator tests."""
+    """Bosonic Operator tests."""
 
     CO2_B3LYP_ccpVDZ_4MODES_2MODALS = [[[[[0, 0, 0]], 1215.682529375],
                                         [[[0, 1, 1]], 3656.9551768750007],

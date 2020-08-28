@@ -12,21 +12,18 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Test Fermionic Operator """
+""" Test Harmonic Integrals """
 
-import copy
 import unittest
 from test.chemistry import QiskitChemistryTestCase
 import numpy as np
-from qiskit.aqua.utils import random_unitary
 from qiskit.aqua.algorithms import NumPyEigensolver
-from qiskit.aqua.operators.legacy import op_converter
 from qiskit.chemistry import BosonicOperator, QiskitChemistryError
 from qiskit.chemistry.drivers import GaussianLogResult
 
 
 class TestHarmonicIntegrals(QiskitChemistryTestCase):
-    """Fermionic Operator tests."""
+    """Hamiltonian in harmonic basis tests."""
 
 
     def setUp(self):
@@ -85,9 +82,11 @@ class TestHarmonicIntegrals(QiskitChemistryTestCase):
                 self.assertAlmostEqual(REFERENCE[idx][i], result[idx][i], places = 6)
 
     def test_harmonic_basis(self):
+        """test for obtaining the hamiltonian in the harmonic basis"""
 
         num_modals = 2
-        hamiltonian_in_harmonic_basis = self.gaussian_log_data.compute_harmonic_modes(num_modals, truncation_order=2)
+        hamiltonian_in_harmonic_basis = \
+            self.gaussian_log_data.compute_harmonic_modes(num_modals, truncation_order=2)
         basis = [num_modals, num_modals, num_modals, num_modals]  # 4 modes and 2 modals per mode
         bos_op = BosonicOperator(hamiltonian_in_harmonic_basis, basis)
         qubit_op = bos_op.mapping('direct', threshold=1e-5)
@@ -97,7 +96,6 @@ class TestHarmonicIntegrals(QiskitChemistryTestCase):
         energies = result['eigenvalues']
         gs_energy = bos_op.ground_state_energy(vecs, energies)
         self.assertAlmostEqual(gs_energy, self.reference_energy, places=6)
-
 
 
 if __name__ == '__main__':

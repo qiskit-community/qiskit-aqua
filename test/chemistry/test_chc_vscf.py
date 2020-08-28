@@ -12,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Test of UVCC and VSCF Aqua extensions """
+""" Test of CHC and VSCF Aqua extensions """
 
 from test.chemistry import QiskitChemistryTestCase
 
