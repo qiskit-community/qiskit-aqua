@@ -37,7 +37,7 @@ class BosonicOperator:
     - *Ollitrault Pauline J., Chemical science 11 (2020): 6842-6855.*
     """
 
-    def __init__(self, h: np.ndarray, basis: List[int]) -> None:
+    def __init__(self, h: List[List[Tuple[List[List[int]], float]]], basis: List[int]) -> None:
         """
         The Bosonic operator in this class is written in the n-mode second quantization format
         (Eq. 10 in Ref. Ollitrault Pauline J., Chemical science 11 (2020): 6842-6855.)
