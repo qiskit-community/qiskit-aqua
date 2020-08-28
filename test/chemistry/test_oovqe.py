@@ -43,6 +43,7 @@ class TestOOVQE(QiskitAquaTestCase):
         self.energy1_rotation = -3.0104
         self.energy1 = -2.77  # energy of the VQE with pUCCD ansatz and LBFGSB optimizer
         self.energy2 = -7.70
+        self.energy3 = -2.50
         self.initial_point1 = [0.039374, -0.47225463, -0.61891996, 0.02598386, 0.79045546,
                                -0.04134567, 0.04944946, -0.02971617, -0.00374005, 0.77542149]
         self.seed = 50
@@ -60,6 +61,10 @@ class TestOOVQE(QiskitAquaTestCase):
             = self._create_components_for_tests(path='test/chemistry/test_oovqe_lih.hdf5',
                                                 freeze_core=True, two_qubit_reduction=True,
                                                 initial_point=None)
+        self.qmolecule3, self.core3, self.qubit_op3, self.var_form3, self.algo3\
+            = self._create_components_for_tests(path='test/chemistry/test_oovqe_h4_uhf.hdf5',
+                                                freeze_core=False, two_qubit_reduction=False,
+                                                initial_point=self.initial_point1)
 
     def _create_components_for_tests(self, path='', freeze_core=False,
                                      two_qubit_reduction=False, initial_point=None):
@@ -128,7 +133,7 @@ class TestOOVQE(QiskitAquaTestCase):
         algo_result = self.algo1.run(self.quantum_instance)
         self.assertLessEqual(algo_result['optimal_value'], self.energy1)
 
-    def test_frozen_core(self):
+    def test_oovqe_with_frozen_core(self):
         """Test the OOVQE with frozen core approximation."""
 
         self.algo2.optimizer.maxiter = 2
@@ -136,6 +141,14 @@ class TestOOVQE(QiskitAquaTestCase):
         algo_result = self.algo2.run(self.quantum_instance)
         self.assertLessEqual(algo_result['optimal_value'] + self.core2._energy_shift +
                              self.core2._nuclear_repulsion_energy, self.energy2)
+
+    def test_oovqe_with_unrestricted_hf(self):
+        """Test the OOVQE with unrestricted HF method."""
+
+        self.algo3.optimizer.maxiter = 2
+        self.algo3.optimizer.rhobeg = 0.01
+        algo_result = self.algo3.run(self.quantum_instance)
+        self.assertLessEqual(algo_result['optimal_value'], self.energy3)
 
 
 if __name__ == '__main__':

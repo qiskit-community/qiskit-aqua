@@ -411,7 +411,7 @@ class OOVQE(VQE):
             norbs = qmolecule.mo_coeff.shape[0]
             qmolecule.mo_eri_ints_bb = mo_eri_b.reshape(norbs, norbs, norbs, norbs)
             qmolecule.mo_eri_ints_ba = qmolecule.twoeints2mo_general(
-                qmolecule.mo_coeff_b, qmolecule.mo_coeff_b, qmolecule.mo_coeff,
+                qmolecule.eri, qmolecule.mo_coeff_b, qmolecule.mo_coeff_b, qmolecule.mo_coeff,
                 qmolecule.mo_coeff)
             qmolecule.mo_eri_ints_ba = qmolecule.mo_eri_ints_ba.reshape(norbs, norbs,
                                                                         norbs, norbs)
