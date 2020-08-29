@@ -16,7 +16,7 @@
 
 import unittest
 import logging
-from test.aqua import QiskitAquaTestCase
+from test.chemistry import QiskitChemistryTestCase
 from ddt import ddt
 from qiskit.aqua import aqua_globals
 from qiskit.aqua import QuantumInstance
@@ -30,11 +30,12 @@ from qiskit.chemistry.algorithms.minimum_eigen_solvers import OOVQE
 from qiskit.aqua.operators.expectations import MatrixExpectation
 from qiskit import BasicAer
 from qiskit.aqua import set_qiskit_aqua_logging
+
 set_qiskit_aqua_logging(logging.INFO)
 
 
 @ddt
-class TestOOVQE(QiskitAquaTestCase):
+class TestOOVQE(QiskitChemistryTestCase):
     """ Test of the OOVQE algorithm"""
 
     def setUp(self):
@@ -70,7 +71,8 @@ class TestOOVQE(QiskitAquaTestCase):
                                      two_qubit_reduction=False, initial_point=None):
         """ Instantiate classes necessary to run the test out of HDF5 files of QMolecules."""
 
-        driver = HDF5Driver(path)
+        # driver = HDF5Driver(path)
+        driver = HDF5Driver(hdf5_input=self.get_resource_path(path))
         qmolecule = driver.run()
         core = Hamiltonian(transformation=TransformationType.FULL,
                            qubit_mapping=QubitMappingType.PARITY,
