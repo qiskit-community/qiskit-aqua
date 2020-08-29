@@ -71,7 +71,6 @@ class TestOOVQE(QiskitChemistryTestCase):
                                      two_qubit_reduction=False, initial_point=None):
         """ Instantiate classes necessary to run the test out of HDF5 files of QMolecules."""
 
-        # driver = HDF5Driver(path)
         driver = HDF5Driver(hdf5_input=self.get_resource_path(path))
         qmolecule = driver.run()
         core = Hamiltonian(transformation=TransformationType.FULL,
