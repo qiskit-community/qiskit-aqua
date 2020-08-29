@@ -348,7 +348,7 @@ class CircuitSampler(ConverterBase):
         self.quantum_instance._run_config.parameterizations = []
 
         if self._transpiled_circ_templates is None \
-            or len(self._transpiled_circ_templates) != len(self._transpiled_circ_cache):
+                or len(self._transpiled_circ_templates) != len(self._transpiled_circ_cache):
 
             # temporally resolve parameters of self._transpiled_circ_cache
             # They will be overridden in Aer from the next iterations
@@ -361,10 +361,10 @@ class CircuitSampler(ConverterBase):
                     self._generate_aer_params(circ, param_binding))
 
         if self._last_ready_circ is None \
-            or len(self._last_ready_circ) != len(self._transpiled_circ_cache) \
-                                                * len(param_bindings):
+            or len(self._last_ready_circ) != \
+                len(self._transpiled_circ_cache) * len(param_bindings):
             self._last_ready_circ = self._transpiled_circ_templates * len(param_bindings)
-        
+
         return self._last_ready_circ
 
     def _clean_parameterized_run_config(self) -> None:
