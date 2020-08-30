@@ -229,7 +229,7 @@ class ListOp(OperatorBase):
 
         # Combination function must be able to handle classical values.
         # Note: this can end up, when we have list operators containing other list operators, as a
-        #       ragged array and numpy 0.19 raises a deprecation warning unless this is explicitly
+        #       ragged array and numpy 1.19 raises a deprecation warning unless this is explicitly
         #       done as object type now - was implicit before.
         mat = self.combo_fn(np.asarray([op.to_matrix() * self.coeff for op in self.oplist],
                                        dtype=object))
