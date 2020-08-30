@@ -236,7 +236,7 @@ class ListOp(OperatorBase):
         # Note: As ComposedOp has a combo function of inner product we can end up here not with
         # a matrix (array) but a scalar. In which case we make a single element array of it.
         if isinstance(mat, Number):
-            lst = [mat]
+            mat = [mat]
         return np.asarray(mat, dtype=complex)
 
     def to_spmatrix(self) -> Union[spmatrix, List[spmatrix]]:
