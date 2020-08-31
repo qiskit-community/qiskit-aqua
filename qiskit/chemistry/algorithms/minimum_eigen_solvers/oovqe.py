@@ -162,7 +162,6 @@ class OOVQE(VQE):
             self._set_initial_point()
         self._bounds = bounds
         if self._bounds is None:
-            # todo: do we need to pass parameters here?
             self._set_bounds(self._orbital_rotation.parameter_bound_value)
         self._iterative_oo = iterative_oo
         self._iterative_oo_iterations = iterative_oo_iterations
@@ -171,8 +170,7 @@ class OOVQE(VQE):
                             ' got {} instead'.format(self._iterative_oo_iterations))
 
         # copies to overcome incompatibilities with error checks in VQAlgorithm class
-        # todo: _num_parameters is actually an integer, why copy.copy?
-        self.var_form_num_parameters = copy.copy(self.var_form.num_parameters)
+        self.var_form_num_parameters = self.var_form.num_parameters
         self.var_form_bounds = copy.copy(self.var_form._bounds)
 
     def _run(self) -> VQEResult:
@@ -353,11 +351,6 @@ class OOVQE(VQE):
         if self._orbital_rotation is None:
             raise AquaError('Instantiate OrbitalRotation class and provide it to the '
                             'orbital_rotation keyword argument')
-
-        # todo: this is a useless assignment as matrices are already stored in orbital_rotation
-        # self._orbital_rotation._matrix_a, \
-        #     self._orbital_rotation._matrix_b = \
-        #     self._orbital_rotation.orbital_rotation_matrix(parameters_orb_rot)
 
         self._orbital_rotation.orbital_rotation_matrix(parameters_orb_rot)
 
@@ -561,11 +554,9 @@ class OrbitalRotation:
 
     def _create_parameter_bounds(self) -> None:
         """ Create bounds for parameters. """
-        # todo: this 'if' always true
-        if self._num_parameters is not None:
-            self._parameter_bounds = []
-            for _ in range(self._num_parameters):
-                self._parameter_bounds.append(self._parameter_bound_value)
+        self._parameter_bounds = []
+        for _ in range(self._num_parameters):
+            self._parameter_bounds.append(self._parameter_bound_value)
 
     def orbital_rotation_matrix(self, parameters: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """ Creates 2 matrices K_alpha, K_beta that rotate the orbitals through MO coefficient
