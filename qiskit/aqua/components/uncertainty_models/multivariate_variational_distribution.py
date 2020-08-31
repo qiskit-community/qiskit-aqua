@@ -14,7 +14,6 @@
 
 """The Multivariate Variational Distribution."""
 
-import warnings
 from typing import Optional, List, Union
 import numpy as np
 
