@@ -14,12 +14,10 @@
 
 """The Univariate Variational Distribution."""
 
-import warnings
 from typing import Union, List
 import numpy as np
 
 from qiskit import ClassicalRegister, QuantumCircuit
-from qiskit.aqua.components.variational_forms import VariationalForm
 from qiskit.aqua.utils.validation import validate_min
 from .univariate_distribution import UnivariateDistribution
 
@@ -29,7 +27,7 @@ class UnivariateVariationalDistribution(UnivariateDistribution):
 
     def __init__(self,
                  num_qubits: int,
-                 var_form: Union[QuantumCircuit, VariationalForm],
+                 var_form: QuantumCircuit,
                  params: Union[List[float], np.ndarray],
                  low: float = 0,
                  high: float = 1) -> None:
@@ -46,15 +44,7 @@ class UnivariateVariationalDistribution(UnivariateDistribution):
         self._var_form = var_form
 
         # fix the order of the parameters in the circuit
-        if isinstance(self._var_form, QuantumCircuit):
-            self._var_form_params = sorted(self._var_form.parameters, key=lambda p: p.name)
-        else:
-            warnings.warn('The VariationalForm type is deprecated as argument of the '
-                          'UnivariateVariationalDistribution as of 0.7.0 and will be removed no '
-                          'earlier than 3 months after the release. You should pass an object '
-                          'of type QuantumCircuit instead (see qiskit.circuit.library for a '
-                          'collection of suitable objects).',
-                          DeprecationWarning, stacklevel=2)
+        self._var_form_params = sorted(self._var_form.parameters, key=lambda p: p.name)
 
         self.params = params
         if isinstance(num_qubits, int):
@@ -66,11 +56,8 @@ class UnivariateVariationalDistribution(UnivariateDistribution):
         super().__init__(num_qubits, probabilities, low, high)
 
     def build(self, qc, q, q_ancillas=None, params=None):
-        if isinstance(self._var_form, QuantumCircuit):
-            param_dict = dict(zip(self._var_form_params, self.params))
-            circuit_var_form = self._var_form.assign_parameters(param_dict)
-        else:
-            circuit_var_form = self._var_form.construct_circuit(self.params)
+        param_dict = dict(zip(self._var_form_params, self.params))
+        circuit_var_form = self._var_form.assign_parameters(param_dict)
 
         qc.append(circuit_var_form.to_instruction(), q)
 
@@ -80,15 +67,8 @@ class UnivariateVariationalDistribution(UnivariateDistribution):
         Args:
             quantum_instance (QuantumInstance): Quantum instance
         """
-        if isinstance(self._var_form, QuantumCircuit):
-            param_dict = dict(zip(self._var_form_params, self.params))
-            qc_ = self._var_form.assign_parameters(param_dict)
-        else:
-            qc_ = self._var_form.construct_circuit(self.params)
-
-        # q_ = QuantumRegister(self._num_qubits)
-        # qc_ = QuantumCircuit(q_)
-        # self.build(qc_, None)
+        param_dict = dict(zip(self._var_form_params, self.params))
+        qc_ = self._var_form.assign_parameters(param_dict)
 
         if quantum_instance.is_statevector:
             pass
