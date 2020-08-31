@@ -234,8 +234,8 @@ class QSVM(QuantumAlgorithm):
                                     D is the feature dimension
             x2_vec (numpy.ndarray): data points, 2-D array, N2xD, where N2 is the number of data,
                                     D is the feature dimension
-            enforce_psd: enforces that the kernel matrix is positive semi-definite by setting
-                         negative eigenvalues to zero.
+            enforce_psd (bool): enforces that the kernel matrix is positive semi-definite by setting
+                                negative eigenvalues to zero.
         Returns:
             numpy.ndarray: 2-D matrix, N1xN2
         """
@@ -360,9 +360,11 @@ class QSVM(QuantumAlgorithm):
                         mat[j, i] = mat[i, j]
 
         if enforce_psd and not is_statevector_sim:
-            # find closest positive semi-definite approximation to kernel matrix
-            # matrix should always be PSD  by construction, but this can be violated in case of
-            # noise, thus, the adjustment is only done if NOT using the statevector simulation
+            # Find the closest positive semi-definite approximation to kernel matrix.
+            # The matrix should always be positive semi-definite by construction, but this
+            # can be violated in case of noise, such as sampling noise, thus, the adjustment
+            # is only done if NOT using the statevector simulation.
+            print(mat.shape)
             D, U = np.linalg.eig(mat)
             mat = U @ np.diag(np.maximum(0, D)) @ U.transpose()
 
