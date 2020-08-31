@@ -14,3 +14,4 @@ networkx>=2.2
 pandas
 quandl
 yfinance
+retworkx>=0.4.0
