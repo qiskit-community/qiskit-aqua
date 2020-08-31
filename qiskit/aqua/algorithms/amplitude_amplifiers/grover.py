@@ -21,8 +21,10 @@ import operator
 import numpy as np
 
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
+from qiskit.circuit.library import GroverOperator
 from qiskit.qasm import pi
 from qiskit.providers import BaseBackend
+from qiskit.quantum_info import Statevector
 
 from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.utils import get_subsystem_density_matrix
@@ -33,6 +35,7 @@ from qiskit.aqua.components.oracles import Oracle
 from qiskit.aqua.components.initial_states import InitialState
 
 logger = logging.getLogger(__name__)
+
 
 # pylint: disable=invalid-name
 
@@ -108,16 +111,19 @@ class Grover(QuantumAlgorithm):
                   name: str = 'Q') -> None:
 
     # The new constructor for Grover class
-    def __int__new(self, oracle: Union[Oracle, QuantumCircuit],
-                    state_in: Union[InitialState, QuantumCircuit]=H^n, (maybe state is not a good name) # I feel init_state is more intuitive
-                    zero_reflection, 
-                    is_good_state: callable | List[int] | Statevector),
-                    num_iterations: None,
-                    num_solutions: None / incremental = False,
-                    lam = 1.34,
-                    grover_operator=None (just pass custom grover operator),
+    def __int__new(self, oracle: Union[Oracle, QuantumCircuit, Statevector],
+                    state_in: Union[InitialState, QuantumCircuit]=None,
+                    incremental: bool = False,
+                    num_iterations: int = 1,
+                    lam: float = 1.34,
                     rotation_counts: Optional[list] = None,
-                    mct_mode: str = 'basic',
+                    num_solutions: None,
+                    mct_mode: str = 'noancilla',
+                    insert_barriers: bool = False,
+                    zero_reflection: Optional[Union[QuantumCircuit, DensityMatrix, Operator]] = None,
+                    is_good_state: Union[callable, List[int], Statevector],
+                    grover_operator=None,
+                    name: str = 'Q',
                     quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
 
     # The original constructor for Grover class
@@ -191,6 +197,28 @@ class Grover(QuantumAlgorithm):
         # self._init_state_circuit_inverse = self._init_state_circuit.inverse()
 
         # self._diffusion_circuit = self._construct_diffusion_circuit()
+
+        # Grover operatorがNoneなら自分で作る。以下はif GroverOperator is Noneのelseに書くべきかも
+        if isinstance(oracle, QuantumCircuit) or isinstance(oracle, Statevector):
+            _oracle = oracle
+        elif isinstance(oracle, Oracle):
+            _oracle = oracle.circuit
+        else:
+            raise ValueError('Unsupported type "{}" of oracle'.format(type(oracle)))
+
+        # need a deprecation message for initial_state, if we change the name of the argument to state_in
+        # should we cover the case of isinstance(state_in, InitialState) and isinstance(oracle, QuantumCircuit)?
+        if isinstance(state_in, QuantumCircuit) or state_in is None:
+            _state_in = state_in
+        elif isinstance(state_in, InitialState) and isinstance(oracle, Oracle):
+            _state_in = self._init_state.construct_circuit(mode='circuit', register=oracle.variable_register)
+        else:
+            raise ValueError('Unsupported type "{}" of state_in'.format(type(state_in)))
+
+        GroverOperator(oracle=_oracle, state_in=_state_in, zero_reflection=)
+
+        self._mct_mode = mct_mode
+
         self._max_num_iterations = np.ceil(2 ** (len(oracle.variable_register) / 2))
         self._incremental = incremental
         self._lam = lam
@@ -210,6 +238,7 @@ class Grover(QuantumAlgorithm):
     """
     # We don't need _construct_diffusion_circuit() method since GroverOperator creates diffusion circuit for us.
     """
+
     # def _construct_diffusion_circuit(self):
     #     qc = QuantumCircuit(self._oracle.variable_register)
     #     num_variable_qubits = len(self._oracle.variable_register)
