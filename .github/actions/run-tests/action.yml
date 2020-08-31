@@ -28,7 +28,7 @@ runs:
           conda activate
         fi
         if [ "${{ inputs.python-version }}" == "3.7" ]; then
-          export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
+          export PYTHON="coverage3 run --source qiskit_aqua --omit */gauopen/* --parallel-mode"
         fi
         stestr --test-path test/${{ inputs.domain }} run 2> >(tee /dev/stderr out.txt > /dev/null)
       shell: bash

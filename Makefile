@@ -43,7 +43,7 @@ lint:
 	pylint -rn --ignore=gauopen qiskit_aqua test tools
 
 mypy:
-	mypy qiskit test tools
+	mypy qiskit_aqua test tools
 
 style:
 	pycodestyle qiskit_aqua test tools
