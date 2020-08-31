@@ -207,6 +207,7 @@ class OOVQE(VQE):
         # save the original number of parameters as we modify their number to bypass the
         # error checks that are not tailored to OOVQE
 
+        total_time = 0
         # iterative method
         if self._iterative_oo:
             for _ in range(self._iterative_oo_iterations):
@@ -233,6 +234,7 @@ class OOVQE(VQE):
                     cost_fn=self._energy_evaluation_oo,
                     optimizer=self.optimizer)
                 self.initial_point[self.var_form_num_parameters:] = vqresult.optimal_point
+                total_time += vqresult.optimizer_time
         else:
             # simultaneous method (ansatz and orbitals are optimized at the same time)
             self.var_form._bounds = self._bounds
@@ -242,6 +244,7 @@ class OOVQE(VQE):
                                          var_form=self.var_form,
                                          cost_fn=self._energy_evaluation_oo,
                                          optimizer=self.optimizer)
+            total_time += vqresult.optimizer_time
 
         # write original number of parameters to avoid errors due to parameter number mismatch
         self.var_form._num_parameters = self.var_form_num_parameters
@@ -257,8 +260,8 @@ class OOVQE(VQE):
             self._ret['opt_params'] = vqresult.optimal_point[:self.var_form_num_parameters]
             self._ret['opt_params_orbitals'] = vqresult.optimal_point[self.var_form_num_parameters:]
 
-        self._ret['eval_time'] = vqresult.optimizer_time
-        self._ret['opt_psarams_dict'] = vqresult.optimal_parameters
+        self._ret['eval_time'] = total_time
+        self._ret['opt_params_dict'] = vqresult.optimal_parameters
 
         if self._ret['num_optimizer_evals'] is not None and \
                 self._eval_count >= self._ret['num_optimizer_evals']:
