@@ -365,7 +365,6 @@ class QSVM(QuantumAlgorithm):
             # symmetric. The (symmetric) matrix should always be positive semi-definite by
             # construction, but this can be violated in case of noise, such as sampling noise, thus,
             # the adjustment is only done if NOT using the statevector simulation.
-            print(mat.shape)
             D, U = np.linalg.eig(mat)
             mat = U @ np.diag(np.maximum(0, D)) @ U.transpose()
 
