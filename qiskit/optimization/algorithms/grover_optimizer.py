@@ -269,14 +269,11 @@ class GroverOptimizer(OptimizationAlgorithm):
         # cast binaries back to integers
         result = self._qubo_converter.interpret(result)
 
-        # check for feasibility
-        status = OptimizationResultStatus.SUCCESS if problem.is_feasible(result.x) \
-            else OptimizationResultStatus.INFEASIBLE
-
         return GroverOptimizationResult(x=result.x, fval=result.fval, variables=result.variables,
                                         operation_counts=operation_count, n_input_qubits=n_key,
                                         n_output_qubits=n_value, intermediate_fval=fval,
-                                        threshold=threshold, status=status)
+                                        threshold=threshold,
+                                        status=self.get_feasibility_status(problem, result.x))
 
     def _measure(self, circuit: QuantumCircuit) -> str:
         """Get probabilities from the given backend, and picks a random outcome."""

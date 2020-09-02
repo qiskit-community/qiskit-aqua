@@ -138,16 +138,12 @@ class CplexOptimizer(OptimizationAlgorithm):
         # process results
         sol = cplex.solution
 
-        # check for feasibility
-        status = OptimizationResultStatus.SUCCESS if problem.is_feasible(sol.get_values()) \
-            else OptimizationResultStatus.INFEASIBLE
-
         # create results
         result = OptimizationResult(x=sol.get_values(),
                                     fval=sol.get_objective_value(),
                                     variables=problem.variables,
                                     raw_results=problem.variables,
-                                    status=status)
+                                    status=self.get_feasibility_status(problem, sol.get_values()))
 
         # return solution
         return result

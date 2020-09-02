@@ -228,6 +228,7 @@ class SlsqpOptimizer(MultiStartOptimizer):
             return SlsqpOptimizationResult(result.x, result.fval, result.variables,
                                            fx=result.raw_results[0], its=result.raw_results[1],
                                            imode=result.raw_results[2], smode=result.raw_results[3],
-                                           status=status)
+                                           status=self.get_feasibility_status(problem, result.x))
         else:
-            return SlsqpOptimizationResult(result.x, result.fval, result.variables, status=status)
+            return SlsqpOptimizationResult(result.x, result.fval, result.variables,
+                                           status=self.get_feasibility_status(problem, result.x))

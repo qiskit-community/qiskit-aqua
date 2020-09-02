@@ -386,16 +386,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
         result = ADMMOptimizationResult(x=base_result.x, fval=base_result.fval,
                                         variables=base_result.variables,
                                         state=self._state,
-                                        status=base_result.status)
+                                        status=self.get_feasibility_status(problem, base_result.x))
 
-        # check for feasibility
-        status = OptimizationResultStatus.SUCCESS if problem.is_feasible(result.x) \
-            else OptimizationResultStatus.INFEASIBLE
-
-        result = ADMMOptimizationResult(x=result.x, fval=result.fval,
-                                        variables=result.variables,
-                                        state=self._state,
-                                        status=status)
         # debug
         self._log.debug("solution=%s, objective=%s at iteration=%s",
                         solution, objective_value, iteration)

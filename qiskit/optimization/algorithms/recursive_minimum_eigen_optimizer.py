@@ -289,15 +289,12 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         result = OptimizationResult(x=x_v, fval=fval, variables=problem_ref.variables)
         result = self._qubo_converter.interpret(result)
 
-        # check for feasibility
-        status = OptimizationResultStatus.SUCCESS if problem.is_feasible(result.x) \
-            else OptimizationResultStatus.INFEASIBLE
-
         return RecursiveMinimumEigenOptimizationResult(x=result.x, fval=result.fval,
                                                        variables=result.variables,
                                                        replacements=replacements,
                                                        history=history,
-                                                       status=status)
+                                                       status=(self.get_feasibility_status
+                                                               (problem, result.x)))
 
     def _find_strongest_correlation(self, correlations):
 

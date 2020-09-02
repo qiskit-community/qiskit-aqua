@@ -24,6 +24,19 @@ from .. import QiskitOptimizationError
 from ..problems.quadratic_program import QuadraticProgram, Variable
 
 
+class OptimizationResultStatus(Enum):
+    """Termination status of an optimization algorithm."""
+
+    SUCCESS = 0
+    """the optimization algorithm succeeded to find an optimal solution."""
+
+    FAILURE = 1
+    """the optimization algorithm ended in a failure."""
+
+    INFEASIBLE = 2
+    """the optimization algorithm obtained an infeasible solution."""
+
+
 class OptimizationAlgorithm(ABC):
     """An abstract class for optimization algorithms in Qiskit's optimization module."""
 
@@ -86,18 +99,24 @@ class OptimizationAlgorithm(ABC):
         if msg:
             raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
 
+    def get_feasibility_status(self, problem: QuadraticProgram, x: Union[List[float], np.ndarray]) \
+            -> OptimizationResultStatus:
+        """Returns whether the input result is feasible or not for the given problem.
 
-class OptimizationResultStatus(Enum):
-    """Termination status of an optimization algorithm."""
+        Args:
+            problem: Problem to verify.
+            x: the input result list.
 
-    SUCCESS = 0
-    """the optimization algorithm succeeded to find an optimal solution."""
+        Returns:
+            The status of the result.
 
-    FAILURE = 1
-    """the optimization algorithm ended in a failure."""
+        Raises:
+            None
+        """
+        is_feasible = problem.is_feasible(x)
 
-    INFEASIBLE = 2
-    """the optimization algorithm obtained an infeasible solution."""
+        return OptimizationResultStatus.SUCCESS if is_feasible \
+            else OptimizationResultStatus.INFEASIBLE
 
 
 class OptimizationResult:

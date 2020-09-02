@@ -1093,13 +1093,15 @@ class QuadraticProgram:
         self.minimize(constant=offset, linear=linear_terms, quadratic=quadratic_terms)
         offset -= offset
 
-    def is_feasible(self, x: Union[List[float], np.ndarray], detailed: bool = False) -> bool:
-        """Returns whether a solution is feasible or not
+    def get_feasiblity_info(self, x: Union[List[float], np.ndarray]) \
+            -> Tuple[bool, List[Constraint], List[Variable]]:
+        """Returns whether a solution is feasible or not along with the violations.
         Args:
             x: the input result list returned by the optimizer
-            detailed: [not implemented] returns the violations if set to True
         Returns:
             is_feasible: Whether the solution provided is feasible or not.
+            List[Constraint]: List of constraints which are violated.
+            List[Variable]: List of variables which are violated.
 
         Raises:
             QiskitOptimizationError: If the input `x` is not same len as total vars
@@ -1139,18 +1141,30 @@ class QuadraticProgram:
         # debug
         logger.debug("Violations: %s", final_dict)
 
-        if detailed:
+        is_feasible = (len(satisfied_variables) == len(self._variables) and
+                       len(satisfied_constraints) == (len(self._linear_constraints) +
+                                                      len(self._quadratic_constraints)))
 
-            print(list(final_dict.keys()))
-            # if (final_dict.keys()):
-            #     return False, list(final_dict.keys())
+        violated_constraints = list(satisfied_constraints.keys())
 
-            # else:
-            #     return True, []
+        violated_variables = list(satisfied_variables.keys())
 
-        return (len(satisfied_variables) == len(self._variables) and
-                len(satisfied_constraints) == (len(self._linear_constraints) +
-                                               len(self._quadratic_constraints)))
+        return (is_feasible, violated_constraints, violated_variables)
+
+    def is_feasible(self, x: Union[List[float], np.ndarray]) -> bool:
+        """Returns whether a solution is feasible or not.
+        Args:
+            x: the input result list returned by the optimizer
+
+        Returns:
+            is_feasible: Whether the solution provided is feasible or not.
+
+        Raises:
+            None
+        """
+        is_feasible, _, _ = self.get_feasiblity_info(x)
+
+        return is_feasible
 
 
 class SubstituteVariables:

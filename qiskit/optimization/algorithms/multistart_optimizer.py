@@ -94,14 +94,10 @@ class MultiStartOptimizer(OptimizationAlgorithm, ABC):
                 x_sol = x
                 rest_sol = rest
 
-        # check for feasibility
-        status = OptimizationResultStatus.SUCCESS if problem.is_feasible(x_sol) \
-            else OptimizationResultStatus.INFEASIBLE
-
         return OptimizationResult(x=x_sol, fval=fval_sol,
                                   variables=problem.variables,
                                   raw_results=rest_sol,
-                                  status=status)
+                                  status=self.get_feasibility_status(self, problem, x_sol))
 
     @property
     def trials(self) -> int:

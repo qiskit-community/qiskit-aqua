@@ -186,15 +186,11 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         result = OptimizationResult(x=x, fval=fval, variables=problem_.variables)
         result = self._qubo_converter.interpret(result)
 
-        # check for feasibility
-        status = OptimizationResultStatus.SUCCESS if problem.is_feasible(result.x) \
-            else OptimizationResultStatus.INFEASIBLE
-
         return MinimumEigenOptimizationResult(x=result.x, fval=result.fval,
                                               variables=result.variables,
                                               samples=samples,
                                               min_eigen_solver_result=eigen_result,
-                                              status=status)
+                                              status=self.get_feasibility_status(problem, result.x))
 
 
 def _eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray, StateFn],
