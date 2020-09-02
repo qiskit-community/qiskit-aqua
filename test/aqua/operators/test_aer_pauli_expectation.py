@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -23,7 +21,8 @@ import numpy as np
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import (X, Y, Z, I, CX, H, S,
                                    ListOp, Zero, One, Plus, Minus, StateFn,
-                                   AerPauliExpectation, CircuitSampler)
+                                   AerPauliExpectation, CircuitSampler, CircuitStateFn)
+from qiskit.circuit.library import RealAmplitudes
 
 
 class TestAerPauliExpectation(QiskitAquaTestCase):
@@ -81,8 +80,7 @@ class TestAerPauliExpectation(QiskitAquaTestCase):
 
         zero_mean = (converted_meas @ Zero)
         sampled_zero = self.sampler.convert(zero_mean)
-        # TODO bug with Aer's Y
-        np.testing.assert_array_almost_equal(sampled_zero.eval(), [0, 1, 1, 1], decimal=1)
+        np.testing.assert_array_almost_equal(sampled_zero.eval(), [0, 0, 1, 1], decimal=1)
 
         sum_zero = (Plus + Minus) * (.5 ** .5)
         sum_zero_mean = (converted_meas @ sum_zero)
@@ -136,8 +134,74 @@ class TestAerPauliExpectation(QiskitAquaTestCase):
                                              decimal=1)
 
     def test_parameterized_qobj(self):
-        """ Test direct-to-aer parameter passing in Qobj header. """
-        pass
+        """ grouped pauli expectation test """
+        two_qubit_h2 = (-1.052373245772859 * I ^ I) + \
+                       (0.39793742484318045 * I ^ Z) + \
+                       (-0.39793742484318045 * Z ^ I) + \
+                       (-0.01128010425623538 * Z ^ Z) + \
+                       (0.18093119978423156 * X ^ X)
+
+        aer_sampler = CircuitSampler(self.sampler.quantum_instance,
+                                     param_qobj=True,
+                                     attach_results=True)
+
+        var_form = RealAmplitudes()
+        var_form.num_qubits = 2
+
+        observable_meas = self.expect.convert(StateFn(two_qubit_h2, is_measurement=True))
+        ansatz_circuit_op = CircuitStateFn(var_form)
+        expect_op = observable_meas.compose(ansatz_circuit_op).reduce()
+
+        def generate_parameters(num):
+            param_bindings = {}
+            for param in var_form.parameters:
+                values = []
+                for _ in range(num):
+                    values.append(np.random.rand())
+                param_bindings[param] = values
+            return param_bindings
+
+        def validate_sampler(ideal, sut, param_bindings):
+            expect_sampled = ideal.convert(expect_op, params=param_bindings).eval()
+            actual_sampled = sut.convert(expect_op, params=param_bindings).eval()
+            self.assertAlmostEqual(actual_sampled, expect_sampled, delta=.1)
+
+        def get_binding_status(sampler):
+            # sampler._transpiled_circ_templates:
+            #     set only if aer's binding was used.
+            #     renewed if var_form is renewed,
+            # sampler._last_ready_circ:
+            #     set only if aer's binding was used.
+            #     renewed if var_form or # of parameter sets are changed
+            return (sampler._transpiled_circ_templates, sampler._last_ready_circ)
+
+        def validate_aer_binding_used(status):
+            self.assertIsNotNone(status[0])
+            self.assertIsNotNone(status[1])
+
+        def validate_aer_templates_reused(prev_status, cur_status):
+            self.assertIs(prev_status[0], cur_status[0])
+
+        def validate_aer_circuits_reused(prev_status, cur_status):
+            self.assertIs(prev_status[1], cur_status[1])
+
+        validate_sampler(self.sampler, aer_sampler, generate_parameters(1))
+        cur_status = get_binding_status(aer_sampler)
+
+        validate_aer_binding_used(cur_status)
+
+        prev_status = cur_status
+        validate_sampler(self.sampler, aer_sampler, generate_parameters(2))
+        cur_status = get_binding_status(aer_sampler)
+
+        validate_aer_templates_reused(prev_status, cur_status)
+
+        prev_status = cur_status
+        validate_sampler(self.sampler, aer_sampler, generate_parameters(2))  # same num of params
+        cur_status = get_binding_status(aer_sampler)
+
+        validate_aer_templates_reused(prev_status, cur_status)
+        validate_aer_circuits_reused(prev_status, cur_status)
 
 
 if __name__ == '__main__':
