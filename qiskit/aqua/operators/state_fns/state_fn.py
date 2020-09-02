@@ -333,9 +333,12 @@ class StateFn(OperatorBase):
         Returns:
             The converted StateFn.
         """
+        if coeff is None:
+            coeff = self.coeff
+
         if isinstance(self.primitive, OperatorBase):
             return StateFn(convert_fn(self.primitive),
-                           coeff=coeff or self.coeff, is_measurement=self.is_measurement)
+                           coeff=coeff, is_measurement=self.is_measurement)
         else:
             return self
 
