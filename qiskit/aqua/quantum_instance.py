@@ -307,7 +307,7 @@ class QuantumInstance:
                     self._meas_error_mitigation_shots is None
                     or self._meas_error_mitigation_shots == self._run_config.shots)
                 temp_run_config = copy.deepcopy(self._run_config)
-                if use_different_shots or is_aer_qasm(self._backend):
+                if use_different_shots:
                     temp_run_config.shots = self._meas_error_mitigation_shots
 
                 cals_qobj, state_labels, circuit_labels = \
@@ -317,7 +317,7 @@ class QuantumInstance:
                                                             self._backend_config,
                                                             self._compile_config,
                                                             temp_run_config)
-                if use_different_shots:
+                if use_different_shots or is_aer_qasm(self._backend):
                     cals_result = run_qobj(cals_qobj, self._backend, self._qjob_config,
                                            self._backend_options,
                                            self._noise_config,
