@@ -1,0 +1,11 @@
+features:
+  - |
+    Simplified `AbelianGrouper` using a graph coloring algorithm of retworkx.
+    It is faster than the numpy-based coloring algorithm.
+upgrade:
+  - |
+    Added retworkx as a new dependency.
+deprecations:
+  - |
+    Ignored `fast` and `use_nx` options of `AbelianGrouper.group_subops` to be removed in the
+    future release.

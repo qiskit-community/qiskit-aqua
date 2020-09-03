@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -14,7 +12,7 @@
 
 """ PrimitiveOp Class """
 
-from typing import Optional, Union, Set, List
+from typing import Optional, Union, Set, List, Dict
 import logging
 import numpy as np
 from scipy.sparse import spmatrix
@@ -207,8 +205,8 @@ class PrimitiveOp(OperatorBase):
         return "{}({}, coeff={})".format(type(self).__name__, repr(self.primitive), self.coeff)
 
     def eval(self,
-             front: Union[str, dict, np.ndarray,
-                          OperatorBase] = None) -> Union[OperatorBase, float, complex]:
+             front: Optional[Union[str, Dict[str, complex], np.ndarray, OperatorBase]] = None
+             ) -> Union[OperatorBase, float, complex]:
         raise NotImplementedError
 
     @property

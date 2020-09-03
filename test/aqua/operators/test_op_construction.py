@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -28,7 +26,7 @@ from qiskit.aqua import AquaError
 from qiskit.circuit import QuantumCircuit, QuantumRegister, Instruction, Parameter, ParameterVector
 
 from qiskit.extensions.exceptions import ExtensionError
-from qiskit.quantum_info.operators import Operator, Pauli
+from qiskit.quantum_info import Operator, Pauli, Statevector
 from qiskit.circuit.library import CZGate, ZGate
 
 from qiskit.aqua.operators import (
@@ -874,6 +872,17 @@ class TestOpConstruction(QiskitAquaTestCase):
 
         params.append(lam)
         self.assertEqual(list_op.parameters, set(params))
+
+    @data(VectorStateFn([1, 0]),
+          DictStateFn({'0': 1}),
+          CircuitStateFn(QuantumCircuit(1)),
+          OperatorStateFn(I),
+          OperatorStateFn(MatrixOp([[1, 0], [0, 1]])),
+          OperatorStateFn(CircuitOp(QuantumCircuit(1))))
+    def test_statefn_eval(self, op):
+        """Test calling eval on StateFn returns the statevector."""
+        expected = Statevector([1, 0])
+        self.assertEqual(op.eval().primitive, expected)
 
 
 class TestOpMethods(QiskitAquaTestCase):

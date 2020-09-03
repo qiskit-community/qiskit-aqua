@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -15,7 +13,7 @@
 """ VectorStateFn Class """
 
 
-from typing import Union, Set, List
+from typing import Union, Set, Optional, Dict, Listt
 import numpy as np
 from qiskit import QuantumCircuit
 
@@ -175,8 +173,11 @@ class VectorStateFn(StateFn):
 
     # pylint: disable=too-many-return-statements
     def eval(self,
-             front: Union[str, dict, np.ndarray,
-                          OperatorBase] = None) -> Union[OperatorBase, float, complex]:
+             front: Optional[Union[str, Dict[str, complex], np.ndarray, OperatorBase]] = None
+             ) -> Union[OperatorBase, float, complex]:
+        if front is None:  # this object is already a VectorStateFn
+            return self
+
         if not self.is_measurement and isinstance(front, OperatorBase):
             raise ValueError(
                 'Cannot compute overlap with StateFn or Operator if not Measurement. Try taking '
