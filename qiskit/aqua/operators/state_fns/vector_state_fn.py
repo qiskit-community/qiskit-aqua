@@ -13,7 +13,7 @@
 """ VectorStateFn Class """
 
 
-from typing import Union, Set, Optional, Dict, Listt
+from typing import Union, Set, Optional, Dict, List
 import numpy as np
 from qiskit import QuantumCircuit
 
