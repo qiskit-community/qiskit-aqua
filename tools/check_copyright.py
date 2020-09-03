@@ -44,14 +44,14 @@ class CopyrightChecker:
         return int(date[:4])
 
     @staticmethod
-    def _format_output(out: str, err: str) -> Tuple[int, Union[None,str]]:
-        out = out.decode('utf-8').strip()
-        err = err.decode('utf-8').strip()
-        err = err if err else None
-        year = CopyrightChecker._get_year_from_date(out)
-        return year, err
+    def _format_output(out: bytes, err: bytes) -> Tuple[int, Union[None, str]]:
+        out_str = out.decode('utf-8').strip()
+        err_str = err.decode('utf-8').strip()
+        err_str = err_str if err_str else None
+        year = CopyrightChecker._get_year_from_date(out_str)
+        return year, err_str
 
-    def _process_file_last_year(self, relative_path: str) -> Tuple[int, Union[None,str]]:
+    def _process_file_last_year(self, relative_path: str) -> Tuple[int, Union[None, str]]:
         # construct minimal environment
         env = {}
         for k in ['SYSTEMROOT', 'PATH']:
@@ -161,7 +161,8 @@ class CopyrightChecker:
 
             if os.path.isfile(fullpath):
                 # check copyright year
-                file_with_utf8, file_with_invalid_year, file_has_header = self.check_copyright(fullpath)
+                file_with_utf8, file_with_invalid_year, file_has_header = \
+                    self.check_copyright(fullpath)
                 if file_with_utf8:
                     files_with_utf8 += 1
                 if file_with_invalid_year:
