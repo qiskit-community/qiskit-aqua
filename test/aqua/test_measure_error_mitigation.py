@@ -246,6 +246,5 @@ class TestMeasurementErrorMitigation(QiskitAquaTestCase):
         self.assertAlmostEqual(result.eigenvalue.real, -1.85727503, places=5)
 
 
-
 if __name__ == '__main__':
     unittest.main()
