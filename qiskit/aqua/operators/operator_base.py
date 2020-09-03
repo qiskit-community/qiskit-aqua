@@ -528,7 +528,7 @@ class OperatorBase(ABC):
         return {k: v[i] for (k, v) in unrolled_dict.items()}
 
     def _expand_shorter_operator_and_permute(self, other: 'OperatorBase',
-                                             permutation: List[int] = None) \
+                                             permutation: Optional[List[int]] = None) \
             -> Tuple['OperatorBase', 'OperatorBase']:
         if permutation is not None:
             other = other.permute(permutation)
