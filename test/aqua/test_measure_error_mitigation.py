@@ -23,7 +23,7 @@ from qiskit import QuantumCircuit
 from qiskit.aqua.components.oracles import LogicalExpressionOracle
 from qiskit.aqua import QuantumInstance, aqua_globals, AquaError
 from qiskit.aqua.algorithms import Grover, VQE
-from qiskit.aqua.operators import I, X, Y ,Z
+from qiskit.aqua.operators import I, X, Z
 from qiskit.aqua.components.optimizers import SPSA
 from qiskit.circuit.library import EfficientSU2
 
