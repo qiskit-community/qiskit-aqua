@@ -19,8 +19,7 @@ import logging
 from typing import Optional
 
 from qiskit.aqua import MissingOptionalLibraryError
-from .optimization_algorithm import (OptimizationResultStatus, OptimizationAlgorithm,
-                                     OptimizationResult)
+from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
 from ..exceptions import QiskitOptimizationError
 from ..problems.quadratic_program import QuadraticProgram
 
@@ -142,7 +141,7 @@ class CplexOptimizer(OptimizationAlgorithm):
         result = OptimizationResult(x=sol.get_values(),
                                     fval=sol.get_objective_value(),
                                     variables=problem.variables,
-                                    raw_results=problem.variables,
+                                    raw_results=sol,
                                     status=self.get_feasibility_status(problem, sol.get_values()))
 
         # return solution

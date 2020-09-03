@@ -28,11 +28,11 @@ from ..problems.quadratic_program import QuadraticProgram, Variable
 class MinimumEigenOptimizationResult(OptimizationResult):
     """ Minimum Eigen Optimizer Result."""
 
-    def __init__(self, x: Union[List[float], np.ndarray], fval: float,
+    def __init__(self, status: OptimizationResultStatus,
+                 x: Union[List[float], np.ndarray], fval: float,
                  variables: List[Variable],
                  samples: List[Tuple[str, float, float]],
-                 min_eigen_solver_result: Optional[MinimumEigensolverResult] = None,
-                 status: OptimizationResultStatus = OptimizationResultStatus.SUCCESS) -> None:
+                 min_eigen_solver_result: Optional[MinimumEigensolverResult] = None) -> None:
         """
         Args:
             x: the optimal value found by ``MinimumEigensolver``.

@@ -53,11 +53,11 @@ class IntermediateResult(Enum):
 
 class RecursiveMinimumEigenOptimizationResult(OptimizationResult):
     """Recursive Eigen Optimizer Result."""
-    def __init__(self, x: Union[List[float], np.ndarray], fval: float,
+    def __init__(self, status: OptimizationResultStatus,
+                 x: Union[List[float], np.ndarray], fval: float,
                  variables: List[Variable],
                  replacements: Dict[str, Tuple[str, int]],
-                 history: Tuple[List[MinimumEigenOptimizationResult], OptimizationResult],
-                 status: OptimizationResultStatus = OptimizationResultStatus.SUCCESS) -> None:
+                 history: Tuple[List[MinimumEigenOptimizationResult], OptimizationResult]) -> None:
         """
         Constructs an instance of the result class.
 

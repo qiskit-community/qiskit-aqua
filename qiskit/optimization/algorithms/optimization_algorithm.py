@@ -110,8 +110,6 @@ class OptimizationAlgorithm(ABC):
         Returns:
             The status of the result.
 
-        Raises:
-            None
         """
         is_feasible = problem.is_feasible(x)
 

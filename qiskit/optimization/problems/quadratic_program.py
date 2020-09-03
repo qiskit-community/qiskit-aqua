@@ -1134,13 +1134,6 @@ class QuadraticProgram:
             elif constraint.sense == ConstraintSense.EQ:
                 satisfied_constraints[constraint.name] = isclose(lhs, constraint.rhs)
 
-        # create a dict containing only unsatisfied variable(s)/constraint(s)
-        final_dict = {k: v for k, v in {**satisfied_variables, **satisfied_constraints}
-                      .items() if not v}
-
-        # debug
-        logger.debug("Violations: %s", final_dict)
-
         is_feasible = (len(satisfied_variables) == len(self._variables) and
                        len(satisfied_constraints) == (len(self._linear_constraints) +
                                                       len(self._quadratic_constraints)))
@@ -1159,8 +1152,6 @@ class QuadraticProgram:
         Returns:
             is_feasible: Whether the solution provided is feasible or not.
 
-        Raises:
-            None
         """
         is_feasible, _, _ = self.get_feasiblity_info(x)
 
