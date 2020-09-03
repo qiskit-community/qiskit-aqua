@@ -15,7 +15,7 @@
 
 import logging
 import sys
-from typing import Optional, List, Tuple, Union
+from typing import Optional, List, Tuple, Union, cast
 
 import numpy as np
 
@@ -77,7 +77,8 @@ class UVCC(VariationalForm):
         self._qubit_mapping = qubit_mapping
         self._num_time_slices = num_time_slices
         if excitations is None:
-            self._excitations = UVCC.compute_excitation_lists(basis, degrees)
+            self._excitations = \
+                cast(List[List[List[int]]], UVCC.compute_excitation_lists(basis, degrees))
         else:
             self._excitations = excitations
 
@@ -101,7 +102,7 @@ class UVCC(VariationalForm):
         return hopping_ops, num_parameters
 
     @staticmethod
-    def _build_hopping_operator(index: List[int], basis: List[int], qubit_mapping: str) \
+    def _build_hopping_operator(index: List[List[int]], basis: List[int], qubit_mapping: str) \
             -> WeightedPauliOperator:
         """
         Builds a hopping operator given the list of indices (index) that is a single, a double
@@ -119,7 +120,7 @@ class UVCC(VariationalForm):
         """
 
         degree = len(index)
-        hml = []
+        hml = []  # type: List[List]
         for _ in range(degree):
             hml.append([])
 
@@ -223,7 +224,7 @@ class UVCC(VariationalForm):
             ValueError: If excitation degree is greater than size of basis
         """
 
-        excitation_list = []
+        excitation_list = []  # type: List[List[int]]
 
         def combine_modes(modes, tmp, results, degree):
 
@@ -245,7 +246,7 @@ class UVCC(VariationalForm):
                 raise ValueError('The degree of excitation cannot be '
                                  'greater than the number of modes')
 
-            combined_modes = []
+            combined_modes = []  # type: List
             modes = []
             for i in range(len(basis)):
                 modes.append(i)

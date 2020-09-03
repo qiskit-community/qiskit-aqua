@@ -54,6 +54,7 @@ bmod
 bohr
 bool
 boolean
+bosonic
 bpa
 brassard
 bravyi
@@ -65,6 +66,7 @@ ccx
 cdf
 cdot
 ceil
+chc
 chernoff
 chu
 chuang's
@@ -156,6 +158,7 @@ ecc
 eckstein
 ee
 eigen
+eigenenergies
 eigensolver
 eigensolvers
 eigenstate
@@ -302,6 +305,7 @@ izaac
 jac
 jacobian
 jb
+jcf
 ji
 jl
 jordan
@@ -329,6 +333,7 @@ len
 leq
 lhs
 libname
+Libor
 lih
 lijh
 lin
@@ -359,6 +364,7 @@ maxfun
 maxima
 maxiter
 maxiters
+McArdle
 mccluskey
 mct
 mdl
@@ -432,6 +438,7 @@ observables
 oe
 oi
 ok
+Ollitrault
 onee
 online
 onwards
@@ -522,6 +529,7 @@ quantile
 quantized
 quantumcircuit
 quantumregister
+quartic
 qubit
 qubitization
 qubits
@@ -681,17 +689,22 @@ upperbound
 username
 usr
 utils
+uvcc
 vals
 varform
 variational
 vartype
 vazirani
+vecs
+Veis
 vertices
+vibrational
 ville
 visualisation
 vqc
 vqe
 vqe's
+vscf
 watrous's
 wavefunction
 wavefunctions

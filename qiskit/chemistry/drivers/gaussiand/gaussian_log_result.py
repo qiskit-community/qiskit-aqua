@@ -194,7 +194,7 @@ class GaussianLogResult:
     @staticmethod
     def _multinomial(indices: List[int]) -> float:
         # For a given list of integers, computes the associated multinomial
-        tmp = set(indices)  # Set of uniques indices
+        tmp = set(indices)  # Set of unique indices
         multinomial = 1
         for val in tmp:
             count = indices.count(val)
@@ -307,8 +307,8 @@ class GaussianLogResult:
         class to be mapped to a qubit hamiltonian.
         Args:
             num_modals: number of modals per mode
-            truncation_order: where is the Hamiltonian expansion trunctation (1 for having only
-                            1-body terms, 2 for having on 1- and 2-body terms...)
+            truncation_order: where is the Hamiltonian expansion truncation (1 for having only
+                              1-body terms, 2 for having on 1- and 2-body terms...)
             threshold: the matrix elements of value below this threshold are discarded
 
         Returns:

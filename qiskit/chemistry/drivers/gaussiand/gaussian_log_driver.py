@@ -97,11 +97,11 @@ class GaussianLogDriver:
             process = Popen(GAUSSIAN_16, stdin=PIPE, stdout=PIPE, universal_newlines=True)
             stdout, _ = process.communicate(cfg)
             process.wait()
-        except Exception:
+        except Exception as ex:
             if process is not None:
                 process.kill()
 
-            raise QiskitChemistryError('{} run has failed'.format(GAUSSIAN_16_DESC))
+            raise QiskitChemistryError('{} run has failed'.format(GAUSSIAN_16_DESC)) from ex
 
         if process.returncode != 0:
             errmsg = ""
