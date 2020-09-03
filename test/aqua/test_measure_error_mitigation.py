@@ -243,7 +243,7 @@ class TestMeasurementErrorMitigation(QiskitAquaTestCase):
             optimizer=optimizer,
         )
         result = vqe.compute_minimum_eigenvalue()
-        self.assertAlmostEqual(result.eigenvalue.real, -1.85727503, places=5)
+        self.assertAlmostEqual(result.eigenvalue.real, -1.86, places=2)
 
 
 if __name__ == '__main__':
