@@ -200,7 +200,7 @@ class GaussianLogResult:
         return multinomial
 
     def _process_entry_indices(self, entry: List[Union[str, float]]) -> List[int]:
-        # a2h gives us say '3a' -> 1, '3b' -> 2 etc. The H values can be 1 thru 4
+        # a2h gives us say '3a' -> 1, '3b' -> 2 etc. The H values can be 1 through 4
         # but we want them numbered in reverse order so the 'a2h_vals + 1 - a2h[x]'
         # takes care of this
         a2h = self.a_to_h_numbering
@@ -303,6 +303,7 @@ class GaussianLogResult:
         This prepares an array object representing a bosonic hamiltonian expressed
         in the harmonic basis. This object can directly be given to the BosonicOperator
         class to be mapped to a qubit hamiltonian.
+
         Args:
             num_modals: number of modals per mode
             truncation_order: where is the Hamiltonian expansion truncation (1 for having only
