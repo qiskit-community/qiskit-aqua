@@ -82,7 +82,6 @@ class CircuitSampler(ConverterBase):
         self._circuit_ops_cache = {}  # type: Dict[int, CircuitStateFn]
         self._transpiled_circ_cache = None  # type: Optional[List[Any]]
         self._transpiled_circ_templates = None  # type: Optional[List[Any]]
-        self._last_ready_circ = None  # type: Optional[List[Any]]
         self._transpile_before_bind = True
         self._binding_mappings = None
 
@@ -353,14 +352,14 @@ class CircuitSampler(ConverterBase):
             self._transpiled_circ_templates = [circ.assign_parameters(param_bindings[0])
                                                for circ in self._transpiled_circ_cache]
 
-        self._last_ready_circ = []
+        ready_circ = []
         for circ, temp in zip(self._transpiled_circ_cache, self._transpiled_circ_templates):
             for param_binding in param_bindings:
                 self.quantum_instance._run_config.parameterizations.append(
                     self._generate_aer_params(circ, param_binding))
-                self._last_ready_circ.append(temp)
+                ready_circ.append(temp)
 
-        return self._last_ready_circ
+        return ready_circ
 
     def _clean_parameterized_run_config(self) -> None:
         self.quantum_instance._run_config.parameterizations = []
