@@ -216,7 +216,7 @@ class TestAerPauliExpectation(QiskitAquaTestCase):
 
         sampler1 = CircuitSampler(backend=q_instance, param_qobj=False)
         samples1 = sampler1.convert(expect_op, params=params1)
-        val1 = np.real(samples1.eval())
+        val1 = np.real(samples1.eval())[0]
         samples2 = sampler1.convert(expect_op, params=params2)
         val2 = np.real(samples2.eval())
         sampler2 = CircuitSampler(backend=q_instance, param_qobj=True)
@@ -225,11 +225,9 @@ class TestAerPauliExpectation(QiskitAquaTestCase):
         samples4 = sampler2.convert(expect_op, params=params2)
         val4 = np.real(samples4.eval())
 
-        self.assertAlmostEqual(val1[0], val2[0], delta=.1)
-        self.assertAlmostEqual(val1[0], val2[1], delta=.1)
-        self.assertAlmostEqual(val1[0], val3[0], delta=.1)
-        self.assertAlmostEqual(val1[0], val4[0], delta=.1)
-        self.assertAlmostEqual(val1[0], val4[1], delta=.1)
+        np.testing.assert_array_almost_equal([val1] * 2, val2, decimal=2)
+        np.testing.assert_array_almost_equal(val1, val3, decimal=2)
+        np.testing.assert_array_almost_equal([val1] * 2, val4, decimal=2)
 
 
 if __name__ == '__main__':
