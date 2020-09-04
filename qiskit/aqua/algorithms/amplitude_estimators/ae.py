@@ -23,7 +23,6 @@ from scipy.optimize import bisect
 from qiskit import QuantumCircuit
 from qiskit.circuit.library import QFT
 from qiskit.providers import BaseBackend
-from qiskit.result.counts import Counts
 from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.utils import CircuitFactory
 from qiskit.aqua.circuits import PhaseEstimationCircuit
@@ -460,9 +459,9 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         result.shots = self._ret['shots']
         result.mle = self._ret['mle']
         if 'statevector' in self._ret:
-            result.statevector = self._ret['statevector']
-        if 'counts' in self._ret:
-            result.counts = self._ret['counts']
+            result.cct_result = self._ret['statevector']
+        elif 'counts' in self._ret:
+            result.cct_result = dict(self._ret['counts'])
         result.a_items = self._ret['a_items']
         result.y_items = self._ret['y_items']
         result.mapped_values = self._ret['mapped_values']
@@ -524,24 +523,14 @@ class AmplitudeEstimationResult(AmplitudeEstimationAlgorithmResult):
         self.data['mle'] = value
 
     @property
-    def statevector(self) -> Optional[np.ndarray]:
-        """ return statevector """
-        return self.get('statevector')
+    def cct_result(self) -> Optional[Union[np.ndarray, Dict[str, int]]]:
+        """ return cct_results """
+        return self.get('cct_result')
 
-    @statevector.setter
-    def statevector(self, value: np.ndarray) -> None:
-        """ set statevector """
-        self.data['statevector'] = value
-
-    @property
-    def counts(self) -> Optional[Counts]:
-        """ return counts """
-        return self.get('counts')
-
-    @counts.setter
-    def counts(self, value: Counts) -> None:
-        """ set counts """
-        self.data['counts'] = value
+    @cct_result.setter
+    def cct_result(self, value: Union[np.ndarray, Dict[str, int]]) -> None:
+        """ set cct_results """
+        self.data['cct_result'] = value
 
     @property
     def a_items(self) -> List[Tuple[float, float]]:
@@ -589,7 +578,13 @@ class AmplitudeEstimationResult(AmplitudeEstimationAlgorithmResult):
         return AmplitudeEstimationResult(a_dict)
 
     def __getitem__(self, key: object) -> object:
-        if key == 'values':
+        if key == 'statevector':
+            warnings.warn('statevector deprecated, use cct_result property.', DeprecationWarning)
+            return super().__getitem__('cct_result')
+        elif key == 'counts':
+            warnings.warn('counts deprecated, use cct_result property.', DeprecationWarning)
+            return super().__getitem__('cct_result')
+        elif key == 'values':
             warnings.warn('values deprecated, use ret_values property.', DeprecationWarning)
             return super().__getitem__('ret_values')
 

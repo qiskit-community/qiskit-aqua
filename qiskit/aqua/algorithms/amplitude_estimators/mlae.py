@@ -12,6 +12,7 @@
 """The Maximum Likelihood Amplitude Estimation algorithm."""
 
 from typing import Optional, List, Union, Tuple, Dict, Any
+import warnings
 import logging
 import numpy as np
 from scipy.optimize import brute
@@ -453,9 +454,9 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         result = MaximumLikelihoodAmplitudeEstimationResult()
         result.combine(ae_result)
         if 'statevectors' in self._ret:
-            result.statevectors = self._ret['statevectors']
-        if 'counts' in self._ret:
-            result.counts = self._ret['counts']
+            result.cct_results = self._ret['statevectors']
+        elif 'counts' in self._ret:
+            result.cct_results = self._ret['counts']
         result.theta = self._ret['theta']
         result.fisher_information = self._ret['fisher_information']
         return result
@@ -465,24 +466,14 @@ class MaximumLikelihoodAmplitudeEstimationResult(AmplitudeEstimationAlgorithmRes
     """ MaximumLikelihoodAmplitudeEstimation Result."""
 
     @property
-    def statevectors(self) -> Optional[List[np.ndarray]]:
-        """ return statevectors """
-        return self.get('statevectors')
+    def cct_results(self) -> Optional[Union[List[np.ndarray], List[Dict[str, int]]]]:
+        """ return cct_results """
+        return self.get('cct_results')
 
-    @statevectors.setter
-    def statevectors(self, value: List[np.ndarray]) -> None:
-        """ set statevectors """
-        self.data['statevectors'] = value
-
-    @property
-    def counts(self) -> Union[List[Dict[str, int]]]:
-        """ return counts """
-        return self.get('counts')
-
-    @counts.setter
-    def counts(self, value: List[Dict[str, int]]) -> None:
-        """ set counts """
-        self.data['counts'] = value
+    @cct_results.setter
+    def cct_results(self, value: Union[List[np.ndarray], List[Dict[str, int]]]) -> None:
+        """ set cct_results """
+        self.data['cct_results'] = value
 
     @property
     def theta(self) -> float:
@@ -508,3 +499,13 @@ class MaximumLikelihoodAmplitudeEstimationResult(AmplitudeEstimationAlgorithmRes
     def from_dict(a_dict: Dict) -> 'MaximumLikelihoodAmplitudeEstimationResult':
         """ create new object from a dictionary """
         return MaximumLikelihoodAmplitudeEstimationResult(a_dict)
+
+    def __getitem__(self, key: object) -> object:
+        if key == 'statevectors':
+            warnings.warn('statevectors deprecated, use cct_results property.', DeprecationWarning)
+            return super().__getitem__('cct_results')
+        elif key == 'counts':
+            warnings.warn('counts deprecated, use cct_results property.', DeprecationWarning)
+            return super().__getitem__('cct_results')
+
+        return super().__getitem__(key)

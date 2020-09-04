@@ -22,7 +22,6 @@ import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 from qiskit.qasm import pi
 from qiskit.providers import BaseBackend
-from qiskit.result.counts import Counts
 
 from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.utils import get_subsystem_density_matrix
@@ -305,7 +304,7 @@ class Grover(QuantumAlgorithm):
 
         result = GroverResult()
         if 'measurement' in self._ret:
-            result.measurement = self._ret['measurement']
+            result.measurement = dict(self._ret['measurement'])
         if 'top_measurement' in self._ret:
             result.top_measurement = self._ret['top_measurement']
         if 'circuit' in self._ret:
@@ -319,12 +318,12 @@ class GroverResult(AlgorithmResult):
     """ Grover Result."""
 
     @property
-    def measurement(self) -> Optional[Counts]:
+    def measurement(self) -> Optional[Dict[str, int]]:
         """ returns measurement """
         return self.get('measurement')
 
     @measurement.setter
-    def measurement(self, value: Counts) -> None:
+    def measurement(self, value: Dict[str, int]) -> None:
         """ set measurement """
         self.data['measurement'] = value
 
