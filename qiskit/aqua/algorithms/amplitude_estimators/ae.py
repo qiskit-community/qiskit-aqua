@@ -524,7 +524,7 @@ class AmplitudeEstimationResult(AmplitudeEstimationAlgorithmResult):
         self.data['mle'] = value
 
     @property
-    def statevector(self) -> Union[None, np.ndarray]:
+    def statevector(self) -> Optional[np.ndarray]:
         """ return statevector """
         return self.get('statevector')
 
@@ -534,7 +534,7 @@ class AmplitudeEstimationResult(AmplitudeEstimationAlgorithmResult):
         self.data['statevector'] = value
 
     @property
-    def counts(self) -> Union[None, Counts]:
+    def counts(self) -> Optional[Counts]:
         """ return counts """
         return self.get('counts')
 

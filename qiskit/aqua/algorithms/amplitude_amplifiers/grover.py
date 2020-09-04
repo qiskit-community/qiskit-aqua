@@ -319,7 +319,7 @@ class GroverResult(AlgorithmResult):
     """ Grover Result."""
 
     @property
-    def measurement(self) -> Union[None, Counts]:
+    def measurement(self) -> Optional[Counts]:
         """ returns measurement """
         return self.get('measurement')
 
@@ -329,7 +329,7 @@ class GroverResult(AlgorithmResult):
         self.data['measurement'] = value
 
     @property
-    def top_measurement(self) -> Union[None, str]:
+    def top_measurement(self) -> Optional[str]:
         """ return top measurement """
         return self.get('top_measurement')
 
@@ -339,7 +339,7 @@ class GroverResult(AlgorithmResult):
         self.data['top_measurement'] = value
 
     @property
-    def circuit(self) -> Union[None, QuantumCircuit]:
+    def circuit(self) -> Optional[QuantumCircuit]:
         """ return circuit """
         return self.get('circuit')
 
