@@ -14,6 +14,7 @@
 
 import itertools
 import unittest
+from test.aqua import QiskitAquaTestCase
 
 import numpy as np
 
@@ -23,7 +24,6 @@ from qiskit.aqua.operators import (X, Y, Z, I, CX, H, S,
                                    AerPauliExpectation, CircuitSampler, CircuitStateFn,
                                    PauliExpectation)
 from qiskit.circuit.library import RealAmplitudes
-from test.aqua import QiskitAquaTestCase
 
 
 class TestAerPauliExpectation(QiskitAquaTestCase):
