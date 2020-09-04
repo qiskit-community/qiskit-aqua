@@ -214,12 +214,12 @@ class TestAerPauliExpectation(QiskitAquaTestCase):
             params1[param] = [0]
             params2[param] = [0, 0]
 
-        sampler1 = CircuitSampler(backend=q_instance, param_qobj=True)
+        sampler1 = CircuitSampler(backend=q_instance, param_qobj=False)
         samples1 = sampler1.convert(expect_op, params=params1)
         val1 = np.real(samples1.eval())
         samples2 = sampler1.convert(expect_op, params=params2)
         val2 = np.real(samples2.eval())
-        sampler2 = CircuitSampler(backend=q_instance, param_qobj=False)
+        sampler2 = CircuitSampler(backend=q_instance, param_qobj=True)
         samples3 = sampler2.convert(expect_op, params=params1)
         val3 = np.real(samples3.eval())
         samples4 = sampler2.convert(expect_op, params=params2)
