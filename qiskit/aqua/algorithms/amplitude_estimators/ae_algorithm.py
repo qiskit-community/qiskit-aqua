@@ -60,7 +60,7 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
 
     @abstractmethod
     def __init__(self,
-                 state_in: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
+                 state_preparation: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
                  grover_operator: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
                  objective_qubits: Optional[Union[callable, List[int]]] = None,
                  post_processing: Optional[Callable[[float], float]] = None,
@@ -70,7 +70,7 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
                  i_objective: Optional[int] = None) -> None:
         r"""
         Args:
-            state_in: The :math:`\mathcal{A}` operator, specifying the QAE problem.
+            state_preparation: The :math:`\mathcal{A}` operator, specifying the QAE problem.
             grover_operator: The :math:`\mathcal{Q}` operator (Grover operator), constructed from
                 the :math:`\mathcal{A}` operator.
             objective_qubits: A list of qubit indices. A measurement outcome is classified as
@@ -79,19 +79,20 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
             post_processing: A mapping applied to the estimate of :math:`0 \leq a \leq 1`,
                 usually used to map the estimate to a target interval.
             quantum_instance: The backend (or `QuantumInstance`) to execute the circuits on.
-            a_factory: Deprecated, use ``state_in``. The A operator, specifying the QAE problem.
+            a_factory: Deprecated, use ``state_preparation``. The A operator, specifying the QAE
+                problem.
             q_factory: Deprecated, use ``grover_operator``.
                 The Q operator (Grover operator), constructed from the A operator.
             i_objective: Deprecated use ``objective_qubits``.
                 Index of the objective qubit, that marks the 'good/bad' states
         """
-        # self._a_factory = state_in
+        # self._a_factory = state_preparation
         # self._q_factory = grover_operator
         self._a_factory = None
         self._q_factory = None
         self._i_objective = None
 
-        if isinstance(state_in, CircuitFactory) or a_factory is not None:
+        if isinstance(state_preparation, CircuitFactory) or a_factory is not None:
             warnings.warn('Passing a CircuitFactory as A operator is deprecated as of 0.8.0, '
                           'this feature will be removed no earlier than 3 months after the release.'
                           'You should pass a QuantumCircuit instead.',
@@ -115,29 +116,29 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
         else:
             self._objective_qubits = objective_qubits
 
-        self._state_in = state_in
+        self._state_preparation = state_preparation
         self._grover_operator = grover_operator
         self._post_processing = (lambda x: x) if post_processing is None else post_processing
 
         super().__init__(quantum_instance)
 
     @property
-    def state_in(self) -> QuantumCircuit:
+    def state_preparation(self) -> QuantumCircuit:
         r"""Get the :math:`\mathcal{A}` operator encoding the amplitude :math:`a`.
 
         Returns:
             The :math:`\mathcal{A}` operator as `QuantumCircuit`.
         """
-        return self._state_in
+        return self._state_preparation
 
-    @state_in.setter
-    def state_in(self, state_in: QuantumCircuit) -> None:
+    @state_preparation.setter
+    def state_preparation(self, state_preparation: QuantumCircuit) -> None:
         r"""Set the :math:`\mathcal{A}` operator, that encodes the amplitude to be estimated.
 
         Args:
-            state_in: The new :math:`\mathcal{A}` operator.
+            state_preparation: The new :math:`\mathcal{A}` operator.
         """
-        self._state_in = state_in
+        self._state_preparation = state_preparation
 
     @property
     def grover_operator(self) -> Optional[QuantumCircuit]:
@@ -153,16 +154,17 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
         if self._grover_operator is not None:
             return self._grover_operator
 
-        if self.state_in is not None and isinstance(self.objective_qubits, list):
+        if self.state_preparation is not None and isinstance(self.objective_qubits, list):
             from qiskit.aqua.components.uncertainty_problems.bit_oracle import BitOracle
             from qiskit.aqua.components.uncertainty_problems.grover_operator import GroverOperator
 
             # build the reflection about the bad state
-            num_state_qubits = self.state_in.num_qubits - self.state_in.num_ancillas
+            num_state_qubits = self.state_preparation.num_qubits \
+                - self.state_preparation.num_ancillas
             oracle = BitOracle(num_state_qubits, objective_qubits=self.objective_qubits)
 
             # construct the grover operator
-            return GroverOperator(oracle, self.state_in)
+            return GroverOperator(oracle, self.state_preparation)
 
         return None
 
@@ -186,8 +188,8 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
             return self._objective_qubits
 
         # by default the last qubit of the input state is the objective qubit
-        if self._state_in is not None:
-            return [self._state_in.num_qubits - 1]
+        if self._state_preparation is not None:
+            return [self._state_preparation.num_qubits - 1]
 
         # check the deprecated locations (cannot use property since this emits a warning)
         if self._i_objective is not None:
@@ -233,32 +235,33 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
             CircuitFactory: the A operator as CircuitFactory
         """
         warnings.warn('The a_factory property is deprecated as of 0.8.0 and will be removed no '
-                      'earlier than 3 months after the release. You should use the state_in '
-                      'property instead.', DeprecationWarning, stacklevel=2)
+                      'earlier than 3 months after the release. You should use the '
+                      'state_preparation property instead.', DeprecationWarning, stacklevel=2)
         return self._a_factory
 
     @a_factory.setter
     def a_factory(self, a_factory):
-        """
-        Set the A operator, that encodes the amplitude to be estimated.
+        """Set the A operator, that encodes the amplitude to be estimated.
 
         Args:
             a_factory (CircuitFactory): the A Operator
         """
         warnings.warn('The a_factory setter is deprecated as of 0.8.0 and will be removed no '
-                      'earlier than 3 months after the release. You should use the state_in '
-                      'setter instead, which takes a QuantumCircuit instead of a CircuitFactory.',
-                      DeprecationWarning, stacklevel=2)
+                      'earlier than 3 months after the release. You should use the '
+                      'state_preparation setter instead, which takes a QuantumCircuit instead of '
+                      'a CircuitFactory.', DeprecationWarning, stacklevel=2)
         self._a_factory = a_factory
 
     @property
     def q_factory(self):
-        r"""
-        Get the Q operator, or Grover-operator for the Amplitude Estimation algorithm, i.e.
+        r"""Get the Q operator, or Grover-operator for the Amplitude Estimation algorithm, i.e.
 
-            Q = -A S_0 A^{-1} S_psi0,
+        .. math::
 
-        where S_0 reflects about the \|0>_n state and S_psi0 reflects about \|psi_0>_n.
+            \mathcal{Q} = \mathcal{A} \mathcal{S}_0 \mathcal{A}^\dagger \mathcal{S}_f,
+
+        where :math:`\mathcal{S}_0` reflects about the \|0>_n state and S_psi0 reflects about
+        :math:`|\Psi_0\rangle_n`.
         See https://arxiv.org/abs/quant-ph/0005055 for more detail.
 
         If the Q operator is not set, we try to build it from the A operator.

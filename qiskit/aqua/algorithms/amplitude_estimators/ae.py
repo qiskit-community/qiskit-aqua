@@ -50,7 +50,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
     """
 
     def __init__(self, num_eval_qubits: int,
-                 state_in: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
+                 state_preparation: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
                  grover_operator: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
                  objective_qubits: Optional[List[int]] = None,
                  post_processing: Optional[Callable[[float], float]] = None,
@@ -64,7 +64,8 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         r"""
         Args:
             num_eval_qubits: Number of evaluation qubits, has a min. value of 1.
-            state_in: A circuit preparing the input state, referred to as :math:`\mathcal{A}`.
+            state_preparation: A circuit preparing the input state, referred to as
+                :math:`\mathcal{A}`.
             grover_operator: The Grover operator :math:`\mathcal{Q}` used as unitary in the
                 phase estimation circuit.
             objective_qubits: A list of qubit indices. A measurement outcome is classified as
@@ -78,7 +79,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
             iqft: The inverse quantum Fourier transform component, defaults to using a standard
                 implementation from `qiskit.circuit.library.QFT` when None.
             quantum_instance: The backend (or `QuantumInstance`) to execute the circuits on.
-            a_factory: Deprecated, use ``state_in``.
+            a_factory: Deprecated, use ``state_preparation``.
                 The CircuitFactory subclass object representing the problem unitary.
             q_factory: Deprecated, use ``grover_operator``.
                 The CircuitFactory subclass object representing an amplitude estimation
@@ -91,9 +92,9 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         validate_min('num_eval_qubits', num_eval_qubits, 1)
 
         # support legacy input if passed as positional arguments
-        if isinstance(state_in, CircuitFactory):
-            a_factory = state_in
-            state_in = None
+        if isinstance(state_preparation, CircuitFactory):
+            a_factory = state_preparation
+            state_preparation = None
 
         if isinstance(grover_operator, CircuitFactory):
             q_factory = grover_operator
@@ -103,7 +104,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
             i_objective = objective_qubits
             objective_qubits = None
 
-        super().__init__(state_in=state_in,
+        super().__init__(state_preparation=state_preparation,
                          grover_operator=grover_operator,
                          objective_qubits=objective_qubits,
                          post_processing=post_processing,
@@ -131,7 +132,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         Returns:
             The QuantumCircuit object for the constructed circuit.
         """
-        if self.state_in is None:  # circuit factories
+        if self.state_preparation is None:  # circuit factories
             iqft = QFT(self._m, do_swaps=False, inverse=True) if self._iqft is None else self._iqft
             pec = PhaseEstimationCircuit(
                 iqft=iqft, num_ancillae=self._m,
@@ -147,8 +148,8 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 pec = PhaseEstimation(self._m, self.grover_operator, iqft=self._iqft)
 
             self._circuit = QuantumCircuit(*pec.qregs)
-            self._circuit.compose(self.state_in,
-                                  list(range(self._m, self._m + self.state_in.num_qubits)),
+            self._circuit.compose(self.state_preparation,
+                                  list(range(self._m, self._m + self.state_preparation.num_qubits)),
                                   inplace=True)
             self._circuit.compose(pec, inplace=True)
 
@@ -412,8 +413,8 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         self._ret['mle'] = val_opt
 
     def _run(self) -> dict:
-        # check if A factory or state_in has been set
-        if self.state_in is None:
+        # check if A factory or state_preparation has been set
+        if self.state_preparation is None:
             if self.a_factory is None:  # getter emits deprecation warnings, therefore nest
                 raise AquaError('The A operator must be set!')
 

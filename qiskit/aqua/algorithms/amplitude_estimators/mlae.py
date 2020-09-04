@@ -42,7 +42,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
     """
 
     def __init__(self, num_oracle_circuits: int,
-                 state_in: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
+                 state_preparation: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
                  grover_operator: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
                  objective_qubits: Optional[List[int]] = None,
                  post_processing: Optional[Callable[[float], float]] = None,
@@ -58,7 +58,8 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 `[id, Q^2^0, ..., Q^2^{num_oracle_circuits-1}] A |0>`, where A is the problem
                 unitary encoded in the argument `a_factory`.
                 Has a minimum value of 1.
-            state_in: A circuit preparing the input state, referred to as :math:`\mathcal{A}`.
+            state_preparation: A circuit preparing the input state, referred to as
+                :math:`\mathcal{A}`.
             grover_operator: The Grover operator :math:`\mathcal{Q}` used as unitary in the
                 phase estimation circuit.
             objective_qubits: A list of qubit indices. A measurement outcome is classified as
@@ -78,9 +79,9 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         validate_min('num_oracle_circuits', num_oracle_circuits, 1)
 
         # support legacy input if passed as positional arguments
-        if isinstance(state_in, CircuitFactory):
-            a_factory = state_in
-            state_in = None
+        if isinstance(state_preparation, CircuitFactory):
+            a_factory = state_preparation
+            state_preparation = None
 
         if isinstance(grover_operator, CircuitFactory):
             q_factory = grover_operator
@@ -90,7 +91,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             i_objective = objective_qubits
             objective_qubits = None
 
-        super().__init__(state_in=state_in,
+        super().__init__(state_preparation=state_preparation,
                          grover_operator=grover_operator,
                          objective_qubits=objective_qubits,
                          post_processing=post_processing,
@@ -140,8 +141,8 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         self._ret['num_oracle_queries'] = 0
         self._circuits = []
 
-        if self.state_in is not None:   # using circuits, not CircuitFactory
-            num_qubits = max(self.state_in.num_qubits, self.grover_operator.num_qubits)
+        if self.state_preparation is not None:   # using circuits, not CircuitFactory
+            num_qubits = max(self.state_preparation.num_qubits, self.grover_operator.num_qubits)
             q = QuantumRegister(num_qubits, 'q')
             qc_0 = QuantumCircuit(q, name='qc_a')  # 0 applications of Q, only a single A operator
 
@@ -150,7 +151,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 c = ClassicalRegister(len(self.objective_qubits))
                 qc_0.add_register(c)
 
-            qc_0.compose(self.state_in, inplace=True)
+            qc_0.compose(self.state_preparation, inplace=True)
 
             for k in self._evaluation_schedule:
                 qc_k = qc_0.copy(name='qc_a_q_%s' % k)
@@ -475,8 +476,8 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         return self._compute_mle_safe()
 
     def _run(self) -> dict:
-        # check if A factory or state_in has been set
-        if self.state_in is None:
+        # check if A factory or state_preparation has been set
+        if self.state_preparation is None:
             if self.a_factory is None:  # getter emits deprecation warnings, therefore nest
                 raise AquaError('The A operator must be set!')
 

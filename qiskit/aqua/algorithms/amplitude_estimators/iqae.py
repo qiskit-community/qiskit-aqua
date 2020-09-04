@@ -44,7 +44,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
     def __init__(self, epsilon: float, alpha: float,
                  confint_method: str = 'beta', min_ratio: float = 2,
-                 state_in: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
+                 state_preparation: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
                  grover_operator: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
                  objective_qubits: Optional[List[int]] = None,
                  post_processing: Optional[Callable[[float], float]] = None,
@@ -65,7 +65,8 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 each iteration, can be 'chernoff' for the Chernoff intervals or 'beta' for the
                 Clopper-Pearson intervals (default)
             min_ratio: Minimal q-ratio (K_{i+1} / K_i) for FindNextK
-            state_in: A circuit preparing the input state, referred to as :math:`\mathcal{A}`.
+            state_preparation: A circuit preparing the input state, referred to as
+                :math:`\mathcal{A}`.
             grover_operator: The Grover operator :math:`\mathcal{Q}` used as unitary in the
                 phase estimation circuit.
             objective_qubits: A list of qubit indices. A measurement outcome is classified as
@@ -89,9 +90,9 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         validate_in_set('confint_method', confint_method, {'chernoff', 'beta'})
 
         # support legacy input if passed as positional arguments
-        if isinstance(state_in, CircuitFactory):
-            a_factory = state_in
-            state_in = None
+        if isinstance(state_preparation, CircuitFactory):
+            a_factory = state_preparation
+            state_preparation = None
 
         if isinstance(grover_operator, CircuitFactory):
             q_factory = grover_operator
@@ -101,7 +102,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             i_objective = objective_qubits
             objective_qubits = None
 
-        super().__init__(state_in=state_in,
+        super().__init__(state_preparation=state_preparation,
                          grover_operator=grover_operator,
                          objective_qubits=objective_qubits,
                          post_processing=post_processing,
@@ -203,8 +204,8 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         Returns:
             The circuit Q^k A \|0>.
         """
-        if self.state_in is not None:   # using circuits, not CircuitFactory
-            num_qubits = max(self.state_in.num_qubits, self.grover_operator.num_qubits)
+        if self.state_preparation is not None:   # using circuits, not CircuitFactory
+            num_qubits = max(self.state_preparation.num_qubits, self.grover_operator.num_qubits)
             circuit = QuantumCircuit(num_qubits, name='circuit')
 
             if self._initial_state is not None:
@@ -216,7 +217,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 circuit.add_register(c)
 
             # add A operator
-            circuit.compose(self.state_in, inplace=True)
+            circuit.compose(self.state_preparation, inplace=True)
 
             # add Q^k
             if k != 0:
@@ -269,8 +270,8 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             If a dict is given, return (#one-counts, #one-counts/#all-counts),
             otherwise Pr(measure '1' in the last qubit).
         """
-        if self.state_in is not None:
-            num_qubits = self.state_in.num_qubits - self.state_in.num_ancillas
+        if self.state_preparation is not None:
+            num_qubits = self.state_preparation.num_qubits - self.state_preparation.num_ancillas
         else:
             num_qubits = self.a_factory.num_target_qubits
 
@@ -338,8 +339,8 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         return lower, upper
 
     def _run(self) -> dict:
-        # check if A factory or state_in has been set
-        if self.state_in is None:
+        # check if A factory or state_preparation has been set
+        if self.state_preparation is None:
             if self.a_factory is None:  # getter emits deprecation warnings, therefore nest
                 raise AquaError('The A operator must be set!')
 

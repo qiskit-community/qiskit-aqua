@@ -109,7 +109,7 @@ class TestBernoulli(QiskitAquaTestCase):
     def test_statevector(self, prob, qae, expect):
         """ statevector test """
         # construct factories for A and Q
-        qae.state_in = BernoulliStateIn(prob)
+        qae.state_preparation = BernoulliStateIn(prob)
         qae.grover_operator = BernoulliGrover(prob)
 
         result = qae.run(self._statevector)
@@ -128,7 +128,7 @@ class TestBernoulli(QiskitAquaTestCase):
     def test_qasm(self, prob, shots, qae, expect):
         """ qasm test """
         # construct factories for A and Q
-        qae.state_in = BernoulliStateIn(prob)
+        qae.state_preparation = BernoulliStateIn(prob)
         qae.grover_operator = BernoulliGrover(prob)
 
         result = qae.run(self._qasm(shots))
@@ -171,9 +171,9 @@ class TestBernoulli(QiskitAquaTestCase):
                 oracle.z(0)
                 oracle.x(0)
 
-                state_in = QuantumCircuit(1)
-                state_in.ry(angle, 0)
-                grover_op = GroverOperator(oracle, state_in)
+                state_preparation = QuantumCircuit(1)
+                state_preparation.ry(angle, 0)
+                grover_op = GroverOperator(oracle, state_preparation)
                 for power in range(m):
                     circuit.compose(grover_op.power(2 ** power).control(),
                                     qubits=[qr_eval[power], qr_objective[0]],
@@ -196,7 +196,7 @@ class TestBernoulli(QiskitAquaTestCase):
         prob = 0.5
 
         for k in [2, 5]:
-            qae = IterativeAmplitudeEstimation(0.01, 0.05, state_in=BernoulliStateIn(prob))
+            qae = IterativeAmplitudeEstimation(0.01, 0.05, state_preparation=BernoulliStateIn(prob))
             angle = 2 * np.arcsin(np.sqrt(prob))
 
             # manually set up the inefficient AE circuit
@@ -215,9 +215,9 @@ class TestBernoulli(QiskitAquaTestCase):
                 oracle.x(0)
                 oracle.z(0)
                 oracle.x(0)
-                state_in = QuantumCircuit(1)
-                state_in.ry(angle, 0)
-                grover_op = GroverOperator(oracle, state_in)
+                state_preparation = QuantumCircuit(1)
+                state_preparation.ry(angle, 0)
+                grover_op = GroverOperator(oracle, state_preparation)
                 for _ in range(k):
                     circuit.compose(grover_op, inplace=True)
 
@@ -230,7 +230,7 @@ class TestBernoulli(QiskitAquaTestCase):
         prob = 0.5
 
         for k in [2, 5]:
-            qae = MaximumLikelihoodAmplitudeEstimation(k, state_in=BernoulliStateIn(prob))
+            qae = MaximumLikelihoodAmplitudeEstimation(k, state_preparation=BernoulliStateIn(prob))
             angle = 2 * np.arcsin(np.sqrt(prob))
 
             # compute all the circuits used for MLAE
@@ -260,9 +260,9 @@ class TestBernoulli(QiskitAquaTestCase):
                     oracle.x(0)
                     oracle.z(0)
                     oracle.x(0)
-                    state_in = QuantumCircuit(1)
-                    state_in.ry(angle, 0)
-                    grover_op = GroverOperator(oracle, state_in)
+                    state_preparation = QuantumCircuit(1)
+                    state_preparation.ry(angle, 0)
+                    grover_op = GroverOperator(oracle, state_preparation)
                     for _ in range(2**power):
                         circuit.compose(grover_op, inplace=True)
 
@@ -300,34 +300,34 @@ class TestProblemSetting(QiskitAquaTestCase):
     @unpack
     def test_operators(self, qae):
         """ Test if A/Q operator + i_objective set correctly """
-        self.assertIsNone(qae.state_in)
+        self.assertIsNone(qae.state_preparation)
         self.assertIsNone(qae.grover_operator)
         self.assertIsNone(qae.objective_qubits)
-        self.assertIsNone(qae._state_in)
+        self.assertIsNone(qae._state_preparation)
         self.assertIsNone(qae._grover_operator)
         self.assertIsNone(qae._objective_qubits)
 
-        qae.state_in = self.a_bernoulli
-        self.assertIsNotNone(qae.state_in)
+        qae.state_preparation = self.a_bernoulli
+        self.assertIsNotNone(qae.state_preparation)
         self.assertIsNotNone(qae.grover_operator)
         self.assertIsNotNone(qae.objective_qubits)
-        self.assertIsNotNone(qae._state_in)
+        self.assertIsNotNone(qae._state_preparation)
         self.assertIsNone(qae._grover_operator)
         self.assertIsNone(qae._objective_qubits)
 
         qae.grover_operator = self.q_bernoulli
-        self.assertIsNotNone(qae.state_in)
+        self.assertIsNotNone(qae.state_preparation)
         self.assertIsNotNone(qae.grover_operator)
         self.assertIsNotNone(qae.objective_qubits)
-        self.assertIsNotNone(qae._state_in)
+        self.assertIsNotNone(qae._state_preparation)
         self.assertIsNotNone(qae._grover_operator)
         self.assertIsNone(qae._objective_qubits)
 
         qae.objective_qubits = self.i_bernoulli
-        self.assertIsNotNone(qae.state_in)
+        self.assertIsNotNone(qae.state_preparation)
         self.assertIsNotNone(qae.grover_operator)
         self.assertIsNotNone(qae.objective_qubits)
-        self.assertIsNotNone(qae._state_in)
+        self.assertIsNotNone(qae._state_preparation)
         self.assertIsNotNone(qae._grover_operator)
         self.assertIsNotNone(qae._objective_qubits)
 
@@ -337,22 +337,22 @@ class TestProblemSetting(QiskitAquaTestCase):
     #     [MaximumLikelihoodAmplitudeEstimation(3)],
     # ])
     # @unpack
-    # def test_state_in_update(self, qae):
-    #     """Test the Q factory is updated if the state_in changes -- except set manually."""
+    # def test_state_preparation_update(self, qae):
+    #     """Test the Q factory is updated if the state_preparation changes -- except set manually."""
     #     # set A operator
-    #     qae.state_in = self.a_bernoulli
+    #     qae.state_preparation = self.a_bernoulli
 
     #     # change A operator
-    #     qae.state_in = self.a_integral
-    #     self.assertEqual(qae.grover_operator.state_in, self.a_integral)
+    #     qae.state_preparation = self.a_integral
+    #     self.assertEqual(qae.grover_operator.state_preparation, self.a_integral)
 
     #     # set A and Q operator
-    #     qae.state_in = self.a_bernoulli
+    #     qae.state_preparation = self.a_bernoulli
     #     qae.grover_operator = self.q_bernoulli
 
     #     # change A operator, but not Q
-    #     qae.state_in = self.a_integral
-    #     self.assertEqual(qae.grover_operator.state_in, self.a_bernoulli)
+    #     qae.state_preparation = self.a_integral
+    #     self.assertEqual(qae.grover_operator.state_preparation, self.a_bernoulli)
 
 
 @ddt
@@ -386,7 +386,7 @@ class TestSineIntegral(QiskitAquaTestCase):
     def test_statevector(self, n, qae, expect):
         """ Statevector end-to-end test """
         # construct factories for A and Q
-        qae.state_in = SineIntegral(n)
+        qae.state_preparation = SineIntegral(n)
 
         result = qae.run(self._statevector)
 
@@ -403,7 +403,7 @@ class TestSineIntegral(QiskitAquaTestCase):
     def test_qasm(self, n, shots, qae, expect):
         """QASM simulator end-to-end test."""
         # construct factories for A and Q
-        qae.state_in = SineIntegral(n)
+        qae.state_preparation = SineIntegral(n)
 
         result = qae.run(self._qasm(shots))
 
@@ -426,7 +426,7 @@ class TestSineIntegral(QiskitAquaTestCase):
     def test_confidence_intervals(self, qae, key, expect):
         """End-to-end test for all confidence intervals."""
         n = 3
-        qae.state_in = SineIntegral(n)
+        qae.state_preparation = SineIntegral(n)
 
         # statevector simulator
         result = qae.run(self._statevector)
@@ -450,7 +450,7 @@ class TestSineIntegral(QiskitAquaTestCase):
     def test_iqae_confidence_intervals(self):
         """End-to-end test for the IQAE confidence interval."""
         n = 3
-        qae = IterativeAmplitudeEstimation(0.1, 0.01, state_in=SineIntegral(n))
+        qae = IterativeAmplitudeEstimation(0.1, 0.01, state_preparation=SineIntegral(n))
         expected_confint = [0.19840508760087738, 0.35110155403424115]
 
         # statevector simulator
