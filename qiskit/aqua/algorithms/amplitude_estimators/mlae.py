@@ -27,18 +27,20 @@ from .ae_algorithm import AmplitudeEstimationAlgorithm
 
 logger = logging.getLogger(__name__)
 
-# pylint: disable=invalid-name
-
 
 class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
     """The Maximum Likelihood Amplitude Estimation algorithm.
 
-    This class implements the an quantum amplitude estimation (QAE) algorithm without phase
-    estimation, according to https://arxiv.org/abs/1904.10246. In comparison to the original
-    QAE algorithm (https://arxiv.org/abs/quant-ph/0005055), this implementation relies solely
-    on different powers of the Grover algorithm and does not require ancilla qubits.
+    This class implements the quantum amplitude estimation (QAE) algorithm without phase
+    estimation, as introduced in [1]. In comparison to the original QAE algorithm [2],
+    this implementation relies solely on different powers of the Grover operator and does not
+    require additional evaluation qubits.
     Finally, the estimate is determined via a maximum likelihood estimation, which is why this
-    class in named MaximumLikelihoodAmplitudeEstimation.
+    class in named ``MaximumLikelihoodAmplitudeEstimation``.
+
+    References:
+        [1]: `arXiv:1904.10246 <https://arxiv.org/abs/1904.10246>`_
+        [2]: `arXiv:quant-ph/005055 <https://arxiv.org/abs/quant-ph/0005055>`_
     """
 
     def __init__(self, num_oracle_circuits: int,
@@ -112,21 +114,6 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
         self._circuits = []  # type: List[QuantumCircuit]
         self._ret = {}  # type: Dict[str, Any]
-
-    # @property
-    # def _num_qubits(self) -> int:
-    #     """Return the number of qubits needed in the circuit.
-
-    #     Returns:
-    #         The total number of qubits.
-    #     """
-    #     if self.a_factory is None:  # if A factory is not set, no qubits are specified
-    #         return 0
-
-    #     num_ancillas = self.q_factory.required_ancillas()
-    #     num_qubits = self.a_factory.num_target_qubits + num_ancillas
-
-    #     return num_qubits
 
     def construct_circuits(self, measurement: bool = False) -> List[QuantumCircuit]:
         """Construct the Amplitude Estimation w/o QPE quantum circuits.
@@ -226,13 +213,13 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         num_qubits = self._circuits[0].num_qubits
 
         probabilities = []
-        for sv in statevectors:
+        for statevector in statevectors:
             p_k = 0.0
-            for i, a in enumerate(sv):
-                p = np.abs(a)**2
+            for i, amplitude in enumerate(statevector):
+                probability = np.abs(amplitude) ** 2
                 bitstr = ('{:0%db}' % num_qubits).format(i)[::-1]
                 if self.is_good_state(bitstr):
-                    p_k += p
+                    p_k += probability
             probabilities += [p_k]
 
         return probabilities
@@ -247,7 +234,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             AquaError: If self.run() has not been called yet.
         """
         one_hits = []  # h_k: how often 1 has been measured, for a power Q^(m_k)
-        all_hits = []  # N_k: how often has been measured at a power Q^(m_k)
+        all_hits = []  # shots_k: how often has been measured at a power Q^(m_k)
         try:
             if self.quantum_instance.is_statevector:
                 probabilities = self._evaluate_statevectors(self._ret['statevectors'])
@@ -278,8 +265,8 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         """Compute the Fisher information.
 
         Args:
-            a: The amplitude `a`. Can be omitted if `run` was called already, then the estimate
-                of the algorithm is used.
+            a: The amplitude `a`. Can be omitted if `run` was called already, then the
+                estimate of the algorithm is used.
             num_sum_terms: The number of sum terms to be included in the calculation of the
                 Fisher information. By default all values are included.
             observed: If True, compute the observed Fisher information, otherwise the theoretical
@@ -301,7 +288,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         # Corresponding angle to the value a (only use real part of 'a')
         theta_a = np.arcsin(np.sqrt(np.real(a)))
 
-        # Get the number of hits (Nk) and one-hits (hk)
+        # Get the number of hits (shots_k) and one-hits (h_k)
         one_hits, all_hits = self._get_hits()
 
         # Include all sum terms or just up to a certain term?
@@ -316,18 +303,18 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         fisher_information = None
         if observed:
             # Note, that the observed Fisher information is very unreliable in this algorithm!
-            d_logL = 0
-            for Nk, hk, mk in zip(all_hits, one_hits, evaluation_schedule):
-                tan = np.tan((2 * mk + 1) * theta_a)
-                d_logL += (2 * mk + 1) * (hk / tan + (Nk - hk) * tan)
+            d_loglik = 0
+            for shots_k, h_k, m_k in zip(all_hits, one_hits, evaluation_schedule):
+                tan = np.tan((2 * m_k + 1) * theta_a)
+                d_loglik += (2 * m_k + 1) * (h_k / tan + (shots_k - h_k) * tan)
 
-            d_logL /= np.sqrt(a * (1 - a))
-            fisher_information = d_logL**2 / len(all_hits)
+            d_loglik /= np.sqrt(a * (1 - a))
+            fisher_information = d_loglik ** 2 / len(all_hits)
 
         else:
-            fisher_information = \
-                1 / (a * (1 - a)) * sum(Nk * (2 * mk + 1)**2 for Nk, mk in zip(all_hits,
-                                                                               evaluation_schedule))
+            fisher_information = sum(shots_k * (2 * m_k + 1)**2
+                                     for shots_k, m_k in zip(all_hits, evaluation_schedule))
+            fisher_information /= a * (1 - a)
 
         return fisher_information
 
@@ -375,19 +362,19 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             nevals = self._likelihood_evals
 
         def loglikelihood(theta, one_counts, all_counts):
-            logL = 0
+            loglik = 0
             for i, k in enumerate(self._evaluation_schedule):
-                logL += np.log(np.sin((2 * k + 1) * theta) ** 2) * one_counts[i]
-                logL += np.log(np.cos((2 * k + 1) * theta) ** 2) * (all_counts[i] - one_counts[i])
-            return logL
+                loglik += np.log(np.sin((2 * k + 1) * theta) ** 2) * one_counts[i]
+                loglik += np.log(np.cos((2 * k + 1) * theta) ** 2) * (all_counts[i] - one_counts[i])
+            return loglik
 
         one_counts, all_counts = self._get_hits()
 
         eps = 1e-15  # to avoid invalid value in log
         thetas = np.linspace(0 + eps, np.pi / 2 - eps, nevals)
         values = np.zeros(len(thetas))
-        for i, t in enumerate(thetas):
-            values[i] = loglikelihood(t, one_counts, all_counts)
+        for i, theta in enumerate(thetas):
+            values[i] = loglikelihood(theta, one_counts, all_counts)
 
         loglik_mle = loglikelihood(self._ret['theta'], one_counts, all_counts)
         chi2_quantile = chi2.ppf(1 - alpha, df=1)
@@ -400,8 +387,8 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         # to still provide a valid result use safe_min/max which
         # then yield [0, pi/2]
         confint = [self._safe_min(above_thres, default=0),
-                   self._safe_max(above_thres, default=(np.pi / 2))]
-        mapped_confint = [self.post_processing(np.sin(bound)**2) for bound in confint]
+                   self._safe_max(above_thres, default=np.pi / 2)]
+        mapped_confint = [self.post_processing(np.sin(bound) ** 2) for bound in confint]
 
         return mapped_confint
 
@@ -456,12 +443,12 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         search_range = [0 + eps, np.pi / 2 - eps]
 
         def loglikelihood(theta):
-            # logL contains the first `it` terms of the full loglikelihood
-            logL = 0
+            # loglik contains the first `it` terms of the full loglikelihood
+            loglik = 0
             for i, k in enumerate(self._evaluation_schedule):
-                logL += np.log(np.sin((2 * k + 1) * theta) ** 2) * one_hits[i]
-                logL += np.log(np.cos((2 * k + 1) * theta) ** 2) * (all_hits[i] - one_hits[i])
-            return -logL
+                loglik += np.log(np.sin((2 * k + 1) * theta) ** 2) * one_hits[i]
+                loglik += np.log(np.cos((2 * k + 1) * theta) ** 2) * (all_hits[i] - one_hits[i])
+            return -loglik
 
         est_theta = brute(loglikelihood, [search_range], Ns=self._likelihood_evals)[0]
         return est_theta

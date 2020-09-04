@@ -31,22 +31,24 @@ from .ae_utils import pdf_a, derivative_log_pdf_a, bisect_max
 
 logger = logging.getLogger(__name__)
 
-# pylint: disable=invalid-name
-
 
 class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
     r"""The Quantum Phase Estimation-based Amplitude Estimation algorithm.
 
     This class implements the original Quantum Amplitude Estimation (QAE) algorithm, introduced by
-    https://arxiv.org/abs/quant-ph/0005055. This (original) version uses quantum phase
-    estimation along with a set of m ancilla qubits to find an estimate, that is restricted
-    to the grid
+    [2]. This canoncial version uses quantum phase estimation along with a set of :math:`m`
+    additional evaluation qubits to find an estimate, that is restricted to the grid
 
-        \{sin^2(\pi  y / 2^m) : y = 0, ..., 2^{m-1}\}.
+    .. math::
+
+        \{\sin^2(\pi  y / 2^m) : y = 0, ..., 2^{m-1}\}
 
     Using a maximum likelihood post processing, this grid constraint can be circumvented.
-    This improved estimator is implemented as well, see https://arxiv.org/abs/1912.05559 Appendix A
-    for more detail.
+    This improved estimator is implemented as well, see [2] Appendix A for more detail.
+
+    References:
+        [1]: `arXiv:quant-ph/0005055 <https://arxiv.org/abs/quant-ph/0005055>`_
+        [2]: `arXiv:1912.05559 <https://arxiv.org/abs/1912.05559>`_
     """
 
     def __init__(self, num_eval_qubits: int,
@@ -114,8 +116,8 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
                          i_objective=i_objective)
 
         # get parameters
-        self._m = num_eval_qubits
-        self._M = 2 ** num_eval_qubits
+        self._m = num_eval_qubits  # pylint: disable=invalid-name
+        self._M = 2 ** num_eval_qubits  # pylint: disable=invalid-name
 
         # NOTE removed deprecation warnings from IQFT, support removed as of August, 1st 2020
         self._iqft = iqft
@@ -214,17 +216,17 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         m = self._m
 
         if observed:
-            ai = np.asarray(self._ret['values'])
-            pi = np.asarray(self._ret['probabilities'])
+            a_i = np.asarray(self._ret['values'])
+            p_i = np.asarray(self._ret['probabilities'])
 
             # Calculate the observed Fisher information
-            fisher_information = sum(p * derivative_log_pdf_a(a, mlv, m)**2 for p, a in zip(pi, ai))
+            fisher_information = sum(p * derivative_log_pdf_a(a, mlv, m) ** 2
+                                     for p, a in zip(p_i, a_i))
         else:
             def integrand(x):
                 return (derivative_log_pdf_a(x, mlv, m))**2 * pdf_a(x, mlv, m)
 
-            M = 2**m
-            grid = np.sin(np.pi * np.arange(M / 2 + 1) / M)**2
+            grid = np.sin(np.pi * np.arange(self._M / 2 + 1) / self._M) ** 2
             fisher_information = sum(integrand(x) for x in grid)
 
         return fisher_information
@@ -245,10 +247,10 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
         # approximate the standard deviation of the MLE and construct the confidence interval
         std = np.sqrt(shots * self._compute_fisher_information(observed))
-        ci = mle + norm.ppf(1 - alpha / 2) / std * np.array([-1, 1])
+        confint = mle + norm.ppf(1 - alpha / 2) / std * np.array([-1, 1])
 
         # transform the confidence interval from [0, 1] to the target interval
-        return [self.post_processing(bound) for bound in ci]
+        return [self.post_processing(bound) for bound in confint]
 
     def _likelihood_ratio_confint(self, alpha: float) -> List[float]:
         """Compute the likelihood ratio confidence interval for the MLE of the previous run.
@@ -261,7 +263,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         """
         # Compute the two intervals in which we the look for values above
         # the likelihood ratio: the two bubbles next to the QAE estimate
-        M = 2**self._m
+        M = self._M  # pylint: disable=invalid-name
         qae = self._ret['value']
 
         y = int(np.round(M * np.arcsin(np.sqrt(qae)) / np.pi))
@@ -279,13 +281,13 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
             bubbles = [left_of_qae, qae, right_of_qae]
 
         # likelihood function
-        ai = np.asarray(self._ret['values'])
-        pi = np.asarray(self._ret['probabilities'])
+        a_i = np.asarray(self._ret['values'])
+        p_i = np.asarray(self._ret['probabilities'])
         m = self._m
         shots = self._ret['shots']
 
         def loglikelihood(a):
-            return np.sum(shots * pi * np.log(pdf_a(ai, a, m)))
+            return np.sum(shots * p_i * np.log(pdf_a(a_i, a, m)))
 
         # The threshold above which the likelihoods are in the
         # confidence interval
@@ -318,8 +320,8 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
                     upper = np.maximum(upper, right)
 
         # Put together CI
-        ci = [lower, upper]
-        return [self.post_processing(bound) for bound in ci]
+        confint = [lower, upper]
+        return [self.post_processing(bound) for bound in confint]
 
     def confidence_interval(self, alpha: float, kind: str = 'likelihood_ratio') -> List[float]:
         """Compute the (1 - alpha) confidence interval.
@@ -364,17 +366,17 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         Note:
             Before calling this method, call the method `run` of the AmplitudeEstimation instance.
         """
-        M = self._M
+        M = self._M  # pylint: disable=invalid-name
         qae = self._ret['value']
 
         # likelihood function
-        ai = np.asarray(self._ret['values'])
-        pi = np.asarray(self._ret['probabilities'])
+        a_i = np.asarray(self._ret['values'])
+        p_i = np.asarray(self._ret['probabilities'])
         m = self._m
         shots = self._ret['shots']
 
         def loglikelihood(a):
-            return np.sum(shots * pi * np.log(pdf_a(ai, a, m)))
+            return np.sum(shots * p_i * np.log(pdf_a(a_i, a, m)))
 
         # y is pretty much an integer, but to map 1.9999 to 2 we must first
         # use round and then int conversion
@@ -384,16 +386,16 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         # the maximum of the log-likelihood function: the two bubbles next to
         # the QAE estimate
         if y == 0:
-            right_of_qae = np.sin(np.pi * (y + 1) / M)**2
+            right_of_qae = np.sin(np.pi * (y + 1) / M) ** 2
             bubbles = [qae, right_of_qae]
 
         elif y == int(M / 2):  # remember, M = 2^m is a power of 2
-            left_of_qae = np.sin(np.pi * (y - 1) / M)**2
+            left_of_qae = np.sin(np.pi * (y - 1) / M) ** 2
             bubbles = [left_of_qae, qae]
 
         else:
-            left_of_qae = np.sin(np.pi * (y - 1) / M)**2
-            right_of_qae = np.sin(np.pi * (y + 1) / M)**2
+            left_of_qae = np.sin(np.pi * (y - 1) / M) ** 2
+            right_of_qae = np.sin(np.pi * (y + 1) / M) ** 2
             bubbles = [left_of_qae, qae, right_of_qae]
 
         # Find global maximum amongst the two local maxima
@@ -450,11 +452,11 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
             for state, counts in ret.get_counts().items():
                 y = int(state.replace(' ', '')[:self._m][::-1], 2)
-                p = counts / shots
-                y_probabilities[y] = p
+                probability = counts / shots
+                y_probabilities[y] = probability
                 a = np.round(np.power(np.sin(y * np.pi / 2 ** self._m), 2),
                              decimals=7)
-                a_probabilities[a] = a_probabilities.get(a, 0.0) + p
+                a_probabilities[a] = a_probabilities.get(a, 0.0) + probability
 
             # store shots
             self._ret['shots'] = shots

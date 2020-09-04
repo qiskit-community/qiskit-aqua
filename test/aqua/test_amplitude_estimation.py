@@ -338,7 +338,7 @@ class TestProblemSetting(QiskitAquaTestCase):
     # ])
     # @unpack
     # def test_state_preparation_update(self, qae):
-    #     """Test the Q factory is updated if the state_preparation changes -- except set manually."""
+    #     """Test the Q factory is updated if the state_preparation changes except set manually."""
     #     # set A operator
     #     qae.state_preparation = self.a_bernoulli
 

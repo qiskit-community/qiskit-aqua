@@ -10,6 +10,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
 """The Iterative Quantum Amplitude Estimation Algorithm."""
 
 from typing import Optional, Union, List, Tuple, Callable
@@ -32,18 +33,23 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
     """The Iterative Amplitude Estimation algorithm.
 
     This class implements the Iterative Quantum Amplitude Estimation (QAE) algorithm, proposed
-    in https://arxiv.org/abs/1912.05559. The output of the algorithm is an estimate that,
+    in [1]. The output of the algorithm is an estimate that,
     with at least probability 1 - alpha, differs by epsilon to the target value, where
     both alpha and epsilon can be specified.
 
-    It differs from the original QAE algorithm proposed by Brassard
-    (https://arxiv.org/abs/quant-ph/0005055) in that it does not rely on Quantum Phase Estimation,
-    but is only based on Grover's algorithm. Iterative IQAE iteratively applies carefully selected
-    Grover iterations to find an estimate for the target amplitude.
+    It differs from the original QAE algorithm proposed by Brassard [2] in that it does not rely on
+    Quantum Phase Estimation, but is only based on Grover's algorithm. Iterative IQAE iteratively
+    applies carefully selected Grover iterations to find an estimate for the target amplitude.
+
+    References:
+        [1]: `arXiv:1912.05559 <https://arxiv.org/abs/1912.05559>`_
+        [2]: `arXiv:quant-ph/0005055 <https://arxiv.org/abs/quant-ph/0005055>`_
     """
 
-    def __init__(self, epsilon: float, alpha: float,
-                 confint_method: str = 'beta', min_ratio: float = 2,
+    def __init__(self, epsilon: float,
+                 alpha: float,
+                 confint_method: str = 'beta',
+                 min_ratio: float = 2,
                  state_preparation: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
                  grover_operator: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
                  objective_qubits: Optional[List[int]] = None,
