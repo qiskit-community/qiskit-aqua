@@ -327,6 +327,7 @@ class StateFn(OperatorBase):
         Args:
             convert_fn: The function to apply to the internal OperatorBase.
             coeff: A coefficient to multiply by after applying convert_fn.
+                If it is None, self.coeff is used instead.
 
         Returns:
             The converted StateFn.
