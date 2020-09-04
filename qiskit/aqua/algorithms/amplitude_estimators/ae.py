@@ -55,11 +55,11 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
                  objective_qubits: Optional[List[int]] = None,
                  post_processing: Optional[Callable[[float], float]] = None,
                  pec: Optional[QuantumCircuit] = None,
+                 iqft: Optional[QuantumCircuit] = None,
                  quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None,
                  a_factory: Optional[CircuitFactory] = None,
                  q_factory: Optional[CircuitFactory] = None,
-                 i_objective: Optional[int] = None,
-                 iqft: Optional[IQFT] = None,
+                 i_objective: Optional[int] = None
                  ) -> None:
         r"""
         Args:
