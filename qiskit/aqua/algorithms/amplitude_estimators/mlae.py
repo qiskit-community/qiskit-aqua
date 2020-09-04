@@ -465,7 +465,7 @@ class MaximumLikelihoodAmplitudeEstimationResult(AmplitudeEstimationAlgorithmRes
     """ MaximumLikelihoodAmplitudeEstimation Result."""
 
     @property
-    def statevectors(self) -> Union[None, List[np.ndarray]]:
+    def statevectors(self) -> Optional[List[np.ndarray]]:
         """ return statevectors """
         return self.get('statevectors')
 
