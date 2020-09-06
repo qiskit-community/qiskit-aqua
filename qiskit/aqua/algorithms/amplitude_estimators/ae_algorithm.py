@@ -18,6 +18,7 @@ import warnings
 from abc import abstractmethod
 
 from qiskit.circuit import QuantumCircuit
+from qiskit.circuit.library import GroverOperator
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import QuantumAlgorithm
@@ -155,13 +156,19 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
             return self._grover_operator
 
         if self.state_preparation is not None and isinstance(self.objective_qubits, list):
-            from qiskit.aqua.components.uncertainty_problems.bit_oracle import BitOracle
-            from qiskit.aqua.components.uncertainty_problems.grover_operator import GroverOperator
-
             # build the reflection about the bad state
             num_state_qubits = self.state_preparation.num_qubits \
                 - self.state_preparation.num_ancillas
-            oracle = BitOracle(num_state_qubits, objective_qubits=self.objective_qubits)
+
+            oracle = QuantumCircuit(num_state_qubits)
+            oracle.x(self.objective_qubits)
+            oracle.h(self.objective_qubits[-1])
+            if len(self.objective_qubits) == 1:
+                oracle.x(self.objective_qubits[0])
+            else:
+                oracle.mcx(self.objective_qubits[:-1], self.objective_qubits[-1])
+            oracle.h(self.objective_qubits[-1])
+            oracle.x(self.objective_qubits)
 
             # construct the grover operator
             return GroverOperator(oracle, self.state_preparation)
