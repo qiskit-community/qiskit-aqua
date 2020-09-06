@@ -77,7 +77,7 @@ setuptools.setup(
         "Topic :: Scientific/Engineering"
     ),
     keywords='qiskit sdk quantum aqua',
-    packages=setuptools.find_namespace_packages(exclude=['test*']),
+    packages=setuptools.find_namespace_packages(include=['qiskit.*']),
     install_requires=requirements,
     include_package_data=True,
     python_requires=">=3.6",
