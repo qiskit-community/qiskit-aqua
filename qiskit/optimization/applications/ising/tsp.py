@@ -259,8 +259,12 @@ def get_tsp_solution(x):
     n = int(np.sqrt(len(x)))
     z = []
     for p__ in range(n):
+        l = []
         for i in range(n):
             if x[i * n + p__] >= 0.999:
-                assert len(z) == p__
-                z.append(i)
+                l.append(i)
+        if len(l) == 1:
+            z.extend(l)
+        else:
+            z.append(l)
     return z
