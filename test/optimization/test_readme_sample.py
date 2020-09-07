@@ -41,6 +41,7 @@ class TestReadmeSample(QiskitOptimizationTestCase):
         from qiskit.optimization.algorithms import MinimumEigenOptimizer
 
         from qiskit import BasicAer
+        from qiskit.aqua import aqua_globals
         from qiskit.aqua.algorithms import QAOA
         from qiskit.aqua.components.optimizers import SPSA
 
@@ -63,6 +64,9 @@ class TestReadmeSample(QiskitOptimizationTestCase):
 
         # Fix node 0 to be 1 to break the symmetry of the max-cut solution
         problem.linear_constraint([1, 0, 0, 0], '==', 1)
+
+        # Fix the random seed of SPSA (optional)
+        aqua_globals.random_seed = np.random.default_rng(123)
 
         # Run quantum algorithm QAOA on qasm simulator
         spsa = SPSA(maxiter=250)
