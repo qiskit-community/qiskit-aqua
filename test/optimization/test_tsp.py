@@ -48,7 +48,7 @@ class TestTSP(QiskitOptimizationTestCase):
         feasible = [1, 0, 0, 0, 1, 0, 0, 0, 1]
         self.assertListEqual(tsp.get_tsp_solution(feasible), [0, 1, 2])
         infeasible = [1, 0, 0, 1, 1, 0, 0, 0, 0]
-        self.assertListEqual(tsp.get_operator(infeasible), [[0, 1], 1, []])
+        self.assertListEqual(tsp.get_tsp_solution(infeasible), [[0, 1], 1, []])
 
 
 if __name__ == '__main__':
