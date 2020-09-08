@@ -451,6 +451,7 @@ optimizer's
 optimizers
 opv
 orbsym
+orthonormal
 outers
 outpath
 overfit
@@ -633,6 +634,7 @@ sympy
 sys
 sysctl
 tapp
+tanaka
 tbd
 tbp
 temme

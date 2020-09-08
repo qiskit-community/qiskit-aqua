@@ -36,7 +36,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
     r"""The Quantum Phase Estimation-based Amplitude Estimation algorithm.
 
     This class implements the original Quantum Amplitude Estimation (QAE) algorithm, introduced by
-    [1]. This canoncial version uses quantum phase estimation along with a set of :math:`m`
+    [1]. This canonical version uses quantum phase estimation along with a set of :math:`m`
     additional evaluation qubits to find an estimate :math:`\tilde{a}`, that is restricted to the
     grid
 
@@ -64,7 +64,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
                  grover_operator: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
                  objective_qubits: Optional[List[int]] = None,
                  post_processing: Optional[Callable[[float], float]] = None,
-                 pec: Optional[QuantumCircuit] = None,
+                 phase_estimation_circuit: Optional[QuantumCircuit] = None,
                  iqft: Optional[QuantumCircuit] = None,
                  quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None,
                  a_factory: Optional[CircuitFactory] = None,
@@ -84,8 +84,8 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 is classified as 'bad'.
             post_processing: A mapping applied to the result of the algorithm
                 :math:`0 \leq a \leq 1`, usually used to map the estimate to a target interval.
-            pec: The phase estimation circuit used to run the algorithm. Defaults to the standard
-                phase estimation circuit from the circuit library,
+            phase_estimation_circuit: The phase estimation circuit used to run the algorithm.
+                Defaults to the standard phase estimation circuit from the circuit library,
                 `qiskit.circuit.library.PhaseEstimation`.
             iqft: The inverse quantum Fourier transform component, defaults to using a standard
                 implementation from `qiskit.circuit.library.QFT` when None.
@@ -130,7 +130,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
         # NOTE removed deprecation warnings from IQFT, support removed as of August, 1st 2020
         self._iqft = iqft
-        self._pec = pec
+        self._pec = phase_estimation_circuit
         self._circuit = None
         self._ret = {}  # type: Dict[str, Any]
 
