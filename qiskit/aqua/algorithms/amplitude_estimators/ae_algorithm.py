@@ -365,6 +365,6 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
             The value after post processing, usually mapping the interval :math:`[0, 1]`
             to the target interval.
         """
-        # if self.a_factory is not None:
-        #     return self.a_factory.value_to_estimation(value)
+        if self._a_factory is not None:
+            return self.a_factory.value_to_estimation(value)
         return self._post_processing(value)
