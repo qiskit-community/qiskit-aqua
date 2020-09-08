@@ -52,10 +52,9 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
     See [1] for more detail about QAE.
 
     References:
-
         [1]: Brassard, G., Hoyer, P., Mosca, M., & Tapp, A. (2000).
-        Quantum Amplitude Amplification and Estimation.
-        `arXiv:quant-ph/0005055 <http://arxiv.org/abs/quant-ph/0005055>`_
+             Quantum Amplitude Amplification and Estimation.
+             `arXiv:quant-ph/0005055 <http://arxiv.org/abs/quant-ph/0005055>`_.
 
     """
 
@@ -63,7 +62,7 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
     def __init__(self,
                  state_preparation: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
                  grover_operator: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
-                 objective_qubits: Optional[Union[callable, List[int]]] = None,
+                 objective_qubits: Optional[Union[Callable, List[int]]] = None,
                  post_processing: Optional[Callable[[float], float]] = None,
                  quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None,
                  a_factory: Optional[CircuitFactory] = None,
@@ -185,7 +184,7 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
         self._grover_operator = grover_operator
 
     @property
-    def objective_qubits(self) -> List[int]:
+    def objective_qubits(self) -> Union[Callable, List[int]]:
         """Get the criterion for a measurement outcome to be in a 'good' state.
 
         Returns:
@@ -211,7 +210,7 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
         return None
 
     @objective_qubits.setter
-    def objective_qubits(self, objective_qubits: Union[callable, List[int]]):
+    def objective_qubits(self, objective_qubits: Union[Callable, List[int]]):
         """Set the criterion for a measurement outcome to be in a 'good' state.
 
         Args:

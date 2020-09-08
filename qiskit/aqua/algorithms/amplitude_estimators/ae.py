@@ -12,7 +12,7 @@
 
 """The Quantum Phase Estimation-based Amplitude Estimation algorithm."""
 
-from typing import Optional, Union, List, Tuple, Callable
+from typing import Optional, Union, List, Tuple, Callable, Dict, Any
 import logging
 from collections import OrderedDict
 import numpy as np
@@ -158,16 +158,17 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 from qiskit.circuit.library import PhaseEstimation
                 pec = PhaseEstimation(self._m, self.grover_operator, iqft=self._iqft)
 
+            # mypy thinks self.circuit is None even after explicitly being set to QuantumCircuit
             self._circuit = QuantumCircuit(*pec.qregs)
-            self._circuit.compose(self.state_preparation,
+            self._circuit.compose(self.state_preparation,  # type: ignore
                                   list(range(self._m, self._m + self.state_preparation.num_qubits)),
                                   inplace=True)
-            self._circuit.compose(pec, inplace=True)
+            self._circuit.compose(pec, inplace=True)  # type: ignore
 
             if measurement:
                 cr = ClassicalRegister(self._m)
-                self._circuit.add_register(cr)
-                self._circuit.measure(list(range(self._m)), list(range(self._m)))
+                self._circuit.add_register(cr)  # type: ignore
+                self._circuit.measure(list(range(self._m)), list(range(self._m)))  # type: ignore
 
         return self._circuit
 

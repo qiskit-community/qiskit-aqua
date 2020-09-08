@@ -12,7 +12,7 @@
 
 """The Maximum Likelihood Amplitude Estimation algorithm."""
 
-from typing import Optional, List, Union, Tuple, Callable
+from typing import Optional, List, Union, Tuple, Callable, Dict, Any
 import logging
 import numpy as np
 from scipy.optimize import brute

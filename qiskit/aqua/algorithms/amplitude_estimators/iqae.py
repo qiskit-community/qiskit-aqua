@@ -13,7 +13,7 @@
 
 """The Iterative Quantum Amplitude Estimation Algorithm."""
 
-from typing import Optional, Union, List, Tuple, Callable
+from typing import Optional, Union, List, Tuple, Callable, Dict, Any, cast
 import logging
 import numpy as np
 from scipy.stats import beta
@@ -358,7 +358,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         powers = [0]  # list of powers k: Q^k, (called 'k' in paper)
         ratios = []  # list of multiplication factors (called 'q' in paper)
         theta_intervals = [[0, 1 / 4]]  # a priori knowledge of theta / 2 / pi
-        a_intervals = [[0, 1]]  # a priori knowledge of the confidence interval of the estimate a
+        a_intervals = [[0.0, 1.0]]  # a priori knowledge of the confidence interval of the estimate
         num_oracle_queries = 0
         num_one_shots = []
 
@@ -379,9 +379,10 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
             # calculate the probability of measuring '1'
             prob = self._probability_to_measure_one(statevector)
+            prob = cast(float, prob)  # tell MyPy it's a float and not Tuple[int, float ]
 
-            a_confidence_interval = [prob, prob]
-            a_intervals.append(a_confidence_interval)  # type: ignore
+            a_confidence_interval = [prob, prob]  # type: List[float]
+            a_intervals.append(a_confidence_interval)
 
             theta_i_interval = [np.arccos(1 - 2 * a_i) / 2 / np.pi  # type: ignore
                                 for a_i in a_confidence_interval]
@@ -455,10 +456,12 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 # compute a_u_i, a_l_i
                 a_u = np.sin(2 * np.pi * theta_u)**2
                 a_l = np.sin(2 * np.pi * theta_l)**2
+                a_u = cast(float, a_u)
+                a_l = cast(float, a_l)
                 a_intervals.append([a_l, a_u])
 
         # get the latest confidence interval for the estimate of a
-        a_confidence_interval = a_intervals[-1]  # type: ignore
+        a_confidence_interval = a_intervals[-1]
 
         # the final estimate is the mean of the confidence interval
         value = np.mean(a_confidence_interval)
