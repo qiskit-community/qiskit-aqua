@@ -290,12 +290,10 @@ class TestProblemSetting(QiskitAquaTestCase):
         self.q_integral = GroverOperator(oracle, self.a_integral)
         self.i_integral = [num_qubits]
 
-    @idata([
-        [AmplitudeEstimation(2)],
-        [IterativeAmplitudeEstimation(0.1, 0.001)],
-        [MaximumLikelihoodAmplitudeEstimation(3)],
-    ])
-    @unpack
+    @data(AmplitudeEstimation(2),
+          IterativeAmplitudeEstimation(0.1, 0.001),
+          MaximumLikelihoodAmplitudeEstimation(3),
+          )
     def test_operators(self, qae):
         """ Test if A/Q operator + i_objective set correctly """
         self.assertIsNone(qae.state_preparation)
@@ -328,29 +326,6 @@ class TestProblemSetting(QiskitAquaTestCase):
         self.assertIsNotNone(qae._state_preparation)
         self.assertIsNotNone(qae._grover_operator)
         self.assertIsNotNone(qae._objective_qubits)
-
-    # @idata([
-    #     [AmplitudeEstimation(2)],
-    #     [IterativeAmplitudeEstimation(0.1, 0.001)],
-    #     [MaximumLikelihoodAmplitudeEstimation(3)],
-    # ])
-    # @unpack
-    # def test_state_preparation_update(self, qae):
-    #     """Test the Q factory is updated if the state_preparation changes except set manually."""
-    #     # set A operator
-    #     qae.state_preparation = self.a_bernoulli
-
-    #     # change A operator
-    #     qae.state_preparation = self.a_integral
-    #     self.assertEqual(qae.grover_operator.state_preparation, self.a_integral)
-
-    #     # set A and Q operator
-    #     qae.state_preparation = self.a_bernoulli
-    #     qae.grover_operator = self.q_bernoulli
-
-    #     # change A operator, but not Q
-    #     qae.state_preparation = self.a_integral
-    #     self.assertEqual(qae.grover_operator.state_preparation, self.a_bernoulli)
 
 
 @ddt
