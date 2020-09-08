@@ -358,7 +358,7 @@ jobs:
           name: optimization${{ matrix.python-version }}
           path: ./o${{ matrix.python-version }}/*
   Tutorials:
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: [3.7]
