@@ -39,8 +39,12 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
     class in named ``MaximumLikelihoodAmplitudeEstimation``.
 
     References:
-        [1]: `arXiv:1904.10246 <https://arxiv.org/abs/1904.10246>`_
-        [2]: `arXiv:quant-ph/005055 <https://arxiv.org/abs/quant-ph/0005055>`_
+        [1]: Suzuki, Y., Uno, S., Raymond, R., Tanaka, T., Onodera, T., & Yamamoto, N. (2019).
+             Amplitude Estimation without Phase Estimation.
+             `arXiv:1904.10246 <https://arxiv.org/abs/1904.10246>`_.
+        [2]: Brassard, G., Hoyer, P., Mosca, M., & Tapp, A. (2000).
+             Quantum Amplitude Amplification and Estimation.
+             `arXiv:quant-ph/0005055 <http://arxiv.org/abs/quant-ph/0005055>`_.
     """
 
     def __init__(self, num_oracle_circuits: int,

@@ -30,20 +30,24 @@ logger = logging.getLogger(__name__)
 
 
 class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
-    """The Iterative Amplitude Estimation algorithm.
+    r"""The Iterative Amplitude Estimation algorithm.
 
-    This class implements the Iterative Quantum Amplitude Estimation (QAE) algorithm, proposed
+    This class implements the Iterative Quantum Amplitude Estimation (IQAE) algorithm, proposed
     in [1]. The output of the algorithm is an estimate that,
-    with at least probability 1 - alpha, differs by epsilon to the target value, where
+    with at least probability :math:`1 - \alpha`, differs by epsilon to the target value, where
     both alpha and epsilon can be specified.
 
     It differs from the original QAE algorithm proposed by Brassard [2] in that it does not rely on
-    Quantum Phase Estimation, but is only based on Grover's algorithm. Iterative IQAE iteratively
+    Quantum Phase Estimation, but is only based on Grover's algorithm. IQAE iteratively
     applies carefully selected Grover iterations to find an estimate for the target amplitude.
 
     References:
-        [1]: `arXiv:1912.05559 <https://arxiv.org/abs/1912.05559>`_
-        [2]: `arXiv:quant-ph/0005055 <https://arxiv.org/abs/quant-ph/0005055>`_
+        [1]: Grinko, D., Gacon, J., Zoufal, C., & Woerner, S. (2019).
+             Iterative Quantum Amplitude Estimation.
+             `arXiv:1912.05559 <https://arxiv.org/abs/1912.05559>`_.
+        [2]: Brassard, G., Hoyer, P., Mosca, M., & Tapp, A. (2000).
+             Quantum Amplitude Amplification and Estimation.
+             `arXiv:quant-ph/0005055 <http://arxiv.org/abs/quant-ph/0005055>`_.
     """
 
     def __init__(self, epsilon: float,

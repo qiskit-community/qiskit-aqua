@@ -36,19 +36,27 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
     r"""The Quantum Phase Estimation-based Amplitude Estimation algorithm.
 
     This class implements the original Quantum Amplitude Estimation (QAE) algorithm, introduced by
-    [2]. This canoncial version uses quantum phase estimation along with a set of :math:`m`
-    additional evaluation qubits to find an estimate, that is restricted to the grid
+    [1]. This canoncial version uses quantum phase estimation along with a set of :math:`m`
+    additional evaluation qubits to find an estimate :math:`\tilde{a}`, that is restricted to the
+    grid
 
     .. math::
 
-        \{\sin^2(\pi  y / 2^m) : y = 0, ..., 2^{m-1}\}
+        \tilde{a} \in \{\sin^2(\pi  y / 2^m) : y = 0, ..., 2^{m-1}\}
+
+    More evaluation qubits produce a finer sampling grid, therefore the accuracy of the algorithm
+    increases with :math:`m`.
 
     Using a maximum likelihood post processing, this grid constraint can be circumvented.
     This improved estimator is implemented as well, see [2] Appendix A for more detail.
 
     References:
-        [1]: `arXiv:quant-ph/0005055 <https://arxiv.org/abs/quant-ph/0005055>`_
-        [2]: `arXiv:1912.05559 <https://arxiv.org/abs/1912.05559>`_
+        [1]: Brassard, G., Hoyer, P., Mosca, M., & Tapp, A. (2000).
+             Quantum Amplitude Amplification and Estimation.
+             `arXiv:quant-ph/0005055 <http://arxiv.org/abs/quant-ph/0005055>`_.
+        [2]: Grinko, D., Gacon, J., Zoufal, C., & Woerner, S. (2019).
+             Iterative Quantum Amplitude Estimation.
+             `arXiv:1912.05559 <https://arxiv.org/abs/1912.05559>`_.
     """
 
     def __init__(self, num_eval_qubits: int,
@@ -65,16 +73,17 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
                  ) -> None:
         r"""
         Args:
-            num_eval_qubits: Number of evaluation qubits, has a min. value of 1.
+            num_eval_qubits: The number of evaluation qubits.
             state_preparation: A circuit preparing the input state, referred to as
                 :math:`\mathcal{A}`.
             grover_operator: The Grover operator :math:`\mathcal{Q}` used as unitary in the
                 phase estimation circuit.
-            objective_qubits: A list of qubit indices. A measurement outcome is classified as
+            objective_qubits: A list of qubit indices to specify the oracle in the Grover operator,
+                if the Grover operator is not supplied. A measurement outcome is classified as
                 'good' state if all objective qubits are in state :math:`|1\rangle`, otherwise it
                 is classified as 'bad'.
-            post_processing: A mapping applied to the estimate of :math:`0 \leq a \leq 1`,
-                usually used to map the estimate to a target interval.
+            post_processing: A mapping applied to the result of the algorithm
+                :math:`0 \leq a \leq 1`, usually used to map the estimate to a target interval.
             pec: The phase estimation circuit used to run the algorithm. Defaults to the standard
                 phase estimation circuit from the circuit library,
                 `qiskit.circuit.library.PhaseEstimation`.
