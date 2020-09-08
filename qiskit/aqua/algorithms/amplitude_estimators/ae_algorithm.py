@@ -62,7 +62,7 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
     def __init__(self,
                  state_preparation: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
                  grover_operator: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
-                 objective_qubits: Optional[Union[Callable, List[int]]] = None,
+                 objective_qubits: Optional[List[int]] = None,
                  post_processing: Optional[Callable[[float], float]] = None,
                  quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None,
                  a_factory: Optional[CircuitFactory] = None,
@@ -184,7 +184,7 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
         self._grover_operator = grover_operator
 
     @property
-    def objective_qubits(self) -> Union[Callable, List[int]]:
+    def objective_qubits(self) -> Optional[List[int]]:
         """Get the criterion for a measurement outcome to be in a 'good' state.
 
         Returns:
@@ -210,7 +210,7 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
         return None
 
     @objective_qubits.setter
-    def objective_qubits(self, objective_qubits: Union[Callable, List[int]]):
+    def objective_qubits(self, objective_qubits: List[int]):
         """Set the criterion for a measurement outcome to be in a 'good' state.
 
         Args:
@@ -226,7 +226,13 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
 
         Returns:
             True if the measurement corresponds to a good state, False otherwise.
+
+        Raises:
+            ValueError: If ``self.objective_qubits`` is not set.
         """
+        if self.objective_qubits is None:
+            raise ValueError('is_good_state can only be called if objective_qubits is set.')
+
         return all(measurement[objective] == '1' for objective in self.objective_qubits)
 
     @property
