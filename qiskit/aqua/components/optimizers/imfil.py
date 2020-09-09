@@ -29,8 +29,9 @@ class IMFIL(Optimizer):
     reconstruct the function and its higher derivatives, implicit filtering builds upon
     coordinate search followed by interpolation to get an approximate gradient.
 
-    Uses scipy.optimize.minimize IMFIL
-    See https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
+    Uses skquant.opt installed with pip install scikit-quant
+    For further detail, please refer to
+    https://github.com/scikit-quant/scikit-quant and https://qat4chem.lbl.gov/software
     """
 
     # pylint: disable=unused-argument
