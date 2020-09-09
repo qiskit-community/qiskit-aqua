@@ -13,85 +13,46 @@
 # that they have been altered from the originals.
 
 import logging
-
-# from scipy.optimize import minimize
-import skquant.opt as skq
-
-from qiskit.aqua.components.optimizers import Optimizer
 import numpy as np
+import skquant.opt as skq
+from .optimizer import Optimizer, OptimizerSupportLevel
 
 logger = logging.getLogger(__name__)
 
 
 class BOBYQA(Optimizer):
-    """Constrained Optimization By Linear Approximation algorithm.
+    """ Bound Optimization BY Quadratic Approximation algorithm.
 
-    Uses scipy.optimize.minimize COBYLA
-    See https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
+    BOBYQA finds local solutions to nonlinear, non-convex minimization problems with optional
+    bound constraints, without requirement of derivatives of the objective function.
+
+    Uses skquant.opt installed with pip install scikit-quant
+    For further detail, please refer to
+    https://github.com/scikit-quant/scikit-quant and https://qat4chem.lbl.gov/software
     """
 
-    CONFIGURATION = {
-        'name': 'BOBYQA',
-        'description': 'BOBYQA Optimizer',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
-            'id': 'cobyla_schema',
-            'type': 'object',
-            'properties': {
-                'maxiter': {
-                    'type': 'integer',
-                    'default': 1000
-                },
-                'disp': {
-                    'type': 'boolean',
-                    'default': False
-                },
-                'rhobeg': {
-                    'type': 'number',
-                    'default': 1.0
-                },
-                'tol': {
-                    'type': ['number', 'null'],
-                    'default': None
-                }
-            },
-            'additionalProperties': False
-        },
-        'support_level': {
-            'gradient': Optimizer.SupportLevel.ignored,
-            'bounds': Optimizer.SupportLevel.ignored,
-            'initial_point': Optimizer.SupportLevel.required
-        },
-        'options': ['maxiter', 'disp', 'rhobeg'],
-        'optimizer': ['local']
-    }
-
-    def __init__(self, maxiter=1000, disp=False, rhobeg=1.0, tol=None):
+    # pylint: disable=unused-argument
+    def __init__(self,
+                 maxiter: int = 1000,
+                 ) -> None:
         """
-        Constructor.
-
-        For details, please refer to
-        https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html.
-
         Args:
-            maxiter (int): Maximum number of function evaluations.
-            disp (bool): Set to True to print convergence messages.
-            rhobeg (float): Reasonable initial changes to the variables.
-            tol (float): Final accuracy in the optimization (not precisely guaranteed).
-                         This is a lower bound on the size of the trust region.
+            maxiter: Maximum number of function evaluations.
         """
         super().__init__()
-        self._tol = tol
         self._maxiter = maxiter
 
     def get_support_level(self):
-        """ return support level dictionary """
+        """ Return support level dictionary """
         return {
-            'gradient': Optimizer.SupportLevel.ignored,
-            'bounds': Optimizer.SupportLevel.ignored,
-            'initial_point': Optimizer.SupportLevel.ignored
+            'gradient': OptimizerSupportLevel.ignored,
+            'bounds': OptimizerSupportLevel.required,
+            'initial_point': OptimizerSupportLevel.required
         }
-    def optimize(self, num_vars, objective_function, gradient_function=None, variable_bounds=None, initial_point=None):
+
+    def optimize(self, num_vars, objective_function, gradient_function=None,
+                 variable_bounds=None, initial_point=None):
+        """ Runs the optimization """
         super().optimize(num_vars, objective_function, gradient_function,
                          variable_bounds, initial_point)
         res, history = skq.minimize(objective_function, np.array(initial_point),

@@ -13,93 +13,49 @@
 # that they have been altered from the originals.
 
 import logging
-
-# from scipy.optimize import minimize
 import skquant.opt as skq
-from SQSnobFit import optset
-import numpy as np
-
-from qiskit.aqua.components.optimizers import Optimizer
+from .optimizer import Optimizer, OptimizerSupportLevel
 
 logger = logging.getLogger(__name__)
 
 
 class IMFIL(Optimizer):
-    """Constrained Optimization By Linear Approximation algorithm.
+    """IMplicit FILtering algorithm.
 
-    Uses scipy.optimize.minimize COBYLA
+    Implicit filtering is a way to solve bound-constrained optimization problems for
+    which derivatives are not available. In comparison to methods that use interpolation to
+    reconstruct the function and its higher derivatives, implicit filtering builds upon
+    coordinate search followed by interpolation to get an approximate gradient.
+
+    Uses scipy.optimize.minimize IMFIL
     See https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
     """
 
-    CONFIGURATION = {
-        'name': 'IMFIL',
-        'description': 'IMFIL Optimizer',
-        'input_schema': {
-            '$schema': 'http://json-schema.org/schema#',
-            'id': 'cobyla_schema',
-            'type': 'object',
-            'properties': {
-                'maxiter': {
-                    'type': 'integer',
-                    'default': 1000
-                },
-                'disp': {
-                    'type': 'boolean',
-                    'default': False
-                },
-                'rhobeg': {
-                    'type': 'number',
-                    'default': 1.0
-                },
-                'tol': {
-                    'type': ['number', 'null'],
-                    'default': None
-                }
-            },
-            'additionalProperties': False
-        },
-        'support_level': {
-            'gradient': Optimizer.SupportLevel.ignored,
-            'bounds': Optimizer.SupportLevel.required,
-            'initial_point': Optimizer.SupportLevel.required
-        },
-        'options': ['maxiter', 'disp', 'rhobeg'],
-        'optimizer': ['local']
-    }
-
-    def __init__(self, maxiter=10000, disp=False, rhobeg=1.0, tol=None):
+    # pylint: disable=unused-argument
+    def __init__(self,
+                 maxiter: int = 1000,
+                 ) -> None:
         """
-        Constructor.
-
-        For details, please refer to
-        https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html.
-
         Args:
-            maxiter (int): Maximum number of function evaluations.
-            disp (bool): Set to True to print convergence messages.
-            rhobeg (float): Reasonable initial changes to the variables.
-            tol (float): Final accuracy in the optimization (not precisely guaranteed).
-                         This is a lower bound on the size of the trust region.
+            maxiter: Maximum number of function evaluations.
         """
         super().__init__()
         self._maxiter = maxiter
 
     def get_support_level(self):
-        """ return support level dictionary """
+        """ Return support level dictionary """
         return {
-            'gradient': Optimizer.SupportLevel.ignored,
-            'bounds': Optimizer.SupportLevel.supported,
-            'initial_point': Optimizer.SupportLevel.supported
+            'gradient': OptimizerSupportLevel.ignored,
+            'bounds': OptimizerSupportLevel.required,
+            'initial_point': OptimizerSupportLevel.required
         }
 
-    def optimize(self, num_vars, objective_function, gradient_function=None, variable_bounds=None, initial_point=None):
-        super().optimize(num_vars, objective_function, gradient_function, variable_bounds, initial_point)
-        # variable_bounds = []
-        # for _ in range(len(initial_point)):
-        #     variable_bounds.append([-2*np.pi,2*np.pi])
-        # variable_bounds = np.array(variable_bounds, dtype=float)
+    def optimize(self, num_vars, objective_function, gradient_function=None, variable_bounds=None,
+                 initial_point=None):
+        """ Runs the optimization """
+        super().optimize(num_vars, objective_function, gradient_function, variable_bounds,
+                         initial_point)
         res, history = skq.minimize(func=objective_function, x0=initial_point,
                                     bounds=variable_bounds, budget=self._maxiter,
-                                    method="imfil")#,options=options)
-
+                                    method="imfil")
         return res.optpar, res.optval, len(history)
