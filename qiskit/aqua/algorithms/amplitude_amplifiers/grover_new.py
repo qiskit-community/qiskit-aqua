@@ -246,14 +246,15 @@ class Grover_new(QuantumAlgorithm):
         # The circuit contains the Grover operator circuit with the specified number of iterations.
         # So we can just run the circuit.
 
-    def _run_with_existing_iterations(self):
+    def _run_experiment(self, power):
+        """Run a grover experiment for a given power of the Grover operator."""
         if self._quantum_instance.is_statevector:
 
             # TODO
             # For the statevector simulator, I need to read the following code to see what's
             # happening. Probably, returning the result with the highest probability?
 
-            qc = self.construct_circuit(measurement=False)
+            qc = self.construct_circuit(power, measurement=False)
             result = self._quantum_instance.execute(qc)
             complete_state_vec = result.get_statevector(qc)
             # variable_register_density_matrix = get_subsystem_density_matrix(
@@ -278,7 +279,7 @@ class Grover_new(QuantumAlgorithm):
 
             # TODO When it's not the statevector simulator. We can just run the circuit.
 
-            qc = self.construct_circuit(measurement=True)
+            qc = self.construct_circuit(power, measurement=True)
             measurement = self._quantum_instance.execute(qc).get_counts(qc)
             self._ret['measurement'] = measurement
             top_measurement = max(measurement.items(), key=operator.itemgetter(1))[0]
@@ -313,12 +314,12 @@ class Grover_new(QuantumAlgorithm):
         raise NotImplementedError('Conversion to callable not implemented for {}'.format(
             type(self._is_good_state)))
 
-    def construct_circuit(self, measurement=False):
+    def construct_circuit(self, power: int, measurement: bool = False) -> QuantumCircuit:
         """Construct
 
         Args:
-            measurement (bool): Boolean flag to indicate if
-                measurement should be included in the circuit.
+            power: The number of times the Grover operator is repeated.
+            measurement: Boolean flag to indicate if measurement should be included in the circuit.
 
         Returns:
             QuantumCircuit: the QuantumCircuit object for the constructed circuit
@@ -327,52 +328,12 @@ class Grover_new(QuantumAlgorithm):
         # TODO I need to check how the incremental version of Grover algorithm works.
         # It gradually increases the number of iterations, but when it will stop?
 
-        if self._incremental:
-            if self._qc_amplitude_amplification is None:
-                # self._qc_amplitude_amplification = \
-                #     QuantumCircuit() + self.qc_amplitude_amplification_iteration
-                self._qc_amplitude_amplification = QuantumCircuit(self._grover_operator.num_qubits)
-                self._qc_amplitude_amplification.compose(
-                    self.qc_amplitude_amplification_iteration,
-                    list(range(self._grover_operator.num_qubits)), inplace=True
-                    )
-        else:
-
-            # TODO Call self._qc_amplitude_amplification.combine(self.grover_op) in the iteration
-            # to create a whole circuit for the grover algorithm with the specified number of
-            # iterations.
-
-            # self._qc_amplitude_amplification = QuantumCircuit()
-            self._qc_amplitude_amplification = QuantumCircuit(self._grover_operator.num_qubits)
-
-            for _ in range(self._num_iterations):
-                # self._qc_amplitude_amplification += self.qc_amplitude_amplification_iteration
-                self._qc_amplitude_amplification.compose(self._grover_operator, list(
-                    range(self._grover_operator.num_qubits)), inplace=True)
-
-        # Create Initial state. This process should include initializing oracle as |-> state as
-        # well.
-
-        # qc = QuantumCircuit(self._oracle.variable_register, self._oracle.output_register)
-        qc = QuantumCircuit(self._grover_operator.num_qubits, name='Grover')
-
-        # ----------------------------------------------
-        # qc.u3(pi, 0, pi, self._oracle.output_register)  # x
-        # qc.u2(0, pi, self._oracle.output_register)  # h
-        # ----------------------------------------------
-
-        # Create super positions for initial state.
-        qc.compose(self._grover_operator.state_preparation, list(
-            range(self._grover_operator.num_qubits)), inplace=True)
-
-#        qc += self._init_state_circuit
-#        qc += self._qc_amplitude_amplification
-
-        qc.compose(self._qc_amplitude_amplification, list(
-            range(self._grover_operator.num_qubits)), inplace=True)
+        qc = QuantumCircuit(self._grover_operator.num_qubits, name='Grover circuit')
+        qc.compose(self._grover_operator.state_preparation, inplace=True)
+        qc.compose(self._grover_operator.power(power), inplace=True)
 
         if measurement:
-            # measure output_register as well?
+            # TODO measure output_register as well?
             # measurement_cr = ClassicalRegister(len(self._oracle.variable_register), name='m')
             # qc.add_register(measurement_cr)
             # qc.measure(self._oracle.variable_register, measurement_cr
@@ -388,24 +349,10 @@ class Grover_new(QuantumAlgorithm):
         # TODO I need to check how the incremental version of Grover algorithm works
 
         if self._incremental:
-
-            def _try_target_num_iterations():
-                # Create a grover circuit with the specified number of iterations
-                # (target_num_iterations) for the incremental version,
-                # and then execute it.
-
-                self._qc_amplitude_amplification = QuantumCircuit(self._grover_operator.num_qubits)
-                for _ in range(int(target_num_iterations)):
-                    # self._qc_amplitude_amplification += self.qc_amplitude_amplification_iteration
-                    self._qc_amplitude_amplification.compose(self._grover_operator, list(
-                        range(self._grover_operator.num_qubits)), inplace=True)
-                return self._run_with_existing_iterations()
-
             # TODO Rotation counts?
-
             if self._rotation_counts:
                 for target_num_iterations in self._rotation_counts:
-                    assignment, oracle_evaluation = _try_target_num_iterations()
+                    assignment, oracle_evaluation = self._run_experiment(target_num_iterations)
                     if oracle_evaluation:
                         break
                     if target_num_iterations > self._max_num_iterations:
@@ -414,7 +361,7 @@ class Grover_new(QuantumAlgorithm):
                 current_max_num_iterations = 1
                 while current_max_num_iterations < self._max_num_iterations:
                     target_num_iterations = self.random.integers(current_max_num_iterations) + 1
-                    assignment, oracle_evaluation = _try_target_num_iterations()
+                    assignment, oracle_evaluation = self._run_experiment(target_num_iterations)
                     if oracle_evaluation:
                         break
                     current_max_num_iterations = \
@@ -424,8 +371,7 @@ class Grover_new(QuantumAlgorithm):
             # For the usual version (not the incremental version) we just call
             # self._run_with_existing_iterations()
             # which run the grover circuit with the specified number of iterations
-            self._qc_amplitude_amplification = QuantumCircuit()
-            assignment, oracle_evaluation = self._run_with_existing_iterations()
+            assignment, oracle_evaluation = self._run_experiment(self._num_iterations)
 
         self._ret['result'] = assignment
         self._ret['oracle_evaluation'] = oracle_evaluation
