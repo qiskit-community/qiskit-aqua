@@ -91,10 +91,9 @@ class MultiStartOptimizer(OptimizationAlgorithm, ABC):
                 x_sol = x
                 rest_sol = rest
 
-        return OptimizationResult(x=x_sol, fval=fval_sol,
-                                  variables=problem.variables,
-                                  raw_results=rest_sol,
-                                  status=self.get_feasibility_status(problem, x_sol))
+        return OptimizationResult(x=x_sol, fval=fval_sol, variables=problem.variables,
+                                  status=self._get_feasibility_status(problem, x_sol),
+                                  raw_results=rest_sol)
 
     @property
     def trials(self) -> int:

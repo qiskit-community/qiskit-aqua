@@ -136,11 +136,10 @@ class CplexOptimizer(OptimizationAlgorithm):
         sol = cplex.solution
 
         # create results
-        result = OptimizationResult(x=sol.get_values(),
-                                    fval=sol.get_objective_value(),
+        result = OptimizationResult(x=sol.get_values(), fval=sol.get_objective_value(),
                                     variables=problem.variables,
-                                    raw_results=sol,
-                                    status=self.get_feasibility_status(problem, sol.get_values()))
+                                    status=self._get_feasibility_status(problem, sol.get_values()),
+                                    raw_results=sol)
 
         # return solution
         return result

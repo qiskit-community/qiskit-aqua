@@ -26,21 +26,19 @@ from ..problems.quadratic_program import QuadraticProgram, Variable
 class MinimumEigenOptimizationResult(OptimizationResult):
     """ Minimum Eigen Optimizer Result."""
 
-    def __init__(self, status: OptimizationResultStatus,
-                 x: Union[List[float], np.ndarray], fval: float,
-                 variables: List[Variable],
-                 samples: List[Tuple[str, float, float]],
+    def __init__(self, x: Union[List[float], np.ndarray], fval: float, variables: List[Variable],
+                 status: OptimizationResultStatus, samples: List[Tuple[str, float, float]],
                  min_eigen_solver_result: Optional[MinimumEigensolverResult] = None) -> None:
         """
         Args:
             x: the optimal value found by ``MinimumEigensolver``.
             fval: the optimal function value.
             variables: the list of variables of the optimization problem.
+            status: the termination status of the optimization algorithm.
             samples: the basis state as bitstring, the QUBO value, and the probability of sampling.
             min_eigen_solver_result: the result obtained from the underlying algorithm.
-            status: the termination status of the optimization algorithm.
         """
-        super().__init__(x, fval, variables, None, status)
+        super().__init__(x, fval, variables, status, None)
         self._samples = samples
         self._min_eigen_solver_result = min_eigen_solver_result
 
@@ -181,14 +179,15 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
             samples = [(x_str, offset, 1.0)]
 
         # translate result back to integers
-        result = OptimizationResult(x=x, fval=fval, variables=problem_.variables)
+        result = OptimizationResult(x=x, fval=fval, variables=problem_.variables,
+                                    status=OptimizationResultStatus.SUCCESS)
         result = self._qubo_converter.interpret(result)
 
         return MinimumEigenOptimizationResult(x=result.x, fval=result.fval,
                                               variables=result.variables,
-                                              samples=samples,
-                                              min_eigen_solver_result=eigen_result,
-                                              status=self.get_feasibility_status(problem, result.x))
+                                              status=self._get_feasibility_status(problem,
+                                                                                  result.x),
+                                              samples=samples, min_eigen_solver_result=eigen_result)
 
 
 def _eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray, StateFn],

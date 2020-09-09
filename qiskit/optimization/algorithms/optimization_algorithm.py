@@ -97,8 +97,8 @@ class OptimizationAlgorithm(ABC):
         if msg:
             raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
 
-    def get_feasibility_status(self, problem: QuadraticProgram, x: Union[List[float], np.ndarray]) \
-            -> OptimizationResultStatus:
+    def _get_feasibility_status(self, problem: QuadraticProgram,
+                                x: Union[List[float], np.ndarray]) -> OptimizationResultStatus:
         """Returns whether the input result is feasible or not for the given problem.
 
         Args:
@@ -107,7 +107,6 @@ class OptimizationAlgorithm(ABC):
 
         Returns:
             The status of the result.
-
         """
         is_feasible = problem.is_feasible(x)
 
@@ -157,8 +156,8 @@ class OptimizationResult:
 
     def __init__(self, x: Union[List[float], np.ndarray], fval: float,
                  variables: List[Variable],
-                 raw_results: Optional[Any] = None,
-                 status: OptimizationResultStatus = OptimizationResultStatus.SUCCESS) -> None:
+                 status: OptimizationResultStatus,
+                 raw_results: Optional[Any] = None) -> None:
         """
         Args:
             x: the optimal value found in the optimization.

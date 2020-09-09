@@ -1091,15 +1091,15 @@ class QuadraticProgram:
         self.minimize(constant=offset, linear=linear_terms, quadratic=quadratic_terms)
         offset -= offset
 
-    def get_feasiblity_info(self, x: Union[List[float], np.ndarray]) \
-            -> Tuple[bool, List[Constraint], List[Variable]]:
+    def get_feasibility_info(self, x: Union[List[float], np.ndarray]) \
+            -> Tuple[bool, List[Variable], List[Constraint]]:
         """Returns whether a solution is feasible or not along with the violations.
         Args:
             x: the input result list returned by the optimizer
         Returns:
-            is_feasible: Whether the solution provided is feasible or not.
-            List[Constraint]: List of constraints which are violated.
+            feasible: Whether the solution provided is feasible or not.
             List[Variable]: List of variables which are violated.
+            List[Constraint]: List of constraints which are violated.
 
         Raises:
             QiskitOptimizationError: If the input `x` is not same len as total vars
@@ -1112,48 +1112,41 @@ class QuadraticProgram:
             )
 
         # check whether the input satisfy the bounds of the problem
-        satisfied_variables = {}
+        violated_variables = []     # type: List[Variable]
         for i, val in enumerate(x):
             variable = self.get_variable(i)
-            if variable._lowerbound <= val <= variable._upperbound:
-                satisfied_variables[variable.name] = True
-            else:
-                satisfied_variables[variable.name] = False
+            if val < variable.lowerbound or variable.upperbound < val:
+                violated_variables.append(variable)
 
         # check whether the input satisfy the constraints of the problem
-        satisfied_constraints = {}
+        violated_constraints = []       # type: List[Constraint]
         for constraint in cast(List[Constraint], self._linear_constraints) + \
                 cast(List[Constraint], self._quadratic_constraints):
             lhs = constraint.evaluate(x)
-            if constraint.sense == ConstraintSense.LE:
-                satisfied_constraints[constraint.name] = lhs <= constraint.rhs
-            elif constraint.sense == ConstraintSense.GE:
-                satisfied_constraints[constraint.name] = lhs >= constraint.rhs
-            elif constraint.sense == ConstraintSense.EQ:
-                satisfied_constraints[constraint.name] = isclose(lhs, constraint.rhs)
+            if constraint.sense == ConstraintSense.LE and lhs > constraint.rhs:
+                violated_constraints.append(constraint)
+            elif constraint.sense == ConstraintSense.GE and lhs < constraint.rhs:
+                violated_constraints.append(constraint)
+            elif constraint.sense == ConstraintSense.EQ and not isclose(lhs, constraint.rhs):
+                violated_constraints.append(constraint)
 
-        is_feasible = (len(satisfied_variables) == len(self._variables) and
-                       len(satisfied_constraints) == (len(self._linear_constraints) +
-                                                      len(self._quadratic_constraints)))
+        feasible = len(violated_variables) == 0 and len(violated_constraints) == 0
 
-        violated_constraints = list(satisfied_constraints.keys())
-
-        violated_variables = list(satisfied_variables.keys())
-
-        return (is_feasible, violated_constraints, violated_variables)
+        return feasible, violated_variables, violated_constraints
 
     def is_feasible(self, x: Union[List[float], np.ndarray]) -> bool:
         """Returns whether a solution is feasible or not.
+
         Args:
-            x: the input result list returned by the optimizer
+            x: the input result list returned by the optimizer.
 
         Returns:
-            is_feasible: Whether the solution provided is feasible or not.
+            ``True`` if the solution provided is feasible otherwise ``False``.
 
         """
-        is_feasible, _, _ = self.get_feasiblity_info(x)
+        feasible, _, _ = self.get_feasibility_info(x)
 
-        return is_feasible
+        return feasible
 
 
 class SubstituteVariables:

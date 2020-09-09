@@ -190,7 +190,7 @@ class ADMMOptimizationResult(OptimizationResult):
             state: the internal computation state of ADMM.
             status: Termination status of an optimization algorithm
         """
-        super().__init__(x=x, fval=fval, variables=variables, raw_results=state, status=status)
+        super().__init__(x=x, fval=fval, variables=variables, status=status, raw_results=state)
 
     @property
     def state(self) -> ADMMState:
@@ -377,14 +377,15 @@ class ADMMOptimizer(OptimizationAlgorithm):
         objective_value = objective_value * sense
 
         # convert back integer to binary
-        base_result = OptimizationResult(solution, objective_value, original_variables)
+        base_result = OptimizationResult(solution, objective_value, original_variables,
+                                         OptimizationResultStatus.SUCCESS)
         base_result = int2bin.interpret(base_result)
 
         # third parameter is our internal state of computations.
         result = ADMMOptimizationResult(x=base_result.x, fval=base_result.fval,
                                         variables=base_result.variables,
                                         state=self._state,
-                                        status=self.get_feasibility_status(problem, base_result.x))
+                                        status=self._get_feasibility_status(problem, base_result.x))
 
         # debug
         self._log.debug("solution=%s, objective=%s at iteration=%s",

@@ -262,7 +262,8 @@ class GroverOptimizer(OptimizationAlgorithm):
 
         # Compute function value
         fval = problem_init.objective.evaluate(opt_x)
-        result = OptimizationResult(x=opt_x, fval=fval, variables=problem_.variables)
+        result = OptimizationResult(x=opt_x, fval=fval, variables=problem_.variables,
+                                    status=OptimizationResultStatus.SUCCESS)
 
         # cast binaries back to integers
         result = self._qubo_converter.interpret(result)
@@ -271,7 +272,7 @@ class GroverOptimizer(OptimizationAlgorithm):
                                         operation_counts=operation_count, n_input_qubits=n_key,
                                         n_output_qubits=n_value, intermediate_fval=fval,
                                         threshold=threshold,
-                                        status=self.get_feasibility_status(problem, result.x))
+                                        status=self._get_feasibility_status(problem, result.x))
 
     def _measure(self, circuit: QuantumCircuit) -> str:
         """Get probabilities from the given backend, and picks a random outcome."""
@@ -352,7 +353,7 @@ class GroverOptimizationResult(OptimizationResult):
             threshold: The threshold of Grover algorithm.
             status: the termination status of the optimization algorithm.
         """
-        super().__init__(x, fval, variables, None, status)
+        super().__init__(x, fval, variables, status, None)
         self._operation_counts = operation_counts
         self._n_input_qubits = n_input_qubits
         self._n_output_qubits = n_output_qubits
