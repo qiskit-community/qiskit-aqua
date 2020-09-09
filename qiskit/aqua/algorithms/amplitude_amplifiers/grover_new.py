@@ -154,7 +154,7 @@ class Grover_new(QuantumAlgorithm):
                 'Missing the evaluate_classically() method from the provided oracle instance.'
             )
 
-        # init_state has been renamend to state_preparation
+        # init_state has been renamed to state_preparation
         if init_state is not None:
             warnings.warn('The init_state argument is deprecated as of 0.8.0, and will be removed '
                           'no earlier than 3 months after the release date. You should use the '
@@ -291,11 +291,15 @@ class Grover_new(QuantumAlgorithm):
 
         return assignment, oracle_evaluation
 
-    def is_good_state(self, bitstr):
+    def is_good_state(self, bitstr: str) -> bool:
         """Check whether a provided bitstring is a good state or not.
 
         Args:
             bitstr: The measurement as bitstring.
+
+        Raises:
+            NotImplementedError: If self._is_good_state couldn't be used to determine whether
+                the bitstring is a good state.
 
         Returns:
             True if the measurement is a good state, False otherwise.
@@ -346,7 +350,7 @@ class Grover_new(QuantumAlgorithm):
                 self._qc_amplitude_amplification.compose(self._grover_operator, list(
                     range(self._grover_operator.num_qubits)), inplace=True)
 
-        # Create Initial state. This process should include initializeing oracle as |-> state as
+        # Create Initial state. This process should include initializing oracle as |-> state as
         # well.
 
         # qc = QuantumCircuit(self._oracle.variable_register, self._oracle.output_register)
