@@ -12,6 +12,9 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""Bound Optimization BY Quadratic Approximation (BOBYQA) optimizer """
+
+
 import logging
 import numpy as np
 import skquant.opt as skq

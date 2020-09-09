@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""Stable Noisy Optimization by Branch and FIT algorithm (SNOBFIT) optimizer """
+
 import logging
 import numpy as np
 import skquant.opt as skq

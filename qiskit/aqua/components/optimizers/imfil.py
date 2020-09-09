@@ -12,6 +12,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""IMplicit FILtering (IMFIL) optimizer """
+
 import logging
 import skquant.opt as skq
 from .optimizer import Optimizer, OptimizerSupportLevel
