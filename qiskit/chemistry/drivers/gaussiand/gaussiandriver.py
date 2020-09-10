@@ -17,19 +17,13 @@ import sys
 import io
 import logging
 import os
-from subprocess import Popen, PIPE
-from shutil import which
 import tempfile
 import numpy as np
 from qiskit.chemistry import QMolecule, QiskitChemistryError
 from qiskit.chemistry.drivers import BaseDriver
+from .gaussian_utils import check_valid, run_g16
 
 logger = logging.getLogger(__name__)
-
-GAUSSIAN_16 = 'g16'
-GAUSSIAN_16_DESC = 'Gaussian 16'
-
-G16PROG = which(GAUSSIAN_16)
 
 
 class GaussianDriver(BaseDriver):
@@ -67,10 +61,7 @@ class GaussianDriver(BaseDriver):
 
     @staticmethod
     def _check_valid():
-        if G16PROG is None:
-            raise QiskitChemistryError(
-                "Could not locate {} executable '{}'. Please check that it is installed correctly."
-                .format(GAUSSIAN_16_DESC, GAUSSIAN_16))
+        check_valid()
 
     def run(self) -> QMolecule:
         cfg = self._config
@@ -90,12 +81,12 @@ class GaussianDriver(BaseDriver):
         file, fname = tempfile.mkstemp(suffix='.mat')
         os.close(file)
 
-        cfg = self._augment_config(fname, cfg)
+        cfg = GaussianDriver._augment_config(fname, cfg)
         logger.debug('Augmented control information:\n%s', cfg)
 
-        GaussianDriver._run_g16(cfg)
+        run_g16(cfg)
 
-        q_mol = self._parse_matrix_file(fname)
+        q_mol = GaussianDriver._parse_matrix_file(fname)
         try:
             os.remove(fname)
         except Exception:  # pylint: disable=broad-except
@@ -105,8 +96,9 @@ class GaussianDriver(BaseDriver):
         q_mol.origin_driver_config = self._config
         return q_mol
 
-    # Adds the extra config we need to the input file
-    def _augment_config(self, fname, cfg):
+    @staticmethod
+    def _augment_config(fname: str, cfg: str) -> str:
+        """Adds the extra config we need to the input file"""
         cfgaug = ""
         with io.StringIO() as outf:
             with io.StringIO(cfg) as inf:
@@ -170,9 +162,12 @@ class GaussianDriver(BaseDriver):
 
         return cfgaug
 
-    def _parse_matrix_file(self, fname, useao2e=False):
-        # get_driver_class is used here because the discovery routine will load all the gaussian
-        # binary dependencies, if not loaded already. It won't work without it.
+    @staticmethod
+    def _parse_matrix_file(fname: str, useao2e: bool = False) -> QMolecule:
+        """
+        get_driver_class is used here because the discovery routine will load all the gaussian
+        binary dependencies, if not loaded already. It won't work without it.
+        """
         try:
             # add gauopen to sys.path so that binaries can be loaded
             gauopen_directory = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'gauopen')
@@ -200,17 +195,17 @@ class GaussianDriver(BaseDriver):
         _q_.num_orbitals = 0  # updated below from orbital coeffs size
         _q_.num_alpha = (mel.ne + mel.multip - 1) // 2
         _q_.num_beta = (mel.ne - mel.multip + 1) // 2
-        moc = self._get_matrix(mel, 'ALPHA MO COEFFICIENTS')
-        moc_b = self._get_matrix(mel, 'BETA MO COEFFICIENTS')
+        moc = GaussianDriver._get_matrix(mel, 'ALPHA MO COEFFICIENTS')
+        moc_b = GaussianDriver._get_matrix(mel, 'BETA MO COEFFICIENTS')
         if np.array_equal(moc, moc_b):
             logger.debug('ALPHA and BETA MO COEFFS identical, keeping only ALPHA')
             moc_b = None
         _q_.num_orbitals = moc.shape[0]
         _q_.mo_coeff = moc
         _q_.mo_coeff_b = moc_b
-        orbs_energy = self._get_matrix(mel, 'ALPHA ORBITAL ENERGIES')
+        orbs_energy = GaussianDriver._get_matrix(mel, 'ALPHA ORBITAL ENERGIES')
         _q_.orbital_energies = orbs_energy
-        orbs_energy_b = self._get_matrix(mel, 'BETA ORBITAL ENERGIES')
+        orbs_energy_b = GaussianDriver._get_matrix(mel, 'BETA ORBITAL ENERGIES')
         _q_.orbital_energies_b = orbs_energy_b if moc_b is not None else None
         # Molecule geometry
         _q_.molecular_charge = mel.icharg
@@ -229,9 +224,9 @@ class GaussianDriver(BaseDriver):
                 _q_.atom_xyz[n_i][idx] = coord
 
         # 1 and 2 electron integrals
-        hcore = self._get_matrix(mel, 'CORE HAMILTONIAN ALPHA')
+        hcore = GaussianDriver._get_matrix(mel, 'CORE HAMILTONIAN ALPHA')
         logger.debug('CORE HAMILTONIAN ALPHA %s', hcore.shape)
-        hcore_b = self._get_matrix(mel, 'CORE HAMILTONIAN BETA')
+        hcore_b = GaussianDriver._get_matrix(mel, 'CORE HAMILTONIAN BETA')
         if np.array_equal(hcore, hcore_b):
             # From Gaussian interfacing documentation: "The two
             # core Hamiltonians are identical unless
@@ -240,16 +235,16 @@ class GaussianDriver(BaseDriver):
             hcore_b = None
         logger.debug('CORE HAMILTONIAN BETA %s',
                      '- Not present' if hcore_b is None else hcore_b.shape)
-        kinetic = self._get_matrix(mel, 'KINETIC ENERGY')
+        kinetic = GaussianDriver._get_matrix(mel, 'KINETIC ENERGY')
         logger.debug('KINETIC ENERGY %s', kinetic.shape)
-        overlap = self._get_matrix(mel, 'OVERLAP')
+        overlap = GaussianDriver._get_matrix(mel, 'OVERLAP')
         logger.debug('OVERLAP %s', overlap.shape)
         mohij = QMolecule.oneeints2mo(hcore, moc)
         mohij_b = None
         if moc_b is not None:
             mohij_b = QMolecule.oneeints2mo(hcore if hcore_b is None else hcore_b, moc_b)
 
-        eri = self._get_matrix(mel, 'REGULAR 2E INTEGRALS')
+        eri = GaussianDriver._get_matrix(mel, 'REGULAR 2E INTEGRALS')
         logger.debug('REGULAR 2E INTEGRALS %s', eri.shape)
         if moc_b is None and mel.matlist.get('BB MO 2E INTEGRALS') is not None:
             # It seems that when using ROHF, where alpha and beta coeffs are
@@ -277,12 +272,12 @@ class GaussianDriver(BaseDriver):
             # These are in MO basis but by default will be reduced in size by
             # frozen core default so to use them we need to add Window=Full
             # above when we augment the config
-            mohijkl = self._get_matrix(mel, 'AA MO 2E INTEGRALS')
+            mohijkl = GaussianDriver._get_matrix(mel, 'AA MO 2E INTEGRALS')
             logger.debug('AA MO 2E INTEGRALS %s', mohijkl.shape)
-            mohijkl_bb = self._get_matrix(mel, 'BB MO 2E INTEGRALS')
+            mohijkl_bb = GaussianDriver._get_matrix(mel, 'BB MO 2E INTEGRALS')
             logger.debug('BB MO 2E INTEGRALS %s',
                          '- Not present' if mohijkl_bb is None else mohijkl_bb.shape)
-            mohijkl_ba = self._get_matrix(mel, 'BA MO 2E INTEGRALS')
+            mohijkl_ba = GaussianDriver._get_matrix(mel, 'BA MO 2E INTEGRALS')
             logger.debug('BA MO 2E INTEGRALS %s',
                          '- Not present' if mohijkl_ba is None else mohijkl_ba.shape)
 
@@ -299,7 +294,7 @@ class GaussianDriver(BaseDriver):
         _q_.mo_eri_ints_ba = mohijkl_ba
 
         # dipole moment
-        dipints = self._get_matrix(mel, 'DIPOLE INTEGRALS')
+        dipints = GaussianDriver._get_matrix(mel, 'DIPOLE INTEGRALS')
         dipints = np.einsum('ijk->kji', dipints)
         _q_.x_dip_ints = dipints[0]
         _q_.y_dip_ints = dipints[1]
@@ -322,50 +317,15 @@ class GaussianDriver(BaseDriver):
 
         return _q_
 
-    def _get_matrix(self, mel, name):
-        # Gaussian dimens values may be negative which it itself handles in expand
-        # but convert to all positive for use in reshape. Note: Fortran index ordering.
+    @staticmethod
+    def _get_matrix(mel, name) -> np.ndarray:
+        """
+        Gaussian dimens values may be negative which it itself handles in expand
+        but convert to all positive for use in reshape. Note: Fortran index ordering.
+        """
         m_x = mel.matlist.get(name)
         if m_x is None:
             return None
         dims = tuple([abs(i) for i in m_x.dimens])
         mat = np.reshape(m_x.expand(), dims, order='F')
         return mat
-
-    @staticmethod
-    def _run_g16(cfg):
-
-        # Run Gaussian 16. We capture stdout and if error log the last 10 lines that
-        # should include the error description from Gaussian
-        process = None
-        try:
-            process = Popen(GAUSSIAN_16, stdin=PIPE, stdout=PIPE, universal_newlines=True)
-            stdout, _ = process.communicate(cfg)
-            process.wait()
-        except Exception as ex:
-            if process is not None:
-                process.kill()
-
-            raise QiskitChemistryError('{} run has failed'.format(GAUSSIAN_16_DESC)) from ex
-
-        if process.returncode != 0:
-            errmsg = ""
-            if stdout is not None:
-                lines = stdout.splitlines()
-                start = 0
-                if len(lines) > 10:
-                    start = len(lines) - 10
-                for i in range(start, len(lines)):
-                    logger.error(lines[i])
-                    errmsg += lines[i] + "\n"
-            raise QiskitChemistryError(
-                '{} process return code {}\n{}'.format(
-                    GAUSSIAN_16_DESC, process.returncode, errmsg))
-
-        if logger.isEnabledFor(logging.DEBUG):
-            alltext = ""
-            if stdout is not None:
-                lines = stdout.splitlines()
-                for line in lines:
-                    alltext += line + "\n"
-            logger.debug("Gaussian output:\n%s", alltext)
