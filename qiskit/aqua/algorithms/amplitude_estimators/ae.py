@@ -446,7 +446,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         self._ret['95%_confidence_interval'] = self.confidence_interval(alpha, kind)
 
         ae_result = AmplitudeEstimationAlgorithmResult()
-        ae_result.value = self._ret['value']
+        ae_result.a_estimation = self._ret['value']
         ae_result.estimation = self._ret['estimation']
         ae_result.num_oracle_queries = self._ret['num_oracle_queries']
         ae_result.confidence_interval = self._ret['95%_confidence_interval']
@@ -454,16 +454,16 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         result = AmplitudeEstimationResult()
         result.combine(ae_result)
         result.ml_value = self._ret['ml_value']
-        result.ret_values = self._ret['values']
+        result.mapped_a_samples = self._ret['values']
         result.probabilities = self._ret['probabilities']
         result.shots = self._ret['shots']
         result.mle = self._ret['mle']
         if 'statevector' in self._ret:
-            result.cct_result = self._ret['statevector']
+            result.circuit_result = self._ret['statevector']
         elif 'counts' in self._ret:
-            result.cct_result = dict(self._ret['counts'])
-        result.a_items = self._ret['a_items']
-        result.y_items = self._ret['y_items']
+            result.circuit_result = dict(self._ret['counts'])
+        result.a_samples = self._ret['a_items']
+        result.y_measurements = self._ret['y_items']
         result.mapped_values = self._ret['mapped_values']
         result.max_probability = self._ret['max_probability']
         return result
@@ -483,14 +483,14 @@ class AmplitudeEstimationResult(AmplitudeEstimationAlgorithmResult):
         self.data['ml_value'] = value
 
     @property
-    def ret_values(self) -> List[float]:
-        """ return ret_values  """
-        return self.get('ret_values')
+    def mapped_a_samples(self) -> List[float]:
+        """ return mapped_a_samples  """
+        return self.get('mapped_a_samples')
 
-    @ret_values.setter
-    def ret_values(self, value: List[float]) -> None:
-        """ set ret_values """
-        self.data['ret_values'] = value
+    @mapped_a_samples.setter
+    def mapped_a_samples(self, value: List[float]) -> None:
+        """ set mapped_a_samples """
+        self.data['mapped_a_samples'] = value
 
     @property
     def probabilities(self) -> List[float]:
@@ -523,34 +523,34 @@ class AmplitudeEstimationResult(AmplitudeEstimationAlgorithmResult):
         self.data['mle'] = value
 
     @property
-    def cct_result(self) -> Optional[Union[np.ndarray, Dict[str, int]]]:
-        """ return cct_results """
-        return self.get('cct_result')
+    def circuit_result(self) -> Optional[Union[np.ndarray, Dict[str, int]]]:
+        """ return circuit result """
+        return self.get('circuit_result')
 
-    @cct_result.setter
-    def cct_result(self, value: Union[np.ndarray, Dict[str, int]]) -> None:
-        """ set cct_results """
-        self.data['cct_result'] = value
-
-    @property
-    def a_items(self) -> List[Tuple[float, float]]:
-        """ return a_items """
-        return self.get('a_items')
-
-    @a_items.setter
-    def a_items(self, value: List[Tuple[float, float]]) -> None:
-        """ set a_items """
-        self.data['a_items'] = value
+    @circuit_result.setter
+    def circuit_result(self, value: Union[np.ndarray, Dict[str, int]]) -> None:
+        """ set circuit result """
+        self.data['circuit_result'] = value
 
     @property
-    def y_items(self) -> List[Tuple[int, float]]:
-        """ return y_items """
-        return self.get('y_items')
+    def a_samples(self) -> List[Tuple[float, float]]:
+        """ return a_samples """
+        return self.get('a_samples')
 
-    @y_items.setter
-    def y_items(self, value: List[Tuple[int, float]]) -> None:
-        """ set y_items """
-        self.data['y_items'] = value
+    @a_samples.setter
+    def a_samples(self, value: List[Tuple[float, float]]) -> None:
+        """ set a_samples """
+        self.data['a_samples'] = value
+
+    @property
+    def y_measurements(self) -> List[Tuple[int, float]]:
+        """ return y_measurements """
+        return self.get('y_measurements')
+
+    @y_measurements.setter
+    def y_measurements(self, value: List[Tuple[int, float]]) -> None:
+        """ set y_measurements """
+        self.data['y_measurements'] = value
 
     @property
     def mapped_values(self) -> List[float]:
@@ -579,13 +579,20 @@ class AmplitudeEstimationResult(AmplitudeEstimationAlgorithmResult):
 
     def __getitem__(self, key: object) -> object:
         if key == 'statevector':
-            warnings.warn('statevector deprecated, use cct_result property.', DeprecationWarning)
-            return super().__getitem__('cct_result')
+            warnings.warn('statevector deprecated, use circuit_result property.',
+                          DeprecationWarning)
+            return super().__getitem__('circuit_result')
         elif key == 'counts':
-            warnings.warn('counts deprecated, use cct_result property.', DeprecationWarning)
-            return super().__getitem__('cct_result')
+            warnings.warn('counts deprecated, use circuit_result property.', DeprecationWarning)
+            return super().__getitem__('circuit_result')
         elif key == 'values':
-            warnings.warn('values deprecated, use ret_values property.', DeprecationWarning)
-            return super().__getitem__('ret_values')
+            warnings.warn('values deprecated, use mapped_a_samples property.', DeprecationWarning)
+            return super().__getitem__('mapped_a_samples')
+        elif key == 'y_items':
+            warnings.warn('y_items deprecated, use y_measurements property.', DeprecationWarning)
+            return super().__getitem__('y_measurements')
+        elif key == 'a_items':
+            warnings.warn('a_items deprecated, use a_samples property.', DeprecationWarning)
+            return super().__getitem__('a_samples')
 
         return super().__getitem__(key)

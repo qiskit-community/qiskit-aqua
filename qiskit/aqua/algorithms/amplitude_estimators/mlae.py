@@ -446,7 +446,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         self._ret['95%_confidence_interval'] = confidence_interval
 
         ae_result = AmplitudeEstimationAlgorithmResult()
-        ae_result.value = self._ret['value']
+        ae_result.a_estimation = self._ret['value']
         ae_result.estimation = self._ret['estimation']
         ae_result.num_oracle_queries = self._ret['num_oracle_queries']
         ae_result.confidence_interval = self._ret['95%_confidence_interval']
@@ -454,9 +454,9 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         result = MaximumLikelihoodAmplitudeEstimationResult()
         result.combine(ae_result)
         if 'statevectors' in self._ret:
-            result.cct_results = self._ret['statevectors']
+            result.circuit_results = self._ret['statevectors']
         elif 'counts' in self._ret:
-            result.cct_results = self._ret['counts']
+            result.circuit_results = self._ret['counts']
         result.theta = self._ret['theta']
         result.fisher_information = self._ret['fisher_information']
         return result
@@ -466,14 +466,14 @@ class MaximumLikelihoodAmplitudeEstimationResult(AmplitudeEstimationAlgorithmRes
     """ MaximumLikelihoodAmplitudeEstimation Result."""
 
     @property
-    def cct_results(self) -> Optional[Union[List[np.ndarray], List[Dict[str, int]]]]:
-        """ return cct_results """
-        return self.get('cct_results')
+    def circuit_results(self) -> Optional[Union[List[np.ndarray], List[Dict[str, int]]]]:
+        """ return circuit results """
+        return self.get('circuit_results')
 
-    @cct_results.setter
-    def cct_results(self, value: Union[List[np.ndarray], List[Dict[str, int]]]) -> None:
-        """ set cct_results """
-        self.data['cct_results'] = value
+    @circuit_results.setter
+    def circuit_results(self, value: Union[List[np.ndarray], List[Dict[str, int]]]) -> None:
+        """ set circuit results """
+        self.data['circuit_results'] = value
 
     @property
     def theta(self) -> float:
@@ -502,10 +502,11 @@ class MaximumLikelihoodAmplitudeEstimationResult(AmplitudeEstimationAlgorithmRes
 
     def __getitem__(self, key: object) -> object:
         if key == 'statevectors':
-            warnings.warn('statevectors deprecated, use cct_results property.', DeprecationWarning)
-            return super().__getitem__('cct_results')
+            warnings.warn('statevectors deprecated, use circuit_results property.',
+                          DeprecationWarning)
+            return super().__getitem__('circuit_results')
         elif key == 'counts':
-            warnings.warn('counts deprecated, use cct_results property.', DeprecationWarning)
-            return super().__getitem__('cct_results')
+            warnings.warn('counts deprecated, use circuit_results property.', DeprecationWarning)
+            return super().__getitem__('circuit_results')
 
         return super().__getitem__(key)

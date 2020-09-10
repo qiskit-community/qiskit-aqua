@@ -175,14 +175,14 @@ class AmplitudeEstimationAlgorithmResult(AlgorithmResult):
     """ AmplitudeEstimationAlgorithm Result."""
 
     @property
-    def value(self) -> float:
-        """ return value """
-        return self.get('value')
+    def a_estimation(self) -> float:
+        """ return a_estimation """
+        return self.get('a_estimation')
 
-    @value.setter
-    def value(self, value: float) -> None:
-        """ set value """
-        self.data['value'] = value
+    @a_estimation.setter
+    def a_estimation(self, value: float) -> None:
+        """ set a_estimation """
+        self.data['a_estimation'] = value
 
     @property
     def estimation(self) -> float:
@@ -224,5 +224,8 @@ class AmplitudeEstimationAlgorithmResult(AlgorithmResult):
             warnings.warn('95%_confidence_interval deprecated, use confidence_interval property.',
                           DeprecationWarning)
             return super().__getitem__('confidence_interval')
+        elif key == 'value':
+            warnings.warn('value deprecated, use a_estimation property.', DeprecationWarning)
+            return super().__getitem__('a_estimation')
 
         return super().__getitem__(key)
