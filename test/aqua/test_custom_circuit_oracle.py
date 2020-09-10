@@ -69,7 +69,7 @@ class TestCustomCircuitOracle(QiskitAquaTestCase):
         algorithm = Grover(oracle)
         result = algorithm.run(
             quantum_instance=QuantumInstance(BasicAer.get_backend('qasm_simulator')))
-        self.assertEqual(result['result'], [1, 2])
+        self.assertEqual(result.assignment, [1, 2])
 
 
 if __name__ == '__main__':

@@ -12,6 +12,7 @@
 """The Maximum Likelihood Amplitude Estimation algorithm."""
 
 from typing import Optional, List, Union, Tuple, Dict, Any
+import warnings
 import logging
 import numpy as np
 from scipy.optimize import brute
@@ -22,7 +23,7 @@ from qiskit import ClassicalRegister, QuantumRegister, QuantumCircuit
 from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.utils.circuit_factory import CircuitFactory
 from qiskit.aqua.utils.validation import validate_min
-from .ae_algorithm import AmplitudeEstimationAlgorithm
+from .ae_algorithm import AmplitudeEstimationAlgorithm, AmplitudeEstimationAlgorithmResult
 
 logger = logging.getLogger(__name__)
 
@@ -405,7 +406,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         # TODO implement a **reliable**, fast method to find the maximum of the likelihood function
         return self._compute_mle_safe()
 
-    def _run(self) -> dict:
+    def _run(self) -> 'MaximumLikelihoodAmplitudeEstimationResult':
         # check if A factory has been set
         if self.a_factory is None:
             raise AquaError("a_factory must be set!")
@@ -444,4 +445,68 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         confidence_interval = self._fisher_confint(alpha=0.05)
         self._ret['95%_confidence_interval'] = confidence_interval
 
-        return self._ret
+        ae_result = AmplitudeEstimationAlgorithmResult()
+        ae_result.a_estimation = self._ret['value']
+        ae_result.estimation = self._ret['estimation']
+        ae_result.num_oracle_queries = self._ret['num_oracle_queries']
+        ae_result.confidence_interval = self._ret['95%_confidence_interval']
+
+        result = MaximumLikelihoodAmplitudeEstimationResult()
+        result.combine(ae_result)
+        if 'statevectors' in self._ret:
+            result.circuit_results = self._ret['statevectors']
+        elif 'counts' in self._ret:
+            result.circuit_results = self._ret['counts']
+        result.theta = self._ret['theta']
+        result.fisher_information = self._ret['fisher_information']
+        return result
+
+
+class MaximumLikelihoodAmplitudeEstimationResult(AmplitudeEstimationAlgorithmResult):
+    """ MaximumLikelihoodAmplitudeEstimation Result."""
+
+    @property
+    def circuit_results(self) -> Optional[Union[List[np.ndarray], List[Dict[str, int]]]]:
+        """ return circuit results """
+        return self.get('circuit_results')
+
+    @circuit_results.setter
+    def circuit_results(self, value: Union[List[np.ndarray], List[Dict[str, int]]]) -> None:
+        """ set circuit results """
+        self.data['circuit_results'] = value
+
+    @property
+    def theta(self) -> float:
+        """ returns theta """
+        return self.get('theta')
+
+    @theta.setter
+    def theta(self, value: float) -> None:
+        """ set theta """
+        self.data['theta'] = value
+
+    @property
+    def fisher_information(self) -> float:
+        """ return fisher_information  """
+        return self.get('fisher_information')
+
+    @fisher_information.setter
+    def fisher_information(self, value: float) -> None:
+        """ set fisher_information """
+        self.data['fisher_information'] = value
+
+    @staticmethod
+    def from_dict(a_dict: Dict) -> 'MaximumLikelihoodAmplitudeEstimationResult':
+        """ create new object from a dictionary """
+        return MaximumLikelihoodAmplitudeEstimationResult(a_dict)
+
+    def __getitem__(self, key: object) -> object:
+        if key == 'statevectors':
+            warnings.warn('statevectors deprecated, use circuit_results property.',
+                          DeprecationWarning)
+            return super().__getitem__('circuit_results')
+        elif key == 'counts':
+            warnings.warn('counts deprecated, use circuit_results property.', DeprecationWarning)
+            return super().__getitem__('circuit_results')
+
+        return super().__getitem__(key)
