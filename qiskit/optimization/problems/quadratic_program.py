@@ -1095,7 +1095,7 @@ class QuadraticProgram:
             -> Tuple[bool, List[Variable], List[Constraint]]:
         """Returns whether a solution is feasible or not along with the violations.
         Args:
-            x: the input result list returned by the optimizer
+            x: a solution value, such as returned in an optimizer result.
         Returns:
             feasible: Whether the solution provided is feasible or not.
             List[Variable]: List of variables which are violated.
@@ -1130,7 +1130,7 @@ class QuadraticProgram:
             elif constraint.sense == ConstraintSense.EQ and not isclose(lhs, constraint.rhs):
                 violated_constraints.append(constraint)
 
-        feasible = len(violated_variables) == 0 and len(violated_constraints) == 0
+        feasible = not violated_variables and not violated_constraints
 
         return feasible, violated_variables, violated_constraints
 
@@ -1138,7 +1138,7 @@ class QuadraticProgram:
         """Returns whether a solution is feasible or not.
 
         Args:
-            x: the input result list returned by the optimizer.
+            x: a solution value, such as returned in an optimizer result.
 
         Returns:
             ``True`` if the solution provided is feasible otherwise ``False``.
