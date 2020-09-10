@@ -434,7 +434,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 self._ret['value'] = val
 
         # count the number of Q-oracle calls
-        self._ret['num_oracle_queries'] = self._M - 1
+        self._ret['num_oracle_queries'] = shots * (self._M - 1)
 
         # get MLE
         self._run_mle()
