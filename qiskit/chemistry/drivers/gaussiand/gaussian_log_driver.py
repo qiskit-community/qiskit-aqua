@@ -14,16 +14,12 @@
 
 from typing import Union, List
 import logging
-from subprocess import Popen, PIPE
-from shutil import which
 
 from qiskit.chemistry import QiskitChemistryError
-from .gaussiandriver import GAUSSIAN_16, GAUSSIAN_16_DESC
+from .gaussian_utils import check_valid, run_g16
 from .gaussian_log_result import GaussianLogResult
 
 logger = logging.getLogger(__name__)
-
-G16PROG = which(GAUSSIAN_16)
 
 
 class GaussianLogDriver:
@@ -62,16 +58,16 @@ class GaussianLogDriver:
 
     @staticmethod
     def _check_valid():
-        if G16PROG is None:
-            raise QiskitChemistryError(
-                "Could not locate {} executable '{}'. Please check that it is installed correctly."
-                .format(GAUSSIAN_16_DESC, GAUSSIAN_16))
+        check_valid()
 
     def run(self) -> GaussianLogResult:
         """ Runs the driver to produce a result given the supplied job control file.
 
         Returns:
             A log file result.
+
+        Raises:
+            QiskitChemistryError: Missing output log
         """
         # The job control file, needs to end with a blank line to be valid for
         # Gaussian to process it. We simply add the blank line here if not.
@@ -83,48 +79,8 @@ class GaussianLogDriver:
                      cfg.replace('\r', '\\r').replace('\n', '\\n'))
         logger.debug('User supplied job control file\n%s', cfg)
 
-        return GaussianLogDriver._run_g16(cfg)
-
-    @staticmethod
-    def _run_g16(cfg: str) -> GaussianLogResult:
-
-        # Run Gaussian 16. We capture stdout and if error log the last 10 lines that
-        # should include the error description from Gaussian
-        process = None
-        try:
-            process = Popen(GAUSSIAN_16, stdin=PIPE, stdout=PIPE, universal_newlines=True)
-            stdout, _ = process.communicate(cfg)
-            process.wait()
-        except Exception as ex:
-            if process is not None:
-                process.kill()
-
-            raise QiskitChemistryError('{} run has failed'.format(GAUSSIAN_16_DESC)) from ex
-
-        if process.returncode != 0:
-            errmsg = ""
-            if stdout is not None:
-                lines = stdout.splitlines()
-                start = 0
-                if len(lines) > 10:
-                    start = len(lines) - 10
-                for i in range(start, len(lines)):
-                    logger.error(lines[i])
-                    errmsg += lines[i] + "\n"
-            raise QiskitChemistryError(
-                '{} process return code {}\n{}'.format(
-                    GAUSSIAN_16_DESC, process.returncode, errmsg))
-
-        alltext = ""
-        if stdout is not None:
-            lines = stdout.splitlines()
-            for line in lines:
-                alltext += line + "\n"
-
-        if not alltext:
+        all_text = run_g16(cfg)
+        if not all_text:
             raise QiskitChemistryError("Failed to capture log from stdout")
 
-        if logger.isEnabledFor(logging.DEBUG):
-            logger.debug("Gaussian output:\n%s", alltext)
-
-        return GaussianLogResult(alltext)
+        return GaussianLogResult(all_text)

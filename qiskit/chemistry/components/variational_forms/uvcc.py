@@ -131,7 +131,7 @@ class UVCC(VariationalForm):
         hml[-1].append([tmp, 1])
         hml[-1].append([tmpdag, -1])
 
-        dummpy_op = BosonicOperator(np.asarray(hml), basis)
+        dummpy_op = BosonicOperator(np.asarray(hml, dtype=object), basis)
         qubit_op = dummpy_op.mapping(qubit_mapping)
         if len(qubit_op.paulis) == 0:
             qubit_op = None
