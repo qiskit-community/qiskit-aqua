@@ -24,7 +24,7 @@ on:
 
 jobs:
   Checks:
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         python-version: [3.7]
@@ -125,7 +125,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.5]
+        python-version: [3.6]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -182,7 +182,7 @@ jobs:
           name: aqua${{ matrix.python-version }}
           path: ./a${{ matrix.python-version }}/*
   Chemistry:
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: [3.7, 3.8]

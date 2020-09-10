@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -14,6 +12,7 @@
 
 """ Check copyright year """
 
+from typing import Tuple, Union
 import sys
 import os
 import datetime
@@ -22,34 +21,37 @@ import subprocess
 import traceback
 
 
-class YearChecker:
-    """ Check copyright year """
+class CopyrightChecker:
+    """ Check copyright """
 
-    def __init__(self, root_dir):
+    _UTF_STRING = '# -*- coding: utf-8 -*-'
+    _COPYRIGHT_STRING = '# (C) Copyright IBM '
+
+    def __init__(self, root_dir: str) -> None:
         self._root_dir = root_dir
 
     @staticmethod
-    def _exception_to_string(excp):
+    def _exception_to_string(excp: Exception) -> str:
         stack = traceback.extract_stack()[:-3] + traceback.extract_tb(excp.__traceback__)
         pretty = traceback.format_list(stack)
         return ''.join(pretty) + '\n  {} {}'.format(excp.__class__, excp)
 
     @staticmethod
-    def _get_year_from_date(date):
+    def _get_year_from_date(date) -> int:
         if not date or len(date) < 4:
             return None
 
         return int(date[:4])
 
     @staticmethod
-    def _format_output(out, err):
-        out = out.decode('utf-8').strip()
-        err = err.decode('utf-8').strip()
-        err = err if err else None
-        year = YearChecker._get_year_from_date(out)
-        return year, err
+    def _format_output(out: bytes, err: bytes) -> Tuple[int, Union[None, str]]:
+        out_str = out.decode('utf-8').strip()
+        err_str = err.decode('utf-8').strip()
+        err_str = err_str if err_str else None
+        year = CopyrightChecker._get_year_from_date(out_str)
+        return year, err_str
 
-    def _process_file_last_year(self, relative_path):
+    def _process_file_last_year(self, relative_path: str) -> Tuple[int, Union[None, str]]:
         # construct minimal environment
         env = {}
         for k in ['SYSTEMROOT', 'PATH']:
@@ -68,9 +70,9 @@ class YearChecker:
                                  stderr=subprocess.PIPE)
         out, err = popen.communicate()
         popen.wait()
-        return YearChecker._format_output(out, err)
+        return CopyrightChecker._format_output(out, err)
 
-    def _get_file_last_year(self, relative_path):
+    def _get_file_last_year(self, relative_path: str) -> int:
         last_year = None
         errors = []
         try:
@@ -85,15 +87,21 @@ class YearChecker:
 
         return last_year
 
-    def check_copyright_year(self, file_path):
-        """ check copyright year for a file """
+    def check_copyright(self, file_path) -> Tuple[bool, bool, bool]:
+        """ check copyright for a file """
         now = datetime.datetime.now()
+        file_with_utf8 = False
         file_with_invalid_year = False
         file_has_header = False
         try:
             with open(file_path, 'rt', encoding="utf8") as file:
                 for line in file:
-                    if not line.startswith('# (C) Copyright IBM '):
+                    relative_path = os.path.relpath(file_path, self._root_dir)
+                    if line.startswith(CopyrightChecker._UTF_STRING):
+                        print("File contains utf-8 header: '{}'".format(relative_path))
+                        file_with_utf8 = True
+
+                    if not line.startswith(CopyrightChecker._COPYRIGHT_STRING):
                         continue
 
                     file_has_header = True
@@ -114,7 +122,6 @@ class YearChecker:
                     elif len(curr_years) == 1:
                         header_start_year = header_last_year = curr_years[0]
 
-                    relative_path = os.path.relpath(file_path, self._root_dir)
                     last_year = self._get_file_last_year(relative_path)
                     if last_year and header_last_year != last_year:
                         new_line = '# (C) Copyright IBM '
@@ -130,34 +137,40 @@ class YearChecker:
                     break
 
         except UnicodeDecodeError:
-            return False, False
+            return file_with_utf8, file_with_invalid_year, file_has_header
 
-        return file_with_invalid_year, file_has_header
+        return file_with_utf8, file_with_invalid_year, file_has_header
 
-    def check_year(self):
-        """ check copyright year """
-        return self._check_year(self._root_dir)
+    def check(self) -> Tuple[int, int, int]:
+        """ check copyright """
+        return self._check(self._root_dir)
 
-    def _check_year(self, path):
-        files_with_invalid_years = 0
+    def _check(self, path: str) -> Tuple[int, int, int]:
+        files_with_utf8 = 0
+        files_with_invalid_year = 0
         files_with_header = 0
         for item in os.listdir(path):
             fullpath = os.path.join(path, item)
             if os.path.isdir(fullpath):
                 if not item.startswith('.git'):
-                    files = self._check_year(fullpath)
-                    files_with_invalid_years += files[0]
-                    files_with_header += files[1]
+                    files = self._check(fullpath)
+                    files_with_utf8 += files[0]
+                    files_with_invalid_year += files[1]
+                    files_with_header += files[2]
                 continue
 
             if os.path.isfile(fullpath):
-                file_with_invalid_year, file_has_header = self.check_copyright_year(fullpath)
+                # check copyright year
+                file_with_utf8, file_with_invalid_year, file_has_header = \
+                    self.check_copyright(fullpath)
+                if file_with_utf8:
+                    files_with_utf8 += 1
                 if file_with_invalid_year:
-                    files_with_invalid_years += 1
+                    files_with_invalid_year += 1
                 if file_has_header:
                     files_with_header += 1
 
-        return files_with_invalid_years, files_with_header
+        return files_with_utf8, files_with_invalid_year, files_with_header
 
 
 def check_path(path):
@@ -169,7 +182,7 @@ def check_path(path):
 
 
 if __name__ == '__main__':
-    PARSER = argparse.ArgumentParser(description='Qiskit Check Copyright Year Tool')
+    PARSER = argparse.ArgumentParser(description='Aqua Check Copyright Tool')
     PARSER.add_argument('-path',
                         type=check_path,
                         metavar='path',
@@ -179,8 +192,9 @@ if __name__ == '__main__':
     if not ARGS.path:
         ARGS.path = os.getcwd()
 
-    INVALID_YEARS, HAS_HEADER = YearChecker(ARGS.path).check_year()
+    INVALID_UTF8, INVALID_YEAR, HAS_HEADER = CopyrightChecker(ARGS.path).check()
+    print("{} files have utf8 headers.".format(INVALID_UTF8))
     print("{} of {} files with copyright header have wrong years.".format(
-        INVALID_YEARS, HAS_HEADER))
+        INVALID_YEAR, HAS_HEADER))
 
-    sys.exit(os.EX_OK if INVALID_YEARS == 0 else os.EX_SOFTWARE)
+    sys.exit(os.EX_OK if INVALID_UTF8 == 0 and INVALID_YEAR == 0 else os.EX_SOFTWARE)
