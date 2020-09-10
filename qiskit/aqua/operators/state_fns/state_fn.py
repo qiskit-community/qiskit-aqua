@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -329,13 +327,17 @@ class StateFn(OperatorBase):
         Args:
             convert_fn: The function to apply to the internal OperatorBase.
             coeff: A coefficient to multiply by after applying convert_fn.
+                If it is None, self.coeff is used instead.
 
         Returns:
             The converted StateFn.
         """
+        if coeff is None:
+            coeff = self.coeff
+
         if isinstance(self.primitive, OperatorBase):
             return StateFn(convert_fn(self.primitive),
-                           coeff=coeff or self.coeff, is_measurement=self.is_measurement)
+                           coeff=coeff, is_measurement=self.is_measurement)
         else:
             return self
 
