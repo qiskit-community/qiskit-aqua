@@ -7,4 +7,4 @@ features:
     whether this solution is feasible and a list of violated variables(violated bounds) and
     a list of violated constraints.
     * ``is_feasible(self, x: Union[List[float], np.ndarray])`` accepts an array and returns whether
-    this solutuion is feasible or not.
+    this solution is feasible or not.
