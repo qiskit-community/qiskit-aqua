@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -14,22 +12,25 @@
 
 """ Test OOVQE """
 
-import unittest
 import logging
+import unittest
+
 from test.chemistry import QiskitChemistryTestCase
+
 from ddt import ddt
-from qiskit.aqua import aqua_globals
-from qiskit.aqua import QuantumInstance
-from qiskit.aqua.components.optimizers import COBYLA
-from qiskit.chemistry.core import Hamiltonian
-from qiskit.chemistry.drivers import HDF5Driver
-from qiskit.chemistry.components.variational_forms import UCCSD
-from qiskit.chemistry.components.initial_states import HartreeFock
-from qiskit.chemistry.core import TransformationType, QubitMappingType
-from qiskit.chemistry.algorithms.minimum_eigen_solvers import OOVQE
-from qiskit.aqua.operators.expectations import MatrixExpectation
 from qiskit import BasicAer
+from qiskit.aqua import QuantumInstance
+from qiskit.aqua import aqua_globals
 from qiskit.aqua import set_qiskit_aqua_logging
+from qiskit.aqua.components.optimizers import COBYLA
+from qiskit.aqua.operators.expectations import MatrixExpectation
+from qiskit.chemistry.algorithms.minimum_eigen_solvers import OOVQE
+from qiskit.chemistry.algorithms.minimum_eigen_solvers.oovqe import OOVQEResult
+from qiskit.chemistry.components.initial_states import HartreeFock
+from qiskit.chemistry.components.variational_forms import UCCSD
+from qiskit.chemistry.core import Hamiltonian
+from qiskit.chemistry.core import TransformationType, QubitMappingType
+from qiskit.chemistry.drivers import HDF5Driver
 
 set_qiskit_aqua_logging(logging.INFO)
 
@@ -122,6 +123,8 @@ class TestOOVQE(QiskitChemistryTestCase):
         self.algo1.optimizer.maxiter = 3
         self.algo1.optimizer.rhobeg = 0.01
         algo_result = self.algo1.run(self.quantum_instance)
+        self.assertIsInstance(algo_result, OOVQEResult)
+        self.assertIsNotNone(algo_result.optimal_point_orbitals)
         self.assertLessEqual(algo_result['optimal_value'], self.energy1)
 
     def test_iterative_oovqe(self):

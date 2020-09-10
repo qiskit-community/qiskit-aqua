@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -33,6 +31,28 @@ logger = logging.getLogger(__name__)
 
 # disable check for var_forms, optimizer setter because of pylint bug
 # pylint: disable=no-member
+
+
+class OOVQEResult(VQEResult):
+    """Orbital-Optimized VQE Result Class."""
+
+    @property
+    def optimal_point_orbitals(self) -> List[float]:
+        """Returns optimal point orbitals.
+
+        Returns:
+            optimal point orbitals.
+        """
+        return self.get('optimal_point_orbitals')
+
+    @optimal_point_orbitals.setter
+    def optimal_point_orbitals(self, value: List[float]) -> None:
+        """Sets optimal point orbitals.
+
+        Args:
+            value: optimal point orbitals.
+        """
+        self.data['optimal_point_orbitals'] = value
 
 
 class OOVQE(VQE):
@@ -269,8 +289,9 @@ class OOVQE(VQE):
                     self._eval_time, self._ret['opt_params'], self._eval_count)
         self._ret['eval_count'] = self._eval_count
 
-        result = VQEResult()
+        result = OOVQEResult()
         result.combine(vqresult)
+        result.optimal_point_orbitals = self._ret["opt_params_orbitals"]
         result.eigenvalue = vqresult.optimal_value + 0j
         # record all parameters (wavefunction and orbitals) to overcome error checks
         _ret_temp_params = copy.copy(self._ret['opt_params'])
