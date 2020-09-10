@@ -1,0 +1,19 @@
+---
+features:
+  - |
+    New Algorithm result classes:
+
+    :class:`~qiskit.aqua.algorithms.Grover` method
+    :meth:`~qiskit.aqua.algorithms.Grover._run`
+    returns class :class:`~qiskit.aqua.algorithms.GroverResult`.
+    :class:`~qiskit.aqua.algorithms.AmplitudeEstimation` method
+    :meth:`~qiskit.aqua.algorithms.AmplitudeEstimation._run`
+    returns class :class:`~qiskit.aqua.algorithms.AmplitudeEstimationResult`.
+    :class:`~qiskit.aqua.algorithms.IterativeAmplitudeEstimation` method
+    :meth:`~qiskit.aqua.algorithms.IterativeAmplitudeEstimation._run`
+    returns class :class:`~qiskit.aqua.algorithms.IterativeAmplitudeEstimationResult`.
+    :class:`~qiskit.aqua.algorithms.MaximumLikelihoodAmplitudeEstimation` method
+    :meth:`~qiskit.aqua.algorithms.MaximumLikelihoodAmplitudeEstimation._run`
+    returns class :class:`~qiskit.aqua.algorithms.MaximumLikelihoodAmplitudeEstimationResult`.
+
+    All new result classes are backwards compatible with previous result dictionary.
