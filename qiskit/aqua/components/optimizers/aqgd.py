@@ -2,7 +2,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,24 +12,23 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Analytic Quantum Gradient Descent (AQGD) optimizer """
+"""The implementation of the Analytical Quantum Gradient Descent (AQGD)."""
 
+from typing import Callable, Tuple, List, Dict
 import logging
-from copy import deepcopy
-from numpy import pi, absolute, array, zeros
+import numpy as np
+from qiskit.aqua import AquaError
 from qiskit.aqua.utils.validation import validate_range_exclusive_max
-from .optimizer import Optimizer
+from qiskit.aqua.components.optimizers import Optimizer
 
 logger = logging.getLogger(__name__)
 
-# pylint: disable=invalid-name
-
 
 class AQGD(Optimizer):
-    """Analytic Quantum Gradient Descent (AQGD) optimizer.
-
-    Performs gradient descent optimization with a momentum term and analytic gradients
-    for parametrized quantum gates, i.e. Pauli Rotations. See, for example:
+    """Analytic Quantum Gradient Descent (AQGD) with Epochs optimizer.
+    Performs gradient descent optimization with a momentum term, analytic gradients,
+    and customized step length schedule for parametrized quantum gates, i.e.
+    Pauli Rotations. See, for example:
 
     * K. Mitarai, M. Negoro, M. Kitagawa, and K. Fujii. (2018).
       Quantum circuit learning. Phys. Rev. A 98, 032309.
@@ -43,150 +42,296 @@ class AQGD(Optimizer):
 
     Gradients are computed "analytically" using the quantum circuit when evaluating
     the objective function.
-    """
 
-    _OPTIONS = ['maxiter', 'eta', 'tol', 'disp']
+    """
+    _OPTIONS = ['maxiter', 'eta', 'momentum', 'ptol', 'otol', 'averaging']
 
     def __init__(self,
-                 maxiter: int = 1000,
-                 eta: float = 3.0,
-                 tol: float = 1e-6,
-                 disp: bool = False,
-                 momentum: float = 0.25) -> None:
+                 maxiter: List[int] = [1000],
+                 eta: List[float] = [1.0],
+                 momentum: List[float] = [0.5],
+                 ptol: float = 1e-6,
+                 otol: float = 1e-6,
+                 averaging: int = 10) -> None:
         """
-        Args:
-            maxiter: Maximum number of iterations, each iteration evaluation gradient.
-            eta: The coefficient of the gradient update. Increasing this value
-                 results in larger step sizes: param = previous_param - eta * deriv
-            tol: The convergence criteria that must be reached before stopping.
-                 Optimization stops when: absolute(loss - previous_loss) < tol
-            disp: Set to True to display convergence messages.
-            momentum: Bias towards the previous gradient momentum in current update.
-                      Must be within the bounds: [0,1)
+        Constructor.
 
+        Performs Analytical Quantum Gradient Descent (AQGD) with Epochs.
+
+        Args:
+            maxiter: Maximum number of iterations (full gradient steps)
+            eta: The coefficient of the gradient update. Increasing this value
+                results in larger step sizes: param = previous_param - eta * deriv
+            momentum: Bias towards the previous gradient momentum in current
+                update. Must be within the bounds: [0,1)
+            ptol: Tolerance for change in norm of parameters.
+            otol: Tolerance for change in windowed average of objective values. Convergence
+                occurs when either objective tolerance is met OR parameter tolerance is met
+            averaging: Length of window over which to average objective values for objective
+                convergence criterion
+
+        Raises:
+            AquaError: If the number of iterations doesn't match momentum or eta for the
+                       desired steps.
         """
-        validate_range_exclusive_max('momentum', momentum, 0, 1)
+        if len(maxiter) != len(eta) or len(maxiter) != len(momentum):
+            raise AquaError("AQGD input parameter length mismatch")
+        for m in momentum:
+            validate_range_exclusive_max('momentum', m, 0, 1)
         super().__init__()
 
         self._eta = eta
         self._maxiter = maxiter
-        self._tol = tol if tol is not None else 1e-6
-        self._disp = disp
-        self._momentum_coeff = momentum
-        self._previous_loss = None
+        self._momenta_coeff = momentum
+        self._ptol = ptol if ptol is not None else 1e-6
+        self._otol = otol if otol is not None else 1e-6
+        self._averaging = averaging
+        self._avg_objval = None
+        self._prev_param = None
 
-    def get_support_level(self):
-        """ Return support level dictionary """
+    def get_support_level(self) -> Dict[str, int]:
+        """ Support level dictionary
+
+        Returns:
+            Dict[str, int]: gradient, bounds and initial point
+                            support information that is ignored/required.
+        """
         return {
             'gradient': Optimizer.SupportLevel.ignored,
             'bounds': Optimizer.SupportLevel.ignored,
             'initial_point': Optimizer.SupportLevel.required
         }
 
-    def deriv(self, j, params, obj):
+    def compute_objective_fn_and_gradient(self, params: List[float],
+                                          obj: Callable) -> Tuple[float, np.array]:
         """
-        Obtains the analytical quantum derivative of the objective function with
-        respect to the jth parameter.
+        Obtains the objective function value for params and the analytical quantum derivatives of
+        the objective function with respect to each parameter. Requires
+        2*(number parameters) + 1 objective evaluations
 
         Args:
-            j (int): Index of the parameter to compute the derivative of.
-            params (array): Current value of the parameters to evaluate
-                            the objective function at.
-            obj (callable): Objective function.
+            params: Current value of the parameters to evaluate the objective function
+            obj: Objective function of interest
+
         Returns:
-            float: The derivative of the objective function w.r.t. j
+            Tuple containing the objective value and array of gradients for the given parameter set.
         """
-        # create a copy of the parameters with the positive shift
-        plus_params = deepcopy(params)
-        plus_params[j] += pi / 2
+        num_params = len(params)
+        param_sets_to_eval = params + np.concatenate(
+            (np.zeros((1, num_params)),    # copy of the parameters as is
+             np.eye(num_params)*np.pi/2,   # copy of the parameters with the positive shift
+             -np.eye(num_params)*np.pi/2),  # copy of the parameters with the negative shift
+            axis=0)
+        # Evaluate,
+        # reshaping to flatten, as expected by objective function
+        values = np.array(obj(param_sets_to_eval.reshape(-1)))
 
-        # create a copy of the parameters with the negative shift
-        minus_params = deepcopy(params)
-        minus_params[j] -= pi / 2
+        # Update number of objective function evaluations
+        self._eval_count += 2*num_params + 1
 
-        # return the derivative value
-        return 0.5 * (obj(plus_params) - obj(minus_params))
+        # return the objective function value
+        obj_value = values[0]
 
-    def update(self, j, params, deriv, mprev):
+        # return the gradient values
+        gradient = 0.5*(values[1:num_params+1] - values[1+num_params:])
+        return obj_value, gradient
+
+    def update(self, params: np.array, gradient: np.array, mprev: np.array,
+               step_size: float, momentum_coeff: float) -> Tuple[List[float], List[float]]:
         """
-        Updates the jth parameter based on the derivative and previous momentum
+        Updates full parameter array based on a step that is a convex
+        combination of the gradient and previous momentum
 
         Args:
-            j (int): Index of the parameter to compute the derivative of.
-            params (array): Current value of the parameters to evaluate
-                            the objective function at.
-            deriv (float): Value of the derivative w.r.t. the jth parameter
-            mprev (array): Array containing all of the parameter momentums
+            params: Current value of the parameters to evaluate the objective function at
+            gradient: Gradient of objective wrt parameters
+            mprev: Momentum vector for each parameter
+            step_size: The scaling of step to take
+            momentum_coeff: Bias towards previous momentum vector when updating current
+                momentum/step vector
+
         Returns:
-            tuple: params, new momentums
+            Tuple of the updated parameter and momentum vectors respectively.
         """
-        mnew = self._eta * (deriv * (1 - self._momentum_coeff) + mprev[j] * self._momentum_coeff)
-        params[j] -= mnew
+        # Momentum update:
+        # Convex combination of previous momentum and current gradient estimate
+        mnew = (1-momentum_coeff) * gradient + momentum_coeff * mprev
+        params -= step_size * mnew
         return params, mnew
 
-    def converged(self, objval, n=2):
+    def converged_objective(self, objval: float, tol: float, n: int) -> bool:
         """
-        Determines if the objective function has converged by finding the difference between
-        the current value and the previous n values.
+        Tests convergence based on the change in a moving windowed average of past objective values
 
         Args:
-            objval (float): Current value of the objective function.
-            n (int): Number of previous steps which must be within the convergence criteria
-                     in order to be considered converged. Using a larger number will prevent
-                     the optimizer from stopping early.
+            objval: Current value of the objective function
+            tol: tolerance below which (average) objective function change must be
+            n: size of averaging window
 
         Returns:
-            bool: Whether or not the optimization has converged.
+            Bool indicating whether or not the optimization has converged.
         """
-        if self._previous_loss is None:
-            self._previous_loss = [objval + 2 * self._tol] * n
+        # If we haven't reached the required window length,
+        # append the current value, but we haven't converged
+        if len(self._prev_loss) < n:
+            self._prev_loss.append(objval)
+            return False
 
-        if all(absolute(objval - prev) < self._tol for prev in self._previous_loss):
+        # Update last value in list with current value
+        self._prev_loss.append(objval)
+        # (length now = n+1)
+
+        # Calculate previous windowed average
+        # and current windowed average of objective values
+        prev_avg = np.mean(self._prev_loss[:n])
+        curr_avg = np.mean(self._prev_loss[1:n+1])
+        self._avg_objval = curr_avg
+
+        # Update window of objective values
+        # (Remove earliest value)
+        self._prev_loss.pop(0)
+
+        if np.absolute(prev_avg - curr_avg) < tol:
             # converged
+            logger.info("Previous obj avg: %f\nCurr obj avg: %f", prev_avg, curr_avg)
             return True
-
-        # store previous function evaluations
-        for i in range(n):
-            if i < n - 1:
-                self._previous_loss[i] = self._previous_loss[i + 1]
-            else:
-                self._previous_loss[i] = objval
-
+        # else
         return False
 
-    def optimize(self, num_vars, objective_function, gradient_function=None,
-                 variable_bounds=None, initial_point=None):
-        super().optimize(num_vars, objective_function, gradient_function,
-                         variable_bounds, initial_point)
+    def converged_parameter(self, parameter: List[float], tol: float) -> bool:
+        """
+        Tests convergence based on change in parameter
 
-        params = array(initial_point)
-        it = 0
-        momentum = zeros(shape=(num_vars,))
-        objval = objective_function(params)
+        Args:
+            parameter: current parameter values
+            tol: tolerance for change in norm of parameters
 
-        if self._disp:
-            print("Iteration: " + str(it) + " \t| Energy: " + str(objval))
+        Returns:
+            Bool indicating whether or not the optimization has converged
+        """
+        if self._prev_param is None:
+            self._prev_param = np.copy(parameter)
+            return False
 
-        minobj = objval
-        minparams = params
+        order = np.inf
+        p_change = np.linalg.norm(self._prev_param - parameter, ord=order)
+        if p_change < tol:
+            # converged
+            logger.info("Change in parameters (%f norm): %f", order, p_change)
+            return True
+        # else
+        return False
 
-        while it < self._maxiter and not self.converged(objval):
-            for j in range(num_vars):
-                # update parameters in order based on quantum gradient
-                derivative = self.deriv(j, params, objective_function)
-                params, momentum[j] = self.update(j, params, derivative, momentum)
+    def converged_alt(self, gradient: List[float], tol: float, n: int) -> bool:
+        """
+        Tests convergence from norm of windowed average of gradients
 
-            # check the value of the objective function
-            objval = objective_function(params)
+        Args:
+            gradient: current gradient
+            tol: tolerance for average gradient norm
+            n: size of averaging window
 
-            # keep the best parameters
-            if objval < minobj:
-                minobj = objval
-                minparams = params
+        Returns:
+            Bool indicating whether or not the optimization has converged
+        """
+        # If we haven't reached the required window length,
+        # append the current value, but we haven't converged
+        if len(self._prev_grad) < n-1:
+            self._prev_grad.append(gradient)
+            return False
 
-            # update the iteration count
-            it += 1
-            if self._disp:
-                print("Iteration: " + str(it) + " \t| Energy: " + str(objval))
+        # Update last value in list with current value
+        self._prev_grad.append(gradient)
+        # (length now = n)
 
-        return minparams, minobj, it
+        # Calculate previous windowed average
+        # and current windowed average of objective values
+        avg_grad = np.mean(self._prev_grad, axis=0)
+
+        # Update window of values
+        # (Remove earliest value)
+        self._prev_grad.pop(0)
+
+        if np.linalg.norm(avg_grad, ord=np.inf) < tol:
+            # converged
+            logger.info("Avg. grad. norm: %f", np.linalg.norm(avg_grad, ord=np.inf))
+            return True
+        # else
+        return False
+
+    def optimize(self,
+                 num_vars: int,
+                 objective_function: Callable,
+                 gradient_function: Callable = None,
+                 variable_bounds: Callable = None,
+                 initial_point: List[float] = None) -> Tuple[np.ndarray[float], float, int]:
+        """
+        Perform optimization
+
+        Args:
+            num_vars: Number of variables/parameters
+            objective_function: Objective function evaluator
+            gradient_function: Function that calculates gradients of the
+                objective or None if not available/used.
+            variable_bounds: List of variable bounds, given as (lower, upper).
+                None means unbounded.
+            initial_point (array): Initial parameters at which to start
+
+        Returns:
+            Set of parameters, objective value and number of objective function
+            calls/evaluations.
+        """
+        super().optimize(num_vars, objective_function, gradient_function, variable_bounds,
+                         initial_point)
+
+        params = np.array(initial_point)
+        momentum = np.zeros(shape=(num_vars,))
+        # empty out history of previous objectives/gradients/parameters
+        # (in case this object is re-used)
+        self._prev_loss = []
+        self._prev_grad = []
+        self._prev_param = None
+        self._eval_count = 0    # function evaluations
+        self._iter = 0          # running iteration
+
+        logger.info("Initial Params: %s", params)
+
+        epoch = 0
+        self._converged = False
+        for (eta, mom_coeff) in zip(self._eta, self._momenta_coeff):
+            logger.info("Epoch: {:4d} | Stepsize: {:6.4f} | Momentum: {:6.4f}".format(
+                epoch, eta, mom_coeff))
+
+            sum_max_iters = sum(self._maxiter[0:epoch+1])
+            while self._iter < sum_max_iters:
+                # update the iteration count
+                self._iter += 1
+
+                # Check for parameter convergence before potentially costly function evaluation
+                self._converged = self.converged_parameter(params, self._ptol)
+                if self._converged:
+                    break
+
+                # Calculate objective function and estimate of analytical gradient
+                objval, gradient = \
+                    self.compute_objective_fn_and_gradient(params, objective_function)
+
+                logger.info(" Iter: {:4d} | Obj: {:11.6f} | Grad Norm: {}".format(
+                    self._iter, objval, np.linalg.norm(gradient, ord=np.inf)))
+
+                # Check for objective convergence
+                self._converged = self.converged_objective(objval, self._otol, self._averaging)
+                if self._converged:
+                    break
+
+                # Update parameters and momentum
+                params, momentum = self.update(params, gradient, momentum, eta, mom_coeff)
+            # end inner iteration
+            # if converged, end iterating over epochs
+            if self._converged:
+                break
+            epoch += 1
+        # end epoch iteration
+
+        # return last parameter values, objval estimate, and objective evaluation count
+        return params, objval, self._eval_count
