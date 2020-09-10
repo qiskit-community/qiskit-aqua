@@ -82,8 +82,6 @@ class Grover_new(QuantumAlgorithm):
 
     Should internally use Grover operator to construct Q, then "applying j iterations of Grover"
     only means apply Q j-times where, Q is the grover op)
-
-    num_solutions: is used to decide num_iterations
     """
 
     def __init__(self,
@@ -126,16 +124,18 @@ class Grover_new(QuantumAlgorithm):
             mct_mode: Multi-Control Toffoli mode ('basic' | 'basic-dirty-ancilla' |
                 'advanced' | 'noancilla')
             quantum_instance: Quantum Instance or Backend
-            grover_operator: TODO
-            is_good_state: TODO
-            num_solutions: TODO
+            grover_operator: A GroverOperator for the Grover's algorithm can be set directly.
+            is_good_state: Answers the Grover's algorithm is looking for.
+                It is used to check whether the result is correct or not.
+            num_solutions: num_solutions: is used to decide num_iterations
             state_preparation: TODO
 
         Raises:
-            AquaError: evaluate_classically() missing from the input oracle
-            TypeError: If ``oracle`` is of unsupported type.
             TypeError: If ``init_state`` is of unsupported type or is of type ``InitialState` but
                 the oracle is not of type ``Oracle``.
+            AquaError: evaluate_classically() missing from the input oracle
+            TypeError: If ``oracle`` is of unsupported type.
+
 
         References:
             [1]: Baritompa et al., Grover's Quantum Algorithm Applied to Global Optimization
@@ -148,11 +148,6 @@ class Grover_new(QuantumAlgorithm):
                         {'basic', 'basic-dirty-ancilla',
                          'advanced', 'noancilla'})
         super().__init__(quantum_instance)
-
-        if not callable(getattr(oracle, "evaluate_classically", None)):
-            raise AquaError(
-                'Missing the evaluate_classically() method from the provided oracle instance.'
-            )
 
         # init_state has been renamed to state_preparation
         if init_state is not None:
@@ -169,8 +164,6 @@ class Grover_new(QuantumAlgorithm):
                           'special MCX mode you should use the GroverOperator in '
                           'qiskit.circuit.library directly and pass it to the grover_operator '
                           'keyword argument.', DeprecationWarning, stacklevel=2)
-
-        self._max_num_iterations = None
 
         # Construct GroverOperator circuit
         if grover_operator is not None:
@@ -189,13 +182,18 @@ class Grover_new(QuantumAlgorithm):
                 else:
                     raise TypeError('If init_state is of type InitialState, oracle must be of type '
                                     'Oracle')
-            elif not isinstance(state_preparation, QuantumCircuit):
+            elif not isinstance(state_preparation, QuantumCircuit) and not state_preparation is None:
                 raise TypeError('Unsupported type "{}" of state_preparation'.format(
                     type(state_preparation)))
 
             # check to oracle type and if necessary convert the deprecated Oracle component to
             # a circuit
             if isinstance(oracle, Oracle):
+                if not callable(getattr(oracle, "evaluate_classically", None)):
+                    raise AquaError(
+                        'Missing the evaluate_classically() method \
+                            from the provided oracle instance.'
+                    )
                 warnings.warn('Passing an qiskit.aqua.components.oracles.Oracle object is '
                               'deprecated as of 0.8.0, and the support will be removed no '
                               'earlier than 3 months after the release date. You should pass a '
@@ -203,12 +201,14 @@ class Grover_new(QuantumAlgorithm):
                               'qiskit.circuit.library.GroverOperator for more information.',
                               DeprecationWarning, stacklevel=2)
 
-                # TODO how can we set this variable if oracle is not of type Oracle?
-                # do we need to set it?
-                self._max_num_iterations = np.ceil(2 ** (len(oracle.variable_register) / 2))
                 oracle, reflection_qubits, is_good_state = _oracle_component_to_circuit(oracle)
             elif not isinstance(oracle, (QuantumCircuit, Statevector)):
                 raise TypeError('Unsupported type "{}" of oracle'.format(type(oracle)))
+
+            print(oracle)
+            print(reflection_qubits)
+            print(oracle.num_qubits)
+            print(oracle.num_ancillas)
 
             self._grover_operator = GroverOperator(oracle=oracle,
                                                    state_preparation=state_preparation,
@@ -219,9 +219,20 @@ class Grover_new(QuantumAlgorithm):
         self._incremental = incremental
         self._lam = lam
         self._rotation_counts = rotation_counts
-        self._num_iterations = num_iterations if not incremental else 1
+        self._max_num_iterations = np.ceil(2 ** (len(self._grover_operator.reflection_qubits) / 2))
         if incremental:
-            logger.debug('Incremental mode specified, ignoring "num_iterations".')
+            self._num_iterations = 1
+        elif num_solutions:
+            self._num_iterations = np.pi*np.sqrt(
+                2**len(self._grover_operator.reflection_qubits)/num_solutions)/4
+        else:
+            self._num_iterations = num_iterations
+
+        if incremental:
+            logger.debug('Incremental mode specified, \
+                ignoring "num_iterations" and "num_solutions".')
+        elif num_solutions:
+            logger.debug('"num_solutions" specified, ignoring "num_iterations".')
         elif self._max_num_iterations is not None:
             if num_iterations > self._max_num_iterations:
                 logger.warning('The specified value %s for "num_iterations" '
@@ -231,36 +242,22 @@ class Grover_new(QuantumAlgorithm):
         self._qc_amplitude_amplification = None
         self._qc_measurement = None
 
-    # TODO
-    # We don't need qc_amplitude_amplification_iteration() too. We can just return self.grover_op
-    # for the grover operator circuit
-
     @property
     def qc_amplitude_amplification_iteration(self):
-        """ qc amplitude amplification iteration """
+        """ Return GroverOperator """
         return self._grover_operator
-
-        # TODO
-        # This method is to run the Grover circuit that is already created in construct_circuit()
-        # method.
-        # The circuit contains the Grover operator circuit with the specified number of iterations.
-        # So we can just run the circuit.
 
     def _run_experiment(self, power):
         """Run a grover experiment for a given power of the Grover operator."""
         if self._quantum_instance.is_statevector:
 
-            # TODO
-            # For the statevector simulator, I need to read the following code to see what's
-            # happening. Probably, returning the result with the highest probability?
-
             qc = self.construct_circuit(power, measurement=False)
+            print("reflection qubits: ", self._grover_operator.reflection_qubits)
             result = self._quantum_instance.execute(qc)
+            print(result)
             complete_state_vec = result.get_statevector(qc)
-            # variable_register_density_matrix = get_subsystem_density_matrix(
-            #     complete_state_vec,
-            #     range(len(self._oracle.variable_register), qc.width())
-            # )
+            print(complete_state_vec)
+
             variable_register_density_matrix = get_subsystem_density_matrix(
                 complete_state_vec,
                 range(len(self._grover_operator.reflection_qubits), qc.width())
@@ -276,9 +273,6 @@ class Grover_new(QuantumAlgorithm):
             top_measurement = np.binary_repr(max_amplitude_idx, len(
                 self._grover_operator.reflection_qubits))
         else:
-
-            # TODO When it's not the statevector simulator. We can just run the circuit.
-
             qc = self.construct_circuit(power, measurement=True)
             measurement = self._quantum_instance.execute(qc).get_counts(qc)
             self._ret['measurement'] = measurement
@@ -286,11 +280,7 @@ class Grover_new(QuantumAlgorithm):
 
         self._ret['top_measurement'] = top_measurement
 
-        # oracle_evaluation, assignment = self._oracle.evaluate_classically(top_measurement)
-        # TODO this is not actually what is_good_state returns
-        oracle_evaluation, assignment = self.is_good_state(top_measurement)
-
-        return assignment, oracle_evaluation
+        return top_measurement, self.is_good_state(top_measurement)
 
     def is_good_state(self, bitstr: str) -> bool:
         """Check whether a provided bitstring is a good state or not.
@@ -306,13 +296,15 @@ class Grover_new(QuantumAlgorithm):
             True if the measurement is a good state, False otherwise.
         """
         if callable(self._is_good_state):
-            return self._is_good_state(bitstr)
-
-        if isinstance(self._is_good_state, list):
+            oracle_evaluation, _ = self._is_good_state(bitstr)
+            return oracle_evaluation
+        elif isinstance(self._is_good_state, list):
             return all([bitstr[index] == '1' for index in self._is_good_state])
-
-        raise NotImplementedError('Conversion to callable not implemented for {}'.format(
-            type(self._is_good_state)))
+        elif isinstance(self._is_good_state, Statevector):
+            return bitstr in self._is_good_state.probabilities_dict()
+        else:
+            raise NotImplementedError('Conversion to callable not implemented for {}'.format(
+                type(self._is_good_state)))
 
     def construct_circuit(self, power: int, measurement: bool = False) -> QuantumCircuit:
         """Construct
@@ -324,42 +316,44 @@ class Grover_new(QuantumAlgorithm):
         Returns:
             QuantumCircuit: the QuantumCircuit object for the constructed circuit
         """
-
-        # TODO I need to check how the incremental version of Grover algorithm works.
-        # It gradually increases the number of iterations, but when it will stop?
-
         qc = QuantumCircuit(self._grover_operator.num_qubits, name='Grover circuit')
         qc.compose(self._grover_operator.state_preparation, inplace=True)
-        qc.compose(self._grover_operator.power(power), inplace=True)
+        if power > 0:
+            qc.compose(self._grover_operator.power(power), inplace=True)
 
         if measurement:
-            # TODO measure output_register as well?
-            # measurement_cr = ClassicalRegister(len(self._oracle.variable_register), name='m')
-            # qc.add_register(measurement_cr)
-            # qc.measure(self._oracle.variable_register, measurement_cr
             measurement_cr = ClassicalRegister(
                 len(self._grover_operator.reflection_qubits), name='m')
             qc.add_register(measurement_cr)
             qc.measure(self._grover_operator.reflection_qubits, measurement_cr)
 
+        print(qc)
         self._ret['circuit'] = qc
         return qc
 
     def _run(self):
-        # TODO I need to check how the incremental version of Grover algorithm works
-
+        """Run an entire experiment."""
+        print("run")
         if self._incremental:
-            # TODO Rotation counts?
             if self._rotation_counts:
+                print("rotation_counts is given")
+                print("self._max_num_iterations", self._max_num_iterations)
                 for target_num_iterations in self._rotation_counts:
+                    print(target_num_iterations)
                     assignment, oracle_evaluation = self._run_experiment(target_num_iterations)
+                    print(oracle_evaluation)
                     if oracle_evaluation:
+                        print("oracle_evaluation")
                         break
                     if target_num_iterations > self._max_num_iterations:
+                        print("target_num_iterations > self._max_num_iterations")
                         break
             else:
+                print("rotation_counts is None")
                 current_max_num_iterations = 1
+                print("self._max_num_iterations", self._max_num_iterations)
                 while current_max_num_iterations < self._max_num_iterations:
+                    print("current_max_num_iterations", current_max_num_iterations)
                     target_num_iterations = self.random.integers(current_max_num_iterations) + 1
                     assignment, oracle_evaluation = self._run_experiment(target_num_iterations)
                     if oracle_evaluation:
@@ -368,9 +362,6 @@ class Grover_new(QuantumAlgorithm):
                         min(self._lam * current_max_num_iterations, self._max_num_iterations)
 
         else:
-            # For the usual version (not the incremental version) we just call
-            # self._run_with_existing_iterations()
-            # which run the grover circuit with the specified number of iterations
             assignment, oracle_evaluation = self._run_experiment(self._num_iterations)
 
         self._ret['result'] = assignment
@@ -379,6 +370,7 @@ class Grover_new(QuantumAlgorithm):
 
 
 def _oracle_component_to_circuit(oracle: Oracle):
+    """ Convert an Oracle to a QuantumCircuit."""
     circuit = QuantumCircuit(oracle.circuit.num_qubits)
 
     if isinstance(oracle, TruthTableOracle):
@@ -394,6 +386,8 @@ def _oracle_component_to_circuit(oracle: Oracle):
 
     circuit.x(_output_register)
     circuit.h(_output_register)
+    print(circuit.num_qubits, oracle.circuit.num_qubits, list(range(oracle.circuit.num_qubits)))
+    print(circuit.qubits, oracle.circuit.qubits)
     circuit.compose(oracle.circuit, list(range(oracle.circuit.num_qubits)),
                     inplace=True)
     circuit.h(_output_register)
