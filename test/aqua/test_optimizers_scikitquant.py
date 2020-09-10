@@ -10,7 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Test of scikit-quant optimizers """
+""" Test of scikit-quant optimizers. """
 
 import unittest
 from test.aqua import QiskitAquaTestCase
@@ -24,10 +24,10 @@ from qiskit.aqua.components.optimizers import BOBYQA, SNOBFIT, IMFIL
 
 
 class TestOptimizers(QiskitAquaTestCase):
-    """ Test scikit-quant optimizers """
+    """ Test scikit-quant optimizers. """
 
     def setUp(self):
-        """ set the problem """
+        """ Set the problem. """
         super().setUp()
         aqua_globals.random_seed = 50
         pauli_dict = {
@@ -51,17 +51,17 @@ class TestOptimizers(QiskitAquaTestCase):
         self.assertAlmostEqual(result.eigenvalue.real, -1.857, places=1)
 
     def test_bobyqa(self):
-        """ bobyqa optimizer test """
+        """ BOBYQA optimizer test. """
         optimizer = BOBYQA(maxiter=150)
         self._optimize(optimizer)
 
     def test_snobfit(self):
-        """ snobfit optimizer test """
+        """ SNOBFIT optimizer test. """
         optimizer = SNOBFIT(maxiter=100, maxfail=100, maxmp=20)
         self._optimize(optimizer)
 
     def test_imfil(self):
-        """ imfil test """
+        """ IMFIL test. """
         optimizer = IMFIL(maxiter=100)
         self._optimize(optimizer)
 

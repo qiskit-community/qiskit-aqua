@@ -10,7 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""IMplicit FILtering (IMFIL) optimizer """
+"""IMplicit FILtering (IMFIL) optimizer."""
 
 import logging
 import skquant.opt as skq
@@ -27,9 +27,9 @@ class IMFIL(Optimizer):
     reconstruct the function and its higher derivatives, implicit filtering builds upon
     coordinate search followed by interpolation to get an approximate gradient.
 
-    Uses skquant.opt installed with pip install scikit-quant
+    Uses skquant.opt installed with pip install scikit-quant.
     For further detail, please refer to
-    https://github.com/scikit-quant/scikit-quant and https://qat4chem.lbl.gov/software
+    https://github.com/scikit-quant/scikit-quant and https://qat4chem.lbl.gov/software.
     """
 
     # pylint: disable=unused-argument
@@ -44,7 +44,7 @@ class IMFIL(Optimizer):
         self._maxiter = maxiter
 
     def get_support_level(self):
-        """ Return support level dictionary """
+        """ Returns support level dictionary. """
         return {
             'gradient': OptimizerSupportLevel.ignored,
             'bounds': OptimizerSupportLevel.required,
@@ -53,7 +53,7 @@ class IMFIL(Optimizer):
 
     def optimize(self, num_vars, objective_function, gradient_function=None, variable_bounds=None,
                  initial_point=None):
-        """ Runs the optimization """
+        """ Runs the optimization. """
         super().optimize(num_vars, objective_function, gradient_function, variable_bounds,
                          initial_point)
         res, history = skq.minimize(func=objective_function, x0=initial_point,
