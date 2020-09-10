@@ -29,6 +29,7 @@ ap
 api
 appfactory
 arcsin
+argmax
 args
 armijo
 arxiv
@@ -67,6 +68,7 @@ cdot
 ceil
 chernoff
 chu
+chuang
 chuang's
 circ
 circuitop
@@ -156,9 +158,12 @@ ecc
 eckstein
 ee
 eigen
+eigenphase
+eigenproblem
 eigensolver
 eigensolvers
 eigenstate
+eigenstates
 eigrange
 eigs
 eigvecs
@@ -188,6 +193,7 @@ exc
 excitations
 exponentials
 exponentiated
+exponentiating
 exponentiations
 expr
 factorizers
@@ -335,6 +341,7 @@ lin
 linearconstraint
 linearpaulirotations
 lingua
+linter
 ljik
 lk
 lmin
@@ -345,6 +352,7 @@ lor
 lowerbound
 lp
 lr
+lsb
 lst
 majorana
 mapsto
@@ -467,6 +475,7 @@ peleato
 penality
 performant
 ph
+phaseestimation
 piecewise
 piecewiselinearpaulirotations
 plesset
@@ -674,6 +683,7 @@ unitaries
 unittest
 univariate
 unroller
+unscaled
 unsetting
 unshifting
 untapered
