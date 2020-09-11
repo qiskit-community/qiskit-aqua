@@ -78,7 +78,7 @@ class NumPyEigensolver(ClassicalAlgorithm):
         return self._operator
 
     @operator.setter
-    def operator(self, operator: Union[OperatorBase, LegacyBaseOperator]) -> None:
+    def operator(self, operator: Optional[Union[OperatorBase, LegacyBaseOperator]]) -> None:
         """ set operator """
         if isinstance(operator, LegacyBaseOperator):
             operator = operator.to_opflow()
@@ -95,20 +95,24 @@ class NumPyEigensolver(ClassicalAlgorithm):
 
     @aux_operators.setter
     def aux_operators(self,
-                      aux_operators: Optional[List[Optional[Union[OperatorBase,
-                                                                  LegacyBaseOperator]]]]) -> None:
-        """ set aux operators """
+                      aux_operators: Optional[
+                          Union[OperatorBase,
+                                LegacyBaseOperator,
+                                List[Optional[Union[OperatorBase,
+                                                    LegacyBaseOperator]]]]]) -> None:
+        """ Set aux operators """
         if aux_operators is None:
-            self._aux_operators = []
-        else:
-            aux_operators = \
-                [aux_operators] if not isinstance(aux_operators, list) else aux_operators
-            converted = [op.to_opflow() if isinstance(op, LegacyBaseOperator)
-                         else op for op in aux_operators]
-            # Chemistry passes aux_ops with 0 qubits and paulis sometimes
-            zero_op = I.tensorpower(self.operator.num_qubits) * 0.0
-            converted = [zero_op if op == 0 else op for op in converted]
-            self._aux_operators = converted
+            aux_operators = []
+        elif not isinstance(aux_operators, list):
+            aux_operators = [aux_operators]
+
+        converted = [op.to_opflow() if isinstance(op, LegacyBaseOperator)
+                     else op for op in aux_operators]
+
+        zero_op = I.tensorpower(self.operator.num_qubits) * 0.0
+
+        # For some reason Chemistry passes aux_ops with 0 qubits and paulis sometimes.
+        self._aux_operators = [zero_op if op == 0 else op for op in converted]
 
     @property
     def k(self) -> int:

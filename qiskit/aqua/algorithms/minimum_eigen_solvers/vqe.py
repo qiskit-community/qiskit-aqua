@@ -230,33 +230,31 @@ class VQE(VQAlgorithm, MinimumEigensolver):
 
     @aux_operators.setter
     def aux_operators(self,
-                      aux_operators: Optional[List[Optional[Union[OperatorBase,
-                                                                  LegacyBaseOperator]]]]) -> None:
+                      aux_operators: Optional[
+                          Union[OperatorBase,
+                                LegacyBaseOperator,
+                                List[Optional[Union[OperatorBase,
+                                                    LegacyBaseOperator]]]]]) -> None:
         """ Set aux operators """
-        # We need to handle the array entries being Optional i.e. having value None
-        self._aux_op_nones = None
-        if isinstance(aux_operators, list):
-            self._aux_op_nones = [op is None for op in aux_operators]
-            zero_op = I.tensorpower(self.operator.num_qubits) * 0.0
-            converted = []
-            for op in aux_operators:
-                if op is None:
-                    converted.append(zero_op)
-                elif isinstance(op, LegacyBaseOperator):
-                    converted.append(op.to_opflow())
-                else:
-                    converted.append(op)
-
-            # For some reason Chemistry passes aux_ops with 0 qubits and paulis sometimes.
-            converted = [zero_op if op == 0 else op for op in converted]
-            aux_operators = ListOp(converted)
-        elif isinstance(aux_operators, LegacyBaseOperator):
-            aux_operators = [aux_operators.to_opflow()]
-        elif isinstance(aux_operators, OperatorBase):
-            aux_operators = [aux_operators]
-        else:
+        if aux_operators is None:
             aux_operators = []
-        self._aux_operators = aux_operators
+        elif not isinstance(aux_operators, list):
+            aux_operators = [aux_operators]
+
+        # We need to handle the array entries being Optional i.e. having value None
+        self._aux_op_nones = [op is None for op in aux_operators]
+        zero_op = I.tensorpower(self.operator.num_qubits) * 0.0
+        converted = []
+        for op in aux_operators:
+            if op is None:
+                converted.append(zero_op)
+            elif isinstance(op, LegacyBaseOperator):
+                converted.append(op.to_opflow())
+            else:
+                converted.append(op)
+
+        # For some reason Chemistry passes aux_ops with 0 qubits and paulis sometimes.
+        self._aux_operators = ListOp([zero_op if op == 0 else op for op in converted])
 
     def _check_operator_varform(self):
         """Check that the number of qubits of operator and variational form match."""
