@@ -16,8 +16,11 @@ from typing import cast, List, Union, Dict, Optional, Tuple
 import logging
 from collections import defaultdict
 from enum import Enum
-from math import fsum
+from math import fsum, isclose
 import warnings
+import numpy as np
+from numpy import (ndarray, zeros, bool as nbool)
+from scipy.sparse import spmatrix
 
 from docplex.mp.constr import (LinearConstraint as DocplexLinearConstraint,
                                QuadraticConstraint as DocplexQuadraticConstraint,
@@ -26,8 +29,6 @@ from docplex.mp.linear import Var
 from docplex.mp.model import Model
 from docplex.mp.model_reader import ModelReader
 from docplex.mp.quad import QuadExpr
-from numpy import (ndarray, zeros, bool as nbool)
-from scipy.sparse import spmatrix
 
 from qiskit.aqua import MissingOptionalLibraryError
 from qiskit.aqua.operators import I, OperatorBase, PauliOp, WeightedPauliOperator, SummedOp, ListOp
@@ -1089,6 +1090,63 @@ class QuadraticProgram:
         # Set the objective function
         self.minimize(constant=offset, linear=linear_terms, quadratic=quadratic_terms)
         offset -= offset
+
+    def get_feasibility_info(self, x: Union[List[float], np.ndarray]) \
+            -> Tuple[bool, List[Variable], List[Constraint]]:
+        """Returns whether a solution is feasible or not along with the violations.
+        Args:
+            x: a solution value, such as returned in an optimizer result.
+        Returns:
+            feasible: Whether the solution provided is feasible or not.
+            List[Variable]: List of variables which are violated.
+            List[Constraint]: List of constraints which are violated.
+
+        Raises:
+            QiskitOptimizationError: If the input `x` is not same len as total vars
+        """
+        # if input `x` is not the same len as the total vars, raise an error
+        if len(x) != self.get_num_vars():
+            raise QiskitOptimizationError(
+                'The size of solution `x`: {}, does not match the number of problem variables: {}'
+                .format(len(x), self.get_num_vars())
+            )
+
+        # check whether the input satisfy the bounds of the problem
+        violated_variables = []     # type: List[Variable]
+        for i, val in enumerate(x):
+            variable = self.get_variable(i)
+            if val < variable.lowerbound or variable.upperbound < val:
+                violated_variables.append(variable)
+
+        # check whether the input satisfy the constraints of the problem
+        violated_constraints = []       # type: List[Constraint]
+        for constraint in cast(List[Constraint], self._linear_constraints) + \
+                cast(List[Constraint], self._quadratic_constraints):
+            lhs = constraint.evaluate(x)
+            if constraint.sense == ConstraintSense.LE and lhs > constraint.rhs:
+                violated_constraints.append(constraint)
+            elif constraint.sense == ConstraintSense.GE and lhs < constraint.rhs:
+                violated_constraints.append(constraint)
+            elif constraint.sense == ConstraintSense.EQ and not isclose(lhs, constraint.rhs):
+                violated_constraints.append(constraint)
+
+        feasible = not violated_variables and not violated_constraints
+
+        return feasible, violated_variables, violated_constraints
+
+    def is_feasible(self, x: Union[List[float], np.ndarray]) -> bool:
+        """Returns whether a solution is feasible or not.
+
+        Args:
+            x: a solution value, such as returned in an optimizer result.
+
+        Returns:
+            ``True`` if the solution provided is feasible otherwise ``False``.
+
+        """
+        feasible, _, _ = self.get_feasibility_info(x)
+
+        return feasible
 
 
 class SubstituteVariables:
