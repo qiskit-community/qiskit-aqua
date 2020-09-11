@@ -352,7 +352,7 @@ class InequalityToEquality(QuadraticProgramConverter):
         names = [x.name for x in self._dst.variables]
         new_x = self._interpret_var(names, result.x)
         return OptimizationResult(x=new_x, fval=result.fval, variables=self._src.variables,
-                                  raw_results=result.raw_results, status=result.status)
+                                  status=result.status, raw_results=result.raw_results)
 
     def _interpret_var(self, names, vals) -> List[int]:
         # interpret slack variables
