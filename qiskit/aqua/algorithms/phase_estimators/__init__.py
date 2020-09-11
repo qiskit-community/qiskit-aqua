@@ -10,7 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Phase Estimators """
+"""Phase Estimators."""
 
 from .phase_estimator import PhaseEstimator
 from .phase_estimator_result import PhaseEstimatorResult
