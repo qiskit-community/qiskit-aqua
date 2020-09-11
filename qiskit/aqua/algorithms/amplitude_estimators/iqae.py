@@ -74,7 +74,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             confint_method: Statistical method used to estimate the confidence intervals in
                 each iteration, can be 'chernoff' for the Chernoff intervals or 'beta' for the
                 Clopper-Pearson intervals (default)
-            min_ratio: Minimal q-ratio (K_{i+1} / K_i) for FindNextK
+            min_ratio: Minimal q-ratio (:math:`K_{i+1} / K_i`) for FindNextK
             state_preparation: A circuit preparing the input state, referred to as
                 :math:`\mathcal{A}`.
             grover_operator: The Grover operator :math:`\mathcal{Q}` used as unitary in the
