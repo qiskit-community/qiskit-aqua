@@ -28,7 +28,7 @@ from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.operators import (OperatorBase, ExpectationBase, ExpectationFactory, StateFn,
-                                   CircuitStateFn, LegacyBaseOperator, I, CircuitSampler, ListOp)
+                                   CircuitStateFn, LegacyBaseOperator, ListOp, I, CircuitSampler)
 from qiskit.aqua.components.optimizers import Optimizer, SLSQP
 from qiskit.aqua.components.variational_forms import VariationalForm
 from qiskit.aqua.utils.validation import validate_min
@@ -237,12 +237,19 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         self._aux_op_nones = None
         if isinstance(aux_operators, list):
             self._aux_op_nones = [op is None for op in aux_operators]
-            converted = [op.to_opflow() if isinstance(op, LegacyBaseOperator)
-                         else op for op in aux_operators]
-            # For some reason Chemistry passes aux_ops with 0 qubits and paulis sometimes.
             zero_op = I.tensorpower(self.operator.num_qubits) * 0.0
+            converted = []
+            for op in aux_operators:
+                if op is None:
+                    converted.append(zero_op)
+                elif isinstance(op, LegacyBaseOperator):
+                    converted.append(op.to_opflow())
+                else:
+                    converted.append(op)
+
+            # For some reason Chemistry passes aux_ops with 0 qubits and paulis sometimes.
             converted = [zero_op if op == 0 else op for op in converted]
-            aux_operators = converted
+            aux_operators = ListOp(converted)
         elif isinstance(aux_operators, LegacyBaseOperator):
             aux_operators = [aux_operators.to_opflow()]
         elif isinstance(aux_operators, OperatorBase):
