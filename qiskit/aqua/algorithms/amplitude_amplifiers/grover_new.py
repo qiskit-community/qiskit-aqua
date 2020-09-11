@@ -188,6 +188,7 @@ class Grover_new(QuantumAlgorithm):
 
             # check to oracle type and if necessary convert the deprecated Oracle component to
             # a circuit
+            reflection_qubits = None
             if isinstance(oracle, Oracle):
                 if not callable(getattr(oracle, "evaluate_classically", None)):
                     raise AquaError(
@@ -206,7 +207,7 @@ class Grover_new(QuantumAlgorithm):
                 raise TypeError('Unsupported type "{}" of oracle'.format(type(oracle)))
 
             print(oracle)
-            print(reflection_qubits)
+            #print(reflection_qubits)
             print(oracle.num_qubits)
             print(oracle.num_ancillas)
 
@@ -254,24 +255,33 @@ class Grover_new(QuantumAlgorithm):
             qc = self.construct_circuit(power, measurement=False)
             print("reflection qubits: ", self._grover_operator.reflection_qubits)
             result = self._quantum_instance.execute(qc)
-            print(result)
             complete_state_vec = result.get_statevector(qc)
             print(complete_state_vec)
-
-            variable_register_density_matrix = get_subsystem_density_matrix(
-                complete_state_vec,
-                range(len(self._grover_operator.reflection_qubits), qc.width())
-            )
-            variable_register_density_matrix_diag = np.diag(variable_register_density_matrix)
-            max_amplitude = max(
-                variable_register_density_matrix_diag.min(),
-                variable_register_density_matrix_diag.max(),
-                key=abs
-            )
-            max_amplitude_idx = \
-                np.where(variable_register_density_matrix_diag == max_amplitude)[0][0]
-            top_measurement = np.binary_repr(max_amplitude_idx, len(
-                self._grover_operator.reflection_qubits))
+            if qc.width() != len(self._grover_operator.reflection_qubits):
+                variable_register_density_matrix = get_subsystem_density_matrix(
+                    complete_state_vec,
+                    range(len(self._grover_operator.reflection_qubits), qc.width())
+                )
+                variable_register_density_matrix_diag = np.diag(variable_register_density_matrix)
+                max_amplitude = max(
+                    variable_register_density_matrix_diag.min(),
+                    variable_register_density_matrix_diag.max(),
+                    key=abs
+                )
+                max_amplitude_idx = \
+                    np.where(variable_register_density_matrix_diag == max_amplitude)[0][0]
+                top_measurement = np.binary_repr(max_amplitude_idx, len(
+                    self._grover_operator.reflection_qubits))
+            else:
+                max_amplitude = max(
+                    complete_state_vec.max(),
+                    complete_state_vec.min(),
+                    key=abs)
+                max_amplitude_idx = \
+                    np.where(complete_state_vec == max_amplitude)[0][0]
+                print(max_amplitude_idx)
+                top_measurement = np.binary_repr(max_amplitude_idx, len(
+                    self._grover_operator.reflection_qubits))
         else:
             qc = self.construct_circuit(power, measurement=True)
             measurement = self._quantum_instance.execute(qc).get_counts(qc)
@@ -362,6 +372,7 @@ class Grover_new(QuantumAlgorithm):
                         min(self._lam * current_max_num_iterations, self._max_num_iterations)
 
         else:
+            print("num_iterations: ", self._num_iterations)
             assignment, oracle_evaluation = self._run_experiment(self._num_iterations)
 
         self._ret['result'] = assignment
