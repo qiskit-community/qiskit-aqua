@@ -106,13 +106,15 @@ class NumPyEigensolver(ClassicalAlgorithm):
         elif not isinstance(aux_operators, list):
             aux_operators = [aux_operators]
 
-        converted = [op.to_opflow() if isinstance(op, LegacyBaseOperator)
-                     else op for op in aux_operators]
+        if aux_operators:
+            zero_op = I.tensorpower(self.operator.num_qubits) * 0.0
+            converted = [op.to_opflow() if isinstance(op, LegacyBaseOperator)
+                         else op for op in aux_operators]
 
-        zero_op = I.tensorpower(self.operator.num_qubits) * 0.0
+            # For some reason Chemistry passes aux_ops with 0 qubits and paulis sometimes.
+            aux_operators = [zero_op if op == 0 else op for op in converted]
 
-        # For some reason Chemistry passes aux_ops with 0 qubits and paulis sometimes.
-        self._aux_operators = [zero_op if op == 0 else op for op in converted]
+        self._aux_operators = aux_operators
 
     @property
     def k(self) -> int:

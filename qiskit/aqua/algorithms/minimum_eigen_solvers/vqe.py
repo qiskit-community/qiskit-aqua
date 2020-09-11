@@ -243,18 +243,21 @@ class VQE(VQAlgorithm, MinimumEigensolver):
 
         # We need to handle the array entries being Optional i.e. having value None
         self._aux_op_nones = [op is None for op in aux_operators]
-        zero_op = I.tensorpower(self.operator.num_qubits) * 0.0
-        converted = []
-        for op in aux_operators:
-            if op is None:
-                converted.append(zero_op)
-            elif isinstance(op, LegacyBaseOperator):
-                converted.append(op.to_opflow())
-            else:
-                converted.append(op)
+        if aux_operators:
+            zero_op = I.tensorpower(self.operator.num_qubits) * 0.0
+            converted = []
+            for op in aux_operators:
+                if op is None:
+                    converted.append(zero_op)
+                elif isinstance(op, LegacyBaseOperator):
+                    converted.append(op.to_opflow())
+                else:
+                    converted.append(op)
 
-        # For some reason Chemistry passes aux_ops with 0 qubits and paulis sometimes.
-        self._aux_operators = ListOp([zero_op if op == 0 else op for op in converted])
+            # For some reason Chemistry passes aux_ops with 0 qubits and paulis sometimes.
+            aux_operators = [zero_op if op == 0 else op for op in converted]
+
+        self._aux_operators = ListOp(aux_operators)
 
     def _check_operator_varform(self):
         """Check that the number of qubits of operator and variational form match."""
