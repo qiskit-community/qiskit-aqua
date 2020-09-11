@@ -123,7 +123,7 @@ class TestEuropeanCallOption(QiskitFinanceTestCase):
 
         # compare to precomputed solution
         for key, value in expect.items():
-            self.assertAlmostEqual(result[key], value, places=4,
+            self.assertAlmostEqual(getattr(result, key), value, places=4,
                                    msg="estimate `{}` failed".format(key))
 
     @idata([
@@ -147,7 +147,7 @@ class TestEuropeanCallOption(QiskitFinanceTestCase):
 
         # compare to precomputed solution
         for key, value in expect.items():
-            self.assertAlmostEqual(result[key], value, places=4,
+            self.assertAlmostEqual(getattr(result, key), value, places=4,
                                    msg="estimate `{}` failed".format(key))
 
 
@@ -212,7 +212,7 @@ class TestFixedIncomeAssets(QiskitFinanceTestCase):
 
         # compare to precomputed solution
         for key, value in expect.items():
-            self.assertAlmostEqual(result[key], value, places=4,
+            self.assertAlmostEqual(getattr(result, key), value, places=4,
                                    msg="estimate `{}` failed".format(key))
 
 
