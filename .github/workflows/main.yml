@@ -361,7 +361,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.7]
+        python-version: [3.6, 3.8]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -385,7 +385,6 @@ jobs:
       - name: Run Aqua Tutorials
         env:
           OPENBLAS_NUM_THREADS: 1
-          TOXENV: py37
         run: |
           git clone https://github.com/Qiskit/qiskit-tutorials
           cd qiskit-tutorials
@@ -402,7 +401,7 @@ jobs:
       - name: Run upload tutorials
         uses: actions/upload-artifact@v2
         with:
-          name: tutorials
+          name: tutorials${{ matrix.python-version }}
           path: ./qiskit-tutorials/_build/html/artifacts/tutorials.tar.gz
   Deprecation_Messages_and_Coverage:
     needs: [Checks, Lint, Mypy, Aqua, Chemistry, Finance, MachineLearning, Optimization, Tutorials]
