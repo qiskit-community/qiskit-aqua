@@ -18,7 +18,7 @@ import numpy as np
 from scipy.optimize import fmin_slsqp
 
 from .multistart_optimizer import MultiStartOptimizer
-from .optimization_algorithm import OptimizationResult
+from .optimization_algorithm import OptimizationResultStatus, OptimizationResult
 from ..exceptions import QiskitOptimizationError
 from ..problems import Variable
 from ..problems.constraint import Constraint
@@ -32,8 +32,9 @@ class SlsqpOptimizationResult(OptimizationResult):
     SLSQP optimization result, defines additional properties that may be returned by the optimizer.
     """
     def __init__(self, x: Union[List[float], np.ndarray], fval: float, variables: List[Variable],
-                 fx: Optional[np.ndarray] = None, its: Optional[int] = None,
-                 imode: Optional[int] = None, smode: Optional[str] = None) -> None:
+                 status: OptimizationResultStatus, fx: Optional[np.ndarray] = None,
+                 its: Optional[int] = None, imode: Optional[int] = None,
+                 smode: Optional[str] = None) -> None:
         """
         Constructs a result object with properties specific to SLSQP.
 
@@ -46,8 +47,9 @@ class SlsqpOptimizationResult(OptimizationResult):
             imode: The exit mode from the optimizer
                 (see the documentation of ``scipy.optimize.fmin_slsqp``).
             smode: Message describing the exit mode from the optimizer.
+            status: the termination status of the optimization algorithm.
         """
-        super().__init__(x, fval, variables, None)
+        super().__init__(x, fval, variables, status, None)
         self._fx = fx
         self._its = its
         self._imode = imode
@@ -217,8 +219,10 @@ class SlsqpOptimizer(MultiStartOptimizer):
         result = self.multi_start_solve(_minimize, problem)
 
         if self._full_output:
-            return SlsqpOptimizationResult(result.x, result.fval, result.variables,
+            return SlsqpOptimizationResult(x=result.x, fval=result.fval, variables=result.variables,
+                                           status=self._get_feasibility_status(problem, result.x),
                                            fx=result.raw_results[0], its=result.raw_results[1],
                                            imode=result.raw_results[2], smode=result.raw_results[3])
         else:
-            return SlsqpOptimizationResult(result.x, result.fval, result.variables)
+            return SlsqpOptimizationResult(x=result.x, fval=result.fval, variables=result.variables,
+                                           status=self._get_feasibility_status(problem, result.x))

@@ -21,7 +21,8 @@ import numpy as np
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 
 from .minimum_eigen_optimizer import MinimumEigenOptimizer
-from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
+from .optimization_algorithm import (OptimizationResultStatus, OptimizationAlgorithm,
+                                     OptimizationResult)
 from .slsqp_optimizer import SlsqpOptimizer
 from ..problems.constraint import Constraint
 from ..problems.linear_constraint import LinearConstraint
@@ -180,15 +181,16 @@ class ADMMOptimizationResult(OptimizationResult):
     """ ADMMOptimization Result."""
 
     def __init__(self, x: np.ndarray, fval: float, variables: List[Variable],
-                 state: ADMMState) -> None:
+                 state: ADMMState, status: OptimizationResultStatus) -> None:
         """
         Args:
             x: the optimal value found by ADMM.
             fval: the optimal function value.
             variables: the list of variables of the optimization problem.
             state: the internal computation state of ADMM.
+            status: Termination status of an optimization algorithm
         """
-        super().__init__(x=x, fval=fval, variables=variables, raw_results=state)
+        super().__init__(x=x, fval=fval, variables=variables, status=status, raw_results=state)
 
     @property
     def state(self) -> ADMMState:
@@ -375,13 +377,15 @@ class ADMMOptimizer(OptimizationAlgorithm):
         objective_value = objective_value * sense
 
         # convert back integer to binary
-        base_result = OptimizationResult(solution, objective_value, original_variables)
+        base_result = OptimizationResult(solution, objective_value, original_variables,
+                                         OptimizationResultStatus.SUCCESS)
         base_result = int2bin.interpret(base_result)
 
         # third parameter is our internal state of computations.
         result = ADMMOptimizationResult(x=base_result.x, fval=base_result.fval,
                                         variables=base_result.variables,
-                                        state=self._state)
+                                        state=self._state,
+                                        status=self._get_feasibility_status(problem, base_result.x))
 
         # debug
         self._log.debug("solution=%s, objective=%s at iteration=%s",
