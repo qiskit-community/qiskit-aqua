@@ -140,12 +140,6 @@ class CircuitOp(PrimitiveOp):
                 ' in this case {0}x{0} elements.'
                 ' Set massive=True if you want to proceed.'.format(2 ** self.num_qubits))
 
-        # TODO: Check order of qubits. The note below refers to using the unitary simulator.
-        # But, we have replaced this code with qiskit.quantum_info.Operator
-        # NOTE: not reversing qubits!! We generally reverse endianness when converting between
-        # circuit or Pauli representation and matrix representation, but we don't need to here
-        # because the Unitary simulator already presents the endianness of the circuit unitary in
-        # forward endianness.
         unitary = qiskit.quantum_info.Operator(self.to_circuit()).data
         # pylint: disable=cyclic-import
         from ..operator_globals import EVAL_SIG_DIGITS
