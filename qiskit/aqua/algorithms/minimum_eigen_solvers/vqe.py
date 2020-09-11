@@ -28,7 +28,7 @@ from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.operators import (OperatorBase, ExpectationBase, ExpectationFactory, StateFn,
-                                   CircuitStateFn, LegacyBaseOperator, I, CircuitSampler)
+                                   CircuitStateFn, LegacyBaseOperator, I, CircuitSampler, ListOp)
 from qiskit.aqua.components.optimizers import Optimizer, SLSQP
 from qiskit.aqua.components.variational_forms import VariationalForm
 from qiskit.aqua.utils.validation import validate_min
