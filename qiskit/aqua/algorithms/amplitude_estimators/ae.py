@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -16,6 +14,7 @@
 
 from typing import Optional, Union, List, Tuple, Dict, Any
 import logging
+import warnings
 from collections import OrderedDict
 import numpy as np
 from scipy.stats import chi2, norm
@@ -28,7 +27,7 @@ from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.utils import CircuitFactory
 from qiskit.aqua.circuits import PhaseEstimationCircuit
 from qiskit.aqua.utils.validation import validate_min
-from .ae_algorithm import AmplitudeEstimationAlgorithm
+from .ae_algorithm import AmplitudeEstimationAlgorithm, AmplitudeEstimationAlgorithmResult
 from .ae_utils import pdf_a, derivative_log_pdf_a, bisect_max
 
 logger = logging.getLogger(__name__)
@@ -358,7 +357,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         self._ret['ml_value'] = a_opt
         self._ret['mle'] = val_opt
 
-    def _run(self) -> dict:
+    def _run(self) -> 'AmplitudeEstimationResult':
         # check if A factory has been set
         if self.a_factory is None:
             raise AquaError("a_factory must be set!")
@@ -446,4 +445,154 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         kind = 'likelihood_ratio'  # empirically the most precise kind
         self._ret['95%_confidence_interval'] = self.confidence_interval(alpha, kind)
 
-        return self._ret
+        ae_result = AmplitudeEstimationAlgorithmResult()
+        ae_result.a_estimation = self._ret['value']
+        ae_result.estimation = self._ret['estimation']
+        ae_result.num_oracle_queries = self._ret['num_oracle_queries']
+        ae_result.confidence_interval = self._ret['95%_confidence_interval']
+
+        result = AmplitudeEstimationResult()
+        result.combine(ae_result)
+        result.ml_value = self._ret['ml_value']
+        result.mapped_a_samples = self._ret['values']
+        result.probabilities = self._ret['probabilities']
+        result.shots = self._ret['shots']
+        result.mle = self._ret['mle']
+        if 'statevector' in self._ret:
+            result.circuit_result = self._ret['statevector']
+        elif 'counts' in self._ret:
+            result.circuit_result = dict(self._ret['counts'])
+        result.a_samples = self._ret['a_items']
+        result.y_measurements = self._ret['y_items']
+        result.mapped_values = self._ret['mapped_values']
+        result.max_probability = self._ret['max_probability']
+        return result
+
+
+class AmplitudeEstimationResult(AmplitudeEstimationAlgorithmResult):
+    """ AmplitudeEstimation Result."""
+
+    @property
+    def ml_value(self) -> float:
+        """ returns ml_value """
+        return self.get('ml_value')
+
+    @ml_value.setter
+    def ml_value(self, value: float) -> None:
+        """ set ml_value """
+        self.data['ml_value'] = value
+
+    @property
+    def mapped_a_samples(self) -> List[float]:
+        """ return mapped_a_samples  """
+        return self.get('mapped_a_samples')
+
+    @mapped_a_samples.setter
+    def mapped_a_samples(self, value: List[float]) -> None:
+        """ set mapped_a_samples """
+        self.data['mapped_a_samples'] = value
+
+    @property
+    def probabilities(self) -> List[float]:
+        """ return probabilities """
+        return self.get('probabilities')
+
+    @probabilities.setter
+    def probabilities(self, value: List[float]) -> None:
+        """ set probabilities """
+        self.data['probabilities'] = value
+
+    @property
+    def shots(self) -> int:
+        """ return shots """
+        return self.get('shots')
+
+    @shots.setter
+    def shots(self, value: int) -> None:
+        """ set shots """
+        self.data['shots'] = value
+
+    @property
+    def mle(self) -> float:
+        """ return mle """
+        return self.get('mle')
+
+    @mle.setter
+    def mle(self, value: float) -> None:
+        """ set mle """
+        self.data['mle'] = value
+
+    @property
+    def circuit_result(self) -> Optional[Union[np.ndarray, Dict[str, int]]]:
+        """ return circuit result """
+        return self.get('circuit_result')
+
+    @circuit_result.setter
+    def circuit_result(self, value: Union[np.ndarray, Dict[str, int]]) -> None:
+        """ set circuit result """
+        self.data['circuit_result'] = value
+
+    @property
+    def a_samples(self) -> List[Tuple[float, float]]:
+        """ return a_samples """
+        return self.get('a_samples')
+
+    @a_samples.setter
+    def a_samples(self, value: List[Tuple[float, float]]) -> None:
+        """ set a_samples """
+        self.data['a_samples'] = value
+
+    @property
+    def y_measurements(self) -> List[Tuple[int, float]]:
+        """ return y_measurements """
+        return self.get('y_measurements')
+
+    @y_measurements.setter
+    def y_measurements(self, value: List[Tuple[int, float]]) -> None:
+        """ set y_measurements """
+        self.data['y_measurements'] = value
+
+    @property
+    def mapped_values(self) -> List[float]:
+        """ return mapped_values """
+        return self.get('mapped_values')
+
+    @mapped_values.setter
+    def mapped_values(self, value: List[float]) -> None:
+        """ set mapped_values """
+        self.data['mapped_values'] = value
+
+    @property
+    def max_probability(self) -> float:
+        """ return max_probability """
+        return self.get('max_probability')
+
+    @max_probability.setter
+    def max_probability(self, value: float) -> None:
+        """ set max_probability """
+        self.data['max_probability'] = value
+
+    @staticmethod
+    def from_dict(a_dict: Dict) -> 'AmplitudeEstimationResult':
+        """ create new object from a dictionary """
+        return AmplitudeEstimationResult(a_dict)
+
+    def __getitem__(self, key: object) -> object:
+        if key == 'statevector':
+            warnings.warn('statevector deprecated, use circuit_result property.',
+                          DeprecationWarning)
+            return super().__getitem__('circuit_result')
+        elif key == 'counts':
+            warnings.warn('counts deprecated, use circuit_result property.', DeprecationWarning)
+            return super().__getitem__('circuit_result')
+        elif key == 'values':
+            warnings.warn('values deprecated, use mapped_a_samples property.', DeprecationWarning)
+            return super().__getitem__('mapped_a_samples')
+        elif key == 'y_items':
+            warnings.warn('y_items deprecated, use y_measurements property.', DeprecationWarning)
+            return super().__getitem__('y_measurements')
+        elif key == 'a_items':
+            warnings.warn('a_items deprecated, use a_samples property.', DeprecationWarning)
+            return super().__getitem__('a_samples')
+
+        return super().__getitem__(key)

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -74,7 +72,7 @@ class QuantumAlgorithm(ABC):
         raise NotImplementedError()
 
     @property
-    def quantum_instance(self) -> Union[None, QuantumInstance]:
+    def quantum_instance(self) -> Optional[QuantumInstance]:
         """ Returns quantum instance. """
         return self._quantum_instance
 

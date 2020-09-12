@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -14,40 +12,45 @@
 
 """ Test AerPauliExpectation """
 
+import itertools
 import unittest
 from test.aqua import QiskitAquaTestCase
 
-import itertools
 import numpy as np
 
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import (X, Y, Z, I, CX, H, S,
                                    ListOp, Zero, One, Plus, Minus, StateFn,
-                                   AerPauliExpectation, CircuitSampler)
+                                   AerPauliExpectation, CircuitSampler, CircuitStateFn,
+                                   PauliExpectation)
+from qiskit.circuit.library import RealAmplitudes
 
-from qiskit import Aer
-
-
-# pylint: disable=invalid-name
 
 class TestAerPauliExpectation(QiskitAquaTestCase):
     """Pauli Change of Basis Expectation tests."""
 
     def setUp(self) -> None:
         super().setUp()
-        self.seed = 97
-        backend = Aer.get_backend('qasm_simulator')
-        q_instance = QuantumInstance(backend, seed_simulator=self.seed, seed_transpiler=self.seed)
-        self.sampler = CircuitSampler(q_instance, attach_results=True)
-        self.expect = AerPauliExpectation()
+        try:
+            from qiskit import Aer
+
+            self.seed = 97
+            self.backend = Aer.get_backend('qasm_simulator')
+            q_instance = QuantumInstance(self.backend, seed_simulator=self.seed,
+                                         seed_transpiler=self.seed)
+            self.sampler = CircuitSampler(q_instance, attach_results=True)
+            self.expect = AerPauliExpectation()
+        except Exception as ex:  # pylint: disable=broad-except
+            self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(ex)))
+            return
 
     def test_pauli_expect_pair(self):
         """ pauli expect pair test """
         op = (Z ^ Z)
-        # wf = (Pl^Pl) + (Ze^Ze)
-        wf = CX @ (H ^ I) @ Zero
+        # wvf = (Pl^Pl) + (Ze^Ze)
+        wvf = CX @ (H ^ I) @ Zero
 
-        converted_meas = self.expect.convert(~StateFn(op) @ wf)
+        converted_meas = self.expect.convert(~StateFn(op) @ wvf)
         sampled = self.sampler.convert(converted_meas)
         self.assertAlmostEqual(sampled.eval(), 0, delta=.1)
 
@@ -78,8 +81,7 @@ class TestAerPauliExpectation(QiskitAquaTestCase):
 
         zero_mean = (converted_meas @ Zero)
         sampled_zero = self.sampler.convert(zero_mean)
-        # TODO bug with Aer's Y
-        np.testing.assert_array_almost_equal(sampled_zero.eval(), [0, 1, 1, 1], decimal=1)
+        np.testing.assert_array_almost_equal(sampled_zero.eval(), [0, 0, 1, 1], decimal=1)
 
         sum_zero = (Plus + Minus) * (.5 ** .5)
         sum_zero_mean = (converted_meas @ sum_zero)
@@ -129,12 +131,103 @@ class TestAerPauliExpectation(QiskitAquaTestCase):
         plus_mean = (converted_meas @ Plus)
         sampled_plus = self.sampler.convert(plus_mean)
         np.testing.assert_array_almost_equal(sampled_plus.eval(),
-                                             [1, .5**.5, (1 + .5**.5), 1],
+                                             [1, .5 ** .5, (1 + .5 ** .5), 1],
                                              decimal=1)
 
     def test_parameterized_qobj(self):
-        """ Test direct-to-aer parameter passing in Qobj header. """
-        pass
+        """ grouped pauli expectation test """
+        two_qubit_h2 = (-1.052373245772859 * I ^ I) + \
+                       (0.39793742484318045 * I ^ Z) + \
+                       (-0.39793742484318045 * Z ^ I) + \
+                       (-0.01128010425623538 * Z ^ Z) + \
+                       (0.18093119978423156 * X ^ X)
+
+        aer_sampler = CircuitSampler(self.sampler.quantum_instance,
+                                     param_qobj=True,
+                                     attach_results=True)
+
+        var_form = RealAmplitudes()
+        var_form.num_qubits = 2
+
+        observable_meas = self.expect.convert(StateFn(two_qubit_h2, is_measurement=True))
+        ansatz_circuit_op = CircuitStateFn(var_form)
+        expect_op = observable_meas.compose(ansatz_circuit_op).reduce()
+
+        def generate_parameters(num):
+            param_bindings = {}
+            for param in var_form.parameters:
+                values = []
+                for _ in range(num):
+                    values.append(np.random.rand())
+                param_bindings[param] = values
+            return param_bindings
+
+        def validate_sampler(ideal, sut, param_bindings):
+            expect_sampled = ideal.convert(expect_op, params=param_bindings).eval()
+            actual_sampled = sut.convert(expect_op, params=param_bindings).eval()
+            self.assertAlmostEqual(actual_sampled, expect_sampled, delta=.1)
+
+        def get_binding_status(sampler):
+            # sampler._transpiled_circ_templates:
+            #     set only if aer's binding was used.
+            #     renewed if var_form is renewed,
+            # sampler._last_ready_circ:
+            #     set only if aer's binding was used.
+            #     renewed if var_form or # of parameter sets are changed
+            return sampler._transpiled_circ_templates
+
+        def validate_aer_binding_used(status):
+            self.assertIsNotNone(status)
+
+        def validate_aer_templates_reused(prev_status, cur_status):
+            self.assertIs(prev_status, cur_status)
+
+        validate_sampler(self.sampler, aer_sampler, generate_parameters(1))
+        cur_status = get_binding_status(aer_sampler)
+
+        validate_aer_binding_used(cur_status)
+
+        prev_status = cur_status
+        validate_sampler(self.sampler, aer_sampler, generate_parameters(2))
+        cur_status = get_binding_status(aer_sampler)
+
+        validate_aer_templates_reused(prev_status, cur_status)
+
+        prev_status = cur_status
+        validate_sampler(self.sampler, aer_sampler, generate_parameters(2))  # same num of params
+        cur_status = get_binding_status(aer_sampler)
+
+        validate_aer_templates_reused(prev_status, cur_status)
+
+    def test_pauli_expectation_param_qobj(self):
+        """ Test PauliExpectation with param_qobj """
+        q_instance = QuantumInstance(self.backend, seed_simulator=self.seed,
+                                     seed_transpiler=self.seed, shots=20000)
+        qubit_op = (1 * I ^ I) + (2 * I ^ Z) + (3 * Z ^ I) + (4 * Z ^ Z) + (5 * X ^ X)
+        var_form = RealAmplitudes(qubit_op.num_qubits)
+        ansatz_circuit_op = CircuitStateFn(var_form)
+        observable = PauliExpectation().convert(~StateFn(qubit_op))
+        expect_op = observable.compose(ansatz_circuit_op).reduce()
+        params1 = {}
+        params2 = {}
+        for param in var_form.parameters:
+            params1[param] = [0]
+            params2[param] = [0, 0]
+
+        sampler1 = CircuitSampler(backend=q_instance, param_qobj=False)
+        samples1 = sampler1.convert(expect_op, params=params1)
+        val1 = np.real(samples1.eval())[0]
+        samples2 = sampler1.convert(expect_op, params=params2)
+        val2 = np.real(samples2.eval())
+        sampler2 = CircuitSampler(backend=q_instance, param_qobj=True)
+        samples3 = sampler2.convert(expect_op, params=params1)
+        val3 = np.real(samples3.eval())
+        samples4 = sampler2.convert(expect_op, params=params2)
+        val4 = np.real(samples4.eval())
+
+        np.testing.assert_array_almost_equal([val1] * 2, val2, decimal=2)
+        np.testing.assert_array_almost_equal(val1, val3, decimal=2)
+        np.testing.assert_array_almost_equal([val1] * 2, val4, decimal=2)
 
 
 if __name__ == '__main__':

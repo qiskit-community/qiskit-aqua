@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -59,13 +57,13 @@ class TestReadmeSample(QiskitFinanceTestCase):
         algo = AmplitudeEstimation(num_eval_qubits, fixed_income)
         result = algo.run(BasicAer.get_backend('statevector_simulator'))
 
-        print('Estimated value:\t%.4f' % result['estimation'])
-        print('Probability:    \t%.4f' % result['max_probability'])
+        print('Estimated value:\t%.4f' % result.estimation)
+        print('Probability:    \t%.4f' % result.max_probability)
 
         # ----------------------------------------------------------------------
 
-        self.assertAlmostEqual(result['estimation'], 2.46, places=4)
-        self.assertAlmostEqual(result['max_probability'], 0.8487, places=4)
+        self.assertAlmostEqual(result.estimation, 2.46, places=4)
+        self.assertAlmostEqual(result.max_probability, 0.8487, places=4)
 
 
 if __name__ == '__main__':

@@ -65,6 +65,7 @@ ccx
 cdf
 cdot
 ceil
+cfg
 chernoff
 chu
 chuang's
@@ -368,6 +369,7 @@ minibatched
 minibatches
 minibatching
 minima
+minimizer
 minimumeigenoptimizationresult
 mintert
 minwidth
@@ -702,6 +704,7 @@ wigner
 wikipedia
 workq
 wrt
+wvf
 xatol
 xixj
 xopt

@@ -1,6 +1,4 @@
 
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -25,7 +23,7 @@ from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.utils.circuit_factory import CircuitFactory
 from qiskit.aqua.utils.validation import validate_range, validate_in_set
 
-from .ae_algorithm import AmplitudeEstimationAlgorithm
+from .ae_algorithm import AmplitudeEstimationAlgorithm, AmplitudeEstimationAlgorithmResult
 
 logger = logging.getLogger(__name__)
 
@@ -281,7 +279,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
         return lower, upper
 
-    def _run(self) -> dict:
+    def _run(self) -> 'IterativeAmplitudeEstimationResult':
         # check if A factory has been set
         if self.a_factory is None:
             raise AquaError("a_factory must be set!")
@@ -414,4 +412,98 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             'ratios': ratios,
         }
 
-        return self._ret
+        ae_result = AmplitudeEstimationAlgorithmResult()
+        ae_result.value = self._ret['value']
+        ae_result.estimation = self._ret['estimation']
+        ae_result.num_oracle_queries = self._ret['num_oracle_queries']
+        ae_result.confidence_interval = self._ret['confidence_interval']
+
+        result = IterativeAmplitudeEstimationResult()
+        result.combine(ae_result)
+        result.value_confidence_interval = self._ret['value_confidence_interval']
+        result.alpha = self._ret['alpha']
+        result.actual_epsilon = self._ret['actual_epsilon']
+        result.a_intervals = self._ret['a_intervals']
+        result.theta_intervals = self._ret['theta_intervals']
+        result.powers = self._ret['powers']
+        result.ratios = self._ret['ratios']
+        return result
+
+
+class IterativeAmplitudeEstimationResult(AmplitudeEstimationAlgorithmResult):
+    """ IterativeAmplitudeEstimation Result."""
+
+    @property
+    def value_confidence_interval(self) -> List[float]:
+        """ return value_confidence_interval  """
+        return self.get('value_confidence_interval')
+
+    @value_confidence_interval.setter
+    def value_confidence_interval(self, value: List[float]) -> None:
+        """ set value_confidence_interval """
+        self.data['value_confidence_interval'] = value
+
+    @property
+    def alpha(self) -> float:
+        """ return alpha """
+        return self.get('alpha')
+
+    @alpha.setter
+    def alpha(self, value: float) -> None:
+        """ set alpha """
+        self.data['alpha'] = value
+
+    @property
+    def actual_epsilon(self) -> float:
+        """ return mle """
+        return self.get('actual_epsilon')
+
+    @actual_epsilon.setter
+    def actual_epsilon(self, value: float) -> None:
+        """ set mle """
+        self.data['actual_epsilon'] = value
+
+    @property
+    def a_intervals(self) -> List[List[float]]:
+        """ return a_intervals """
+        return self.get('a_intervals')
+
+    @a_intervals.setter
+    def a_intervals(self, value: List[List[float]]) -> None:
+        """ set a_intervals """
+        self.data['a_intervals'] = value
+
+    @property
+    def theta_intervals(self) -> List[List[float]]:
+        """ return theta_intervals """
+        return self.get('theta_intervals')
+
+    @theta_intervals.setter
+    def theta_intervals(self, value: List[List[float]]) -> None:
+        """ set theta_intervals """
+        self.data['theta_intervals'] = value
+
+    @property
+    def powers(self) -> List[int]:
+        """ return powers """
+        return self.get('powers')
+
+    @powers.setter
+    def powers(self, value: List[int]) -> None:
+        """ set powers """
+        self.data['powers'] = value
+
+    @property
+    def ratios(self) -> List[float]:
+        """ return ratios """
+        return self.get('ratios')
+
+    @ratios.setter
+    def ratios(self, value: List[float]) -> None:
+        """ set ratios """
+        self.data['ratios'] = value
+
+    @staticmethod
+    def from_dict(a_dict: Dict) -> 'IterativeAmplitudeEstimationResult':
+        """ create new object from a dictionary """
+        return IterativeAmplitudeEstimationResult(a_dict)

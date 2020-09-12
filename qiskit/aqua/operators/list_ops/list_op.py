@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -16,6 +14,7 @@
 
 from functools import reduce
 from typing import List, Union, Optional, Callable, Iterator, Set, Dict
+from numbers import Number
 
 import numpy as np
 from scipy.sparse import spmatrix
@@ -129,7 +128,10 @@ class ListOp(OperatorBase):
 
     @property
     def num_qubits(self) -> int:
-        return self.oplist[0].num_qubits
+        num_qubits0 = self.oplist[0].num_qubits
+        if not all(num_qubits0 == op.num_qubits for op in self.oplist):
+            raise ValueError('Operators in ListOp have differing numbers of qubits.')
+        return num_qubits0
 
     def add(self, other: OperatorBase) -> OperatorBase:
         if self == other:
@@ -153,7 +155,16 @@ class ListOp(OperatorBase):
                  convert_fn: Callable,
                  coeff: Optional[Union[int, float, complex,
                                        ParameterExpression]] = None) -> OperatorBase:
-        """ Apply the convert_fn to each node in the oplist. """
+        """Apply the convert_fn to each node in the oplist.
+
+            Args:
+                convert_fn: The function to apply to the internal OperatorBase.
+                coeff: A coefficient to multiply by after applying convert_fn.
+                    If it is None, self.coeff is used instead.
+
+            Returns:
+                The converted ListOp.
+        """
         if coeff is None:
             coeff = self.coeff
 
@@ -223,8 +234,17 @@ class ListOp(OperatorBase):
                 'in this case {0}x{0} elements.'
                 ' Set massive=True if you want to proceed.'.format(2 ** self.num_qubits))
 
-        # Combination function must be able to handle classical values
-        return self.combo_fn([op.to_matrix() * self.coeff for op in self.oplist])
+        # Combination function must be able to handle classical values.
+        # Note: this can end up, when we have list operators containing other list operators, as a
+        #       ragged array and numpy 1.19 raises a deprecation warning unless this is explicitly
+        #       done as object type now - was implicit before.
+        mat = self.combo_fn(np.asarray([op.to_matrix() * self.coeff for op in self.oplist],
+                                       dtype=object))
+        # Note: As ComposedOp has a combo function of inner product we can end up here not with
+        # a matrix (array) but a scalar. In which case we make a single element array of it.
+        if isinstance(mat, Number):
+            mat = [mat]
+        return np.asarray(mat, dtype=complex)
 
     def to_spmatrix(self) -> Union[spmatrix, List[spmatrix]]:
         """ Returns SciPy sparse matrix representation of the Operator.
@@ -326,6 +346,15 @@ class ListOp(OperatorBase):
                                                      repr(self.oplist),
                                                      self.coeff,
                                                      self.abelian)
+
+    @property
+    def parameters(self):
+        params = set()
+        for op in self.oplist:
+            params.update(op.parameters)
+        if isinstance(self.coeff, ParameterExpression):
+            params.update(self.coeff.parameters)
+        return params
 
     def assign_parameters(self, param_dict: dict) -> OperatorBase:
         param_value = self.coeff

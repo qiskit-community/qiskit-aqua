@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -77,14 +75,19 @@ class OperatorBase(ABC):
         defined to be evaluated from Zero implicitly (i.e. it is as if ``.eval('0000')`` is already
         called implicitly to always "indexing" from column 0).
 
+        If ``front`` is None, the matrix-representation of the operator is returned.
+
         Args:
             front: The bitstring, dict of bitstrings (with values being coefficients), or
-                StateFn to evaluated by the Operator's underlying function.
+                StateFn to evaluated by the Operator's underlying function, or None.
 
         Returns:
             The output of the Operator's evaluation function. If self is a ``StateFn``, the result
             is a float or complex. If self is an Operator (``PrimitiveOp, ComposedOp, SummedOp,
-            EvolvedOp,`` etc.), the result is a StateFn. If either self or front contain proper
+            EvolvedOp,`` etc.), the result is a StateFn.
+            If ``front`` is None, the matrix-representation of the operator is returned, which
+            is a ``MatrixOp`` for the operators and a ``VectorStateFn`` for state-functions.
+            If either self or front contain proper
             ``ListOps`` (not ListOp subclasses), the result is an n-dimensional list of complex
             or StateFn results, resulting from the recursive evaluation by each OperatorBase
             in the ListOps.
@@ -414,6 +417,13 @@ class OperatorBase(ABC):
         """
         raise NotImplementedError
 
+    @property
+    @abstractmethod
+    def parameters(self):
+        r""" Return a set of Parameter objects contained in the Operator.
+        """
+        raise NotImplementedError
+
     # Utility functions for parameter binding
 
     @abstractmethod
@@ -481,8 +491,8 @@ class OperatorBase(ABC):
                         OperatorBase._get_param_dict_for_index(unrolled_value_dict,  # type: ignore
                                                                i))
                 return unrolled_value_dict_list
-            except IndexError:
-                raise AquaError('Parameter binding lists must all be the same length.')
+            except IndexError as ex:
+                raise AquaError('Parameter binding lists must all be the same length.') from ex
         return unrolled_value_dict  # type: ignore
 
     @staticmethod

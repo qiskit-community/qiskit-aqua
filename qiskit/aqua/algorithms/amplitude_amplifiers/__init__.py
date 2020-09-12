@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -14,6 +12,6 @@
 
 """ Amplitude Amplifiers Package """
 
-from .grover import Grover
+from .grover import Grover, GroverResult
 
-__all__ = ['Grover']
+__all__ = ['Grover', 'GroverResult']

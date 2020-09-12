@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -154,9 +152,9 @@ class EigsQPE(Eigenvalues):
                 if ne_qft.num_qubits != len(qs):
                     try:  # try resizing
                         ne_qft.num_qubits = len(qs)
-                    except AttributeError:
+                    except AttributeError as ex:
                         raise ValueError('The IQFT cannot be resized and does not have the '
-                                         'required size of {}'.format(len(qs)))
+                                         'required size of {}'.format(len(qs))) from ex
 
                 if hasattr(ne_qft, 'do_swaps'):
                     ne_qft.do_swaps = False
