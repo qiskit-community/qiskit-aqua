@@ -114,7 +114,7 @@ backend = Aer.get_backend('qasm_simulator')
 oracle = LogicalExpressionOracle(sat_cnf)
 algorithm = Grover(oracle)
 result = algorithm.run(backend)
-print(result["result"])
+print(result.assignment)
 ```
 
 The code above demonstrates how `Grover`’s search algorithm can be used with the
@@ -308,8 +308,8 @@ num_eval_qubits = 5
 algo = AmplitudeEstimation(num_eval_qubits, fixed_income)
 result = algo.run(BasicAer.get_backend('statevector_simulator'))
 
-print('Estimated value:\t%.4f' % result['estimation'])
-print('Probability:    \t%.4f' % result['max_probability'])
+print('Estimated value:\t%.4f' % result.estimation)
+print('Probability:    \t%.4f' % result.max_probability)
 ```
 When running the above the estimated value result should be 2.46 and probability 0.8487.
 

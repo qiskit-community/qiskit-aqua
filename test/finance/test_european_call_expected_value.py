@@ -69,8 +69,8 @@ class TestEuropeanCallExpectedValue(QiskitFinanceTestCase):
 
         algo = AmplitudeEstimation(5, european_call)
         result = algo.run(quantum_instance=BasicAer.get_backend('statevector_simulator'))
-        self.assertAlmostEqual(result['estimation'], 1.2580, places=4)
-        self.assertAlmostEqual(result['max_probability'], 0.8785, places=4)
+        self.assertAlmostEqual(result.estimation, 1.2580, places=4)
+        self.assertAlmostEqual(result.max_probability, 0.8785, places=4)
 
 
 if __name__ == '__main__':
