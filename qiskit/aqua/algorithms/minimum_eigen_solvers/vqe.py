@@ -257,7 +257,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
             # For some reason Chemistry passes aux_ops with 0 qubits and paulis sometimes.
             aux_operators = [zero_op if op == 0 else op for op in converted]
 
-        self._aux_operators = ListOp(aux_operators)
+        self._aux_operators = aux_operators  # type: List
 
     def _check_operator_varform(self):
         """Check that the number of qubits of operator and variational form match."""
@@ -438,7 +438,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         self._ret['eigvals'] = np.asarray([self._ret['energy']])
         self._ret['eigvecs'] = np.asarray([result.eigenstate])
 
-        if self.aux_operators:
+        if len(self.aux_operators) > 0:
             self._eval_aux_ops()
             # TODO remove when ._ret is deprecated
             result.aux_operator_eigenvalues = self._ret['aux_ops'][0]
@@ -451,7 +451,8 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         # Create new CircuitSampler to avoid breaking existing one's caches.
         sampler = CircuitSampler(self.quantum_instance)
 
-        aux_op_meas = self.expectation.convert(StateFn(self.aux_operators, is_measurement=True))
+        aux_op_meas = self.expectation.convert(StateFn(ListOp(self.aux_operators),
+                                                       is_measurement=True))
         aux_op_expect = aux_op_meas.compose(CircuitStateFn(self.get_optimal_circuit()))
         values = np.real(sampler.convert(aux_op_expect).eval())
 
