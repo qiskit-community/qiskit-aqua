@@ -78,15 +78,12 @@ class NumPyEigensolver(ClassicalAlgorithm):
         return self._operator
 
     @operator.setter
-    def operator(self, operator: Optional[Union[OperatorBase, LegacyBaseOperator]]) -> None:
+    def operator(self, operator: Union[OperatorBase, LegacyBaseOperator]) -> None:
         """ set operator """
         if isinstance(operator, LegacyBaseOperator):
             operator = operator.to_opflow()
-        if operator is None:
-            self._operator = None
-        else:
-            self._operator = operator
-            self._check_set_k()
+        self._operator = operator
+        self._check_set_k()
 
     @property
     def aux_operators(self) -> Optional[List[Optional[OperatorBase]]]:
