@@ -243,6 +243,7 @@ class Grover_new(QuantumAlgorithm):
         self._qc_amplitude_amplification = None
         self._qc_measurement = None
 
+    # remove?
     @property
     def qc_amplitude_amplification_iteration(self):
         """ Return GroverOperator """

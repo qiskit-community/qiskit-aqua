@@ -58,7 +58,7 @@ class TestGrover(QiskitAquaTestCase):
                                                             ROTATION_COUNTS))]
     )
     @unpack
-    def test_grover(self, input_test, sol, oracle_cls, mct_mode,
+    def test_grover_oracle(self, input_test, sol, oracle_cls, mct_mode,
                     simulator, optimization, lam, rotation_counts):
         """ grover test """
         groundtruth = sol
@@ -83,6 +83,12 @@ class TestGrover(QiskitAquaTestCase):
             self.assertEqual(groundtruth, [])
             self.log.debug('Nothing found.')
 
+# make new class for test
+# constructor
+
+# test all public method
+
+# run
 
 if __name__ == '__main__':
     unittest.main()
