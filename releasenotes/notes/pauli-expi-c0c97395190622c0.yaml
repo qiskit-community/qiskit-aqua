@@ -1,0 +1,9 @@
+---
+fixes:
+  - |
+    Make PauliOp.exp_i() generate the correct matrix with the following changes.
+    1) There was previously an error in the phase of a factor of 2.
+    2) The global phase was ignored when converting the circuit
+    to a matrix. We now use qiskit.quantum_info.Operator, which is
+    generally useful for converting a circuit to a unitary matrix,
+    when possible.
