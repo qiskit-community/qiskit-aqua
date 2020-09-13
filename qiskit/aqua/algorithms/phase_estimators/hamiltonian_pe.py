@@ -16,14 +16,13 @@ from typing import Optional, Union
 import numpy
 from qiskit import QuantumCircuit
 from qiskit.aqua import QuantumInstance
-from qiskit.aqua.operators import EvolutionBase
+from qiskit.aqua.operators import EvolutionBase, OperatorBase
 from qiskit.providers import BaseBackend
 
 # TODO: Remove temporary code when possible.
 # This temporary code is spread out a bit in order to satisfy
 # the linter. When the global phase changes in Terra have settled down,
 # this can be removed.
-import qiskit
 from qiskit.circuit.library.standard_gates import U3Gate
 from qiskit.circuit import QuantumRegister
 from qiskit.quantum_info.synthesis.one_qubit_decompose import OneQubitEulerDecomposer
@@ -48,37 +47,44 @@ class TempPauliEvolve():
     Hopefully, this can be removed soon.
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         pass
 
-    def convert(self, pauli_operator):
-        """Return a circuit for `exp(i H)`
+    def convert(self, evolved_operator: OperatorBase) -> QuantumCircuit:
+        """Return a circuit for EvolvedOp
 
         Hmm, looks like the sign in the exponent may be wrong.
         """
-        matrix = pauli_operator.exp_i().to_matrix()
-        return self._matrix_to_circuit_1q(matrix)
+        from qiskit.quantum_info.synthesis.two_qubit_decompose import two_qubit_cnot_decompose
+        matrix = evolved_operator.to_matrix()
+        if evolved_operator.num_qubits == 1:
+            return self._matrix_to_circuit_1q(matrix)
+        elif evolved_operator.num_qubits == 2:
+            return two_qubit_cnot_decompose(matrix)
+        else:
+            raise ValueError("wrong num qubits")
 
-    def _matrix_to_circuit_1q(self, matrix):
+    def _matrix_to_circuit_1q(self, matrix: numpy.ndarray) -> QuantumCircuit:
         theta, phi, lam, global_phase = _DECOMPOSER1Q.angles_and_phase(matrix)
         q = QuantumRegister(1, "q")
-        qc = qiskit.QuantumCircuit(1)
+        qc = QuantumCircuit(1)
         qc._append(U3Gate(theta, phi, lam), [q[0]], [])
         qc.global_phase = global_phase
         return qc
 
 
 class HamiltonianPE(PhaseEstimator):
-    """Run the Quantum Phase Estimation algorithm to find the eigenvalues of a Hermitian operator.
+    r"""Run the Quantum Phase Estimation algorithm to find the eigenvalues of a Hermitian operator.
 
-    This class is nearly the same as `PhaseEstimator`, differing only in that the input in that
-    class is a unitary operator, whereas here the input is a Hermitian operator from which a unitary
-    will be obtained by scaling and exponentiating. The scaling is performed in order to prevent the
-    phases from wrapping around `2pi`. This class uses and works together with
-    `PhaseEstimationScale` to manage scaling the Hamiltonian and the phases that are obtained by the
-    QPE algorithm. This includes setting, or computing, a bound on the eigenvalues of the operator,
-    using this bound to obtain a scale factor, scaling the operator, and shifting and scaling the
-    measured phases to recover the eigenvalues.
+    This class is nearly the same as :class:`~qiskit.aqua.algorithms.PhaseEstimator`, differing only
+    in that the input in that class is a unitary operator, whereas here the input is a Hermitian
+    operator from which a unitary will be obtained by scaling and exponentiating. The scaling is
+    performed in order to prevent the phases from wrapping around :math:`2\pi`. This class uses and
+    works together with :class:`~qiskit.aqua.algorithms.PhaseEstimationScale` to manage scaling the
+    Hamiltonian and the phases that are obtained by the QPE algorithm. This includes setting, or
+    computing, a bound on the eigenvalues of the operator, using this bound to obtain a scale
+    factor, scaling the operator, and shifting and scaling the measured phases to recover the
+    eigenvalues.
 
     Note that, although we speak of "evolving" the state according the the Hamiltonian, in the
     present algorithm, we are not actually considering time evolution. Rather, the role of time is
@@ -87,12 +93,13 @@ class HamiltonianPE(PhaseEstimator):
     """
     def __init__(self,
                  num_evaluation_qubits: int,
-                 hamiltonian: QuantumCircuit,
+                 hamiltonian: OperatorBase,
                  evolution: Optional[Union[EvolutionBase, TempPauliEvolve]] = None,
                  state_preparation: Optional[QuantumCircuit] = None,
                  bound: Optional[float] = None,
-                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None):
-        """Args:
+                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
+        """
+        Args:
             num_evaluation_qubits: The number of qubits used in estimating the phase. The
                                    phase will be estimated as a binary string with this many
                                    bits.
@@ -102,7 +109,7 @@ class HamiltonianPE(PhaseEstimator):
                                  measured.  If this parameter is omitted, no preparation circuit
                                  will be run and input state will be the all-zero state in the
                                  computational basis.
-            bound (float): An upper bound on the absolute value of the eigenvalues of
+            bound: An upper bound on the absolute value of the eigenvalues of
                 `hamiltonian`. If omitted, and `hamiltonian` is a Pauli sum, then a bound will be
                 computed.
             quantum_instance: The quantum instance on which the circuit will be run.
@@ -122,31 +129,32 @@ class HamiltonianPE(PhaseEstimator):
                          state_preparation=state_preparation,
                          quantum_instance=quantum_instance)
 
-    def _set_scale(self):
+    def _set_scale(self) -> None:
         if self._bound is None:
             pe_scale = phase_estimation_scale.from_pauli_sum(self._hamiltonian)
             self._pe_scale = pe_scale
         else:
             self._pe_scale = PhaseEstimationScale(self._bound)
 
-    def _get_unitary(self):
+    def _get_unitary(self) -> QuantumCircuit:
         """Evolve the Hamiltonian to obtain a unitary.
 
         Apply the scaling to the Hamiltonian that has been computed from an eigenvalue bound
         and compute the unitary by applying the evolution object.
         """
-        unitary = self._evolution.convert(self._pe_scale.scale * self._hamiltonian)
-        if not isinstance(unitary, qiskit.QuantumCircuit):
+        # scale so that phase does not wrap.
+        scaled_hamiltonian = self._pe_scale.scale * self._hamiltonian
+        unitary = self._evolution.convert(scaled_hamiltonian.exp_i())
+        if not isinstance(unitary, QuantumCircuit):
             return unitary.to_circuit()
         else:
             return unitary
 
-    def _run(self):
+    def _run(self) -> HamiltonianPEResult:
         """Run the circuit and return and return `HamiltonianPEResult`.
         """
 
-        self._add_classical_register()
-        circuit_result = self._quantum_instance.execute(self._pe_circuit)
+        circuit_result = self._quantum_instance.execute(self.construct_circuit())
         phases = self._compute_phases(circuit_result)
         if isinstance(phases, numpy.ndarray):
             return HamiltonianPEResult(

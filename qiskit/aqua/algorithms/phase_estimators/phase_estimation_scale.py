@@ -29,47 +29,54 @@ class PhaseEstimationScale():
     operator is the Pauli `Z operator with eigenvalues `+1` and `-1`, and `bound` is `1`, then both
     eigenvalues will be mapped to `1`. This can be avoided by making `bound` a bit larger.
 
-    Increasing `bound` decreases the part of the interval `[0, 1)` that is used to map eigenvalues
-    to `phi`. However, sometimes this results in a better determination of the eigenvalues, because
-    1) although there are fewer discrete phases in the useful range, it may shift one of the
-    discrete phases closer to the actual phase. And, 2) If one of the discrete phases is close to,
-    or exactly equal to the actual phase, then artifacts (probability) in neighboring phases will
-    be reduced.  This is important because the artifacts may be larger than the probability in a
-    phase representing another eigenvalue of interest whose corresponding eigenstate has a
-    relatively small weight in the input state.
+    Increasing `bound` decreases the part of the interval :math:`[0, 1)` that is used to map
+    eigenvalues to `phi`. However, sometimes this results in a better determination of the
+    eigenvalues, because 1) although there are fewer discrete phases in the useful range, it may
+    shift one of the discrete phases closer to the actual phase. And, 2) If one of the discrete
+    phases is close to, or exactly equal to the actual phase, then artifacts (probability) in
+    neighboring phases will be reduced.  This is important because the artifacts may be larger than
+    the probability in a phase representing another eigenvalue of interest whose corresponding
+    eigenstate has a relatively small weight in the input state.
+
     """
 
-    def __init__(self, bound):
+    def __init__(self, bound: float) -> None:
         """
         Args:
-            bound (float): an upper bound on the absolute value of the
+            bound: an upper bound on the absolute value of the
           eigenvalues of a Hermitian operator. (The operator is not needed here.)
         """
         self._bound = bound
 
     @property
-    def scale(self):
-        """Return the scale factor by which a Hermitian operator must be multiplied
-        so that the phase of the corresponding unitary is restricted to `[-pi, pi]`.
+    def scale(self) -> float:
+        r"""Return the scale factor by which a Hermitian operator must be multiplied
+        so that the phase of the corresponding unitary is restricted to :math:`[-\pi, \pi]`.
         This factor is computed from the bound on the absolute values of the eigenvalues
         of the operator. The methods `scale_phase` and `scale_phases` are used recover
         the eigenvalues corresponding the original (unscaled) Hermitian operator.
         """
         return numpy.pi / self._bound
 
-    def scale_phase(self, phi) -> float:
-        """Convert a phase into an eigenvalue.
+    def scale_phase(self, phi: float) -> float:
+        r"""Convert a phase into an eigenvalue.
 
         The input phase `phi` corresponds to the eigenvalue of a unitary obtained by
         exponentiating a scaled Hermitian operator. Recall that the phase
-        is obtained from `phi` as `2pi phi`. Furthermore, the Hermitian operator
-        was scaled so that `phi` is restricted to `[-1/2, 1/2]`, corresponding to
-        phases in `[-pi, pi]`. But the values of `phi` read from the phase-readout
-        register are in `[0, 1)`. Any value of `phi` greater than `1/2` corresponds
+        is obtained from `phi` as :math:`2\pi\phi`. Furthermore, the Hermitian operator
+        was scaled so that `phi` is restricted to :math:`[-1/2, 1/2]`, corresponding to
+        phases in :math:`[-\pi, \pi]`. But the values of `phi` read from the phase-readout
+        register are in :math:`[0, 1)`. Any value of `phi` greater than `1/2` corresponds
         to a raw phase of minus the complement with respect to `1`. After this possible
         shift, the phase is scaled by the inverse of the factor by which the
         Hermitian operator was scaled to recover the eigenvalue of the Hermitian
         operator.
+
+        Args:
+          phi: Normalized phase in :math:`[0, 1)` to be converted to an eigenvalue.
+
+        Returns:
+          An eigenvalue computed from the input phase.
         """
         w = 2 * self._bound
         if phi <= 0.5:

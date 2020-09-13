@@ -17,10 +17,10 @@ import numpy
 from qiskit.result import Result
 
 # Maybe we want to use this abstract class
-# from qiskit.aqua.algorithms import AlgorithmResult
+from qiskit.aqua.algorithms import AlgorithmResult
 
 
-class PhaseEstimatorResult():
+class PhaseEstimatorResult(AlgorithmResult):
     """Store and manipulate results from running `PhaseEstimator`.
 
     This class is instantiated by the `PhaseEstimator` class, not via user code.
@@ -56,8 +56,10 @@ class PhaseEstimatorResult():
         # result of running the circuit (on hardware or simulator)
         self._circuit_result = circuit_result
 
+        super().__init__()
+
     @property
-    def phase_array(self):
+    def phase_array(self) -> numpy.ndarray:
         """Return all phases and their frequencies computed by QPE.
 
         This is an array whose values correspond to weights on bit strings. Only one of
@@ -66,7 +68,7 @@ class PhaseEstimatorResult():
         return self._phase_array
 
     @property
-    def phase_dict(self):
+    def phase_dict(self) -> dict:
         """Return all phases and their frequencies computed by QPE.
 
         This is a dict whose keys are bit strings and values are weights on bit strings. Only one of
@@ -75,19 +77,19 @@ class PhaseEstimatorResult():
         return self._phase_dict
 
     @property
-    def circuit_result(self):
+    def circuit_result(self) -> Result:
         """Return the result object returned by running the QPE circuit (on hardware or simulator).
 
         This is useful for inspecting and troubleshooting the QPE algorithm.
         """
         return self._circuit_result
 
-    def single_phase(self):
-        """Return the estimated phase as a number in `[0.0, 1.0)`.
+    def single_phase(self) -> float:
+        r"""Return the estimated phase as a number in :math:`[0.0, 1.0)`.
 
-        1.0 corresponds to a phase of 2pi. It is assumed that the input vector is an eigenvector
-        of the unitary so that the peak of the probability density occurs at the bit string
-        that most closely approximates the true phase.
+        1.0 corresponds to a phase of :math:`2\pi`. It is assumed that the input vector is an
+        eigenvector of the unitary so that the peak of the probability density occurs at the bit
+        string that most closely approximates the true phase.
         """
         if self._phase_dict is not None:
             binary_phase_string = max(self._phase_dict, key=self._phase_dict.get)
@@ -111,9 +113,9 @@ class PhaseEstimatorResult():
         out these uninteresting bit strings.
 
         Args:
-            cutoff (float): Minimum weight of number of counts required to keep a bit string.
+            cutoff: Minimum weight of number of counts required to keep a bit string.
                     The default value is `0.0`.
-            as_float (bool): If `True`, returned keys are floats in `[0.0, 1)`. If `False`
+            as_float: If `True`, returned keys are floats in :math:`[0.0, 1.0)`. If `False`
                       returned keys are bit strings.
 
         Returns:
@@ -146,10 +148,8 @@ class PhaseEstimatorResult():
         return phases
 
 
-# TODO: maybe we do want to remove leading _
-# This is useful for pedagogy.
 def _bit_string_to_phase(binary_string: str) -> float:
-    """Convert bit string to a normalized phase in `[0,1)`.
+    """Convert bit string to a normalized phase in :math:`[0,1)`.
 
     It is assumed that the bit string is correctly padded and that the order of
     the bits has been reversed relative to their order when the counts
@@ -160,7 +160,7 @@ def _bit_string_to_phase(binary_string: str) -> float:
         binary_string: A string of characters '0' and '1'.
 
     Returns:
-        a phase scaled to `[0,1)`.
+        a phase scaled to :math:`[0,1)`.
     """
     n_qubits = len(binary_string)
     return int(binary_string, 2) / (2 ** n_qubits)

@@ -113,24 +113,35 @@ class PhaseEstimator(QuantumAlgorithm):
         else:
             self._pe_circuit = pe_circuit
 
+        self._measurements_added = False
         super().__init__(quantum_instance)
 
-    def _add_classical_register(self):
+    def _add_classical_register(self) -> None:
         """Explicitly add measurement instructions only if we are using a state vector simulator."""
-        if not self._quantum_instance.is_statevector:
+        if not self._quantum_instance.is_statevector and not self._measurements_added:
             # Measure only the evaluation qubits.
             regname = 'meas'
             circ = self._pe_circuit
-            if regname not in [reg.name for reg in circ.cregs]:
-                creg = ClassicalRegister(self._num_evaluation_qubits, regname)
-                circ.add_register(creg)
-                circ.barrier()
-                circ.measure(range(self._num_evaluation_qubits), range(self._num_evaluation_qubits))
+            creg = ClassicalRegister(self._num_evaluation_qubits, regname)
+            circ.add_register(creg)
+            circ.barrier()
+            circ.measure(range(self._num_evaluation_qubits), range(self._num_evaluation_qubits))
+            self._measurements_added = True
 
-    @property
-    def pe_circuit(self):
-        """Return the phase estimation circuit. """
+    def construct_circuit(self) -> QuantumCircuit:
+        """Return the circuit to be executed to estimate phases.
+
+        This circuit includes as sub-circuits the core phase estimation circuit,
+        with the addition of the state-preparation circuit and possibly measurement instructions.
+        """
+        self._add_classical_register()
         return self._pe_circuit
+
+    # Favor construct_circuit
+    # @property
+    # def pe_circuit(self) -> QuantumCircuit:
+    #     """Return the phase estimation circuit. """
+    #     return self._pe_circuit
 
     def _compute_phases(self, circuit_result: Result) -> Union[numpy.ndarray, dict]:
         """Compute frequencies/counts of phases from the result of running the QPE circuit.
@@ -140,12 +151,12 @@ class PhaseEstimator(QuantumAlgorithm):
 
         1) If the backend is a statevector simulator, then the reduced density matrix of the
         phase-reading register is computed from the combined phase-reading- and input-state
-        registers. The elements of the diagonal `(i, i)` give the probability to measure the each of
-        the states `i`. The index `i` expressed as a binary integer with the LSB rightmost gives the
-        state of the phase-reading register with the LSB leftmost when interpreted as a phase. In
-        order to maintain the compact representation, the phases are maintained as decimal integers.
-        They may be converted to other forms via the results object, `PhaseEstimatorResult` or
-        `HamiltonianPEResult`.
+        registers. The elements of the diagonal :math:`(i, i)` give the probability to measure the
+        each of the states `i`. The index `i` expressed as a binary integer with the LSB rightmost
+        gives the state of the phase-reading register with the LSB leftmost when interpreted as a
+        phase. In order to maintain the compact representation, the phases are maintained as decimal
+        integers.  They may be converted to other forms via the results object,
+        `PhaseEstimatorResult` or `HamiltonianPEResult`.
 
          2) If the backend samples bitstrings, then the counts are first retrieved as a dict.  The
         binary strings (the keys) are then reversed so that the LSB is rightmost and the counts are
@@ -187,8 +198,7 @@ class PhaseEstimator(QuantumAlgorithm):
                An instance of qiskit.algorithms.phase_estimator_result.PhaseEstimatorResult.
         """
 
-        self._add_classical_register()
-        circuit_result = self._quantum_instance.execute(self._pe_circuit)
+        circuit_result = self._quantum_instance.execute(self.construct_circuit())
         phases = self._compute_phases(circuit_result)
         if isinstance(phases, numpy.ndarray):
             return PhaseEstimatorResult(self._num_evaluation_qubits, phase_array=phases,
