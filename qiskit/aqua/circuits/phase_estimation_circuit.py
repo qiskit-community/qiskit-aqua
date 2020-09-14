@@ -12,7 +12,7 @@
 
 """Quantum Phase Estimation Circuit."""
 
-from typing import Optional, Union, List
+from typing import Optional, List
 import numpy as np
 
 from qiskit import QuantumRegister, QuantumCircuit, ClassicalRegister
@@ -40,8 +40,8 @@ class PhaseEstimationCircuit:
             expansion_mode: str = 'trotter',
             expansion_order: int = 1,
             evo_time: float = 2 * np.pi,
-            state_in_circuit_factory: Optional[Union[CircuitFactory, QuantumCircuit]] = None,
-            unitary_circuit_factory: Optional[Union[CircuitFactory, QuantumCircuit]] = None,
+            state_in_circuit_factory: Optional[CircuitFactory] = None,
+            unitary_circuit_factory: Optional[CircuitFactory] = None,
             shallow_circuit_concat: bool = False,
             pauli_list: Optional[List[Pauli]] = None
     ):
@@ -57,10 +57,8 @@ class PhaseEstimationCircuit:
             expansion_mode: the expansion mode (trotter|suzuki)
             expansion_order: the suzuki expansion order
             evo_time: the evolution time
-            state_in_circuit_factory: the initial state represented by a CircuitFactory object or
-                a QuantumCircuit
-            unitary_circuit_factory: the problem unitary represented by a CircuitFactory object or
-                a QuantumCircuit
+            state_in_circuit_factory: the initial state represented by a CircuitFactory object
+            unitary_circuit_factory: the problem unitary represented by a CircuitFactory object
             shallow_circuit_concat: indicate whether to use shallow (cheap) mode for circuit
                 concatenation
             pauli_list: the flat list of paulis for the operator
@@ -133,13 +131,7 @@ class PhaseEstimationCircuit:
                 if self._operator is not None:
                     q = QuantumRegister(self._operator.num_qubits, name='q')
                 elif self._unitary_circuit_factory is not None:
-                    if isinstance(self._unitary_circuit_factory, CircuitFactory):
-                        q = QuantumRegister(self._unitary_circuit_factory.num_target_qubits, 'q')
-                    else:
-                        if hasattr(self._unitary_circuit_factory, 'num_state_qubits'):
-                            q = QuantumRegister(self._unitary_circuit_factory.num_state_qubits, 'q')
-                        else:
-                            q = QuantumRegister(self._unitary_circuit_factory.num_qubits, 'q')
+                    q = QuantumRegister(self._unitary_circuit_factory.num_target_qubits, 'q')
                 else:
                     raise RuntimeError('Missing operator specification.')
             else:
@@ -151,21 +143,12 @@ class PhaseEstimationCircuit:
             if auxiliary_register is None:
                 num_aux_qubits, aux = 0, None
                 if self._state_in_circuit_factory is not None:
-                    if isinstance(self._state_in_circuit_factory, CircuitFactory):
-                        num_aux_qubits = self._state_in_circuit_factory.required_ancillas()
-                    elif hasattr(self._state_in_circuit_factory, 'num_ancilla_qubits'):
-                        num_aux_qubits = self._state_in_circuit_factory.num_ancilla_qubits
+                    num_aux_qubits = self._state_in_circuit_factory.required_ancillas()
                 if self._unitary_circuit_factory is not None:
-                    if isinstance(self._unitary_circuit_factory, CircuitFactory):
-                        num_aux_qubits = max(
-                            num_aux_qubits,
-                            self._unitary_circuit_factory.required_ancillas_controlled()
-                        )
-                    elif hasattr(self._unitary_circuit_factory, 'num_ancilla_qubits'):
-                        num_aux_qubits = max(
-                            num_aux_qubits,
-                            self._unitary_circuit_factory.num_ancilla_qubits
-                        )
+                    num_aux_qubits = max(
+                        num_aux_qubits,
+                        self._unitary_circuit_factory.required_ancillas_controlled()
+                    )
 
                 if num_aux_qubits > 0:
                     aux = QuantumRegister(num_aux_qubits, name='aux')
@@ -178,10 +161,7 @@ class PhaseEstimationCircuit:
             if self._state_in is not None:
                 qc.data += self._state_in.construct_circuit('circuit', q).data
             elif self._state_in_circuit_factory is not None:
-                if isinstance(self._state_in_circuit_factory, CircuitFactory):
-                    self._state_in_circuit_factory.build(qc, q, aux)
-                else:
-                    qc.compose(self._state_in_circuit_factory, q[:], inplace=True)
+                self._state_in_circuit_factory.build(qc, q, aux)
 
             # Put all ancillae in uniform superposition
             qc.u2(0, np.pi, a)
@@ -229,13 +209,7 @@ class PhaseEstimationCircuit:
 
             elif self._unitary_circuit_factory is not None:
                 for i in range(self._num_ancillae):
-                    if isinstance(self._unitary_circuit_factory, CircuitFactory):
-                        self._unitary_circuit_factory.build_controlled_power(qc, q, a[i], 2**i, aux)
-                    else:
-                        power = self._unitary_circuit_factory.repeat(2 ** i).to_gate().control()
-                        if aux is None:
-                            aux = []
-                        qc.append(power, [a[i]] + q[:] + aux[:])
+                    self._unitary_circuit_factory.build_controlled_power(qc, q, a[i], 2**i, aux)
 
             # inverse qft on ancillae
             if self._iqft.num_qubits != len(a):  # check if QFT has the right size
