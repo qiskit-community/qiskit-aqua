@@ -86,27 +86,27 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
             i_objective: Deprecated use ``objective_qubits``.
                 Index of the objective qubit, that marks the 'good/bad' states
         """
-        # self._a_factory = state_preparation
-        # self._q_factory = grover_operator
         self._a_factory = None
         self._q_factory = None
         self._i_objective = None
 
-        if isinstance(state_preparation, CircuitFactory) or a_factory is not None:
-            warnings.warn('Passing a CircuitFactory as A operator is deprecated as of 0.8.0, '
-                          'this feature will be removed no earlier than 3 months after the release.'
-                          'You should pass a QuantumCircuit instead.',
-                          DeprecationWarning, stacklevel=2)
-            if a_factory is not None:
-                self._a_factory = a_factory
+        # Uncomment this to deprecate the CircuitFactory, once all circuit factories
+        # functionalities are available as via circuits.
+        # if isinstance(state_preparation, CircuitFactory) or a_factory is not None:
+        #     warnings.warn('Passing a CircuitFactory as A operator is deprecated as of 0.8.0, '
+        #                   'this feature will be removed no earlier than 3 months after the '
+        #                   'release. You should pass a QuantumCircuit instead.',
+        #                   DeprecationWarning, stacklevel=2)
+        #     if a_factory is not None:
+        #         self._a_factory = a_factory
 
-        if isinstance(grover_operator, CircuitFactory) or q_factory is not None:
-            warnings.warn('Passing a CircuitFactory as Q operator is deprecated as of 0.8.0, '
-                          'this feature will be removed no earlier than 3 months after the release.'
-                          'You should pass a QuantumCircuit instead.',
-                          DeprecationWarning, stacklevel=2)
-            if q_factory is not None:
-                self._q_factory = q_factory
+        # if isinstance(grover_operator, CircuitFactory) or q_factory is not None:
+        #     warnings.warn('Passing a CircuitFactory as Q operator is deprecated as of 0.8.0, '
+        #                   'this feature will be removed no earlier than 3 months after the '
+        #                   'release. You should pass a QuantumCircuit instead.',
+        #                   DeprecationWarning, stacklevel=2)
+        #     if q_factory is not None:
+        #         self._q_factory = q_factory
 
         if i_objective is not None:
             warnings.warn('The i_objective argument is deprecated as of 0.8.0 and will be removed '
