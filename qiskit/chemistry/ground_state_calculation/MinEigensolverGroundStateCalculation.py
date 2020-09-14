@@ -20,6 +20,9 @@ from qiskit.chemistry.core import (Hamiltonian, TransformationType, QubitMapping
 
 
 class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
+    """
+    MinimumEigensolverGroundStateCalculation
+    """
 
     def __init__(self,
                  solver: Optional[MinimumEigensolver] = None,
@@ -29,12 +32,31 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
                  freeze_core: bool = False,
                  orbital_reduction: Optional[List[int]] = None,
                  z2symmetry_reduction: Optional[Union[str, List[int]]] = None) -> None:
+        """
+
+        Args:
+            solver:
+            transformation:
+            qubit_mapping:
+            two_qubit_reduction:
+            freeze_core:
+            orbital_reduction:
+            z2symmetry_reduction:
+        """
 
         self._solver = solver
         super().__init__(transformation, qubit_mapping, two_qubit_reduction, freeze_core, orbital_reduction,
                          z2symmetry_reduction)
 
-    def compute_ground_state(driver) -> GroundStateCalculationResult:
+    def compute_ground_state(self, driver) -> GroundStateCalculationResult:
+        """
+
+        Compute Ground State properties
+
+        Returns:
+            GroundStateCalculationResult
+
+        """
 
         operator, aux_operators = self._transform(driver)
 

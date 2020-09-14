@@ -18,16 +18,6 @@ from qiskit.chemistry.core import (Hamiltonian, TransformationType, QubitMapping
                                    ChemistryOperator, MolecularGroundStateResult)
 from qiskit.aqua.operators import Z2Symmetries
 
-
-# class GroundStateCalculationResult():
-#     def __init__(self, results_parameters):
-#         self._results_parameters = results_parameters
-#         # param1
-#         # param2
-#         # param3
-#     # add getters... cf. other results classes
-
-
 class GroundStateCalculation(ABC):
     """GroundStateCalculation"""
 
@@ -86,6 +76,7 @@ class GroundStateCalculation(ABC):
         return operator, aux_operators
 
     @abstractmethod
-    def compute_ground_state(driver) -> MolecularGroundStateResult:
+    def compute_ground_state(self,
+                             driver: BaseDriver) -> MolecularGroundStateResult:
 
         raise NotImplementedError()
