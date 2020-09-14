@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020
@@ -16,7 +18,7 @@ a quantum algorithm
 """
 from abc import ABC, abstractmethod
 import logging
-from typing import Union, List, Tuple, Optional, cast
+from typing import Union, List, Tuple, Optional
 import numpy as np
 
 from qiskit.aqua.algorithms import MinimumEigensolverResult, EigensolverResult, AlgorithmResult
@@ -153,6 +155,9 @@ class MolecularGroundStateResult(MolecularChemistryResult):
     Energies are in Hartree and dipole moments in A.U unless otherwise stated.
     """
 
+    #TODO we need to be able to extract the statevector or the optimal parameters that can construct the circuit
+    # of the GS from here (if the algorithm supports this)
+
     @property
     def energy(self) -> Optional[float]:
         """ Returns ground state energy if nuclear_repulsion_energy is available from driver """
@@ -233,7 +238,7 @@ class MolecularGroundStateResult(MolecularChemistryResult):
         """ Returns dipole moment """
         edm = self.electronic_dipole_moment
         if self.reverse_dipole_sign:
-            edm = cast(DipoleTuple, tuple(-1 * x if x is not None else None for x in edm))
+            edm = tuple(-1 * x if x is not None else None for x in edm)
         return _dipole_tuple_add(edm, self.nuclear_dipole_moment)
 
     @property
