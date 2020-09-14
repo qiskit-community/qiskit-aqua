@@ -185,15 +185,17 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 i.e. real(statevector * statevector.conj())[0]
 
         Raises:
-            AquaError: If `self._circuit` is not set.
+            AquaError: If `construct_circuit` has not been called before. The `construct_circuit`
+                method sets an internal variable required in this method.
 
         Returns:
             Dictionaries containing the a gridpoints with respective probabilities and
                 y measurements with respective probabilities, in this order.
         """
         if self._circuit is None:
-            raise AquaError('Before calling _evaluate_statevector_results, _circuit must be set. '
-                            'Therefore call construct_circuit() first.')
+            raise AquaError('Before calling _evaluate_statevector_results the construct_circuit '
+                            'method must be called, which sets the internal _circuit variable '
+                            'required in this method.')
 
         # map measured results to estimates
         y_probabilities = OrderedDict()  # type: OrderedDict
@@ -429,7 +431,8 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
         # check if A factory or state_preparation has been set
         if self.state_preparation is None:
             if self.a_factory is None:  # getter emits deprecation warnings, therefore nest
-                raise AquaError('The A operator must be set!')
+                raise AquaError('Either the state_preparation variable or the a_factory '
+                                '(deprecated) must be set to run the algorithm.')
 
         if self._quantum_instance.is_statevector:
             self.construct_circuit(measurement=False)

@@ -352,7 +352,8 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         # check if A factory or state_preparation has been set
         if self.state_preparation is None:
             if self.a_factory is None:  # getter emits deprecation warnings, therefore nest
-                raise AquaError('The A operator must be set!')
+                raise AquaError('Either the state_preparation variable or the a_factory '
+                                '(deprecated) must be set to run the algorithm.')
 
         # initialize memory variables
         powers = [0]  # list of powers k: Q^k, (called 'k' in paper)

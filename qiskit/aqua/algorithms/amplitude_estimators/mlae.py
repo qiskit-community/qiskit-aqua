@@ -207,14 +207,17 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             statevectors: A list of statevectors.
 
         Raises:
-            AquaError: If self._circuits is None.
+            AquaError: If `construct_circuit` has not been called before. The `construct_circuit`
+                method sets an internal variable required in this method.
 
         Returns:
             The corresponding probabilities.
         """
         if self._circuits is None:
-            raise AquaError('Before calling _evaluate_statevector_results, _circuits must be set. '
-                            'Therefore call construct_circuit() first.')
+            raise AquaError('Before calling _evaluate_statevector_results the construct_circuit '
+                            'method must be called, which sets the internal _circuit variable '
+                            'required in this method.')
+
         num_qubits = self._circuits[0].num_qubits
 
         probabilities = []
@@ -471,7 +474,8 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         # check if A factory or state_preparation has been set
         if self.state_preparation is None:
             if self.a_factory is None:  # getter emits deprecation warnings, therefore nest
-                raise AquaError('The A operator must be set!')
+                raise AquaError('Either the state_preparation variable or the a_factory '
+                                '(deprecated) must be set to run the algorithm.')
 
         if self._quantum_instance.is_statevector:
 
