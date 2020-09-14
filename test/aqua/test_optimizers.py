@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -64,7 +62,7 @@ class TestOptimizers(QiskitAquaTestCase):
 
     def test_p_bfgs(self):
         """ parallel l_bfgs_b test """
-        optimizer = P_BFGS(maxfun=1000)
+        optimizer = P_BFGS(maxfun=1000, max_processes=4)
         res = self._optimize(optimizer)
         self.assertLessEqual(res[2], 10000)
 
@@ -89,7 +87,7 @@ class TestOptimizers(QiskitAquaTestCase):
     @unittest.skip("Skipping SPSA as it does not do well on non-convex rozen")
     def test_spsa(self):
         """ spsa test """
-        optimizer = SPSA(max_trials=10000)
+        optimizer = SPSA(maxiter=10000)
         res = self._optimize(optimizer)
         self.assertLessEqual(res[2], 100000)
 
@@ -101,7 +99,7 @@ class TestOptimizers(QiskitAquaTestCase):
 
     def test_gsls(self):
         """ gsls test """
-        optimizer = GSLS(sample_size_factor=40, sampling_radius=1.0e-12, max_iter=10000,
+        optimizer = GSLS(sample_size_factor=40, sampling_radius=1.0e-12, maxiter=10000,
                          max_eval=10000, min_step_size=1.0e-12)
         x_0 = [1.3, 0.7, 0.8, 1.9, 1.2]
         _, x_value, n_evals = optimizer.optimize(len(x_0), rosen, initial_point=x_0)

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -154,7 +152,7 @@ class _SklearnSVMBinary(_SklearnSVMABC):
 
     def load_model(self, file_path):
         """ load model """
-        model_npz = np.load(file_path, allow_pickle=True)
+        model_npz = np.load(file_path, allow_pickle=True)  # pylint: disable=unexpected-keyword-arg
         model = {'alphas': model_npz['alphas'],
                  'bias': model_npz['bias'],
                  'support_vectors': model_npz['support_vectors'],

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -73,9 +71,6 @@ or libraries. Several drivers, interfacing to common programs and libraries, are
 available. To use the driver its dependent program/library must be installed. See
 the relevant installation instructions below for your program/library that you intend
 to use.
-
-Note: `PySCF` is automatically installed for `macOS` and `Linux` platforms when Qiskit
-is installed. For other platforms again consult the relevant installation instructions below.
 
 .. toctree::
    :maxdepth: 1

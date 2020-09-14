@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -14,7 +12,7 @@
 
 """FCIDump parser."""
 
-from typing import Any, Dict, List, Set
+from typing import Any, Dict, Set, Tuple
 import itertools
 import re
 import numpy as np
@@ -38,10 +36,10 @@ def parse(fcidump: str) -> Dict[str, Any]:
     try:
         with open(fcidump, 'r') as file:
             fcidump_str = file.read()
-    except OSError:
-        raise QiskitChemistryError("Input file '{}' cannot be read!".format(fcidump))
+    except OSError as ex:
+        raise QiskitChemistryError("Input file '{}' cannot be read!".format(fcidump)) from ex
 
-    output = {}
+    output = {}  # type: Dict[str, Any]
 
     # FCIDump starts with a Fortran namelist of meta data
     namelist_end = re.search('(/|&END)', fcidump_str)
@@ -71,7 +69,7 @@ def parse(fcidump: str) -> Dict[str, Any]:
     output['ISYM'] = int(_isym.groups()[0]) if _isym else 1
     # ORBSYM holds a list, thus it requires a little different treatment
     _orbsym = re.search(r'ORBSYM.*?'+r'(\d+),'*norb, metadata)
-    output['ORBSYM'] = [int(s) for s in _orbsym.groups()] if _orbsym else [1] * len(norb)
+    output['ORBSYM'] = [int(s) for s in _orbsym.groups()] if _orbsym else [1] * norb
     _iprtim = re.search('IPRTIM'+pattern, metadata)
     output['IPRTIM'] = int(_iprtim.groups()[0]) if _iprtim else -1
     _int = re.search('INT'+pattern, metadata)
@@ -139,18 +137,18 @@ def parse(fcidump: str) -> Dict[str, Any]:
             try:
                 hij_elements.remove((i-1, a-1))
                 hij[i-1][a-1] = x
-            except KeyError:
+            except KeyError as ex:
                 if _uhf:
                     hij_b_elements.remove((i-1, a-1))
                     hij_b[i-1-norb][a-1-norb] = x
                 else:
                     raise QiskitChemistryError("Unkown 1-electron integral indices encountered in \
-                            '{}'".format((i, a)))
+                            '{}'".format((i, a))) from ex
         else:
             try:
                 hijkl_elements.remove((i-1, a-1, j-1, b-1))
                 hijkl[i-1][a-1][j-1][b-1] = x
-            except KeyError:
+            except KeyError as ex:
                 if _uhf:
                     try:
                         hijkl_ab_elements.remove((i-1, a-1, j-1, b-1))
@@ -164,7 +162,7 @@ def parse(fcidump: str) -> Dict[str, Any]:
                             hijkl_bb[i-1-norb][a-1-norb][j-1-norb][b-1-norb] = x
                 else:
                     raise QiskitChemistryError("Unkown 2-electron integral indices encountered in \
-                            '{}'".format((i, a, j, b)))
+                            '{}'".format((i, a, j, b))) from ex
 
     # iterate over still empty elements in 1-electron matrix and populate with symmetric ones
     # if any elements are not populated these will be zero
@@ -180,8 +178,8 @@ def parse(fcidump: str) -> Dict[str, Any]:
     if _uhf:
         # do the same for beta spin
         _permute_2e_ints(hijkl_bb, hijkl_bb_elements, norb, beta=2)
-        _permute_2e_ints(hijkl_ab, hijkl_ab_elements, norb, beta=1)
-        _permute_2e_ints(hijkl_ba, hijkl_ba_elements, norb, beta=1)
+        _permute_2e_ints(hijkl_ab, hijkl_ab_elements, norb, beta=1)  # type: ignore
+        _permute_2e_ints(hijkl_ba, hijkl_ba_elements, norb, beta=1)  # type: ignore
 
         # assert that EITHER hijkl_ab OR hijkl_ba were given
         if np.allclose(hijkl_ab, 0.0) == np.allclose(hijkl_ba, 0.0):
@@ -200,7 +198,9 @@ def parse(fcidump: str) -> Dict[str, Any]:
     return output
 
 
-def _permute_1e_ints(hij: List[float], elements: Set[int], norb: int,
+def _permute_1e_ints(hij: np.ndarray,
+                     elements: Set[Tuple[int, ...]],
+                     norb: int,
                      beta: bool = False) -> None:
     for elem in elements.copy():
         shifted = tuple(e-(beta * norb) for e in elem)
@@ -208,8 +208,10 @@ def _permute_1e_ints(hij: List[float], elements: Set[int], norb: int,
         elements.remove(elem)
 
 
-def _permute_2e_ints(hijkl: List[float], elements: Set[int], norb: int,
-                     beta: bool = False) -> None:
+def _permute_2e_ints(hijkl: np.ndarray,
+                     elements: Set[Tuple[int, ...]],
+                     norb: int,
+                     beta: int = 0) -> None:
     # pylint: disable=wrong-spelling-in-comment
     for elem in elements.copy():
         shifted = tuple(e-((e >= norb) * norb) for e in elem)

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -419,10 +417,15 @@ class UCCSD(VariationalForm):
                                task_args=(q, self._num_time_slices),
                                num_processes=aqua_globals.num_processes)
 
-        for qc in results:
-            if self._shallow_circuit_concat:
-                circuit.data += qc.data
-            else:
+        if self._shallow_circuit_concat:
+            for qc in results:
+                for _, qbits, _ in qc._data:
+                    for i, _ in enumerate(qbits):
+                        qbits[i] = circuit.qubits[qbits[i].index]
+            for qc in results:
+                circuit._data += qc._data
+        else:
+            for qc in results:
                 circuit += qc
 
         return circuit
@@ -522,7 +525,7 @@ class UCCSD(VariationalForm):
                     raise ValueError(
                         'Invalid index {} in active active_occ_list {}'.format(i, active_occ_list))
                 if i < num_beta:
-                    active_occ_list_beta.append(i)
+                    active_occ_list_beta.append(i + beta_idx)
                 else:
                     raise ValueError(
                         'Invalid index {} in active active_occ_list {}'.format(i, active_occ_list))
@@ -540,7 +543,7 @@ class UCCSD(VariationalForm):
                     raise ValueError('Invalid index {} in active active_unocc_list {}'
                                      .format(i, active_unocc_list))
                 if i >= num_beta:
-                    active_unocc_list_beta.append(i)
+                    active_unocc_list_beta.append(i + beta_idx)
                 else:
                     raise ValueError('Invalid index {} in active active_unocc_list {}'
                                      .format(i, active_unocc_list))

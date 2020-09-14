@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -31,7 +29,6 @@ from qiskit.aqua.circuits import WeightedSumOperator
 from qiskit.aqua.algorithms import (AmplitudeEstimation, MaximumLikelihoodAmplitudeEstimation,
                                     IterativeAmplitudeEstimation)
 from qiskit.aqua.algorithms.amplitude_estimators.q_factory import QFactory
-from qiskit.aqua.components.iqfts import Standard
 
 
 class BernoulliAFactory(UncertaintyProblem):
@@ -164,25 +161,7 @@ class TestBernoulli(QiskitAquaTestCase):
         result = qae.run(self._statevector)
 
         for key, value in expect.items():
-            self.assertAlmostEqual(value, result[key], places=3,
-                                   msg="estimate `{}` failed".format(key))
-
-    def test_deprecated_qft(self):
-        """Test running QAE on the deprecated QFT."""
-        prob = 0.2
-        a_factory = BernoulliAFactory(prob)
-        q_factory = BernoulliQFactory(a_factory)
-
-        warnings.filterwarnings('ignore', category=DeprecationWarning)
-        iqft = Standard(2)
-        qae = AmplitudeEstimation(2, a_factory=a_factory, q_factory=q_factory, iqft=iqft)
-
-        result = qae.run(self._statevector)
-        warnings.filterwarnings('always', category=DeprecationWarning)
-
-        expected = {'estimation': 0.5, 'mle': 0.2}
-        for key, value in expected.items():
-            self.assertAlmostEqual(value, result[key], places=3,
+            self.assertAlmostEqual(value, getattr(result, key), places=3,
                                    msg="estimate `{}` failed".format(key))
 
     @idata([
@@ -206,7 +185,7 @@ class TestBernoulli(QiskitAquaTestCase):
         result = qae.run(self._qasm(shots))
 
         for key, value in expect.items():
-            self.assertAlmostEqual(value, result[key], places=3,
+            self.assertAlmostEqual(value, getattr(result, key), places=3,
                                    msg="estimate `{}` failed".format(key))
 
     @data(True, False)
@@ -459,7 +438,7 @@ class TestSineIntegral(QiskitAquaTestCase):
         result = qae.run(self._statevector)
 
         for key, value in expect.items():
-            self.assertAlmostEqual(value, result[key], places=3,
+            self.assertAlmostEqual(value, getattr(result, key), places=3,
                                    msg="estimate `{}` failed".format(key))
 
     @idata([
@@ -476,7 +455,7 @@ class TestSineIntegral(QiskitAquaTestCase):
         result = qae.run(self._qasm(shots))
 
         for key, value in expect.items():
-            self.assertAlmostEqual(value, result[key], places=3,
+            self.assertAlmostEqual(value, getattr(result, key), places=3,
                                    msg="estimate `{}` failed".format(key))
 
     @idata([
@@ -504,7 +483,7 @@ class TestSineIntegral(QiskitAquaTestCase):
             confint = qae.confidence_interval(alpha, method)
             # confidence interval based on statevector should be empty, as we are sure of the result
             self.assertAlmostEqual(confint[1] - confint[0], 0.0)
-            self.assertAlmostEqual(confint[0], result[key])
+            self.assertAlmostEqual(confint[0], getattr(result, key))
 
         # qasm simulator
         shots = 100
@@ -513,7 +492,7 @@ class TestSineIntegral(QiskitAquaTestCase):
         for method, expected_confint in expect.items():
             confint = qae.confidence_interval(alpha, method)
             self.assertEqual(confint, expected_confint)
-            self.assertTrue(confint[0] <= result[key] <= confint[1])
+            self.assertTrue(confint[0] <= getattr(result, key) <= confint[1])
 
     def test_iqae_confidence_intervals(self):
         """End-to-end test for the IQAE confidence interval."""
@@ -523,17 +502,17 @@ class TestSineIntegral(QiskitAquaTestCase):
 
         # statevector simulator
         result = qae.run(self._statevector)
-        confint = result['confidence_interval']
+        confint = result.confidence_interval
         # confidence interval based on statevector should be empty, as we are sure of the result
         self.assertAlmostEqual(confint[1] - confint[0], 0.0)
-        self.assertAlmostEqual(confint[0], result['estimation'])
+        self.assertAlmostEqual(confint[0], result.estimation)
 
         # qasm simulator
         shots = 100
         result = qae.run(self._qasm(shots))
-        confint = result['confidence_interval']
+        confint = result.confidence_interval
         self.assertEqual(confint, expected_confint)
-        self.assertTrue(confint[0] <= result['estimation'] <= confint[1])
+        self.assertTrue(confint[0] <= result.estimation <= confint[1])
 
 
 @ddt

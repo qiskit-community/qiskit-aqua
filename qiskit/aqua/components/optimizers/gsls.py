@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -14,12 +12,13 @@
 
 """Line search with Gaussian-smoothed samples on a sphere."""
 
-from typing import Dict, Optional, Tuple, List
+import warnings
+from typing import Dict, Optional, Tuple, List, Callable
 import logging
 import numpy as np
 
 from qiskit.aqua import aqua_globals
-from .optimizer import Optimizer
+from .optimizer import Optimizer, OptimizerSupportLevel
 
 logger = logging.getLogger(__name__)
 
@@ -32,14 +31,14 @@ class GSLS(Optimizer):
     based on Gaussian-smoothed samples on a sphere.
     """
 
-    _OPTIONS = ['max_iter', 'max_eval', 'disp', 'sampling_radius',
+    _OPTIONS = ['maxiter', 'max_eval', 'disp', 'sampling_radius',
                 'sample_size_factor', 'initial_step_size', 'min_step_size',
                 'step_size_multiplier', 'armijo_parameter',
                 'min_gradient_norm', 'max_failed_rejection_sampling']
 
     # pylint:disable=unused-argument
     def __init__(self,
-                 max_iter: int = 10000,
+                 maxiter: int = 10000,
                  max_eval: int = 10000,
                  disp: bool = False,
                  sampling_radius: float = 1.0e-6,
@@ -49,10 +48,11 @@ class GSLS(Optimizer):
                  step_size_multiplier: float = 0.4,
                  armijo_parameter: float = 1.0e-1,
                  min_gradient_norm: float = 1e-8,
-                 max_failed_rejection_sampling: int = 50) -> None:
+                 max_failed_rejection_sampling: int = 50,
+                 max_iter: Optional[int] = None) -> None:
         """
         Args:
-            max_iter: Maximum number of iterations.
+            maxiter: Maximum number of iterations.
             max_eval: Maximum number of evaluations.
             disp: Set to True to display convergence messages.
             sampling_radius: Sampling radius to determine gradient estimate.
@@ -67,8 +67,15 @@ class GSLS(Optimizer):
             min_gradient_norm: If the gradient norm is below this threshold, the algorithm stops.
             max_failed_rejection_sampling: Maximum number of attempts to sample points within
                 bounds.
+            max_iter: Deprecated, use maxiter.
         """
         super().__init__()
+        if max_iter is not None:
+            warnings.warn('The max_iter parameter is deprecated as of '
+                          '0.8.0 and will be removed no sooner than 3 months after the release. '
+                          'You should use maxiter instead.',
+                          DeprecationWarning)
+            maxiter = max_iter
         for k, v in locals().items():
             if k in self._OPTIONS:
                 self._options[k] = v
@@ -80,14 +87,14 @@ class GSLS(Optimizer):
             A dictionary containing the support levels for different options.
         """
         return {
-            'gradient': Optimizer.SupportLevel.ignored,
-            'bounds': Optimizer.SupportLevel.supported,
-            'initial_point': Optimizer.SupportLevel.required
+            'gradient': OptimizerSupportLevel.ignored,
+            'bounds': OptimizerSupportLevel.supported,
+            'initial_point': OptimizerSupportLevel.required
         }
 
     def optimize(self, num_vars: int,
-                 objective_function: callable,
-                 gradient_function: Optional[callable] = None,
+                 objective_function: Callable,
+                 gradient_function: Optional[Callable] = None,
                  variable_bounds: Optional[List[Tuple[float, float]]] = None,
                  initial_point: Optional[np.ndarray] = None) -> Tuple[np.ndarray, float, int]:
         super().optimize(num_vars, objective_function, gradient_function,
@@ -111,7 +118,7 @@ class GSLS(Optimizer):
 
         return x, x_value, n_evals
 
-    def ls_optimize(self, n: int, obj_fun: callable, initial_point: np.ndarray, var_lb: np.ndarray,
+    def ls_optimize(self, n: int, obj_fun: Callable, initial_point: np.ndarray, var_lb: np.ndarray,
                     var_ub: np.ndarray) -> Tuple[np.ndarray, float, int, float]:
         """Run the line search optimization.
 
@@ -153,7 +160,7 @@ class GSLS(Optimizer):
         x = initial_point
         x_value = obj_fun(x)
         n_evals += 1
-        while iter_count < self._options['max_iter'] \
+        while iter_count < self._options['maxiter'] \
                 and n_evals < self._options['max_eval']:
 
             # Determine set of sample points

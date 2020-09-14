@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -62,13 +60,14 @@ DIMAC_TESTS = [
 
 MCT_MODES = ['basic', 'basic-dirty-ancilla', 'advanced', 'noancilla']
 OPTIMIZATIONS = [True, False]
+LIST_EXPRESSIONS = list(itertools.product(DIMAC_TESTS, MCT_MODES, OPTIMIZATIONS))
 
 
 @ddt
 class TestLogicalExpressionOracle(QiskitAquaTestCase):
     """ Test Logical Expression Oracle """
     @idata(
-        [x[0] + list(x[1:]) for x in list(itertools.product(DIMAC_TESTS, MCT_MODES, OPTIMIZATIONS))]
+        [x[0] + list(x[1:]) for x in LIST_EXPRESSIONS]  # type: ignore
     )
     @unpack
     def test_logic_expr_oracle(self, dimacs_str, sols, mct_mode, optimization):

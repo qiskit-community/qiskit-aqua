@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -15,7 +13,7 @@
 """ VectorStateFn Class """
 
 
-from typing import Union, Set
+from typing import Union, Set, Optional, Dict
 import numpy as np
 
 from qiskit.quantum_info import Statevector
@@ -112,7 +110,7 @@ class VectorStateFn(StateFn):
     def to_circuit_op(self) -> OperatorBase:
         """ Return ``StateFnCircuit`` corresponding to this StateFn."""
         from .circuit_state_fn import CircuitStateFn
-        csfn = CircuitStateFn.from_vector(self.to_matrix(massive=True)) * self.coeff
+        csfn = CircuitStateFn.from_vector(self.to_matrix(massive=True)) * self.coeff  # type: ignore
         return csfn.adjoint() if self.is_measurement else csfn
 
     def __str__(self) -> str:
@@ -128,15 +126,18 @@ class VectorStateFn(StateFn):
 
     # pylint: disable=too-many-return-statements
     def eval(self,
-             front: Union[str, dict, np.ndarray,
-                          OperatorBase] = None) -> Union[OperatorBase, float, complex]:
+             front: Optional[Union[str, Dict[str, complex], np.ndarray, OperatorBase]] = None
+             ) -> Union[OperatorBase, float, complex]:
+        if front is None:  # this object is already a VectorStateFn
+            return self
+
         if not self.is_measurement and isinstance(front, OperatorBase):
             raise ValueError(
                 'Cannot compute overlap with StateFn or Operator if not Measurement. Try taking '
                 'sf.adjoint() first to convert to measurement.')
 
         if isinstance(front, ListOp) and front.distributive:
-            return front.combo_fn([self.eval(front.coeff * front_elem)
+            return front.combo_fn([self.eval(front.coeff * front_elem)  # type: ignore
                                    for front_elem in front.oplist])
 
         if not isinstance(front, OperatorBase):
@@ -148,23 +149,24 @@ class VectorStateFn(StateFn):
         from .operator_state_fn import OperatorStateFn
         from .circuit_state_fn import CircuitStateFn
         if isinstance(front, DictStateFn):
-            return round(sum([v * self.primitive.data[int(b, 2)] * front.coeff
-                              for (b, v) in front.primitive.items()]) * self.coeff,
-                         ndigits=EVAL_SIG_DIGITS)
+            return np.round(sum([v * self.primitive.data[int(b, 2)] * front.coeff  # type: ignore
+                                 for (b, v) in front.primitive.items()]) * self.coeff,
+                            decimals=EVAL_SIG_DIGITS)
 
         if isinstance(front, VectorStateFn):
             # Need to extract the element or np.array([1]) is returned.
-            return round(np.dot(self.to_matrix(), front.to_matrix())[0],
-                         ndigits=EVAL_SIG_DIGITS)
+            return np.round(np.dot(self.to_matrix(), front.to_matrix())[0],
+                            decimals=EVAL_SIG_DIGITS)
 
         if isinstance(front, CircuitStateFn):
             # Don't reimplement logic from CircuitStateFn
-            return np.conj(front.adjoint().eval(self.adjoint().primitive)) * self.coeff
+            return np.conj(
+                front.adjoint().eval(self.adjoint().primitive)) * self.coeff  # type: ignore
 
         if isinstance(front, OperatorStateFn):
-            return front.adjoint().eval(self.primitive) * self.coeff
+            return front.adjoint().eval(self.primitive) * self.coeff  # type: ignore
 
-        return front.adjoint().eval(self.adjoint().primitive).adjoint() * self.coeff
+        return front.adjoint().eval(self.adjoint().primitive).adjoint() * self.coeff  # type: ignore
 
     def sample(self,
                shots: int = 1024,

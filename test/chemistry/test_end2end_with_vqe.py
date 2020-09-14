@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -60,7 +58,7 @@ class TestEnd2End(QiskitChemistryTestCase):
             optimizer = COBYLA()
             optimizer.set_options(maxiter=1000)
         elif optimizer == 'SPSA':
-            optimizer = SPSA(max_trials=2000)
+            optimizer = SPSA(maxiter=2000)
 
         ryrz = TwoLocal(rotation_blocks=['ry', 'rz'], entanglement_blocks='cz')
         vqe = VQE(self.qubit_op, ryrz, optimizer, aux_operators=self.aux_ops)

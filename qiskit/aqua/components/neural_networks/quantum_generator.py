@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2019, 2020.
@@ -14,7 +12,7 @@
 
 """Quantum Generator."""
 
-from typing import Optional, List, Union
+from typing import Optional, List, Union, Dict, Any
 from copy import deepcopy
 import numpy as np
 
@@ -169,7 +167,7 @@ class QuantumGenerator(GenerativeNetwork):
 
         self._shots = None
         self._discriminator = None
-        self._ret = {}
+        self._ret = {}  # type: Dict[str, Any]
 
     def set_seed(self, seed):
         """

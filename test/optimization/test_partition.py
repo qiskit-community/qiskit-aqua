@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -49,7 +47,7 @@ class TestSetPacking(QiskitOptimizationTestCase):
         aqua_globals.random_seed = 100
         result = VQE(self.qubit_op,
                      RealAmplitudes(reps=5, entanglement='linear'),
-                     SPSA(max_trials=200),
+                     SPSA(maxiter=200),
                      max_evals_grouped=2).run(
                          QuantumInstance(BasicAer.get_backend('qasm_simulator'),
                                          seed_simulator=aqua_globals.random_seed,

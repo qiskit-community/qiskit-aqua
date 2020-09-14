@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -14,7 +12,7 @@
 
 """The Eigensolver algorithm."""
 
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict, Any, Tuple
 import logging
 import pprint
 import warnings
@@ -72,7 +70,7 @@ class NumPyEigensolver(ClassicalAlgorithm):
         self.operator = operator
         self.aux_operators = aux_operators
 
-        self._ret = {}
+        self._ret = {}  # type: Dict[str, Any]
 
     @property
     def operator(self) -> Optional[OperatorBase]:
@@ -84,11 +82,8 @@ class NumPyEigensolver(ClassicalAlgorithm):
         """ set operator """
         if isinstance(operator, LegacyBaseOperator):
             operator = operator.to_opflow()
-        if operator is None:
-            self._operator = None
-        else:
-            self._operator = operator
-            self._check_set_k()
+        self._operator = operator
+        self._check_set_k()
 
     @property
     def aux_operators(self) -> Optional[List[Optional[OperatorBase]]]:
@@ -97,19 +92,26 @@ class NumPyEigensolver(ClassicalAlgorithm):
 
     @aux_operators.setter
     def aux_operators(self,
-                      aux_operators: Optional[List[Optional[Union[OperatorBase,
-                                                                  LegacyBaseOperator]]]]) -> None:
-        """ set aux operators """
+                      aux_operators: Optional[
+                          Union[OperatorBase,
+                                LegacyBaseOperator,
+                                List[Optional[Union[OperatorBase,
+                                                    LegacyBaseOperator]]]]]) -> None:
+        """ Set aux operators """
         if aux_operators is None:
-            self._aux_operators = []
-        else:
-            aux_operators = \
-                [aux_operators] if not isinstance(aux_operators, list) else aux_operators
-            converted = [op.to_opflow() if op is not None else None for op in aux_operators]
-            # Chemistry passes aux_ops with 0 qubits and paulis sometimes
+            aux_operators = []
+        elif not isinstance(aux_operators, list):
+            aux_operators = [aux_operators]
+
+        if aux_operators:
             zero_op = I.tensorpower(self.operator.num_qubits) * 0.0
-            converted = [zero_op if op == 0 else op for op in converted]
-            self._aux_operators = converted
+            converted = [op.to_opflow() if isinstance(op, LegacyBaseOperator)
+                         else op for op in aux_operators]
+
+            # For some reason Chemistry passes aux_ops with 0 qubits and paulis sometimes.
+            aux_operators = [zero_op if op == 0 else op for op in converted]
+
+        self._aux_operators = aux_operators
 
     @property
     def k(self) -> int:
@@ -117,7 +119,7 @@ class NumPyEigensolver(ClassicalAlgorithm):
         return self._in_k
 
     @k.setter
-    def k(self, k: int) -> int:
+    def k(self, k: int) -> None:
         """ set k (number of eigenvalues requested) """
         validate_min('k', k, 1)
         self._in_k = k
@@ -127,7 +129,7 @@ class NumPyEigensolver(ClassicalAlgorithm):
         """ If will process auxiliary operators or not """
         return True
 
-    def _check_set_k(self):
+    def _check_set_k(self) -> None:
         if self._operator is not None:
             if self._in_k > 2**(self._operator.num_qubits):
                 self._k = 2**(self._operator.num_qubits)
@@ -136,7 +138,7 @@ class NumPyEigensolver(ClassicalAlgorithm):
             else:
                 self._k = self._in_k
 
-    def _solve(self):
+    def _solve(self) -> None:
         sp_mat = self._operator.to_spmatrix()
         # If matrix is diagonal, the elements on the diagonal are the eigenvalues. Solve by sorting.
         if scisparse.csr_matrix(sp_mat.diagonal()).nnz == sp_mat.nnz:
@@ -160,13 +162,13 @@ class NumPyEigensolver(ClassicalAlgorithm):
         self._ret['eigvals'] = eigval
         self._ret['eigvecs'] = eigvec.T
 
-    def _get_ground_state_energy(self):
+    def _get_ground_state_energy(self) -> None:
         if 'eigvals' not in self._ret or 'eigvecs' not in self._ret:
             self._solve()
         self._ret['energy'] = self._ret['eigvals'][0].real
         self._ret['wavefunction'] = self._ret['eigvecs']
 
-    def _get_energies(self):
+    def _get_energies(self) -> None:
         if 'eigvals' not in self._ret or 'eigvecs' not in self._ret:
             self._solve()
         energies = np.empty(self._k)
@@ -179,8 +181,8 @@ class NumPyEigensolver(ClassicalAlgorithm):
                 aux_op_vals.append(self._eval_aux_operators(self._ret['eigvecs'][i]))
             self._ret['aux_ops'] = aux_op_vals
 
-    def _eval_aux_operators(self, wavefn, threshold=1e-12):
-        values = []
+    def _eval_aux_operators(self, wavefn, threshold: float = 1e-12) -> np.ndarray:
+        values = []  # type: List[Tuple[float, int]]
         for operator in self._aux_operators:
             if operator is None:
                 values.append(None)
@@ -197,7 +199,7 @@ class NumPyEigensolver(ClassicalAlgorithm):
                     value = StateFn(operator, is_measurement=True).eval(wavefn)
                 value = value.real if abs(value.real) > threshold else 0.0
             values.append((value, 0))
-        return np.asarray(values)
+        return np.array(values, dtype=object)
 
     def _run(self):
         """

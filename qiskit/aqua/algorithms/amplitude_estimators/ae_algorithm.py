@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -15,13 +13,14 @@
 The Amplitude Estimation Algorithm.
 """
 
-from typing import Optional, Union
+from typing import Optional, Union, List, Dict
 import logging
+import warnings
 from abc import abstractmethod
 
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance
-from qiskit.aqua.algorithms import QuantumAlgorithm
+from qiskit.aqua.algorithms import QuantumAlgorithm, AlgorithmResult
 from qiskit.aqua.utils import CircuitFactory
 from .q_factory import QFactory
 
@@ -170,3 +169,63 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
             be set before the A/Q operators and in that case checks cannot be done.
         """
         self._i_objective = i_objective
+
+
+class AmplitudeEstimationAlgorithmResult(AlgorithmResult):
+    """ AmplitudeEstimationAlgorithm Result."""
+
+    @property
+    def a_estimation(self) -> float:
+        """ return a_estimation """
+        return self.get('a_estimation')
+
+    @a_estimation.setter
+    def a_estimation(self, value: float) -> None:
+        """ set a_estimation """
+        self.data['a_estimation'] = value
+
+    @property
+    def estimation(self) -> float:
+        """ return estimation """
+        return self.get('estimation')
+
+    @estimation.setter
+    def estimation(self, value: float) -> None:
+        """ set estimation """
+        self.data['estimation'] = value
+
+    @property
+    def num_oracle_queries(self) -> int:
+        """ return num_oracle_queries """
+        return self.get('num_oracle_queries')
+
+    @num_oracle_queries.setter
+    def num_oracle_queries(self, value: int) -> None:
+        """ set num_oracle_queries """
+        self.data['num_oracle_queries'] = value
+
+    @property
+    def confidence_interval(self) -> List[float]:
+        """ return confidence_interval """
+        return self.get('confidence_interval')
+
+    @confidence_interval.setter
+    def confidence_interval(self, value: List[float]) -> None:
+        """ set confidence_interval """
+        self.data['confidence_interval'] = value
+
+    @staticmethod
+    def from_dict(a_dict: Dict) -> 'AmplitudeEstimationAlgorithmResult':
+        """ create new object from a dictionary """
+        return AmplitudeEstimationAlgorithmResult(a_dict)
+
+    def __getitem__(self, key: object) -> object:
+        if key == '95%_confidence_interval':
+            warnings.warn('95%_confidence_interval deprecated, use confidence_interval property.',
+                          DeprecationWarning)
+            return super().__getitem__('confidence_interval')
+        elif key == 'value':
+            warnings.warn('value deprecated, use a_estimation property.', DeprecationWarning)
+            return super().__getitem__('a_estimation')
+
+        return super().__getitem__(key)

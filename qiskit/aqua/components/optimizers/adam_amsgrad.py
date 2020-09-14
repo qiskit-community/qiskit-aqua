@@ -1,6 +1,4 @@
 
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2019, 2020.
@@ -22,7 +20,7 @@ import os
 import csv
 import numpy as np
 from qiskit.aqua import aqua_globals
-from .optimizer import Optimizer
+from .optimizer import Optimizer, OptimizerSupportLevel
 
 logger = logging.getLogger(__name__)
 
@@ -112,9 +110,9 @@ class ADAM(Optimizer):
     def get_support_level(self):
         """ Return support level dictionary """
         return {
-            'gradient': Optimizer.SupportLevel.supported,
-            'bounds': Optimizer.SupportLevel.ignored,
-            'initial_point': Optimizer.SupportLevel.supported
+            'gradient': OptimizerSupportLevel.supported,
+            'bounds': OptimizerSupportLevel.ignored,
+            'initial_point': OptimizerSupportLevel.supported
         }
 
     def save_params(self, snapshot_dir: str) -> None:

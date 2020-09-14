@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -89,7 +87,7 @@ class FCIDumpDriver(BaseDriver):
         return q_mol
 
     @staticmethod
-    def dump(q_mol: QMolecule, outpath: str, orbsym: Optional[List[int]] = None,
+    def dump(q_mol: QMolecule, outpath: str, orbsym: Optional[List[str]] = None,
              isym: int = 1) -> None:
         """Convenience method to produce an FCIDump output file.
 

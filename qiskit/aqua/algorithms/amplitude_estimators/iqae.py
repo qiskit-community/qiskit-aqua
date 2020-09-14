@@ -1,6 +1,4 @@
 
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -14,7 +12,7 @@
 # that they have been altered from the originals.
 """The Iterative Quantum Amplitude Estimation Algorithm."""
 
-from typing import Optional, Union, List, Tuple
+from typing import Optional, Union, List, Tuple, Dict, Any
 import logging
 import numpy as np
 from scipy.stats import beta
@@ -25,7 +23,7 @@ from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.utils.circuit_factory import CircuitFactory
 from qiskit.aqua.utils.validation import validate_range, validate_in_set
 
-from .ae_algorithm import AmplitudeEstimationAlgorithm
+from .ae_algorithm import AmplitudeEstimationAlgorithm, AmplitudeEstimationAlgorithmResult
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +43,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
     """
 
     def __init__(self, epsilon: float, alpha: float,
-                 confint_method: str = 'beta', min_ratio: float = 2,
+                 confint_method: str = 'beta', min_ratio: float = 2.0,
                  a_factory: Optional[CircuitFactory] = None,
                  q_factory: Optional[CircuitFactory] = None,
                  i_objective: Optional[int] = None,
@@ -85,7 +83,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         self._confint_method = confint_method
 
         # results dictionary
-        self._ret = {}
+        self._ret = {}  # type: Dict[str, Any]
 
     @property
     def precision(self) -> float:
@@ -106,7 +104,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         self._epsilon = epsilon
 
     def _find_next_k(self, k: int, upper_half_circle: bool, theta_interval: Tuple[float, float],
-                     min_ratio: int = 2) -> Tuple[int, bool]:
+                     min_ratio: float = 2.0) -> Tuple[int, bool]:
         """Find the largest integer k_next, such that the interval (4 * k_next + 2)*theta_interval
         lies completely in [0, pi] or [pi, 2pi], for theta_interval = (theta_lower, theta_upper).
 
@@ -281,7 +279,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
         return lower, upper
 
-    def _run(self) -> dict:
+    def _run(self) -> 'IterativeAmplitudeEstimationResult':
         # check if A factory has been set
         if self.a_factory is None:
             raise AquaError("a_factory must be set!")
@@ -313,9 +311,10 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             prob = self._probability_to_measure_one(statevector)
 
             a_confidence_interval = [prob, prob]
-            a_intervals.append(a_confidence_interval)
+            a_intervals.append(a_confidence_interval)  # type: ignore
 
-            theta_i_interval = [np.arccos(1 - 2 * a_i) / 2 / np.pi for a_i in a_confidence_interval]
+            theta_i_interval = [np.arccos(1 - 2 * a_i) / 2 / np.pi  # type: ignore
+                                for a_i in a_confidence_interval]
             theta_intervals.append(theta_i_interval)
             num_oracle_queries = 0  # no Q-oracle call, only a single one to A
 
@@ -329,7 +328,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
                 # get the next k
                 k, upper_half_circle = self._find_next_k(powers[-1], upper_half_circle,
-                                                         theta_intervals[-1],
+                                                         theta_intervals[-1],  # type: ignore
                                                          min_ratio=self._min_ratio)
 
                 # store the variables
@@ -344,7 +343,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 counts = ret.get_counts(circuit)
 
                 # calculate the probability of measuring '1', 'prob' is a_i in the paper
-                one_counts, prob = self._probability_to_measure_one(counts)
+                one_counts, prob = self._probability_to_measure_one(counts)  # type: ignore
                 num_one_shots.append(one_counts)
 
                 # track number of Q-oracle calls
@@ -389,7 +388,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 a_intervals.append([a_l, a_u])
 
         # get the latest confidence interval for the estimate of a
-        a_confidence_interval = a_intervals[-1]
+        a_confidence_interval = a_intervals[-1]  # type: ignore
 
         # the final estimate is the mean of the confidence interval
         value = np.mean(a_confidence_interval)
@@ -413,4 +412,98 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             'ratios': ratios,
         }
 
-        return self._ret
+        ae_result = AmplitudeEstimationAlgorithmResult()
+        ae_result.value = self._ret['value']
+        ae_result.estimation = self._ret['estimation']
+        ae_result.num_oracle_queries = self._ret['num_oracle_queries']
+        ae_result.confidence_interval = self._ret['confidence_interval']
+
+        result = IterativeAmplitudeEstimationResult()
+        result.combine(ae_result)
+        result.value_confidence_interval = self._ret['value_confidence_interval']
+        result.alpha = self._ret['alpha']
+        result.actual_epsilon = self._ret['actual_epsilon']
+        result.a_intervals = self._ret['a_intervals']
+        result.theta_intervals = self._ret['theta_intervals']
+        result.powers = self._ret['powers']
+        result.ratios = self._ret['ratios']
+        return result
+
+
+class IterativeAmplitudeEstimationResult(AmplitudeEstimationAlgorithmResult):
+    """ IterativeAmplitudeEstimation Result."""
+
+    @property
+    def value_confidence_interval(self) -> List[float]:
+        """ return value_confidence_interval  """
+        return self.get('value_confidence_interval')
+
+    @value_confidence_interval.setter
+    def value_confidence_interval(self, value: List[float]) -> None:
+        """ set value_confidence_interval """
+        self.data['value_confidence_interval'] = value
+
+    @property
+    def alpha(self) -> float:
+        """ return alpha """
+        return self.get('alpha')
+
+    @alpha.setter
+    def alpha(self, value: float) -> None:
+        """ set alpha """
+        self.data['alpha'] = value
+
+    @property
+    def actual_epsilon(self) -> float:
+        """ return mle """
+        return self.get('actual_epsilon')
+
+    @actual_epsilon.setter
+    def actual_epsilon(self, value: float) -> None:
+        """ set mle """
+        self.data['actual_epsilon'] = value
+
+    @property
+    def a_intervals(self) -> List[List[float]]:
+        """ return a_intervals """
+        return self.get('a_intervals')
+
+    @a_intervals.setter
+    def a_intervals(self, value: List[List[float]]) -> None:
+        """ set a_intervals """
+        self.data['a_intervals'] = value
+
+    @property
+    def theta_intervals(self) -> List[List[float]]:
+        """ return theta_intervals """
+        return self.get('theta_intervals')
+
+    @theta_intervals.setter
+    def theta_intervals(self, value: List[List[float]]) -> None:
+        """ set theta_intervals """
+        self.data['theta_intervals'] = value
+
+    @property
+    def powers(self) -> List[int]:
+        """ return powers """
+        return self.get('powers')
+
+    @powers.setter
+    def powers(self, value: List[int]) -> None:
+        """ set powers """
+        self.data['powers'] = value
+
+    @property
+    def ratios(self) -> List[float]:
+        """ return ratios """
+        return self.get('ratios')
+
+    @ratios.setter
+    def ratios(self, value: List[float]) -> None:
+        """ set ratios """
+        self.data['ratios'] = value
+
+    @staticmethod
+    def from_dict(a_dict: Dict) -> 'IterativeAmplitudeEstimationResult':
+        """ create new object from a dictionary """
+        return IterativeAmplitudeEstimationResult(a_dict)

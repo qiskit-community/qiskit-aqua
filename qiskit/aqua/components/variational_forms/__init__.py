@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -39,25 +37,8 @@ Variational Form Base Class
 
    VariationalForm
 
-Variational Forms
-=================
-
-.. autosummary::
-   :toctree: ../stubs/
-   :nosignatures:
-
-   RY
-   RYRZ
-   SwapRZ
-
 """
 
 from .variational_form import VariationalForm
-from .ry import RY
-from .ryrz import RYRZ
-from .swaprz import SwapRZ
 
-__all__ = ['VariationalForm',
-           'RY',
-           'RYRZ',
-           'SwapRZ']
+__all__ = ['VariationalForm']

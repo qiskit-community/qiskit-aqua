@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -14,38 +12,39 @@
 
 """ qp solver """
 
+import warnings
 from typing import Optional, Tuple
 import logging
+
 import numpy as np
+try:
+    import cvxpy
+    _HAS_CVX = True
+except ImportError:
+    _HAS_CVX = False
+
+from qiskit.aqua import MissingOptionalLibraryError
 
 logger = logging.getLogger(__name__)
-
-_HAS_CVXOPT = False
-try:
-    from cvxopt import matrix, solvers
-    _HAS_CVXOPT = True
-except ImportError:
-    logger.info('CVXOPT is not installed. See http://cvxopt.org/install/index.html')
 
 
 def optimize_svm(kernel_matrix: np.ndarray,
                  y: np.ndarray,
                  scaling: Optional[float] = None,
-                 max_iters: int = 500,
-                 show_progress: bool = False) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+                 maxiter: int = 500,
+                 show_progress: bool = False,
+                 max_iters: Optional[int] = None) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Solving quadratic programming problem for SVM; thus, some constraints are fixed.
-
-    The notation is follows the equation here:
-    http://cvxopt.org/userguide/coneprog.html#quadratic-programming
 
     Args:
         kernel_matrix: NxN array
         y: Nx1 array
         scaling: the scaling factor to renormalize the `y`, if it is None,
                  use L2-norm of `y` for normalization
-        max_iters: number of iterations for QP solver
+        maxiter: number of iterations for QP solver
         show_progress: showing the progress of QP solver
+        max_iters: Deprecated, use maxiter.
 
     Returns:
         np.ndarray: Sx1 array, where S is the number of supports
@@ -53,11 +52,21 @@ def optimize_svm(kernel_matrix: np.ndarray,
         np.ndarray: Sx1 array, where S is the number of supports
 
     Raises:
-        NameError: CVXOPT not installed.
+        MissingOptionalLibraryError: If cvxpy is not installed
     """
-    # pylint: disable=invalid-name
-    if not _HAS_CVXOPT:
-        raise NameError('CVXOPT is not installed. See http://cvxopt.org/install/index.html')
+    # pylint: disable=invalid-name, unused-argument
+    if not _HAS_CVX:
+        raise MissingOptionalLibraryError(
+            libname='CVXPY',
+            name='optimize_svm',
+            pip_install='pip install qiskit-aqua[cvx]')
+
+    if max_iters is not None:
+        warnings.warn('The max_iters parameter is deprecated as of '
+                      '0.8.0 and will be removed no sooner than 3 months after the release. '
+                      'You should use maxiter instead.',
+                      DeprecationWarning)
+        maxiter = max_iters
     if y.ndim == 1:
         y = y[:, np.newaxis]
     H = np.outer(y, y) * kernel_matrix
@@ -69,17 +78,20 @@ def optimize_svm(kernel_matrix: np.ndarray,
     tolerance = 1e-2
     n = kernel_matrix.shape[1]
 
-    P = matrix(H)
-    q = matrix(f)
-    G = matrix(-np.eye(n))
-    h = matrix(np.zeros(n))
-    A = matrix(y, y.T.shape)
-    b = matrix(np.zeros(1), (1, 1))
-    solvers.options['maxiters'] = max_iters
-    solvers.options['show_progress'] = show_progress
-
-    ret = solvers.qp(P, q, G, h, A, b, kktsolver='ldl')
-    alpha = np.asarray(ret['x']) * scaling
+    P = np.array(H)
+    q = np.array(f)
+    G = -np.eye(n)
+    h = np.zeros(n)
+    A = y.reshape(y.T.shape)
+    b = np.zeros((1, 1))
+    x = cvxpy.Variable(n)
+    prob = cvxpy.Problem(
+        cvxpy.Minimize((1 / 2) * cvxpy.quad_form(x, P) + q.T@x),
+        [G@x <= h,
+         A@x == b])
+    prob.solve(verbose=show_progress, qcp=True)
+    result = np.asarray(x.value).reshape((n, 1))
+    alpha = result * scaling
     avg_y = np.sum(y)
     avg_mat = (alpha * y).T.dot(kernel_matrix.dot(np.ones(y.shape)))
     b = (avg_y - avg_mat) / n

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2019, 2020.
@@ -94,7 +92,6 @@ class GaussianConditionalIndependenceModel(MultivariateDistribution):
         # create linear rotations for conditional defaults
         self._slopes = np.zeros(self.K)
         self._offsets = np.zeros(self.K)
-        self._rotations = []
         for k in range(self.K):
 
             psi = F_inv(p_zeros[k]) / np.sqrt(1 - rhos[k])

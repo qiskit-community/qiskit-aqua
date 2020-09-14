@@ -1,6 +1,3 @@
-
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -14,41 +11,49 @@
 # that they have been altered from the originals.
 
 """A wrapper for minimum eigen solvers from Aqua to be used within the optimization module."""
-
 from typing import Optional, Any, Union, Tuple, List
+
 import numpy as np
+from qiskit.aqua.algorithms import MinimumEigensolver, MinimumEigensolverResult
+from qiskit.aqua.operators import StateFn, DictStateFn
 
-from qiskit import QuantumCircuit, BasicAer, execute
-from qiskit.aqua.algorithms import MinimumEigensolver
-from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator, StateFn, DictStateFn
-
-from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
-from ..problems.quadratic_program import QuadraticProgram
-from ..converters.quadratic_program_to_ising import QuadraticProgramToIsing
+from .optimization_algorithm import (OptimizationResultStatus, OptimizationAlgorithm,
+                                     OptimizationResult)
 from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
-from ..exceptions import QiskitOptimizationError
+from ..problems.quadratic_program import QuadraticProgram, Variable
 
 
-class MinimumEigenOptimizerResult(OptimizationResult):
+class MinimumEigenOptimizationResult(OptimizationResult):
     """ Minimum Eigen Optimizer Result."""
 
-    def __init__(self, x: Optional[Any] = None, fval: Optional[Any] = None,
-                 samples: Optional[Any] = None, results: Optional[Any] = None) -> None:
-        super().__init__(x, fval, results)
+    def __init__(self, x: Union[List[float], np.ndarray], fval: float, variables: List[Variable],
+                 status: OptimizationResultStatus, samples: List[Tuple[str, float, float]],
+                 min_eigen_solver_result: Optional[MinimumEigensolverResult] = None) -> None:
+        """
+        Args:
+            x: the optimal value found by ``MinimumEigensolver``.
+            fval: the optimal function value.
+            variables: the list of variables of the optimization problem.
+            status: the termination status of the optimization algorithm.
+            samples: the basis state as bitstring, the QUBO value, and the probability of sampling.
+            min_eigen_solver_result: the result obtained from the underlying algorithm.
+        """
+        super().__init__(x, fval, variables, status, None)
         self._samples = samples
+        self._min_eigen_solver_result = min_eigen_solver_result
 
     @property
-    def samples(self) -> Any:
-        """ returns samples """
+    def samples(self) -> List[Tuple[str, float, float]]:
+        """Returns samples."""
         return self._samples
 
-    @samples.setter
-    def samples(self, samples: Any) -> None:
-        """ set samples """
-        self._samples = samples
+    @property
+    def min_eigen_solver_result(self) -> MinimumEigensolverResult:
+        """Returns a result object obtained from the instance of :class:`MinimumEigensolver`."""
+        return self._min_eigen_solver_result
 
-    def get_correlations(self):
-        """ get <Zi x Zj> correlation matrix from samples """
+    def get_correlations(self) -> np.ndarray:
+        """Get <Zi x Zj> correlation matrix from samples."""
 
         states = [v[0] for v in self.samples]
         probs = [v[2] for v in self.samples]
@@ -110,6 +115,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         """
         self._min_eigen_solver = min_eigen_solver
         self._penalty = penalty
+        self._qubo_converter = QuadraticProgramToQubo()
 
     def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
         """Checks whether a given problem can be solved with this optimizer.
@@ -125,7 +131,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         """
         return QuadraticProgramToQubo.get_compatibility_msg(problem)
 
-    def solve(self, problem: QuadraticProgram) -> MinimumEigenOptimizerResult:
+    def solve(self, problem: QuadraticProgram) -> MinimumEigenOptimizationResult:
         """Tries to solves the given problem using the optimizer.
 
         Runs the optimizer to try to solve the optimization problem.
@@ -139,75 +145,85 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         Raises:
             QiskitOptimizationError: If problem not compatible.
         """
-        # check compatibility and raise exception if incompatible
-        msg = self.get_compatibility_msg(problem)
-        if len(msg) > 0:
-            raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
+        self._verify_compatibility(problem)
 
         # convert problem to QUBO
-        qubo_converter = QuadraticProgramToQubo()
-        problem_ = qubo_converter.encode(problem)
+        problem_ = self._qubo_converter.convert(problem)
 
         # construct operator and offset
-        operator_converter = QuadraticProgramToIsing()
-        operator, offset = operator_converter.encode(problem_)
+        operator, offset = problem_.to_ising()
 
         # only try to solve non-empty Ising Hamiltonians
+        x = None  # type: Optional[Any]
+        eigen_result = None     # type: MinimumEigensolverResult
         if operator.num_qubits > 0:
 
             # approximate ground state of operator using min eigen solver
-            eigen_results = self._min_eigen_solver.compute_minimum_eigenvalue(operator)
+            eigen_result = self._min_eigen_solver.compute_minimum_eigenvalue(operator)
 
             # analyze results
-            samples = eigenvector_to_solutions(eigen_results.eigenstate, operator)
-            samples = [(res[0], problem_.objective.sense.value * (res[1] + offset), res[2])
-                       for res in samples]
+            # backend = getattr(self._min_eigen_solver, 'quantum_instance', None)
+            samples = _eigenvector_to_solutions(eigen_result.eigenstate, problem_)
+            # print(offset, samples)
+            # samples = [(res[0], problem_.objective.sense.value * (res[1] + offset), res[2])
+            #    for res in samples]
             samples.sort(key=lambda x: problem_.objective.sense.value * x[1])
-            x = samples[0][0]
+            x = [float(e) for e in samples[0][0]]
             fval = samples[0][1]
 
         # if Hamiltonian is empty, then the objective function is constant to the offset
         else:
-            x = [0]*problem_.get_num_binary_vars()
+            x = [0] * problem_.get_num_binary_vars()
             fval = offset
-            x_str = '0'*problem_.get_num_binary_vars()
+            x_str = '0' * problem_.get_num_binary_vars()
             samples = [(x_str, offset, 1.0)]
 
         # translate result back to integers
-        opt_res = MinimumEigenOptimizerResult(x, fval, samples, qubo_converter)
-        opt_res = qubo_converter.decode(opt_res)
+        result = OptimizationResult(x=x, fval=fval, variables=problem_.variables,
+                                    status=OptimizationResultStatus.SUCCESS)
+        result = self._qubo_converter.interpret(result)
 
-        # translate results back to original problem
-        return opt_res
+        return MinimumEigenOptimizationResult(x=result.x, fval=result.fval,
+                                              variables=result.variables,
+                                              status=self._get_feasibility_status(problem,
+                                                                                  result.x),
+                                              samples=samples, min_eigen_solver_result=eigen_result)
 
 
-def eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray, StateFn],
-                             operator: Union[WeightedPauliOperator, MatrixOperator],
-                             min_probability: float = 1e-6) -> List[Tuple[str, float, float]]:
+def _eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray, StateFn],
+                              qubo: QuadraticProgram,
+                              min_probability: float = 1e-6,
+                              ) -> List[Tuple[str, float, float]]:
     """Convert the eigenvector to the bitstrings and corresponding eigenvalues.
 
-    Examples:
-    >>> op = MatrixOperator(numpy.array([[1, 1], [1, -1]]) / numpy.sqrt(2))
-    >>> eigenvectors = {'0': 12, '1': 1}
-    >>> print(eigenvector_to_solutions(eigenvectors, op))
-    [('0', 0.7071067811865475, 0.9230769230769231), ('1', -0.7071067811865475, 0.07692307692307693)]
-
-    >>> op = MatrixOperator(numpy.array([[1, 1], [1, -1]]) / numpy.sqrt(2))
-    >>> eigenvectors = numpy.array([1, 1] / numpy.sqrt(2), dtype=complex)
-    >>> print(eigenvector_to_solutions(eigenvectors, op))
-    [('0', 0.7071067811865475, 0.4999999999999999), ('1', -0.7071067811865475, 0.4999999999999999)]
+    Args:
+        eigenvector: The eigenvector from which the solution states are extracted.
+        qubo: The QUBO to evaluate at the bitstring.
+        min_probability: Only consider states where the amplitude exceeds this threshold.
 
     Returns:
         For each computational basis state contained in the eigenvector, return the basis
-        state as bitstring along with the operator evaluated at that bitstring and the
+        state as bitstring along with the QUBO evaluated at that bitstring and the
         probability of sampling this bitstring from the eigenvector.
 
-    Raises:
-        TypeError: Invalid Argument
+    Examples:
+        >>> op = MatrixOp(numpy.array([[1, 1], [1, -1]]) / numpy.sqrt(2))
+        >>> eigenvectors = {'0': 12, '1': 1}
+        >>> print(eigenvector_to_solutions(eigenvectors, op))
+        [('0', 0.7071067811865475, 0.9230769230769231),
+        ('1', -0.7071067811865475, 0.07692307692307693)]
 
+        >>> op = MatrixOp(numpy.array([[1, 1], [1, -1]]) / numpy.sqrt(2))
+        >>> eigenvectors = numpy.array([1, 1] / numpy.sqrt(2), dtype=complex)
+        >>> print(eigenvector_to_solutions(eigenvectors, op))
+        [('0', 0.7071067811865475, 0.4999999999999999),
+        ('1', -0.7071067811865475, 0.4999999999999999)]
+
+    Raises:
+        TypeError: If the type of eigenvector is not supported.
     """
     if isinstance(eigenvector, DictStateFn):
-        eigenvector = {bitstr: val**2 for (bitstr, val) in eigenvector.primitive.items()}
+        eigenvector = {bitstr: val ** 2 for (bitstr, val) in eigenvector.primitive.items()}
     elif isinstance(eigenvector, StateFn):
         eigenvector = eigenvector.to_matrix()
 
@@ -220,7 +236,7 @@ def eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray, StateFn],
             # add the bitstring, if the sampling probability exceeds the threshold
             if sampling_probability > 0:
                 if sampling_probability >= min_probability:
-                    value = eval_operator_at_bitstring(operator, bitstr)
+                    value = qubo.objective.evaluate([int(bit) for bit in bitstr])
                     solutions += [(bitstr, value, sampling_probability)]
 
     elif isinstance(eigenvector, np.ndarray):
@@ -234,39 +250,10 @@ def eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray, StateFn],
             if sampling_probability > 0:
                 if sampling_probability >= min_probability:
                     bitstr = '{:b}'.format(i).rjust(num_qubits, '0')[::-1]
-                    value = eval_operator_at_bitstring(operator, bitstr)
+                    value = qubo.objective.evaluate([int(bit) for bit in bitstr])
                     solutions += [(bitstr, value, sampling_probability)]
 
     else:
         raise TypeError('Unsupported format of eigenvector. Provide a dict or numpy.ndarray.')
 
     return solutions
-
-
-def eval_operator_at_bitstring(operator: Union[WeightedPauliOperator, MatrixOperator],
-                               bitstr: str) -> float:
-    """Evaluate an Aqua operator at a given bitstring.
-
-    This simulates a circuit representing the bitstring. Note that this will not be needed
-    with the Operator logic introduced in 0.7.0.
-
-    Args:
-        operator: The operator which is evaluated.
-        bitstr: The bitstring at which the operator is evaluated.
-
-    Returns:
-        The operator evaluated with the quantum state the bitstring describes.
-    """
-    # TODO check that operator size and bitstr are compatible
-    circuit = QuantumCircuit(len(bitstr))
-    for i, bit in enumerate(bitstr):
-        if bit == '1':
-            circuit.x(i)
-
-    # simulate the circuit
-    result = execute(circuit, BasicAer.get_backend('statevector_simulator')).result()
-
-    # evaluate the operator
-    value = np.real(operator.evaluate_with_statevector(result.get_statevector())[0])
-
-    return value

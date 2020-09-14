@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2019, 2020.
@@ -32,7 +30,7 @@ class LinearConstraint(Constraint):
     def __init__(self,
                  quadratic_program: Any, name: str,
                  linear: Union[ndarray, spmatrix, List[float], Dict[Union[str, int], float]],
-                 sense: Constraint.Sense,
+                 sense: ConstraintSense,
                  rhs: float
                  ) -> None:
         """

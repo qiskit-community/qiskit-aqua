@@ -1,0 +1,9 @@
+---
+features:
+  - |
+    Added an SLSQP optimizer ``qiskit.optimization.algorithms.SlsqpOptimizer`` as a wrapper
+    of the corresponding SciPy optimization method. This is a classical optimizer, does not depend
+    on quantum algorithms and may be used as a replacement for ``CobylaOptimizer``.
+  - |
+    Cobyla optimizer has been modified to accommodate a multi start feature introduced
+    in the SLSQP optimizer. By default, the optimizer does not run in the multi start mode.

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -14,7 +12,7 @@
 
 """The Variational Quantum Classifier algorithm."""
 
-from typing import Optional, Callable, Dict, Union
+from typing import Optional, Callable, Dict, Union, Any
 import warnings
 import logging
 import math
@@ -140,7 +138,7 @@ class VQC(VQAlgorithm):
         self._minibatch_size = minibatch_size
 
         self._eval_count = 0
-        self._ret = {}
+        self._ret = {}  # type: Dict[str, Any]
         self._parameterized_circuits = None
 
         self.feature_map = feature_map
@@ -589,7 +587,7 @@ class VQC(VQAlgorithm):
 
     def load_model(self, file_path):
         """ load model """
-        model_npz = np.load(file_path, allow_pickle=True)
+        model_npz = np.load(file_path, allow_pickle=True)  # pylint: disable=unexpected-keyword-arg
         self._ret['opt_params'] = model_npz['opt_params']
 
     def save_model(self, file_path):

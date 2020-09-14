@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -15,8 +13,7 @@
 """The Quantum Phase Estimation Algorithm."""
 
 import logging
-from typing import Optional, List, Dict, Union
-import warnings
+from typing import Optional, List, Dict, Union, Any
 
 import numpy as np
 from qiskit import QuantumCircuit
@@ -31,7 +28,6 @@ from qiskit.aqua.circuits import PhaseEstimationCircuit
 from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.aqua.operators import LegacyBaseOperator
 from qiskit.aqua.components.initial_states import InitialState
-from qiskit.aqua.components.iqfts import IQFT
 from qiskit.aqua.utils.validation import validate_min, validate_in_set
 from .minimum_eigen_solver import MinimumEigensolver, MinimumEigensolverResult
 
@@ -60,7 +56,7 @@ class QPE(QuantumAlgorithm, MinimumEigensolver):
     def __init__(self,
                  operator: Optional[Union[OperatorBase, LegacyBaseOperator]] = None,
                  state_in: Optional[InitialState] = None,
-                 iqft: Optional[Union[QuantumCircuit, IQFT]] = None,
+                 iqft: Optional[QuantumCircuit] = None,
                  num_time_slices: int = 1,
                  num_ancillae: int = 1,
                  expansion_mode: str = 'trotter',
@@ -89,16 +85,9 @@ class QPE(QuantumAlgorithm, MinimumEigensolver):
         validate_in_set('expansion_mode', expansion_mode, {'trotter', 'suzuki'})
         validate_min('expansion_order', expansion_order, 1)
         super().__init__(quantum_instance)
+
         self._state_in = state_in
-
-        if isinstance(iqft, IQFT):
-            warnings.warn('The qiskit.aqua.components.iqfts.IQFT module is deprecated as of 0.7.0 '
-                          'and will be removed no earlier than 3 months after the release. '
-                          'You should pass a QuantumCircuit instead, see '
-                          'qiskit.circuit.library.QFT and the .inverse() method.',
-                          DeprecationWarning, stacklevel=2)
         self._iqft = iqft
-
         self._num_time_slices = num_time_slices
         self._num_ancillae = num_ancillae
         self._expansion_mode = expansion_mode
@@ -106,9 +95,9 @@ class QPE(QuantumAlgorithm, MinimumEigensolver):
         self._shallow_circuit_concat = shallow_circuit_concat
         self._binary_fractions = [1 / 2 ** p for p in range(1, self._num_ancillae + 1)]
         self._in_operator = operator
-        self._operator = None
-        self._ret = {}
-        self._pauli_list = None
+        self._operator = None  # type: Optional[WeightedPauliOperator]
+        self._ret = {}  # type: Dict[str, Any]
+        self._pauli_list = None  # type: Optional[List[List[Union[complex, Pauli]]]]
         self._phase_estimation_circuit = None
         self._setup(operator)
 
