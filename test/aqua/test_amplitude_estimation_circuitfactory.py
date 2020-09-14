@@ -529,7 +529,7 @@ class TestSineIntegral(QiskitAquaTestCase):
 
 @ddt
 class TestCreditRiskAnalysis(QiskitAquaTestCase):
-    """Test a more difficult example, motived from Credit Risk Analysis."""
+    """Test a more difficult example, motivated from Credit Risk Analysis."""
 
     def setUp(self):
         super().setUp()
