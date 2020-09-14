@@ -12,6 +12,7 @@
 
 """Quantum Phase Estimation Circuit."""
 
+from typing import Optional, Union, List
 import numpy as np
 
 from qiskit import QuantumRegister, QuantumCircuit, ClassicalRegister
@@ -22,6 +23,8 @@ from qiskit.aqua.utils import CircuitFactory
 from qiskit.aqua.operators import (WeightedPauliOperator,   # pylint: disable=unused-import
                                    suzuki_expansion_slice_pauli_list,
                                    evolution_instruction)
+from qiskit.aqua.components.initial_states import InitialState
+from qiskit.quantum_info import Pauli
 
 
 class PhaseEstimationCircuit:
@@ -29,38 +32,38 @@ class PhaseEstimationCircuit:
 
     def __init__(
             self,
-            operator=None,
-            state_in=None,
-            iqft=None,
-            num_time_slices=1,
-            num_ancillae=1,
-            expansion_mode='trotter',
-            expansion_order=1,
-            evo_time=2 * np.pi,
-            state_in_circuit_factory=None,
-            unitary_circuit_factory=None,
-            shallow_circuit_concat=False,
-            pauli_list=None
+            operator: Optional[WeightedPauliOperator] = None,
+            state_in: Optional[InitialState] = None,
+            iqft: Optional[QuantumCircuit] = None,
+            num_time_slices: int = 1,
+            num_ancillae: int = 1,
+            expansion_mode: str = 'trotter',
+            expansion_order: int = 1,
+            evo_time: float = 2 * np.pi,
+            state_in_circuit_factory: Optional[Union[CircuitFactory, QuantumCircuit]] = None,
+            unitary_circuit_factory: Optional[Union[CircuitFactory, QuantumCircuit]] = None,
+            shallow_circuit_concat: bool = False,
+            pauli_list: Optional[List[Pauli]] = None
     ):
         """
         Args:
-            operator (WeightedPauliOperator): the hamiltonian Operator object
-            state_in (InitialState): the InitialState component
+            operator: the hamiltonian Operator object
+            state_in: the InitialState component
             representing the initial quantum state
-            iqft (Union[QuantumCircuit, IQFT]): the Inverse Quantum Fourier Transform as circuit or
+            iqft: the Inverse Quantum Fourier Transform as circuit or
                 Aqua component
-            num_time_slices (int): the number of time slices
-            num_ancillae (int): the number of ancillary qubits to use for the measurement
-            expansion_mode (str): the expansion mode (trotter|suzuki)
-            expansion_order (int): the suzuki expansion order
-            evo_time (float): the evolution time
-            state_in_circuit_factory (CircuitFactory): the initial state represented by
-            a CircuitFactory object
-            unitary_circuit_factory (CircuitFactory): the problem unitary represented
-            by a CircuitFactory object
-            shallow_circuit_concat (bool): indicate whether to use shallow (cheap) mode
-            for circuit concatenation
-            pauli_list (list[Pauli]): the flat list of paulis for the operator
+            num_time_slices: the number of time slices
+            num_ancillae: the number of ancillary qubits to use for the measurement
+            expansion_mode: the expansion mode (trotter|suzuki)
+            expansion_order: the suzuki expansion order
+            evo_time: the evolution time
+            state_in_circuit_factory: the initial state represented by a CircuitFactory object or
+                a QuantumCircuit
+            unitary_circuit_factory: the problem unitary represented by a CircuitFactory object or
+                a QuantumCircuit
+            shallow_circuit_concat: indicate whether to use shallow (cheap) mode for circuit
+                concatenation
+            pauli_list: the flat list of paulis for the operator
 
         Raises:
             AquaError: Missing input
