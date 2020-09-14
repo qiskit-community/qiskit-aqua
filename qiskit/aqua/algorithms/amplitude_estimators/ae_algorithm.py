@@ -86,8 +86,8 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
             i_objective: Deprecated use ``objective_qubits``.
                 Index of the objective qubit, that marks the 'good/bad' states
         """
-        self._a_factory = None
-        self._q_factory = None
+        self._a_factory = a_factory
+        self._q_factory = q_factory
         self._i_objective = None
 
         # Uncomment this to deprecate the CircuitFactory, once all circuit factories
