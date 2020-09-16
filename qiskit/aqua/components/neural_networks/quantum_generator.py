@@ -22,7 +22,7 @@ from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.circuit.library import TwoLocal
 from qiskit.aqua import aqua_globals
 from qiskit.aqua.components.optimizers import ADAM
-from qiskit.aqua.components.optimizers import optimizer
+from qiskit.aqua.components.optimizers import Optimizer
 from qiskit.aqua.components.uncertainty_models import \
     UniformDistribution, MultivariateUniformDistribution
 from qiskit.aqua.components.uncertainty_models import UnivariateVariationalDistribution, \
@@ -53,7 +53,7 @@ class QuantumGenerator(GenerativeNetwork):
                                                    MultivariateVariationalDistribution,
                                                    QuantumCircuit]] = None,
                  init_params: Optional[Union[List[float], np.ndarray]] = None,
-                 optimizer: Optional[optimizer] = None,
+                 optimizer: Optional[Optimizer] = None,
                  snapshot_dir: Optional[str] = None) -> None:
         """
         Args:
