@@ -49,8 +49,8 @@ class AQGD(Optimizer):
                  maxiter: Optional[List[int]] = None,
                  eta: Optional[List[float]] = None,
                  momentum: Optional[List[float]] = None,
-                 ptol: float = 1e-6,
-                 otol: float = 1e-6,
+                 param_tol: float = 1e-6,
+                 objective_tol: float = 1e-6,
                  averaging: int = 10) -> None:
         """
         Constructor.
@@ -63,9 +63,10 @@ class AQGD(Optimizer):
                 results in larger step sizes: param = previous_param - eta * deriv
             momentum: Bias towards the previous gradient momentum in current
                 update. Must be within the bounds: [0,1)
-            ptol: Tolerance for change in norm of parameters.
-            otol: Tolerance for change in windowed average of objective values. Convergence
-                occurs when either objective tolerance is met OR parameter tolerance is met
+            param_tol: Tolerance for change in norm of parameters.
+            objective_tol: Tolerance for change in windowed average of objective values.
+                Convergence occurs when either objective tolerance is met OR parameter
+                tolerance is met.
             averaging: Length of window over which to average objective values for objective
                 convergence criterion
 
@@ -88,8 +89,8 @@ class AQGD(Optimizer):
         self._eta = eta
         self._maxiter = maxiter
         self._momenta_coeff = momentum
-        self._ptol = ptol if ptol is not None else 1e-6
-        self._otol = otol if otol is not None else 1e-6
+        self._ptol = param_tol if param_tol is not None else 1e-6
+        self._otol = objective_tol if objective_tol is not None else 1e-6
         self._averaging = averaging
         self._avg_objval = None
         self._prev_param = None
