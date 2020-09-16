@@ -17,7 +17,8 @@ from qiskit.chemistry.core import (Hamiltonian, TransformationType, QubitMapping
                                    ChemistryOperator)
 from qiskit.chemistry.core import MolecularExcitedStatesResult
 
-class ExcitedStateCalculation(GroundStateCalculation):
+
+class ExcitedStatesCalculation(GroundStateCalculation):
 
     def __init__(self,
                  transformation: TransformationType = TransformationType.FULL,
@@ -32,6 +33,5 @@ class ExcitedStateCalculation(GroundStateCalculation):
 
     @abstractmethod
     def compute_excited_states(self,
-                             driver: BaseDriver) -> MolecularExcitedStatesResult:
-
-            raise NotImplementedError()
+                               driver: BaseDriver) -> MolecularExcitedStatesResult:
+        raise NotImplementedError()
