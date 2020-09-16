@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -19,18 +17,18 @@ from enum import Enum
 from abc import abstractmethod
 import logging
 import numpy as np
-from qiskit.aqua.components.optimizers import Optimizer
+from qiskit.aqua import MissingOptionalLibraryError
+from ..optimizer import Optimizer, OptimizerSupportLevel
 
 logger = logging.getLogger(__name__)
 
-_HAS_NLOPT = False
 try:
     import nlopt
     logger.info('NLopt version: %s.%s.%s', nlopt.version_major(),
                 nlopt.version_minor(), nlopt.version_bugfix())
     _HAS_NLOPT = True
 except ImportError:
-    logger.info('NLopt is not installed. Please install it to use these global optimizers.')
+    _HAS_NLOPT = False
 
 
 class NLoptOptimizerType(Enum):
@@ -55,12 +53,16 @@ class NLoptOptimizer(Optimizer):
             max_evals: Maximum allowed number of function evaluations.
 
         Raises:
-            NameError: NLopt library not installed.
+            MissingOptionalLibraryError: NLopt library not installed.
         """
         if not _HAS_NLOPT:
-            raise NameError("Unable to instantiate '{}', nlopt is not installed. "
-                            "Please install it if you want to use them.".format(
-                                self.__class__.__name__))
+            raise MissingOptionalLibraryError(
+                libname='nlopt',
+                name='NLoptOptimizer',
+                msg='See https://qiskit.org/documentation/apidoc/'
+                    'qiskit.aqua.components.optimizers.nlopts.html'
+                    ' for installation information')
+
         super().__init__()
         for k, v in locals().items():
             if k in self._OPTIONS:
@@ -82,9 +84,9 @@ class NLoptOptimizer(Optimizer):
     def get_support_level(self):
         """ return support level dictionary """
         return {
-            'gradient': Optimizer.SupportLevel.ignored,
-            'bounds': Optimizer.SupportLevel.supported,
-            'initial_point': Optimizer.SupportLevel.required
+            'gradient': OptimizerSupportLevel.ignored,
+            'bounds': OptimizerSupportLevel.supported,
+            'initial_point': OptimizerSupportLevel.required
         }
 
     def optimize(self, num_vars, objective_function, gradient_function=None,

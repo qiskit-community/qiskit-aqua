@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -18,14 +16,15 @@ from typing import Optional, Union, List
 import datetime
 import logging
 
+from qiskit.aqua import MissingOptionalLibraryError
 from ._base_data_provider import BaseDataProvider
 from ..exceptions import QiskitFinanceError
 
 try:
     import yfinance as yf
-    HAS_YFINANCE = True
+    _HAS_YFINANCE = True
 except ImportError:
-    HAS_YFINANCE = False
+    _HAS_YFINANCE = False
 
 logger = logging.getLogger(__name__)
 
@@ -49,13 +48,14 @@ class YahooDataProvider(BaseDataProvider):
             start: start time
             end: end time
         Raises:
-            NameError: YFinance not installed
+            MissingOptionalLibraryError: YFinance not installed
         """
         super().__init__()
-        if not HAS_YFINANCE:
-            raise NameError("The YFinance package is required to use the "
-                            "YahooDataProvider. You can install it with "
-                            "'pip install yfinance'.")
+        if not _HAS_YFINANCE:
+            raise MissingOptionalLibraryError(
+                libname='YFinance',
+                name='YahooDataProvider',
+                pip_install='pip install yfinance')
         self._tickers = None  # type: Optional[Union[str, List[str]]]
         tickers = tickers if tickers is not None else []
         if isinstance(tickers, list):

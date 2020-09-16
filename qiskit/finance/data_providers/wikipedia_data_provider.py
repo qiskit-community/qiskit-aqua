@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2019, 2020.
@@ -18,14 +16,15 @@ from typing import Optional, Union, List
 import datetime
 import logging
 
+from qiskit.aqua import MissingOptionalLibraryError
 from ._base_data_provider import BaseDataProvider
 from ..exceptions import QiskitFinanceError
 
 try:
     import quandl
-    HAS_QUANDL = True
+    _HAS_QUANDL = True
 except ImportError:
-    HAS_QUANDL = False
+    _HAS_QUANDL = False
 
 logger = logging.getLogger(__name__)
 
@@ -51,13 +50,14 @@ class WikipediaDataProvider(BaseDataProvider):
             start: start time
             end: end time
          Raises:
-            NameError: Quandl not installed
+            MissingOptionalLibraryError: Quandl not installed
         """
         super().__init__()
-        if not HAS_QUANDL:
-            raise NameError("The Quandl package is required to use the "
-                            "WikipediaDataProvider. You can install it with "
-                            "'pip install quandl'.")
+        if not _HAS_QUANDL:
+            raise MissingOptionalLibraryError(
+                libname='Quandl',
+                name='WikipediaDataProvider',
+                pip_install='pip install quandl')
         self._tickers = None  # type: Optional[Union[str, List[str]]]
         tickers = tickers if tickers is not None else []
         if isinstance(tickers, list):

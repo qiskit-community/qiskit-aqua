@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -20,7 +18,7 @@ from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 from ddt import ddt, data
 
 from qiskit import BasicAer
-
+from qiskit.aqua import MissingOptionalLibraryError
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.aqua.algorithms import QAOA
 from qiskit.aqua.components.optimizers import COBYLA
@@ -76,15 +74,17 @@ class TestMinEigenOptimizer(QiskitOptimizationTestCase):
 
             # solve problem
             result = min_eigen_optimizer.solve(problem)
+            self.assertIsNotNone(result)
 
             # analyze results
             self.assertAlmostEqual(cplex_result.fval, result.fval)
+
+            # check that eigensolver result is present
+            self.assertIsNotNone(result.min_eigen_solver_result)
+        except MissingOptionalLibraryError as ex:
+            self.skipTest(str(ex))
         except RuntimeError as ex:
-            msg = str(ex)
-            if 'CPLEX' in msg:
-                self.skipTest(msg)
-            else:
-                self.fail(msg)
+            self.fail(str(ex))
 
 
 if __name__ == '__main__':

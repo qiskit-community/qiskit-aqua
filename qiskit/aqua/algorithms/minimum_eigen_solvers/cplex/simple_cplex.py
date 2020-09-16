@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -17,16 +15,15 @@
 import logging
 from itertools import product
 from sys import stdout
+from qiskit.aqua import MissingOptionalLibraryError
 
 logger = logging.getLogger(__name__)
 
-_HAS_CPLEX = False
 try:
     from cplex import Cplex, SparsePair, SparseTriple
     _HAS_CPLEX = True
 except ImportError:
-    logger.info('CPLEX is not installed. See https://www.ibm.com/support/knowledgecenter/'
-                'SSSA5P_12.8.0/ilog.odms.studio.help/Optimization_Studio/topics/COS_home.html')
+    _HAS_CPLEX = False
 
 # pylint: disable=invalid-name
 
@@ -35,10 +32,10 @@ class SimpleCPLEX:
     """Simple Python Wrapper for CPLEX"""
     def __init__(self, cplex=None):
         if not _HAS_CPLEX:
-            raise NameError('CPLEX is not installed. '
-                            'See https://www.ibm.com/support/knowledgecenter/'
-                            'SSSA5P_12.8.0/ilog.odms.studio.help/Optimization_Studio/'
-                            'topics/COS_home.html')
+            raise MissingOptionalLibraryError(
+                libname='CPLEX',
+                name='SimpleCPLEX',
+                pip_install='pip install qiskit-aqua[cplex]')
 
         if cplex:
             self._model = Cplex(cplex._model)

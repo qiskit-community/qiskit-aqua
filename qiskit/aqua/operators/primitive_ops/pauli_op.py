@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -14,7 +12,7 @@
 
 """ PauliOp Class """
 
-from typing import Union, Set, Dict, cast
+from typing import Union, Set, Dict, Optional, cast
 import logging
 import numpy as np
 from scipy.sparse import spmatrix
@@ -27,7 +25,6 @@ from qiskit.circuit.library import RZGate, RYGate, RXGate, XGate, YGate, ZGate, 
 from ..operator_base import OperatorBase
 from .primitive_op import PrimitiveOp
 from ..list_ops.summed_op import SummedOp
-from ..list_ops.composed_op import ComposedOp
 from ..list_ops.tensored_op import TensoredOp
 from ..legacy.weighted_pauli_operator import WeightedPauliOperator
 
@@ -116,7 +113,7 @@ class PauliOp(PrimitiveOp):
         if isinstance(other, (CircuitOp, CircuitStateFn)):
             return self.to_circuit_op().compose(other)
 
-        return ComposedOp([self, other])
+        return super().compose(other)
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
         if self.num_qubits > 16 and not massive:
@@ -146,8 +143,8 @@ class PauliOp(PrimitiveOp):
             return "{} * {}".format(self.coeff, prim_str)
 
     def eval(self,
-             front: Union[str, dict, np.ndarray,
-                          OperatorBase] = None) -> Union[OperatorBase, float, complex]:
+             front: Optional[Union[str, Dict[str, complex], np.ndarray, OperatorBase]] = None
+             ) -> Union[OperatorBase, float, complex]:
         if front is None:
             return self.to_matrix_op()
 
@@ -168,31 +165,40 @@ class PauliOp(PrimitiveOp):
             new_front = front.combo_fn([self.eval(front.coeff * front_elem)  # type: ignore
                                         for front_elem in front.oplist])
 
-        elif isinstance(front, DictStateFn):
-            new_dict = {}  # type: Dict
-            corrected_x_bits = self.primitive.x[::-1]  # type: ignore
-            corrected_z_bits = self.primitive.z[::-1]  # type: ignore
+        else:
 
-            for bstr, v in front.primitive.items():
-                bitstr = np.asarray(list(bstr)).astype(np.int).astype(np.bool)
-                new_b_str = np.logical_xor(bitstr, corrected_x_bits)
-                new_str = ''.join(map(str, 1 * new_b_str))
-                z_factor = np.product(1 - 2 * np.logical_and(bitstr, corrected_z_bits))
-                y_factor = np.product(np.sqrt(1 - 2 * np.logical_and(corrected_x_bits,
-                                                                     corrected_z_bits) + 0j))
-                new_dict[new_str] = (v * z_factor * y_factor) + new_dict.get(new_str, 0)
-            new_front = StateFn(new_dict, coeff=self.coeff * front.coeff)
+            if self.num_qubits != front.num_qubits:
+                raise ValueError(
+                    'eval does not support operands with differing numbers of qubits, '
+                    '{} and {}, respectively.'.format(
+                        self.num_qubits, front.num_qubits))
 
-        elif isinstance(front, StateFn) and front.is_measurement:
-            raise ValueError('Operator composed with a measurement is undefined.')
+            if isinstance(front, DictStateFn):
 
-        # Composable types with PauliOp
-        elif isinstance(front, (PauliOp, CircuitOp, CircuitStateFn)):
-            new_front = self.compose(front)
+                new_dict = {}  # type: Dict
+                corrected_x_bits = self.primitive.x[::-1]  # type: ignore
+                corrected_z_bits = self.primitive.z[::-1]  # type: ignore
+
+                for bstr, v in front.primitive.items():
+                    bitstr = np.asarray(list(bstr)).astype(np.int).astype(np.bool)
+                    new_b_str = np.logical_xor(bitstr, corrected_x_bits)
+                    new_str = ''.join(map(str, 1 * new_b_str))
+                    z_factor = np.product(1 - 2 * np.logical_and(bitstr, corrected_z_bits))
+                    y_factor = np.product(np.sqrt(1 - 2 * np.logical_and(corrected_x_bits,
+                                                                         corrected_z_bits) + 0j))
+                    new_dict[new_str] = (v * z_factor * y_factor) + new_dict.get(new_str, 0)
+                    new_front = StateFn(new_dict, coeff=self.coeff * front.coeff)
+
+            elif isinstance(front, StateFn) and front.is_measurement:
+                raise ValueError('Operator composed with a measurement is undefined.')
+
+            # Composable types with PauliOp
+            elif isinstance(front, (PauliOp, CircuitOp, CircuitStateFn)):
+                new_front = self.compose(front)
 
         # Covers VectorStateFn and OperatorStateFn
-        elif isinstance(front, OperatorBase):
-            new_front = self.to_matrix_op().eval(front.to_matrix_op())  # type: ignore
+            elif isinstance(front, OperatorBase):
+                new_front = self.to_matrix_op().eval(front.to_matrix_op())  # type: ignore
 
         return new_front
 
@@ -214,13 +220,13 @@ class PauliOp(PrimitiveOp):
                 else self.coeff
             # Y rotation
             if corrected_x[sig_qubit_index] and corrected_z[sig_qubit_index]:
-                rot_op = PrimitiveOp(RYGate(coeff))
+                rot_op = PrimitiveOp(RYGate(2 * coeff))
             # Z rotation
             elif corrected_z[sig_qubit_index]:
-                rot_op = PrimitiveOp(RZGate(coeff))
+                rot_op = PrimitiveOp(RZGate(2 * coeff))
             # X rotation
             elif corrected_x[sig_qubit_index]:
-                rot_op = PrimitiveOp(RXGate(coeff))
+                rot_op = PrimitiveOp(RXGate(2 * coeff))
 
             from ..operator_globals import I
             left_pad = I.tensorpower(sig_qubit_index)
@@ -275,9 +281,9 @@ class PauliOp(PrimitiveOp):
         if isinstance(self.coeff, ParameterExpression):
             try:
                 coeff = float(self.coeff)
-            except TypeError:
+            except TypeError as ex:
                 raise TypeError('Cannot convert Operator with unbound parameter {} to Legacy '
-                                'Operator'.format(self.coeff))
+                                'Operator'.format(self.coeff)) from ex
         else:
             coeff = cast(float, self.coeff)
         return WeightedPauliOperator(paulis=[(coeff, self.primitive)])  # type: ignore

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -16,6 +14,7 @@
 
 from functools import reduce
 from typing import List, Union, Optional, Callable, Iterator, Set, Dict
+from numbers import Number
 
 import numpy as np
 from scipy.sparse import spmatrix
@@ -129,7 +128,10 @@ class ListOp(OperatorBase):
 
     @property
     def num_qubits(self) -> int:
-        return self.oplist[0].num_qubits
+        num_qubits0 = self.oplist[0].num_qubits
+        if not all(num_qubits0 == op.num_qubits for op in self.oplist):
+            raise ValueError('Operators in ListOp have differing numbers of qubits.')
+        return num_qubits0
 
     def add(self, other: OperatorBase) -> OperatorBase:
         if self == other:
@@ -143,16 +145,34 @@ class ListOp(OperatorBase):
     def adjoint(self) -> OperatorBase:
         # TODO do this lazily? Basically rebuilds the entire tree, and ops and adjoints almost
         #  always come in pairs, so an AdjointOp holding a reference could save copying.
-        return self.__class__([op.adjoint() for op in self.oplist],
-                              coeff=np.conj(self.coeff),
-                              abelian=self.abelian)
+        if self.__class__ == ListOp:
+            return ListOp([op.adjoint() for op in self.oplist],  # type: ignore
+                          combo_fn=self.combo_fn, coeff=np.conj(self.coeff), abelian=self.abelian)
+        return self.__class__([op.adjoint() for op in self.oplist],  # type: ignore
+                              coeff=np.conj(self.coeff), abelian=self.abelian)
 
     def traverse(self,
                  convert_fn: Callable,
                  coeff: Optional[Union[int, float, complex,
                                        ParameterExpression]] = None) -> OperatorBase:
-        """ Apply the convert_fn to each node in the oplist. """
-        return self.__class__([convert_fn(op) for op in self.oplist], coeff=coeff or self.coeff)
+        """Apply the convert_fn to each node in the oplist.
+
+            Args:
+                convert_fn: The function to apply to the internal OperatorBase.
+                coeff: A coefficient to multiply by after applying convert_fn.
+                    If it is None, self.coeff is used instead.
+
+            Returns:
+                The converted ListOp.
+        """
+        if coeff is None:
+            coeff = self.coeff
+
+        if self.__class__ == ListOp:
+            return ListOp([convert_fn(op) for op in self.oplist],  # type: ignore
+                          combo_fn=self.combo_fn, coeff=coeff, abelian=self.abelian)
+        return self.__class__([convert_fn(op) for op in self.oplist],  # type: ignore
+                              coeff=coeff, abelian=self.abelian)
 
     def equals(self, other: OperatorBase) -> bool:
         if not isinstance(other, type(self)) or not len(self.oplist) == len(other.oplist):
@@ -169,9 +189,10 @@ class ListOp(OperatorBase):
         if not isinstance(scalar, (int, float, complex, ParameterExpression)):
             raise ValueError('Operators can only be scalar multiplied by float or complex, not '
                              '{} of type {}.'.format(scalar, type(scalar)))
-        return self.__class__(self.oplist,
-                              coeff=self.coeff * scalar,
-                              abelian=self.abelian)
+        if self.__class__ == ListOp:
+            return ListOp(self.oplist, combo_fn=self.combo_fn, coeff=scalar * self.coeff,
+                          abelian=self.abelian)
+        return self.__class__(self.oplist, coeff=scalar * self.coeff, abelian=self.abelian)
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
         # Avoid circular dependency
@@ -213,8 +234,17 @@ class ListOp(OperatorBase):
                 'in this case {0}x{0} elements.'
                 ' Set massive=True if you want to proceed.'.format(2 ** self.num_qubits))
 
-        # Combination function must be able to handle classical values
-        return self.combo_fn([op.to_matrix() * self.coeff for op in self.oplist])
+        # Combination function must be able to handle classical values.
+        # Note: this can end up, when we have list operators containing other list operators, as a
+        #       ragged array and numpy 1.19 raises a deprecation warning unless this is explicitly
+        #       done as object type now - was implicit before.
+        mat = self.combo_fn(np.asarray([op.to_matrix() * self.coeff for op in self.oplist],
+                                       dtype=object))
+        # Note: As ComposedOp has a combo function of inner product we can end up here not with
+        # a matrix (array) but a scalar. In which case we make a single element array of it.
+        if isinstance(mat, Number):
+            mat = [mat]
+        return np.asarray(mat, dtype=complex)
 
     def to_spmatrix(self) -> Union[spmatrix, List[spmatrix]]:
         """ Returns SciPy sparse matrix representation of the Operator.
@@ -278,7 +308,9 @@ class ListOp(OperatorBase):
         """ Return an ``OperatorBase`` equivalent to an exponentiation of self * -i, e^(-i*op)."""
         # pylint: disable=unidiomatic-typecheck
         if type(self) == ListOp:
-            return ListOp([op.exp_i() for op in self.oplist], coeff=self.coeff)  # type: ignore
+            return ListOp([op.exp_i() for op in self.oplist],  # type: ignore
+                          combo_fn=self.combo_fn,
+                          coeff=self.coeff)
 
         # pylint: disable=import-outside-toplevel
         from qiskit.aqua.operators import EvolvedOp
@@ -292,14 +324,17 @@ class ListOp(OperatorBase):
         """
         if self.__class__.__name__ == ListOp.__name__:
             return ListOp([op.log_i(massive=massive) for op in self.oplist],  # type: ignore
+                          combo_fn=self.combo_fn,
                           coeff=self.coeff,
                           abelian=False)
 
         return self.to_matrix_op(massive=massive).log_i(massive=massive)  # type: ignore
 
     def __str__(self) -> str:
-        main_string = "{}(\n[{}])".format(self.__class__.__name__, ',\n'.join(
-            [str(op) for op in self.oplist]))
+        content_string = ',\n'.join([str(op) for op in self.oplist])
+        main_string = "{}([\n{}\n])".format(
+            self.__class__.__name__,
+            self._indent(content_string, indentation=self.INDENTATION))
         if self.abelian:
             main_string = 'Abelian' + main_string
         if self.coeff != 1.0:
@@ -311,6 +346,15 @@ class ListOp(OperatorBase):
                                                      repr(self.oplist),
                                                      self.coeff,
                                                      self.abelian)
+
+    @property
+    def parameters(self):
+        params = set()
+        for op in self.oplist:
+            params.update(op.parameters)
+        if isinstance(self.coeff, ParameterExpression):
+            params.update(self.coeff.parameters)
+        return params
 
     def assign_parameters(self, param_dict: dict) -> OperatorBase:
         param_value = self.coeff
@@ -325,37 +369,56 @@ class ListOp(OperatorBase):
 
     def reduce(self) -> OperatorBase:
         reduced_ops = [op.reduce() for op in self.oplist]
-        return self.__class__(reduced_ops, coeff=self.coeff)
+        if self.__class__ == ListOp:
+            return ListOp(reduced_ops, combo_fn=self.combo_fn, coeff=self.coeff,
+                          abelian=self.abelian)
+        return self.__class__(reduced_ops, coeff=self.coeff, abelian=self.abelian)
 
     def to_matrix_op(self, massive: bool = False) -> OperatorBase:
         """ Returns an equivalent Operator composed of only NumPy-based primitives, such as
         ``MatrixOp`` and ``VectorStateFn``. """
+        if self.__class__ == ListOp:
+            return ListOp(
+                [op.to_matrix_op(massive=massive) for op in self.oplist],  # type: ignore
+                combo_fn=self.combo_fn, coeff=self.coeff, abelian=self.abelian
+                ).reduce()
         return self.__class__(
             [op.to_matrix_op(massive=massive) for op in self.oplist],  # type: ignore
-            coeff=self.coeff,
-            abelian=self.abelian).reduce()
+            coeff=self.coeff, abelian=self.abelian
+            ).reduce()
 
     def to_circuit_op(self) -> OperatorBase:
         """ Returns an equivalent Operator composed of only QuantumCircuit-based primitives,
         such as ``CircuitOp`` and ``CircuitStateFn``. """
         # pylint: disable=cyclic-import
         from ..state_fns.operator_state_fn import OperatorStateFn
+        if self.__class__ == ListOp:
+            return ListOp([op.to_circuit_op()  # type: ignore
+                           if not isinstance(op, OperatorStateFn) else op
+                           for op in self.oplist],
+                          combo_fn=self.combo_fn, coeff=self.coeff, abelian=self.abelian
+                          ).reduce()
         return self.__class__([op.to_circuit_op()  # type: ignore
                                if not isinstance(op, OperatorStateFn) else op
                                for op in self.oplist],
-                              coeff=self.coeff,
-                              abelian=self.abelian).reduce()
+                              coeff=self.coeff, abelian=self.abelian).reduce()
 
     def to_pauli_op(self, massive: bool = False) -> OperatorBase:
         """ Returns an equivalent Operator composed of only Pauli-based primitives,
         such as ``PauliOp``. """
         # pylint: disable=cyclic-import
         from ..state_fns.state_fn import StateFn
+        if self.__class__ == ListOp:
+            return ListOp([op.to_pauli_op(massive=massive)  # type: ignore
+                           if not isinstance(op, StateFn) else op
+                           for op in self.oplist],
+                          combo_fn=self.combo_fn, coeff=self.coeff, abelian=self.abelian
+                          ).reduce()
         return self.__class__([op.to_pauli_op(massive=massive)  # type: ignore
                                if not isinstance(op, StateFn) else op
                                for op in self.oplist],
-                              coeff=self.coeff,
-                              abelian=self.abelian).reduce()
+                              coeff=self.coeff, abelian=self.abelian
+                              ).reduce()
 
     def to_legacy_op(self, massive: bool = False) -> LegacyBaseOperator:
         mat_op = self.to_matrix_op(massive=massive).reduce()

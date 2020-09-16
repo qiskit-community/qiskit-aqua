@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -15,6 +13,7 @@
 """ Test Amplitude Estimation """
 
 import unittest
+import warnings
 from test.finance import QiskitFinanceTestCase
 import numpy as np
 from ddt import ddt, idata, unpack
@@ -36,6 +35,7 @@ class TestEuropeanCallOption(QiskitFinanceTestCase):
 
     def setUp(self):
         super().setUp()
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
 
         # number of qubits to represent the uncertainty
         num_uncertainty_qubits = 3
@@ -104,6 +104,10 @@ class TestEuropeanCallOption(QiskitFinanceTestCase):
         self._qasm = QuantumInstance(backend=BasicAer.get_backend('qasm_simulator'), shots=100,
                                      seed_simulator=2, seed_transpiler=2)
 
+    def tearDown(self):
+        super().tearDown()
+        warnings.filterwarnings('always', category=DeprecationWarning)
+
     @idata([
         ['statevector', AmplitudeEstimation(3),
          {'estimation': 0.45868536404797905, 'mle': 0.1633160}],
@@ -125,7 +129,7 @@ class TestEuropeanCallOption(QiskitFinanceTestCase):
 
         # compare to precomputed solution
         for key, value in expect.items():
-            self.assertAlmostEqual(result[key], value, places=4,
+            self.assertAlmostEqual(getattr(result, key), value, places=4,
                                    msg="estimate `{}` failed".format(key))
 
     @idata([
@@ -149,7 +153,7 @@ class TestEuropeanCallOption(QiskitFinanceTestCase):
 
         # compare to precomputed solution
         for key, value in expect.items():
-            self.assertAlmostEqual(result[key], value, places=4,
+            self.assertAlmostEqual(getattr(result, key), value, places=4,
                                    msg="estimate `{}` failed".format(key))
 
 
@@ -159,6 +163,7 @@ class TestFixedIncomeAssets(QiskitFinanceTestCase):
 
     def setUp(self):
         super().setUp()
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
 
         self._statevector = QuantumInstance(backend=BasicAer.get_backend('statevector_simulator'),
                                             seed_simulator=2,
@@ -167,6 +172,10 @@ class TestFixedIncomeAssets(QiskitFinanceTestCase):
                                      shots=100,
                                      seed_simulator=2,
                                      seed_transpiler=2)
+
+    def tearDown(self):
+        super().tearDown()
+        warnings.filterwarnings('always', category=DeprecationWarning)
 
     @idata([
         ['statevector', AmplitudeEstimation(5),
@@ -214,7 +223,7 @@ class TestFixedIncomeAssets(QiskitFinanceTestCase):
 
         # compare to precomputed solution
         for key, value in expect.items():
-            self.assertAlmostEqual(result[key], value, places=4,
+            self.assertAlmostEqual(getattr(result, key), value, places=4,
                                    msg="estimate `{}` failed".format(key))
 
 

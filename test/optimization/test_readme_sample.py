@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -75,7 +73,7 @@ class TestReadmeSample(QiskitOptimizationTestCase):
         print(result)  # prints solution, x=[1, 0, 1, 0], the cost, fval=4
         # ----------------------------------------------------------------------
 
-        self.assertListEqual(result.x, [1, 0, 1, 0])
+        np.testing.assert_array_almost_equal(result.x, [1, 0, 1, 0])
         self.assertAlmostEqual(result.fval, 4.0)
 
 

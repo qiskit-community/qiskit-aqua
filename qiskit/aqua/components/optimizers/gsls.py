@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -20,7 +18,7 @@ import logging
 import numpy as np
 
 from qiskit.aqua import aqua_globals
-from .optimizer import Optimizer
+from .optimizer import Optimizer, OptimizerSupportLevel
 
 logger = logging.getLogger(__name__)
 
@@ -89,9 +87,9 @@ class GSLS(Optimizer):
             A dictionary containing the support levels for different options.
         """
         return {
-            'gradient': Optimizer.SupportLevel.ignored,
-            'bounds': Optimizer.SupportLevel.supported,
-            'initial_point': Optimizer.SupportLevel.required
+            'gradient': OptimizerSupportLevel.ignored,
+            'bounds': OptimizerSupportLevel.supported,
+            'initial_point': OptimizerSupportLevel.required
         }
 
     def optimize(self, num_vars: int,

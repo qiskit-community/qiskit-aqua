@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -14,17 +12,17 @@
 
 """ CircuitOp Class """
 
-from typing import Union, Optional, Set, List, cast
+from typing import Union, Optional, Set, List, Dict, cast
 import logging
 import numpy as np
 
-from qiskit import QuantumCircuit, BasicAer, execute
+import qiskit
+from qiskit import QuantumCircuit
 from qiskit.circuit.library import IGate
 from qiskit.circuit import Instruction, ParameterExpression
 
 from ..operator_base import OperatorBase
 from ..list_ops.summed_op import SummedOp
-from ..list_ops.composed_op import ComposedOp
 from ..list_ops.tensored_op import TensoredOp
 from .primitive_op import PrimitiveOp
 
@@ -133,7 +131,7 @@ class CircuitOp(PrimitiveOp):
             else:
                 return CircuitOp(new_qc, coeff=self.coeff * other.coeff)
 
-        return ComposedOp([self, other])
+        return super().compose(other)
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
         if self.num_qubits > 16 and not massive:
@@ -142,14 +140,7 @@ class CircuitOp(PrimitiveOp):
                 ' in this case {0}x{0} elements.'
                 ' Set massive=True if you want to proceed.'.format(2 ** self.num_qubits))
 
-        # NOTE: not reversing qubits!! We generally reverse endianness when converting between
-        # circuit or Pauli representation and matrix representation, but we don't need to here
-        # because the Unitary simulator already presents the endianness of the circuit unitary in
-        # forward endianness.
-        unitary_backend = BasicAer.get_backend('unitary_simulator')
-        unitary = execute(self.to_circuit(),
-                          unitary_backend,
-                          optimization_level=0).result().get_unitary()
+        unitary = qiskit.quantum_info.Operator(self.to_circuit()).data
         # pylint: disable=cyclic-import
         from ..operator_globals import EVAL_SIG_DIGITS
         return np.round(unitary * self.coeff, decimals=EVAL_SIG_DIGITS)
@@ -187,8 +178,8 @@ class CircuitOp(PrimitiveOp):
         return self.__class__(qc, coeff=param_value)
 
     def eval(self,
-             front: Union[str, dict, np.ndarray,
-                          OperatorBase] = None) -> Union[OperatorBase, float, complex]:
+             front: Optional[Union[str, Dict[str, complex], np.ndarray, OperatorBase]] = None
+             ) -> Union[OperatorBase, float, complex]:
         # pylint: disable=import-outside-toplevel
         from ..state_fns import CircuitStateFn
         from ..list_ops import ListOp

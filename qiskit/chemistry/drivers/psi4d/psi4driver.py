@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -131,11 +129,11 @@ class PSI4Driver(BaseDriver):
                                        stdout=subprocess.PIPE, universal_newlines=True)
             stdout, _ = process.communicate()
             process.wait()
-        except Exception:
+        except Exception as ex:
             if process is not None:
                 process.kill()
 
-            raise QiskitChemistryError('{} run has failed'.format(PSI4))
+            raise QiskitChemistryError('{} run has failed'.format(PSI4)) from ex
 
         if process.returncode != 0:
             errmsg = ""

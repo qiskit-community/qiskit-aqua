@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2019, 2020.
@@ -20,13 +18,14 @@ import logging
 
 import numpy as np
 
+from qiskit.aqua import MissingOptionalLibraryError
 from ._base_data_provider import BaseDataProvider
 
 try:
     import pandas as pd
-    HAS_PANDAS = True
+    _HAS_PANDAS = True
 except ImportError:
-    HAS_PANDAS = False
+    _HAS_PANDAS = False
 
 logger = logging.getLogger(__name__)
 
@@ -48,13 +47,14 @@ class RandomDataProvider(BaseDataProvider):
             end: last data point precedes this date
             seed: shall a seed be used?
         Raises:
-            NameError: Pandas not installed
+            MissingOptionalLibraryError: Pandas not installed
         """
         super().__init__()
-        if not HAS_PANDAS:
-            raise NameError("The Pandas package is required to use the "
-                            "RandomDataProvider. You can install it with "
-                            "'pip install pandas'.")
+        if not _HAS_PANDAS:
+            raise MissingOptionalLibraryError(
+                libname='Pandas',
+                name='RandomDataProvider',
+                pip_install='pip install pandas')
         tickers = tickers if tickers is not None else ["TICKER1", "TICKER2"]
         if isinstance(tickers, list):
             self._tickers = tickers

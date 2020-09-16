@@ -1,6 +1,4 @@
 
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -12,9 +10,10 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
 """The Iterative Quantum Amplitude Estimation Algorithm."""
 
-from typing import Optional, Union, List, Tuple, Dict, Any
+from typing import Optional, Union, List, Tuple, Callable, Dict, Any, cast
 import logging
 import numpy as np
 from scipy.stats import beta
@@ -25,32 +24,46 @@ from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.utils.circuit_factory import CircuitFactory
 from qiskit.aqua.utils.validation import validate_range, validate_in_set
 
-from .ae_algorithm import AmplitudeEstimationAlgorithm
+from .ae_algorithm import AmplitudeEstimationAlgorithm, AmplitudeEstimationAlgorithmResult
 
 logger = logging.getLogger(__name__)
 
 
 class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
-    """The Iterative Amplitude Estimation algorithm.
+    r"""The Iterative Amplitude Estimation algorithm.
 
-    This class implements the Iterative Quantum Amplitude Estimation (QAE) algorithm, proposed
-    in https://arxiv.org/abs/1912.05559. The output of the algorithm is an estimate that,
-    with at least probability 1 - alpha, differs by epsilon to the target value, where
+    This class implements the Iterative Quantum Amplitude Estimation (IQAE) algorithm, proposed
+    in [1]. The output of the algorithm is an estimate that,
+    with at least probability :math:`1 - \alpha`, differs by epsilon to the target value, where
     both alpha and epsilon can be specified.
 
-    It differs from the original QAE algorithm proposed by Brassard
-    (https://arxiv.org/abs/quant-ph/0005055) in that it does not rely on Quantum Phase Estimation,
-    but is only based on Grover's algorithm. Iterative IQAE iteratively applies carefully selected
-    Grover iterations to find an estimate for the target amplitude.
+    It differs from the original QAE algorithm proposed by Brassard [2] in that it does not rely on
+    Quantum Phase Estimation, but is only based on Grover's algorithm. IQAE iteratively
+    applies carefully selected Grover iterations to find an estimate for the target amplitude.
+
+    References:
+        [1]: Grinko, D., Gacon, J., Zoufal, C., & Woerner, S. (2019).
+             Iterative Quantum Amplitude Estimation.
+             `arXiv:1912.05559 <https://arxiv.org/abs/1912.05559>`_.
+        [2]: Brassard, G., Hoyer, P., Mosca, M., & Tapp, A. (2000).
+             Quantum Amplitude Amplification and Estimation.
+             `arXiv:quant-ph/0005055 <http://arxiv.org/abs/quant-ph/0005055>`_.
     """
 
-    def __init__(self, epsilon: float, alpha: float,
-                 confint_method: str = 'beta', min_ratio: float = 2.0,
+    def __init__(self, epsilon: float,
+                 alpha: float,
+                 confint_method: str = 'beta',
+                 min_ratio: float = 2,
+                 state_preparation: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
+                 grover_operator: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
+                 objective_qubits: Optional[List[int]] = None,
+                 post_processing: Optional[Callable[[float], float]] = None,
                  a_factory: Optional[CircuitFactory] = None,
                  q_factory: Optional[CircuitFactory] = None,
                  i_objective: Optional[int] = None,
+                 initial_state: Optional[QuantumCircuit] = None,
                  quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
-        """
+        r"""
         The output of the algorithm is an estimate for the amplitude `a`, that with at least
         probability 1 - alpha has an error of epsilon. The number of A operator calls scales
         linearly in 1/epsilon (up to a logarithmic factor).
@@ -61,11 +74,21 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             confint_method: Statistical method used to estimate the confidence intervals in
                 each iteration, can be 'chernoff' for the Chernoff intervals or 'beta' for the
                 Clopper-Pearson intervals (default)
-            min_ratio: Minimal q-ratio (K_{i+1} / K_i) for FindNextK
+            min_ratio: Minimal q-ratio (:math:`K_{i+1} / K_i`) for FindNextK
+            state_preparation: A circuit preparing the input state, referred to as
+                :math:`\mathcal{A}`.
+            grover_operator: The Grover operator :math:`\mathcal{Q}` used as unitary in the
+                phase estimation circuit.
+            objective_qubits: A list of qubit indices. A measurement outcome is classified as
+                'good' state if all objective qubits are in state :math:`|1\rangle`, otherwise it
+                is classified as 'bad'.
+            post_processing: A mapping applied to the estimate of :math:`0 \leq a \leq 1`,
+                usually used to map the estimate to a target interval.
             a_factory: The A operator, specifying the QAE problem
             q_factory: The Q operator (Grover operator), constructed from the
                 A operator
             i_objective: Index of the objective qubit, that marks the 'good/bad' states
+            initial_state: A state to prepend to the constructed circuits.
             quantum_instance: Quantum Instance or Backend
 
         Raises:
@@ -76,13 +99,34 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         validate_range('alpha', alpha, 0, 1)
         validate_in_set('confint_method', confint_method, {'chernoff', 'beta'})
 
-        super().__init__(a_factory, q_factory, i_objective, quantum_instance)
+        # support legacy input if passed as positional arguments
+        if isinstance(state_preparation, CircuitFactory):
+            a_factory = state_preparation
+            state_preparation = None
+
+        if isinstance(grover_operator, CircuitFactory):
+            q_factory = grover_operator
+            grover_operator = None
+
+        if isinstance(objective_qubits, int):
+            i_objective = objective_qubits
+            objective_qubits = None
+
+        super().__init__(state_preparation=state_preparation,
+                         grover_operator=grover_operator,
+                         objective_qubits=objective_qubits,
+                         post_processing=post_processing,
+                         a_factory=a_factory,
+                         q_factory=q_factory,
+                         i_objective=i_objective,
+                         quantum_instance=quantum_instance)
 
         # store parameters
         self._epsilon = epsilon
         self._alpha = alpha
         self._min_ratio = min_ratio
         self._confint_method = confint_method
+        self._initial_state = initial_state
 
         # results dictionary
         self._ret = {}  # type: Dict[str, Any]
@@ -170,38 +214,56 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         Returns:
             The circuit Q^k A \|0>.
         """
-        # set up circuit
-        q = QuantumRegister(self.a_factory.num_target_qubits, 'q')
-        circuit = QuantumCircuit(q, name='circuit')
+        if self.state_preparation is not None:   # using circuits, not CircuitFactory
+            num_qubits = max(self.state_preparation.num_qubits, self.grover_operator.num_qubits)
+            circuit = QuantumCircuit(num_qubits, name='circuit')
 
-        # get number of ancillas and add register if needed
-        num_ancillas = np.maximum(self.a_factory.required_ancillas(),
-                                  self.q_factory.required_ancillas())
+            if self._initial_state is not None:
+                circuit.compose(self._initial_state, inplace=True)
 
-        q_aux = None
-        # pylint: disable=comparison-with-callable
-        if num_ancillas > 0:
-            q_aux = QuantumRegister(num_ancillas, 'aux')
-            circuit.add_register(q_aux)
+            # add classical register if needed
+            if measurement:
+                c = ClassicalRegister(len(self.objective_qubits))
+                circuit.add_register(c)
 
-        # add classical register if needed
-        if measurement:
-            c = ClassicalRegister(1)
-            circuit.add_register(c)
+            # add A operator
+            circuit.compose(self.state_preparation, inplace=True)
 
-        # add A operator
-        self.a_factory.build(circuit, q, q_aux)
+            # add Q^k
+            if k != 0:
+                circuit.compose(self.grover_operator.power(k), inplace=True)
+        else:  # deprecated CircuitFactory
+            q = QuantumRegister(self.a_factory.num_target_qubits, 'q')
+            circuit = QuantumCircuit(q, name='circuit')
 
-        # add Q^k
-        if k != 0:
-            self.q_factory.build_power(circuit, q, k, q_aux)
+            # get number of ancillas and add register if needed
+            num_ancillas = np.maximum(self.a_factory.required_ancillas(),
+                                      self.q_factory.required_ancillas())
 
-        # add optional measurement
+            q_aux = None
+            # pylint: disable=comparison-with-callable
+            if num_ancillas > 0:
+                q_aux = QuantumRegister(num_ancillas, 'aux')
+                circuit.add_register(q_aux)
+
+            # add classical register if needed
+            if measurement:
+                c = ClassicalRegister(1)
+                circuit.add_register(c)
+
+            # add A operator
+            self.a_factory.build(circuit, q, q_aux)
+
+            # add Q^k
+            if k != 0:
+                self.q_factory.build_power(circuit, q, k, q_aux)
+
+            # add optional measurement
         if measurement:
             # real hardware can currently not handle operations after measurements, which might
             # happen if the circuit gets transpiled, hence we're adding a safeguard-barrier
             circuit.barrier()
-            circuit.measure(q[self.i_objective], c[0])
+            circuit.measure(self.objective_qubits, *c)
 
         return circuit
 
@@ -218,17 +280,22 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             If a dict is given, return (#one-counts, #one-counts/#all-counts),
             otherwise Pr(measure '1' in the last qubit).
         """
+        if self.state_preparation is not None:
+            num_qubits = self.state_preparation.num_qubits - self.state_preparation.num_ancillas
+        else:
+            num_qubits = self.a_factory.num_target_qubits
+
         if isinstance(counts_or_statevector, dict):
-            one_counts = counts_or_statevector.get('1', 0)
+            one_counts = counts_or_statevector.get('1' * len(self.objective_qubits), 0)
             return int(one_counts), one_counts / sum(counts_or_statevector.values())
         else:
             statevector = counts_or_statevector
-            num_qubits = self.a_factory.num_target_qubits
 
             # sum over all amplitudes where the objective qubit is 1
             prob = 0
             for i, amplitude in enumerate(statevector):
-                if ('{:0%db}' % num_qubits).format(i)[-(1 + self.i_objective)] == '1':
+                bitstr = ('{:0%db}' % num_qubits).format(i)[::-1]
+                if self.is_good_state(bitstr):
                     prob = prob + np.abs(amplitude)**2
 
             return prob
@@ -281,16 +348,18 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
         return lower, upper
 
-    def _run(self) -> dict:
-        # check if A factory has been set
-        if self.a_factory is None:
-            raise AquaError("a_factory must be set!")
+    def _run(self) -> 'IterativeAmplitudeEstimationResult':
+        # check if A factory or state_preparation has been set
+        if self.state_preparation is None:
+            if self.a_factory is None:  # getter emits deprecation warnings, therefore nest
+                raise AquaError('Either the state_preparation variable or the a_factory '
+                                '(deprecated) must be set to run the algorithm.')
 
         # initialize memory variables
         powers = [0]  # list of powers k: Q^k, (called 'k' in paper)
         ratios = []  # list of multiplication factors (called 'q' in paper)
         theta_intervals = [[0, 1 / 4]]  # a priori knowledge of theta / 2 / pi
-        a_intervals = [[0, 1]]  # a priori knowledge of the confidence interval of the estimate a
+        a_intervals = [[0.0, 1.0]]  # a priori knowledge of the confidence interval of the estimate
         num_oracle_queries = 0
         num_one_shots = []
 
@@ -311,9 +380,10 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
             # calculate the probability of measuring '1'
             prob = self._probability_to_measure_one(statevector)
+            prob = cast(float, prob)  # tell MyPy it's a float and not Tuple[int, float ]
 
-            a_confidence_interval = [prob, prob]
-            a_intervals.append(a_confidence_interval)  # type: ignore
+            a_confidence_interval = [prob, prob]  # type: List[float]
+            a_intervals.append(a_confidence_interval)
 
             theta_i_interval = [np.arccos(1 - 2 * a_i) / 2 / np.pi  # type: ignore
                                 for a_i in a_confidence_interval]
@@ -387,17 +457,19 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 # compute a_u_i, a_l_i
                 a_u = np.sin(2 * np.pi * theta_u)**2
                 a_l = np.sin(2 * np.pi * theta_l)**2
+                a_u = cast(float, a_u)
+                a_l = cast(float, a_l)
                 a_intervals.append([a_l, a_u])
 
         # get the latest confidence interval for the estimate of a
-        a_confidence_interval = a_intervals[-1]  # type: ignore
+        a_confidence_interval = a_intervals[-1]
 
         # the final estimate is the mean of the confidence interval
         value = np.mean(a_confidence_interval)
 
         # transform to estimate
-        estimation = self.a_factory.value_to_estimation(value)
-        confidence_interval = [self.a_factory.value_to_estimation(x) for x in a_confidence_interval]
+        estimation = self.post_processing(value)
+        confidence_interval = [self.post_processing(x) for x in a_confidence_interval]
 
         # add result items to the results dictionary
         self._ret = {
@@ -414,4 +486,98 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             'ratios': ratios,
         }
 
-        return self._ret
+        ae_result = AmplitudeEstimationAlgorithmResult()
+        ae_result.value = self._ret['value']
+        ae_result.estimation = self._ret['estimation']
+        ae_result.num_oracle_queries = self._ret['num_oracle_queries']
+        ae_result.confidence_interval = self._ret['confidence_interval']
+
+        result = IterativeAmplitudeEstimationResult()
+        result.combine(ae_result)
+        result.value_confidence_interval = self._ret['value_confidence_interval']
+        result.alpha = self._ret['alpha']
+        result.actual_epsilon = self._ret['actual_epsilon']
+        result.a_intervals = self._ret['a_intervals']
+        result.theta_intervals = self._ret['theta_intervals']
+        result.powers = self._ret['powers']
+        result.ratios = self._ret['ratios']
+        return result
+
+
+class IterativeAmplitudeEstimationResult(AmplitudeEstimationAlgorithmResult):
+    """ IterativeAmplitudeEstimation Result."""
+
+    @property
+    def value_confidence_interval(self) -> List[float]:
+        """ return value_confidence_interval  """
+        return self.get('value_confidence_interval')
+
+    @value_confidence_interval.setter
+    def value_confidence_interval(self, value: List[float]) -> None:
+        """ set value_confidence_interval """
+        self.data['value_confidence_interval'] = value
+
+    @property
+    def alpha(self) -> float:
+        """ return alpha """
+        return self.get('alpha')
+
+    @alpha.setter
+    def alpha(self, value: float) -> None:
+        """ set alpha """
+        self.data['alpha'] = value
+
+    @property
+    def actual_epsilon(self) -> float:
+        """ return mle """
+        return self.get('actual_epsilon')
+
+    @actual_epsilon.setter
+    def actual_epsilon(self, value: float) -> None:
+        """ set mle """
+        self.data['actual_epsilon'] = value
+
+    @property
+    def a_intervals(self) -> List[List[float]]:
+        """ return a_intervals """
+        return self.get('a_intervals')
+
+    @a_intervals.setter
+    def a_intervals(self, value: List[List[float]]) -> None:
+        """ set a_intervals """
+        self.data['a_intervals'] = value
+
+    @property
+    def theta_intervals(self) -> List[List[float]]:
+        """ return theta_intervals """
+        return self.get('theta_intervals')
+
+    @theta_intervals.setter
+    def theta_intervals(self, value: List[List[float]]) -> None:
+        """ set theta_intervals """
+        self.data['theta_intervals'] = value
+
+    @property
+    def powers(self) -> List[int]:
+        """ return powers """
+        return self.get('powers')
+
+    @powers.setter
+    def powers(self, value: List[int]) -> None:
+        """ set powers """
+        self.data['powers'] = value
+
+    @property
+    def ratios(self) -> List[float]:
+        """ return ratios """
+        return self.get('ratios')
+
+    @ratios.setter
+    def ratios(self, value: List[float]) -> None:
+        """ set ratios """
+        self.data['ratios'] = value
+
+    @staticmethod
+    def from_dict(a_dict: Dict) -> 'IterativeAmplitudeEstimationResult':
+        """ create new object from a dictionary """
+        return IterativeAmplitudeEstimationResult(a_dict)

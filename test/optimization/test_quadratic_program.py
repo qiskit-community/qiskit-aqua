@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -21,6 +19,7 @@ from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 
 from docplex.mp.model import Model, DOcplexException
 
+from qiskit.aqua import MissingOptionalLibraryError
 from qiskit.optimization import QuadraticProgram, QiskitOptimizationError, INFINITY
 from qiskit.optimization.problems import Variable, Constraint, QuadraticObjective
 
@@ -459,12 +458,10 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
                                  {('x', 'x'): 1, ('y', 'z'): -1, ('z', 'z'): 2})
             self.assertEqual(cst[2].sense, Constraint.Sense.GE)
             self.assertEqual(cst[2].rhs, 1)
+        except MissingOptionalLibraryError as ex:
+            self.skipTest(str(ex))
         except RuntimeError as ex:
-            msg = str(ex)
-            if 'CPLEX' in msg:
-                self.skipTest(msg)
-            else:
-                self.fail(msg)
+            self.fail(str(ex))
 
     def test_write_to_lp_file(self):
         """test write problem"""
@@ -666,6 +663,42 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         self.assertDictEqual(cst.quadratic.to_dict(use_name=True), {('x', 'z'): -1.5})
         self.assertEqual(cst.sense.name, 'LE')
         self.assertEqual(cst.rhs, -1)
+
+    def test_feasibility(self):
+        """Tests feasibility methods."""
+        mod = Model('test')
+        # 0, 5
+        x = mod.continuous_var(-1, 1, 'x', )
+        y = mod.continuous_var(-10, 10, 'y')
+        mod.minimize(x + y)
+        mod.add(x + y <= 10, 'c0')
+        mod.add(x + y >= -10, 'c1')
+        mod.add(x + y == 5, 'c2')
+        mod.add(x * x + y <= 10, 'c3')
+        mod.add(x * x + y >= 5, 'c4')
+        mod.add(x * x + y * y == 25, 'c5')
+        q_p = QuadraticProgram()
+        q_p.from_docplex(mod)
+
+        self.assertTrue(q_p.is_feasible([0, 5]))
+        self.assertFalse(q_p.is_feasible([1, 10]))
+        self.assertFalse(q_p.is_feasible([1, -12]))
+        self.assertFalse(q_p.is_feasible([1, 5]))
+        self.assertFalse(q_p.is_feasible([5, 0]))
+        self.assertFalse(q_p.is_feasible([1, 1]))
+        self.assertFalse(q_p.is_feasible([0, 0]))
+
+        feasible, variables, constraints = q_p.get_feasibility_info([10, 0])
+        self.assertFalse(feasible)
+        self.assertIsNotNone(variables)
+        self.assertEqual(1, len(variables))
+        self.assertEqual('x', variables[0].name)
+
+        self.assertIsNotNone(constraints)
+        self.assertEqual(3, len(constraints))
+        self.assertEqual('c2', constraints[0].name)
+        self.assertEqual('c3', constraints[1].name)
+        self.assertEqual('c5', constraints[2].name)
 
 
 if __name__ == '__main__':

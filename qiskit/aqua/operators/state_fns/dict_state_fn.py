@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -14,7 +12,7 @@
 
 """ DictStateFn Class """
 
-from typing import Union, Set, cast
+from typing import Optional, Union, Set, Dict, cast
 import itertools
 import numpy as np
 from scipy import sparse
@@ -182,8 +180,12 @@ class DictStateFn(StateFn):
 
     # pylint: disable=too-many-return-statements
     def eval(self,
-             front: Union[str, dict, np.ndarray,
-                          OperatorBase] = None) -> Union[OperatorBase, float, complex]:
+             front: Optional[Union[str, Dict[str, complex], np.ndarray, OperatorBase]] = None
+             ) -> Union[OperatorBase, float, complex]:
+        if front is None:
+            vector_state_fn = self.to_matrix_op().eval()
+            vector_state_fn = cast(OperatorBase, vector_state_fn)
+            return vector_state_fn
 
         if not self.is_measurement and isinstance(front, OperatorBase):
             raise ValueError(
