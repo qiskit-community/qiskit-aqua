@@ -17,8 +17,6 @@
 from qiskit.chemistry.core import (Hamiltonian, TransformationType, QubitMappingType,
                                    ChemistryOperator, MolecularGroundStateResult)
 
-
-
 class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
     """
     MinimumEigensolverGroundStateCalculation
