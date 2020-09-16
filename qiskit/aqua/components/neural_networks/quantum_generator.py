@@ -22,6 +22,7 @@ from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.circuit.library import TwoLocal
 from qiskit.aqua import aqua_globals
 from qiskit.aqua.components.optimizers import ADAM
+from qiskit.aqua.components.optimizers import optimizer
 from qiskit.aqua.components.uncertainty_models import \
     UniformDistribution, MultivariateUniformDistribution
 from qiskit.aqua.components.uncertainty_models import UnivariateVariationalDistribution, \
@@ -52,6 +53,7 @@ class QuantumGenerator(GenerativeNetwork):
                                                    MultivariateVariationalDistribution,
                                                    QuantumCircuit]] = None,
                  init_params: Optional[Union[List[float], np.ndarray]] = None,
+                 optimizer: Optional[optimizer] = None,
                  snapshot_dir: Optional[str] = None) -> None:
         """
         Args:
@@ -64,6 +66,7 @@ class QuantumGenerator(GenerativeNetwork):
                 or a QuantumCircuit implementing the generator.
             init_params: 1D numpy array or list, Initialization for
                 the generator's parameters.
+            optimizer: optimizer to be used for the training of the generator
             snapshot_dir: str or None, if not None save the optimizer's parameter after every
                 update step to the given directory
 
@@ -130,9 +133,12 @@ class QuantumGenerator(GenerativeNetwork):
                 raise AquaError('Set univariate variational distribution '
                                 'to represent univariate data')
         # Set optimizer for updating the generator network
-        self._optimizer = ADAM(maxiter=1, tol=1e-6, lr=1e-3, beta_1=0.7,
-                               beta_2=0.99, noise_factor=1e-6,
-                               eps=1e-6, amsgrad=True, snapshot_dir=snapshot_dir)
+        if optimizer:
+            self._optimizer = optimizer
+        else:
+            self._optimizer = ADAM(maxiter=1, tol=1e-6, lr=1e-3, beta_1=0.7,
+                                   beta_2=0.99, noise_factor=1e-6,
+                                   eps=1e-6, amsgrad=True, snapshot_dir=snapshot_dir)
 
         if np.ndim(self._bounds) == 1:
             bounds = np.reshape(self._bounds, (1, len(self._bounds)))
