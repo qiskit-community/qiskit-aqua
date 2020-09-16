@@ -10,7 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""The implementation of the Analytical Quantum Gradient Descent (AQGD)."""
+"""Analytical Quantum Gradient Descent (AQGD) optimizer."""
 
 import logging
 from typing import Callable, Tuple, List, Dict, Optional
