@@ -13,7 +13,8 @@
 """The implementation of the Analytical Quantum Gradient Descent (AQGD)."""
 
 import logging
-from typing import Callable, Tuple, List, Dict, Optional
+import warnings
+from typing import Callable, Tuple, List, Dict, Union
 
 import numpy as np
 from qiskit.aqua import AquaError
@@ -43,59 +44,62 @@ class AQGD(Optimizer):
     the objective function.
 
     """
-    _OPTIONS = ['maxiter', 'eta', 'momentum', 'ptol', 'otol', 'averaging']
+    _OPTIONS = ['maxiter', 'eta', 'tol', 'disp', 'momentum', 'param_tol', 'averaging']
 
     def __init__(self,
-                 maxiter: Optional[List[int]] = None,
-                 eta: Optional[List[float]] = None,
-                 momentum: Optional[List[float]] = None,
+                 maxiter: Union[int, List[int]] = 1000,
+                 eta: Union[float, List[float]] = 1.0,
+                 tol: float = 1e-6,  # this is tol
+                 disp: bool = False,
+                 momentum: Union[float, List[float]] = 0.25,
                  param_tol: float = 1e-6,
-                 objective_tol: float = 1e-6,
                  averaging: int = 10) -> None:
         """
-        Constructor.
-
         Performs Analytical Quantum Gradient Descent (AQGD) with Epochs.
 
         Args:
             maxiter: Maximum number of iterations (full gradient steps)
             eta: The coefficient of the gradient update. Increasing this value
                 results in larger step sizes: param = previous_param - eta * deriv
+            tol: Tolerance for change in windowed average of objective values.
+                Convergence occurs when either objective tolerance is met OR parameter
+                tolerance is met.
+            disp: Set to True to display convergence messages.
             momentum: Bias towards the previous gradient momentum in current
                 update. Must be within the bounds: [0,1)
             param_tol: Tolerance for change in norm of parameters.
-            objective_tol: Tolerance for change in windowed average of objective values.
-                Convergence occurs when either objective tolerance is met OR parameter
-                tolerance is met.
             averaging: Length of window over which to average objective values for objective
                 convergence criterion
 
         Raises:
-            AquaError: If the number of iterations doesn't match momentum or eta for the
-                       desired steps.
+            AquaError: If the length of ``maxiter``, `momentum``, and ``eta`` is not the same.
         """
         super().__init__()
-        if maxiter is None:
-            maxiter = [1000]
-        if eta is None:
-            eta = [1.0]
-        if momentum is None:
-            momentum = [0.5]
+        if isinstance(maxiter, int):
+            maxiter = [maxiter]
+        if isinstance(eta, float):
+            eta = [eta]
+        if isinstance(momentum, float):
+            momentum = [momentum]
         if len(maxiter) != len(eta) or len(maxiter) != len(momentum):
-            raise AquaError("AQGD input parameter length mismatch")
+            raise AquaError("AQGD input parameter length mismatch. Parameters `maxiter`, `eta`, "
+                            "and `momentum` must have the same length.")
         for m in momentum:
             validate_range_exclusive_max('momentum', m, 0, 1)
 
         self._eta = eta
         self._maxiter = maxiter
         self._momenta_coeff = momentum
-        self._param_tol = param_tol if param_tol is not None else 1e-6
-        self._objective_tol = objective_tol if objective_tol is not None else 1e-6
+        self._param_tol = param_tol
+        self._tol = tol
         self._averaging = averaging
-        self._avg_objval = None
-        self._prev_param = None
+        if disp:
+            warnings.warn('disp deprecated, enable logging instead.', DeprecationWarning)
+        self._disp = disp
 
         # state
+        self._avg_objval = None
+        self._prev_param = None
         self._eval_count = 0    # function evaluations
         self._prev_loss = []    # type: List[float]
         self._prev_grad = []    # type: List[List[float]]
@@ -113,8 +117,8 @@ class AQGD(Optimizer):
             'initial_point': OptimizerSupportLevel.required
         }
 
-    def compute_objective_fn_and_gradient(self, params: List[float],
-                                          obj: Callable) -> Tuple[float, np.array]:
+    def _compute_objective_fn_and_gradient(self, params: List[float],
+                                           obj: Callable) -> Tuple[float, np.array]:
         """
         Obtains the objective function value for params and the analytical quantum derivatives of
         the objective function with respect to each parameter. Requires
@@ -147,8 +151,8 @@ class AQGD(Optimizer):
         gradient = 0.5 * (values[1:num_params + 1] - values[1 + num_params:])
         return obj_value, gradient
 
-    def update(self, params: np.array, gradient: np.array, mprev: np.array,
-               step_size: float, momentum_coeff: float) -> Tuple[List[float], List[float]]:
+    def _update(self, params: np.array, gradient: np.array, mprev: np.array,
+                step_size: float, momentum_coeff: float) -> Tuple[List[float], List[float]]:
         """
         Updates full parameter array based on a step that is a convex
         combination of the gradient and previous momentum
@@ -170,7 +174,7 @@ class AQGD(Optimizer):
         params -= step_size * mnew
         return params, mnew
 
-    def converged_objective(self, objval: float, tol: float, window_size: int) -> bool:
+    def _converged_objective(self, objval: float, tol: float, window_size: int) -> bool:
         """
         Tests convergence based on the change in a moving windowed average of past objective values
 
@@ -206,10 +210,9 @@ class AQGD(Optimizer):
             # converged
             logger.info("Previous obj avg: %f\nCurr obj avg: %f", prev_avg, curr_avg)
             return True
-        # else
         return False
 
-    def converged_parameter(self, parameter: List[float], tol: float) -> bool:
+    def _converged_parameter(self, parameter: List[float], tol: float) -> bool:
         """
         Tests convergence based on change in parameter
 
@@ -230,10 +233,9 @@ class AQGD(Optimizer):
             # converged
             logger.info("Change in parameters (%f norm): %f", order, p_change)
             return True
-        # else
         return False
 
-    def converged_alt(self, gradient: List[float], tol: float, window_size: int) -> bool:
+    def _converged_alt(self, gradient: List[float], tol: float, window_size: int) -> bool:
         """
         Tests convergence from norm of windowed average of gradients
 
@@ -267,7 +269,6 @@ class AQGD(Optimizer):
             # converged
             logger.info("Avg. grad. norm: %f", np.linalg.norm(avg_grad, ord=np.inf))
             return True
-        # else
         return False
 
     def optimize(self,
@@ -276,22 +277,6 @@ class AQGD(Optimizer):
                  gradient_function: Callable = None,
                  variable_bounds: List[Tuple[float, float]] = None,
                  initial_point: np.ndarray = None) -> Tuple[np.ndarray, float, int]:
-        """
-        Perform optimization
-
-        Args:
-            num_vars: Number of variables/parameters
-            objective_function: Objective function evaluator
-            gradient_function: Function that calculates gradients of the
-                objective or None if not available/used.
-            variable_bounds: List of variable bounds, given as (lower, upper).
-                None means unbounded.
-            initial_point (array): Initial parameters at which to start
-
-        Returns:
-            Set of parameters, objective value and number of objective function
-            calls/evaluations.
-        """
         super().optimize(num_vars, objective_function, gradient_function, variable_bounds,
                          initial_point)
 
@@ -311,6 +296,9 @@ class AQGD(Optimizer):
         converged = False
         for (eta, mom_coeff) in zip(self._eta, self._momenta_coeff):
             logger.info("Epoch: %4d | Stepsize: %6.4f | Momentum: %6.4f", epoch, eta, mom_coeff)
+            if self._disp:
+                print("Epoch: {:4d} | Stepsize: {:6.4f} | Momentum: {:6.4f}"
+                      .format(epoch, eta, mom_coeff))
 
             sum_max_iters = sum(self._maxiter[0:epoch + 1])
             while iter_count < sum_max_iters:
@@ -318,24 +306,27 @@ class AQGD(Optimizer):
                 iter_count += 1
 
                 # Check for parameter convergence before potentially costly function evaluation
-                converged = self.converged_parameter(params, self._param_tol)
+                converged = self._converged_parameter(params, self._param_tol)
                 if converged:
                     break
 
                 # Calculate objective function and estimate of analytical gradient
                 objval, gradient = \
-                    self.compute_objective_fn_and_gradient(params, objective_function)
+                    self._compute_objective_fn_and_gradient(params, objective_function)
 
                 logger.info(" Iter: %4d | Obj: %11.6f | Grad Norm: %f",
                             iter_count, objval, np.linalg.norm(gradient, ord=np.inf))
+                if self._disp:
+                    print(" Iter: {:4d} | Obj: {:11.6f} | Grad Norm: {:f}"
+                          .format(iter_count, objval, np.linalg.norm(gradient, ord=np.inf)))
 
                 # Check for objective convergence
-                converged = self.converged_objective(objval, self._objective_tol, self._averaging)
+                converged = self._converged_objective(objval, self._tol, self._averaging)
                 if converged:
                     break
 
                 # Update parameters and momentum
-                params, momentum = self.update(params, gradient, momentum, eta, mom_coeff)
+                params, momentum = self._update(params, gradient, momentum, eta, mom_coeff)
             # end inner iteration
             # if converged, end iterating over epochs
             if converged:

@@ -16,7 +16,7 @@ from test.aqua import QiskitAquaTestCase
 from qiskit import BasicAer
 
 from qiskit.circuit.library import RealAmplitudes
-from qiskit.aqua import QuantumInstance, aqua_globals
+from qiskit.aqua import QuantumInstance, aqua_globals, AquaError
 from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.aqua.components.optimizers import AQGD
 from qiskit.aqua.algorithms import VQE
@@ -42,10 +42,15 @@ class TestOptimizerAQGD(QiskitAquaTestCase):
     def test_aqgd(self):
         """ test AQGD optimizer by using it """
 
-        result = VQE(self.qubit_op,
-                     RealAmplitudes(),
-                     AQGD(momentum=[0.0])).run(
-                         QuantumInstance(BasicAer.get_backend('statevector_simulator'),
-                                         seed_simulator=aqua_globals.random_seed,
-                                         seed_transpiler=aqua_globals.random_seed))
-        self.assertAlmostEqual(result.eigenvalue.real, -1.857275, places=3)
+        q_instance = QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                     seed_simulator=aqua_globals.random_seed,
+                                     seed_transpiler=aqua_globals.random_seed)
+        aqgd = AQGD(momentum=0.0)
+        result = VQE(self.qubit_op, RealAmplitudes(), aqgd).run(q_instance)
+        self.assertAlmostEqual(result.eigenvalue.real, -1.857, places=3)
+
+        aqgd = AQGD(maxiter=[1000, 1000, 1000], eta=[1.0, 0.5, 0.3], momentum=[0.0, 0.5, 0.75])
+        result = VQE(self.qubit_op, RealAmplitudes(), aqgd).run(q_instance)
+        self.assertAlmostEqual(result.eigenvalue.real, -1.857, places=3)
+
+        self.assertRaises(AquaError, AQGD, maxiter=[1000], eta=[1.0, 0.5], momentum=[0.0, 0.5])
