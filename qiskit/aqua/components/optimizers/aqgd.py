@@ -89,8 +89,8 @@ class AQGD(Optimizer):
         self._eta = eta
         self._maxiter = maxiter
         self._momenta_coeff = momentum
-        self._ptol = param_tol if param_tol is not None else 1e-6
-        self._otol = objective_tol if objective_tol is not None else 1e-6
+        self._param_tol = param_tol if param_tol is not None else 1e-6
+        self._objective_tol = objective_tol if objective_tol is not None else 1e-6
         self._averaging = averaging
         self._avg_objval = None
         self._prev_param = None
@@ -318,7 +318,7 @@ class AQGD(Optimizer):
                 iter_count += 1
 
                 # Check for parameter convergence before potentially costly function evaluation
-                converged = self.converged_parameter(params, self._ptol)
+                converged = self.converged_parameter(params, self._param_tol)
                 if converged:
                     break
 
@@ -330,7 +330,7 @@ class AQGD(Optimizer):
                             iter_count, objval, np.linalg.norm(gradient, ord=np.inf))
 
                 # Check for objective convergence
-                converged = self.converged_objective(objval, self._otol, self._averaging)
+                converged = self.converged_objective(objval, self._objective_tol, self._averaging)
                 if converged:
                     break
 
