@@ -146,6 +146,7 @@ Algorithms to find solutions for linear equations of equations.
    HHL
    HHLResult
    NumPyLSsolver
+   NumPyLSsolverResult
 
 Minimum Eigensolvers
 ++++++++++++++++++++
@@ -195,7 +196,7 @@ from .classifiers import VQC, QSVM, SklearnSVM, SVM_Classical
 from .distribution_learners import QGAN
 from .eigen_solvers import NumPyEigensolver, ExactEigensolver, EigensolverResult
 from .factorizers import Shor
-from .linear_solvers import HHL, HHLResult, NumPyLSsolver, ExactLSsolver
+from .linear_solvers import HHL, HHLResult, NumPyLSsolver, NumPyLSsolverResult, ExactLSsolver
 from .minimum_eigen_solvers import (VQE, VQEResult, QAOA, IQPE, IQPEResult, QPE, QPEResult,
                                     ClassicalCPLEX, CPLEX_Ising, NumPyMinimumEigensolver,
                                     MinimumEigensolver, MinimumEigensolverResult)
@@ -215,6 +216,7 @@ __all__ = [
     'NumPyEigensolver',
     'ExactEigensolver',
     'NumPyLSsolver',
+    'NumPyLSsolverResult',
     'EigensolverResult',
     'ExactLSsolver',
     'NumPyMinimumEigensolver',

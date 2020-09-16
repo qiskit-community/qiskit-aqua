@@ -21,13 +21,14 @@ from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.dagcircuit import DAGCircuit
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance
-from qiskit.aqua.algorithms import QuantumAlgorithm, AlgorithmResult
+from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.ignis.verification.tomography import state_tomography_circuits, \
     StateTomographyFitter
 from qiskit.converters import circuit_to_dag
 from qiskit.aqua.components.initial_states import InitialState
 from qiskit.aqua.components.reciprocals import Reciprocal
 from qiskit.aqua.components.eigs import Eigenvalues
+from .linear_solver_result import LinearsolverResult
 
 logger = logging.getLogger(__name__)
 
@@ -409,17 +410,20 @@ class HHL(QuantumAlgorithm):
         self._ret["vector"] = self._resize_vector(self._vector)
         self._ret["circuit_info"] = circuit_to_dag(self._circuit).properties()
 
+        ls_result = LinearsolverResult()
+        ls_result.solution = self._ret['solution']
+
         result = HHLResult()
+        result.combine(ls_result)
         result.probability_result = self._ret['probability_result']
         result.output = self._ret['output']
-        result.solution = self._ret['solution']
         result.matrix = self._ret['matrix']
         result.vector = self._ret['vector']
         result.circuit_info = self._ret['circuit_info']
         return result
 
 
-class HHLResult(AlgorithmResult):
+class HHLResult(LinearsolverResult):
     """ HHL Result."""
 
     @property
@@ -441,16 +445,6 @@ class HHLResult(AlgorithmResult):
     def output(self, value: np.ndarray) -> None:
         """ set output """
         self.data['output'] = value
-
-    @property
-    def solution(self) -> np.ndarray:
-        """ return solution """
-        return self.get('solution')
-
-    @solution.setter
-    def solution(self, value: np.ndarray) -> None:
-        """ set solution """
-        self.data['solution'] = value
 
     @property
     def matrix(self) -> np.ndarray:

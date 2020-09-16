@@ -71,7 +71,7 @@ class TestHHL(QiskitAquaTestCase):
 
         # run NumPyLSsolver
         ref_result = NumPyLSsolver(matrix, vector).run()
-        ref_solution = ref_result['solution']
+        ref_solution = ref_result.solution
         ref_normed = ref_solution / np.linalg.norm(ref_solution)
 
         # run hhl
@@ -115,7 +115,7 @@ class TestHHL(QiskitAquaTestCase):
 
         # run NumPyLSsolver
         ref_result = NumPyLSsolver(matrix, vector).run()
-        ref_solution = ref_result['solution']
+        ref_solution = ref_result.solution
         ref_normed = ref_solution / np.linalg.norm(ref_solution)
 
         # run hhl
@@ -160,7 +160,7 @@ class TestHHL(QiskitAquaTestCase):
 
         # run NumPyLSsolver
         ref_result = NumPyLSsolver(matrix, vector).run()
-        ref_solution = ref_result['solution']
+        ref_solution = ref_result.solution
         ref_normed = ref_solution / np.linalg.norm(ref_solution)
 
         # run hhl
@@ -205,7 +205,7 @@ class TestHHL(QiskitAquaTestCase):
 
         # run NumPyLSsolver
         ref_result = NumPyLSsolver(matrix, vector).run()
-        ref_solution = ref_result['solution']
+        ref_solution = ref_result.solution
         ref_normed = ref_solution / np.linalg.norm(ref_solution)
 
         # run hhl
@@ -251,7 +251,7 @@ class TestHHL(QiskitAquaTestCase):
 
         # run NumPyLSsolver
         ref_result = NumPyLSsolver(matrix, vector).run()
-        ref_solution = ref_result['solution']
+        ref_solution = ref_result.solution
         ref_normed = ref_solution / np.linalg.norm(ref_solution)
 
         # run hhl
@@ -300,7 +300,7 @@ class TestHHL(QiskitAquaTestCase):
 
         # run NumPyLSsolver
         ref_result = NumPyLSsolver(matrix, vector).run()
-        ref_solution = ref_result['solution']
+        ref_solution = ref_result.solution
         ref_normed = ref_solution / np.linalg.norm(ref_solution)
 
         # run hhl
@@ -345,7 +345,7 @@ class TestHHL(QiskitAquaTestCase):
 
         # run NumPyLSsolver
         ref_result = NumPyLSsolver(matrix, vector).run()
-        ref_solution = ref_result['solution']
+        ref_solution = ref_result.solution
         ref_normed = ref_solution / np.linalg.norm(ref_solution)
 
         # run hhl
@@ -386,7 +386,7 @@ class TestHHL(QiskitAquaTestCase):
 
         # run NumPyLSsolver
         ref_result = NumPyLSsolver(matrix, vector).run()
-        ref_solution = ref_result['solution']
+        ref_solution = ref_result.solution
         ref_normed = ref_solution / np.linalg.norm(ref_solution)
 
         # run hhl
