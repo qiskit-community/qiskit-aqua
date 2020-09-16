@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -18,7 +16,7 @@ ad hoc dataset
 
 import numpy as np
 import scipy
-from qiskit.aqua import aqua_globals
+from qiskit.aqua import aqua_globals, MissingOptionalLibraryError
 
 
 def ad_hoc_data(training_size, test_size, n, gap, plot_data=False):
@@ -148,8 +146,11 @@ def ad_hoc_data(training_size, test_size, n, gap, plot_data=False):
         if plot_data:
             try:
                 import matplotlib.pyplot as plt
-            except ImportError:
-                raise NameError('Matplotlib not installed. Please install it before plotting')
+            except ImportError as ex:
+                raise MissingOptionalLibraryError(
+                    libname='Matplotlib',
+                    name='ad_hoc_data',
+                    pip_install='pip install matplotlib') from ex
 
             plt.show()
             fig2 = plt.figure()
@@ -223,8 +224,11 @@ def ad_hoc_data(training_size, test_size, n, gap, plot_data=False):
         if plot_data:
             try:
                 import matplotlib.pyplot as plt
-            except ImportError:
-                raise NameError('Matplotlib not installed. Please install it before plotting')
+            except ImportError as ex:
+                raise MissingOptionalLibraryError(
+                    libname='Matplotlib',
+                    name='ad_hoc_data',
+                    pip_install='pip install matplotlib') from ex
             sample_total_a = np.asarray(sample_total_a)
             sample_total_b = np.asarray(sample_total_b)
             x_1 = sample_total_a[:, 0]

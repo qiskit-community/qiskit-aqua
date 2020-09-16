@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2019, 2020.
@@ -13,7 +11,7 @@
 # that they have been altered from the originals.
 """The Numpy LinearSystem algorithm (classical)."""
 
-from typing import List, Union
+from typing import List, Union, Dict, Any
 import logging
 import warnings
 import numpy as np
@@ -45,7 +43,7 @@ class NumPyLSsolver(ClassicalAlgorithm):
         super().__init__()
         self._matrix = matrix
         self._vector = vector
-        self._ret = {}
+        self._ret = {}  # type: Dict[str, Any]
 
     def _solve(self):
         self._ret['eigvals'] = np.linalg.eig(self._matrix)[0]

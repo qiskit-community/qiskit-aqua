@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -174,11 +172,11 @@ class IsingInstance:
                                    k, self._lin[k], weight)
                 self._lin[k] = weight
             elif size == 2:
-                k = tuple(sorted(ones))
-                if k in self._lin:
+                k_t = tuple(sorted(ones))
+                if k_t in self._quad:
                     logger.warning('Overwrite the quadratic coefficient %s: (current) %f, (new) %f',
-                                   k, self._lin[k], weight)
-                self._quad[k] = weight
+                                   k_t, self._quad[k_t], weight)
+                self._quad[k_t] = weight
             else:
                 logger.critical(
                     'CPLEX backend cannot deal with Hamiltonian more than quadratic: %s', pauli)

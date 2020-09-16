@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -17,7 +15,7 @@ gaussian dataset
 """
 
 import numpy as np
-from qiskit.aqua import aqua_globals
+from qiskit.aqua import aqua_globals, MissingOptionalLibraryError
 
 
 def gaussian(training_size, test_size, n, plot_data=False):
@@ -58,8 +56,11 @@ def gaussian(training_size, test_size, n, plot_data=False):
         if plot_data:
             try:
                 import matplotlib.pyplot as plt
-            except ImportError:
-                raise NameError('Matplotlib not installed. Please install it before plotting')
+            except ImportError as ex:
+                raise MissingOptionalLibraryError(
+                    libname='Matplotlib',
+                    name='gaussian',
+                    pip_install='pip install matplotlib') from ex
 
             for k in range(0, 2):
                 plt.scatter(sample_train[label_train == k, 0][:training_size],
@@ -119,8 +120,11 @@ def gaussian(training_size, test_size, n, plot_data=False):
         if plot_data:
             try:
                 import matplotlib.pyplot as plt
-            except ImportError:
-                raise NameError('Matplotlib not installed. Please install it before plotting')
+            except ImportError as ex:
+                raise MissingOptionalLibraryError(
+                    libname='Matplotlib',
+                    name='gaussian',
+                    pip_install='pip install matplotlib') from ex
 
             for k in range(0, 3):
                 plt.scatter(sample_train[label_train == k, 0][:training_size],

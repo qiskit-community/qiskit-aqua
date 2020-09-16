@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -45,7 +43,7 @@ class AlgorithmResult(ABC, collections.UserDict):
     def popitem(self) -> Tuple[object, object]:
         raise TypeError("'popitem' invalid for this object.")
 
-    def update(self, *args, **kwargs) -> None:
+    def update(self, *args, **kwargs) -> None:  # pylint: disable=arguments-differ,signature-differs
         raise TypeError("'update' invalid for this object.")
 
     def combine(self, result: 'AlgorithmResult') -> None:

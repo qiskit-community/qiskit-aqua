@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -16,7 +14,7 @@ Simon's algorithm.
 """
 
 import operator  # pylint: disable=unused-import
-from typing import Optional, Union
+from typing import Optional, Union, Dict, Any
 import numpy as np
 from sympy import Matrix, mod_inverse
 
@@ -56,7 +54,7 @@ class Simon(QuantumAlgorithm):
 
         self._oracle = oracle
         self._circuit = None
-        self._ret = {}
+        self._ret = {}  # type: Dict[str, Any]
 
     def construct_circuit(self, measurement=False):
         """

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -81,13 +79,13 @@ class PSI4Driver(BaseDriver):
         with open(template_file, 'r') as file:
             input_text += file.read()
 
-        file, input_file = tempfile.mkstemp(suffix='.inp')
-        os.close(file)
+        file_fd, input_file = tempfile.mkstemp(suffix='.inp')
+        os.close(file_fd)
         with open(input_file, 'w') as stream:
             stream.write(input_text)
 
-        file, output_file = tempfile.mkstemp(suffix='.out')
-        os.close(file)
+        file_fd, output_file = tempfile.mkstemp(suffix='.out')
+        os.close(file_fd)
         try:
             PSI4Driver._run_psi4(input_file, output_file)
             if logger.isEnabledFor(logging.DEBUG):
@@ -131,11 +129,11 @@ class PSI4Driver(BaseDriver):
                                        stdout=subprocess.PIPE, universal_newlines=True)
             stdout, _ = process.communicate()
             process.wait()
-        except Exception:
+        except Exception as ex:
             if process is not None:
                 process.kill()
 
-            raise QiskitChemistryError('{} run has failed'.format(PSI4))
+            raise QiskitChemistryError('{} run has failed'.format(PSI4)) from ex
 
         if process.returncode != 0:
             errmsg = ""

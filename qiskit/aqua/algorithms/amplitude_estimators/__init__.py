@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -14,12 +12,15 @@
 
 """ Amplitude Estimators Package """
 
-from .ae import AmplitudeEstimation
-from .iqae import IterativeAmplitudeEstimation
-from .mlae import MaximumLikelihoodAmplitudeEstimation
+from .ae import AmplitudeEstimation, AmplitudeEstimationResult
+from .iqae import IterativeAmplitudeEstimation, IterativeAmplitudeEstimationResult
+from .mlae import MaximumLikelihoodAmplitudeEstimation, MaximumLikelihoodAmplitudeEstimationResult
 
 __all__ = [
     'AmplitudeEstimation',
+    'AmplitudeEstimationResult',
     'IterativeAmplitudeEstimation',
-    'MaximumLikelihoodAmplitudeEstimation'
+    'IterativeAmplitudeEstimationResult',
+    'MaximumLikelihoodAmplitudeEstimation',
+    'MaximumLikelihoodAmplitudeEstimationResult'
 ]

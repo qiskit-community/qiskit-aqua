@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -15,7 +13,7 @@
 The Bernstein-Vazirani algorithm.
 """
 
-from typing import Optional, Union
+from typing import Optional, Union, Dict, Any
 import logging
 import operator
 import numpy as np
@@ -54,7 +52,7 @@ class BernsteinVazirani(QuantumAlgorithm):
 
         self._oracle = oracle
         self._circuit = None
-        self._ret = {}
+        self._ret = {}  # type: Dict[str, Any]
 
     def construct_circuit(self, measurement=False):
         """

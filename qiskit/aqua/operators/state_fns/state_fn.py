@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -14,7 +12,7 @@
 
 """ StateFn Class """
 
-from typing import Union, Optional, Callable, Set, Dict
+from typing import Union, Optional, Callable, Set, Dict, Tuple
 import numpy as np
 
 from qiskit.quantum_info import Statevector
@@ -55,7 +53,7 @@ class StateFn(OperatorBase):
                                  QuantumCircuit, Instruction,
                                  OperatorBase] = None,
                 coeff: Union[int, float, complex, ParameterExpression] = 1.0,
-                is_measurement: bool = False) -> OperatorBase:
+                is_measurement: bool = False) -> 'StateFn':
         """ A factory method to produce the correct type of StateFn subclass
         based on the primitive passed in. Primitive, coeff, and is_measurement arguments
         are passed into subclass's init() as-is automatically by new().
@@ -185,13 +183,13 @@ class StateFn(OperatorBase):
             raise TypeError('Tensorpower can only take positive int arguments')
         temp = StateFn(self.primitive,
                        coeff=self.coeff,
-                       is_measurement=self.is_measurement)
+                       is_measurement=self.is_measurement)  # type: OperatorBase
         for _ in range(other - 1):
             temp = temp.tensor(self)
         return temp
 
     def _check_zero_for_composition_and_expand(self, other: OperatorBase) \
-            -> (OperatorBase, OperatorBase):
+            -> Tuple[OperatorBase, OperatorBase]:
         new_self = self
         # pylint: disable=import-outside-toplevel
         if not self.num_qubits == other.num_qubits:
@@ -288,9 +286,18 @@ class StateFn(OperatorBase):
                                                             self.coeff, self.is_measurement)
 
     def eval(self,
-             front: Union[str, dict, np.ndarray,
-                          OperatorBase] = None) -> Union[OperatorBase, float, complex]:
+             front: Optional[Union[str, Dict[str, complex], np.ndarray, OperatorBase]] = None
+             ) -> Union[OperatorBase, float, complex]:
         raise NotImplementedError
+
+    @property
+    def parameters(self):
+        params = set()
+        if isinstance(self.primitive, (OperatorBase, QuantumCircuit)):
+            params.update(self.primitive.parameters)
+        if isinstance(self.coeff, ParameterExpression):
+            params.update(self.coeff.parameters)
+        return params
 
     def assign_parameters(self, param_dict: dict) -> OperatorBase:
         param_value = self.coeff
@@ -303,7 +310,7 @@ class StateFn(OperatorBase):
             if self.coeff.parameters <= set(unrolled_dict.keys()):
                 binds = {param: unrolled_dict[param] for param in self.coeff.parameters}
                 param_value = float(self.coeff.bind(binds))
-        return self.__class__(self.primitive, is_measurement=self.is_measurement, coeff=param_value)
+        return self.traverse(lambda x: x.assign_parameters(param_dict), coeff=param_value)
 
     # Try collapsing primitives where possible. Nothing to collapse here.
     def reduce(self) -> OperatorBase:
@@ -320,13 +327,17 @@ class StateFn(OperatorBase):
         Args:
             convert_fn: The function to apply to the internal OperatorBase.
             coeff: A coefficient to multiply by after applying convert_fn.
+                If it is None, self.coeff is used instead.
 
         Returns:
             The converted StateFn.
         """
+        if coeff is None:
+            coeff = self.coeff
+
         if isinstance(self.primitive, OperatorBase):
             return StateFn(convert_fn(self.primitive),
-                           coeff=coeff or self.coeff, is_measurement=self.is_measurement)
+                           coeff=coeff, is_measurement=self.is_measurement)
         else:
             return self
 

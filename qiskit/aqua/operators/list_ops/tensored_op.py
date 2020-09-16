@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -14,14 +12,17 @@
 
 """ TensoredOp Class """
 
-from typing import List, Union
+from typing import List, Union, cast
 from functools import reduce, partial
 import numpy as np
 
-from qiskit.circuit import ParameterExpression
+from qiskit.circuit import QuantumCircuit, ParameterExpression
 
+from ..state_fns.circuit_state_fn import CircuitStateFn
 from ..operator_base import OperatorBase
+from ..primitive_ops.primitive_op import PrimitiveOp
 from .list_op import ListOp
+from ... import AquaError
 
 
 class TensoredOp(ListOp):
@@ -63,7 +64,7 @@ class TensoredOp(ListOp):
     def eval(self,
              front: Union[str, dict, np.ndarray,
                           OperatorBase] = None) -> Union[OperatorBase, float, complex]:
-        return self.to_matrix_op().eval(front=front)
+        return cast(Union[OperatorBase, float, complex], self.to_matrix_op().eval(front=front))
 
     # Try collapsing list or trees of tensor products.
     # TODO do this smarter
@@ -73,4 +74,19 @@ class TensoredOp(ListOp):
         if isinstance(reduced_ops, ListOp) and len(reduced_ops.oplist) == 1:
             return reduced_ops.oplist[0]
         else:
-            return reduced_ops
+            return cast(OperatorBase, reduced_ops)
+
+    def to_circuit(self) -> QuantumCircuit:
+        """Returns the quantum circuit, representing the tensored operator.
+
+        Returns:
+            The circuit representation of the tensored operator.
+
+        Raises:
+            AquaError: for operators where a single underlying circuit can not be produced.
+        """
+        circuit_op = self.to_circuit_op()
+        if isinstance(circuit_op, (PrimitiveOp, CircuitStateFn)):
+            return circuit_op.to_circuit()
+        raise AquaError('Conversion to_circuit supported only for operators, where a single '
+                        'underlying circuit can be produced.')

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -18,7 +16,7 @@ import unittest
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 
-from qiskit.aqua import aqua_globals
+from qiskit.aqua import aqua_globals, MissingOptionalLibraryError
 from qiskit.optimization.applications.ising import max_cut
 from qiskit.optimization.applications.ising.common import random_graph
 from qiskit.aqua.algorithms import ClassicalCPLEX
@@ -44,7 +42,7 @@ class TestClassicalCplex(QiskitOptimizationTestCase):
             np.testing.assert_array_equal(
                 max_cut.get_graph_solution(x), [1, 1, 1, 0])
             self.assertEqual(max_cut.max_cut_value(x, self.w), 10)
-        except NameError as ex:
+        except MissingOptionalLibraryError as ex:
             self.skipTest(str(ex))
 
 

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -36,17 +34,17 @@ logger = logging.getLogger(__name__)
 class QuantumInstance:
     """Quantum Backend including execution setting."""
 
-    BACKEND_CONFIG = ['basis_gates', 'coupling_map']
-    COMPILE_CONFIG = ['pass_manager', 'initial_layout', 'seed_transpiler', 'optimization_level']
-    RUN_CONFIG = ['shots', 'max_credits', 'memory', 'seed_simulator']
-    QJOB_CONFIG = ['timeout', 'wait']
-    NOISE_CONFIG = ['noise_model']
+    _BACKEND_CONFIG = ['basis_gates', 'coupling_map']
+    _COMPILE_CONFIG = ['pass_manager', 'initial_layout', 'seed_transpiler', 'optimization_level']
+    _RUN_CONFIG = ['shots', 'max_credits', 'memory', 'seed_simulator']
+    _QJOB_CONFIG = ['timeout', 'wait']
+    _NOISE_CONFIG = ['noise_model']
 
     # https://github.com/Qiskit/qiskit-aer/blob/master/qiskit/providers/aer/backends/qasm_simulator.py
-    BACKEND_OPTIONS_QASM_ONLY = ["statevector_sample_measure_opt", "max_parallel_shots"]
-    BACKEND_OPTIONS = ["initial_statevector", "chop_threshold", "max_parallel_threads",
-                       "max_parallel_experiments", "statevector_parallel_threshold",
-                       "statevector_hpc_gate_opt"] + BACKEND_OPTIONS_QASM_ONLY
+    _BACKEND_OPTIONS_QASM_ONLY = ["statevector_sample_measure_opt", "max_parallel_shots"]
+    _BACKEND_OPTIONS = ["initial_statevector", "chop_threshold", "max_parallel_threads",
+                        "max_parallel_experiments", "statevector_parallel_threshold",
+                        "statevector_hpc_gate_opt"] + _BACKEND_OPTIONS_QASM_ONLY
 
     def __init__(self, backend,
                  # run config
@@ -116,13 +114,13 @@ class QuantumInstance:
         # setup run config
         if shots is not None:
             if self.is_statevector and shots != 1:
-                logger.info("statevector backend only works with shot=1, change "
+                logger.info("statevector backend only works with shot=1, changing "
                             "shots from %s to 1.", shots)
                 shots = 1
             max_shots = self._backend.configuration().max_shots
             if max_shots is not None and shots > max_shots:
-                raise AquaError('the maximum shots supported by the selected backend is {} '
-                                'but you specifiy {}'.format(max_shots, shots))
+                raise AquaError('The maximum shots supported by the selected backend is {} '
+                                'but you specified {}'.format(max_shots, shots))
 
         run_config = RunConfig(shots=shots, max_credits=max_credits)
         if seed_simulator:
@@ -157,7 +155,7 @@ class QuantumInstance:
                 self._noise_config = {'noise_model': noise_model}
             else:
                 raise AquaError("The noise model is not supported on the selected backend {} ({}) "
-                                "only certain backends, such as Aer qasm "
+                                "only certain backends, such as Aer qasm simulator "
                                 "support noise.".format(self.backend_name,
                                                         self._backend.provider()))
 
@@ -184,7 +182,7 @@ class QuantumInstance:
         self._meas_error_mitigation_shots = measurement_error_mitigation_shots
 
         if self._meas_error_mitigation_cls is not None:
-            logger.info("The measurement error mitigation is enable. "
+            logger.info("The measurement error mitigation is enabled. "
                         "It will automatically submit an additional job to help "
                         "calibrate the result of other jobs. "
                         "The current approach will submit a job with 2^N circuits "
@@ -196,8 +194,8 @@ class QuantumInstance:
         # setup others
         if is_ibmq_provider(self._backend):
             if skip_qobj_validation:
-                logger.warning("The skip Qobj validation does not work "
-                               "for IBMQ provider. Disable it.")
+                logger.info("skip_qobj_validation was set True but this setting is not "
+                            "supported by IBMQ provider and has been ignored.")
                 skip_qobj_validation = False
         self._skip_qobj_validation = skip_qobj_validation
         self._circuit_summary = False
@@ -319,7 +317,7 @@ class QuantumInstance:
                                                             self._backend_config,
                                                             self._compile_config,
                                                             temp_run_config)
-                if use_different_shots:
+                if use_different_shots or is_aer_qasm(self._backend):
                     cals_result = run_qobj(cals_qobj, self._backend, self._qjob_config,
                                            self._backend_options,
                                            self._noise_config,
@@ -381,27 +379,27 @@ class QuantumInstance:
     def set_config(self, **kwargs):
         """Set configurations for the quantum instance."""
         for k, v in kwargs.items():
-            if k in QuantumInstance.RUN_CONFIG:
+            if k in QuantumInstance._RUN_CONFIG:
                 setattr(self._run_config, k, v)
-            elif k in QuantumInstance.QJOB_CONFIG:
+            elif k in QuantumInstance._QJOB_CONFIG:
                 self._qjob_config[k] = v
-            elif k in QuantumInstance.COMPILE_CONFIG:
+            elif k in QuantumInstance._COMPILE_CONFIG:
                 self._compile_config[k] = v
-            elif k in QuantumInstance.BACKEND_CONFIG:
+            elif k in QuantumInstance._BACKEND_CONFIG:
                 self._backend_config[k] = v
-            elif k in QuantumInstance.BACKEND_OPTIONS:
+            elif k in QuantumInstance._BACKEND_OPTIONS:
                 if not support_backend_options(self._backend):
-                    raise AquaError("backend_options can not be used with this backends "
+                    raise AquaError("backend_options can not be used with this backend "
                                     "{} ({}).".format(self.backend_name, self._backend.provider()))
 
-                if k in QuantumInstance.BACKEND_OPTIONS_QASM_ONLY and self.is_statevector:
+                if k in QuantumInstance._BACKEND_OPTIONS_QASM_ONLY and self.is_statevector:
                     raise AquaError("'{}' is only applicable for qasm simulator but "
                                     "statevector simulator is used as the backend.")
 
                 if 'backend_options' not in self._backend_options:
                     self._backend_options['backend_options'] = {}
                 self._backend_options['backend_options'][k] = v
-            elif k in QuantumInstance.NOISE_CONFIG:
+            elif k in QuantumInstance._NOISE_CONFIG:
                 if not is_aer_qasm(self._backend):
                     raise AquaError(
                         "The noise model is not supported on the selected backend {} ({}) "

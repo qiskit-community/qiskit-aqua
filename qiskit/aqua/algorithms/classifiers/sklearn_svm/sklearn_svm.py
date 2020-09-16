@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -16,7 +14,7 @@
 The Sklearn SVM algorithm (classical).
 """
 
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 import logging
 import warnings
 import numpy as np
@@ -82,6 +80,7 @@ class SklearnSVM(ClassicalAlgorithm):
                 logger.warning("Dataset has just two classes. Supplied multiclass "
                                "extension will be ignored")
 
+        svm_instance = None  # type: Optional[Union[_SklearnSVMBinary, _SklearnSVMMulticlass]]
         if multiclass_extension is None:
             svm_instance = _SklearnSVMBinary(training_dataset, test_dataset, datapoints, gamma)
         else:

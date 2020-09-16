@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -536,7 +534,7 @@ class QMolecule:
         return moh2_qubit
 
     symbols = [
-        # pylint: disable=bad-whitespace
+        # pylint: disable=bad-option-value,bad-whitespace
         '_',
         'H',  'He',
         'Li', 'Be', 'B',  'C',  'N',  'O',  'F',  'Ne',

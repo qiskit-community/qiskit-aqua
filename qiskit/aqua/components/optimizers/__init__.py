@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -36,6 +34,7 @@ Optimizer Base Class
    :toctree: ../stubs/
    :nosignatures:
 
+   OptimizerSupportLevel
    Optimizer
 
 Local Optimizers
@@ -83,7 +82,7 @@ The global optimizers are as follows:
 
 """
 
-from .optimizer import Optimizer
+from .optimizer import OptimizerSupportLevel, Optimizer
 from .adam_amsgrad import ADAM
 from .cg import CG
 from .cobyla import COBYLA
@@ -104,6 +103,7 @@ from .nlopts.esch import ESCH
 from .nlopts.isres import ISRES
 
 __all__ = ['Optimizer',
+           'OptimizerSupportLevel',
            'ADAM',
            'AQGD',
            'CG',

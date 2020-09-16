@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -20,6 +18,7 @@ from test.aqua import QiskitAquaTestCase
 from ddt import ddt, idata, unpack
 from scipy.optimize import rosen
 import numpy as np
+from qiskit.aqua import MissingOptionalLibraryError
 from qiskit.aqua.components.optimizers import CRS, DIRECT_L, DIRECT_L_RAND
 
 # pylint: disable=unused-import,import-outside-toplevel
@@ -50,7 +49,7 @@ class TestNLOptOptimizers(QiskitAquaTestCase):
             optimizer.set_options(**{'max_evals': 50000})
             res = self._optimize(optimizer)
             self.assertLessEqual(res[2], 50000)
-        except NameError as ex:
+        except MissingOptionalLibraryError as ex:
             self.skipTest(str(ex))
 
 

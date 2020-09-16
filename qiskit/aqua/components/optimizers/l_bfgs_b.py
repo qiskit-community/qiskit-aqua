@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -17,14 +15,12 @@
 import logging
 
 from scipy import optimize as sciopt
-from .optimizer import Optimizer
+from .optimizer import Optimizer, OptimizerSupportLevel
 
 logger = logging.getLogger(__name__)
 
-# pylint: disable=invalid-name
 
-
-class L_BFGS_B(Optimizer):
+class L_BFGS_B(Optimizer):  # pylint: disable=invalid-name
     """
     Limited-memory BFGS Bound optimizer.
 
@@ -85,9 +81,9 @@ class L_BFGS_B(Optimizer):
     def get_support_level(self):
         """ Return support level dictionary """
         return {
-            'gradient': Optimizer.SupportLevel.supported,
-            'bounds': Optimizer.SupportLevel.supported,
-            'initial_point': Optimizer.SupportLevel.required
+            'gradient': OptimizerSupportLevel.supported,
+            'bounds': OptimizerSupportLevel.supported,
+            'initial_point': OptimizerSupportLevel.required
         }
 
     def optimize(self, num_vars, objective_function, gradient_function=None,

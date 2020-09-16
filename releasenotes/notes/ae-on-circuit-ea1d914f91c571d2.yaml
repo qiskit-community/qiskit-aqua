@@ -1,0 +1,39 @@
+---
+features:
+  - |
+    The amplitude estimation algorithms now use ``QuantumCircuit`` objects as
+    inputs to specify the A- and Q operators. This change goes along with the
+    introduction of the ``GroverOperator`` in the circuit library, which allows
+    an intuitive and fast construction of different Q operators.
+    For example, a Bernoulli-experiment can now be constructed as
+
+    .. code-block:: python
+
+      import numpy as np
+      from qiskit import QuantumCircuit
+      from qiskit.aqua.algorithms import AmplitudeEstimation
+
+      probability = 0.5
+      angle = 2 * np.sqrt(np.arcsin(probability))
+      a_operator = QuantumCircuit(1)
+      a_operator.ry(angle, 0)
+
+      # construct directly
+      q_operator = QuantumCircuit(1)
+      q_operator.ry(2 * angle, 0)
+
+      # construct via Grover operator
+      from qiskit.circuit.library import GroverOperator
+      oracle = QuantumCircuit(1)
+      oracle.z(0)  # good state = the qubit is in state |1>
+      q_operator = GroverOperator(oracle, state_preparation=a_operator)
+
+      # use default construction in QAE
+      q_operator = None
+
+      ae = AmplitudeEstimation(a_operator, q_operator)
+
+deprecations:
+  - |
+    The ``i_objective`` argument of the amplitude estimation algorithms has been
+    renamed to ``objective_qubits``.

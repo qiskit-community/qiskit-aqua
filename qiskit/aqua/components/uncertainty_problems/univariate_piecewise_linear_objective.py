@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2019, 2020.
@@ -43,7 +41,7 @@ class UnivariatePiecewiseLinearObjective(CircuitFactory):
                  f_min: float,
                  f_max: float,
                  c_approx: float,
-                 i_state: Optional[int] = None,
+                 i_state: Optional[List[int]] = None,
                  i_objective: Optional[int] = None) -> None:
         r"""
         Args:

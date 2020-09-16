@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -34,7 +32,7 @@ class FixedIncomeExpectedValue(UncertaintyProblem):
     def __init__(self,
                  uncertainty_model: UncertaintyModel,
                  A: np.ndarray,
-                 b: int,
+                 b: List[int],
                  cash_flow: List[float],
                  c_approx: float,
                  i_state: Optional[Union[List[int], np.ndarray]] = None,

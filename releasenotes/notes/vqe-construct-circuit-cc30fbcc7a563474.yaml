@@ -1,0 +1,8 @@
+---
+fixes:
+  - |
+    The ``construct_circuit`` method of ``VQE`` previously returned the 
+    expectation value to be evaluated as type ``OperatorBase``.
+    This functionality has been moved into ``construct_expectation`` and 
+    ``construct_circuit`` returns a list of the circuits that are evaluated
+    to compute the expectation value.

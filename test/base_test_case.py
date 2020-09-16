@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -16,7 +14,7 @@
 
 from typing import Optional
 from abc import ABC, abstractmethod
-# import warnings
+import warnings
 import inspect
 import logging
 import os
@@ -40,8 +38,12 @@ def _noop(*args, **kargs):
 class QiskitBaseTestCase(unittest.TestCase, ABC):
     """Base Helper class that contains common functionality."""
 
+    moduleName = None
+    log = None
+
     @abstractmethod
     def setUp(self) -> None:
+        warnings.filterwarnings('default', category=DeprecationWarning)
         self._started_at = time.time()
         self._class_location = __file__
 

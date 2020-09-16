@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -15,7 +13,7 @@
 """ CircuitStateFn Class """
 
 
-from typing import Union, Set, List
+from typing import Union, Set, List, Optional, Dict, cast
 import numpy as np
 
 from qiskit import QuantumCircuit, BasicAer, execute, ClassicalRegister
@@ -89,7 +87,7 @@ class CircuitStateFn(StateFn):
             if len(statefn_circuits) == 1:
                 return statefn_circuits[0]
             else:
-                return SummedOp(statefn_circuits)
+                return cast(CircuitStateFn, SummedOp(cast(List[OperatorBase], statefn_circuits)))
         else:
             sf_dict = StateFn(density_dict)
             return CircuitStateFn.from_vector(sf_dict.to_matrix())
@@ -158,7 +156,7 @@ class CircuitStateFn(StateFn):
             composed_op_circs = op_circuit_self.compose(other.to_circuit_op())
 
             # Returning CircuitStateFn
-            return CircuitStateFn(composed_op_circs.primitive,
+            return CircuitStateFn(composed_op_circs.primitive,  # type: ignore
                                   is_measurement=self.is_measurement,
                                   coeff=self.coeff * other.coeff)
 
@@ -240,7 +238,7 @@ class CircuitStateFn(StateFn):
         return np.round(statevector * self.coeff, decimals=EVAL_SIG_DIGITS)
 
     def __str__(self) -> str:
-        qc = self.reduce().to_circuit()
+        qc = self.reduce().to_circuit()  # type: ignore
         prim_str = str(qc.draw(output='text'))
         if self.coeff == 1.0:
             return "{}(\n{}\n)".format('CircuitStateFn' if not self.is_measurement
@@ -272,11 +270,16 @@ class CircuitStateFn(StateFn):
                 param_instersection = set(unrolled_dict.keys()) & self.primitive.parameters
                 binds = {param: unrolled_dict[param] for param in param_instersection}
                 qc = self.to_circuit().assign_parameters(binds)
-        return self.__class__(qc, coeff=param_value)
+        return self.__class__(qc, coeff=param_value, is_measurement=self.is_measurement)
 
     def eval(self,
-             front: Union[str, dict, np.ndarray,
-                          OperatorBase] = None) -> Union[OperatorBase, float, complex]:
+             front: Optional[Union[str, Dict[str, complex], np.ndarray, OperatorBase]] = None
+             ) -> Union[OperatorBase, float, complex]:
+        if front is None:
+            vector_state_fn = self.to_matrix_op().eval()
+            vector_state_fn = cast(OperatorBase, vector_state_fn)
+            return vector_state_fn
+
         if not self.is_measurement and isinstance(front, OperatorBase):
             raise ValueError(
                 'Cannot compute overlap with StateFn or Operator if not Measurement. Try taking '
@@ -289,15 +292,15 @@ class CircuitStateFn(StateFn):
         from ..primitive_ops.circuit_op import CircuitOp
 
         if isinstance(front, ListOp) and front.distributive:
-            return front.combo_fn([self.eval(front.coeff * front_elem)
+            return front.combo_fn([self.eval(front.coeff * front_elem)  # type: ignore
                                    for front_elem in front.oplist])
 
         # Composable with circuit
         if isinstance(front, (PauliOp, CircuitOp, MatrixOp, CircuitStateFn)):
             new_front = self.compose(front)
-            return new_front.eval()
+            return cast(Union[OperatorBase, float, complex], new_front.eval())
 
-        return self.to_matrix_op().eval(front)
+        return cast(Union[OperatorBase, float, complex], self.to_matrix_op().eval(front))
 
     def to_circuit(self, meas: bool = False) -> QuantumCircuit:
         """ Return QuantumCircuit representing StateFn """
@@ -349,7 +352,8 @@ class CircuitStateFn(StateFn):
                 # Check if Identity or empty instruction (need to check that type is exactly
                 # Instruction because some gates have lazy gate.definition population)
                 # pylint: disable=unidiomatic-typecheck
-                if isinstance(gate, IGate) or (type(gate) == Instruction and gate.definition == []):
+                if isinstance(gate, IGate) or (type(gate) == Instruction and
+                                               gate.definition.data == []):
                     del self.primitive.data[i]
         return self
 
