@@ -2,15 +2,16 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020
+# (C) Copyright IBM 2020, 2020
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
-# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
+# of this source tree or aexxont http://www.apache.org/licenses/LICENSE-2.0.
 #
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+#
 """
 This module implements an interface for a generic molecule.
 It defines the composing atoms (with properties like masses, and nuclear spin),
@@ -25,6 +26,9 @@ from qiskit.chemistry.drivers import PySCFDriver, UnitsType, HFMethodType
 
 
 class Molecule:
+    """
+    Molecule class
+    """
 
     def __init__(self,
                  geometry,
