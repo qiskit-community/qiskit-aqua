@@ -162,6 +162,7 @@ eigensolvers
 eigenstate
 eigrange
 eigs
+eigvals
 eigvecs
 einact
 el
