@@ -5,6 +5,9 @@
 # Global rule, unless specialized by a later one
 * @levbishop @manoelmarques @woodsp-ibm
 
+# Code owners of domains below own all release notes
+/releasenotes/        @stefan-woerner @pbark @manoelmarques @woodsp-ibm
+
 # Qiskit folders (also their corresponding tests)
 chemistry/            @pbark @manoelmarques @woodsp-ibm
 finance/              @stefan-woerner @manoelmarques @woodsp-ibm

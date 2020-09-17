@@ -222,6 +222,7 @@ functionals
 functools
 fval
 fx
+gacon
 gambella
 gambetta
 gauopen
@@ -238,6 +239,7 @@ globals
 gogolin
 goldfarb
 gridpoints
+grinko
 grover
 gset
 gsls
@@ -347,6 +349,7 @@ ljik
 lk
 lmin
 lnot
+loglik
 loglikelihood
 logn
 lor
@@ -358,6 +361,7 @@ lst
 majorana
 mapsto
 mathbb
+mathcal
 mathsf
 matlab
 matmul
@@ -391,6 +395,7 @@ moller
 momentums
 monomial
 monomials
+mosca
 motived
 mprev
 msb
@@ -443,6 +448,7 @@ oi
 ok
 onee
 online
+onodera
 onwards
 oom
 operatorbase
@@ -454,6 +460,7 @@ optimizer's
 optimizers
 opv
 orbsym
+orthonormal
 outers
 outpath
 overfit
@@ -635,6 +642,8 @@ symmetrized
 sympy
 sys
 sysctl
+tapp
+tanaka
 tbd
 tbp
 temme
@@ -683,6 +692,7 @@ unentangled
 unitaries
 unittest
 univariate
+uno
 unroller
 unscaled
 unsetting
@@ -712,6 +722,7 @@ whitespace
 whitespaces
 wigner
 wikipedia
+woerner
 workq
 wrt
 wvf
@@ -723,6 +734,7 @@ xs
 xtol
 xuxv
 xyz
+yamamoto
 yao
 YFinance
 yu
