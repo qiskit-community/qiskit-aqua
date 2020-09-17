@@ -801,6 +801,11 @@ class TestOpConstruction(QiskitAquaTestCase):
         summed_op_with_param = op1_with_param + op2_with_param  # unitary
         self.assertRaises(AquaError, summed_op_with_param.to_circuit)  # should raise Aqua error
 
+    def test_permute_list_op_with_inconsistent_num_qubits(self):
+        """Test if permute raises error if ListOp contains operators with different num_qubits."""
+        list_op = ListOp([X, X ^ X])
+        self.assertRaises(list_op.permute([0, 1]), AquaError)
+
     @data(Z, CircuitOp(ZGate()), MatrixOp([[1, 0], [0, -1]]))
     def test_op_hashing(self, op):
         """Regression test against faulty set comparison.

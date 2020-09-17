@@ -235,8 +235,12 @@ class ListOp(OperatorBase):
         new_self = self
         circuit_size = max(permutation) + 1
 
-        if self.num_qubits != len(permutation):
-            raise AquaError("New index must be defined for each qubit of the operator.")
+        try:
+            if self.num_qubits != len(permutation):
+                raise AquaError("New index must be defined for each qubit of the operator.")
+        except ValueError:
+            raise AquaError("Permute is only possible if all operators in the ListOp have the "
+                            "same number of qubits.")
         if self.num_qubits < circuit_size:
             # pad the operator with identities
             new_self = self._expand_dim(circuit_size - self.num_qubits)
