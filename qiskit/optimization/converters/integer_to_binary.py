@@ -185,7 +185,8 @@ class IntegerToBinary(QuadraticProgramConverter):
 
         # set linear constraints
         for constraint in self._src.linear_constraints:
-            linear, constant = self._convert_linear_coefficients_dict(constraint.linear.to_dict())
+            linear, constant = self._convert_linear_coefficients_dict(
+                constraint.linear.to_dict(use_name=True))
             self._dst.linear_constraint(
                 linear, constraint.sense, constraint.rhs - constant, constraint.name
             )
