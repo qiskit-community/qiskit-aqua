@@ -193,10 +193,10 @@ class IntegerToBinary(QuadraticProgramConverter):
         # set quadratic constraints
         for constraint in self._src.quadratic_constraints:
             linear, linear_constant = self._convert_linear_coefficients_dict(
-                constraint.linear.to_dict()
+                constraint.linear.to_dict(use_name=True)
             )
             quadratic, q_linear, q_constant = self._convert_quadratic_coefficients_dict(
-                constraint.quadratic.to_dict()
+                constraint.quadratic.to_dict(use_name=True)
             )
 
             constant = linear_constant + q_constant
