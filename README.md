@@ -114,7 +114,7 @@ backend = Aer.get_backend('qasm_simulator')
 oracle = LogicalExpressionOracle(sat_cnf)
 algorithm = Grover(oracle)
 result = algorithm.run(backend)
-print(result["result"])
+print(result.assignment)
 ```
 
 The code above demonstrates how `Grover`’s search algorithm can be used with the
@@ -308,8 +308,8 @@ num_eval_qubits = 5
 algo = AmplitudeEstimation(num_eval_qubits, fixed_income)
 result = algo.run(BasicAer.get_backend('statevector_simulator'))
 
-print('Estimated value:\t%.4f' % result['estimation'])
-print('Probability:    \t%.4f' % result['max_probability'])
+print('Estimated value:\t%.4f' % result.estimation)
+print('Probability:    \t%.4f' % result.max_probability)
 ```
 When running the above the estimated value result should be 2.46 and probability 0.8487.
 
@@ -375,7 +375,7 @@ Jupyter notebooks containing further Machine Learning examples may be found in t
 following Qiskit GitHub repositories at
 [qiskit-tutorials/legacy_tutorials/aqua/machine_learning](https://github.com/Qiskit/qiskit-tutorials/tree/master/legacy_tutorials/aqua/machine_learning)
 and
-[qiskit-tutorials/legacy_tutorials/aqua/finance/machine_learning](https://github.com/Qiskit/qiskit-tutorials/tree/master/legacy_tutorials/aqua/finance/machine_learning)
+[qiskit-tutorials/tutorials/finance/10_qgan_option_pricing.ipynb](https://github.com/Qiskit/qiskit-tutorials/blob/master/tutorials/finance/10_qgan_option_pricing.ipynb)
 and
 [qiskit-community-tutorials/machine_learning](https://github.com/Qiskit/qiskit-community-tutorials/tree/master/machine_learning).
 

@@ -60,7 +60,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url='https://github.com/Qiskit/qiskit-aqua',
     author='Qiskit Aqua Development Team',
-    author_email='qiskit@us.ibm.com',
+    author_email='hello@qiskit.org',
     license='Apache-2.0',
     classifiers=(
         "Environment :: Console",
@@ -77,7 +77,7 @@ setuptools.setup(
         "Topic :: Scientific/Engineering"
     ),
     keywords='qiskit sdk quantum aqua',
-    packages=setuptools.find_namespace_packages(exclude=['test*']),
+    packages=setuptools.find_namespace_packages(include=['qiskit.*']),
     install_requires=requirements,
     include_package_data=True,
     python_requires=">=3.6",

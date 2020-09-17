@@ -1,0 +1,7 @@
+---
+fixes:
+  - |
+    For the amplitude estimation algorithms, we define the number of oracle queries 
+    as number of times the Q operator/Grover operator is applied. This includes 
+    the number of shots. That factor has been included in MLAE and IQAE but 
+    was missing in the 'standard' QAE.
