@@ -1,10 +1,11 @@
 #imports
 
 
-class OrbitalOptimizationVQE(GroundStateCalculation):  # same for VQEAdapt, ...
+class AdaptVQE(GroundStateCalculation):  # same for VQEAdapt, ...
     def __init__(self, params_for_mapping):
         super().__init__(params_for_mapping)
-    def compute_ground_state(driver) -> GroundStateCalculationResult:
+
+    def compute_ground_state(driver) -> MolecularGroundStateCalculationResult:
         op = self._transform(driver)
         # different implementation similar to VQE
         result = None

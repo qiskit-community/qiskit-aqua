@@ -65,16 +65,25 @@ class GroundStateCalculation(ABC):
         # takes driver, applies specified mapping, returns qubit operator
 
         q_molecule = self.driver.run()
+
         core = Hamiltonian(transformation=self._transformation,
                            qubit_mapping=self._qubit_mapping,
                            two_qubit_reduction=self._two_qubit_reduction,
                            freeze_core=self._freeze_core,
                            orbital_reduction=self._orbital_reduction,
                            z2symmetry_reduction=self._z2symmetry_reduction)
+
+        self._core = core
+        
         operator, aux_operators = core.run(q_molecule)
 
         return operator, aux_operators
 
+    @property
+    def molecule_info(self):
+
+        return self._core.molecule_info
+    
     @abstractmethod
     def compute_ground_state(self,
                              driver: BaseDriver) -> MolecularGroundStateResult:

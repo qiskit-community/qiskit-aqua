@@ -16,6 +16,7 @@
 
 from qiskit.chemistry.core import (Hamiltonian, TransformationType, QubitMappingType,
                                    ChemistryOperator, MolecularGroundStateResult)
+from qiskit.chemistry import QiskitChemistryError
 
 class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
     """
@@ -46,7 +47,7 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
         super().__init__(transformation, qubit_mapping, two_qubit_reduction, freeze_core, orbital_reduction,
                          z2symmetry_reduction)
 
-    def compute_ground_state(self, driver) -> GroundStateCalculationResult:
+    def compute_ground_state(self, driver, callback = None) -> GroundStateCalculationResult:
         """
 
         Compute Ground State properties
@@ -56,14 +57,24 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
 
         """
 
+        if self._solver is None and callback is None:
+            raise QiskitChemistryError('Minimum Eigensolvaer was not provided')
+        
         operator, aux_operators = self._transform(driver)
-
+        
+        if callback is not None:
+            num_particles = self._core.molecule_info[ChemistryOperator.INFO_NUM_PARTICLES]
+            num_orbitals = self._core.molecule_info[ChemistryOperator.INFO_NUM_ORBITALS]
+            self._solver = callback(num_particles, num_orbitals,
+                                   self._qubit_mapping.value, self._two_qubit_reduction,
+                                   self._z2_symmetries)
+    
         aux_operators = aux_operators if self.solver.supports_aux_operators() else None
 
         raw_gs_result = self._solver.compute_minimum_eigenstate(operator, aux_operators)
 
         return core.process_algorithm_result(raw_gs_result)
-
+    
     @staticmethod
     def get_default_solver(quantum_instance: Union[QuantumInstance, BaseBackend]) ->\
             Optional[Callable[[List, int, str, bool, Z2Symmetries], MinimumEigensolver]]:
