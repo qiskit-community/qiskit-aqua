@@ -71,6 +71,7 @@ Algorithms that estimate a value.
    :toctree: ../stubs/
    :nosignatures:
 
+   AmplitudeEstimationAlgorithmResult
    AmplitudeEstimation
    AmplitudeEstimationResult
    IterativeAmplitudeEstimation
@@ -143,6 +144,7 @@ Algorithms to find solutions for linear equations of equations.
    :toctree: ../stubs/
    :nosignatures:
 
+   LinearsolverResult
    HHL
    HHLResult
    NumPyLSsolver
@@ -186,7 +188,8 @@ from .quantum_algorithm import QuantumAlgorithm
 from .classical_algorithm import ClassicalAlgorithm
 from .vq_algorithm import VQAlgorithm, VQResult
 from .amplitude_amplifiers import Grover, GroverResult
-from .amplitude_estimators import (AmplitudeEstimation,
+from .amplitude_estimators import (AmplitudeEstimationAlgorithmResult,
+                                   AmplitudeEstimation,
                                    AmplitudeEstimationResult,
                                    IterativeAmplitudeEstimation,
                                    IterativeAmplitudeEstimationResult,
@@ -196,7 +199,9 @@ from .classifiers import VQC, QSVM, SklearnSVM, SVM_Classical
 from .distribution_learners import QGAN
 from .eigen_solvers import NumPyEigensolver, ExactEigensolver, EigensolverResult
 from .factorizers import Shor
-from .linear_solvers import HHL, HHLResult, NumPyLSsolver, NumPyLSsolverResult, ExactLSsolver
+from .linear_solvers import (LinearsolverResult, HHL,
+                             HHLResult, NumPyLSsolver,
+                             NumPyLSsolverResult, ExactLSsolver)
 from .minimum_eigen_solvers import (VQE, VQEResult, QAOA, IQPE, IQPEResult, QPE, QPEResult,
                                     ClassicalCPLEX, CPLEX_Ising, NumPyMinimumEigensolver,
                                     MinimumEigensolver, MinimumEigensolverResult)
@@ -215,6 +220,7 @@ __all__ = [
     'VQResult',
     'NumPyEigensolver',
     'ExactEigensolver',
+    'LinearsolverResult',
     'NumPyLSsolver',
     'NumPyLSsolverResult',
     'EigensolverResult',
@@ -234,6 +240,7 @@ __all__ = [
     'IQPEResult',
     'QPE',
     'QPEResult',
+    'AmplitudeEstimationAlgorithmResult',
     'AmplitudeEstimation',
     'AmplitudeEstimationResult',
     'IterativeAmplitudeEstimation',
