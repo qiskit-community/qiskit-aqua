@@ -12,11 +12,13 @@
 
 """ Amplitude Estimators Package """
 
+from .ae_algorithm import AmplitudeEstimationAlgorithmResult
 from .ae import AmplitudeEstimation, AmplitudeEstimationResult
 from .iqae import IterativeAmplitudeEstimation, IterativeAmplitudeEstimationResult
 from .mlae import MaximumLikelihoodAmplitudeEstimation, MaximumLikelihoodAmplitudeEstimationResult
 
 __all__ = [
+    'AmplitudeEstimationAlgorithmResult',
     'AmplitudeEstimation',
     'AmplitudeEstimationResult',
     'IterativeAmplitudeEstimation',
