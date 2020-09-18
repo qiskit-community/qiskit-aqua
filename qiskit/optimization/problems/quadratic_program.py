@@ -152,36 +152,102 @@ class QuadraticProgram:
                       upperbound: Union[float, int] = INFINITY,
                       vartype: VarType = VarType.CONTINUOUS,
                       name: Optional[str] = None) -> Variable:
-        """Checks whether a variable name is already taken and adds the variable to list and index
-        if not.
+        return list(self._add_variables(lowerbound, upperbound, vartype, name).values())[0]
 
-        Args:
-            lowerbound: The lowerbound of the variable.
-            upperbound: The upperbound of the variable.
-            vartype: The type of the variable.
-            name: The name of the variable.
+    def _add_variables(self,
+                       lowerbound: Union[float, int] = 0,
+                       upperbound: Union[float, int] = INFINITY,
+                       vartype: VarType = VarType.CONTINUOUS,
+                       name: Optional[str] = None,
+                       formatter: Optional[str] = None,
+                       var_count: int = 1) -> Dict[str, Variable]:
+        if var_count < 1:
+            raise QiskitOptimizationError(
+                "Cannot create non-positive number of variables: {}".format(var_count))
+        if not name and formatter:
+            name = 'x'
+        if name and not formatter:
+            if var_count > 1:
+                formatter = '{}'
+            else:
+                formatter = ''
+                if name in self._variables_index:
+                    raise QiskitOptimizationError("Variable name already exists: {}".format(name))
+        if not name and not formatter:
+            name = 'x'
+            formatter = '{}'
+        return self._create_var_dict_update_maps(lowerbound, upperbound, vartype, name, formatter,
+                                                 var_count)
 
-        Returns:
-            The added variable.
-
-        Raises:
-            QiskitOptimizationError: if the variable name is already taken.
-
-        """
-        if name:
-            if name in self._variables_index:
-                raise QiskitOptimizationError("Variable name already exists: {}".format(name))
-        else:
-            k = self.get_num_vars()
-            while 'x{}'.format(k) in self._variables_index:
+    def _create_var_dict_update_maps(self,
+                                     lowerbound: Union[float, int],
+                                     upperbound: Union[float, int],
+                                     vartype: VarType,
+                                     name: str,
+                                     formatter: str,
+                                     var_count: int) -> Dict[str, Variable]:
+        if '{{}}' in formatter:
+            raise QiskitOptimizationError(
+                "Formatter cannot contain nested substitutions: {}".format(formatter))
+        substitution_count = formatter.count('{}')
+        if substitution_count > 1:
+            raise QiskitOptimizationError(
+                "Formatter cannot contain more than one substitution: {}".format(formatter))
+        new_var_dict = {}
+        k = self.get_num_vars()
+        for _ in range(var_count):
+            while name + formatter.format(k) in self._variables_index:
                 k += 1
-            name = 'x{}'.format(k)
+            indexed_name = name + formatter.format(k)
+            new_var_dict[indexed_name] = self._create_var_update_maps(lowerbound,
+                                                                      upperbound,
+                                                                      vartype, indexed_name)
+        return new_var_dict
+
+    def _create_var_update_maps(self,
+                                lowerbound: Union[float, int],
+                                upperbound: Union[float, int],
+                                vartype: VarType,
+                                name: str) -> Variable:
         self.variables_index[name] = len(self.variables)
         variable = Variable(self, name, lowerbound, upperbound, vartype)
         self.variables.append(variable)
         return variable
 
-    def continuous_var(self, lowerbound: Union[float, int] = 0,
+    def var_dict(self,
+                 lowerbound: Union[float, int] = 0,
+                 upperbound: Union[float, int] = INFINITY,
+                 vartype: VarType = VarType.CONTINUOUS,
+                 name: Optional[str] = None,
+                 formatter: Optional[str] = None,
+                 var_count: int = 1) -> Dict[str, Variable]:
+        """
+        Adds a positive number of variables to the variable list and index and returns a
+        dictionary mapping the variable names to their instances. If 'formatter' is present,
+        the next 'var_count' available indices are substituted into 'formatter' and appended
+        to 'name'.
+
+        Args:
+            lowerbound: The lower bound of the variable(s).
+            upperbound: The upper bound of the variable(s).
+            vartype: The type of the variable(s).
+            name: The name(s) of the variable(s).
+            formatter: The format used to name/index the variable(s).
+            var_count: The number of variables to construct.
+
+        Returns:
+            A dictionary mapping the variable names to variable instances.
+
+        Raises:
+            QiskitOptimizationError: if the variable name is already taken.
+            QiskitOptimizationError: if less than one variable instantiation is attempted.
+            QiskitOptimizationError: if the formatter has more than one substitution or a
+                                     nested substitution.
+        """
+        return self._add_variables(lowerbound, upperbound, vartype, name, formatter, var_count)
+
+    def continuous_var(self,
+                       lowerbound: Union[float, int] = 0,
                        upperbound: Union[float, int] = INFINITY,
                        name: Optional[str] = None) -> Variable:
         """Adds a continuous variable to the quadratic program.
@@ -199,6 +265,34 @@ class QuadraticProgram:
         """
         return self._add_variable(lowerbound, upperbound, Variable.Type.CONTINUOUS, name)
 
+    def continuous_var_dict(self,
+                            lowerbound: Union[float, int] = 0,
+                            upperbound: Union[float, int] = INFINITY,
+                            name: Optional[str] = None,
+                            formatter: Optional[str] = None,
+                            var_count: int = 1) -> Dict[str, Variable]:
+        """
+        Uses 'var_dict' to construct a dictionary of continuous variables
+
+        Args:
+            lowerbound: The lower bound of the variable(s).
+            upperbound: The upper bound of the variable(s).
+            name: The name(s) of the variable(s).
+            formatter: The format used to name/index the variable(s).
+            var_count: The number of variables to construct.
+
+        Returns:
+            A dictionary mapping the variable names to variable instances.
+
+        Raises:
+            QiskitOptimizationError: if the variable name is already taken.
+            QiskitOptimizationError: if less than one variable instantiation is attempted.
+            QiskitOptimizationError: if the formatter has more than one substitution or a
+                                     nested substitution.
+        """
+        return self.var_dict(lowerbound, upperbound, Variable.Type.CONTINUOUS, name, formatter,
+                             var_count)
+
     def binary_var(self, name: Optional[str] = None) -> Variable:
         """Adds a binary variable to the quadratic program.
 
@@ -213,7 +307,31 @@ class QuadraticProgram:
         """
         return self._add_variable(0, 1, Variable.Type.BINARY, name)
 
-    def integer_var(self, lowerbound: Union[float, int] = 0,
+    def binary_var_dict(self,
+                        name: Optional[str] = None,
+                        formatter: Optional[str] = None,
+                        var_count: int = 1) -> Dict[str, Variable]:
+        """
+        Uses 'var_dict' to construct a dictionary of binary variables
+
+        Args:
+            name: The name(s) of the variable(s).
+            formatter: The format used to name/index the variable(s).
+            var_count: The number of variables to construct.
+
+        Returns:
+            A dictionary mapping the variable names to variable instances.
+
+        Raises:
+            QiskitOptimizationError: if the variable name is already taken.
+            QiskitOptimizationError: if less than one variable instantiation is attempted.
+            QiskitOptimizationError: if the formatter has more than one substitution or a
+                                     nested substitution.
+        """
+        return self.var_dict(0, 1, Variable.Type.BINARY, name, formatter, var_count)
+
+    def integer_var(self,
+                    lowerbound: Union[float, int] = 0,
                     upperbound: Union[float, int] = INFINITY,
                     name: Optional[str] = None) -> Variable:
         """Adds an integer variable to the quadratic program.
@@ -230,6 +348,34 @@ class QuadraticProgram:
             QiskitOptimizationError: if the variable name is already occupied.
         """
         return self._add_variable(lowerbound, upperbound, Variable.Type.INTEGER, name)
+
+    def integer_var_dict(self,
+                         lowerbound: Union[float, int] = 0,
+                         upperbound: Union[float, int] = INFINITY,
+                         name: Optional[str] = None,
+                         formatter: Optional[str] = None,
+                         var_count: int = 1) -> Dict[str, Variable]:
+        """
+        Uses 'var_dict' to construct a dictionary of integer variables
+
+        Args:
+            lowerbound: The lower bound of the variable(s).
+            upperbound: The upper bound of the variable(s).
+            name: The name(s) of the variable(s).
+            formatter: The format used to name/index the variable(s).
+            var_count: The number of variables to construct.
+
+        Returns:
+            A dictionary mapping the variable names to variable instances.
+
+        Raises:
+            QiskitOptimizationError: if the variable name is already taken.
+            QiskitOptimizationError: if less than one variable instantiation is attempted.
+            QiskitOptimizationError: if the formatter has more than one substitution or a
+                                     nested substitution.
+        """
+        return self.var_dict(lowerbound, upperbound, Variable.Type.INTEGER, name, formatter,
+                             var_count)
 
     def get_variable(self, i: Union[int, str]) -> Variable:
         """Returns a variable for a given name or index.
@@ -672,7 +818,7 @@ class QuadraticProgram:
             if right_expr.is_quad_expr():
                 for x in right_expr.linear_part.iter_variables():
                     linear[var_names[x]] = linear.get(var_names[x], 0.0) - \
-                        right_expr.linear_part.get_coef(x)
+                                           right_expr.linear_part.get_coef(x)
                 for quad_triplet in right_expr.iter_quad_triplets():
                     i = var_names[quad_triplet[0]]
                     j = var_names[quad_triplet[1]]
@@ -1116,8 +1262,7 @@ class QuadraticProgram:
         if len(x) != self.get_num_vars():
             raise QiskitOptimizationError(
                 'The size of solution `x`: {}, does not match the number of problem variables: {}'
-                .format(len(x), self.get_num_vars())
-            )
+                .format(len(x), self.get_num_vars()))
 
         # check whether the input satisfy the bounds of the problem
         violated_variables = []     # type: List[Variable]

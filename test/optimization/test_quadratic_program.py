@@ -21,7 +21,7 @@ from docplex.mp.model import Model, DOcplexException
 
 from qiskit.aqua import MissingOptionalLibraryError
 from qiskit.optimization import QuadraticProgram, QiskitOptimizationError, INFINITY
-from qiskit.optimization.problems import Variable, Constraint, QuadraticObjective
+from qiskit.optimization.problems import Variable, Constraint, QuadraticObjective, VarType
 
 
 class TestQuadraticProgram(QiskitOptimizationTestCase):
@@ -65,6 +65,70 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         name = 'test name'
         q_p.name = name
         self.assertEqual(q_p.name, name)
+
+    def test_create_var_dict(self):
+        """test var_dict"""
+        q_p = QuadraticProgram()
+
+        c_count = 0
+        b_count = 0
+        i_count = 0
+
+        def verify_counts():
+            self.assertEqual(q_p.get_num_vars(), c_count + b_count + i_count)
+            self.assertEqual(q_p.get_num_continuous_vars(), c_count)
+            self.assertEqual(q_p.get_num_binary_vars(), b_count)
+            self.assertEqual(q_p.get_num_integer_vars(), i_count)
+
+        def check_dict(var_dict, offset):
+            verify_counts()
+            variables = var_dict.values()
+            for i, x in enumerate(variables):
+                y = q_p.get_variable(i + offset)
+                z = q_p.get_variable(x.name)
+                assert_equal(x, y)
+                assert_equal(x, z)
+
+        def assert_equal(x: Variable, y: Variable):
+            self.assertEqual(x.name, y.name)
+            self.assertEqual(x.lowerbound, y.lowerbound)
+            self.assertEqual(x.upperbound, y.upperbound)
+            self.assertEqual(x.vartype, y.vartype)
+
+        d_0 = q_p.var_dict(name='a', formatter='_{}', var_count=3)
+        c_count += 3
+        check_dict(d_0, 0)
+
+        d_1 = q_p.var_dict(name='b', var_count=5, lowerbound=0, upperbound=1,
+                           vartype=VarType.BINARY)
+        b_count += 5
+        check_dict(d_1, len(d_0))
+
+        d_2 = q_p.var_dict(formatter='_{}', var_count=7, lowerbound=-4, upperbound=10,
+                           vartype=VarType.INTEGER)
+        i_count += 7
+        check_dict(d_2, len(d_0) + len(d_1))
+
+        d_3 = q_p.var_dict(name='a', formatter='_{}', var_count=3)
+        c_count += 3
+        check_dict(d_3, len(d_0) + len(d_1) + len(d_2))
+
+        with self.assertRaises(QiskitOptimizationError):
+            q_p = QuadraticProgram()
+            q_p.var_dict(formatter='{}{}')
+
+        with self.assertRaises(QiskitOptimizationError):
+            q_p = QuadraticProgram()
+            q_p.var_dict(var_count=0)
+
+        with self.assertRaises(QiskitOptimizationError):
+            q_p = QuadraticProgram()
+            q_p.var_dict(name='a')
+            q_p.var_dict(name='a')
+
+        with self.assertRaises(QiskitOptimizationError):
+            q_p = QuadraticProgram()
+            q_p.var_dict(formatter='_{{}}')
 
     def test_variables_handling(self):
         """ test add variables """
@@ -565,13 +629,13 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         x = mod.binary_var()
         y = mod.continuous_var()
         z = mod.integer_var()
-        mod.minimize(x+y+z + x*y + y*z + x*z)
-        mod.add_constraint(x+y == z)  # linear EQ
-        mod.add_constraint(x+y >= z)  # linear GE
-        mod.add_constraint(x+y <= z)  # linear LE
-        mod.add_constraint(x*y == z)  # quadratic EQ
-        mod.add_constraint(x*y >= z)  # quadratic GE
-        mod.add_constraint(x*y <= z)  # quadratic LE
+        mod.minimize(x + y + z + x * y + y * z + x * z)
+        mod.add_constraint(x + y == z)  # linear EQ
+        mod.add_constraint(x + y >= z)  # linear GE
+        mod.add_constraint(x + y <= z)  # linear LE
+        mod.add_constraint(x * y == z)  # quadratic EQ
+        mod.add_constraint(x * y >= z)  # quadratic GE
+        mod.add_constraint(x * y <= z)  # quadratic LE
         q_p = QuadraticProgram()
         q_p.from_docplex(mod)
         var_names = [v.name for v in q_p.variables]
