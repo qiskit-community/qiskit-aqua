@@ -182,7 +182,7 @@ class Grover_new(QuantumAlgorithm):
                 else:
                     raise TypeError('If init_state is of type InitialState, oracle must be of type '
                                     'Oracle')
-            elif not isinstance(state_preparation, QuantumCircuit) and not state_preparation is None:
+            elif not isinstance(state_preparation, QuantumCircuit) and state_preparation is not None:
                 raise TypeError('Unsupported type "{}" of state_preparation'.format(
                     type(state_preparation)))
 
@@ -224,8 +224,8 @@ class Grover_new(QuantumAlgorithm):
         if incremental:
             self._num_iterations = 1
         elif num_solutions:
-            self._num_iterations = np.pi*np.sqrt(
-                2**len(self._grover_operator.reflection_qubits)/num_solutions)/4
+            self._num_iterations = round(np.pi*np.sqrt(
+                2**len(self._grover_operator.reflection_qubits)/num_solutions)/4)
         else:
             self._num_iterations = num_iterations
 
