@@ -16,11 +16,15 @@ import unittest
 from test.optimization import QiskitOptimizationTestCase
 from docplex.mp.model import Model
 import numpy as np
+
 from qiskit import Aer
 from qiskit.aqua import aqua_globals, QuantumInstance
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
+
 from qiskit.optimization.algorithms import GroverOptimizer, MinimumEigenOptimizer
 from qiskit.optimization.problems import QuadraticProgram
+from qiskit.optimization.converters import (IntegerToBinary, InequalityToEquality,
+                                            LinearEqualityToPenalty, QuadraticProgramToQubo)
 
 
 class TestGroverOptimizer(QiskitOptimizationTestCase):
@@ -116,6 +120,40 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
         gmf = GroverOptimizer(6, num_iterations=n_iter, quantum_instance=self.q_instance)
         results = gmf.solve(op)
         self.validate_results(op, results)
+
+    def test_converter_list(self):
+        """Test converters list"""
+        # Input.
+        model = Model()
+        x_0 = model.binary_var(name='x0')
+        x_1 = model.binary_var(name='x1')
+        model.maximize(-x_0+2*x_1)
+        op = QuadraticProgram()
+        op.from_docplex(model)
+
+        # Get the optimum key and value.
+        n_iter = 8
+        # a single converter.
+        qp2qubo = QuadraticProgramToQubo()
+        gmf = GroverOptimizer(4, num_iterations=n_iter, quantum_instance=self.q_instance,
+                              converters=qp2qubo)
+        results = gmf.solve(op)
+        self.validate_results(op, results)
+        # a list of converters
+        ineq2eq = InequalityToEquality()
+        int2bin = IntegerToBinary()
+        penalize = LinearEqualityToPenalty()
+        converters = [ineq2eq, int2bin, penalize]
+        gmf = GroverOptimizer(4, num_iterations=n_iter, quantum_instance=self.q_instance,
+                              converters=converters)
+        results = gmf.solve(op)
+        self.validate_results(op, results)
+        # invalid converters
+        with self.assertRaises(TypeError):
+            invalid = [qp2qubo, "invalid converter"]
+            GroverOptimizer(4, num_iterations=n_iter,
+                            quantum_instance=self.q_instance,
+                            converters=invalid)
 
 
 if __name__ == '__main__':
