@@ -209,7 +209,7 @@ class Grover_new(QuantumAlgorithm):
             print(oracle)
             #print(reflection_qubits)
             print(oracle.num_qubits)
-            print(oracle.num_ancillas)
+            #print(oracle.num_ancillas)
 
             self._grover_operator = GroverOperator(oracle=oracle,
                                                    state_preparation=state_preparation,
@@ -310,7 +310,7 @@ class Grover_new(QuantumAlgorithm):
             oracle_evaluation, _ = self._is_good_state(bitstr)
             return oracle_evaluation
         elif isinstance(self._is_good_state, list):
-            return all([bitstr[index] == '1' for index in self._is_good_state])
+            return bitstr in self._is_good_state
         elif isinstance(self._is_good_state, Statevector):
             return bitstr in self._is_good_state.probabilities_dict()
         else:

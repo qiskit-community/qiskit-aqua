@@ -23,7 +23,7 @@ from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import Grover
 from qiskit.aqua.algorithms.amplitude_amplifiers.grover_new import Grover_new
 from qiskit.aqua.components.oracles import LogicalExpressionOracle as LEO, TruthTableOracle as TTO
-
+from qiskit.quantum_info import Statevector
 
 TESTS = [
     ['p cnf 3 5 \n -1 -2 -3 0 \n 1 -2 3 0 \n 1 2 -3 0 \n 1 -2 -3 0 \n -1 2 3 0',
@@ -85,6 +85,31 @@ class TestGrover(QiskitAquaTestCase):
 
 # make new class for test
 # constructor
+
+class TestGroverConstructor(QiskitAquaTestCase):
+    """Test for the constructor of Grover"""
+    def test_oracle_quantumcircuit(self):
+        """Test QuantumCircuit oracle"""
+        oracle = QuantumCircuit(2)
+        oracle.cz(0,1)
+        grover = Grover_new(oracle=oracle, is_good_state=["11"])
+        backend = BasicAer.get_backend("qasm_simulator")
+        quantum_instance = QuantumInstance(backend, shots=1000)
+        ret = grover.run(quantum_instance)
+        self.assertEqual(ret['top_measurement'], "11")
+
+    def test_oracle_statevector(self):
+        """Test StateVector oracle"""
+        mark_state = Statevector.from_label('011')
+        grover=Grover_new(oracle=mark_state, is_good_state=['011'])
+        backend = BasicAer.get_backend("qasm_simulator")
+        quantum_instance = QuantumInstance(backend, shots=1000)
+        ret = grover.run(quantum_instance)
+        self.assertEqual(ret['top_measurement'], "011")
+
+
+
+
 
 # test all public method
 
