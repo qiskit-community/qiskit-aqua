@@ -373,7 +373,7 @@ def vacuum_operator(fer_op):
     num_qubits = edge_list.shape[1]
     vac_operator = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
 
-    graph = retworkx.Graph()
+    graph = retworkx.PyGraph()
     graph.extend_from_edge_list(list(map(tuple, edge_list.transpose())))
     stabs = np.asarray(retworkx.cycle_basis(graph))
     for stab in stabs:
