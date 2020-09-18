@@ -163,12 +163,12 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         self._history = history
 
         if converters is None:
-            self._converters = [QuadraticProgramToQubo()]
+            self._converters = [QuadraticProgramToQubo()]  # type: ignore
         elif isinstance(converters, QuadraticProgramConverter):
-            self._converters = [converters]
+            self._converters = [converters]  # type: ignore
         elif isinstance(converters, list) and \
                 all(isinstance(converter, QuadraticProgramConverter) for converter in converters):
-            self._converters = converters
+            self._converters = converters  # type: ignore
         else:
             raise TypeError('There are the unsupported types of converters in `converters`')
 
