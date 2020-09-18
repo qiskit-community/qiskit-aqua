@@ -1,0 +1,13 @@
+---
+features:
+  - |
+    New Linear Solver result classes:
+
+    :class:`~qiskit.aqua.algorithms.HHL` method
+    :meth:`~qiskit.aqua.algorithms.HHL._run`
+    returns class :class:`~qiskit.aqua.algorithms.HHLResult`.
+    :class:`~qiskit.aqua.algorithms.NumPyLSsolver` method
+    :meth:`~qiskit.aqua.algorithms.NumPyLSsolver._run`
+    returns class :class:`~qiskit.aqua.algorithms.NumPyLSsolverResult`.
+
+    All new result classes are backwards compatible with previous result dictionary.
