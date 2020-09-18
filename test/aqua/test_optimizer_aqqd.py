@@ -39,18 +39,26 @@ class TestOptimizerAQGD(QiskitAquaTestCase):
         }
         self.qubit_op = WeightedPauliOperator.from_dict(pauli_dict)
 
-    def test_aqgd(self):
-        """ test AQGD optimizer by using it """
-
+    def test_simple(self):
+        """ test AQGD optimizer with the parameters as single values."""
         q_instance = QuantumInstance(BasicAer.get_backend('statevector_simulator'),
                                      seed_simulator=aqua_globals.random_seed,
                                      seed_transpiler=aqua_globals.random_seed)
+
         aqgd = AQGD(momentum=0.0)
         result = VQE(self.qubit_op, RealAmplitudes(), aqgd).run(q_instance)
         self.assertAlmostEqual(result.eigenvalue.real, -1.857, places=3)
+
+    def test_list(self):
+        """ test AQGD optimizer with the parameters as lists. """
+        q_instance = QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                     seed_simulator=aqua_globals.random_seed,
+                                     seed_transpiler=aqua_globals.random_seed)
 
         aqgd = AQGD(maxiter=[1000, 1000, 1000], eta=[1.0, 0.5, 0.3], momentum=[0.0, 0.5, 0.75])
         result = VQE(self.qubit_op, RealAmplitudes(), aqgd).run(q_instance)
         self.assertAlmostEqual(result.eigenvalue.real, -1.857, places=3)
 
+    def test_raises_exception(self):
+        """ tests that AQGD raises an exception when incorrect values are passed. """
         self.assertRaises(AquaError, AQGD, maxiter=[1000], eta=[1.0, 0.5], momentum=[0.0, 0.5])

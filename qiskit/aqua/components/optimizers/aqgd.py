@@ -94,7 +94,10 @@ class AQGD(Optimizer):
         self._tol = tol
         self._averaging = averaging
         if disp:
-            warnings.warn('disp deprecated, enable logging instead.', DeprecationWarning)
+            warnings.warn('The disp parameter is deprecated as of '
+                          '0.8.0 and will be removed no sooner than 3 months after the release. '
+                          'The information is now available if you enable INFO level logging.',
+                          DeprecationWarning, stacklevel=2)
         self._disp = disp
 
         # state
@@ -104,7 +107,7 @@ class AQGD(Optimizer):
         self._prev_loss = []    # type: List[float]
         self._prev_grad = []    # type: List[List[float]]
 
-    def get_support_level(self) -> Dict[str, int]:
+    def get_support_level(self) -> Dict[str, OptimizerSupportLevel]:
         """ Support level dictionary
 
         Returns:
