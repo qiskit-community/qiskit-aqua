@@ -18,12 +18,15 @@ import unittest
 import itertools
 from test.aqua import QiskitAquaTestCase
 from ddt import ddt, idata, unpack
-from qiskit import BasicAer
+from qiskit import BasicAer, QuantumCircuit
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import Grover
 from qiskit.aqua.algorithms.amplitude_amplifiers.grover_new import Grover_new
 from qiskit.aqua.components.oracles import LogicalExpressionOracle as LEO, TruthTableOracle as TTO
-from qiskit.quantum_info import Statevector
+from qiskit.quantum_info import Statevector, Operator
+from qiskit.aqua.components.initial_states import Zero
+from qiskit.circuit.library import GroverOperator
+
 
 TESTS = [
     ['p cnf 3 5 \n -1 -2 -3 0 \n 1 -2 3 0 \n 1 2 -3 0 \n 1 -2 -3 0 \n -1 2 3 0',
@@ -59,7 +62,7 @@ class TestGrover(QiskitAquaTestCase):
     )
     @unpack
     def test_grover_oracle(self, input_test, sol, oracle_cls, mct_mode,
-                    simulator, optimization, lam, rotation_counts):
+                           simulator, optimization, lam, rotation_counts):
         """ grover test """
         groundtruth = sol
         oracle = oracle_cls(input_test, optimization=optimization)
@@ -86,12 +89,14 @@ class TestGrover(QiskitAquaTestCase):
 # make new class for test
 # constructor
 
+
 class TestGroverConstructor(QiskitAquaTestCase):
     """Test for the constructor of Grover"""
+
     def test_oracle_quantumcircuit(self):
         """Test QuantumCircuit oracle"""
         oracle = QuantumCircuit(2)
-        oracle.cz(0,1)
+        oracle.cz(0, 1)
         grover = Grover_new(oracle=oracle, is_good_state=["11"])
         backend = BasicAer.get_backend("qasm_simulator")
         quantum_instance = QuantumInstance(backend, shots=1000)
@@ -101,17 +106,94 @@ class TestGroverConstructor(QiskitAquaTestCase):
     def test_oracle_statevector(self):
         """Test StateVector oracle"""
         mark_state = Statevector.from_label('011')
-        grover=Grover_new(oracle=mark_state, is_good_state=['011'])
+        grover = Grover_new(oracle=mark_state, is_good_state=['011'])
         backend = BasicAer.get_backend("qasm_simulator")
         quantum_instance = QuantumInstance(backend, shots=1000)
         ret = grover.run(quantum_instance)
         self.assertEqual(ret['top_measurement'], "011")
 
+    def test_state_preparation_quantumcircuit(self):
+        """Test QuantumCircuit state_preparation"""
+        state_preparation = QuantumCircuit(3)
+        state_preparation.h([0, 1])
 
+        oracle = QuantumCircuit(3)
+        oracle.cz(0, 1)
+        grover = Grover_new(oracle=oracle, state_preparation=state_preparation,
+                            is_good_state=["011"])
+        backend = BasicAer.get_backend("qasm_simulator")
+        quantum_instance = QuantumInstance(backend, shots=1000)
+        ret = grover.run(quantum_instance)
+        self.assertEqual(ret['top_measurement'], "011")
 
+    def test_state_preparation_type_error(self):
+        """Test InitialState state_preparation with QuantumCircuit oracle"""
+        init_state = Zero(2)
+        oracle = QuantumCircuit(2)
+        oracle.cz(0, 1)
+        with self.assertRaises(TypeError):
+            Grover_new(oracle=oracle, state_preparation=init_state)
 
+    def test_is_good_state_list(self):
+        """Test List is_good_state"""
+        oracle = QuantumCircuit(2)
+        oracle.cz(0, 1)
+        is_good_state = ["11", "00"]
+        grover = Grover_new(oracle=oracle, is_good_state=is_good_state)
+        backend = BasicAer.get_backend("qasm_simulator")
+        quantum_instance = QuantumInstance(backend, shots=1000)
+        ret = grover.run(quantum_instance)
+        self.assertEqual(ret['top_measurement'], "11")
+
+    def test_is_good_state_statevector(self):
+        """Test StateVector is_good_state"""
+        oracle = QuantumCircuit(2)
+        oracle.cz(0, 1)
+        is_good_state = Statevector.from_label('11')
+        grover = Grover_new(oracle=oracle, is_good_state=is_good_state)
+        backend = BasicAer.get_backend("qasm_simulator")
+        quantum_instance = QuantumInstance(backend, shots=1000)
+        ret = grover.run(quantum_instance)
+        self.assertEqual(ret['top_measurement'], "11")
+
+    def test_grover_operator(self):
+        """Test GroverOperator"""
+        oracle = QuantumCircuit(2)
+        oracle.cz(0, 1)
+        grover_op = GroverOperator(oracle)
+        grover = Grover_new(oracle=grover_op.oracle,
+                            grover_operator=grover_op, is_good_state=["11"])
+        backend = BasicAer.get_backend("qasm_simulator")
+        quantum_instance = QuantumInstance(backend, shots=1000)
+        ret = grover.run(quantum_instance)
+        self.assertEqual(ret['top_measurement'], "11")
 
 # test all public method
+
+
+class TestGroverPublicMethods(QiskitAquaTestCase):
+    def test_qc_amplitude_amplification_iteration(self):
+        oracle = QuantumCircuit(2)
+        oracle.cz(0, 1)
+        grover = Grover_new(oracle=oracle, is_good_state=["11"])
+        qcaa = grover.qc_amplitude_amplification_iteration
+        expected = QuantumCircuit(2)
+        expected.cz(0, 1)
+        expected.h([0, 1])
+        expected.x([0, 1])
+        expected.h([1])
+        expected.cx(0, 1)
+        expected.h([1])
+        expected.x([0, 1])
+        expected.h([0, 1])
+        self.assertTrue(Operator(qcaa).equiv(Operator(qcaa)))
+
+    def test_is_good_state(self):
+        oracle = QuantumCircuit(2)
+        oracle.cz(0, 1)
+        grover = Grover_new(oracle=oracle, is_good_state=["11"])
+
+
 
 # run
 
