@@ -101,7 +101,8 @@ class TestQGAN(QiskitAquaTestCase):
     def test_qgan_training_cg(self):
         """Test QGAN training."""
         optimizer = CG(maxiter=10)
-        self.qgan.set_generator(generator_circuit=self.generator_circuit, generator_optimizer=optimizer)
+        self.qgan.set_generator(generator_circuit=self.generator_circuit,
+                                generator_optimizer=optimizer)
         trained_statevector = self.qgan.run(self.qi_statevector)
         trained_qasm = self.qgan.run(self.qi_qasm)
         self.assertAlmostEqual(trained_qasm['rel_entr'], trained_statevector['rel_entr'], delta=0.1)
@@ -109,7 +110,8 @@ class TestQGAN(QiskitAquaTestCase):
     def test_qgan_training_spsa(self):
         """Test QGAN training."""
         optimizer = SPSA(maxiter=10)
-        self.qgan.set_generator(generator_circuit=self.generator_circuit, generator_optimizer=optimizer)
+        self.qgan.set_generator(generator_circuit=self.generator_circuit,
+                                generator_optimizer=optimizer)
         trained_statevector = self.qgan.run(self.qi_statevector)
         trained_qasm = self.qgan.run(self.qi_qasm)
         self.assertAlmostEqual(trained_qasm['rel_entr'], trained_statevector['rel_entr'], delta=0.1)
