@@ -31,41 +31,20 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
     MinimumEigensolverGroundStateCalculation
     """
 
-    def __init__(self,
-                 solver: Optional[MinimumEigensolver] = None,
-                 transformation: TransformationType = TransformationType.FULL,
-                 qubit_mapping: QubitMappingType = QubitMappingType.PARITY,
-                 two_qubit_reduction: bool = True,
-                 freeze_core: bool = False,
-                 orbital_reduction: Optional[List[int]] = None,
-                 z2symmetry_reduction: Optional[Union[str, List[int]]] = None) -> None:
+    def __init__(self, solver: Optional[MinimumEigensolver] = None, transformation) -> None:
         """
         Args:
             solver: a minimum eigensolver
-            transformation: full or particle_hole
-            qubit_mapping: jordan_wigner, parity or bravyi_kitaev
-            two_qubit_reduction: Whether two qubit reduction should be used,
-                                  when parity mapping only
-            freeze_core: Whether to freeze core orbitals when possible
-            orbital_reduction: Orbital list to be frozen or removed
-            z2symmetry_reduction: If z2 symmetry reduction should be applied to the qubit operators
-                 that are computed. Setting 'auto' will
-                 use an automatic computation of the correct sector. If from other experiments, with
-                 the z2symmetry logic, the sector is known, then the tapering values of that sector
-                 can be provided (a list of int of values -1, and 1). The default is None
-                 meaning no symmetry reduction is done.
-                 See also :class:`~qiskit.chemistry.core.Hamiltonian` which has the core
-                 processing behind this class.
+            transformation:
         """
 
         self._solver = solver
-        super().__init__(transformation, qubit_mapping, two_qubit_reduction, freeze_core,
-                         orbital_reduction, z2symmetry_reduction)
+        super().__init__(transformation)
 
     def compute_ground_state(self,
                              driver: BaseDriver,
                              callback: Optional[Callable[[List, int, str, bool, Z2Symmetries],
-                                                         MinimumEigensolver]] = None
+                                                         MinimumEigensolver]] = None  # WOR: callback should be in constructor, and possibly follow an interface
                              ) -> MolecularGroundStateResult:
         """Compute Ground State properties.
 
@@ -86,9 +65,9 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
         """
 
         if self._solver is None and callback is None:
-            raise QiskitChemistryError('Minimum Eigensolvaer was not provided')
+            raise QiskitChemistryError('Minimum Eigensolver was not provided')
 
-        operator, aux_operators = self._transform(driver)
+        operator, aux_operators = self._transformation.transform(driver)
 
         if callback is not None:
             num_particles = self.molecule_info[ChemistryOperator.INFO_NUM_PARTICLES]
@@ -102,31 +81,39 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
 
         raw_gs_result = self._solver.compute_minimum_eigenstate(operator, aux_operators)
 
-        return self._core.process_algorithm_result(raw_gs_result)
+        # WOR: where should this post processing be coming from?
+        gsc_result = self._transformation.interpret(raw_gs_result['energy'], r['aux_values'], groundstate)  # gs = array/circuit+params
+        gsc_result.raw_result = raw_gs_results
 
-    @staticmethod
-    def get_default_solver(quantum_instance: Union[QuantumInstance, BaseBackend]) ->\
-            Optional[Callable[[List, int, str, bool, Z2Symmetries], MinimumEigensolver]]:
-        """
-        Get the default solver callback that can be used with :meth:`compute_energy`
-        Args:
-            quantum_instance: A Backend/Quantum Instance for the solver to run on
+        return
+        # (energy, aux_values, groundsntate)
 
-        Returns:
-            Default solver callback
-        """
-        def cb_default_solver(num_particles, num_orbitals,
-                              qubit_mapping, two_qubit_reduction, z2_symmetries):
-            """ Default solver """
-            initial_state = HartreeFock(num_orbitals, num_particles, qubit_mapping,
-                                        two_qubit_reduction, z2_symmetries.sq_list)
-            var_form = UCCSD(num_orbitals=num_orbitals,
-                             num_particles=num_particles,
-                             initial_state=initial_state,
-                             qubit_mapping=qubit_mapping,
-                             two_qubit_reduction=two_qubit_reduction,
-                             z2_symmetries=z2_symmetries)
-            vqe = VQE(var_form=var_form)
-            vqe.quantum_instance = quantum_instance
-            return vqe
-        return cb_default_solver
+
+    class MesFactory():
+
+
+        def get_default_solver(quantum_instance: Union[QuantumInstance, BaseBackend]) ->\
+                Optional[Callable[[List, int, str, bool, Z2Symmetries], MinimumEigensolver]]:
+            """
+            Get the default solver callback that can be used with :meth:`compute_energy`
+            Args:
+                quantum_instance: A Backend/Quantum Instance for the solver to run on
+
+            Returns:
+                Default solver callback
+            """
+            def cb_default_solver(num_particles, num_orbitals,
+                                qubit_mapping, two_qubit_reduction, z2_symmetries):
+                """ Default solver """
+                initial_state = HartreeFock(num_orbitals, num_particles, qubit_mapping,
+                                            two_qubit_reduction, z2_symmetries.sq_list)
+                var_form = UCCSD(num_orbitals=num_orbitals,
+                                num_particles=num_particles,
+                                initial_state=initial_state,
+                                qubit_mapping=qubit_mapping,
+                                two_qubit_reduction=two_qubit_reduction,
+                                z2_symmetries=z2_symmetries)
+                vqe = VQE(var_form=var_form)
+                vqe.quantum_instance = quantum_instance
+                return vqe
+            return cb_default_solver

@@ -18,10 +18,9 @@ from qiskit.chemistry.core import (Hamiltonian, TransformationType, QubitMapping
 from qiskit.chemistry.core import MolecularExcitedStatesResult
 
 
-class ExcitedStatesCalculation(GroundStateCalculation):
+class ExcitedStatesCalculation():  # should not derive from GSC, might make sense to have an abstract parent class for GSC and ESC that is responsible for conversion
 
-    def __init__(self,
-                 transformation: TransformationType = TransformationType.FULL,
+    def __init__(self, transformation: TransformationType = TransformationType.FULL,
                  qubit_mapping: QubitMappingType = QubitMappingType.PARITY,
                  two_qubit_reduction: bool = True,
                  freeze_core: bool = False,
