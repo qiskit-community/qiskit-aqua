@@ -343,14 +343,14 @@ class QuantumGenerator(GenerativeNetwork):
         Args:
             quantum_instance (QuantumInstance): used to run the generator circuit.
             shots (int): Number of shots for hardware or qasm execution.
-
         Returns:
             dict: generator loss(float) and updated parameters (array).
         """
 
         self._shots = shots
         if self._optimizer._maxiter != 1:
-            raise Warning('Please set the the optimizer maxiter argument to 1 to ensure that the generator '
+            raise Warning('Please set the the optimizer maxiter argument to 1 '
+                          'to ensure that the generator '
                           'and discriminator are updated in an alternating fashion.')
         objective = self._get_objective_function(quantum_instance, self._discriminator)
         self.generator_circuit.params, loss, _ = self._optimizer.optimize(
