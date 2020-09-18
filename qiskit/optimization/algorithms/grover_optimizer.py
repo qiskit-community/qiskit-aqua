@@ -181,7 +181,7 @@ class GroverOptimizer(OptimizationAlgorithm):
                 problem_.objective.linear[i] = -val
             for (i, j), val in problem_.objective.quadratic.to_dict().items():
                 problem_.objective.quadratic[i, j] = -val
-        self._num_key_qubits = len(problem_.objective.linear.to_array())
+        self._num_key_qubits = len(problem_.objective.linear.to_array())  # type: ignore
 
         # Variables for tracking the optimum.
         optimum_found = False
