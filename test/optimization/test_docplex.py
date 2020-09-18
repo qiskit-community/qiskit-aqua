@@ -165,15 +165,7 @@ class TestDocplex(QiskitOptimizationTestCase):
         elist = [(0, 1, 1.0), (0, 2, 1.0), (0, 3, 1.0), (1, 2, 1.0), (2, 3, 1.0)]
         graph.add_edges_from(elist)
         # Computing the weight matrix from the random graph
-        w = np.zeros([n, n])
-        for i in range(n):
-            for j in range(n):
-                if graph.has_edge(i, j):
-                    temp = graph.get_edge_data(i, j)
-                else:
-                    temp = 0
-                if temp != 0:
-                    w[i, j] = temp
+        w = rx.graph_adjacency_matrix(graph, lambda weight: weight)
 
         # Create an Ising Hamiltonian with docplex.
         mdl = Model(name='max_cut')
