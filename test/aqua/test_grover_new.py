@@ -220,7 +220,7 @@ class TestGroverPublicMethods(QiskitAquaTestCase):
         self.assertTrue(Operator(constructed).equiv(Operator(expected)))
 
 
-class TestGroverFunctionalTest(QiskitAquaTestCase):
+class TestGroverFunctionality(QiskitAquaTestCase):
     """Test for the public methods of Grover"""
 
     def test_num_iteration(self):
