@@ -22,7 +22,7 @@ from qiskit.aqua.components.uncertainty_models import (UniformDistribution,
 from qiskit.aqua.algorithms import QGAN
 from qiskit.aqua import aqua_globals, QuantumInstance
 from qiskit.aqua.components.initial_states import Custom
-from qiskit.aqua.components.optimizers import CG, SPSA
+from qiskit.aqua.components.optimizers import CG, COBYLA
 from qiskit.aqua.components.neural_networks import NumPyDiscriminator, PyTorchDiscriminator
 from qiskit import BasicAer
 
@@ -100,16 +100,16 @@ class TestQGAN(QiskitAquaTestCase):
 
     def test_qgan_training_cg(self):
         """Test QGAN training."""
-        optimizer = CG(maxiter=10)
+        optimizer = CG()
         self.qgan.set_generator(generator_circuit=self.generator_circuit,
                                 generator_optimizer=optimizer)
         trained_statevector = self.qgan.run(self.qi_statevector)
         trained_qasm = self.qgan.run(self.qi_qasm)
         self.assertAlmostEqual(trained_qasm['rel_entr'], trained_statevector['rel_entr'], delta=0.1)
 
-    def test_qgan_training_spsa(self):
+    def test_qgan_training_cobyla(self):
         """Test QGAN training."""
-        optimizer = SPSA(maxiter=10)
+        optimizer = COBYLA()
         self.qgan.set_generator(generator_circuit=self.generator_circuit,
                                 generator_optimizer=optimizer)
         trained_statevector = self.qgan.run(self.qi_statevector)

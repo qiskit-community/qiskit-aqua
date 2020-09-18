@@ -349,9 +349,9 @@ class QuantumGenerator(GenerativeNetwork):
         """
 
         self._shots = shots
-        # Force single optimization iteration
-        self._optimizer._maxiter = 1
-        self._optimizer._t = 0
+        if self._optimizer._maxiter != 1:
+            raise Warning('Please set the the optimizer maxiter argument to 1 to ensure that the generator '
+                          'and discriminator are updated in an alternating fashion.')
         objective = self._get_objective_function(quantum_instance, self._discriminator)
         self.generator_circuit.params, loss, _ = self._optimizer.optimize(
             num_vars=len(self.generator_circuit.params),
