@@ -804,7 +804,8 @@ class TestOpConstruction(QiskitAquaTestCase):
     def test_permute_list_op_with_inconsistent_num_qubits(self):
         """Test if permute raises error if ListOp contains operators with different num_qubits."""
         list_op = ListOp([X, X ^ X])
-        self.assertRaises(list_op.permute([0, 1]), AquaError)
+        # self.assertRaises(ValueError, list_op.permute([0, 1]))
+        self.assertRaises(AquaError, list_op.permute, [0, 1])
 
     @data(Z, CircuitOp(ZGate()), MatrixOp([[1, 0], [0, -1]]))
     def test_op_hashing(self, op):

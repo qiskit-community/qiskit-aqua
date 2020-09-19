@@ -13,7 +13,7 @@
 """ ListOp Operator Class """
 
 from functools import reduce
-from typing import List, Union, Optional, Callable, Iterator, Set, Dict
+from typing import List, Union, Optional, Callable, Iterator, Set, Dict, cast
 from numbers import Number
 
 import numpy as np
@@ -240,7 +240,7 @@ class ListOp(OperatorBase):
                 raise AquaError("New index must be defined for each qubit of the operator.")
         except ValueError:
             raise AquaError("Permute is only possible if all operators in the ListOp have the "
-                            "same number of qubits.")
+                            "same number of qubits.") from ValueError
         if self.num_qubits < circuit_size:
             # pad the operator with identities
             new_self = self._expand_dim(circuit_size - self.num_qubits)
@@ -261,14 +261,15 @@ class ListOp(OperatorBase):
     def compose(self, other: OperatorBase,
                 permutation: Optional[List[int]] = None, front: bool = False) -> OperatorBase:
 
-        self, other = self._expand_shorter_operator_and_permute(other,  # type: ignore
-                                                                permutation)
+        new_self, other = self._expand_shorter_operator_and_permute(other, permutation)
+        new_self = cast(ListOp, new_self)
+
         if front:
-            return other.compose(self)
+            return other.compose(new_self)
         # Avoid circular dependency
         # pylint: disable=cyclic-import,import-outside-toplevel
         from .composed_op import ComposedOp
-        return ComposedOp([self, other])
+        return ComposedOp([new_self, other])
 
     def power(self, exponent: int) -> OperatorBase:
         if not isinstance(exponent, int) or exponent <= 0:

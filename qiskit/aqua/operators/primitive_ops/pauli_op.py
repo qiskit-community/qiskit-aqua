@@ -125,26 +125,27 @@ class PauliOp(PrimitiveOp):
     def compose(self, other: OperatorBase,
                 permutation: Optional[List[int]] = None, front: bool = False) -> OperatorBase:
 
-        self, other = self._expand_shorter_operator_and_permute(other,  # type: ignore
-                                                                permutation)
+        new_self, other = self._expand_shorter_operator_and_permute(other, permutation)
+        # new_self = cast(PauliOp, new_self)
+
         if front:
-            return other.compose(self)
+            return other.compose(new_self)
         # If self is identity, just return other.
-        if not any(self.primitive.x + self.primitive.z):  # type: ignore
-            return other * self.coeff  # type: ignore
+        if not any(new_self.primitive.x + new_self.primitive.z):  # type: ignore
+            return other * new_self.coeff  # type: ignore
 
         # Both Paulis
         if isinstance(other, PauliOp):
-            product, phase = Pauli.sgn_prod(self.primitive, other.primitive)
-            return PrimitiveOp(product, coeff=self.coeff * other.coeff * phase)
+            product, phase = Pauli.sgn_prod(new_self.primitive, other.primitive)
+            return PrimitiveOp(product, coeff=new_self.coeff * other.coeff * phase)
 
         # pylint: disable=cyclic-import,import-outside-toplevel
         from .circuit_op import CircuitOp
         from ..state_fns.circuit_state_fn import CircuitStateFn
         if isinstance(other, (CircuitOp, CircuitStateFn)):
-            return self.to_circuit_op().compose(other)
+            return new_self.to_circuit_op().compose(other)
 
-        return super().compose(other)
+        return super().compose(other, permutation)
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
         if self.num_qubits > 16 and not massive:

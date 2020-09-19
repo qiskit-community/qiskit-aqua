@@ -154,16 +154,18 @@ class PrimitiveOp(OperatorBase):
         return temp
 
     def compose(self, other: OperatorBase,
-                permutation: Optional[List[int]] = None, front: bool = False) -> OperatorBase:
+                permutation: Optional[List[int]] = None, front: bool = False) -> \
+            OperatorBase:
         from ..list_ops.composed_op import ComposedOp
+        new_self, other = self._expand_shorter_operator_and_permute(other, permutation)
         if isinstance(other, ComposedOp):
-            comp_with_first = self.compose(other.oplist[0])
+            comp_with_first = new_self.compose(other.oplist[0])
             if not isinstance(comp_with_first, ComposedOp):
                 new_oplist = [comp_with_first] + other.oplist[1:]
                 return ComposedOp(new_oplist, coeff=other.coeff)
-            return ComposedOp([self] + other.oplist, coeff=other.coeff)  # type: ignore
+            return ComposedOp([new_self] + other.oplist, coeff=other.coeff)  # type: ignore
 
-        return ComposedOp([self, other])
+        return ComposedOp([new_self, other])
 
     def power(self, exponent: int) -> OperatorBase:
         if not isinstance(exponent, int) or exponent <= 0:

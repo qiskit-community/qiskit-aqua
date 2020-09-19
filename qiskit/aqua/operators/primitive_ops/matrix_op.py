@@ -12,7 +12,7 @@
 
 """ MatrixOp Class """
 
-from typing import Union, Optional, Set, Dict, List
+from typing import Union, Optional, Set, Dict, List, cast
 import logging
 import numpy as np
 from scipy.sparse import spmatrix
@@ -122,15 +122,16 @@ class MatrixOp(PrimitiveOp):
     def compose(self, other: OperatorBase,
                 permutation: Optional[List[int]] = None, front: bool = False) -> OperatorBase:
 
-        self, other = self._expand_shorter_operator_and_permute(other,  # type: ignore
-                                                                permutation)
-        if front:
-            return other.compose(self)
-        if isinstance(other, MatrixOp):
-            return MatrixOp(self.primitive.compose(other.primitive, front=True),  # type: ignore
-                            coeff=self.coeff * other.coeff)
+        new_self, other = self._expand_shorter_operator_and_permute(other, permutation)
+        # new_self = cast(MatrixOp, new_self)
 
-        return super().compose(other)
+        if front:
+            return other.compose(new_self)
+        if isinstance(other, MatrixOp):
+            return MatrixOp(new_self.primitive.compose(other.primitive, front=True),  # type: ignore
+                            coeff=new_self.coeff * other.coeff)
+
+        return super().compose(other, permutation)
 
     def permute(self, permutation: Optional[List[int]] = None) -> 'MatrixOp':
         """Creates a new MatrixOp that acts on the permuted qubits.

@@ -100,7 +100,7 @@ class EvolvedOp(PrimitiveOp):
         if front:
             return other.compose(new_self)
         if isinstance(other, ComposedOp):
-            return ComposedOp([new_self] + other.oplist)  # type: ignore
+            return ComposedOp([new_self] + other.oplist)
 
         return ComposedOp([new_self, other])
 

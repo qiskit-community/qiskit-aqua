@@ -111,10 +111,11 @@ class CircuitOp(PrimitiveOp):
     def compose(self, other: OperatorBase,
                 permutation: Optional[List[int]] = None, front: bool = False) -> OperatorBase:
 
-        self, other = self._expand_shorter_operator_and_permute(other,  # type: ignore
-                                                                permutation)
+        new_self, other = self._expand_shorter_operator_and_permute(other, permutation)
+        # new_self = cast(CircuitOp, new_self)
+
         if front:
-            return other.compose(self)
+            return other.compose(new_self)
         # ignore
         # pylint: disable=cyclic-import,import-outside-toplevel
         from ..operator_globals import Zero
@@ -122,22 +123,22 @@ class CircuitOp(PrimitiveOp):
         from .pauli_op import PauliOp
         from .matrix_op import MatrixOp
 
-        if other == Zero ^ self.num_qubits:
-            return CircuitStateFn(self.primitive, coeff=self.coeff)
+        if other == Zero ^ new_self.num_qubits:
+            return CircuitStateFn(new_self.primitive, coeff=new_self.coeff)
 
         if isinstance(other, (PauliOp, CircuitOp, MatrixOp)):
             other = other.to_circuit_op()
 
         if isinstance(other, (CircuitOp, CircuitStateFn)):
-            new_qc = other.primitive.compose(self.primitive)  # type: ignore
+            new_qc = other.primitive.compose(new_self.primitive)  # type: ignore
             if isinstance(other, CircuitStateFn):
                 return CircuitStateFn(new_qc,
                                       is_measurement=other.is_measurement,
-                                      coeff=self.coeff * other.coeff)
+                                      coeff=new_self.coeff * other.coeff)
             else:
-                return CircuitOp(new_qc, coeff=self.coeff * other.coeff)
+                return CircuitOp(new_qc, coeff=new_self.coeff * other.coeff)
 
-        return super().compose(other)
+        return super().compose(other, permutation)
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
         if self.num_qubits > 16 and not massive:
