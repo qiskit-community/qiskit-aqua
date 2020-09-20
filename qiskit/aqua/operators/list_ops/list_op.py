@@ -256,7 +256,7 @@ class ListOp(OperatorBase):
 
         from qiskit.aqua.operators import CircuitOp
 
-        return CircuitOp(qc.reverse_ops()) @ new_self @ CircuitOp(qc)  # type: ignore
+        return CircuitOp(qc.reverse_ops()) @ new_self @ CircuitOp(qc)
 
     def compose(self, other: OperatorBase,
                 permutation: Optional[List[int]] = None, front: bool = False) -> OperatorBase:
