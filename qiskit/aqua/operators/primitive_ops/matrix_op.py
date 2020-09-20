@@ -131,7 +131,7 @@ class MatrixOp(PrimitiveOp):
             return MatrixOp(new_self.primitive.compose(other.primitive, front=True),  # type: ignore
                             coeff=new_self.coeff * other.coeff)
 
-        return super().compose(other, permutation)
+        return super(MatrixOp, new_self).compose(other)
 
     def permute(self, permutation: Optional[List[int]] = None) -> 'MatrixOp':
         """Creates a new MatrixOp that acts on the permuted qubits.

@@ -138,7 +138,7 @@ class CircuitOp(PrimitiveOp):
             else:
                 return CircuitOp(new_qc, coeff=new_self.coeff * other.coeff)
 
-        return super().compose(other, permutation)
+        return super(CircuitOp, new_self).compose(other)
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
         if self.num_qubits > 16 and not massive:

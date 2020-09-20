@@ -145,7 +145,7 @@ class PauliOp(PrimitiveOp):
         if isinstance(other, (CircuitOp, CircuitStateFn)):
             return new_self.to_circuit_op().compose(other)
 
-        return super().compose(other, permutation)
+        return super(PauliOp, new_self).compose(other)
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
         if self.num_qubits > 16 and not massive:
