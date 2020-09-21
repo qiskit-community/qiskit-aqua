@@ -63,7 +63,7 @@ class GroundStateCalculation(ABC):
         """
         raise NotImplementedError()
 
-    @abstractmethod
-    def returns_groundstate() -> bool:
-        # needs to return whether this calculation only returns groundstate energies or also groundstates
-        raise NotImplementedError
+    #@abstractmethod
+    #def returns_groundstate() -> bool:
+    #    # needs to return whether this calculation only returns groundstate energies or also groundstates
+    #    raise NotImplementedError

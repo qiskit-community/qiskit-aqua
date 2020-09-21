@@ -31,7 +31,7 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
     MinimumEigensolverGroundStateCalculation
     """
 
-    def __init__(self, solver: Optional[MinimumEigensolver] = None, transformation) -> None:
+    def __init__(self, transformation, solver: Optional[MinimumEigensolver] = None) -> None:
         """
         Args:
             solver: a minimum eigensolver
@@ -70,50 +70,51 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
         operator, aux_operators = self._transformation.transform(driver)
 
         if callback is not None:
-            num_particles = self.molecule_info[ChemistryOperator.INFO_NUM_PARTICLES]
-            num_orbitals = self.molecule_info[ChemistryOperator.INFO_NUM_ORBITALS]
-            z2_symmetries = self.molecule_info[ChemistryOperator.INFO_Z2SYMMETRIES]
-            self._solver = callback(num_particles, num_orbitals,
-                                    self._qubit_mapping.value, self._two_qubit_reduction,
-                                    z2_symmetries)
+            #TODO We should expose all these as properties from the transformation
+            num_particles = self._transformation.molecule_info['num_particles']
+            num_orbitals = self._transformation.molecule_info['num_orbitals']
+            z2_symmetries = self._transformation.molecule_info['z2symmetries']
+            self._solver = callback(num_particles, num_orbitals,self._transformation._qubit_mapping, self._transformation._two_qubit_reduction, z2_symmetries)
 
         aux_operators = aux_operators if self._solver.supports_aux_operators() else None
 
-        raw_gs_result = self._solver.compute_minimum_eigenstate(operator, aux_operators)
+        raw_gs_result = self._solver.compute_minimum_eigenvalue(operator, aux_operators)
 
-        # WOR: where should this post processing be coming from?
-        gsc_result = self._transformation.interpret(raw_gs_result['energy'], r['aux_values'], groundstate)  # gs = array/circuit+params
-        gsc_result.raw_result = raw_gs_results
+        # TODO WOR: where should this post processing be coming from?
+        #gsc_result = self._transformation.interpret(raw_gs_result['energy'], r['aux_values'], groundstate)  # gs = array/circuit+params
+        #gsc_result.raw_result = raw_gs_results
 
-        return
+        return raw_gs_result['energy']
         # (energy, aux_values, groundsntate)
 
 
-    class MesFactory():
+    #class MesFactory():
+    
+    def get_default_solver(quantum_instance: Union[QuantumInstance, BaseBackend]) ->\
+        Optional[Callable[[List, int, str, bool, Z2Symmetries], MinimumEigensolver]]:
 
-
-        def get_default_solver(quantum_instance: Union[QuantumInstance, BaseBackend]) ->\
-                Optional[Callable[[List, int, str, bool, Z2Symmetries], MinimumEigensolver]]:
-            """
-            Get the default solver callback that can be used with :meth:`compute_energy`
+        """
+        Get the default solver callback that can be used with :meth:`compute_energy`
             Args:
                 quantum_instance: A Backend/Quantum Instance for the solver to run on
 
             Returns:
                 Default solver callback
-            """
-            def cb_default_solver(num_particles, num_orbitals,
-                                qubit_mapping, two_qubit_reduction, z2_symmetries):
-                """ Default solver """
-                initial_state = HartreeFock(num_orbitals, num_particles, qubit_mapping,
+        """
+        def cb_default_solver(num_particles, num_orbitals,
+                              qubit_mapping, two_qubit_reduction, z2_symmetries):
+            """ Default solver """
+            initial_state = HartreeFock(num_orbitals, num_particles, qubit_mapping,
                                             two_qubit_reduction, z2_symmetries.sq_list)
-                var_form = UCCSD(num_orbitals=num_orbitals,
-                                num_particles=num_particles,
-                                initial_state=initial_state,
-                                qubit_mapping=qubit_mapping,
-                                two_qubit_reduction=two_qubit_reduction,
-                                z2_symmetries=z2_symmetries)
-                vqe = VQE(var_form=var_form)
-                vqe.quantum_instance = quantum_instance
-                return vqe
-            return cb_default_solver
+            var_form = UCCSD(num_orbitals=num_orbitals,
+                             num_particles=num_particles,
+                             initial_state=initial_state,
+                             qubit_mapping=qubit_mapping,
+                             two_qubit_reduction=two_qubit_reduction,
+                             z2_symmetries=z2_symmetries)
+            
+            vqe = VQE(var_form=var_form)
+            vqe.quantum_instance = quantum_instance
+            return vqe
+        
+        return cb_default_solver
