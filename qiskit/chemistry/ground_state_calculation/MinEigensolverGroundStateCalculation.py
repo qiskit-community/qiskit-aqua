@@ -87,6 +87,8 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
         #gsc_result = self._transformation.interpret(raw_gs_result['energy'], r['aux_values'], groundstate)  # gs = array/circuit+params
 
         #TODO rename process algorithm result to interpret
+        #TODO we need the process_algorith_result also for the bosonic transformation
+        
         return self._transformation.process_algorithm_result(raw_gs_result)
         # (energy, aux_values, groundsntate)
 
