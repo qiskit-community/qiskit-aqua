@@ -637,6 +637,57 @@ class TestOpConstruction(QiskitAquaTestCase):
         expected = Statevector([1, 0])
         self.assertEqual(op.eval().primitive, expected)
 
+    def test_filter_ops_by_coeff(self):
+        """Test the filter_ops_by_coeff method"""
+
+        op_0 = 0 * Z + I
+        filtered_op_0 = op_0.filter_ops_by_coeff(0.0, 0)
+        self.assertEqual(filtered_op_0, I)
+
+        op_1 = 2 * X + I
+        filtered_op_1 = op_1.filter_ops_by_coeff(1.99, 2)
+        self.assertEqual(filtered_op_1, I)
+
+        op_2 = 3 * Y + I
+        # coefficient is real, so bound.imag is ignored in comparison
+        filtered_op_2 = op_2.filter_ops_by_coeff(3 - 1j, 3 + 1j)
+        self.assertEqual(filtered_op_2, I)
+
+        # should be able to strip coefficients and respect matrix algebra
+        op_3 = op_0 + op_1 + op_2
+        filtered_op_3_1 = op_3.filter_ops_by_coeff(-1, 0.0)
+        self.assertEqual(filtered_op_3_1, op_1 + op_2 + I)
+
+        filtered_op_3_2 = filtered_op_3_1.filter_ops_by_coeff(1.5, 3.79)
+        self.assertEqual(filtered_op_3_2, I + I + I)
+
+        filtered_op_3_3 = filtered_op_3_2.filter_ops_by_coeff(0, 0)
+        self.assertEqual(filtered_op_3_3, I + I + I)
+
+        # removing the outermost coefficient results in zero matrix
+        filtered_op_4 = (4 * (op_1 + op_2)).filter_ops_by_coeff(4, 4)
+        self.assertEqual(filtered_op_4, 0 * I)
+
+        op_5 = (2 + 3j) * X + I
+        # coefficient is complex, so both real and imag parts must abide bounds
+        filtered_op_5_1 = op_5.filter_ops_by_coeff(1.99 + 2.99j, 2.01 + 3.01j)
+        self.assertEqual(filtered_op_5_1, I)
+
+        op_6 = (1 - 1j) * X + I
+        # values are incomparable, so coefficient stays
+        filtered_op_6 = op_6.filter_ops_by_coeff(-1 + 1j, -1 + 1j)
+        self.assertEqual(filtered_op_6, op_6)
+
+        op_7 = (2 + 3j) * X + I
+        # real part is within bounds, but imaginary part is not, so coefficient stays
+        filtered_op_7 = op_7.filter_ops_by_coeff(2 + 1j, 2 + 2j)
+        self.assertEqual(filtered_op_7, op_7)
+
+        op_8 = (2 + 3j) * X + I
+        # imaginary part is within bounds, but real part is not, so coefficient stays
+        filtered_op_8 = op_8.filter_ops_by_coeff(-4 + 3j, -3 + 3j)
+        self.assertEqual(filtered_op_8, op_8)
+
 
 class TestOpMethods(QiskitAquaTestCase):
     """Basic method tests."""

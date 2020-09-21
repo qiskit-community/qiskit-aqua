@@ -12,7 +12,7 @@
 
 """ SummedOp Class """
 
-from typing import List, Union, cast
+from typing import List, Union, cast, Callable
 import warnings
 
 import numpy as np
@@ -108,7 +108,73 @@ class SummedOp(ListOp):
                 else:
                     oplist.append(op)
                     coeffs.append(self.coeff)
-        return SummedOp([op * coeff for op, coeff in zip(oplist, coeffs)])  # type: ignore
+        new_summed_op = SummedOp([op * coeff for op, coeff in zip(oplist, coeffs)])  # type: ignore
+        return new_summed_op.filter_ops_by_coeff(0, 0)
+
+    def filter_ops_by_coeff(self,
+                            lower_bound: Union[int, float, complex],
+                            upper_bound: Union[int, float, complex]) -> 'SummedOp':
+        """
+        Create a new SummedOp that only has summands with coefficients that lie outside of
+        lower_bound' and 'upper_bound'. Be wary of filtering across ranges including 1 as
+        it's the default coefficient for subclasses of OperatorBase.
+
+        For complex coefficients and bounds a + j * b <= x + j * y if a <= b and x <= y.
+        This is a partial order because some complex numbers are incomparable
+        (e.g. 1 - j and - 1 + j). Summands with incomparable complex coefficients are not
+        filtered out. See in-line comments for details.
+
+        Args:
+            lower_bound: The lower bound of the filter.
+            upper_bound: The upper bound of the filter.
+
+        Returns:
+            A new ListOp that contains only the operators with coefficients outside of the given
+            bounds. If all summands are filtered out, returns a singleton sum of 0 * I with
+            self.coeff = 1.0.
+        """
+
+        def within_bound(coefficient: Union[int, float, complex, ParameterExpression],
+                         bound: Union[int, float, complex],
+                         comparator: Callable[[Union[int, float],
+                                               Union[int, float]], bool]) -> bool:
+            if isinstance(coefficient, complex):
+                within_real_bound = comparator(coefficient.real, bound.real)
+                if isinstance(bound, complex):
+                    within_imag_bound = comparator(coefficient.imag, bound.imag)
+                    if within_real_bound and within_imag_bound:
+                        return True  # comparable and inside bounds, strip coefficient
+                    elif within_real_bound ^ within_imag_bound:
+                        return False  # incomparable, don't strip coefficient
+                    else:
+                        return False  # comparable and outside bounds, don't strip coefficient
+                else:
+                    return within_real_bound  # filter only real part of coefficient
+            elif isinstance(coefficient, ParameterExpression):
+                return True
+            else:
+                return comparator(coefficient, bound.real)
+
+        def within_bounds(coefficient: Union[int, float, complex, ParameterExpression]) -> bool:
+            return within_bound(coefficient, lower_bound, lambda x, y: x >= y) \
+                   and within_bound(coefficient, upper_bound, lambda x, y: x <= y)
+
+        from qiskit.aqua.operators import I, PrimitiveOp, StateFn
+        new_op_list = []  # type: List[OperatorBase]
+        if not within_bounds(self.coeff):
+            for op in self.oplist:
+                if isinstance(op, SummedOp):
+                    if not within_bounds(op.coeff):
+                        new_op = op.filter_ops_by_coeff(lower_bound, upper_bound)
+                        new_op_list.append(new_op)
+                elif isinstance(op, (StateFn, PrimitiveOp)):
+                    if not within_bounds(op.coeff):
+                        new_op_list.append(op)
+                else:
+                    new_op_list.append(op)
+            return SummedOp(new_op_list, self.coeff, self.abelian)
+        else:
+            return SummedOp([0.0 * I.tensorpower(self.num_qubits)], 1.0, self.abelian)
 
     # TODO be smarter about the fact that any two ops in oplist could be evaluated for sum.
     def reduce(self) -> OperatorBase:
