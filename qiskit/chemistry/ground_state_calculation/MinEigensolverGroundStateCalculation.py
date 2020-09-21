@@ -46,6 +46,8 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
                              callback: Optional[Callable[[List, int, str, bool, Z2Symmetries],
                                                          MinimumEigensolver]] = None  # WOR: callback should be in constructor, and possibly follow an interface
                              ) -> MolecularGroundStateResult:
+        #TODO MolecularGroundStateResult should become generic for bosonic and fermionic Hamiltonains
+
         """Compute Ground State properties.
 
         Args:
@@ -81,10 +83,11 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
         raw_gs_result = self._solver.compute_minimum_eigenvalue(operator, aux_operators)
 
         # TODO WOR: where should this post processing be coming from?
+        # The post processing is now in the tranformation so that it is fermionic or bosonic
         #gsc_result = self._transformation.interpret(raw_gs_result['energy'], r['aux_values'], groundstate)  # gs = array/circuit+params
-        #gsc_result.raw_result = raw_gs_results
 
-        return raw_gs_result
+        #TODO rename process algorithm result to interpret
+        return self._transformation.process_algorithm_result(raw_gs_result)
         # (energy, aux_values, groundsntate)
 
 
