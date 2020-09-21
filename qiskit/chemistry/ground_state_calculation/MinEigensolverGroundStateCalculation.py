@@ -84,7 +84,7 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
         #gsc_result = self._transformation.interpret(raw_gs_result['energy'], r['aux_values'], groundstate)  # gs = array/circuit+params
         #gsc_result.raw_result = raw_gs_results
 
-        return raw_gs_result['energy']
+        return raw_gs_result
         # (energy, aux_values, groundsntate)
 
 
