@@ -114,7 +114,7 @@ class Hamiltonian(ChemistryOperator):
         self._ph_y_dipole_shift = 0.0
         self._ph_z_dipole_shift = 0.0
 
-    def run(self, qmolecule):
+    def _do_tranform(self, qmolecule):
         logger.debug('Processing started...')
         # Save these values for later combination with the quantum computation result
         self._hf_energy = qmolecule.hf_energy

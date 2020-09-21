@@ -121,10 +121,10 @@ class FermionicTransformation(QubitOperatorTransformation, ChemistryOperator):
 
     def transform(self, driver: BaseDriver) -> Tuple[WeightedPauliOperator, List[WeightedPauliOperator]]:
         q_molecule = driver.run()
-        ops, aux_ops = self.run(q_molecule)#_do_transform(q_molecule)
+        ops, aux_ops = self._do_transform(q_molecule)#_do_transform(q_molecule)
         return ops, aux_ops
 
-    def run(self,qmolecule): #TODO CHANGE NAMING IN CHEMISTRY OPERATOR # _do_transform(self, qmolecule):
+    def _do_transform(self,qmolecule): 
         logger.debug('Processing started...')
         # Save these values for later combination with the quantum computation result
         self._hf_energy = qmolecule.hf_energy
@@ -206,7 +206,7 @@ class FermionicTransformation(QubitOperatorTransformation, ChemistryOperator):
         qubit_op = FermionicTransformation._map_fermionic_operator_to_qubit(fer_op,
                                                                 self._qubit_mapping, new_nel,
                                                                 self._two_qubit_reduction)
-        qubit_op.name = 'Fermionic Transformation'
+        qubit_op.name = 'Fermionic Operator'
 
         logger.debug('  num paulis: %s, num qubits: %s', len(qubit_op.paulis), qubit_op.num_qubits)
 

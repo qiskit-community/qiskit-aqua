@@ -48,7 +48,7 @@ class ChemistryOperator(ABC):
         self._molecule_info = {}
 
     @abstractmethod
-    def run(self, qmolecule):
+    def _do_transform(self, qmolecule):
         """
         Convert the qmolecule, according to the ChemistryOperator, into an Operator
         that can be given to a QuantumAlgorithm
