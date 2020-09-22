@@ -532,9 +532,10 @@ class TestGradients(QiskitAquaTestCase):
         prob_grad = Gradient(method=method).convert(operator=op, params=params)
         values_dict = [{a: [np.pi / 4], b: [0]}, {params[0]: [np.pi / 4], params[1]: [np.pi / 4]},
                        {params[0]: [np.pi / 2], params[1]: [np.pi]}]
-        correct_values = [[{'0': 0, '1': 0},  {'0': 1 / (2 * np.sqrt(2)), '1': - 1 / (2 * np.sqrt(2))}],
-                            [{'0': 1 / 4, '1': -1 / 4},  {'0': 1 / 4, '1': - 1 / 4}],
-                            [{'0': 0, '1': 0},  {'0': - 1 / 2, '1': 1 / 2}]]
+        correct_values = [[[0, 0], [1 / (2 * np.sqrt(2)), - 1 / (2 * np.sqrt(2))]],
+                            [[1 / 4, -1 / 4], [1 / 4, - 1 / 4]],
+                            [[ 0, 0],  [ - 1 / 2, 1 / 2]]]
+
         backend = BasicAer.get_backend('qasm_simulator')
         q_instance = QuantumInstance(backend=backend, shots=10000)
 
@@ -542,9 +543,7 @@ class TestGradients(QiskitAquaTestCase):
             sampler = CircuitSampler(backend=q_instance).convert(prob_grad,
                                                                  params=value_dict)
             result = sampler.eval()
-            for j, values in enumerate(result[0]):
-                for key, item in values.items():
-                    np.testing.assert_array_almost_equal(item, correct_values[i][j][key], decimal=1)
+            np.testing.assert_array_almost_equal(result[0], correct_values[i], decimal=1)
 
 
 if __name__ == '__main__':
