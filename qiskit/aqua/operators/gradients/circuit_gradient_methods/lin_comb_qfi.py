@@ -22,7 +22,7 @@ from typing import List, Union, Optional
 import numpy as np
 
 from qiskit.aqua import AquaError
-from qiskit.aqua.operators import OperatorBase, ListOp
+from qiskit.aqua.operators import ListOp, OperatorBase
 from qiskit.aqua.operators.gradients.circuit_gradient_methods import CircuitGradientMethod
 from qiskit.aqua.operators.operator_globals import I, Z, Y, X
 from qiskit.aqua.operators.state_fns import StateFn, CircuitStateFn
@@ -46,9 +46,9 @@ class LinCombQFI(CircuitGradientMethod):
     """
 
     def convert(self,
-                operator: OperatorBase,
+                operator: CircuitStateFn,
                 params: Optional[Union[Parameter, ParameterVector, List[Parameter]]] = None
-                ) -> OperatorBase:
+                ) -> ListOp(List[ListOp(List[OperatorBase])]):
         r"""
         Args:
             operator: The operator corresponding to the quantum state |ψ(ω)〉for which we compute

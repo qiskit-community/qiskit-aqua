@@ -70,9 +70,9 @@ class QFI(DerivativeBase):
                              " arguments: {'lin_comb', 'diag', 'block_diag'}. ")
 
     def convert(self,
-                operator: OperatorBase,
+                operator: CircuitStateFn,
                 params: Optional[Union[Parameter, ParameterVector, List[Parameter]]] = None
-                ) -> OperatorBase:
+                ) -> ListOp(List[ListOp(List[OperatorBase])]):
         r"""
         Args:
             operator: The operator corresponding to the quantum state |ψ(ω)〉for which we compute

@@ -21,10 +21,9 @@ from typing import List, Union, Optional
 import numpy as np
 from qiskit.aqua.operators import OperatorBase, ListOp, CircuitOp, ComposedOp, OperatorStateFn
 from qiskit.aqua.operators.gradients.circuit_gradient_methods import CircuitGradientMethod
-from qiskit.aqua.operators.operator_globals import I, Z, Y, X, Zero
+from qiskit.aqua.operators.operator_globals import Zero
 from qiskit.aqua.operators.state_fns import StateFn, CircuitStateFn
-from qiskit.circuit import (QuantumCircuit, QuantumRegister, Parameter, ParameterVector,
-                            ParameterExpression)
+from qiskit.circuit import (Parameter, ParameterVector, ParameterExpression)
 
 from .block_diag_qfi import BlockDiagQFI
 
@@ -40,9 +39,9 @@ class DiagQFI(CircuitGradientMethod):
     """
 
     def convert(self,
-                operator: OperatorBase,
+                operator: CircuitStateFn,
                 params: Optional[Union[Parameter, ParameterVector, List[Parameter]]] = None
-                ) -> OperatorBase:
+                ) -> ListOp(List[ListOp(List[OperatorBase])]):
         r"""
         Args:
             operator: The operator corresponding to the quantum state |ψ(ω)〉for which we compute

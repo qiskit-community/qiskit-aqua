@@ -41,7 +41,7 @@ class BlockDiagQFI(CircuitGradientMethod):
     def convert(self,
                 operator:  Union[CircuitOp, CircuitStateFn],
                 params: Optional[Union[Parameter, ParameterVector, List[Parameter]]] = None
-                ) -> OperatorBase:
+                ) -> ListOp(List[ListOp(List[OperatorBase])]):
 
         r"""
         Args:
@@ -132,8 +132,6 @@ class BlockDiagQFI(CircuitGradientMethod):
                    generator_j = generators[p_j]
                    generator = ~generator_j @ generator_i
                    param_expr_j = get_parameter_expression(circuit, p_j)
-
-
 
                    psi_gen_ij = ~StateFn(generator) @ psi_i @ Zero
                    psi_gen_ij = PauliExpectation().convert(psi_gen_ij)
