@@ -105,8 +105,6 @@ class Hessian(DerivativeBase):
             # Compute the Hessian entries corresponding to these pairs of parameters.
             elif all(isinstance(param, tuple) for param in params):
                 return ListOp([self.convert(operator, param_pair) for param_pair in params])
-        # elif isinstance(params, tuple):
-        #     return self.convert(operator, params)
 
         expec_op = PauliExpectation(group_paulis=False).convert(operator).reduce()
         cleaned_op = self._factor_coeffs_out_of_composed_op(expec_op)
