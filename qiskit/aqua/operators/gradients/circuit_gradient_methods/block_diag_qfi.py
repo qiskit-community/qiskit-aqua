@@ -41,7 +41,7 @@ class BlockDiagQFI(CircuitGradientMethod):
     def convert(self,
                 operator:  Union[CircuitOp, CircuitStateFn],
                 params: Optional[Union[Parameter, ParameterVector, List[Parameter]]] = None
-                ) -> ListOp(List[ListOp(List[OperatorBase])]):
+                ) -> ListOp(List[OperatorBase]):
 
         r"""
         Args:

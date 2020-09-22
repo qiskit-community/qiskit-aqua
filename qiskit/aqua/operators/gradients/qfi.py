@@ -72,7 +72,7 @@ class QFI(DerivativeBase):
     def convert(self,
                 operator: CircuitStateFn,
                 params: Optional[Union[Parameter, ParameterVector, List[Parameter]]] = None
-                ) -> ListOp(List[ListOp(List[OperatorBase])]):
+                ) -> ListOp(List[OperatorBase]):
         r"""
         Args:
             operator: The operator corresponding to the quantum state |ψ(ω)〉for which we compute
