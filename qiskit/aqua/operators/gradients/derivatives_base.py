@@ -119,7 +119,7 @@ class DerivativeBase(ConverterBase):
                         p_values_dict = {k: [v] for k, v in p_values_dict.items()}
                         converter = CircuitSampler(backend=backend).convert(
                             self.convert(operator, grad_params), p_values_dict)
-            return converter.eval()
+            return np.real(converter.eval())
 
         return gradient_fn
 
