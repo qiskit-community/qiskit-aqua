@@ -15,9 +15,10 @@
 """ CVarStateFn Class """
 
 
-from typing import Union, Set, Dict, Optional, cast, Callable, Tuple, Iterable
+from typing import Union, Set, Dict, Optional, Callable, Tuple
 import numpy as np
 
+from qiskit.aqua.aqua_error import AquaError
 from qiskit.circuit import ParameterExpression, QuantumCircuit, Instruction
 from qiskit.result import Result
 from qiskit.quantum_info import Statevector
@@ -25,8 +26,6 @@ from qiskit.quantum_info import Statevector
 from ..operator_base import OperatorBase
 from .state_fn import StateFn
 from .operator_state_fn import OperatorStateFn
-from ..list_ops.list_op import ListOp
-from ..list_ops.summed_op import SummedOp
 
 
 # pylint: disable=invalid-name
@@ -60,7 +59,11 @@ class CVarStateFn(OperatorStateFn):
             primitive: The ``OperatorBase`` which defines the behavior of the underlying State
                 function.
             coeff: A coefficient by which to multiply the state function
+            alpha: TODO
             is_measurement: Whether the StateFn is a measurement operator
+
+        Raises:
+            ValueError: TODO remove that this raises an error
         """
         if primitive is None:
             raise ValueError
@@ -72,19 +75,13 @@ class CVarStateFn(OperatorStateFn):
         super().__init__(primitive, coeff=coeff, is_measurement=True)
 
     @property
-    def alpha(self):
+    def alpha(self) -> float:
+        """TODO
+
+        Returns:
+            TODO
+        """
         return self._alpha
-
-    def autograd(self, params, method):
-        from ..operator_globals import Zero, One
-        # assert method == 'fin_diff':
-        if params is None:
-            return self
-        if isinstance(params, Iterable):
-            if len(params) == 0:
-                return self
-
-        return ~Zero@One
 
     def primitive_strings(self) -> Set[str]:
         return self.primitive.primitive_strings()
@@ -100,10 +97,17 @@ class CVarStateFn(OperatorStateFn):
         raise NotImplementedError
 
     def adjoint(self) -> OperatorBase:
-        return ValueError("Adjoint of a cost function not defined")
+        """The adjoint of a CVaRMeasurement is not defined.
+
+        Returns:
+            Does not return anything, raises an error.
+
+        Raises:
+            AquaError: The adjoint of a CVaRMeasurement is not defined.
+        """
+        return AquaError("Adjoint of a cost function not defined")
 
     def mul(self, scalar: Union[int, float, complex, ParameterExpression]) -> OperatorBase:
-
         if not isinstance(scalar, (int, float, complex, ParameterExpression)):
             raise ValueError('Operators can only be scalar multiplied by float or complex, not '
                              '{} of type {}.'.format(scalar, type(scalar)))
@@ -166,18 +170,13 @@ class CVarStateFn(OperatorStateFn):
                 prim_str,
                 self.coeff)
 
-    # pylint: disable=too-many-return-statements
-    # pylint: disable=too-many-return-statements
     def eval(self,
              front: Union[str, dict, np.ndarray,
                           OperatorBase] = None) -> Union[OperatorBase, float, complex]:
 
-        from .state_fn import StateFn
         from .dict_state_fn import DictStateFn
         from .vector_state_fn import VectorStateFn
         from .circuit_state_fn import CircuitStateFn
-        from ..list_ops.list_op import ListOp
-        from ..primitive_ops.circuit_op import CircuitOp
 
         if isinstance(front, CircuitStateFn):
             front = front.eval()
@@ -202,8 +201,7 @@ class CVarStateFn(OperatorStateFn):
         outcomes = list(data.items())
         # Sort based on energy evaluation
         for i, outcome in enumerate(outcomes):
-            key = outcomes[i][0]
-
+            key = outcome[0]
             outcomes[i] += (obs.eval(key).adjoint().eval(key),)
 
         # Sort each observation based on it's energy
@@ -212,7 +210,7 @@ class CVarStateFn(OperatorStateFn):
         # Here P are the probabilities of observing each state.
         # H are the expectation values of each state with the
         # provided Hamiltonian
-        states, P, H = zip(*outcomes)
+        _, P, H = zip(*outcomes)
 
         # Square the dict values
         # (since CircuitSampler takes the root...)
@@ -222,13 +220,13 @@ class CVarStateFn(OperatorStateFn):
         # which will be only partially included in the CVar sum
         j = 0
         running_total = 0
-        for i, pi in enumerate(P):
+        for i, p_i in enumerate(P):
             # This is here for later on when
             # Gradients are supported
-            if isinstance(pi, Tuple):
-                p = pi[0]
+            if isinstance(p_i, Tuple):
+                p = p_i[0]
             else:
-                p = pi
+                p = p_i
 
             running_total += p
 
@@ -236,103 +234,24 @@ class CVarStateFn(OperatorStateFn):
             if running_total > alpha:
                 break
 
-        Hj = H[j]
-        CVar = alpha * Hj
+        h_j = H[j]
+        cvar = alpha * h_j
 
         if alpha == 0:
-            return Hj
+            return h_j
 
         if j > 0:
             H = H[:j]
             P = P[:j]
 
             # CVar = alpha*Hj + \sum_i P[i]*(H[i] - Hj)
-            for i in range(len(H)):
-                if isinstance(P[i], Tuple):
-                    CVar += P[i][0]*(H[i]-Hj)
+            for h_i, p_i in zip(H, P):
+                if isinstance(p_i, Tuple):
+                    cvar += p_i[0] * (h_i - h_j)
                 else:
-                    CVar += P[i]*(H[i]-Hj)
+                    cvar += p_i * (h_i - h_j)
 
-        return CVar/alpha
-
-    # def compose(self, other: OperatorBase) -> OperatorBase:
-    #   r"""
-    #    Composition (Linear algebra-style: A@B(x) = A(B(x))) is not well defined for states
-    #    in the binary function model, but is well defined for measurements.
-    #
-    #    Args:
-    #        other: The Operator to compose with self.
-    #
-    #    Returns:
-    #        An Operator equivalent to the function composition of self and other.
-    #
-    #    Raises:
-    #        ValueError: If self is not a measurement, it cannot be composed from the right.
-    #    #"""
-    #    # TODO maybe allow outers later to produce density operators or projectors, but not yet.
-    #    if not self.is_measurement:
-    #        raise ValueError(
-    #            'Composition with a Statefunction in the first operand is not defined.')
-    #
-    #    new_self = self
-    #    if self.num_qubits is not None:
-    #        new_self, other = self._check_zero_for_composition_and_expand(other)
-    #        # TODO maybe include some reduction here in the subclasses - vector and Op, op and Op, etc.
-    #        # pylint: disable=import-outside-toplevel
-    #        from qiskit.aqua.operators import CircuitOp
-    #
-    #        if self.primitive == {'0' * self.num_qubits: 1.0} and isinstance(other, CircuitOp):
-    #            # Returning CircuitStateFn
-    #            raise NotImplementedError("understand what practical scenarios cause this to happen.")
-    #            #return StateFn(other.primitive, is_measurement=self.is_measurement,
-    #            #               coeff=self.coeff * other.coeff)
-    #
-    #    from qiskit.aqua.operators import ComposedOp
-    #    from copy import deepcopy as dc
-    #    def tuple_grad_combo_fn(self, params, method='param_shift'):
-    #
-    #        assert self.coeff == 1.0, "Unexpected coefficient on specialized ListOp"
-    #
-    #        #Assume for now params is a single parameter
-    #        param = params
-    #
-    #        if len(self.oplist) == 1:
-    #            op = ListOp([dc(self.oplist[0])],
-    #                       combo_fn=lambda x: x[0],
-    #                       grad_combo_fn=tuple_grad_combo_fn)
-    #            d_op = ListOp([dc(self.oplist[0]).autograd(param, method)],
-    #                       combo_fn=lambda x: x[0],
-    #                       grad_combo_fn=tuple_grad_combo_fn)
-    #
-    #            tuple_op = ListOp([dc(op), dc(d_op)],
-    #                               combo_fn=lambda x: (x[0],x[1]),
-    #                               grad_combo_fn=self.grad_combo_fn)
-    #            return tuple_op
-    #
-    #        elif len(self.oplist) == 2:
-    #            tuple_ops = []
-    #            try:
-    #                d_op_0 = dc(self.oplist[0].autograd(param, method, replace_autograd=True))
-    #               d_op_1 = dc(self.oplist[1].autograd(param, method, replace_autograd=True))
-    #            except:
-    #                d_op_0 = dc(self.oplist[0].autograd(param, method))
-    #                d_op_1 = dc(self.oplist[1].autograd(param, method))
-    #
-    #            final = ListOp([dc(d_op_0),
-    #                           dc(d_op_1)],
-    #                           combo_fn=lambda x: x[0]+x[1],
-    #                           grad_combo_fn=self.grad_combo_fn)
-    #
-    #            return final
-    #
-    #        else:
-    #            raise ValueError("Unexpected number of operators ({n}) stored in oplist")
-    #
-    #            other = ListOp([other],
-    #                           combo_fn=lambda x: x[0],
-    #                           grad_combo_fn=tuple_grad_combo_fn)
-    #
-    #    return ComposedOp([new_self, other])
+        return cvar/alpha
 
     def traverse(self,
                  convert_fn: Callable,
@@ -358,8 +277,7 @@ class CVarStateFn(OperatorStateFn):
                                coeff=coeff,
                                is_measurement=self.is_measurement,
                                alpha=self._alpha)
-        else:
-            return self
+        return self
 
     def sample(self,
                shots: int = 1024,
