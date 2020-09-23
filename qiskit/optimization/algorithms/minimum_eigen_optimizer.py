@@ -131,6 +131,26 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         """
         return QuadraticProgramToQubo.get_compatibility_msg(problem)
 
+    @property
+    def min_eigen_solver(self) -> Optional[MinimumEigensolver]:
+        """Returns the minimum eigensolver."""
+        return self._min_eigen_solver
+
+    @min_eigen_solver.setter
+    def min_eigen_solver(self, min_eigen_solver: MinimumEigensolver) -> None:
+        """Sets the minimum eigensolver."""
+        self._min_eigen_solver = min_eigen_solver
+
+    @property
+    def penalty(self) -> Optional[float]:
+        """Returns the penalty value."""
+        return self._penalty
+
+    @penalty.setter
+    def penalty(self, penalty: float) -> None:
+        """Sets the penalty value."""
+        self._penalty = penalty
+
     def solve(self, problem: QuadraticProgram) -> MinimumEigenOptimizationResult:
         """Tries to solves the given problem using the optimizer.
 
