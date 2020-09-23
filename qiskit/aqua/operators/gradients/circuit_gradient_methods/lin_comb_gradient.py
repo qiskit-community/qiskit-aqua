@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -26,8 +24,8 @@ from qiskit.aqua.operators.operator_globals import Z, I, One, Zero
 from qiskit.aqua.operators.primitive_ops.primitive_op import PrimitiveOp
 from qiskit.aqua.operators.state_fns import StateFn, CircuitStateFn, DictStateFn, VectorStateFn
 from qiskit.circuit import Gate, Instruction, Qubit
-from qiskit.circuit import QuantumCircuit, QuantumRegister, Parameter, ParameterVector, \
-    ParameterExpression
+from qiskit.circuit import (QuantumCircuit, QuantumRegister, Parameter, ParameterVector,
+                            ParameterExpression)
 from qiskit.circuit.controlledgate import ControlledGate
 from qiskit.circuit.library import SGate, SdgGate, HGate
 from qiskit.circuit.library.standard_gates import (CXGate, CYGate, CZGate,
@@ -74,8 +72,9 @@ class LinCombGradient(CircuitGradientMethod):
     def _prepare_operator(self,
                           operator: OperatorBase,
                           params: Optional[Union[Parameter, ParameterVector, List[Parameter],
-                                         Tuple[Parameter, Parameter],
-                                         List[Tuple[Parameter, Parameter]]]] = None) -> OperatorBase:
+                                                 Tuple[Parameter, Parameter],
+                                                 List[Tuple[Parameter, Parameter]]]] = None
+                          ) -> OperatorBase:
         """
         Args:
             operator: The operator we are taking the gradient of: ⟨ψ(ω)|O(θ)|ψ(ω)〉
@@ -92,8 +91,8 @@ class LinCombGradient(CircuitGradientMethod):
                 Quantum states - which must be given as circuits - are adapted. An additional
                 working qubit controls intercepting gates.
                 See e.g. Evaluating analytic gradients on quantum hardware
-                        Maria Schuld, Ville Bergholm, Christian Gogolin, Josh Izaac, and Nathan Killoran
-                        Phys. Rev. A 99, 032331 – Published 21 March 2019
+                    Maria Schuld, Ville Bergholm, Christian Gogolin, Josh Izaac, and Nathan Killoran
+                    Phys. Rev. A 99, 032331 – Published 21 March 2019
         """
 
         if isinstance(operator, ComposedOp):
@@ -109,21 +108,26 @@ class LinCombGradient(CircuitGradientMethod):
                         return self._gradient_states(state_op, meas_op=(~StateFn(Z) ^ operator[0]),
                                                      target_params=params)
                     elif isinstance(params, tuple):
-                        return self._hessian_states(state_op, meas_op=(4 * ~StateFn(Z ^ I) ^ operator[0]),
-                                                 target_params=params)
+                        return self._hessian_states(state_op,
+                                                    meas_op=(4 * ~StateFn(Z ^ I) ^ operator[0]),
+                                                    target_params=params)
                     elif isinstance(params, list):
                         if isinstance(params[0], Parameter):
-                            return self._gradient_states(state_op, meas_op=(~StateFn(Z) ^ operator[0]),
+                            return self._gradient_states(state_op,
+                                                         meas_op=(~StateFn(Z) ^ operator[0]),
                                                          target_params=params)
                         elif isinstance(params[0], tuple):
-                            return self._hessian_states(state_op, meas_op=(4 * ~StateFn(Z ^ I) ^ operator[0]),
+                            return self._hessian_states(state_op,
+                                                        meas_op=(4 * ~StateFn(Z ^ I) ^ operator[0]),
                                                         target_params=params)
                         else:
-                            raise AquaError('The linear combination gradient does only support the computation '
-                                            'of 1st gradients and 2nd order gradients.')
+                            raise AquaError(
+                                'The linear combination gradient does only support the computation '
+                                'of 1st gradients and 2nd order gradients.')
                     else:
-                        raise AquaError('The linear combination gradient does only support the computation '
-                                        'of 1st gradients and 2nd order gradients.')
+                        raise AquaError(
+                            'The linear combination gradient does only support the computation '
+                            'of 1st gradients and 2nd order gradients.')
                 else:
                     state_op = deepcopy(operator)
                     state_op.oplist.pop(0)
@@ -134,23 +138,27 @@ class LinCombGradient(CircuitGradientMethod):
                                     target_params=params))
                     elif isinstance(params, tuple):
                         return state_op.traverse(
-                            partial(self._hessian_states, meas_op=(4 * ~StateFn(Z ^ I) ^ operator[0]),
+                            partial(self._hessian_states,
+                                    meas_op=(4 * ~StateFn(Z ^ I) ^ operator[0]),
                                     target_params=params))
                     elif isinstance(params, list):
                         if isinstance(params[0], tuple):
                             return state_op.traverse(
-                                partial(self._hessian_states, meas_op=(4 * ~StateFn(Z ^ I) ^ operator[0]),
+                                partial(self._hessian_states,
+                                        meas_op=(4 * ~StateFn(Z ^ I) ^ operator[0]),
                                         target_params=params))
                         elif isinstance(params[0], Parameter):
                             return state_op.traverse(
                                 partial(self._gradient_states, meas_op=(~StateFn(Z) ^ operator[0]),
                                         target_params=params))
                         else:
-                            raise AquaError('The linear combination gradient does only support the computation '
-                                            'of 1st gradients and 2nd order gradients.')
+                            raise AquaError(
+                                'The linear combination gradient does only support the computation '
+                                'of 1st gradients and 2nd order gradients.')
                     else:
-                        raise AquaError('The linear combination gradient does only support the computation '
-                                        'of 1st gradients and 2nd order gradients.')
+                        raise AquaError(
+                            'The linear combination gradient does only support the computation '
+                            'of 1st gradients and 2nd order gradients.')
             else:
                 return operator.traverse(partial(self._prepare_operator, params=params))
         elif isinstance(operator, ListOp):
@@ -169,11 +177,13 @@ class LinCombGradient(CircuitGradientMethod):
                     elif isinstance(params[0], Parameter):
                         return self._gradient_states(operator, target_params=params)
                     else:
-                        raise AquaError('The linear combination gradient does only support the computation '
-                                        'of 1st gradients and 2nd order gradients.')
+                        raise AquaError(
+                            'The linear combination gradient does only support the computation '
+                            'of 1st gradients and 2nd order gradients.')
                 else:
-                    raise AquaError('The linear combination gradient does only support the computation '
-                                    'of 1st gradients and 2nd order gradients.')
+                    raise AquaError(
+                        'The linear combination gradient does only support the computation '
+                        'of 1st gradients and 2nd order gradients.')
         elif isinstance(operator, PrimitiveOp):
             return operator
         return operator
@@ -181,7 +191,8 @@ class LinCombGradient(CircuitGradientMethod):
     def _gradient_states(self,
                          state_op: OperatorBase,
                          meas_op: Optional[OperatorBase] = None,
-                         target_params: Optional[Union[Parameter, ParameterVector, List[Parameter]]] = None
+                         target_params: Optional[
+                             Union[Parameter, ParameterVector, List[Parameter]]] = None
                          ) -> ListOp:
         """Generate the gradient states.
 
@@ -282,7 +293,8 @@ class LinCombGradient(CircuitGradientMethod):
                                 state = meas_op @ state
                             else:
                                 if isinstance(gate_param, ParameterExpression):
-                                    expr_grad = DerivativeBase.parameter_expression_grad(gate_param, param)
+                                    expr_grad = DerivativeBase.parameter_expression_grad(gate_param,
+                                                                                         param)
                                     state = (expr_grad * meas_op) @ state
                                 else:
                                     state = ~Zero @ One
@@ -292,7 +304,8 @@ class LinCombGradient(CircuitGradientMethod):
                                                combo_fn=partial(self._combo_fn, state_op=state_op))
                             else:
                                 if isinstance(gate_param, ParameterExpression):
-                                    expr_grad = DerivativeBase.parameter_expression_grad(gate_param, param)
+                                    expr_grad = DerivativeBase.parameter_expression_grad(gate_param,
+                                                                                         param)
                                     state = expr_grad * ListOp(
                                         [state],
                                         combo_fn=partial(self._combo_fn, state_op=state_op))
@@ -508,12 +521,14 @@ class LinCombGradient(CircuitGradientMethod):
                                 if meas_op:
                                     meas = deepcopy(meas_op)
                                     if isinstance(gate_param_a, ParameterExpression):
-                                        expr_grad = DerivativeBase.parameter_expression_grad(gate_param_a,
-                                                                                    param_a)
+                                        expr_grad = DerivativeBase.parameter_expression_grad(
+                                            gate_param_a,
+                                            param_a)
                                         meas *= expr_grad
                                     if isinstance(gate_param_b, ParameterExpression):
-                                        expr_grad = DerivativeBase.parameter_expression_grad(gate_param_a,
-                                                                                    param_a)
+                                        expr_grad = DerivativeBase.parameter_expression_grad(
+                                            gate_param_a,
+                                            param_a)
                                         meas *= expr_grad
                                     try:
                                         term = meas @ term
@@ -529,12 +544,15 @@ class LinCombGradient(CircuitGradientMethod):
                                             if isinstance(item, VectorStateFn):
                                                 item = item.primitive.data
                                             if isinstance(item, Iterable):
-                                                # Generate the operator which computes the linear combination
-                                                lin_comb_op = 4 * (I ^ (state_op.num_qubits + 1)) ^ Z
+                                                # Generate the operator which computes the linear
+                                                # combination
+                                                lin_comb_op = 4 * (
+                                                        I ^ (state_op.num_qubits + 1)) ^ Z
                                                 lin_comb_op = lin_comb_op.to_matrix()
                                                 return list(
                                                     np.diag(partial_trace(
-                                                        lin_comb_op.dot(np.outer(item, np.conj(item))),
+                                                        lin_comb_op.dot(
+                                                            np.outer(item, np.conj(item))),
                                                         [0, 1]).data))
                                             elif isinstance(item, dict):
                                                 prob_dict = {}
@@ -551,8 +569,8 @@ class LinCombGradient(CircuitGradientMethod):
                                                 return prob_dict
                                             else:
                                                 raise TypeError(
-                                                    'The state result should be either a DictStateFn '
-                                                    'or a VectorStateFn.')
+                                                    'The state result should be either a '
+                                                    'DictStateFn or a VectorStateFn.')
 
                                         if not isinstance(x, Iterable):
                                             return get_result(x)
@@ -566,12 +584,14 @@ class LinCombGradient(CircuitGradientMethod):
 
                                     term = ListOp(term, combo_fn=combo_fn)
                                     if isinstance(gate_param_a, ParameterExpression):
-                                        expr_grad = DerivativeBase.parameter_expression_grad(gate_param_a,
-                                                                                    param_a)
+                                        expr_grad = DerivativeBase.parameter_expression_grad(
+                                            gate_param_a,
+                                            param_a)
                                         term *= expr_grad
                                     if isinstance(gate_param_b, ParameterExpression):
-                                        expr_grad = DerivativeBase.parameter_expression_grad(gate_param_a,
-                                                                                    param_a)
+                                        expr_grad = DerivativeBase.parameter_expression_grad(
+                                            gate_param_a,
+                                            param_a)
                                         term *= expr_grad
 
                                 if i == 0 and j == 0 and m == 0 and n == 0:
@@ -614,6 +634,7 @@ class LinCombGradient(CircuitGradientMethod):
             else:
                 raise TypeError(
                     'The state result should be either a DictStateFn or a VectorStateFn.')
+
         if not isinstance(x, Iterable):
             return get_result(x)
         elif len(x) == 1:
@@ -716,7 +737,7 @@ class LinCombGradient(CircuitGradientMethod):
                         controlled_circ = QuantumCircuit(gate.num_ctrl_qubits + gate.num_qubits)
                         for i, proj_gate in enumerate(proj_gates):
                             if isinstance(proj_gate, ZGate):
-                                controlled_circ.cz(0, i+1)
+                                controlled_circ.cz(0, i + 1)
                         if not isinstance(base_gate, IGate):
                             controlled_circ.append(base_gate, [0, range(gate.num_ctrl_qubits + 1,
                                                                         gate.num_ctrl_qubits +

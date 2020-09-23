@@ -13,17 +13,15 @@
 """ ListOp Operator Class """
 
 from functools import reduce
-from typing import List, Union, Optional, Callable, Iterator, Set, Dict
 from numbers import Number
+from typing import List, Union, Optional, Callable, Iterator, Set, Dict
 
 import numpy as np
 from scipy.sparse import spmatrix
-
 from qiskit.circuit import ParameterExpression
+
 from ..legacy.base_operator import LegacyBaseOperator
 from ..operator_base import OperatorBase
-
-
 
 
 class ListOp(OperatorBase):
@@ -98,7 +96,7 @@ class ListOp(OperatorBase):
             The combination function.
         """
         return self._combo_fn
-    
+
     @property
     def grad_combo_fn(self) -> Optional[Callable]:
         """ The gradient of ``combo_fn``. """
@@ -304,14 +302,14 @@ class ListOp(OperatorBase):
         """
         # The below code only works for distributive ListOps, e.g. ListOp and SummedOp
 
-        from ..state_fns.dict_state_fn import DictStateFn       # pylint: ignore=cyclic-import
-        from ..state_fns.vector_state_fn import VectorStateFn   # pylint: ignore=cyclic-import
+        from ..state_fns.dict_state_fn import DictStateFn
+        from ..state_fns.vector_state_fn import VectorStateFn
 
         if not self.distributive:
             raise NotImplementedError(r'ListOp\'s eval function is only defined for distributive '
                                       r'Listops.')
         evals = [(self.coeff * op).eval(front) for op in self.oplist]  # type: ignore
-        
+
         # Handle application of combo_fn for {Dict,Vector}StateFns
         if self._combo_fn != ListOp([])._combo_fn:
             if all(isinstance(op, DictStateFn) for op in evals) or \
@@ -408,11 +406,11 @@ class ListOp(OperatorBase):
             return ListOp(
                 [op.to_matrix_op(massive=massive) for op in self.oplist],  # type: ignore
                 combo_fn=self.combo_fn, coeff=self.coeff, abelian=self.abelian
-                ).reduce()
+            ).reduce()
         return self.__class__(
             [op.to_matrix_op(massive=massive) for op in self.oplist],  # type: ignore
             coeff=self.coeff, abelian=self.abelian
-            ).reduce()
+        ).reduce()
 
     def to_circuit_op(self) -> OperatorBase:
         """ Returns an equivalent Operator composed of only QuantumCircuit-based primitives,

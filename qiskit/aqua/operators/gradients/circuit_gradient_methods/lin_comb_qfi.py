@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -20,20 +18,18 @@ from copy import deepcopy
 from typing import List, Union, Optional
 
 import numpy as np
-
 from qiskit.aqua import AquaError
 from qiskit.aqua.operators import ListOp, OperatorBase
-from qiskit.aqua.operators.gradients.circuit_gradient_methods import CircuitGradientMethod
+from qiskit.aqua.operators.gradients.circuit_gradient_methods.circuit_gradient_method import \
+    CircuitGradientMethod
 from qiskit.aqua.operators.operator_globals import I, Z, Y, X
 from qiskit.aqua.operators.state_fns import StateFn, CircuitStateFn
+from qiskit.circuit import Gate
 from qiskit.circuit import (QuantumCircuit, QuantumRegister, Parameter, ParameterVector,
                             ParameterExpression)
 from qiskit.circuit.library import RZGate, RXGate, HGate, XGate, SdgGate, SGate, ZGate, UGate
 
-from qiskit.circuit import Gate
-
 from .lin_comb_gradient import LinCombGradient
-
 from ..derivatives_base import DerivativeBase
 
 
@@ -90,7 +86,8 @@ class LinCombQFI(CircuitGradientMethod):
         for param in params:
             param_gates = state_qc._parameter_table[param]
             for m, param_occurence in enumerate(param_gates):
-                coeffs_i, gates_i = LinCombGradient._gate_gradient_dict(param_occurence[0])[param_occurence[1]]
+                coeffs_i, gates_i = LinCombGradient._gate_gradient_dict(param_occurence[0])[
+                    param_occurence[1]]
                 for k, gate_to_insert_i in enumerate(gates_i):
                     grad_state = QuantumCircuit(*state_qc.qregs, qr_work)
                     grad_state.data = state_qc.data
@@ -200,8 +197,9 @@ class LinCombQFI(CircuitGradientMethod):
                         param_gates_j = state_qc._parameter_table[param_j]
 
                         for m_j, param_occurence_j in enumerate(param_gates_j):
-                            coeffs_j, gates_j = LinCombGradient._gate_gradient_dict(param_occurence_j[0])[
-                                param_occurence_j[1]]
+                            coeffs_j, gates_j = \
+                                LinCombGradient._gate_gradient_dict(param_occurence_j[0])[
+                                    param_occurence_j[1]]
                             for k_j, gate_to_insert_j in enumerate(gates_j):
                                 coeff_j = coeffs_j[k_j]
 
@@ -238,64 +236,72 @@ class LinCombQFI(CircuitGradientMethod):
                                 # Insert controlled, intercepting gate - controlled by |1>
                                 if isinstance(param_occurence_i[0], UGate):
                                     if param_occurence_i[1] == 0:
-                                        LinCombGradient.insert_gate(qfi_circuit, param_occurence_i[0],
-                                                                    RZGate(param_occurence_i[0].params[2]))
-                                        LinCombGradient.insert_gate(qfi_circuit, param_occurence_i[0],
-                                                                    RXGate(np.pi / 2))
-                                        LinCombGradient.insert_gate(qfi_circuit, param_occurence_i[0],
-                                                                    gate_to_insert_i,
-                                                                    additional_qubits=additional_qubits)
-                                        LinCombGradient.insert_gate(qfi_circuit, param_occurence_i[0],
-                                                                    RXGate(-np.pi / 2))
-                                        LinCombGradient.insert_gate(qfi_circuit, param_occurence_i[0],
-                                                                    RZGate(-param_occurence_i[0].params[2]))
+                                        LinCombGradient.insert_gate(
+                                            qfi_circuit, param_occurence_i[0],
+                                            RZGate(param_occurence_i[0].params[2]))
+                                        LinCombGradient.insert_gate(
+                                            qfi_circuit, param_occurence_i[0],
+                                            RXGate(np.pi / 2))
+                                        LinCombGradient.insert_gate(
+                                            qfi_circuit, param_occurence_i[0], gate_to_insert_i,
+                                            additional_qubits=additional_qubits)
+                                        LinCombGradient.insert_gate(
+                                            qfi_circuit, param_occurence_i[0],
+                                            RXGate(-np.pi / 2))
+                                        LinCombGradient.insert_gate(
+                                            qfi_circuit, param_occurence_i[0],
+                                            RZGate(-param_occurence_i[0].params[2]))
 
                                     elif param_occurence_i[1] == 1:
-                                        LinCombGradient.insert_gate(qfi_circuit, param_occurence_i[0],
-                                                                    gate_to_insert_i, after=True,
-                                                                    additional_qubits=additional_qubits)
+                                        LinCombGradient.insert_gate(
+                                            qfi_circuit, param_occurence_i[0],
+                                            gate_to_insert_i, after=True,
+                                            additional_qubits=additional_qubits)
                                     else:
-                                        LinCombGradient.insert_gate(qfi_circuit, param_occurence_i[0],
-                                                                    gate_to_insert_i,
-                                                                    additional_qubits=additional_qubits)
+                                        LinCombGradient.insert_gate(
+                                            qfi_circuit, param_occurence_i[0],
+                                            gate_to_insert_i, additional_qubits=additional_qubits)
                                 else:
-                                    LinCombGradient.insert_gate(qfi_circuit, param_occurence_i[0],
-                                                                gate_to_insert_i,
-                                                                additional_qubits=additional_qubits)
+                                    LinCombGradient.insert_gate(
+                                        qfi_circuit, param_occurence_i[0],
+                                        gate_to_insert_i, additional_qubits=additional_qubits)
 
-                                LinCombGradient.insert_gate(qfi_circuit,
-                                                            gate_to_insert_i,
-                                                            XGate(),
-                                                            qubits=[work_qubit],
-                                                            after=True)
+                                LinCombGradient.insert_gate(
+                                    qfi_circuit, gate_to_insert_i,
+                                    XGate(), qubits=[work_qubit], after=True)
 
                                 # Insert controlled, intercepting gate - controlled by |0>
                                 if isinstance(param_occurence_j[0], UGate):
                                     if param_occurence_j[1] == 0:
-                                        LinCombGradient.insert_gate(qfi_circuit, param_occurence_j[0],
-                                                                    RZGate(param_occurence_j[0].params[2]))
-                                        LinCombGradient.insert_gate(qfi_circuit, param_occurence_j[0],
-                                                                    RXGate(np.pi / 2))
-                                        LinCombGradient.insert_gate(qfi_circuit, param_occurence_j[0],
-                                                                    gate_to_insert_j,
-                                                                    additional_qubits=additional_qubits)
-                                        LinCombGradient.insert_gate(qfi_circuit, param_occurence_j[0],
-                                                                    RXGate(-np.pi / 2))
-                                        LinCombGradient.insert_gate(qfi_circuit, param_occurence_j[0],
-                                                                    RZGate(-param_occurence_j[0].params[2]))
+                                        LinCombGradient.insert_gate(
+                                            qfi_circuit, param_occurence_j[0],
+                                            RZGate(param_occurence_j[0].params[2]))
+                                        LinCombGradient.insert_gate(
+                                            qfi_circuit, param_occurence_j[0],
+                                            RXGate(np.pi / 2))
+                                        LinCombGradient.insert_gate(
+                                            qfi_circuit, param_occurence_j[0],
+                                            gate_to_insert_j, additional_qubits=additional_qubits)
+                                        LinCombGradient.insert_gate(
+                                            qfi_circuit, param_occurence_j[0],
+                                            RXGate(-np.pi / 2))
+                                        LinCombGradient.insert_gate(
+                                            qfi_circuit, param_occurence_j[0],
+                                            RZGate(-param_occurence_j[0].params[2]))
 
                                     elif param_occurence_j[1] == 1:
-                                        LinCombGradient.insert_gate(qfi_circuit, param_occurence_j[0],
-                                                                    gate_to_insert_j, after=True,
-                                                                    additional_qubits=additional_qubits)
+                                        LinCombGradient.insert_gate(
+                                            qfi_circuit, param_occurence_j[0],
+                                            gate_to_insert_j, after=True,
+                                            additional_qubits=additional_qubits)
                                     else:
-                                        LinCombGradient.insert_gate(qfi_circuit, param_occurence_j[0],
-                                                                    gate_to_insert_j,
-                                                                    additional_qubits=additional_qubits)
+                                        LinCombGradient.insert_gate(
+                                            qfi_circuit, param_occurence_j[0],
+                                            gate_to_insert_j, additional_qubits=additional_qubits)
                                 else:
-                                    LinCombGradient.insert_gate(qfi_circuit, param_occurence_j[0],
-                                                                gate_to_insert_j,
-                                                                additional_qubits=additional_qubits)
+                                    LinCombGradient.insert_gate(
+                                        qfi_circuit, param_occurence_j[0],
+                                        gate_to_insert_j, additional_qubits=additional_qubits)
 
                                 # Remove redundant gates
 
@@ -310,7 +316,8 @@ class LinCombQFI(CircuitGradientMethod):
 
                                 qfi_circuit.h(work_qubit)
                                 # Convert the quantum circuit into a CircuitStateFn
-                                term = np.sqrt(np.abs(coeff_i) * np.abs(coeff_j)) * operator.coeff * \
+                                term = np.sqrt(np.abs(coeff_i) * np.abs(coeff_j)) * \
+                                       operator.coeff * \
                                        CircuitStateFn(qfi_circuit)
 
                                 # Chain Rule Parameter Expression
@@ -320,10 +327,12 @@ class LinCombQFI(CircuitGradientMethod):
 
                                 meas = deepcopy(qfi_observable)
                                 if isinstance(gate_param_i, ParameterExpression):
-                                    expr_grad = DerivativeBase.parameter_expression_grad(gate_param_i, param_i)
+                                    expr_grad = DerivativeBase.parameter_expression_grad(
+                                        gate_param_i, param_i)
                                     meas *= expr_grad
                                 if isinstance(gate_param_j, ParameterExpression):
-                                    expr_grad = DerivativeBase.parameter_expression_grad(gate_param_j, param_j)
+                                    expr_grad = DerivativeBase.parameter_expression_grad(
+                                        gate_param_j, param_j)
                                     meas *= expr_grad
                                 term = meas @ term
 

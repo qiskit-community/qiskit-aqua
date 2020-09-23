@@ -15,29 +15,31 @@
 See https://arxiv.org/abs/1304.3061
 """
 
-from typing import Optional, List, Callable, Union, Dict, Any
 import logging
 import warnings
 from time import time
-import numpy as np
+from typing import Optional, List, Callable, Union, Dict, Any
 
+import numpy as np
 from qiskit import ClassicalRegister, QuantumCircuit
-from qiskit.circuit import Parameter
-from qiskit.circuit.library import RealAmplitudes
-from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.algorithms import QuantumAlgorithm
+from qiskit.aqua.components.optimizers import Optimizer, SLSQP
+from qiskit.aqua.components.variational_forms import VariationalForm
 from qiskit.aqua.operators import (OperatorBase, ExpectationBase, ExpectationFactory, StateFn,
                                    CircuitStateFn, LegacyBaseOperator, ListOp, I, CircuitSampler)
 from qiskit.aqua.operators.gradients import Gradient
-from qiskit.aqua.components.optimizers import Optimizer, SLSQP
-from qiskit.aqua.components.variational_forms import VariationalForm
-from qiskit.aqua.utils.validation import validate_min
 from qiskit.aqua.utils.backend_utils import is_aer_provider
-from ..vq_algorithm import VQAlgorithm, VQResult
+from qiskit.aqua.utils.validation import validate_min
+from qiskit.circuit import Parameter
+from qiskit.circuit.library import RealAmplitudes
+from qiskit.providers import BaseBackend
+
 from .minimum_eigen_solver import MinimumEigensolver, MinimumEigensolverResult
+from ..vq_algorithm import VQAlgorithm, VQResult
 
 logger = logging.getLogger(__name__)
+
 
 # disable check for var_forms, optimizer setter because of pylint bug
 # pylint: disable=no-member
@@ -160,7 +162,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         super().__init__(var_form=var_form,
                          optimizer=optimizer,
                          cost_fn=self._energy_evaluation,
-                         gradient= gradient,
+                         gradient=gradient,
                          initial_point=initial_point,
                          quantum_instance=quantum_instance)
         self._ret = None  # type: Dict[str, Any]
@@ -413,12 +415,14 @@ class VQE(VQAlgorithm, MinimumEigensolver):
 
         self._eval_count = 0
 
-        # Convert the gradient operator into a callable function that is compatible with the optimization routine.
+        # Convert the gradient operator into a callable function that is compatible with the
+        # optimization routine.
         if self._gradient:
             if isinstance(self._gradient, Gradient):
-                self._gradient = self._gradient.gradient_wrapper(~StateFn(self._operator)@StateFn(self._var_form),
-                                                                 bind_params=self._var_form_params,
-                                                                 backend=self._quantum_instance)
+                self._gradient = self._gradient.gradient_wrapper(
+                    ~StateFn(self._operator) @ StateFn(self._var_form),
+                    bind_params=self._var_form_params,
+                    backend=self._quantum_instance)
         vqresult = self.find_minimum(initial_point=self.initial_point,
                                      var_form=self.var_form,
                                      cost_fn=self._energy_evaluation,

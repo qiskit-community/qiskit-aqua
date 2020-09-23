@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -21,14 +19,13 @@ from jax import grad, jit
 from qiskit.aqua.aqua_globals import AquaError
 from qiskit.aqua.operators import Zero, One, CircuitStateFn, StateFn
 from qiskit.aqua.operators.expectations import PauliExpectation
+from qiskit.aqua.operators.gradients.circuit_gradient_methods.circuit_gradient_method \
+    import CircuitGradientMethod
+from qiskit.aqua.operators.gradients.derivatives_base import DerivativeBase
+from qiskit.aqua.operators.gradients.gradient import Gradient
 from qiskit.aqua.operators.list_ops import ListOp, ComposedOp, SummedOp, TensoredOp
 from qiskit.aqua.operators.operator_base import OperatorBase
 from qiskit.circuit import Parameter, ParameterVector, ParameterExpression
-
-from qiskit.aqua.operators.gradients.circuit_gradient_methods.circuit_gradient_method \
-    import CircuitGradientMethod
-from qiskit.aqua.operators.gradients.gradient import Gradient
-from qiskit.aqua.operators.gradients.derivatives_base import DerivativeBase
 
 
 class Hessian(DerivativeBase):
@@ -48,7 +45,7 @@ class Hessian(DerivativeBase):
         Raises:
             ValueError: If method != ``fin_diff`` and ``epsilon`` is not None.
         """
-        
+
         if isinstance(method, CircuitGradientMethod):
             self._method = method
         elif method == 'param_shift':
@@ -68,8 +65,8 @@ class Hessian(DerivativeBase):
             self._method = LinCombGradient()
 
         else:
-            raise ValueError("Unrecognized input provided for `method`. Please provide" 
-                             " a CircuitGradientMethod object or one of the pre-defined string" 
+            raise ValueError("Unrecognized input provided for `method`. Please provide"
+                             " a CircuitGradientMethod object or one of the pre-defined string"
                              " arguments: {'param_shift', 'fin_diff', 'lin_comb'}. ")
 
     def convert(self,
@@ -117,7 +114,8 @@ class Hessian(DerivativeBase):
     def get_hessian(self,
                     operator: OperatorBase,
                     params: Optional[Union[Tuple[Parameter, Parameter],
-                                        List[Tuple[Parameter, Parameter]]]] = None) -> OperatorBase:
+                                           List[Tuple[
+                                               Parameter, Parameter]]]] = None) -> OperatorBase:
 
         def is_coeff_c(coeff, c):
             if isinstance(coeff, ParameterExpression):
@@ -228,8 +226,9 @@ class Hessian(DerivativeBase):
                     grad_combo_fn = jit(grad(operator._combo_fn, holomorphic=True))
                 except Exception:
                     raise TypeError(
-                        'This automatic differentiation function is based on JAX. Please use import '
-                        'jax.numpy as jnp instead of import numpy as np when defining a combo_fn.')
+                        'This automatic differentiation function is based on JAX. Please use '
+                        '`import jax.numpy as jnp` instead of `import numpy as np` when defining a '
+                        'combo_fn.')
 
             # f(g_1(x), g_2(x)) --> df/dx = df/dg_1 dg_1/dx + df/dg_2 dg_2/dx
             return ListOp([ListOp(operator.oplist, combo_fn=grad_combo_fn), ListOp(grad_ops)],

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -14,16 +12,14 @@
 
 """The module for Aqua's gradient."""
 
-from .derivatives_base import DerivativeBase
-from .circuit_gradient_methods.circuit_gradient_method import CircuitGradientMethod
-
-from .qfi import QFI
-from .natural_gradient import NaturalGradient
-from .gradient import Gradient
-from .hessian import Hessian
-
 from .circuit_gradient_methods import (LinCombGradient, ParamShiftGradient,
                                        LinCombQFI, BlockDiagQFI, DiagQFI)
+from .circuit_gradient_methods.circuit_gradient_method import CircuitGradientMethod
+from .derivatives_base import DerivativeBase
+from .gradient import Gradient
+from .hessian import Hessian
+from .natural_gradient import NaturalGradient
+from .qfi import QFI
 
 __all__ = ['DerivativeBase',
            'CircuitGradientMethod',
@@ -31,7 +27,7 @@ __all__ = ['DerivativeBase',
            'NaturalGradient',
            'Hessian',
            'QFI',
-            'LinCombGradient',
+           'LinCombGradient',
            'ParamShiftGradient',
            'LinCombQFI',
            'BlockDiagQFI',

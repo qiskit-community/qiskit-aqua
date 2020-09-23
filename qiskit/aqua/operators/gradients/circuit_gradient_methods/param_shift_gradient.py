@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -19,17 +17,14 @@ from functools import partial
 from typing import List, Union, Optional, Tuple
 
 import numpy as np
-
 from qiskit import transpile, QuantumCircuit
 from qiskit.aqua import AquaError
-
 from qiskit.aqua.operators import (One, OperatorBase, StateFn, Zero, CircuitStateFn,
                                    CircuitOp)
-from qiskit.circuit import Parameter, ParameterExpression, ParameterVector
-
+from qiskit.aqua.operators import SummedOp, ListOp, ComposedOp, DictStateFn, VectorStateFn
 from qiskit.aqua.operators.gradients.circuit_gradient_methods.circuit_gradient_method \
     import CircuitGradientMethod
-from qiskit.aqua.operators import SummedOp, ListOp, ComposedOp, DictStateFn, VectorStateFn
+from qiskit.circuit import Parameter, ParameterExpression, ParameterVector
 
 from ..derivatives_base import DerivativeBase
 
@@ -55,7 +50,6 @@ class ParamShiftGradient(CircuitGradientMethod):
         self._analytic = analytic
         self._epsilon = epsilon
 
-
     @property
     def analytic(self):
         return self._analytic
@@ -63,7 +57,6 @@ class ParamShiftGradient(CircuitGradientMethod):
     @property
     def epsilon(self):
         return self._epsilon
-    
 
     # pylint: disable=arguments-differ
     def convert(self,
@@ -89,13 +82,14 @@ class ParamShiftGradient(CircuitGradientMethod):
         if isinstance(params, Parameter) or isinstance(params, ParameterVector):
             return self.parameter_shift(operator, params)
         elif isinstance(params, tuple):
-                return self.parameter_shift(self.parameter_shift(operator, params[0]), params[1])
+            return self.parameter_shift(self.parameter_shift(operator, params[0]), params[1])
         elif isinstance(params, Iterable):
             if isinstance(params[0], Parameter):
                 return self.parameter_shift(operator, params)
             elif isinstance(params[0], tuple):
-                return ListOp([self.parameter_shift(self.parameter_shift(operator, pair[0]), pair[1])
-                               for pair in params])
+                return ListOp(
+                    [self.parameter_shift(self.parameter_shift(operator, pair[0]), pair[1])
+                     for pair in params])
             else:
                 raise AquaError('The linear combination gradient does only support the computation '
                                 'of 1st gradients and 2nd order gradients.')
@@ -181,7 +175,6 @@ class ParamShiftGradient(CircuitGradientMethod):
                 # We need the circuit objects of the newly instantiated operators
                 pshift_circ = self.get_unique_circuits(pshift_op)[0]
                 mshift_circ = self.get_unique_circuits(mshift_op)[0]
-
 
                 pshift_gate = pshift_circ._parameter_table[param][m][0]
                 mshift_gate = mshift_circ._parameter_table[param][m][0]
@@ -275,7 +268,8 @@ class ParamShiftGradient(CircuitGradientMethod):
         """Replace a circuit element in an operator with a single element given as circuit.
 
         Args:
-            operator: Operator for which the circuit representing the quantum state shall be replaced
+            operator: Operator for which the circuit representing the quantum state shall be
+                replaced.
             circuit: Circuit which shall replace the circuit in the given operator.
 
         Returns:
@@ -287,7 +281,8 @@ class ParamShiftGradient(CircuitGradientMethod):
         elif isinstance(operator, CircuitOp):
             return CircuitOp(circuit, coeff=operator.coeff)
         elif isinstance(operator, ComposedOp) or isinstance(operator, ListOp):
-            return operator.traverse(partial(ParamShiftGradient._replace_operator_circuit, circuit=circuit))
+            return operator.traverse(
+                partial(ParamShiftGradient._replace_operator_circuit, circuit=circuit))
         else:
             return operator
 

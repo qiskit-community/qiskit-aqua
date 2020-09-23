@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2019.
@@ -29,12 +27,10 @@ from typing import Optional, Union
 
 import numpy as np
 from qiskit.aqua.operators import (OperatorBase, ListOp, ComposedOp, CircuitStateFn)
-from qiskit.circuit import Parameter, ParameterVector
-
 from qiskit.aqua.operators.gradients.circuit_gradient_methods import CircuitGradientMethod
 from qiskit.aqua.operators.gradients.gradient import Gradient
-from qiskit.aqua.operators.gradients.derivatives_base import DerivativeBase
 from qiskit.aqua.operators.gradients.qfi import QFI
+from qiskit.circuit import Parameter, ParameterVector
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
@@ -105,8 +101,8 @@ class NaturalGradient(Gradient):
             c = np.real(x[0])
             a = np.real(x[1])
             if self.regularization:
-                nat_grad = NaturalGradient._regularized_sle_solver(a, c,
-                                                                   regularization=self.regularization)
+                nat_grad = NaturalGradient._regularized_sle_solver(
+                    a, c, regularization=self.regularization)
             else:
                 try:
                     nat_grad = np.linalg.solve(a, c)
@@ -126,11 +122,11 @@ class NaturalGradient(Gradient):
 
     @staticmethod
     def _reg_term_search(A: np.ndarray,
-                        C: np.ndarray,
-                        reg_method: callable,
-                        lambda1: float = 1e-3,
-                        lambda4: float = 1.,
-                        tol: float = 1e-8) -> float:
+                         C: np.ndarray,
+                         reg_method: callable,
+                         lambda1: float = 1e-3,
+                         lambda4: float = 1.,
+                         tol: float = 1e-8) -> float:
         """
         This method implements a search for a regularization parameter lambda by finding for the
         corner of the L-curve
@@ -281,7 +277,7 @@ class NaturalGradient(Gradient):
                 return reg.coef_
 
             lambda_mc, x_mc = NaturalGradient._reg_term_search(A, C, reg_method, lambda1=lambda1,
-                                                              lambda4=lambda4, tol=tol_search)
+                                                               lambda4=lambda4, tol=tol_search)
         else:
             lambda_mc = lambda_
             reg.fit(A, C)
@@ -349,7 +345,7 @@ class NaturalGradient(Gradient):
                 return reg.coef_
 
             lambda_mc, x_mc = NaturalGradient._reg_term_search(A, C, reg_method, lambda1=lambda1,
-                                                              lambda4=lambda4, tol=tol_search)
+                                                               lambda4=lambda4, tol=tol_search)
         else:
             lambda_mc = lambda_
             reg.fit(A, C)
@@ -372,7 +368,8 @@ class NaturalGradient(Gradient):
         Args:
             A: mxn matrix
             C: m vector
-            regularization: Regularization scheme to be used: 'ridge', 'lasso', 'perturb_diag_elements' or 'perturb_diag'
+            regularization: Regularization scheme to be used: 'ridge', 'lasso',
+                'perturb_diag_elements' or 'perturb_diag'
             lambda1: left starting point for L-curve corner search (for 'ridge' and 'lasso')
             lambda4: right starting point for L-curve corner search (for 'ridge' and 'lasso')
             alpha: perturbation coefficient for 'perturb_diag_elements' and 'perturb_diag'

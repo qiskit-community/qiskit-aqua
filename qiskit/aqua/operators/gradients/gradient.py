@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -21,10 +19,9 @@ from qiskit.aqua import AquaError
 from qiskit.aqua.operators import (
     PauliExpectation
 )
-from qiskit.circuit import ParameterExpression, Parameter, ParameterVector
-
+from qiskit.aqua.operators.gradients.circuit_gradient_methods.circuit_gradient_method import \
+    CircuitGradientMethod
 from qiskit.aqua.operators.gradients.derivatives_base import DerivativeBase
-from qiskit.aqua.operators.gradients.circuit_gradient_methods.circuit_gradient_method import CircuitGradientMethod
 from qiskit.aqua.operators.list_ops.composed_op import ComposedOp
 from qiskit.aqua.operators.list_ops.list_op import ListOp
 from qiskit.aqua.operators.list_ops.summed_op import SummedOp
@@ -32,6 +29,7 @@ from qiskit.aqua.operators.list_ops.tensored_op import TensoredOp
 from qiskit.aqua.operators.operator_base import OperatorBase
 from qiskit.aqua.operators.operator_globals import Zero, One
 from qiskit.aqua.operators.state_fns.circuit_state_fn import CircuitStateFn
+from qiskit.circuit import ParameterExpression, Parameter, ParameterVector
 
 
 class Gradient(DerivativeBase):
@@ -43,7 +41,8 @@ class Gradient(DerivativeBase):
         r"""
         Args:
             method: The method used to compute the state/probability gradient. Can be either
-                ``'param_shift'`` or ``'lin_comb'`` or ``'fin_diff'``. Deprecated for observable gradient.
+                ``'param_shift'`` or ``'lin_comb'`` or ``'fin_diff'``. Deprecated for observable
+                gradient.
             epsilon: The offset size to use when computing finite difference gradients.
 
         
@@ -69,8 +68,8 @@ class Gradient(DerivativeBase):
             from .circuit_gradient_methods.lin_comb_gradient import LinCombGradient
             self._method = LinCombGradient()
         else:
-            raise ValueError("Unrecognized input provided for `method`. Please provide" 
-                             " a CircuitGradientMethod object or one of the pre-defined string" 
+            raise ValueError("Unrecognized input provided for `method`. Please provide"
+                             " a CircuitGradientMethod object or one of the pre-defined string"
                              " arguments: {'param_shift', 'fin_diff', 'lin_comb'}. ")
 
     def convert(self,
@@ -205,7 +204,8 @@ class Gradient(DerivativeBase):
                 # for now we do param shift
             else:
                 raise TypeError(
-                    'The gradient framework is compatible with states that are given as CircuitStateFn')
+                    'The gradient framework is compatible with states that are given as '
+                    'CircuitStateFn')
 
             return self.method.convert(operator, param)
 
@@ -241,8 +241,9 @@ class Gradient(DerivativeBase):
                     grad_combo_fn = jit(grad(operator._combo_fn, holomorphic=True))
                 except Exception:
                     raise TypeError(
-                        'This automatic differentiation function is based on JAX. Please use import '
-                        'jax.numpy as jnp instead of import numpy as np when defining a combo_fn.')
+                        'This automatic differentiation function is based on JAX. Please use '
+                        '`import jax.numpy as jnp` instead of `import numpy as np` when defining '
+                        'a combo_fn.')
 
             # f(g_1(x), g_2(x)) --> df/dx = df/dg_1 dg_1/dx + df/dg_2 dg_2/dx
             return ListOp([ListOp(operator.oplist, combo_fn=grad_combo_fn), ListOp(grad_ops)],
