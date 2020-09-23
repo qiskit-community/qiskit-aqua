@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -13,21 +11,17 @@
 # that they have been altered from the originals.
 
 """The module for Quantum the Fisher Information."""
-import copy
-from collections.abc import Iterable
-from copy import deepcopy
 from typing import List, Union, Optional
 
 import numpy as np
 from qiskit.aqua.operators import OperatorBase, ListOp, CircuitOp, ComposedOp, OperatorStateFn
+from qiskit.aqua.operators.expectations import PauliExpectation
 from qiskit.aqua.operators.gradients.circuit_gradient_methods import CircuitGradientMethod
 from qiskit.aqua.operators.operator_globals import Zero
 from qiskit.aqua.operators.state_fns import StateFn, CircuitStateFn
 from qiskit.circuit import (Parameter, ParameterVector, ParameterExpression)
 
 from .block_diag_qfi import BlockDiagQFI
-
-from qiskit.aqua.operators.expectations import PauliExpectation
 
 
 class DiagQFI(CircuitGradientMethod):
@@ -59,11 +53,10 @@ class DiagQFI(CircuitGradientMethod):
 
         return self._qfi_states(cleaned_op, params)
 
-
     def _qfi_states(self,
-                     operator: Union[CircuitOp, CircuitStateFn],
-                     params: Union[Parameter, ParameterVector, List] = None
-                     ) -> OperatorBase:
+                    operator: Union[CircuitOp, CircuitStateFn],
+                    params: Union[Parameter, ParameterVector, List] = None
+                    ) -> OperatorBase:
         """
         TODO
         Args:
@@ -101,8 +94,8 @@ class DiagQFI(CircuitGradientMethod):
         for param in params:
             if len(circuit._parameter_table[param]) > 1:
                 raise NotImplementedError("The QFI Approximations do not yet support multiple "
-                                         "gates parameterized by a single parameter. For such circuits "
-                                         "set approx = None")
+                                          "gates parameterized by a single parameter. For such "
+                                          "circuits set approx = None")
 
             gate = circuit._parameter_table[param][0][0]
 
@@ -116,9 +109,10 @@ class DiagQFI(CircuitGradientMethod):
             psi = [(psi) for psi in psis if param in psi.primitive.parameters][0]
 
             op = meas_op @ psi @ Zero
-            if isinstance(param_value, ParameterExpression) and not isinstance(param_value, Parameter):
-                            expr_grad = self._parameter_expression_grad(param_value, param)
-                            op *= expr_grad
+            if isinstance(param_value, ParameterExpression) and not isinstance(param_value,
+                                                                               Parameter):
+                expr_grad = self._parameter_expression_grad(param_value, param)
+                op *= expr_grad
             rotated_op = PauliExpectation().convert(op)
             diag.append(rotated_op)
 

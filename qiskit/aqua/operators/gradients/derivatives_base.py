@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -21,7 +19,7 @@ from functools import partial
 from typing import Callable, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
-from qiskit.aqua import AquaError, QuantumInstance
+from qiskit.aqua import QuantumInstance
 from qiskit.circuit import Parameter, ParameterExpression, ParameterVector
 from qiskit.providers import BaseBackend
 
@@ -84,8 +82,8 @@ class DerivativeBase(ConverterBase):
         Args:
             operator: The operator for which we want to get the gradient, Hessian or QFI.
             bind_params: The operator parameters to which the parameter values are assigned.
-            grad_params: The parameters with respect to which we are taking the gradient, Hessian or QFI.
-                        If grad_params = None, then grad_params = bind_params
+            grad_params: The parameters with respect to which we are taking the gradient, Hessian
+                        or QFI. If grad_params = None, then grad_params = bind_params
             method: The method used to compute the gradient. Either 'param_shift' or 'fin_diff' or
                 'lin_comb'.
             backend: The quantum backend or QuantumInstance to use to evaluate the gradient,
@@ -107,14 +105,16 @@ class DerivativeBase(ConverterBase):
             else:
                 if isinstance(backend, QuantumInstance):
                     if backend.is_statevector:
-                        converter = self.convert(operator, grad_params).assign_parameters(p_values_dict)
+                        converter = self.convert(operator, grad_params).assign_parameters(
+                            p_values_dict)
                     else:
                         p_values_dict = {k: [v] for k, v in p_values_dict.items()}
                         converter = CircuitSampler(backend=backend).convert(
                             self.convert(operator, grad_params), p_values_dict)
                 else:
                     if backend.name().startswith('statevector'):
-                        converter = self.convert(operator, grad_params).assign_parameters(p_values_dict)
+                        converter = self.convert(operator, grad_params).assign_parameters(
+                            p_values_dict)
                     else:
                         p_values_dict = {k: [v] for k, v in p_values_dict.items()}
                         converter = CircuitSampler(backend=backend).convert(

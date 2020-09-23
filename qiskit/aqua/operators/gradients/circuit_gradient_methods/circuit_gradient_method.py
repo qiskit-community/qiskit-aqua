@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -18,11 +16,9 @@ import logging
 from abc import abstractmethod
 from typing import List, Union
 
-from qiskit.circuit import (Gate, Instruction, Parameter, ParameterExpression,
-                            ParameterVector, Qubit)
 from qiskit.aqua.operators.converters.converter_base import ConverterBase
 from qiskit.aqua.operators.operator_base import OperatorBase
-
+from qiskit.circuit import (Parameter, ParameterVector)
 
 logger = logging.getLogger(__name__)
 

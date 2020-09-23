@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -16,18 +14,17 @@
 import copy
 from functools import cmp_to_key
 from typing import List, Union, Optional
-from scipy.linalg import block_diag
 
 import numpy as np
 from qiskit.aqua.operators import OperatorBase, ListOp, CircuitOp
+from qiskit.aqua.operators.expectations import PauliExpectation
 from qiskit.aqua.operators.gradients.circuit_gradient_methods import CircuitGradientMethod
 from qiskit.aqua.operators.operator_globals import I, Z, Y, X, Zero
 from qiskit.aqua.operators.state_fns import StateFn, CircuitStateFn
-from qiskit.converters import dag_to_circuit, circuit_to_dag
 from qiskit.circuit import Parameter, ParameterVector, ParameterExpression
 from qiskit.circuit.library import RZGate, RXGate, RYGate
-
-from qiskit.aqua.operators.expectations import PauliExpectation
+from qiskit.converters import dag_to_circuit, circuit_to_dag
+from scipy.linalg import block_diag
 
 
 class BlockDiagQFI(CircuitGradientMethod):
@@ -39,7 +36,7 @@ class BlockDiagQFI(CircuitGradientMethod):
     """
 
     def convert(self,
-                operator:  Union[CircuitOp, CircuitStateFn],
+                operator: Union[CircuitOp, CircuitStateFn],
                 params: Optional[Union[Parameter, ParameterVector, List[Parameter]]] = None
                 ) -> ListOp(List[OperatorBase]):
 
@@ -56,14 +53,14 @@ class BlockDiagQFI(CircuitGradientMethod):
             ValueError: If the value for ``approx`` is not supported.
         """
         if not isinstance(operator, (CircuitOp, CircuitStateFn)):
-           raise NotImplementedError('operator mustdds be a CircuitOp or CircuitStateFn')
+            raise NotImplementedError('operator mustdds be a CircuitOp or CircuitStateFn')
 
         circuit = operator.primitive
 
         # Parition the circuit into layers, and build the circuits to prepare $\psi_i$
         layers = self._partition_circuit(circuit)
         if layers[-1].num_parameters == 0:
-           layers.pop(-1)
+            layers.pop(-1)
 
         block_params = [list(layer.parameters) for layer in layers]
         # Remove any parameters found which are not in params
@@ -75,9 +72,9 @@ class BlockDiagQFI(CircuitGradientMethod):
 
         psis = [CircuitOp(layer) for layer in layers]
         for i, psi in enumerate(psis):
-           if i == 0:
-               continue
-           psis[i] = psi @ psis[i - 1]
+            if i == 0:
+                continue
+            psis[i] = psi @ psis[i - 1]
 
         # Get generators
         # TODO: make this work for other types of rotations
@@ -88,67 +85,71 @@ class BlockDiagQFI(CircuitGradientMethod):
         # or logic should be added to prevent evaluating the QFI on certain params.
 
         generators = self._get_generators(params, circuit)
-        #param_expressions =
+        # param_expressions =
 
         blocks = []
 
-        #Psi_i = layer_i @ layer_i-1 @ ... @ layer_0 @ Zero
+        # Psi_i = layer_i @ layer_i-1 @ ... @ layer_0 @ Zero
         for k, psi_i in enumerate(psis):
-           params = block_params[k]
-           block = np.zeros((len(params), len(params))).tolist()
+            params = block_params[k]
+            block = np.zeros((len(params), len(params))).tolist()
 
-           # calculate all single-operator terms <psi_i|generator_i|psi_i>
-           single_terms = np.zeros(len(params)).tolist()
-           for i, p_i in enumerate(params):
-               generator = generators[p_i]
-               psi_gen_i = ~StateFn(generator) @ psi_i @ Zero
-               psi_gen_i = PauliExpectation().convert(psi_gen_i)
-               single_terms[i] = psi_gen_i
+            # calculate all single-operator terms <psi_i|generator_i|psi_i>
+            single_terms = np.zeros(len(params)).tolist()
+            for i, p_i in enumerate(params):
+                generator = generators[p_i]
+                psi_gen_i = ~StateFn(generator) @ psi_i @ Zero
+                psi_gen_i = PauliExpectation().convert(psi_gen_i)
+                single_terms[i] = psi_gen_i
 
-           def get_parameter_expression(circuit, param):
-               if len(circuit._parameter_table[param]) > 1:
-                   raise NotImplementedError("The QFI Approximations do not yet support multiple "
-                                            "gates parameterized by a single parameter. For such circuits "
-                                            "set approx = None")
-               gate = circuit._parameter_table[param][0][0]
-               assert len(gate.params) == 1, "Circuit was not properly decomposed"
-               param_value = gate.params[0]
-               return param_value
+            def get_parameter_expression(circuit, param):
+                if len(circuit._parameter_table[param]) > 1:
+                    raise NotImplementedError("The QFI Approximations do not yet support multiple "
+                                              "gates parameterized by a single parameter. For such "
+                                              "circuits set approx = None")
+                gate = circuit._parameter_table[param][0][0]
+                assert len(gate.params) == 1, "Circuit was not properly decomposed"
+                param_value = gate.params[0]
+                return param_value
 
-           # Calculate all double-operator terms <psi_i|generator_j @ generator_i|psi_i>
-           # and build composite operators for each matrix entry
-           for i, p_i in enumerate(params):
-               generator_i = generators[p_i]
-               param_expr_i = get_parameter_expression(circuit, p_i)
+            # Calculate all double-operator terms <psi_i|generator_j @ generator_i|psi_i>
+            # and build composite operators for each matrix entry
+            for i, p_i in enumerate(params):
+                generator_i = generators[p_i]
+                param_expr_i = get_parameter_expression(circuit, p_i)
 
-               for j, p_j in enumerate(params):
-                   if i == j:
-                       block[i][i] = ListOp([single_terms[i]], combo_fn=lambda x: 1 - x[0] ** 2)
-                       if isinstance(param_expr_i, ParameterExpression) and not isinstance(param_expr_i, Parameter):
-                           expr_grad_i = self._parameter_expression_grad(param_expr_i, p_i)
-                           block[i][j] *= (expr_grad_i)*(expr_grad_i)
-                       continue
+                for j, p_j in enumerate(params):
+                    if i == j:
+                        block[i][i] = ListOp([single_terms[i]], combo_fn=lambda x: 1 - x[0] ** 2)
+                        if isinstance(param_expr_i, ParameterExpression) and not isinstance(
+                                param_expr_i, Parameter):
+                            expr_grad_i = self._parameter_expression_grad(param_expr_i, p_i)
+                            block[i][j] *= (expr_grad_i) * (expr_grad_i)
+                        continue
 
-                   generator_j = generators[p_j]
-                   generator = ~generator_j @ generator_i
-                   param_expr_j = get_parameter_expression(circuit, p_j)
+                    generator_j = generators[p_j]
+                    generator = ~generator_j @ generator_i
+                    param_expr_j = get_parameter_expression(circuit, p_j)
 
-                   psi_gen_ij = ~StateFn(generator) @ psi_i @ Zero
-                   psi_gen_ij = PauliExpectation().convert(psi_gen_ij)
-                   cross_term = ListOp([single_terms[i], single_terms[j]], combo_fn=np.prod)
-                   block[i][j] = psi_gen_ij - cross_term
+                    psi_gen_ij = ~StateFn(generator) @ psi_i @ Zero
+                    psi_gen_ij = PauliExpectation().convert(psi_gen_ij)
+                    cross_term = ListOp([single_terms[i], single_terms[j]], combo_fn=np.prod)
+                    block[i][j] = psi_gen_ij - cross_term
 
-                   if isinstance(param_expr_i, ParameterExpression) and not isinstance(param_expr_i, Parameter):
-                       expr_grad_i = self._parameter_expression_grad(param_expr_i, p_i)
-                       block[i][j] *= expr_grad_i
-                   if isinstance(param_expr_j, ParameterExpression) and not isinstance(param_expr_j, Parameter):
-                       expr_grad_j = self._parameter_expression_grad(param_expr_j, p_j)
-                       block[i][j] *= expr_grad_j
+                    if isinstance(param_expr_i, ParameterExpression) and not isinstance(
+                            param_expr_i, Parameter):
+                        expr_grad_i = self._parameter_expression_grad(param_expr_i, p_i)
+                        block[i][j] *= expr_grad_i
+                    if isinstance(param_expr_j, ParameterExpression) and not isinstance(
+                            param_expr_j, Parameter):
+                        expr_grad_j = self._parameter_expression_grad(param_expr_j, p_j)
+                        block[i][j] *= expr_grad_j
 
-           wrapped_block = ListOp([ListOp(row) for row in block])
-           blocks.append(wrapped_block)
+            wrapped_block = ListOp([ListOp(row) for row in block])
+            blocks.append(wrapped_block)
 
-        block_diagonal_qfi = ListOp(oplist=blocks, combo_fn=lambda x: np.real(block_diag(*x))[:,perm][perm,:])
+        block_diagonal_qfi = ListOp(oplist=blocks,
+                                    combo_fn=lambda x: np.real(block_diag(*x))[:, perm][perm, :])
         return block_diagonal_qfi
 
     @staticmethod
@@ -157,7 +158,7 @@ class BlockDiagQFI(CircuitGradientMethod):
         dag_layers = ([i['graph'] for i in dag.serial_layers()])
         num_qubits = circuit.num_qubits
         layers = list(
-           zip(dag_layers, [{x: False for x in range(0, num_qubits)} for layer in dag_layers]))
+            zip(dag_layers, [{x: False for x in range(0, num_qubits)} for layer in dag_layers]))
 
         # initialize the ledger
         # The ledger tracks which qubits in each layer are available to have
@@ -170,8 +171,8 @@ class BlockDiagQFI(CircuitGradientMethod):
             qargs = op_node.qargs
             indices = [qarg.index for qarg in qargs]
             if is_param:
-               for index in indices:
-                   ledger[index] = True
+                for index in indices:
+                    ledger[index] = True
 
         def apply_node_op(node, dag, back=True):
             op = copy.copy(node.op)
@@ -179,13 +180,13 @@ class BlockDiagQFI(CircuitGradientMethod):
             cargs = copy.copy(node.cargs)
             condition = copy.copy(node.condition)
             if back:
-               dag.apply_operation_back(op, qargs, cargs, condition)
+                dag.apply_operation_back(op, qargs, cargs, condition)
             else:
-               dag.apply_operation_front(op, qargs, cargs, condition)
+                dag.apply_operation_front(op, qargs, cargs, condition)
 
         converged = False
 
-        for _ in range(dag.depth()+1):
+        for _ in range(dag.depth() + 1):
             if converged:
                 break
 
@@ -206,19 +207,19 @@ class BlockDiagQFI(CircuitGradientMethod):
                     # then do it.
                     if not any([ledger[x] for x in indices]):
 
-                       apply_node_op(next_node, layer)
-                       next_layer.remove_op_node(next_node)
+                        apply_node_op(next_node, layer)
+                        next_layer.remove_op_node(next_node)
 
-                       if is_param:
-                           for index in indices:
-                               ledger[index] = True
-                               next_ledger[index] = False
+                        if is_param:
+                            for index in indices:
+                                ledger[index] = True
+                                next_ledger[index] = False
 
-                       converged = False
+                        converged = False
 
-               # clean up empty layers left behind.
+                # clean up empty layers left behind.
                 if len(next_layer.op_nodes()) == 0:
-                    layers.pop(i+1)
+                    layers.pop(i + 1)
 
         partitioned_circs = [dag_to_circuit(layer[0]) for layer in layers]
         return partitioned_circs
@@ -228,9 +229,10 @@ class BlockDiagQFI(CircuitGradientMethod):
         def compare_params(param1, param2):
             name1 = param1.name
             name2 = param2.name
-            value1 = name1[name1.find("[")+1:name1.find("]")]
-            value2 = name2[name2.find("[")+1:name2.find("]")]
+            value1 = name1[name1.find("[") + 1:name1.find("]")]
+            value2 = name2[name2.find("[") + 1:name2.find("]")]
             return int(value1) - int(value2)
+
         return sorted(params, key=cmp_to_key(compare_params), reverse=False)
 
     @staticmethod
@@ -267,7 +269,7 @@ class BlockDiagQFI(CircuitGradientMethod):
                     if len(indices) > 1:
                         raise NotImplementedError
                     index = indices[0]
-                    generator = (I ^ (index)) ^ generator ^ (I ^ (num_qubits-index-1))
+                    generator = (I ^ (index)) ^ generator ^ (I ^ (num_qubits - index - 1))
                     generators[param] = generator
 
         return generators

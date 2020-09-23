@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -14,12 +12,12 @@
 
 """The module for Aqua's first order derivatives."""
 
-from .circuit_gradient_method import CircuitGradientMethod
-from .lin_comb_gradient import LinCombGradient
-from .param_shift_gradient import ParamShiftGradient
-from .lin_comb_qfi import LinCombQFI
 from .block_diag_qfi import BlockDiagQFI
+from .circuit_gradient_method import CircuitGradientMethod
 from .diag_qfi import DiagQFI
+from .lin_comb_gradient import LinCombGradient
+from .lin_comb_qfi import LinCombQFI
+from .param_shift_gradient import ParamShiftGradient
 
 __all__ = ['CircuitGradientMethod',
            'LinCombGradient',

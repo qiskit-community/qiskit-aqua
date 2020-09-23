@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -13,19 +11,13 @@
 # that they have been altered from the originals.
 
 """The module for Quantum the Fisher Information."""
-import copy
 from collections.abc import Iterable
-from copy import deepcopy
 from typing import List, Union, Optional
 
-import numpy as np
 from qiskit.aqua.operators import OperatorBase, ListOp
 from qiskit.aqua.operators.gradients import DerivativeBase, CircuitGradientMethod
-from qiskit.aqua.operators.operator_globals import I, Z, Y, X
 from qiskit.aqua.operators.state_fns import StateFn, CircuitStateFn
-from qiskit.circuit import (QuantumCircuit, QuantumRegister, Parameter, ParameterVector,
-                            ParameterExpression)
-from qiskit.circuit.library import RZGate, RXGate, HGate, XGate, SdgGate, SGate, ZGate, U3Gate
+from qiskit.circuit import (Parameter, ParameterVector)
 
 from qiskit.aqua.operators.expectations import PauliExpectation
 
@@ -44,7 +36,8 @@ class QFI(DerivativeBase):
         r"""
         Args:
             method: The method used to compute the state/probability gradient. Can be either
-                ``'param_shift'`` or ``'lin_comb'`` or ``'fin_diff'``. Deprecated for observable gradient.
+                ``'param_shift'`` or ``'lin_comb'`` or ``'fin_diff'``.
+                Deprecated for observable gradient.
             epsilon: The offset size to use when computing finite difference gradients.
 
 
@@ -89,5 +82,3 @@ class QFI(DerivativeBase):
         cleaned_op = self._factor_coeffs_out_of_composed_op(expec_op)
 
         return self._method.convert(cleaned_op, params)
-
-
