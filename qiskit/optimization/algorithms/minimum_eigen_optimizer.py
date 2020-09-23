@@ -132,7 +132,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         return QuadraticProgramToQubo.get_compatibility_msg(problem)
 
     @property
-    def min_eigen_solver(self) -> Optional[MinimumEigensolver]:
+    def min_eigen_solver(self) ->MinimumEigensolver:
         """Returns the minimum eigensolver."""
         return self._min_eigen_solver
 
