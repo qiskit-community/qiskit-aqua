@@ -135,6 +135,8 @@ class ComposedOp(ListOp):
             return reduced_ops[0]
 
     def reduce(self) -> OperatorBase:
+        print("composed_op.reduce")
+        print("self =", [self])
         reduced_ops = [op.reduce() for op in self.oplist]
 
         def distribute_compose(l, r):

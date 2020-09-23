@@ -71,7 +71,9 @@ class TestStateOpMeasEvals(QiskitAquaTestCase):
         op = I
         with self.subTest('zero coeff in summed StateFn and CircuitSampler'):
             state = 0 * (Plus + Minus)
+            print("test_coeff_start!")
             sampler = CircuitSampler(q_instance).convert(~StateFn(op) @ state)
+            print("sampler =", [sampler])
             self.assertEqual(sampler.eval(), 0j)
 
         with self.subTest('coeff gets squared in CircuitSampler shot-based readout'):

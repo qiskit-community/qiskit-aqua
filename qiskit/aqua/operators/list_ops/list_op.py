@@ -368,6 +368,8 @@ class ListOp(OperatorBase):
         return self.traverse(lambda x: x.assign_parameters(param_dict), coeff=param_value)
 
     def reduce(self) -> OperatorBase:
+        print("list_op.reduce")
+        print("self =", [self])
         reduced_ops = [op.reduce() for op in self.oplist]
         if self.__class__ == ListOp:
             return ListOp(reduced_ops, combo_fn=self.combo_fn, coeff=self.coeff,
@@ -391,6 +393,7 @@ class ListOp(OperatorBase):
         """ Returns an equivalent Operator composed of only QuantumCircuit-based primitives,
         such as ``CircuitOp`` and ``CircuitStateFn``. """
         # pylint: disable=cyclic-import
+        print("to_circuit_op: self =", [self])
         from ..state_fns.operator_state_fn import OperatorStateFn
         if self.__class__ == ListOp:
             return ListOp([op.to_circuit_op()  # type: ignore

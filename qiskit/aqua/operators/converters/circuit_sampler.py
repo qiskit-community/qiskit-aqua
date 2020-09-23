@@ -164,6 +164,10 @@ class CircuitSampler(ConverterBase):
         Returns:
             The converted Operator with CircuitStateFns replaced by DictStateFns or VectorStateFns.
         """
+
+        print("circuit_sampler.convert")
+        print("operator = ", [operator])
+        print("params =", [params])
         if self._last_op is None or id(operator) != id(self._last_op):
             # Clear caches
             self._last_op = operator
