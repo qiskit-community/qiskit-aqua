@@ -18,13 +18,14 @@ from typing import List, Union, Optional
 import numpy as np
 from qiskit.aqua.operators import OperatorBase, ListOp, CircuitOp
 from qiskit.aqua.operators.expectations import PauliExpectation
-from qiskit.aqua.operators.gradients.circuit_gradient_methods import CircuitGradientMethod
 from qiskit.aqua.operators.operator_globals import I, Z, Y, X, Zero
 from qiskit.aqua.operators.state_fns import StateFn, CircuitStateFn
 from qiskit.circuit import Parameter, ParameterVector, ParameterExpression
 from qiskit.circuit.library import RZGate, RXGate, RYGate
 from qiskit.converters import dag_to_circuit, circuit_to_dag
 from scipy.linalg import block_diag
+
+from .circuit_gradient_method import CircuitGradientMethod
 
 
 class BlockDiagQFI(CircuitGradientMethod):
