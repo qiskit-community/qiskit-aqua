@@ -375,7 +375,7 @@ Jupyter notebooks containing further Machine Learning examples may be found in t
 following Qiskit GitHub repositories at
 [qiskit-tutorials/legacy_tutorials/aqua/machine_learning](https://github.com/Qiskit/qiskit-tutorials/tree/master/legacy_tutorials/aqua/machine_learning)
 and
-[qiskit-tutorials/legacy_tutorials/aqua/finance/machine_learning](https://github.com/Qiskit/qiskit-tutorials/tree/master/legacy_tutorials/aqua/finance/machine_learning)
+[qiskit-tutorials/tutorials/finance/10_qgan_option_pricing.ipynb](https://github.com/Qiskit/qiskit-tutorials/blob/master/tutorials/finance/10_qgan_option_pricing.ipynb)
 and
 [qiskit-community-tutorials/machine_learning](https://github.com/Qiskit/qiskit-community-tutorials/tree/master/machine_learning).
 

@@ -43,9 +43,12 @@ class TestTSP(QiskitOptimizationTestCase):
         np.testing.assert_equal(tsp.tsp_value(order, self.ins.w),
                                 tsp.tsp_value([1, 2, 0], self.ins.w))
 
-
-if __name__ == '__main__':
-    unittest.main()
+    def test_tsp_get_solution(self):
+        """ Test tsp.get_tsp_solution()"""
+        feasible = [1, 0, 0, 0, 1, 0, 0, 0, 1]
+        self.assertListEqual(tsp.get_tsp_solution(feasible), [0, 1, 2])
+        infeasible = [1, 0, 0, 1, 1, 0, 0, 0, 0]
+        self.assertListEqual(tsp.get_tsp_solution(infeasible), [[0, 1], 1, []])
 
 
 if __name__ == '__main__':
