@@ -20,7 +20,8 @@ from typing import List, Union, Optional
 import numpy as np
 from qiskit.aqua import AquaError
 from qiskit.aqua.operators import ListOp, OperatorBase
-from qiskit.aqua.operators.gradients.circuit_gradient_methods import CircuitGradientMethod
+from qiskit.aqua.operators.gradients.circuit_gradient_methods.circuit_gradient_method import \
+    CircuitGradientMethod
 from qiskit.aqua.operators.operator_globals import I, Z, Y, X
 from qiskit.aqua.operators.state_fns import StateFn, CircuitStateFn
 from qiskit.circuit import Gate

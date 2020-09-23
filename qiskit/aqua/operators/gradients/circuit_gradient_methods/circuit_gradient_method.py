@@ -18,7 +18,7 @@ from typing import List, Union
 
 from qiskit.aqua.operators.converters.converter_base import ConverterBase
 from qiskit.aqua.operators.operator_base import OperatorBase
-from qiskit.circuit import (Parameter, ParameterVector)
+from qiskit.circuit import Parameter, ParameterVector
 
 logger = logging.getLogger(__name__)
 
