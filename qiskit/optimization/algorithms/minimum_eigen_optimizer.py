@@ -147,7 +147,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         return self._penalty
 
     @penalty.setter
-    def penalty(self, penalty: float) -> None:
+    def penalty(self, penalty: Optional[float]) -> None:
         """Sets the penalty value."""
         self._penalty = penalty
 
