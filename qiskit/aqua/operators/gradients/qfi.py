@@ -15,7 +15,7 @@ from collections.abc import Iterable
 from typing import List, Union, Optional
 
 from qiskit.aqua.operators import OperatorBase, ListOp
-from qiskit.aqua.operators.gradients import DerivativeBase, CircuitGradientMethod
+from qiskit.aqua.operators.gradients import DerivativeBase, CircuitGradientMethod, QFIMethod
 from qiskit.aqua.operators.state_fns import StateFn, CircuitStateFn
 from qiskit.circuit import (Parameter, ParameterVector)
 
@@ -31,7 +31,8 @@ class QFI(DerivativeBase):
     """
 
     def __init__(self,
-                 method: Union[str, CircuitGradientMethod] = 'lin_comb',
+                 method: Union[str, QFIMethod] = 'lin_comb',
+                 approx: Optional[str] = None,
                  **kwargs):
         r"""
         Args:
@@ -49,18 +50,22 @@ class QFI(DerivativeBase):
             self._method = method
 
         elif method == 'lin_comb':
-            from .circuit_gradient_methods import LinCombQFI
-            self._method = LinCombQFI()
-        elif method == 'block_diag':
-            from .circuit_gradient_methods import BlockDiagQFI
-            self._method = BlockDiagQFI()
-        elif method == 'diag':
-            from .circuit_gradient_methods import DiagQFI
-            self._method = DiagQFI()
+            from .qfi_methods import LinCombQFI
+            if approx is not None:
+                self._method = LinCombQFI(approx)
+            else:
+                self._method = LinCombQFI()
+        elif method == 'overlap':
+            from .qfi_methods import OverlapQFI
+            if approx is not None:
+                self._method = OverlapQFI(approx)
+            else:
+                self._method = OverlapQFI()
+        
         else:
             raise ValueError("Unrecognized input provided for `method`. Please provide"
                              " a CircuitGradientMethod object or one of the pre-defined string"
-                             " arguments: {'lin_comb', 'diag', 'block_diag'}. ")
+                             " arguments: {'lin_comb', 'overlap'}. ")
 
     def convert(self,
                 operator: CircuitStateFn,

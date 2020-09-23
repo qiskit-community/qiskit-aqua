@@ -29,11 +29,12 @@ from qiskit.circuit import (QuantumCircuit, QuantumRegister, Parameter, Paramete
                             ParameterExpression)
 from qiskit.circuit.library import RZGate, RXGate, HGate, XGate, SdgGate, SGate, ZGate, UGate
 
-from .lin_comb_gradient import LinCombGradient
+from ..circuit_gradient_methods.lin_comb_gradient import LinCombGradient
 from ..derivatives_base import DerivativeBase
+from .qfi_method import QFIMethod
 
 
-class LinCombQFI(CircuitGradientMethod):
+class LinCombQFI(QFIMethod):
     r"""Compute the Quantum Fisher Information (QFI) given a pure, parametrized quantum state.
 
     The QFI is:
@@ -41,15 +42,25 @@ class LinCombQFI(CircuitGradientMethod):
         [QFI]kl= Re[〈∂kψ|∂lψ〉−〈∂kψ|ψ〉〈ψ|∂lψ〉] * 4.
     """
 
+    def __init__(self,
+                approx: Optional[str] = 'full'):
+        self_approx = approx
+
+    @property
+    def approx(self):
+        return self._approx
+
     def convert(self,
                 operator: CircuitStateFn,
-                params: Optional[Union[Parameter, ParameterVector, List[Parameter]]] = None
+                params: Optional[Union[Parameter, ParameterVector, List[Parameter]]] = None,
+                approx: Optional[str] = 'full'
                 ) -> ListOp(List[OperatorBase]):
         r"""
         Args:
             operator: The operator corresponding to the quantum state |ψ(ω)〉for which we compute
                 the QFI
             params: The parameters we are computing the QFI wrt: ω
+            approx: The type of approximation to compute
 
         Returns:
             ListOp[ListOp] where the operator at position k,l corresponds to QFI_kl
@@ -65,6 +76,10 @@ class LinCombQFI(CircuitGradientMethod):
         # see https://arxiv.org/pdf/quant-ph/0108146.pdf
         # Alternatively, define one operator which computes the QFI with phase fix directly
         # qfi_observable = ~StateFn(Z ^ (I ^ op.num_qubits) - op)
+
+        assert approx == 'full', 'LinCombQFI currently only supports the full QFI matrix ' \
+                                 'for a block-diagonal or diagonal approximation, please ' \
+                                 'see OverlapQFI'
 
         if isinstance(operator, CircuitStateFn):
             pass

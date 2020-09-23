@@ -43,6 +43,7 @@ class NaturalGradient(Gradient):
     def __init__(self,
                  grad_method: Union[str, CircuitGradientMethod] = 'lin_comb',
                  qfi_method: Union[str, CircuitGradientMethod] = 'lin_comb',
+                 qfi_approx: Optional[str] = None,
                  regularization: Optional[str] = None,
                  **kwargs):
         r"""
@@ -63,6 +64,7 @@ class NaturalGradient(Gradient):
 
         self._grad_method = grad_method
         self._qfi_method = qfi_method
+        self._qfi_approx = qfi_approx
         self._regularization = regularization
         if grad_method == 'fin_diff':
             if 'epsilon' in kwargs:
@@ -95,7 +97,7 @@ class NaturalGradient(Gradient):
             grad = Gradient(self._grad_method, epsilon=self._epsilon).convert(operator, params)
         else:
             grad = Gradient(self._grad_method).convert(operator, params)
-        metric = QFI(self._qfi_method).convert(operator[-1], params) * 0.25
+        metric = QFI(self._qfi_method, self._qfi_approx).convert(operator[-1], params) * 0.25
 
         def combo_fn(x):
             c = np.real(x[0])

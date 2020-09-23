@@ -12,9 +12,10 @@
 
 """The module for Aqua's gradient."""
 
-from .circuit_gradient_methods import (LinCombGradient, ParamShiftGradient,
-                                       LinCombQFI, BlockDiagQFI, DiagQFI)
+from .circuit_gradient_methods import (LinCombGradient, ParamShiftGradient)
+from .qfi_methods import (LinCombQFI, OverlapQFI)
 from .circuit_gradient_methods.circuit_gradient_method import CircuitGradientMethod
+from .qfi_methods.qfi_method import QFIMethod
 from .derivatives_base import DerivativeBase
 from .gradient import Gradient
 from .hessian import Hessian
@@ -29,7 +30,6 @@ __all__ = ['DerivativeBase',
            'QFI',
            'LinCombGradient',
            'ParamShiftGradient',
+           'QFIMethod',
            'LinCombQFI',
-           'BlockDiagQFI',
-           'DiagQFI'
-           ]
+           'OverlapQFI']

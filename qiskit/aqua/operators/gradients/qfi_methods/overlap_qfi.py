@@ -26,15 +26,25 @@ from qiskit.circuit import Parameter, ParameterVector, ParameterExpression
 from qiskit.circuit.library import RZGate, RXGate, RYGate
 from qiskit.converters import dag_to_circuit, circuit_to_dag
 from scipy.linalg import block_diag
+from .qfi_method import QFIMethod
 
 
-class BlockDiagQFI(CircuitGradientMethod):
+class OverlapQFI(QFIMethod):
     r"""Compute the Quantum Fisher Information (QFI) given a pure, parametrized quantum state.
 
     The QFI is:
 
         [QFI]kl= Re[〈∂kψ|∂lψ〉−〈∂kψ|ψ〉〈ψ|∂lψ〉] * 4.
     """
+
+    def __init__(self,
+                approx: Optional[str] = 'block_diag'):
+        self._approx = approx
+
+    @property
+    def approx(self):
+        return self._approx
+    
 
     def convert(self,
                 operator: Union[CircuitOp, CircuitStateFn],
@@ -46,6 +56,7 @@ class BlockDiagQFI(CircuitGradientMethod):
             operator: The operator corresponding to the quantum state |ψ(ω)〉for which we compute
                 the QFI
             params: The parameters we are computing the QFI wrt: ω
+            apprix: The type of approximation to use when computing the QFI
 
         Returns:
             ListOp[ListOp] where the operator at position k,l corresponds to QFI_kl
@@ -53,9 +64,37 @@ class BlockDiagQFI(CircuitGradientMethod):
         Raises:
             ValueError: If the value for ``approx`` is not supported.
         """
+
         if not isinstance(operator, (CircuitOp, CircuitStateFn)):
             raise NotImplementedError('operator mustdds be a CircuitOp or CircuitStateFn')
 
+        if self.approx == 'block_diag':
+            return self._block_diag_approx(operator=operator, params=params)
+        elif self.approx == 'diag':
+            return self._diagonal_approx(operator=operator, params=params)
+        else:
+            raise ValueError('OverlapQFI currently only supports a block-diagonal or '   \
+                            'diagonal approximation of the QFI. Please use LinCombQFI ' \
+                            'to compute the full QFI metric tensor')
+
+    def _block_diag_approx(self,
+                          operator: Union[CircuitOp, CircuitStateFn],
+                          params: Optional[Union[Parameter, ParameterVector, List[Parameter]]] = None
+                          ) -> ListOp(List[OperatorBase]):
+        r"""
+        Args:
+            operator: The operator corresponding to the quantum state |ψ(ω)〉for which we compute
+                the QFI
+            params: The parameters we are computing the QFI wrt: ω
+
+        Returns:
+            ListOp[ListOp] where the operator at position k,l corresponds to QFI_kl
+
+        Raises:
+            NotImplementedError if a circuit is found such that one parameter controls multiple
+            gates, or one gate contains multiple parameters. 
+        """
+        
         circuit = operator.primitive
 
         # Parition the circuit into layers, and build the circuits to prepare $\psi_i$
@@ -82,11 +121,8 @@ class BlockDiagQFI(CircuitGradientMethod):
         # NOTE: This assumes that each parameter only affects one rotation.
         # we need to think more about what happens if multiple rotations
         # are controlled with a single parameter.
-        # TODO: currently the input: target_params is ignored. This should either be removed,
-        # or logic should be added to prevent evaluating the QFI on certain params.
 
         generators = self._get_generators(params, circuit)
-        # param_expressions =
 
         blocks = []
 
@@ -105,11 +141,12 @@ class BlockDiagQFI(CircuitGradientMethod):
 
             def get_parameter_expression(circuit, param):
                 if len(circuit._parameter_table[param]) > 1:
-                    raise NotImplementedError("The QFI Approximations do not yet support multiple "
+                    raise NotImplementedError("OverlapQFI does not yet support multiple "
                                               "gates parameterized by a single parameter. For such "
-                                              "circuits set approx = None")
+                                              "circuits use LinCombQFI")
                 gate = circuit._parameter_table[param][0][0]
-                assert len(gate.params) == 1, "Circuit was not properly decomposed"
+                assert len(gate.params) == 1, "OverlapQFI cannot yet support gates with more than " \
+                                              "one parameter."
                 param_value = gate.params[0]
                 return param_value
 
@@ -152,6 +189,80 @@ class BlockDiagQFI(CircuitGradientMethod):
         block_diagonal_qfi = ListOp(oplist=blocks,
                                     combo_fn=lambda x: np.real(block_diag(*x))[:, perm][perm, :])
         return block_diagonal_qfi
+
+
+    #TODO, for some reason diagonal_approx doesn't use the same get_parameter_expression method. 
+    # This should be fixed. 
+    def _diagonal_approx(self,
+                    operator: Union[CircuitOp, CircuitStateFn],
+                    params: Union[Parameter, ParameterVector, List] = None
+                    ) -> OperatorBase:
+        """
+        Args:
+            operator: The operator corresponding to the quantum state |ψ(ω)〉for which we compute
+                the QFI
+            params: The parameters we are computing the QFI wrt: ω
+
+        Returns:
+            ListOp where the operator at position k corresponds to QFI_k,k
+
+        Raises:
+            NotImplementedError if a circuit is found such that one parameter controls multiple
+            gates, or one gate contains multiple parameters. 
+
+        """
+
+        if not isinstance(operator, (CircuitOp, CircuitStateFn)):
+            raise NotImplementedError
+
+        circuit = operator.primitive
+
+        # Parition the circuit into layers, and build the circuits to prepare $\psi_i$
+        layers = self._partition_circuit(circuit)
+        if layers[-1].num_parameters == 0:
+            layers.pop(-1)
+
+        psis = [CircuitOp(layer) for layer in layers]
+        for i, psi in enumerate(psis):
+            if i == 0:
+                continue
+            psis[i] = psi @ psis[i - 1]
+
+        # TODO: make this work for other types of rotations
+        # NOTE: This assumes that each parameter only affects one rotation.
+        # we need to think more about what happens if multiple rotations
+        # are controlled with a single parameter.
+        generators = self._get_generators(params, circuit)
+
+        diag = []
+        for param in params:
+            if len(circuit._parameter_table[param]) > 1:
+                raise NotImplementedError("OverlapQFI does not yet support multiple "
+                                          "gates parameterized by a single parameter. For such "
+                                          "circuits use LinCombQFI")
+
+            gate = circuit._parameter_table[param][0][0]
+
+            assert len(gate.params) == 1, "OverlapQFI cannot yet support gates with more than " \
+                                          "one parameter."
+
+            param_value = gate.params[0]
+            generator = generators[param]
+            meas_op = ~StateFn(generator)
+
+            # get appropriate psi_i
+            psi = [(psi) for psi in psis if param in psi.primitive.parameters][0]
+
+            op = meas_op @ psi @ Zero
+            if isinstance(param_value, ParameterExpression) and not isinstance(param_value,
+                                                                               Parameter):
+                expr_grad = self._parameter_expression_grad(param_value, param)
+                op *= expr_grad
+            rotated_op = PauliExpectation().convert(op)
+            diag.append(rotated_op)
+
+        grad_op = ListOp(diag, combo_fn=lambda x: np.diag(np.real([1 - y ** 2 for y in x])))
+        return grad_op
 
     @staticmethod
     def _partition_circuit(circuit):
