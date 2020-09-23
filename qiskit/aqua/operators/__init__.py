@@ -138,9 +138,9 @@ from .legacy import (LegacyBaseOperator, WeightedPauliOperator, Z2Symmetries,
 
 # New Operators
 from .operator_base import OperatorBase
-from .primitive_ops import PrimitiveOp, PauliOp, MatrixOp, CircuitOp
-from .state_fns import (StateFn, DictStateFn, VectorStateFn,
-                        CircuitStateFn, OperatorStateFn)
+from .primitive_ops import PrimitiveOp, PauliOp, MatrixOp, CircuitOp, CostFnOp
+from .state_fns import (StateFn, DictStateFn, VectorStateFn, CVarStateFn,
+                        CircuitStateFn, OperatorStateFn, CostFnMeasurement)
 from .list_ops import ListOp, SummedOp, ComposedOp, TensoredOp
 from .converters import (ConverterBase, CircuitSampler, PauliBasisChange,
                          DictToCircuitSum, AbelianGrouper)
@@ -149,6 +149,7 @@ from .expectations import (ExpectationBase, ExpectationFactory, PauliExpectation
 from .evolutions import (EvolutionBase, EvolutionFactory, EvolvedOp, PauliTrotterEvolution,
                          MatrixEvolution, TrotterizationBase, TrotterizationFactory, Trotter,
                          Suzuki, QDrift)
+
 
 # Convenience immutable instances
 from .operator_globals import (EVAL_SIG_DIGITS,
@@ -169,6 +170,7 @@ __all__ = [
     'OperatorBase',
     'PrimitiveOp', 'PauliOp', 'MatrixOp', 'CircuitOp',
     'StateFn', 'DictStateFn', 'VectorStateFn', 'CircuitStateFn', 'OperatorStateFn',
+    'CVarStateFn',
     'ListOp', 'SummedOp', 'ComposedOp', 'TensoredOp',
     # Converters
     'ConverterBase', 'CircuitSampler', 'AbelianGrouper', 'DictToCircuitSum', 'PauliBasisChange',
@@ -177,5 +179,5 @@ __all__ = [
     'EvolutionBase', 'EvolvedOp', 'EvolutionFactory', 'PauliTrotterEvolution', 'MatrixEvolution',
     'TrotterizationBase', 'TrotterizationFactory', 'Trotter', 'Suzuki', 'QDrift',
     # Convenience immutable instances
-    'X', 'Y', 'Z', 'I', 'CX', 'S', 'H', 'T', 'Swap', 'CZ', 'Zero', 'One', 'Plus', 'Minus'
+    'X', 'Y', 'Z', 'I', 'CX', 'S', 'H', 'T', 'Swap', 'CZ', 'Zero', 'One', 'Plus', 'Minus',
 ]

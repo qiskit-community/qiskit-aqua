@@ -292,11 +292,47 @@ class ListOp(OperatorBase):
 
         """
         # The below code only works for distributive ListOps, e.g. ListOp and SummedOp
+
+        from ..state_fns.dict_state_fn import DictStateFn       # pylint: disable=cyclic-import
+        from ..state_fns.vector_state_fn import VectorStateFn   # pylint: disable=cyclic-import
+
         if not self.distributive:
             raise NotImplementedError(r'ListOp\'s eval function is only defined for distributive '
                                       r'Listops.')
-
         evals = [(self.coeff * op).eval(front) for op in self.oplist]  # type: ignore
+
+        # Handle termwise application of combo_fn for {Dict,Vector}StateFns
+        # but only if a non-trivial combo_fn is given
+        if self._combo_fn != ListOp([])._combo_fn:
+            if all(isinstance(op, DictStateFn) for op in evals):
+                if not all(op.is_measurement == evals[0].is_measurement for op in evals):
+                    raise NotImplementedError('term-wise combo_fn not yet supported for mixed '
+                                              'measurement and non-measurement StateFns')
+                inputs = list(reduce(lambda x, y: x.union(set(y.primitive.keys())), [set()]+evals))
+                outputs = []
+                for bitstr in inputs:
+                    vals = [op.primitive[bitstr] if bitstr in op.primitive else 0 for op in evals]
+                    # only multiply elements by operator coefficient if it's nontrivial
+                    vals = [val*evals[i]._coeff if evals[i]._coeff !=
+                            1 else val for i, val in enumerate(vals)]
+                    # if op._coeff != 1:
+                    #    vals = [val*op.coeff for val in vals]
+                    outputs.append(self.combo_fn(vals))
+                return DictStateFn(dict(zip(inputs, outputs)))
+            elif all(isinstance(op, VectorStateFn) for op in evals):
+                if not all(op.is_measurement == evals[0].is_measurement for op in evals):
+                    raise NotImplementedError('term-wise combo_fn not yet supported for mixed '
+                                              'measurement and non-measurement StateFns')
+                # Get the actual data from each operator
+                vectors = [op.primitive.data for op in evals]
+                # only multiply elements by operator coefficient if it's nontrivial
+                vectors = [vec*evals[i]._coeff if evals[i]._coeff !=
+                           1 else vec for i, vec in enumerate(evals)]
+
+                combined_data = self.combo_fn([vec for vec in vectors])
+                return VectorStateFn(primitive=combined_data,
+                                     is_measurement=evals[0].is_measurement)
+
         if all(isinstance(op, OperatorBase) for op in evals):
             return self.__class__(evals)
         elif any(isinstance(op, OperatorBase) for op in evals):
@@ -392,14 +428,16 @@ class ListOp(OperatorBase):
         such as ``CircuitOp`` and ``CircuitStateFn``. """
         # pylint: disable=cyclic-import
         from ..state_fns.operator_state_fn import OperatorStateFn
+        from ..state_fns.cvar_state_fn import CVarStateFn
+
         if self.__class__ == ListOp:
             return ListOp([op.to_circuit_op()  # type: ignore
-                           if not isinstance(op, OperatorStateFn) else op
+                           if not isinstance(op, (OperatorStateFn, CVarStateFn)) else op
                            for op in self.oplist],
                           combo_fn=self.combo_fn, coeff=self.coeff, abelian=self.abelian
                           ).reduce()
         return self.__class__([op.to_circuit_op()  # type: ignore
-                               if not isinstance(op, OperatorStateFn) else op
+                               if not isinstance(op, (OperatorStateFn, CVarStateFn)) else op
                                for op in self.oplist],
                               coeff=self.coeff, abelian=self.abelian).reduce()
 

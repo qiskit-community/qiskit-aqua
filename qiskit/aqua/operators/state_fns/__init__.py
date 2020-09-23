@@ -48,6 +48,7 @@ State Functions
    DictStateFn
    VectorStateFn
    OperatorStateFn
+   CVarStateFn
 
 """
 
@@ -56,9 +57,11 @@ from .dict_state_fn import DictStateFn
 from .operator_state_fn import OperatorStateFn
 from .vector_state_fn import VectorStateFn
 from .circuit_state_fn import CircuitStateFn
+from .cvar_state_fn import CVarStateFn
 
 __all__ = ['StateFn',
            'DictStateFn',
            'VectorStateFn',
            'CircuitStateFn',
-           'OperatorStateFn']
+           'OperatorStateFn',
+           'CVarStateFn']

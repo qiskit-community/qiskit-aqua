@@ -182,10 +182,9 @@ class DictStateFn(StateFn):
     def eval(self,
              front: Optional[Union[str, Dict[str, complex], np.ndarray, OperatorBase]] = None
              ) -> Union[OperatorBase, float, complex]:
+
         if front is None:
-            vector_state_fn = self.to_matrix_op().eval()
-            vector_state_fn = cast(OperatorBase, vector_state_fn)
-            return vector_state_fn
+            return self
 
         if not self.is_measurement and isinstance(front, OperatorBase):
             raise ValueError(
