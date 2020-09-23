@@ -15,14 +15,15 @@ from collections.abc import Iterable
 from typing import List, Union, Optional
 
 from qiskit.aqua.operators import OperatorBase, ListOp
-from qiskit.aqua.operators.gradients import DerivativeBase, CircuitGradientMethod
-from qiskit.aqua.operators.state_fns import StateFn, CircuitStateFn
-from qiskit.circuit import (Parameter, ParameterVector)
+from qiskit.aqua.operators.gradients.qfi_base import QFIBase
+from qiskit.aqua.operators.gradients import CircuitGradientMethod
+from qiskit.aqua.operators.state_fns import CircuitStateFn
+from qiskit.circuit import (ParameterExpression, ParameterVector)
 
 from qiskit.aqua.operators.expectations import PauliExpectation
 
 
-class QFI(DerivativeBase):
+class QFI(QFIBase):
     r"""Compute the Quantum Fisher Information (QFI) given a pure, parametrized quantum state.
 
     The QFI is:
@@ -31,40 +32,19 @@ class QFI(DerivativeBase):
     """
 
     def __init__(self,
-                 method: Union[str, CircuitGradientMethod] = 'lin_comb',
-                 **kwargs):
+                 qfi_method: Union[str, CircuitGradientMethod] = 'lin_comb'):
         r"""
         Args:
             method: The method used to compute the state/probability gradient. Can be either
                 ``'param_shift'`` or ``'lin_comb'`` or ``'fin_diff'``.
                 Deprecated for observable gradient.
-            epsilon: The offset size to use when computing finite difference gradients.
-
-
-        Raises:
-            ValueError: If method != ``fin_diff`` and ``epsilon`` is not None.
         """
-
-        if isinstance(method, CircuitGradientMethod):
-            self._method = method
-
-        elif method == 'lin_comb':
-            from .circuit_gradient_methods import LinCombQFI
-            self._method = LinCombQFI()
-        elif method == 'block_diag':
-            from .circuit_gradient_methods import BlockDiagQFI
-            self._method = BlockDiagQFI()
-        elif method == 'diag':
-            from .circuit_gradient_methods import DiagQFI
-            self._method = DiagQFI()
-        else:
-            raise ValueError("Unrecognized input provided for `method`. Please provide"
-                             " a CircuitGradientMethod object or one of the pre-defined string"
-                             " arguments: {'lin_comb', 'diag', 'block_diag'}. ")
+        super().__init__(qfi_method)
 
     def convert(self,
                 operator: CircuitStateFn,
-                params: Optional[Union[Parameter, ParameterVector, List[Parameter]]] = None
+                params: Optional[Union[ParameterExpression, ParameterVector,
+                                       List[ParameterExpression]]] = None
                 ) -> ListOp(List[OperatorBase]):
         r"""
         Args:
@@ -81,4 +61,4 @@ class QFI(DerivativeBase):
         expec_op = PauliExpectation(group_paulis=False).convert(operator).reduce()
         cleaned_op = self._factor_coeffs_out_of_composed_op(expec_op)
 
-        return self._method.convert(cleaned_op, params)
+        return self.qfi_method.convert(cleaned_op, params)

@@ -21,7 +21,7 @@ from qiskit.aqua.operators import (
 )
 from qiskit.aqua.operators.gradients.circuit_gradient_methods.circuit_gradient_method import \
     CircuitGradientMethod
-from qiskit.aqua.operators.gradients.derivatives_base import DerivativeBase
+from qiskit.aqua.operators.gradients.gradient_base import GradientBase
 from qiskit.aqua.operators.list_ops.composed_op import ComposedOp
 from qiskit.aqua.operators.list_ops.list_op import ListOp
 from qiskit.aqua.operators.list_ops.summed_op import SummedOp
@@ -29,18 +29,18 @@ from qiskit.aqua.operators.list_ops.tensored_op import TensoredOp
 from qiskit.aqua.operators.operator_base import OperatorBase
 from qiskit.aqua.operators.operator_globals import Zero, One
 from qiskit.aqua.operators.state_fns.circuit_state_fn import CircuitStateFn
-from qiskit.circuit import ParameterExpression, Parameter, ParameterVector
+from qiskit.circuit import ParameterExpression, ParameterVector
 
 
-class Gradient(DerivativeBase):
+class Gradient(GradientBase):
     """Convert an operator expression to the first-order gradient."""
 
     def __init__(self,
-                 method: Union[str, CircuitGradientMethod] = 'param_shift',
+                 grad_method: Union[str, CircuitGradientMethod] = 'param_shift',
                  **kwargs):
         r"""
         Args:
-            method: The method used to compute the state/probability gradient. Can be either
+            grad_method: The method used to compute the state/probability gradient. Can be either
                 ``'param_shift'`` or ``'lin_comb'`` or ``'fin_diff'``. Deprecated for observable
                 gradient.
             epsilon: The offset size to use when computing finite difference gradients.
@@ -50,31 +50,12 @@ class Gradient(DerivativeBase):
             ValueError: If method != ``fin_diff`` and ``epsilon`` is not None.
         """
 
-        if isinstance(method, CircuitGradientMethod):
-            self._method = method
-        elif method == 'param_shift':
-            from .circuit_gradient_methods.param_shift_gradient import ParamShiftGradient
-            self._method = ParamShiftGradient(analytic=True)
-
-        elif method == 'fin_diff':
-            from .circuit_gradient_methods.param_shift_gradient import ParamShiftGradient
-            if 'epsilon' in kwargs:
-                epsilon = kwargs['epsilon']
-            else:
-                epsilon = 1e-6
-            self._method = ParamShiftGradient(analytic=False, epsilon=epsilon)
-
-        elif method == 'lin_comb':
-            from .circuit_gradient_methods.lin_comb_gradient import LinCombGradient
-            self._method = LinCombGradient()
-        else:
-            raise ValueError("Unrecognized input provided for `method`. Please provide"
-                             " a CircuitGradientMethod object or one of the pre-defined string"
-                             " arguments: {'param_shift', 'fin_diff', 'lin_comb'}. ")
+        super().__init__(grad_method)
 
     def convert(self,
                 operator: OperatorBase,
-                params: Optional[Union[ParameterVector, Parameter, List[Parameter]]] = None
+                params: Optional[Union[ParameterVector, ParameterExpression,
+                                       List[ParameterExpression]]] = None
                 ) -> OperatorBase:
         r"""
         Args:
@@ -93,7 +74,6 @@ class Gradient(DerivativeBase):
         if params is None:
             raise ValueError("No parameters were provided to differentiate")
 
-        # TODO where is the param = None case handled?
         if isinstance(params, (ParameterVector, List)):
             param_grads = [self.convert(operator, param) for param in params]
             # If autograd returns None, then the corresponding parameter was probably not present
@@ -111,28 +91,22 @@ class Gradient(DerivativeBase):
         param = params
 
         # Preprocessing
-        # TODO think of better names...
         expec_op = PauliExpectation(group_paulis=False).convert(operator).reduce()
         cleaned_op = self._factor_coeffs_out_of_composed_op(expec_op)
         return self.get_gradient(cleaned_op, param)
-
-    @property
-    def method(self):
-        return self._method
 
     def get_gradient(self,
                      operator: OperatorBase,
                      params: Union[ParameterExpression, ParameterVector, List[ParameterExpression]]
                      ) -> OperatorBase:
-        """TODO
+        """Get the gradient for the given operator w.r.t. the given parameters
 
         Args:
-            operator: TODO
-            params: TODO
-            method: TODO
+            operator: Operator w.r.t. which we take the gradient.
+            params: Parameters w.r.t. which we compute the gradient.
 
         Returns:
-            TODO
+            Operator which represents the gradient w.r.t. the given params.
 
         Raises:
             ValueError: If ``params`` contains a parameter not present in ``operator``.
@@ -207,14 +181,14 @@ class Gradient(DerivativeBase):
                     'The gradient framework is compatible with states that are given as '
                     'CircuitStateFn')
 
-            return self.method.convert(operator, param)
+            return self.grad_method.convert(operator, param)
 
         elif isinstance(operator, CircuitStateFn):
             # Gradient of an a state's sampling probabilities
             if not is_coeff_c(operator._coeff, 1.0):
                 raise AquaError('Operator pre-processing failed. Coefficients were not properly '
                                 'collected inside the ComposedOp.')
-            return self.method.convert(operator, param)
+            return self.grad_method.convert(operator, param)
 
         # Handle the chain rule
         elif isinstance(operator, ListOp):
@@ -226,7 +200,6 @@ class Gradient(DerivativeBase):
             # later on jax will try to differentiate it and raise an error.
             # An alternative is to check the byte code of the operator's combo_fn against the
             # default one.
-            # This will work but look very ugly and may have other downsides I'm not aware of
             if operator._combo_fn == ListOp([])._combo_fn:
                 return ListOp(oplist=grad_ops)
             elif isinstance(operator, SummedOp):

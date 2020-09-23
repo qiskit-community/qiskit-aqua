@@ -28,7 +28,7 @@ from qiskit.aqua.components.optimizers import Optimizer, SLSQP
 from qiskit.aqua.components.variational_forms import VariationalForm
 from qiskit.aqua.operators import (OperatorBase, ExpectationBase, ExpectationFactory, StateFn,
                                    CircuitStateFn, LegacyBaseOperator, ListOp, I, CircuitSampler)
-from qiskit.aqua.operators.gradients import Gradient
+from qiskit.aqua.operators.gradients import GradientBase
 from qiskit.aqua.utils.backend_utils import is_aer_provider
 from qiskit.aqua.utils.validation import validate_min
 from qiskit.circuit import Parameter
@@ -93,7 +93,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
                  var_form: Optional[Union[QuantumCircuit, VariationalForm]] = None,
                  optimizer: Optional[Optimizer] = None,
                  initial_point: Optional[np.ndarray] = None,
-                 gradient: Optional[Union[Gradient, Callable]] = None,
+                 gradient: Optional[Union[GradientBase, Callable]] = None,
                  expectation: Optional[ExpectationBase] = None,
                  include_custom: bool = False,
                  max_evals_grouped: int = 1,
@@ -418,7 +418,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         # Convert the gradient operator into a callable function that is compatible with the
         # optimization routine.
         if self._gradient:
-            if isinstance(self._gradient, Gradient):
+            if isinstance(self._gradient, GradientBase):
                 self._gradient = self._gradient.gradient_wrapper(
                     ~StateFn(self._operator) @ StateFn(self._var_form),
                     bind_params=self._var_form_params,
