@@ -286,16 +286,21 @@ class Grover(QuantumAlgorithm):
             raise NotImplementedError('Conversion to callable not implemented for {}'.format(
                 type(self._is_good_state)))
 
-    def construct_circuit(self, power: int, measurement: bool = False) -> QuantumCircuit:
+    def construct_circuit(self, power: Optional[int] = None,
+                          measurement: bool = False) -> QuantumCircuit:
         """Construct the circuit for Grover's algorithm with ``power`` Grover operators.
 
         Args:
-            power: The number of times the Grover operator is repeated.
+            power: The number of times the Grover operator is repeated. If None, this argument
+                is set to ``num_iterations``.
             measurement: Boolean flag to indicate if measurement should be included in the circuit.
 
         Returns:
             QuantumCircuit: the QuantumCircuit object for the constructed circuit
         """
+        if power is None:
+            power = self._num_iterations
+
         qc = QuantumCircuit(self._grover_operator.num_qubits, name='Grover circuit')
         qc.compose(self._grover_operator.state_preparation, inplace=True)
         if power > 0:
