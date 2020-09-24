@@ -27,7 +27,7 @@ from typing import Optional, Union
 
 import numpy as np
 from qiskit.aqua.operators import (OperatorBase, ListOp, ComposedOp, CircuitStateFn)
-from qiskit.aqua.operators.gradients.circuit_gradient_methods import CircuitGradientMethod
+from qiskit.aqua.operators.gradients.circuit_gradients import CircuitGradient
 from qiskit.aqua.operators.gradients.gradient import Gradient
 from qiskit.aqua.operators.gradients.qfi import QFI
 from qiskit.circuit import Parameter, ParameterVector
@@ -41,8 +41,8 @@ class NaturalGradient(Gradient):
     """Convert an operator expression to the first-order gradient."""
 
     def __init__(self,
-                 grad_method: Union[str, CircuitGradientMethod] = 'lin_comb',
-                 qfi_method: Union[str, CircuitGradientMethod] = 'lin_comb',
+                 grad_method: Union[str, CircuitGradient] = 'lin_comb',
+                 qfi_method: Union[str, CircuitGradient] = 'lin_comb',
                  qfi_approx: Optional[str] = None,
                  regularization: Optional[str] = None,
                  **kwargs):

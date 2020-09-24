@@ -12,8 +12,8 @@
 
 """The module for Aqua's first order derivatives."""
 
-from .lin_comb_qfi import LinCombQFI
-from .overlap_qfi import OverlapQFI
+from .lin_comb_full import LinCombFull
+from .overlap_approx import OverlapApprox
 
-__all__ = ['LinCombQFI',
-           'OverlapQFI']
+__all__ = ['LinCombFull',
+           'OverlapApprox']

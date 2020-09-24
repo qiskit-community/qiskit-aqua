@@ -15,7 +15,7 @@ from collections.abc import Iterable
 from typing import List, Union, Optional
 
 from qiskit.aqua.operators import OperatorBase, ListOp
-from qiskit.aqua.operators.gradients import DerivativeBase, CircuitGradientMethod, QFIMethod
+from qiskit.aqua.operators.gradients import DerivativeBase, CircuitGradient, CircuitQFI
 from qiskit.aqua.operators.state_fns import StateFn, CircuitStateFn
 from qiskit.circuit import (Parameter, ParameterVector)
 
@@ -31,7 +31,7 @@ class QFI(DerivativeBase):
     """
 
     def __init__(self,
-                 method: Union[str, QFIMethod] = 'lin_comb',
+                 method: Union[str, CircuitQFI] = 'lin_comb',
                  approx: Optional[str] = None,
                  **kwargs):
         r"""
@@ -46,25 +46,25 @@ class QFI(DerivativeBase):
             ValueError: If method != ``fin_diff`` and ``epsilon`` is not None.
         """
 
-        if isinstance(method, CircuitGradientMethod):
+        if isinstance(method, CircuitGradient):
             self._method = method
 
         elif method == 'lin_comb':
-            from .qfi_methods import LinCombQFI
+            from .circuit_qfis import LinCombFull
             if approx is not None:
-                self._method = LinCombQFI(approx)
+                self._method = LinCombFull(approx)
             else:
-                self._method = LinCombQFI()
+                self._method = LinCombFull()
         elif method == 'overlap':
-            from .qfi_methods import OverlapQFI
+            from .circuit_qfis import OverlapApprox
             if approx is not None:
-                self._method = OverlapQFI(approx)
+                self._method = OverlapApprox(approx)
             else:
-                self._method = OverlapQFI()
+                self._method = OverlapApprox()
         
         else:
             raise ValueError("Unrecognized input provided for `method`. Please provide"
-                             " a CircuitGradientMethod object or one of the pre-defined string"
+                             " a CircuitGradient object or one of the pre-defined string"
                              " arguments: {'lin_comb', 'overlap'}. ")
 
     def convert(self,

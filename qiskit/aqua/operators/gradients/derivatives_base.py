@@ -40,11 +40,11 @@ class DerivativeBase(ConverterBase):
     things like properly differentiating combo_fn's and enforcing prodct rules
     when operator coeficients are parameterized. 
 
-    This is distinct from CircuitGradientMethod converters which use quantum
+    This is distinct from CircuitGradient converters which use quantum
     techniques such as parameter shifts and linear combination of unitaries
     to compute derivatives of circuits.
 
-    CircuitGradientMethod - uses quantum techniques to get derivatives of circuits
+    CircuitGradient - uses quantum techniques to get derivatives of circuits
     DerivativeBase    - uses classical techniques to differentiate opflow data strctures
     """
 

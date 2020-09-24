@@ -18,18 +18,18 @@ from typing import List, Union, Optional
 import numpy as np
 from qiskit.aqua.operators import OperatorBase, ListOp, CircuitOp
 from qiskit.aqua.operators.expectations import PauliExpectation
-from qiskit.aqua.operators.gradients.circuit_gradient_methods.circuit_gradient_method import \
-    CircuitGradientMethod
+from qiskit.aqua.operators.gradients.circuit_gradients.circuit_gradient import \
+    CircuitGradient
 from qiskit.aqua.operators.operator_globals import I, Z, Y, X, Zero
 from qiskit.aqua.operators.state_fns import StateFn, CircuitStateFn
 from qiskit.circuit import Parameter, ParameterVector, ParameterExpression
 from qiskit.circuit.library import RZGate, RXGate, RYGate
 from qiskit.converters import dag_to_circuit, circuit_to_dag
 from scipy.linalg import block_diag
-from .qfi_method import QFIMethod
+from .circuit_qfi import CircuitQFI
 
 
-class OverlapQFI(QFIMethod):
+class OverlapApprox(CircuitQFI):
     r"""Compute the Quantum Fisher Information (QFI) given a pure, parametrized quantum state.
 
     The QFI is:
@@ -73,8 +73,8 @@ class OverlapQFI(QFIMethod):
         elif self.approx == 'diag':
             return self._diagonal_approx(operator=operator, params=params)
         else:
-            raise ValueError('OverlapQFI currently only supports a block-diagonal or '   \
-                            'diagonal approximation of the QFI. Please use LinCombQFI ' \
+            raise ValueError('OverlapApprox currently only supports a block-diagonal or '   \
+                            'diagonal approximation of the QFI. Please use LinCombFull ' \
                             'to compute the full QFI metric tensor')
 
     def _block_diag_approx(self,
@@ -141,11 +141,11 @@ class OverlapQFI(QFIMethod):
 
             def get_parameter_expression(circuit, param):
                 if len(circuit._parameter_table[param]) > 1:
-                    raise NotImplementedError("OverlapQFI does not yet support multiple "
+                    raise NotImplementedError("OverlapApprox does not yet support multiple "
                                               "gates parameterized by a single parameter. For such "
-                                              "circuits use LinCombQFI")
+                                              "circuits use LinCombFull")
                 gate = circuit._parameter_table[param][0][0]
-                assert len(gate.params) == 1, "OverlapQFI cannot yet support gates with more than " \
+                assert len(gate.params) == 1, "OverlapApprox cannot yet support gates with more than " \
                                               "one parameter."
                 param_value = gate.params[0]
                 return param_value
@@ -237,13 +237,13 @@ class OverlapQFI(QFIMethod):
         diag = []
         for param in params:
             if len(circuit._parameter_table[param]) > 1:
-                raise NotImplementedError("OverlapQFI does not yet support multiple "
+                raise NotImplementedError("OverlapApprox does not yet support multiple "
                                           "gates parameterized by a single parameter. For such "
-                                          "circuits use LinCombQFI")
+                                          "circuits use LinCombFull")
 
             gate = circuit._parameter_table[param][0][0]
 
-            assert len(gate.params) == 1, "OverlapQFI cannot yet support gates with more than " \
+            assert len(gate.params) == 1, "OverlapApprox cannot yet support gates with more than " \
                                           "one parameter."
 
             param_value = gate.params[0]
