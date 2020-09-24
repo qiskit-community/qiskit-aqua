@@ -24,9 +24,10 @@ from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms.amplitude_amplifiers.grover import Grover
 from qiskit.aqua.components.initial_states import Custom
 from qiskit.aqua.components.oracles import CustomCircuitOracle
-from qiskit.circuit.library import QuadraticForm
 from qiskit.providers import BaseBackend
-from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
+from qiskit.circuit.library import QuadraticForm
+from .optimization_algorithm import (OptimizationResultStatus, OptimizationAlgorithm,
+                                     OptimizationResult)
 from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
 from ..problems import Variable
 from ..problems.quadratic_program import QuadraticProgram
@@ -261,7 +262,8 @@ class GroverOptimizer(OptimizationAlgorithm):
 
         # Compute function value
         fval = problem_init.objective.evaluate(opt_x)
-        result = OptimizationResult(x=opt_x, fval=fval, variables=problem_.variables)
+        result = OptimizationResult(x=opt_x, fval=fval, variables=problem_.variables,
+                                    status=OptimizationResultStatus.SUCCESS)
 
         # cast binaries back to integers
         result = self._qubo_converter.interpret(result)
@@ -269,7 +271,8 @@ class GroverOptimizer(OptimizationAlgorithm):
         return GroverOptimizationResult(x=result.x, fval=result.fval, variables=result.variables,
                                         operation_counts=operation_count, n_input_qubits=n_key,
                                         n_output_qubits=n_value, intermediate_fval=fval,
-                                        threshold=threshold)
+                                        threshold=threshold,
+                                        status=self._get_feasibility_status(problem, result.x))
 
     def _measure(self, circuit: QuantumCircuit) -> str:
         """Get probabilities from the given backend, and picks a random outcome."""
@@ -333,7 +336,8 @@ class GroverOptimizationResult(OptimizationResult):
 
     def __init__(self, x: Union[List[float], np.ndarray], fval: float, variables: List[Variable],
                  operation_counts: Dict[int, Dict[str, int]], n_input_qubits: int,
-                 n_output_qubits: int, intermediate_fval: float, threshold: float) -> None:
+                 n_output_qubits: int, intermediate_fval: float, threshold: float,
+                 status: OptimizationResultStatus) -> None:
         """
         Constructs a result object with the specific Grover properties.
 
@@ -347,8 +351,9 @@ class GroverOptimizationResult(OptimizationResult):
             intermediate_fval: The intermediate value of the objective function of the solution,
                 that is expected to be identical with ``fval``.
             threshold: The threshold of Grover algorithm.
+            status: the termination status of the optimization algorithm.
         """
-        super().__init__(x, fval, variables, None)
+        super().__init__(x, fval, variables, status, None)
         self._operation_counts = operation_counts
         self._n_input_qubits = n_input_qubits
         self._n_output_qubits = n_output_qubits

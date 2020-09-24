@@ -145,7 +145,8 @@ class TestConverters(QiskitOptimizationTestCase):
         lst = [op2.variables[6].lowerbound, op2.variables[6].upperbound]
         self.assertListEqual(lst, [0, 4])
 
-        result = OptimizationResult(x=np.arange(7), fval=0, variables=op2.variables)
+        result = OptimizationResult(x=np.arange(7), fval=0, variables=op2.variables,
+                                    status=OptimizationResultStatus.SUCCESS)
         new_result = conv.interpret(result)
         np.testing.assert_array_almost_equal(new_result.x, np.arange(3))
         self.assertListEqual(new_result.variable_names, ['x0', 'x1', 'x2'])
@@ -216,7 +217,8 @@ class TestConverters(QiskitOptimizationTestCase):
         lst = [op2.variables[6].lowerbound, op2.variables[6].upperbound]
         self.assertListEqual(lst, [0, 60])
 
-        result = OptimizationResult(x=np.arange(7), fval=0, variables=op2.variables)
+        result = OptimizationResult(x=np.arange(7), fval=0, variables=op2.variables,
+                                    status=OptimizationResultStatus.SUCCESS)
         new_result = conv.interpret(result)
         np.testing.assert_array_almost_equal(new_result.x, np.arange(3))
         self.assertListEqual(new_result.variable_names, ['x0', 'x1', 'x2'])
@@ -307,7 +309,8 @@ class TestConverters(QiskitOptimizationTestCase):
         op2 = conv.convert(op)
         self.assertEqual(op2.get_num_linear_constraints(), 0)
 
-        result = OptimizationResult(x=np.arange(3), fval=0, variables=op2.variables)
+        result = OptimizationResult(x=np.arange(3), fval=0, variables=op2.variables,
+                                    status=OptimizationResultStatus.SUCCESS)
         new_result = conv.interpret(result)
         self.assertEqual(new_result.status, OptimizationResultStatus.INFEASIBLE)
         np.testing.assert_array_almost_equal(new_result.x, np.arange(3))
@@ -332,7 +335,8 @@ class TestConverters(QiskitOptimizationTestCase):
         op2 = conv.convert(op)
         self.assertEqual(op2.get_num_linear_constraints(), 0)
 
-        result = OptimizationResult(x=[0, 1, -1], fval=1, variables=op2.variables)
+        result = OptimizationResult(x=[0, 1, -1], fval=1, variables=op2.variables,
+                                    status=OptimizationResultStatus.SUCCESS)
         new_result = conv.interpret(result)
         self.assertAlmostEqual(new_result.fval, 1)
         self.assertEqual(new_result.status, OptimizationResultStatus.SUCCESS)
@@ -374,7 +378,8 @@ class TestConverters(QiskitOptimizationTestCase):
         op.linear_constraint(linear, Constraint.Sense.EQ, 6, 'x0x1x2')
         conv = IntegerToBinary()
         op2 = conv.convert(op)
-        result = OptimizationResult(x=[0, 1, 1, 1, 1], fval=17, variables=op2.variables)
+        result = OptimizationResult(x=[0, 1, 1, 1, 1], fval=17, variables=op2.variables,
+                                    status=OptimizationResultStatus.SUCCESS)
         new_result = conv.interpret(result)
         np.testing.assert_array_almost_equal(new_result.x, [0, 1, 5])
         self.assertEqual(new_result.fval, 17)
@@ -551,7 +556,8 @@ class TestConverters(QiskitOptimizationTestCase):
         self.assertListEqual(decoded_result.variable_names, ['x', 'y', 'z'])
         self.assertDictEqual(decoded_result.variables_dict, {'x': 1.0, 'y': 1.0, 'z': 0.0})
 
-        infeasible_result = OptimizationResult(x=[1, 1, 1], fval=0, variables=qprog.variables)
+        infeasible_result = OptimizationResult(x=[1, 1, 1], fval=0, variables=qprog.variables,
+                                               status=OptimizationResultStatus.SUCCESS)
         decoded_infeasible_result = lineq2penalty.interpret(infeasible_result)
         self.assertEqual(decoded_infeasible_result.fval, 5)
         np.testing.assert_array_almost_equal(decoded_infeasible_result.x, [1, 1, 1])
@@ -672,6 +678,33 @@ class TestConverters(QiskitOptimizationTestCase):
         np.testing.assert_array_almost_equal(
             quadratic.objective.quadratic.coefficients.toarray(), quadratic_matrix
         )
+
+    def test_integer_to_binary2(self):
+        """Test integer to binary variables 2"""
+        mod = QuadraticProgram()
+        mod.integer_var(name='x', lowerbound=0, upperbound=1)
+        mod.integer_var(name='y', lowerbound=0, upperbound=1)
+        mod.minimize(1, {'x': 1}, {('x', 'y'): 2})
+        mod.linear_constraint({'x': 1}, '==', 1)
+        mod.quadratic_constraint({'x': 1}, {('x', 'y'): 2}, '==', 1)
+        mod2 = IntegerToBinary().convert(mod)
+        self.assertListEqual([e.name+'@0' for e in mod.variables], [e.name for e in mod2.variables])
+        self.assertDictEqual(mod.objective.linear.to_dict(),
+                             mod2.objective.linear.to_dict())
+        self.assertDictEqual(mod.objective.quadratic.to_dict(),
+                             mod2.objective.quadratic.to_dict())
+        self.assertEqual(mod.get_num_linear_constraints(),
+                         mod2.get_num_linear_constraints())
+        for cst, cst2 in zip(mod.linear_constraints, mod2.linear_constraints):
+            self.assertDictEqual(cst.linear.to_dict(),
+                                 cst2.linear.to_dict())
+        self.assertEqual(mod.get_num_quadratic_constraints(),
+                         mod2.get_num_quadratic_constraints())
+        for cst, cst2 in zip(mod.quadratic_constraints, mod2.quadratic_constraints):
+            self.assertDictEqual(cst.linear.to_dict(),
+                                 cst2.linear.to_dict())
+            self.assertDictEqual(cst.quadratic.to_dict(),
+                                 cst2.quadratic.to_dict())
 
 
 if __name__ == '__main__':

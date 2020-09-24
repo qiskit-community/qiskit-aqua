@@ -24,7 +24,7 @@ on:
 
 jobs:
   Checks:
-    runs-on: ubuntu-16.04
+    runs-on: ubuntu-20.04
     strategy:
       matrix:
         python-version: [3.7]
@@ -357,8 +357,57 @@ jobs:
         with:
           name: optimization${{ matrix.python-version }}
           path: ./o${{ matrix.python-version }}/*
+  Tutorials:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [3.6, 3.8]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - uses: ./.github/actions/install-libraries
+      - uses: ./.github/actions/install-master-dependencies
+        if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
+      - uses: ./.github/actions/install-aqua
+      - name: Install cplex
+        run: pip install cplex
+        if: ${{ matrix.python-version == 3.6 }}
+        shell: bash
+      - name: Install Dependencies
+        run: |
+          sudo apt-get -y update
+          sudo apt-get -y install libgfortran5
+          pip install https://github.com/rpmuller/pyquante2/archive/master.zip
+          pip install pyscf
+          pip install "cvxpy>1.0.0"
+          pip install -U jupyter sphinx nbsphinx sphinx_rtd_theme 'matplotlib<3.3.0' qiskit-terra[visualization] cvxpy
+          sudo apt-get install -y pandoc graphviz
+        shell: bash
+      - name: Run Aqua Tutorials
+        env:
+          OPENBLAS_NUM_THREADS: 1
+        run: |
+          git clone https://github.com/Qiskit/qiskit-tutorials
+          cd qiskit-tutorials
+          rm -r tutorials/circuits/
+          rm -r tutorials/circuits_advanced/
+          rm -r tutorials/noise/
+          rm -r tutorials/pulse/
+          rm -r tutorials/simulators/
+          sphinx-build -b html . _build/html
+          cd _build/html
+          mkdir artifacts
+          tar -zcvf artifacts/tutorials.tar.gz --exclude=./artifacts .
+        shell: bash
+      - name: Run upload tutorials
+        uses: actions/upload-artifact@v2
+        with:
+          name: tutorials${{ matrix.python-version }}
+          path: ./qiskit-tutorials/_build/html/artifacts/tutorials.tar.gz
   Deprecation_Messages_and_Coverage:
-    needs: [Checks, Lint, Mypy, Aqua, Chemistry, Finance, MachineLearning, Optimization]
+    needs: [Checks, Lint, Mypy, Aqua, Chemistry, Finance, MachineLearning, Optimization, Tutorials]
     runs-on: ubuntu-latest
     strategy:
       matrix:

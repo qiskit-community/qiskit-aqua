@@ -190,8 +190,8 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
             new_status = OptimizationResultStatus.INFEASIBLE
 
         return OptimizationResult(x=result.x, fval=substituted_qp.objective.constant,
-                                  variables=self._src.variables, raw_results=result.raw_results,
-                                  status=new_status)
+                                  variables=self._src.variables, status=new_status,
+                                  raw_results=result.raw_results)
 
     @property
     def penalty(self) -> Optional[float]:

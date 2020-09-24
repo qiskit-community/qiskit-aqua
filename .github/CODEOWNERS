@@ -3,17 +3,14 @@
 # least one codeowner. However, all Qiskit team members can (and should!) review the PRs.
 
 # Global rule, unless specialized by a later one
-* @manoelmarques @woodsp-ibm
+* @levbishop @manoelmarques @woodsp-ibm
 
-# Individual folders on root directory
-/tools/               @manoelmarques @woodsp-ibm
-test/                 @manoelmarques @woodsp-ibm
-docs/                 @manoelmarques @woodsp-ibm
+# Code owners of domains below own all release notes
+/releasenotes/        @stefan-woerner @pbark @manoelmarques @woodsp-ibm
 
 # Qiskit folders (also their corresponding tests)
-aqua/                 @manoelmarques @woodsp-ibm
 chemistry/            @pbark @manoelmarques @woodsp-ibm
 finance/              @stefan-woerner @manoelmarques @woodsp-ibm
-ml/                   @manoelmarques @woodsp-ibm
+ml/                   @stefan-woerner @manoelmarques @woodsp-ibm
 optimization/         @stefan-woerner @manoelmarques @woodsp-ibm
 

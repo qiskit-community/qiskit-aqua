@@ -22,6 +22,19 @@ from .. import QiskitOptimizationError
 from ..problems.quadratic_program import QuadraticProgram, Variable
 
 
+class OptimizationResultStatus(Enum):
+    """Termination status of an optimization algorithm."""
+
+    SUCCESS = 0
+    """the optimization algorithm succeeded to find an optimal solution."""
+
+    FAILURE = 1
+    """the optimization algorithm ended in a failure."""
+
+    INFEASIBLE = 2
+    """the optimization algorithm obtained an infeasible solution."""
+
+
 class OptimizationAlgorithm(ABC):
     """An abstract class for optimization algorithms in Qiskit's optimization module."""
 
@@ -84,18 +97,21 @@ class OptimizationAlgorithm(ABC):
         if msg:
             raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
 
+    def _get_feasibility_status(self, problem: QuadraticProgram,
+                                x: Union[List[float], np.ndarray]) -> OptimizationResultStatus:
+        """Returns whether the input result is feasible or not for the given problem.
 
-class OptimizationResultStatus(Enum):
-    """Termination status of an optimization algorithm."""
+        Args:
+            problem: Problem to verify.
+            x: the input result list.
 
-    SUCCESS = 0
-    """the optimization algorithm succeeded to find an optimal solution."""
+        Returns:
+            The status of the result.
+        """
+        is_feasible = problem.is_feasible(x)
 
-    FAILURE = 1
-    """the optimization algorithm ended in a failure."""
-
-    INFEASIBLE = 2
-    """the optimization algorithm obtained an infeasible solution."""
+        return OptimizationResultStatus.SUCCESS if is_feasible \
+            else OptimizationResultStatus.INFEASIBLE
 
 
 class OptimizationResult:
@@ -140,8 +156,8 @@ class OptimizationResult:
 
     def __init__(self, x: Union[List[float], np.ndarray], fval: float,
                  variables: List[Variable],
-                 raw_results: Optional[Any] = None,
-                 status: OptimizationResultStatus = OptimizationResultStatus.SUCCESS) -> None:
+                 status: OptimizationResultStatus,
+                 raw_results: Optional[Any] = None) -> None:
         """
         Args:
             x: the optimal value found in the optimization.
