@@ -15,7 +15,7 @@
 """ CVarStateFn Class """
 
 
-from typing import Union, Set, Dict, Optional, Callable, Tuple
+from typing import Union, Set, Dict, Optional, Callable
 import numpy as np
 
 from qiskit.aqua.aqua_error import AquaError
@@ -24,6 +24,8 @@ from qiskit.result import Result
 from qiskit.quantum_info import Statevector
 
 from ..operator_base import OperatorBase
+from ..primitive_ops import MatrixOp, PauliOp
+from ..list_ops import ListOp, SummedOp
 from .state_fn import StateFn
 from .operator_state_fn import OperatorStateFn
 
@@ -65,6 +67,7 @@ class CVarStateFn(OperatorStateFn):
         Raises:
             ValueError: TODO remove that this raises an error
             ValueError: If alpha is not in [0, 1].
+            AquaError: If the primitive is not diagonal.
         """
         if primitive is None:
             raise ValueError
@@ -74,6 +77,9 @@ class CVarStateFn(OperatorStateFn):
         if not 0 <= alpha <= 1:
             raise ValueError('The parameter alpha must be in [0, 1].')
         self._alpha = alpha
+
+        if not _check_is_diagonal(primitive):
+            raise AquaError('Input operator to CVar must be diagonal, but is not:', str(primitive))
 
         super().__init__(primitive, coeff=coeff, is_measurement=True)
 
@@ -279,3 +285,42 @@ class CVarStateFn(OperatorStateFn):
                massive: bool = False,
                reverse_endianness: bool = False) -> dict:
         raise NotImplementedError
+
+
+def _check_is_diagonal(operator: OperatorBase) -> bool:
+    """Check whether ``operator`` is diagonal.
+
+    Args:
+        operator: The operator to check for diagonality.
+
+    Returns:
+        True, if the operator is diagonal, False otherwise.
+
+    Raises:
+        AquaError: If the operator is not diagonal.
+    """
+    if isinstance(operator, PauliOp):
+        # every X component must be False
+        if not np.any(operator.primitive.x):
+            return True
+        return False
+
+    if isinstance(operator, SummedOp) and operator.primitive_strings == {'Pauli'}:
+        # cover the case of sums of diagonal paulis, but don't raise since there might be summands
+        # cancelling the non-diagonal parts
+        if np.all(not np.any(op.primitive.x) for op in operator.oplist):
+            return True
+
+    if isinstance(operator, ListOp):
+        return np.all(operator.traverse(_check_is_diagonal))
+
+    # cannot efficiently check if a operator is diagonal, converting to matrix
+    operator = operator.to_matrix_op()
+
+    if isinstance(operator, MatrixOp):
+        matrix = operator.primitive.data
+        if np.all(matrix == np.diag(np.diagonal(matrix))):
+            return True
+        return False
+    else:
+        raise AquaError('Could not convert to MatrixOp, something went wrong.', operator)
