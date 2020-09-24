@@ -150,7 +150,6 @@ from .evolutions import (EvolutionBase, EvolutionFactory, EvolvedOp, PauliTrotte
                          MatrixEvolution, TrotterizationBase, TrotterizationFactory, Trotter,
                          Suzuki, QDrift)
 
-
 # Convenience immutable instances
 from .operator_globals import (EVAL_SIG_DIGITS,
                                X, Y, Z, I,
@@ -179,5 +178,5 @@ __all__ = [
     'EvolutionBase', 'EvolvedOp', 'EvolutionFactory', 'PauliTrotterEvolution', 'MatrixEvolution',
     'TrotterizationBase', 'TrotterizationFactory', 'Trotter', 'Suzuki', 'QDrift',
     # Convenience immutable instances
-    'X', 'Y', 'Z', 'I', 'CX', 'S', 'H', 'T', 'Swap', 'CZ', 'Zero', 'One', 'Plus', 'Minus',
+    'X', 'Y', 'Z', 'I', 'CX', 'S', 'H', 'T', 'Swap', 'CZ', 'Zero', 'One', 'Plus', 'Minus'
 ]
