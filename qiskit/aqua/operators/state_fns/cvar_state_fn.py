@@ -64,12 +64,15 @@ class CVarStateFn(OperatorStateFn):
 
         Raises:
             ValueError: TODO remove that this raises an error
+            ValueError: If alpha is not in [0, 1].
         """
         if primitive is None:
             raise ValueError
         if not is_measurement:
             raise ValueError("CostFnMeasurement is only defined as a measurement")
 
+        if not 0 <= alpha <= 1:
+            raise ValueError('The parameter alpha must be in [0, 1].')
         self._alpha = alpha
 
         super().__init__(primitive, coeff=coeff, is_measurement=True)
@@ -221,15 +224,7 @@ class CVarStateFn(OperatorStateFn):
         j = 0
         running_total = 0
         for i, p_i in enumerate(P):
-            # This is here for later on when
-            # Gradients are supported
-            if isinstance(p_i, Tuple):
-                p = p_i[0]
-            else:
-                p = p_i
-
-            running_total += p
-
+            running_total += p_i
             j = i
             if running_total > alpha:
                 break
@@ -246,10 +241,10 @@ class CVarStateFn(OperatorStateFn):
 
             # CVar = alpha*Hj + \sum_i P[i]*(H[i] - Hj)
             for h_i, p_i in zip(H, P):
-                if isinstance(p_i, Tuple):
-                    cvar += p_i[0] * (h_i - h_j)
-                else:
-                    cvar += p_i * (h_i - h_j)
+                cvar += p_i * (h_i - h_j)
+
+        print('normal', sum(p_i * h_i for p_i, h_i in zip(P, H)))
+        print('normal', sum(np.sqrt(p_i) * h_i for p_i, h_i in zip(P, H)))
 
         return cvar/alpha
 
