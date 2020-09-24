@@ -107,19 +107,24 @@ class DerivativeBase(ConverterBase):
                     if backend.is_statevector:
                         converter = self.convert(operator, grad_params).assign_parameters(
                             p_values_dict)
+                        return np.real(converter.eval())
                     else:
                         p_values_dict = {k: [v] for k, v in p_values_dict.items()}
                         converter = CircuitSampler(backend=backend).convert(
                             self.convert(operator, grad_params), p_values_dict)
+                        return np.real(converter.eval()[0])
                 else:
                     if backend.name().startswith('statevector'):
                         converter = self.convert(operator, grad_params).assign_parameters(
                             p_values_dict)
+                        return np.real(converter.eval())
                     else:
                         p_values_dict = {k: [v] for k, v in p_values_dict.items()}
                         converter = CircuitSampler(backend=backend).convert(
                             self.convert(operator, grad_params), p_values_dict)
-            return np.real(converter.eval())
+                        return np.real(converter.eval()[0])
+            return
+
 
         return gradient_fn
 
