@@ -41,6 +41,10 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
         """Get the minimum eigensolver or factory."""
         return self._solver
 
+    def returns_groundstate(self) -> bool:
+        """TODO"""
+        return False
+
     def compute_ground_state(self, driver: BaseDriver) -> MolecularGroundStateResult:
         # TODO MolecularGroundStateResult should become generic for bosonic and fermionic
         # Hamiltonains
@@ -54,16 +58,16 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
         """
         operator, aux_operators = self.transformation.transform(driver)
 
-        if isinstance(solver, MESFactory):
+        if isinstance(self._solver, MESFactory):
             # this must be called after transformation.transform
-            solver = self.solver.get_solver(self.transformation)  # TODO and driver?
+            solver = self._solver.get_solver(self.transformation)  # TODO and driver?
         else:
-            solver = self.solver
+            solver = self._solver
 
         # TODO shouldn't this rather raise a warning?
-        aux_operators = aux_operators if self.solver.supports_aux_operators() else None
+        aux_operators = aux_operators if solver.supports_aux_operators() else None
 
-        raw_gs_result = self.solver.compute_minimum_eigenvalue(operator, aux_operators)
+        raw_gs_result = solver.compute_minimum_eigenvalue(operator, aux_operators)
 
         # TODO WOR: where should this post processing be coming from?
         # The post processing is now in the tranformation so that it is fermionic or bosonic
