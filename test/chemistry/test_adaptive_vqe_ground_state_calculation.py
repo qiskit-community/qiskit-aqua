@@ -17,12 +17,18 @@ from test.chemistry import QiskitChemistryTestCase
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.providers.basicaer import BasicAer
 from qiskit.aqua import QuantumInstance
+from qiskit.aqua.algorithms import VQE
 from qiskit.chemistry import QiskitChemistryError
-from qiskit.chemistry.ground_state_calculation import AdaptVQEGroundStateCalculation
+from qiskit.chemistry.components.variational_forms import UCCSD
+from qiskit.chemistry.components.initial_states import HartreeFock
+from qiskit.aqua.components.optimizers import L_BFGS_B
+from qiskit.chemistry.ground_state_calculation import AdaptVQE, MESFactory
+from qiskit.chemistry.qubit_transformations import FermionicTransformation
 
 
-class TestAdaptVQEGroundStateCalculation(QiskitChemistryTestCase):
+class TestAdaptVQE(QiskitChemistryTestCase):
     """ Test Adaptive VQE Ground State Calculation """
+
     def setUp(self):
         super().setUp()
 
@@ -34,15 +40,79 @@ class TestAdaptVQEGroundStateCalculation(QiskitChemistryTestCase):
             self.skipTest('PYSCF driver does not appear to be installed')
             return
 
-        self.expected = -1.137306
+        self.expected = -1.85727503
 
-        self.qinst = QuantumInstance(BasicAer.get_backend('statevector_simulator'))
+        self.transformation = FermionicTransformation()
 
     def test_default(self):
         """ Default execution """
-        calc = AdaptVQEGroundStateCalculation(self.qinst)
+        solver = MESFactory(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
+        calc = AdaptVQE(self.transformation, solver)
         res = calc.compute_ground_state(self.driver)
-        self.assertAlmostEqual(res.energy, self.expected, places=6)
+        self.assertAlmostEqual(res.eigenvalue.real, self.expected, places=6)
+
+    def test_custom_minimum_eigensolver(self):
+        """ Test custom MES """
+        solver = MESFactory(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
+
+        def get_custom_solver(self, transformation):
+            num_orbitals = transformation._molecule_info['num_orbitals']
+            num_particles = transformation._molecule_info['num_particles']
+            qubit_mapping = transformation._qubit_mapping
+            two_qubit_reduction = transformation._molecule_info['two_qubit_reduction']
+            z2_symmetries = transformation._molecule_info['z2symmetries']
+            initial_state = HartreeFock(num_orbitals, num_particles, qubit_mapping,
+                                        two_qubit_reduction, z2_symmetries.sq_list)
+            var_form = UCCSD(num_orbitals=num_orbitals,
+                             num_particles=num_particles,
+                             initial_state=initial_state,
+                             qubit_mapping=qubit_mapping,
+                             two_qubit_reduction=two_qubit_reduction,
+                             z2_symmetries=z2_symmetries)
+            vqe = VQE(var_form=var_form, quantum_instance=self._quantum_instance,
+                      optimizer=L_BFGS_B())
+            return vqe
+
+        # pylint: disable=no-value-for-parameter
+        solver.get_solver = get_custom_solver.__get__(solver, MESFactory)
+
+        calc = AdaptVQE(self.transformation, solver)
+        res = calc.compute_ground_state(self.driver)
+        self.assertAlmostEqual(res.eigenvalue.real, self.expected, places=6)
+
+    def test_vqe_adapt_check_cyclicity(self):
+        """ VQEAdapt index cycle detection """
+        param_list = [
+            ([1, 1], True),
+            ([1, 11], False),
+            ([11, 1], False),
+            ([1, 12], False),
+            ([12, 2], False),
+            ([1, 1, 1], True),
+            ([1, 2, 1], False),
+            ([1, 2, 2], True),
+            ([1, 2, 21], False),
+            ([1, 12, 2], False),
+            ([11, 1, 2], False),
+            ([1, 2, 1, 1], True),
+            ([1, 2, 1, 2], True),
+            ([1, 2, 1, 21], False),
+            ([11, 2, 1, 2], False),
+            ([1, 11, 1, 111], False),
+            ([11, 1, 111, 1], False),
+            ([1, 2, 3, 1, 2, 3], True),
+            ([1, 2, 3, 4, 1, 2, 3], False),
+            ([11, 2, 3, 1, 2, 3], False),
+            ([1, 2, 3, 1, 2, 31], False),
+            ([1, 2, 3, 4, 1, 2, 3, 4], True),
+            ([11, 2, 3, 4, 1, 2, 3, 4], False),
+            ([1, 2, 3, 4, 1, 2, 3, 41], False),
+            ([1, 2, 3, 4, 5, 1, 2, 3, 4], False),
+        ]
+        for seq, is_cycle in param_list:
+            with self.subTest(msg="Checking index cyclicity in:", seq=seq):
+                self.assertEqual(is_cycle, AdaptVQE._check_cyclicity(seq))
+
 
 if __name__ == '__main__':
     unittest.main()

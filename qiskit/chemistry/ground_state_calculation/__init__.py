@@ -13,11 +13,11 @@
 """TODO"""
 
 from .ground_state_calculation import GroundStateCalculation
-from .adapt_vqe_ground_state_calculation import AdaptVQEGroundStateCalculation
+from .adapt_vqe_ground_state_calculation import AdaptVQE
 from .mes_ground_state_calculation import MinimumEigensolverGroundStateCalculation
 from .mes_factory import MESFactory
 
 __all__ = ['GroundStateCalculation',
-           'AdaptVQEGroundStateCalculation',
+           'AdaptVQE',
            'MinimumEigensolverGroundStateCalculation',
            'MESFactory']
