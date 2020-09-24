@@ -43,7 +43,6 @@ class AdaptVQE(GroundStateCalculation):
                  threshold: float = 1e-5,
                  delta: float = 1,
                  max_iterations: Optional[int] = None,
-                 # TODO allow overriding the excitation pool
                  ) -> None:
         """
         Args:
@@ -133,16 +132,21 @@ class AdaptVQE(GroundStateCalculation):
         # nature of the algorithm.
         return match is not None or (len(indices) > 1 and indices[-2] == indices[-1])
 
-    def compute_ground_state(self, driver: BaseDriver) -> MolecularGroundStateResult:
+    # pylint: disable=arguments-differ
+    def compute_ground_state(self, driver: BaseDriver,
+                             custom_excitation_pool: List[WeightedPauliOperator] = None
+                             ) -> MolecularGroundStateResult:
         """Computes the ground state.
 
         Args:
             driver: a chemistry driver.
+            custom_excitation_pool: list of excitation operators to choose from.
         Raises:
             AquaError: if a variational form other than UCCSD is provided or if the algorithm
                        finishes due to an unforeseen reason.
         Returns:
             A ground state result.
+            TODO replace with FermionicGroundStateResult
         """
         operator, aux_operators = self._transformation.transform(driver)
 
@@ -152,7 +156,7 @@ class AdaptVQE(GroundStateCalculation):
             raise AquaError("The AdaptVQE algorithm requires the use of the UCCSD variational form")
 
         var_form.manage_hopping_operators()
-        excitation_pool = var_form.excitation_pool
+        excitation_pool = custom_excitation_pool or var_form.excitation_pool
 
         threshold_satisfied = False
         alternating_sequence = False
