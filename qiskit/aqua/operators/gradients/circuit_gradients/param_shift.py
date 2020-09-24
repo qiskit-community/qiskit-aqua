@@ -19,7 +19,7 @@ from typing import List, Union, Optional, Tuple
 import numpy as np
 from qiskit import transpile, QuantumCircuit
 from qiskit.aqua import AquaError
-from qiskit.aqua.operators import (One, OperatorBase, StateFn, Zero, CircuitStateFn,
+from qiskit.aqua.operators import (OperatorBase, StateFn, Zero, One, CircuitStateFn,
                                    CircuitOp)
 from qiskit.aqua.operators import SummedOp, ListOp, ComposedOp, DictStateFn, VectorStateFn
 from qiskit.aqua.operators.gradients.circuit_gradients.circuit_gradient \

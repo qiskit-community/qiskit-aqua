@@ -14,8 +14,8 @@
 
 from typing import Union
 
-from qiskit.aqua.operators.gradients.circuit_gradient_methods.circuit_gradient_method \
-    import CircuitGradientMethod
+from qiskit.aqua.operators.gradients.circuit_gradients.circuit_gradient \
+    import CircuitGradient
 from qiskit.aqua.operators.gradients.derivatives_base import DerivativeBase
 
 
@@ -23,7 +23,7 @@ class HessianBase(DerivativeBase):
     """Compute the Hessian of an expected value."""
 
     def __init__(self,
-                 hess_method: Union[str, CircuitGradientMethod] = 'param_shift',
+                 hess_method: Union[str, CircuitGradient] = 'param_shift',
                  **kwargs):
         r"""
         Args:
@@ -37,23 +37,23 @@ class HessianBase(DerivativeBase):
             ValueError: If method != ``fin_diff`` and ``epsilon`` is not None.
         """
 
-        if isinstance(hess_method, CircuitGradientMethod):
+        if isinstance(hess_method, CircuitGradient):
             self._hess_method = hess_method
         elif hess_method == 'param_shift':
-            from .circuit_gradient_methods import ParamShiftGradient
-            self._hess_method = ParamShiftGradient()
+            from .circuit_gradients import ParamShift
+            self._hess_method = ParamShift()
 
         elif hess_method == 'fin_diff':
-            from .circuit_gradient_methods import ParamShiftGradient
+            from .circuit_gradients import ParamShift
             if 'epsilon' in kwargs:
                 epsilon = kwargs['epsilon']
             else:
                 epsilon = 1e-6
-            self._hess_method = ParamShiftGradient(analytic=False, epsilon=epsilon)
+            self._hess_method = ParamShift(analytic=False, epsilon=epsilon)
 
         elif hess_method == 'lin_comb':
-            from .circuit_gradient_methods import LinCombGradient
-            self._hess_method = LinCombGradient()
+            from .circuit_gradients import LinComb
+            self._hess_method = LinComb()
 
         else:
             raise ValueError("Unrecognized input provided for `method`. Please provide"

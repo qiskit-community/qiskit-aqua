@@ -31,6 +31,7 @@ from qiskit.aqua.operators.gradients.circuit_gradients import CircuitGradient
 from qiskit.aqua.operators.gradients.gradient_base import GradientBase
 from qiskit.aqua.operators.gradients.gradient import Gradient
 from qiskit.aqua.operators.gradients.qfi import QFI
+from qiskit.aqua.operators.gradients.circuit_qfis import CircuitQFI
 from qiskit.circuit import ParameterVector, ParameterExpression
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
@@ -43,8 +44,7 @@ class NaturalGradient(GradientBase):
 
     def __init__(self,
                  grad_method: Union[str, CircuitGradient] = 'lin_comb',
-                 qfi_method: Union[str, CircuitGradient] = 'lin_comb',
-                 qfi_approx: Optional[str] = None,
+                 qfi_method: Union[str, CircuitQFI] = 'lin_comb_full',
                  regularization: Optional[str] = None,
                  **kwargs):
         r"""
@@ -52,7 +52,7 @@ class NaturalGradient(GradientBase):
             grad_method: The method used to compute the state gradient. Can be either
                 ``'param_shift'`` or ``'lin_comb'`` or ``'fin_diff'``.
             qfi_method: The method used to compute the QFI. Can be either
-                ``'lin_comb'`` or ``'block_diag'`` or ``'diag'``.
+                ``'lin_comb_full'`` or ``'overlap_block_diag'`` or ``'overlap_diag'``.
             regularization: Use the following regularization with an lstsq method to solve the
                 underlying SLE
                 Can be either None or ``'ridge'`` or ``'lasso'`` or ``'perturb_diag'``
@@ -64,7 +64,6 @@ class NaturalGradient(GradientBase):
         super().__init__(grad_method)
 
         self._qfi_method = qfi_method
-        self._qfi_approx = qfi_approx
         self._regularization = regularization
         if grad_method == 'fin_diff':
             if 'epsilon' in kwargs:
@@ -98,7 +97,7 @@ class NaturalGradient(GradientBase):
             grad = Gradient(self._grad_method, epsilon=self._epsilon).convert(operator, params)
         else:
             grad = Gradient(self._grad_method).convert(operator, params)
-        metric = QFI(self._qfi_method, self._qfi_approx).convert(operator[-1], params) * 0.25
+        metric = QFI(self._qfi_method).convert(operator[-1], params) * 0.25
 
         def combo_fn(x):
             c = np.real(x[0])

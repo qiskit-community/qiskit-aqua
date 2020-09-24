@@ -14,8 +14,9 @@
 from collections.abc import Iterable
 from typing import List, Union, Optional
 
+from .qfi_base import QFIBase
 from qiskit.aqua.operators import OperatorBase, ListOp
-from qiskit.aqua.operators.gradients import DerivativeBase, CircuitGradient, CircuitQFI, QFIBase
+from qiskit.aqua.operators.gradients import CircuitQFI
 from qiskit.aqua.operators.state_fns import CircuitStateFn
 from qiskit.circuit import (ParameterExpression, ParameterVector)
 
@@ -31,39 +32,13 @@ class QFI(QFIBase):
     """
 
     def __init__(self,
-                 qfi_method: Union[str, CircuitGradientMethod] = 'lin_comb'):
-                 approx: Optional[str] = None,
-                 **kwargs):
+                 qfi_method: Union[str, CircuitQFI] = 'lin_comb_full'):
         r"""
         Args:
             method: The method used to compute the state/probability gradient. Can be either
-                ``'param_shift'`` or ``'lin_comb'`` or ``'fin_diff'``.
-                Deprecated for observable gradient.
+                ``'lin_comb_full'`` or ``'overlap_diag'``` or ``'overlap_block_diag'```.
         """
-# TODO
         super().__init__(qfi_method)
-
-
-        if isinstance(method, CircuitGradient):
-            self._method = method
-
-        elif method == 'lin_comb':
-            from .circuit_qfis import LinCombFull
-            if approx is not None:
-                self._method = LinCombFull(approx)
-            else:
-                self._method = LinCombFull()
-        elif method == 'overlap':
-            from .circuit_qfis import OverlapApprox
-            if approx is not None:
-                self._method = OverlapApprox(approx)
-            else:
-                self._method = OverlapApprox()
-        
-        else:
-            raise ValueError("Unrecognized input provided for `method`. Please provide"
-                             " a CircuitGradient object or one of the pre-defined string"
-                             " arguments: {'lin_comb', 'overlap'}. ")
 
     def convert(self,
                 operator: CircuitStateFn,
