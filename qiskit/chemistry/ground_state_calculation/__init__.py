@@ -13,7 +13,7 @@
 """TODO"""
 
 from .ground_state_calculation import GroundStateCalculation
-from .adapt_vqe_ground_state_calculation import AdaptVQE
+from .adapt_vqe import AdaptVQE
 from .mes_ground_state_calculation import MinimumEigensolverGroundStateCalculation
 from .mes_factory import MESFactory
 
