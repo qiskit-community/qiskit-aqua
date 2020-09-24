@@ -21,14 +21,14 @@ import numpy as np
 from qiskit.circuit import ParameterExpression
 
 from ..operator_base import OperatorBase
-from .state_fn import StateFn
+from .operator_state_fn import OperatorStateFn
 from ..list_ops.list_op import ListOp
 from ..list_ops.summed_op import SummedOp
 
 
 # pylint: disable=invalid-name
 
-class CVarStateFn(StateFn):
+class CVarStateFn(OperatorStateFn):
     r"""
     A class for state functions and measurements which are defined by a density Operator,
     stored using an ``OperatorBase``.
@@ -37,8 +37,8 @@ class CVarStateFn(StateFn):
     # TODO allow normalization somehow?
     def __init__(self,
                  primitive: Union[OperatorBase] = None,
-                 coeff: Union[int, float, complex, ParameterExpression] = 1.0,
                  alpha: float = 1,
+                 coeff: Union[int, float, complex, ParameterExpression] = 1.0,
                  is_measurement: bool = True) -> None:
         """
         Args:
@@ -52,9 +52,16 @@ class CVarStateFn(StateFn):
         if not is_measurement:
             raise ValueError("CostFnMeasurement is only defined as a measurement")
         
-        self.alpha = alpha
+        print('in cvar_sf __init__: ', alpha)
+
+        self._alpha = alpha
 
         super().__init__(primitive, coeff=coeff, is_measurement=True)
+
+    @property
+    def alpha(self):
+        return self._alpha
+    
 
     def primitive_strings(self) -> Set[str]:
         return self.primitive.primitive_strings()
@@ -148,19 +155,27 @@ class CVarStateFn(StateFn):
         from ..list_ops.list_op import ListOp
         from ..primitive_ops.circuit_op import CircuitOp
 
-        assert isinstance(front, DictStateFn), "Unexpected input to CVarMeasurement"
+        if isinstance(front, CircuitStateFn):
+            front = front.eval()
 
-
-        front.primitive
-        obs = self.primitive
-        data = front.primitive
-        print(data)
+        #Standardize the inputs to a dict  
+        if isinstance(front, DictStateFn):
+            data = front.primitive
+        elif isinstance(front, VectorStateFn):
+            vec = front.primitive.data
+            #Determine how many bits are needed 
+            key_len = int(np.ceil(np.log2(len(vec))))
+            data = {format(index, '0'+str(key_len)+'b'): val for index,val in enumerate(vec)}
+        else:
+            raise ValueError("Unexpected Input to CVarStateFn: ", type(front))
 
         assert isinstance(data, Dict)
 
-        #Handle probability gradients
+        obs = self.primitive
 
+        #Handle probability gradients
         outcomes = list(data.items())
+
         #Sort based on energy evaluation
         for i,outcome in enumerate(outcomes):
             key = outcomes[i][0]
@@ -168,29 +183,40 @@ class CVarStateFn(StateFn):
 
         outcomes = sorted(outcomes, key=lambda x: x[2])
 
+        #outcomes = outcomes
+        states, P, H = zip(*outcomes)
+
+        #Square the dict values 
+        # (since CircuitSampler takes the root...)
+        P = [np.real(p*np.conj(p)) for p in P]
+
         # Determine the index of the measurement outcome for which some shots will
         # be discarded. 
         alpha = self.alpha
         running_total = 0
         j=0 
-        for i,outcome in enumerate(outcomes):
+        for i,pi in enumerate(P):
             if isinstance(outcome[1], Tuple):
-                p = outcome[1][0]
+                p = pi[0]
             else:
-                p = outcome[1]
+                p = pi
             running_total += p
+            print(i, running_total,alpha)
+            j = i
             if running_total > alpha:
-                j = i
                 break
-        #outcomes = outcomes
-        states, P, H = zip(*outcomes)
+
 
         #handle the case j<1
         Hj = H[j]
         H = H[:j]
         P = P[:j]
 
+        if alpha == 0:
+            return Hj
+
         CVar = alpha * Hj
+
 
         #CVar = alpha*Hj + \sum_i P[i]*(H[i] - Hj)
         for i in range(len(H)):
@@ -199,7 +225,7 @@ class CVarStateFn(StateFn):
             else:
                 CVar += P[i]*(H[i]-Hj)
 
-        return CVar
+        return CVar/alpha
 
     def compose(self, other: OperatorBase) -> OperatorBase:
         r"""

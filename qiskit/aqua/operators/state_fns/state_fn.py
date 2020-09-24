@@ -53,7 +53,8 @@ class StateFn(OperatorBase):
                                  QuantumCircuit, Instruction,
                                  OperatorBase] = None,
                 coeff: Union[int, float, complex, ParameterExpression] = 1.0,
-                is_measurement: bool = False) -> 'StateFn':
+                is_measurement: bool = False,
+                **kwargs) -> 'StateFn':
         """ A factory method to produce the correct type of StateFn subclass
         based on the primitive passed in. Primitive, coeff, and is_measurement arguments
         are passed into subclass's init() as-is automatically by new().
@@ -88,6 +89,10 @@ class StateFn(OperatorBase):
             return CircuitStateFn.__new__(CircuitStateFn)
 
         if isinstance(primitive, OperatorBase):
+            if 'alpha' in kwargs:
+                print('kwargs: ',kwargs)
+                from .cvar_state_fn import CVarStateFn
+                return CVarStateFn.__new__(CVarStateFn)
             from .operator_state_fn import OperatorStateFn
             return OperatorStateFn.__new__(OperatorStateFn)
 
