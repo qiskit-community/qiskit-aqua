@@ -37,8 +37,8 @@ class CVarStateFn(OperatorStateFn):
     # TODO allow normalization somehow?
     def __init__(self,
                  primitive: Union[OperatorBase] = None,
-                 alpha: float = 1,
                  coeff: Union[int, float, complex, ParameterExpression] = 1.0,
+                 alpha: float = 1,
                  is_measurement: bool = True) -> None:
         """
         Args:
@@ -51,8 +51,6 @@ class CVarStateFn(OperatorStateFn):
             raise ValueError
         if not is_measurement:
             raise ValueError("CostFnMeasurement is only defined as a measurement")
-        
-        print('in cvar_sf __init__: ', alpha)
 
         self._alpha = alpha
 
@@ -87,7 +85,8 @@ class CVarStateFn(OperatorStateFn):
 
         return self.__class__(self.primitive,
                               coeff=self.coeff * scalar,
-                              is_measurement=self.is_measurement)
+                              is_measurement=self.is_measurement,
+                              alpha = self._alpha)
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
         if isinstance(other, OperatorStateFn):
@@ -117,8 +116,11 @@ class CVarStateFn(OperatorStateFn):
 
     def to_matrix_op(self, massive: bool = False) -> OperatorBase:
         """ Return a MatrixOp for this operator. """
-        return OperatorStateFn(self.primitive.to_matrix_op(massive=massive) * self.coeff,
-                               is_measurement=self.is_measurement)
+        if self.alpha == 1:
+            return OperatorStateFn(self.primitive.to_matrix_op(massive=massive) * self.coeff,
+                                   is_measurement=self.is_measurement)
+        else: 
+            raise NotImplementedError
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
         r"""
@@ -136,10 +138,10 @@ class CVarStateFn(OperatorStateFn):
     def __str__(self) -> str:
         prim_str = str(self.primitive)
         if self.coeff == 1.0:
-            return "{}({})".format('CostFnMeasurement', prim_str)
+            return "{}({})".format('CVarMeasurement', prim_str)
         else:
             return "{}({}) * {}".format(
-                'CostFnMeasurement',
+                'CVarMeasurement',
                 prim_str,
                 self.coeff)
 
@@ -184,9 +186,12 @@ class CVarStateFn(OperatorStateFn):
         outcomes = sorted(outcomes, key=lambda x: x[2])
 
         #outcomes = outcomes
+        # states: bitstrings, bi
+        # P: sampling probabilities
+        # H: <bi|H|bi>
         states, P, H = zip(*outcomes)
 
-        #Square the dict values 
+        #Square the dict values so they represent sampling probabilities
         # (since CircuitSampler takes the root...)
         P = [np.real(p*np.conj(p)) for p in P]
 
@@ -201,11 +206,9 @@ class CVarStateFn(OperatorStateFn):
             else:
                 p = pi
             running_total += p
-            print(i, running_total,alpha)
             j = i
             if running_total > alpha:
                 break
-
 
         #handle the case j<1
         Hj = H[j]
@@ -216,7 +219,6 @@ class CVarStateFn(OperatorStateFn):
             return Hj
 
         CVar = alpha * Hj
-
 
         #CVar = alpha*Hj + \sum_i P[i]*(H[i] - Hj)
         for i in range(len(H)):

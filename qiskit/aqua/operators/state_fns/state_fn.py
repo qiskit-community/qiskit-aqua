@@ -90,9 +90,9 @@ class StateFn(OperatorBase):
 
         if isinstance(primitive, OperatorBase):
             if 'alpha' in kwargs:
-                print('kwargs: ',kwargs)
                 from .cvar_state_fn import CVarStateFn
                 return CVarStateFn.__new__(CVarStateFn)
+
             from .operator_state_fn import OperatorStateFn
             return OperatorStateFn.__new__(OperatorStateFn)
 
