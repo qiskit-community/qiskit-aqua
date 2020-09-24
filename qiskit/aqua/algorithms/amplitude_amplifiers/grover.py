@@ -29,9 +29,9 @@ from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.aqua.utils.validation import validate_min, validate_in_set
 from qiskit.aqua.algorithms import QuantumAlgorithm, AlgorithmResult
-from qiskit.aqua.components.initial_states import Custom
-from qiskit.aqua.components.oracles import Oracle, TruthTableOracle
 from qiskit.aqua.components.initial_states import InitialState
+from qiskit.aqua.components.oracles import Oracle, TruthTableOracle
+
 
 logger = logging.getLogger(__name__)
 
@@ -97,7 +97,7 @@ class Grover(QuantumAlgorithm):
                  num_solutions: Optional[int] = None,
                  quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None,
                  init_state: Optional[InitialState] = None,
-                 mct_mode: str = 'noancilla') -> None:
+                 mct_mode: str = 'noancilla', post_processing: Callable = None) -> None:
         # pylint: disable=line-too-long
         r"""
         Args:
@@ -166,6 +166,7 @@ class Grover(QuantumAlgorithm):
                           'qiskit.circuit.library directly and pass it to the grover_operator '
                           'keyword argument.', DeprecationWarning, stacklevel=2)
 
+        self._oracle = oracle
         # Construct GroverOperator circuit
         if grover_operator is not None:
             self._grover_operator = grover_operator
@@ -213,6 +214,7 @@ class Grover(QuantumAlgorithm):
                                                    mcx_mode=mct_mode)
 
         self._is_good_state = is_good_state
+        self._post_processing = post_processing
         self._incremental = incremental
         self._lam = lam
         self._rotation_counts = rotation_counts
@@ -281,7 +283,7 @@ class Grover(QuantumAlgorithm):
 
         self._ret['top_measurement'] = top_measurement
 
-        return top_measurement, self.is_good_state(top_measurement)
+        return self.post_processing(top_measurement), self.is_good_state(top_measurement)
 
     def is_good_state(self, bitstr: str) -> bool:
         """Check whether a provided bitstring is a good state or not.
@@ -306,6 +308,26 @@ class Grover(QuantumAlgorithm):
         else:
             raise NotImplementedError('Conversion to callable not implemented for {}'.format(
                 type(self._is_good_state)))
+
+    def post_processing(self, bitstr: str) ->str:
+        """Do the post-processing to the measurement result
+
+        Args:
+            bitstr: The measurement as bitstring.
+
+        Returns:
+            Do the post-processing based on the post_processing argument.
+            If the post_processing argument is None and the Oracle class is used as its oracle,
+            oracle.evaluate_classically is used as the post_processing.
+            Otherwise, just return the input bitstr
+        """
+        if self._post_processing is not None:
+            return self._post_processing(bitstr)
+
+        if isinstance(self._oracle, Oracle):
+            return self._oracle.evaluate_classically(bitstr)[1]
+
+        return bitstr
 
     def construct_circuit(self, power: int, measurement: bool = False) -> QuantumCircuit:
         """Construct

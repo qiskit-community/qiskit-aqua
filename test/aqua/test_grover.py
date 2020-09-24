@@ -19,12 +19,13 @@ import unittest
 from test.aqua import QiskitAquaTestCase
 
 from ddt import ddt, idata, unpack
-from qiskit import BasicAer, QuantumCircuit
+from qiskit import BasicAer, QuantumCircuit, QuantumRegister
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import Grover
 from qiskit.aqua.components.initial_states import Zero
 from qiskit.aqua.components.oracles import LogicalExpressionOracle as LEO
 from qiskit.aqua.components.oracles import TruthTableOracle as TTO
+from qiskit.aqua.components.oracles import CustomCircuitOracle
 from qiskit.circuit.library import GroverOperator
 from qiskit.quantum_info import Operator, Statevector
 
@@ -205,6 +206,28 @@ class TestGroverPublicMethods(QiskitAquaTestCase):
         expected.compose(grover_op.state_preparation, inplace=True)
         expected.compose(grover_op, inplace=True)
         self.assertTrue(Operator(constructed).equiv(Operator(expected)))
+
+    def test_post_processing(self):
+        """Test post_processing"""
+        # For the Oracle class
+        q_v = QuantumRegister(2, name='v')
+        q_o = QuantumRegister(1, name='o')
+        circuit = QuantumCircuit(q_v, q_o)
+        circuit.ccx(q_v[0], q_v[1], q_o[0])
+        oracle = CustomCircuitOracle(variable_register=q_v, output_register=q_o, circuit=circuit,
+                                     evaluate_classically_callback=lambda m: (m == '11', [1, 2]))
+        grover = Grover(oracle)
+        self.assertListEqual(grover.post_processing("11"), [1, 2])
+        # For the specified post_processing
+        oracle = QuantumCircuit(2)
+        oracle.cz(0, 1)
+        grover = Grover(oracle,
+                        post_processing=lambda bitstr: [idx for idx, x_i in enumerate(bitstr)
+                                                        if x_i == '1'])
+        self.assertEqual(grover.post_processing("11"), [0, 1])
+        # When Not specified
+        grover = Grover(oracle)
+        self.assertEqual(grover.post_processing("11"), "11")
 
 
 class TestGroverFunctionality(QiskitAquaTestCase):
