@@ -16,6 +16,7 @@
 
 import itertools
 import unittest
+import warnings
 from test.aqua import QiskitAquaTestCase
 
 from ddt import ddt, idata, unpack
@@ -56,6 +57,15 @@ ROTATION_COUNTS = [
 @ddt
 class TestGrover(QiskitAquaTestCase):
     """ Grover test """
+
+    def setUp(self):
+        super().setUp()
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
+
+    def tearDown(self):
+        super().tearDown()
+        warnings.filterwarnings('always', category=DeprecationWarning)
+
     @idata(
         [x[0] + list(x[1:]) for x in list(itertools.product(TESTS, MCT_MODES, SIMULATORS,
                                                             OPTIMIZATIONS, LAMBDA,
