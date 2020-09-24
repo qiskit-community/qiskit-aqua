@@ -19,7 +19,7 @@ import numpy as np
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import OperatorBase, ExpectationBase, LegacyBaseOperator
-from qiskit.aqua.operators.gradients import Gradient
+from qiskit.aqua.operators.gradients import GradientBase
 from qiskit.aqua.components.initial_states import InitialState
 from qiskit.aqua.components.optimizers import Optimizer
 from qiskit.aqua.utils.validation import validate_min
@@ -69,7 +69,7 @@ class QAOA(VQE):
                  initial_state: Optional[InitialState] = None,
                  mixer: Union[OperatorBase, LegacyBaseOperator] = None,
                  initial_point: Optional[np.ndarray] = None,
-                 gradient: Optional[Union[Gradient, Callable]] = None,
+                 gradient: Optional[Union[GradientBase, Callable]] = None,
                  expectation: Optional[ExpectationBase] = None,
                  include_custom: bool = False,
                  max_evals_grouped: int = 1,

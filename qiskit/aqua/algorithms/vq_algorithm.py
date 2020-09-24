@@ -33,7 +33,7 @@ from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import AlgorithmResult, QuantumAlgorithm
 from qiskit.aqua.components.optimizers import Optimizer, SLSQP
 from qiskit.aqua.components.variational_forms import VariationalForm
-from qiskit.aqua.operators.gradients import Gradient
+from qiskit.aqua.operators.gradients import GradientBase
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +47,7 @@ class VQAlgorithm(QuantumAlgorithm):
                  var_form: Union[QuantumCircuit, VariationalForm],
                  optimizer: Optimizer,
                  cost_fn: Optional[Callable] = None,
-                 gradient: Optional[Union[Gradient, Callable]] = None,
+                 gradient: Optional[Union[GradientBase, Callable]] = None,
                  initial_point: Optional[np.ndarray] = None,
                  quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
         """

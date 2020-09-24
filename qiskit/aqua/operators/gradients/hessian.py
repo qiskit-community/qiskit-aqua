@@ -22,17 +22,18 @@ from qiskit.aqua.operators.expectations import PauliExpectation
 from qiskit.aqua.operators.gradients.circuit_gradients.circuit_gradient \
     import CircuitGradient
 from qiskit.aqua.operators.gradients.derivatives_base import DerivativeBase
+from qiskit.aqua.operators.gradients.hessian_base import HessianBase
 from qiskit.aqua.operators.gradients.gradient import Gradient
 from qiskit.aqua.operators.list_ops import ListOp, ComposedOp, SummedOp, TensoredOp
 from qiskit.aqua.operators.operator_base import OperatorBase
-from qiskit.circuit import Parameter, ParameterVector, ParameterExpression
+from qiskit.circuit import ParameterVector, ParameterExpression
 
 
-class Hessian(DerivativeBase):
+class Hessian(HessianBase):
     """Compute the Hessian of an expected value."""
 
     def __init__(self,
-                 method: Union[str, CircuitGradient] = 'param_shift',
+                 hess_method: Union[str, CircuitGradientMethod] = 'param_shift',
                  **kwargs):
         r"""
         Args:
@@ -45,35 +46,13 @@ class Hessian(DerivativeBase):
         Raises:
             ValueError: If method != ``fin_diff`` and ``epsilon`` is not None.
         """
-
-        if isinstance(method, CircuitGradient):
-            self._method = method
-        elif method == 'param_shift':
-            from .circuit_gradients import ParamShift
-            self._method = ParamShift()
-
-        elif method == 'fin_diff':
-            from .circuit_gradients import ParamShift
-            if 'epsilon' in kwargs:
-                epsilon = kwargs['epsilon']
-            else:
-                epsilon = 1e-6
-            self._method = ParamShift(analytic=False, epsilon=epsilon)
-
-        elif method == 'lin_comb':
-            from .circuit_gradients import LinComb
-            self._method = LinComb()
-
-        else:
-            raise ValueError("Unrecognized input provided for `method`. Please provide"
-                             " a CircuitGradient object or one of the pre-defined string"
-                             " arguments: {'param_shift', 'fin_diff', 'lin_comb'}. ")
+        super().__init__(hess_method)
 
     def convert(self,
                 operator: OperatorBase,
-                params: Optional[Union[Tuple[Parameter, Parameter],
-                                       List[Tuple[Parameter, Parameter]],
-                                       List[Parameter], ParameterVector]] = None
+                params: Optional[Union[Tuple[ParameterExpression, ParameterExpression],
+                                       List[Tuple[ParameterExpression, ParameterExpression]],
+                                       List[ParameterExpression], ParameterVector]] = None
                 ) -> OperatorBase:
         """
         Args:
@@ -95,7 +74,7 @@ class Hessian(DerivativeBase):
 
         if isinstance(params, (ParameterVector, List)):
             # Case: a list of parameters were given, compute the Hessian for all param pairs
-            if all(isinstance(param, Parameter) for param in params):
+            if all(isinstance(param, ParameterExpression) for param in params):
                 return ListOp(
                     [ListOp([self.convert(operator, (p0, p1)) for p1 in params]) for p0 in params])
             # Case: a list was given containing tuples of parameter pairs.
@@ -107,15 +86,12 @@ class Hessian(DerivativeBase):
         cleaned_op = self._factor_coeffs_out_of_composed_op(expec_op)
         return self.get_hessian(cleaned_op, params)
 
-    @property
-    def method(self):
-        return self._method
-
     def get_hessian(self,
                     operator: OperatorBase,
-                    params: Optional[Union[Tuple[Parameter, Parameter],
+                    params: Optional[Union[Tuple[ParameterExpression, ParameterExpression],
                                            List[Tuple[
-                                               Parameter, Parameter]]]] = None) -> OperatorBase:
+                                               ParameterExpression, ParameterExpression]]]] = None
+                    ) -> OperatorBase:
 
         def is_coeff_c(coeff, c):
             if isinstance(coeff, ParameterExpression):
@@ -125,7 +101,7 @@ class Hessian(DerivativeBase):
 
         if isinstance(params, (ParameterVector, List)):
             # Case: a list of parameters were given, compute the Hessian for all param pairs
-            if all(isinstance(param, Parameter) for param in params):
+            if all(isinstance(param, ParameterExpression) for param in params):
                 return ListOp(
                     [ListOp([self.get_hessian(operator, (p0, p1)) for p1 in params])
                      for p0 in params])
@@ -137,8 +113,8 @@ class Hessian(DerivativeBase):
 
         # If a gradient is requested w.r.t a single parameter, then call the
         # Gradient() class' autograd method.
-        if isinstance(params, Parameter):
-            return Gradient(method=self._method).get_gradient(operator, params)
+        if isinstance(params, ParameterExpression):
+            return Gradient(grad_method=self._hess_method).get_gradient(operator, params)
 
         assert isinstance(params, Tuple) and len(
             params) == 2, "Parameters supplied in unsupported format"
@@ -198,7 +174,7 @@ class Hessian(DerivativeBase):
                     'The gradient framework is compatible with states that are given as '
                     'CircuitStateFn')
 
-            return self.method.convert(operator, params)
+            return self.hess_method.convert(operator, params)
 
         # This is the recursive case where the chain rule is handled
         elif isinstance(operator, ListOp):

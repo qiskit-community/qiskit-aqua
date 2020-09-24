@@ -59,7 +59,7 @@ class TestGradients(QiskitAquaTestCase):
         qc.p(params[0], q[0])
         op = ~StateFn(H) @ CircuitStateFn(primitive=qc, coeff=1.)
 
-        state_grad = Gradient(method=method).convert(operator=op, params=params)
+        state_grad = Gradient(grad_method=method).convert(operator=op, params=params)
         values_dict = [{a: np.pi / 4}, {a: 0}, {a: np.pi / 2}]
         correct_values = [-0.5 / np.sqrt(2), 0, -0.5]
 
@@ -86,7 +86,7 @@ class TestGradients(QiskitAquaTestCase):
 
         op = ~StateFn(H) @ CircuitStateFn(primitive=qc, coeff=1.)
         params = [a, b, c]
-        state_grad = Gradient(method=method).convert(operator=op, params=params)
+        state_grad = Gradient(grad_method=method).convert(operator=op, params=params)
         values_dict = [{a: np.pi / 4, b: 0, c: 0}, {a: np.pi / 4, b: np.pi / 4, c: np.pi / 4}]
         correct_values = [[0.3536, 0, 0], [0.3232, -0.42678, -0.92678]]
         for i, value_dict in enumerate(values_dict):
@@ -106,7 +106,7 @@ class TestGradients(QiskitAquaTestCase):
 
         op = ~StateFn(H) @ CircuitStateFn(primitive=qc, coeff=1.)
         params = [a]
-        state_grad = Gradient(method=method).convert(operator=op, params=params)
+        state_grad = Gradient(grad_method=method).convert(operator=op, params=params)
         values_dict = [{a: np.pi / 4}, {a: np.pi / 2}]
         correct_values = [[-1.03033], [-1]]
         for i, value_dict in enumerate(values_dict):
@@ -136,7 +136,7 @@ class TestGradients(QiskitAquaTestCase):
         qc.rx(params[1], q[0])
         op = ~StateFn(H) @ CircuitStateFn(primitive=qc, coeff=1.)
 
-        state_grad = Gradient(method=method).convert(operator=op, params=params)
+        state_grad = Gradient(grad_method=method).convert(operator=op, params=params)
         values_dict = [{a: np.pi / 4, b: np.pi}, {params[0]: np.pi / 4, params[1]: np.pi / 4},
                        {params[0]: np.pi / 2, params[1]: np.pi / 4}]
         correct_values = [[-0.5 / np.sqrt(2), 1 / np.sqrt(2)], [-0.5 / np.sqrt(2) - 0.5, -1 / 2.],
@@ -166,7 +166,7 @@ class TestGradients(QiskitAquaTestCase):
         qc.rx(a, q[0])
         op = ~StateFn(H) @ CircuitStateFn(primitive=qc, coeff=1.)
 
-        state_grad = Gradient(method=method).convert(operator=op, params=params)
+        state_grad = Gradient(grad_method=method).convert(operator=op, params=params)
         values_dict = [{a: np.pi / 4}, {a: 0},
                        {a: np.pi / 2}]
         correct_values = [-1.353553, -0, -0.5]
@@ -199,7 +199,7 @@ class TestGradients(QiskitAquaTestCase):
         qc.rx(c, q[0])
         op = ~StateFn(H) @ CircuitStateFn(primitive=qc, coeff=1.)
 
-        state_grad = Gradient(method=method).convert(operator=op, params=params)
+        state_grad = Gradient(grad_method=method).convert(operator=op, params=params)
         values_dict = [{a: np.pi / 4}, {a: 0}, {a: np.pi / 2}]
         correct_values = [-1.1220, -0.9093, 0.0403]
         for i, value_dict in enumerate(values_dict):
@@ -225,7 +225,7 @@ class TestGradients(QiskitAquaTestCase):
         qc.crz(a, q[0], q[1])
         op = ~StateFn(H) @ CircuitStateFn(primitive=qc, coeff=1.)
 
-        state_grad = Gradient(method=method).convert(operator=op, params=params)
+        state_grad = Gradient(grad_method=method).convert(operator=op, params=params)
         values_dict = [{a: np.pi / 4}, {a: 0},
                        {a: np.pi / 2}]
         correct_values = [1/np.sqrt(2), 0, 1]
@@ -293,7 +293,7 @@ class TestGradients(QiskitAquaTestCase):
 
         op = CircuitStateFn(primitive=qc, coeff=1.)
 
-        prob_grad = Gradient(method=method).convert(operator=op, params=params)
+        prob_grad = Gradient(grad_method=method).convert(operator=op, params=params)
         values_dict = [{a: np.pi / 4, b: 0}, {params[0]: np.pi / 4, params[1]: np.pi / 4},
                        {params[0]: np.pi / 2, params[1]: np.pi}]
         correct_values = [[[0, 0], [1 / (2 * np.sqrt(2)), - 1 / (2 * np.sqrt(2))]],
@@ -418,7 +418,7 @@ class TestGradients(QiskitAquaTestCase):
                      ~StateFn(Z) @ CircuitStateFn(primitive=qc, coeff=1.)], combo_fn=combo_fn,
                     grad_combo_fn=None if autograd else grad_combo_fn)
 
-        state_grad = Gradient(method=method).convert(operator=op, params=params)
+        state_grad = Gradient(grad_method=method).convert(operator=op, params=params)
         values_dict = [{a: np.pi / 4, b: np.pi}, {params[0]: np.pi / 4, params[1]: np.pi / 4},
                        {params[0]: np.pi / 2, params[1]: np.pi / 4}]
         correct_values = [[-1., 0.], [-1.2397, -0.2397], [0, -0.45936]]
@@ -447,7 +447,7 @@ class TestGradients(QiskitAquaTestCase):
         H = coeff_0 * X + coeff_1 * Z
         op = ~StateFn(H) @ CircuitStateFn(primitive=qc, coeff=1.0)
         gradient_coeffs = [coeff_0, coeff_1]
-        coeff_grad = Gradient(method=method).convert(op, gradient_coeffs)
+        coeff_grad = Gradient(grad_method=method).convert(op, gradient_coeffs)
         values_dict = [{coeff_0: 0.5, coeff_1: -1, a: np.pi / 4, b: np.pi},
                        {coeff_0: 0.5, coeff_1: -1, a: np.pi / 4, b: np.pi / 4}]
         correct_values = [[1 / np.sqrt(2), 0], [1 / np.sqrt(2), 1 / 2]]
@@ -493,7 +493,7 @@ class TestGradients(QiskitAquaTestCase):
                                                  correct_values[i],
                                                  decimal=1)
 
-    @data('lin_comb', 'param_shift', 'fin_diff')
+    @data('lin_comb', 'param_shift')
     def test_circuit_sampler(self, method):
         """Test the gradient with circuit sampler
 
@@ -514,11 +514,7 @@ class TestGradients(QiskitAquaTestCase):
         qc.rz(params[0], q[0])
         qc.rx(params[1], q[0])
         op = ~StateFn(H) @ CircuitStateFn(primitive=qc, coeff=1.)
-
-        if method == 'fin_diff':
-            state_grad = Gradient(method=method, epsilon=1e-9).convert(operator=op, params=params)
-        else:
-            state_grad = Gradient(method=method).convert(operator=op, params=params)
+        state_grad = Gradient(grad_method=method).convert(operator=op, params=params)
         values_dict = [{a: np.pi / 4, b: np.pi}, {params[0]: np.pi / 4, params[1]: np.pi / 4},
                        {params[0]: np.pi / 2, params[1]: np.pi / 4}]
         correct_values = [[-0.5 / np.sqrt(2), 1 / np.sqrt(2)], [-0.5 / np.sqrt(2) - 0.5, -1 / 2.],
@@ -533,7 +529,7 @@ class TestGradients(QiskitAquaTestCase):
                                                                          value_dict.items()})
             np.testing.assert_array_almost_equal(sampler.eval()[0], correct_values[i], decimal=1)
 
-    @data('lin_comb', 'param_shift', 'fin_diff')
+    @data('lin_comb', 'param_shift')
     def test_circuit_sampler2(self, method):
         """Test the probability gradient with the circuit sampler
 
@@ -555,7 +551,7 @@ class TestGradients(QiskitAquaTestCase):
 
         op = CircuitStateFn(primitive=qc, coeff=1.)
 
-        prob_grad = Gradient(method=method).convert(operator=op, params=params)
+        prob_grad = Gradient(grad_method=method).convert(operator=op, params=params)
         values_dict = [{a: [np.pi / 4], b: [0]}, {params[0]: [np.pi / 4], params[1]: [np.pi / 4]},
                        {params[0]: [np.pi / 2], params[1]: [np.pi]}]
         correct_values = [[[0, 0], [1 / (2 * np.sqrt(2)), - 1 / (2 * np.sqrt(2))]],
