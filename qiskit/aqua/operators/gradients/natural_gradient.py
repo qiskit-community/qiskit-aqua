@@ -28,16 +28,17 @@ from typing import Optional, Union
 import numpy as np
 from qiskit.aqua.operators import (OperatorBase, ListOp, ComposedOp, CircuitStateFn)
 from qiskit.aqua.operators.gradients.circuit_gradient_methods import CircuitGradientMethod
+from qiskit.aqua.operators.gradients.gradient_base import GradientBase
 from qiskit.aqua.operators.gradients.gradient import Gradient
 from qiskit.aqua.operators.gradients.qfi import QFI
-from qiskit.circuit import Parameter, ParameterVector
+from qiskit.circuit import ParameterVector, ParameterExpression
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
 
 logger = logging.getLogger(__name__)
 
 
-class NaturalGradient(Gradient):
+class NaturalGradient(GradientBase):
     """Convert an operator expression to the first-order gradient."""
 
     def __init__(self,
@@ -61,7 +62,6 @@ class NaturalGradient(Gradient):
         """
         super().__init__(grad_method)
 
-        self._grad_method = grad_method
         self._qfi_method = qfi_method
         self._regularization = regularization
         if grad_method == 'fin_diff':
@@ -73,7 +73,8 @@ class NaturalGradient(Gradient):
     # pylint: disable=arguments-differ
     def convert(self,
                 operator: OperatorBase,
-                params: Optional[Union[ParameterVector, Parameter, List[Parameter]]] = None
+                params: Optional[Union[ParameterVector, ParameterExpression,
+                                       List[ParameterExpression]]] = None
                 ) -> OperatorBase:
         r"""
         Args:
@@ -285,24 +286,23 @@ class NaturalGradient(Gradient):
         return lambda_mc, np.transpose(x_mc)
 
     @staticmethod
-    def _lasso(
-            A: np.ndarray,
-            C: np.ndarray,
-            lambda_: float = 1.,
-            auto_search: bool = True,
-            lambda1: float = 1e-4,
-            lambda4: float = 1e-1,
-            tol_search: float = 1e-8,
-            fit_intercept: bool = True,
-            normalize: bool = False,
-            precompute: Union[bool, Iterable] = False,
-            copy_A: bool = True,
-            max_iter: int = 1000,
-            tol: float = 0.0001,
-            warm_start: bool = False,
-            positive: bool = False,
-            random_state: Optional[int] = None,
-            selection: str = 'random') -> Tuple[float, np.ndarray]:
+    def _lasso(A: np.ndarray,
+               C: np.ndarray,
+               lambda_: float = 1.,
+               auto_search: bool = True,
+               lambda1: float = 1e-4,
+               lambda4: float = 1e-1,
+               tol_search: float = 1e-8,
+               fit_intercept: bool = True,
+               normalize: bool = False,
+               precompute: Union[bool, Iterable] = False,
+               copy_A: bool = True,
+               max_iter: int = 1000,
+               tol: float = 0.0001,
+               warm_start: bool = False,
+               positive: bool = False,
+               random_state: Optional[int] = None,
+               selection: str = 'random') -> Tuple[float, np.ndarray]:
         """
         Lasso Regression with automatic search for a good regularization term lambda
         x_lambda = arg min{||Ax-C||^2/(2*n_samples) + lambda*||x||_1} (4)
