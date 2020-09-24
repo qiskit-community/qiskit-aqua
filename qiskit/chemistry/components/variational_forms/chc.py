@@ -43,12 +43,12 @@ class CHC(VariationalForm):
         """
 
         Args:
-            num_qubits:
-            reps:
-            ladder:
-            excitations:
-            entanglement:
-            initial_state:
+            num_qubits: number of qubits
+            reps: number of replica of basic module
+            ladder: use ladder of CNOTs between to indices in the entangling block
+            excitations: indices corresponding to the excitations to include in the circuit
+            entanglement: physical connections between the qubits
+            initial_state: an initial state object
         """
 
         super().__init__()
