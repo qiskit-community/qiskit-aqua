@@ -45,9 +45,9 @@ class MESFactory:
 
         num_orbitals = transformation._molecule_info['num_orbitals']
         num_particles = transformation._molecule_info['num_particles']
-        qubit_mapping = transformation._molecule_info['qubit_mapping']
+        qubit_mapping = transformation._qubit_mapping
         two_qubit_reduction = transformation._molecule_info['two_qubit_reduction']
-        z2_symmetries = transformation._molecule_info['z2_symmetries']
+        z2_symmetries = transformation._molecule_info['z2symmetries']
         initial_state = HartreeFock(num_orbitals, num_particles, qubit_mapping,
                                     two_qubit_reduction, z2_symmetries.sq_list)
         var_form = UCCSD(num_orbitals=num_orbitals,

@@ -369,6 +369,9 @@ class FermionicTransformation(QubitOperatorTransformation, ChemistryOperator):
         z2_symmetries.tapering_values = taper_coef
         return z2_symmetries
 
+    def interpret(self, raw_gs_result: MinimumEigensolverResult) -> MolecularGroundStateResult:
+        return self._process_algorithm_result_ground_state(raw_gs_result)
+
     # Called by public superclass method process_algorithm_result to complete specific processing
     def _process_algorithm_result(self, algo_result):
         if isinstance(algo_result, MinimumEigensolverResult):

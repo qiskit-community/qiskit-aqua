@@ -31,7 +31,7 @@ class QubitOperatorTransformation(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def interpret(self, raw_gs_result: MinimumEigensolverResult) -> MolecularGroundStateResult:
+    def interpret(self, value: float, state: List[float], aux_values: dict) -> MolecularGroundStateResult:
         """TODO"""
         raise NotImplementedError
 
