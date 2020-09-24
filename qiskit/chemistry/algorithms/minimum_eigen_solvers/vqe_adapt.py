@@ -35,8 +35,7 @@ logger = logging.getLogger(__name__)
 
 
 class VQEAdapt(VQAlgorithm):
-    """
-    The Adaptive VQE algorithm.
+    """DEPRECATED. The Adaptive VQE algorithm.
 
     See https://arxiv.org/abs/1812.11173
     """
@@ -71,6 +70,10 @@ class VQEAdapt(VQAlgorithm):
             ValueError: if var_form_base is not an instance of UCCSD.
             See also: qiskit/chemistry/components/variational_forms/uccsd_adapt.py
         """
+        warnings.warn('The qiskit.chemistry.algorithms.minimum_eigen_solvers.VQEAdapt object is '
+                      'deprecated as of 0.8.0 and will be removed no sooner than 3 months after the'
+                      ' release. You should use qiskit.chemistry.ground_state_calculation.AdaptVQE '
+                      'instead.', DeprecationWarning, stacklevel=2)
         validate_min('threshold', threshold, 1e-15)
         validate_min('delta', delta, 1e-5)
         super().__init__(var_form=var_form_base,
