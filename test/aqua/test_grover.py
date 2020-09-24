@@ -61,15 +61,11 @@ class TestGrover(QiskitAquaTestCase):
                                                             ROTATION_COUNTS))]
     )
     @unpack
-    def test_grover_oracle(self, input_test, sol, oracle_cls, mct_mode,
-                           simulator, optimization, lam, rotation_counts):
+    def test_grover(self, input_test, sol, oracle_cls, mct_mode,
+                    simulator, optimization, lam, rotation_counts):
         """ grover test """
         groundtruth = sol
         oracle = oracle_cls(input_test, optimization=optimization)
-        # grover = Grover_new(oracle, incremental=True,
-        #                 lam=lam,
-        #                 rotation_counts=rotation_counts, mct_mode=mct_mode)
-        print(oracle, lam, rotation_counts, mct_mode)
         grover = Grover(oracle, incremental=True, lam=lam,
                         rotation_counts=rotation_counts, mct_mode=mct_mode)
         backend = BasicAer.get_backend(simulator)
