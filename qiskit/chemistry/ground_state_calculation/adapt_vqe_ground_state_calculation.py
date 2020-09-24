@@ -74,3 +74,8 @@ class AdaptVQEFactory(MESFactory):
         # initialize the adaptive VQE algorithm with the specified quantum instance
         vqe = VQEAdapt(var_form_base=var_form_base, quantum_instance=self._quantum_instance)
         return vqe
+
+
+# TODO we can think about moving all of the VQEAdapt code (currently in
+# qiskit.chemistry.algorithms.minimum_eigen_solvers) into this class and therefore deprecate the
+# qiskit.chemistry.algorithms module (if we do the same with the QEOM code)
