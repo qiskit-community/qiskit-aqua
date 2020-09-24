@@ -64,7 +64,7 @@ class TestCHCVSCF(QiskitChemistryTestCase):
         num_qubits = sum(basis)
         uvcc_varform = UVCC(num_qubits, basis, [0, 1])
         excitations = uvcc_varform.excitations_in_qubit_format()
-        chc_varform = CHC(num_qubits, ladder=False, depth=1, excitations=excitations,
+        chc_varform = CHC(num_qubits, ladder=False, excitations=excitations,
                           initial_state=init_state)
 
         backend = BasicAer.get_backend('statevector_simulator')
