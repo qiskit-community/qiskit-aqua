@@ -14,7 +14,7 @@
 
 """Grover's search algorithm."""
 
-from typing import Optional, Union, Dict, List, Any, Callable
+from typing import Optional, Union, Dict, List, Any, Callable, Iterable
 import logging
 import warnings
 import operator
@@ -95,7 +95,8 @@ class Grover(QuantumAlgorithm):
                  num_solutions: Optional[int] = None,
                  quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None,
                  mct_mode: Optional[str] = None,
-                 post_processing: Callable = None) -> None:
+                 post_processing: Callable = None,
+                 iterations: Optional[Iterable]) -> None:
         # pylint: disable=line-too-long
         r"""
         Args:
@@ -170,6 +171,13 @@ class Grover(QuantumAlgorithm):
         else:
             mct_mode = 'noancilla'
 
+        if incremental:
+            warnings.warn('The incremental argument is deprecated as of 0.8.0, and will be removed '
+                          'no earlier than 3 months after the release date. If you want to use '
+                          'the incremental mode with the rotation_counts argument or the lam '
+                          'argument, you should use the iterations argument instead and pass '
+                          'Iterable for each iteration.', DeprecationWarning, stacklevel=2)
+
         self._oracle = oracle
         # Construct GroverOperator circuit
         if grover_operator is not None:
@@ -224,7 +232,11 @@ class Grover(QuantumAlgorithm):
         self._rotation_counts = rotation_counts
         self._max_num_iterations = np.ceil(2 ** (len(self._grover_operator.reflection_qubits) / 2))
         if incremental:
-            self._num_iterations = 1
+            if rotation_counts is not None:
+                self._iterations = rotation_counts
+            else:
+                self._iterations = [1]
+                self._iterations.extend(lam * i for i in range(max_num_iterations))
         elif num_solutions:
             self._num_iterations = round(np.pi*np.sqrt(
                 2**len(self._grover_operator.reflection_qubits)/num_solutions)/4)
