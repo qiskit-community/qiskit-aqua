@@ -59,7 +59,6 @@ class CVarStateFn(OperatorStateFn):
     @property
     def alpha(self):
         return self._alpha
-    
 
     def primitive_strings(self) -> Set[str]:
         return self.primitive.primitive_strings()
@@ -127,7 +126,6 @@ class CVarStateFn(OperatorStateFn):
         Not Implemented
         """
         raise NotImplementedError
-
 
     def to_circuit_op(self) -> OperatorBase:
         r""" Return ``StateFnCircuit`` corresponding to this StateFn. Ignore for now because this is
