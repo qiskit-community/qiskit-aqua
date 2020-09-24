@@ -10,7 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" CircuitGradientMethod Class """
+""" CircuitGradient Class """
 
 import logging
 from abc import abstractmethod
@@ -23,7 +23,7 @@ from qiskit.circuit import Parameter, ParameterVector
 logger = logging.getLogger(__name__)
 
 
-class CircuitGradientMethod(ConverterBase):
+class CircuitGradient(ConverterBase):
     r"""
     Converter for changing parameterized circuits into operators
     whose evaluation yields the gradient with respect to the circuit parameters.
@@ -32,7 +32,7 @@ class CircuitGradientMethod(ConverterBase):
     operators and handle things like differentiating combo_fn's and enforcing prodct rules
     when operator coeficients are parameterized. 
 
-    CircuitGradientMethod - uses quantum techniques to get derivatives of circuits
+    CircuitGradient - uses quantum techniques to get derivatives of circuits
     DerivativeBase    - uses classical techniques to differentiate opflow data strctures
     """
 

@@ -12,17 +12,11 @@
 
 """The module for Aqua's first order derivatives."""
 
-from .block_diag_qfi import BlockDiagQFI
-from .circuit_gradient_method import CircuitGradientMethod
-from .diag_qfi import DiagQFI
-from .lin_comb_gradient import LinCombGradient
-from .lin_comb_qfi import LinCombQFI
-from .param_shift_gradient import ParamShiftGradient
+from .circuit_gradient import CircuitGradient
+from .lin_comb import LinComb
+from .param_shift import ParamShift
 
-__all__ = ['CircuitGradientMethod',
-           'LinCombGradient',
-           'ParamShiftGradient',
-           'LinCombQFI',
-           'BlockDiagQFI',
-           'DiagQFI'
+__all__ = ['CircuitGradient',
+           'LinComb',
+           'ParamShift'
            ]

@@ -304,8 +304,8 @@ class TestGradients(QiskitAquaTestCase):
                 np.testing.assert_array_almost_equal(prob_grad_result,
                                                      correct_values[i][j], decimal=1)
 
-    @data('lin_comb', 'block_diag', 'diag')
-    def test_qfi(self, method):
+    
+    def test_lin_comb_qfi(self):
         """Test if the quantum fisher information calculation is correct
 
         QFI = [[1, 0], [0, 1]] - [[0, 0], [0, cos^2(a)]]
@@ -322,7 +322,33 @@ class TestGradients(QiskitAquaTestCase):
         qc.rx(params[1], q[0])
 
         op = CircuitStateFn(primitive=qc, coeff=1.)
-        qfi = QFI(method).convert(operator=op, params=params)
+        qfi = QFI(method='lin_comb').convert(operator=op, params=params)
+        values_dict = [{params[0]: np.pi / 4, params[1]: 0.1}, {params[0]: np.pi, params[1]: 0.1},
+                       {params[0]: np.pi / 2, params[1]: 0.1}]
+        correct_values = [[[1, 0], [0, 0.5]], [[1, 0], [0, 0]], [[1, 0], [0, 1]]]
+        for i, value_dict in enumerate(values_dict):
+            np.testing.assert_array_almost_equal(qfi.assign_parameters(value_dict).eval(),
+                                                 correct_values[i], decimal=1)
+
+    @data('block_diag', 'diag')
+    def test_overlap_qfi(self, approx):
+        """Test if the quantum fisher information calculation is correct
+
+        QFI = [[1, 0], [0, 1]] - [[0, 0], [0, cos^2(a)]]
+        """
+
+        a = Parameter('a')
+        b = Parameter('b')
+        params = [a, b]
+
+        q = QuantumRegister(1)
+        qc = QuantumCircuit(q)
+        qc.h(q)
+        qc.rz(params[0], q[0])
+        qc.rx(params[1], q[0])
+
+        op = CircuitStateFn(primitive=qc, coeff=1.)
+        qfi = QFI(method='overlap', approx=approx).convert(operator=op, params=params)
         values_dict = [{params[0]: np.pi / 4, params[1]: 0.1}, {params[0]: np.pi, params[1]: 0.1},
                        {params[0]: np.pi / 2, params[1]: 0.1}]
         correct_values = [[[1, 0], [0, 0.5]], [[1, 0], [0, 0]], [[1, 0], [0, 1]]]

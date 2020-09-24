@@ -19,8 +19,10 @@ from qiskit.aqua import AquaError
 from qiskit.aqua.operators import (
     PauliExpectation
 )
-from qiskit.aqua.operators.gradients.circuit_gradient_methods.circuit_gradient_method import \
-    CircuitGradientMethod
+
+from qiskit.aqua.operators.gradients.circuit_gradients.circuit_gradient import \
+    CircuitGradient
+from qiskit.aqua.operators.gradients.derivatives_base import DerivativeBase
 from qiskit.aqua.operators.gradients.gradient_base import GradientBase
 from qiskit.aqua.operators.list_ops.composed_op import ComposedOp
 from qiskit.aqua.operators.list_ops.list_op import ListOp
@@ -36,6 +38,7 @@ class Gradient(GradientBase):
     """Convert an operator expression to the first-order gradient."""
 
     def __init__(self,
+
                  grad_method: Union[str, CircuitGradientMethod] = 'param_shift',
                  **kwargs):
         r"""
@@ -50,8 +53,9 @@ class Gradient(GradientBase):
             ValueError: If method != ``fin_diff`` and ``epsilon`` is not None.
         """
 
-        super().__init__(grad_method)
 
+        super().__init__(grad_method)
+        
     def convert(self,
                 operator: OperatorBase,
                 params: Optional[Union[ParameterVector, ParameterExpression,

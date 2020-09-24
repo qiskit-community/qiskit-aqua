@@ -35,11 +35,11 @@ from qiskit.circuit.library.standard_gates import (CXGate, CYGate, CZGate,
                                                    UGate, ZGate)
 from qiskit.quantum_info import partial_trace
 
-from .circuit_gradient_method import CircuitGradientMethod
+from .circuit_gradient import CircuitGradient
 from ..derivatives_base import DerivativeBase
 
 
-class LinCombGradient(CircuitGradientMethod):
+class LinComb(CircuitGradient):
     """Compute the state gradient d⟨ψ(ω)|O(θ)|ψ(ω)〉/ dω using the linear combination method.
     respectively the gradients of the sampling probabilities of the basis states of
     a state |ψ(ω)〉w.r.t. ω.
@@ -719,7 +719,7 @@ class LinCombGradient(CircuitGradientMethod):
                     'Function only support controlled gates with control state `1` on all control '
                     'qubits.')
 
-            base_coeffs_gates = LinCombGradient._gate_gradient_dict(gate.base_gate)
+            base_coeffs_gates = LinComb._gate_gradient_dict(gate.base_gate)
             coeffs_gates = []
             # The projectors needed for the gradient of a controlled gate are integrated by a sum
             # of gates.

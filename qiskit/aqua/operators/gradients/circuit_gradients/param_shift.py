@@ -22,14 +22,14 @@ from qiskit.aqua import AquaError
 from qiskit.aqua.operators import (One, OperatorBase, StateFn, Zero, CircuitStateFn,
                                    CircuitOp)
 from qiskit.aqua.operators import SummedOp, ListOp, ComposedOp, DictStateFn, VectorStateFn
-from qiskit.aqua.operators.gradients.circuit_gradient_methods.circuit_gradient_method \
-    import CircuitGradientMethod
+from qiskit.aqua.operators.gradients.circuit_gradients.circuit_gradient \
+    import CircuitGradient
 from qiskit.circuit import Parameter, ParameterExpression, ParameterVector
 
 from ..derivatives_base import DerivativeBase
 
 
-class ParamShiftGradient(CircuitGradientMethod):
+class ParamShift(CircuitGradient):
     """Compute the gradient d⟨ψ(ω)|O(θ)|ψ(ω)〉/ dω with the parameter shift method."""
 
     def __init__(self,
@@ -77,6 +77,8 @@ class ParamShiftGradient(CircuitGradientMethod):
         Returns:
             An operator corresponding to the gradient resp. Hessian. The order is in accordance with
             the order of the given parameters.
+        Raises:
+            AquaError: If the parameters are given in an invalid format.
 
         """
         if isinstance(params, Parameter) or isinstance(params, ParameterVector):
@@ -113,9 +115,8 @@ class ParamShiftGradient(CircuitGradientMethod):
             for w_i in params]
 
         Raises:
-            ValueError: TODO
-            TypeError: TODO
-            AquaError: TODO
+            ValueError: If the given parameters do not occur in the provided operator
+            TypeError: If the operator has more than one circuit representing the quantum state
         """
         # pylint: disable=too-many-return-statements
         if isinstance(params, (ParameterVector, list)):
@@ -159,8 +160,8 @@ class ParamShiftGradient(CircuitGradientMethod):
                 return operator
             circ = circs[0]
 
-            circ = ParamShiftGradient._unroll_to_supported_operations(circ)
-            operator = ParamShiftGradient._replace_operator_circuit(operator, circ)
+            circ = ParamShift._unroll_to_supported_operations(circ)
+            operator = ParamShift._replace_operator_circuit(operator, circ)
 
             if param not in circ._parameter_table:
                 return ~Zero @ One
@@ -282,7 +283,7 @@ class ParamShiftGradient(CircuitGradientMethod):
             return CircuitOp(circuit, coeff=operator.coeff)
         elif isinstance(operator, ComposedOp) or isinstance(operator, ListOp):
             return operator.traverse(
-                partial(ParamShiftGradient._replace_operator_circuit, circuit=circuit))
+                partial(ParamShift._replace_operator_circuit, circuit=circuit))
         else:
             return operator
 

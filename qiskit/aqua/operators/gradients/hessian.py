@@ -19,8 +19,9 @@ from jax import grad, jit
 from qiskit.aqua.aqua_globals import AquaError
 from qiskit.aqua.operators import Zero, One, CircuitStateFn, StateFn
 from qiskit.aqua.operators.expectations import PauliExpectation
-from qiskit.aqua.operators.gradients.circuit_gradient_methods.circuit_gradient_method \
-    import CircuitGradientMethod
+from qiskit.aqua.operators.gradients.circuit_gradients.circuit_gradient \
+    import CircuitGradient
+from qiskit.aqua.operators.gradients.derivatives_base import DerivativeBase
 from qiskit.aqua.operators.gradients.hessian_base import HessianBase
 from qiskit.aqua.operators.gradients.gradient import Gradient
 from qiskit.aqua.operators.list_ops import ListOp, ComposedOp, SummedOp, TensoredOp
