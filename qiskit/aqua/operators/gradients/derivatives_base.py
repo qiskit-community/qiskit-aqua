@@ -155,37 +155,46 @@ class DerivativeBase(ConverterBase):
         return ParameterExpression(param_expr._parameter_symbols, expr=expr_grad)
 
     @classmethod
-    def _erase_operator_coeffs(cls, operator: OperatorBase, coeff: float = 1.0) -> OperatorBase:
-        """TODO
+    def _erase_operator_coeffs(cls, operator: OperatorBase) -> OperatorBase:
+        """This method traverses an input operator and deletes all of the coefficients 
 
         Args:
-            operator: TODO
-            coeff: TODO
+            operator: An operator of type OperatorBase
 
         Returns:
-            TODO
+            An operator which is equal to the input operator but whose coefficients 
+            have all been set to 1.0
 
         """
         if isinstance(operator, PrimitiveOp):
             return operator / operator._coeff
         elif isinstance(operator, OperatorBase):
             op_coeff = operator._coeff
-            return (operator / op_coeff).traverse(
-                partial(cls._erase_operator_coeffs, coeff=coeff * op_coeff))
-        return operator * coeff
+            return (operator / op_coeff).traverse(cls._erase_operator_coeffs)
+        return operator
 
     @classmethod
     def _factor_coeffs_out_of_composed_op(cls, operator: OperatorBase) -> OperatorBase:
-        """TODO
+        """Factor all coefficients of ComposedOp out into a single global coefficient.
+ 
+        Part of the automatic differentiation logic inside of Gradient and Hessian
+        counts on the fact that no product or chain rules need to be computed between 
+        operators or coefficients within a ComposedOp. To ensure this condition is met, 
+        this function traverses an operator and replaces each ComposedOp with an equivalent
+        ComposedOp, but where all coefficients have been factored out and placed onto the 
+        ComposedOp. Note that this cannot be done properly if an OperatorMeasurement contains 
+        a SummedOp as it's primitive. 
 
         Args:
-            operator: TODO
+            operator: The operator whose coefficients are being re-organized
 
         Returns:
-            TODO
+            An operator equivalent to the input operator, but whose coefficients have been 
+            reorganized
 
         Raises:
-            ValueError: TODO
+            ValueError: If an element within a ComposedOp has a primitive of type ListOp,
+                        then it is not possible to factor all coefficients out of the ComposedOp.
         """
         if isinstance(operator, ListOp) and not isinstance(operator, ComposedOp):
             return operator.traverse(cls._factor_coeffs_out_of_composed_op)
