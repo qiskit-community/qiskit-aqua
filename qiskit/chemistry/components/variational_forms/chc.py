@@ -36,40 +36,56 @@ class CHC(VariationalForm):
         with the number of excitations.
     """
 
-    def __init__(self, num_qubits: int, depth: int = 1, ladder: bool = False,
+    def __init__(self, num_qubits: Optional[int] = None, reps: int = 1, ladder: bool = False,
                  excitations: Optional[List[List[int]]] = None,
-                 entangler_map: Optional[List[int]] = None,
-                 entanglement: str = 'full',
+                 entanglement: Union[str, List[int]] = 'full',
                  initial_state: Optional[InitialState] = None) -> None:
         """
 
         Args:
             num_qubits:
-            depth:
+            reps:
             ladder:
             excitations:
-            entangler_map:
             entanglement:
             initial_state:
         """
 
         super().__init__()
         self._num_qubits = num_qubits
-        self._depth = depth
+        self._reps = reps
         self._excitations = None
         self._entangler_map = None
         self._initial_state = None
         self._ladder = ladder
-        self._num_parameters = len(excitations)*depth
+        self._num_parameters = len(excitations) * reps
         self._excitations = excitations
         self._bounds = [(-np.pi, np.pi)] * self._num_parameters
         self._num_qubits = num_qubits
-        if entangler_map is None:
+        if isinstance(entanglement, str):
             self._entangler_map = VariationalForm.get_entangler_map(entanglement, num_qubits)
         else:
-            self._entangler_map = VariationalForm.validate_entangler_map(entangler_map, num_qubits)
+            self._entangler_map = VariationalForm.validate_entangler_map(entanglement, num_qubits)
         self._initial_state = initial_state
         self._support_parameterized_circuit = True
+
+    @property
+    def num_qubits(self) -> int:
+        """Number of qubits of the variational form.
+
+        Returns:
+           int:  An integer indicating the number of qubits.
+        """
+        return self._num_qubits
+
+    @num_qubits.setter
+    def num_qubits(self, num_qubits: int) -> None:
+        """Set the number of qubits of the variational form.
+
+        Args:
+           num_qubits: An integer indicating the number of qubits.
+        """
+        self._num_qubits = num_qubits
 
     def construct_circuit(self, parameters: Union[np.ndarray, List[Parameter], ParameterVector],
                           q: Optional[QuantumRegister] = None) -> QuantumCircuit:
@@ -99,7 +115,7 @@ class CHC(VariationalForm):
             circuit = QuantumCircuit(q)
 
         count = 0
-        for _ in range(self._depth):
+        for _ in range(self._reps):
             for idx in self._excitations:
 
                 if len(idx) == 2:
@@ -107,8 +123,8 @@ class CHC(VariationalForm):
                     i = idx[0]
                     r = idx[1]
 
-                    circuit.u1(-parameters[count] / 4 + np.pi / 4, q[i])
-                    circuit.u1(-parameters[count] / 4 - np.pi / 4, q[r])
+                    circuit.p(-parameters[count] / 4 + np.pi / 4, q[i])
+                    circuit.p(-parameters[count] / 4 - np.pi / 4, q[r])
 
                     circuit.h(q[i])
                     circuit.h(q[r])
@@ -119,7 +135,7 @@ class CHC(VariationalForm):
                     else:
                         circuit.cx(q[i], q[r])
 
-                    circuit.u1(parameters[count], q[r])
+                    circuit.p(parameters[count], q[r])
 
                     if self._ladder:
                         for qubit in range(r, i, -1):
@@ -130,8 +146,8 @@ class CHC(VariationalForm):
                     circuit.h(q[i])
                     circuit.h(q[r])
 
-                    circuit.u1(-parameters[count] / 4 - np.pi / 4, q[i])
-                    circuit.u1(-parameters[count] / 4 + np.pi / 4, q[r])
+                    circuit.p(-parameters[count] / 4 - np.pi / 4, q[i])
+                    circuit.p(-parameters[count] / 4 + np.pi / 4, q[r])
 
                 elif len(idx) == 4:
 
@@ -140,7 +156,7 @@ class CHC(VariationalForm):
                     j = idx[2]
                     s = idx[3]  # pylint: disable=locally-disabled, invalid-name
 
-                    circuit.u1(-np.pi / 2, q[r])
+                    circuit.p(-np.pi / 2, q[r])
 
                     circuit.h(q[i])
                     circuit.h(q[r])
@@ -161,7 +177,7 @@ class CHC(VariationalForm):
                     else:
                         circuit.cx(q[j], q[s])
 
-                    circuit.u1(parameters[count], q[s])
+                    circuit.p(parameters[count], q[s])
 
                     if self._ladder:
                         for qubit in range(s, j, -1):
@@ -182,8 +198,8 @@ class CHC(VariationalForm):
                     circuit.h(q[j])
                     circuit.h(q[s])
 
-                    circuit.u1(-parameters[count] / 2 + np.pi / 2, q[i])
-                    circuit.u1(-parameters[count] / 2 + np.pi, q[r])
+                    circuit.p(-parameters[count] / 2 + np.pi / 2, q[i])
+                    circuit.p(-parameters[count] / 2 + np.pi, q[r])
 
                 else:
                     raise ValueError('Limited to single and double excitations, '

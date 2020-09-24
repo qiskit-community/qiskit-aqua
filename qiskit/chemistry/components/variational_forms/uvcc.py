@@ -42,7 +42,7 @@ class UVCC(VariationalForm):
     def __init__(self, num_qubits: int,
                  basis: List[int],
                  degrees: List[int],
-                 depth: int = 1,
+                 reps: int = 1,
                  excitations: Optional[List[List[List[int]]]] = None,
                  initial_state: Optional[InitialState] = None,
                  qubit_mapping: str = 'direct',
@@ -56,7 +56,7 @@ class UVCC(VariationalForm):
                 with 4 modals per mode basis = [4,4,4]
             degrees: degree of excitation to be included (for single and double excitations
                 degrees=[0,1])
-            depth: number of replica of basic module
+            reps: number of replica of basic module
             excitations: The excitations to be included in the circuit.
                 If not provided the default is to compute all singles and doubles.
             initial_state: An initial state object.
@@ -70,7 +70,7 @@ class UVCC(VariationalForm):
         self._num_qubits = num_qubits
         self._num_modes = len(basis)
         self._basis = basis
-        self._depth = depth
+        self._reps = reps
         self._initial_state = initial_state
         self._qubit_mapping = qubit_mapping
         self._num_time_slices = num_time_slices
@@ -95,7 +95,7 @@ class UVCC(VariationalForm):
                                task_args=(self._basis, 'direct'),
                                num_processes=aqua_globals.num_processes)
         hopping_ops = [qubit_op for qubit_op in results if qubit_op is not None]
-        num_parameters = len(hopping_ops) * self._depth
+        num_parameters = len(hopping_ops) * self._reps
 
         return hopping_ops, num_parameters
 
@@ -138,6 +138,24 @@ class UVCC(VariationalForm):
 
         return qubit_op
 
+    @property
+    def num_qubits(self) -> int:
+        """Number of qubits of the variational form.
+
+        Returns:
+           int:  An integer indicating the number of qubits.
+        """
+        return self._num_qubits
+
+    @num_qubits.setter
+    def num_qubits(self, num_qubits: int) -> None:
+        """Set the number of qubits of the variational form.
+
+        Args:
+           num_qubits: An integer indicating the number of qubits.
+        """
+        self._num_qubits = num_qubits
+
     def construct_circuit(self, parameters: Union[np.ndarray, List[Parameter], ParameterVector],
                           q: Optional[QuantumRegister] = None) -> QuantumCircuit:
         """Construct the variational form, given its parameters.
@@ -172,7 +190,7 @@ class UVCC(VariationalForm):
 
         results = parallel_map(UVCC._construct_circuit_for_one_excited_operator,
                                [(self._hopping_ops[index % num_excitations], parameters[index])
-                                for index in range(self._depth * num_excitations)],
+                                for index in range(self._reps * num_excitations)],
                                task_args=(q, self._num_time_slices),
                                num_processes=aqua_globals.num_processes)
         for qc in results:
