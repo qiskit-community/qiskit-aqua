@@ -14,7 +14,7 @@
 
 """Grover's search algorithm."""
 
-from typing import Optional, Union, Dict, List, Any, Callable, Iterable
+from typing import Optional, Union, Dict, List, Any, Callable
 import logging
 import warnings
 import operator
@@ -89,14 +89,14 @@ class Grover(QuantumAlgorithm):
                  is_good_state: Union[Callable, List[int], Statevector] = None,
                  grover_operator: Optional[QuantumCircuit] = None,
                  incremental: bool = False,
-                 num_iterations: int = 1,
-                 lam: float = 1.34,
+                 num_iterations: Optional[int] = None,
+                 lam: Optional[float] = None,
                  rotation_counts: Optional[List[int]] = None,
                  num_solutions: Optional[int] = None,
                  quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None,
                  mct_mode: Optional[str] = None,
                  post_processing: Callable = None,
-                 iterations: Optional[Iterable]) -> None:
+                 iterations: Union[int, List[int]] = 1) -> None:
         # pylint: disable=line-too-long
         r"""
         Args:
@@ -147,7 +147,6 @@ class Grover(QuantumAlgorithm):
             [2]: Boyer et al., Tight bounds on quantum searching
                  `<https://arxiv.org/abs/quant-ph/9605034>`_
         """
-        validate_min('num_iterations', num_iterations, 1)
         super().__init__(quantum_instance)
 
         # init_state has been renamed to state_preparation
@@ -171,12 +170,32 @@ class Grover(QuantumAlgorithm):
         else:
             mct_mode = 'noancilla'
 
-        if incremental:
-            warnings.warn('The incremental argument is deprecated as of 0.8.0, and will be removed '
-                          'no earlier than 3 months after the release date. If you want to use '
-                          'the incremental mode with the rotation_counts argument or the lam '
-                          'argument, you should use the iterations argument instead and pass '
-                          'Iterable for each iteration.', DeprecationWarning, stacklevel=2)
+        if rotation_counts is not None:
+            warnings.warn('The rotation_counts argument is deprecated as of 0.8.0, and will be '
+                          'removed no earlier than 3 months after the release date. '
+                          'If you want to use the incremental mode with the rotation_counts '
+                          'argument or you should use the iterations argument instead and pass '
+                          'a list of integers',
+                          DeprecationWarning, stacklevel=2)
+
+        if lam is not None:
+            warnings.warn('The lam argument is deprecated as of 0.8.0, and will be '
+                          'removed no earlier than 3 months after the release date. '
+                          'If you want to use the incremental mode with the lam argument, '
+                          'you should use the iterations argument instead and pass '
+                          'a list of integers calculated with the lam argument.',
+                          DeprecationWarning, stacklevel=2)
+        else:
+            lam = 1.34
+
+        if num_iterations is not None:
+            validate_min('num_iterations', num_iterations, 1)
+            warnings.warn('The num_iterations argument is deprecated as of 0.8.0, and will be '
+                          'removed no earlier than 3 months after the release date. '
+                          'If you want to use the num_iterations argument '
+                          'you should use the iterations argument instead and pass an integer '
+                          'for the number of iterations.',
+                          DeprecationWarning, stacklevel=2)
 
         self._oracle = oracle
         # Construct GroverOperator circuit
@@ -231,17 +250,29 @@ class Grover(QuantumAlgorithm):
         self._lam = lam
         self._rotation_counts = rotation_counts
         self._max_num_iterations = np.ceil(2 ** (len(self._grover_operator.reflection_qubits) / 2))
+
         if incremental:
             if rotation_counts is not None:
                 self._iterations = rotation_counts
             else:
-                self._iterations = [1]
-                self._iterations.extend(lam * i for i in range(max_num_iterations))
-        elif num_solutions:
-            self._num_iterations = round(np.pi*np.sqrt(
-                2**len(self._grover_operator.reflection_qubits)/num_solutions)/4)
-        else:
+                self._iterations = []
+                current_max_num_iterations = 1
+                while current_max_num_iterations < self._max_num_iterations:
+                    self._iterations.append(current_max_num_iterations)
+                    current_max_num_iterations = self._lam * current_max_num_iterations
+        elif num_solutions is not None:
+            self._num_solutions = num_solutions
+            self._iterations = [round(np.pi*np.sqrt(
+                2**len(self._grover_operator.reflection_qubits)/num_solutions)/4)]
+        elif num_iterations is not None:
+            self._iterations = [num_iterations]
             self._num_iterations = num_iterations
+        elif isinstance(iterations, list):
+            self._iterations = iterations
+        else:
+            validate_min('num_iterations', iterations, 1)
+            self._iterations = [iterations]
+            self._num_iterations = iterations
 
         if incremental:
             logger.debug('Incremental mode specified, \
@@ -249,9 +280,9 @@ class Grover(QuantumAlgorithm):
         elif num_solutions:
             logger.debug('"num_solutions" specified, ignoring "num_iterations".')
         elif self._max_num_iterations is not None:
-            if num_iterations > self._max_num_iterations:
+            if self._num_iterations > self._max_num_iterations:
                 logger.warning('The specified value %s for "num_iterations" '
-                               'might be too high.', num_iterations)
+                               'might be too high.', self._num_iterations)
         self._ret = {}  # type: Dict[str, Any]
 
     def _run_experiment(self, power):
@@ -352,25 +383,19 @@ class Grover(QuantumAlgorithm):
     def _run(self) -> 'GroverResult':
         # If ``rotation_counts`` is specified, run Grover's circuit for the powers specified
         # in ``rotation_counts``. Once a good state is found (oracle_evaluation is True), stop.
-        if self._rotation_counts is not None:
-            for target_num_iterations in self._rotation_counts:
+        if self._incremental:
+            for current_max_num_iterations in self._iterations:
+                target_num_iterations = self.random.integers(current_max_num_iterations) + 1
+                assignment, oracle_evaluation = self._run_experiment(target_num_iterations)
+                if oracle_evaluation is True:
+                    break
+        else:
+            for target_num_iterations in self._iterations:
                 assignment, oracle_evaluation = self._run_experiment(target_num_iterations)
                 if oracle_evaluation is True:
                     break
                 if target_num_iterations > self._max_num_iterations:
                     break
-        # In the incremental version of Grover's algorithm, we iteratively apply higher
-        elif self._incremental is True:
-            current_max_num_iterations = 1
-            while current_max_num_iterations < self._max_num_iterations:
-                target_num_iterations = self.random.integers(current_max_num_iterations) + 1
-                assignment, oracle_evaluation = self._run_experiment(target_num_iterations)
-                if oracle_evaluation is True:
-                    break
-                current_max_num_iterations = \
-                    min(self._lam * current_max_num_iterations, self._max_num_iterations)
-        else:
-            assignment, oracle_evaluation = self._run_experiment(self._num_iterations)
 
         # TODO remove all former dictionary logic
         self._ret['result'] = assignment

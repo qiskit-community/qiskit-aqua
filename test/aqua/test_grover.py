@@ -168,23 +168,6 @@ class TestGroverConstructor(QiskitAquaTestCase):
 class TestGroverPublicMethods(QiskitAquaTestCase):
     """Test for the public methods of Grover"""
 
-    def test_qc_amplitude_amplification_iteration(self):
-        """Test qc_amplitude_amplification_iteration"""
-        oracle = QuantumCircuit(2)
-        oracle.cz(0, 1)
-        grover = Grover(oracle=oracle, is_good_state=["11"])
-        qcaa = grover.qc_amplitude_amplification_iteration
-        expected = QuantumCircuit(2)
-        expected.cz(0, 1)
-        expected.h([0, 1])
-        expected.x([0, 1])
-        expected.h([1])
-        expected.cx(0, 1)
-        expected.h([1])
-        expected.x([0, 1])
-        expected.h([0, 1])
-        self.assertTrue(Operator(qcaa).equiv(Operator(expected)))
-
     def test_is_good_state(self):
         """Test is_good_state"""
         oracle = QuantumCircuit(2)
