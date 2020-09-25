@@ -169,10 +169,15 @@ class UVCC(VariationalForm):
 
         Raises:
             ValueError: the number of parameters is incorrect.
+            ValueError: if num_qubits has not been set and is still None
         """
 
         if len(parameters) != self._num_parameters:
             raise ValueError('The number of parameters has to be {}'.format(self._num_parameters))
+
+        if self._num_qubits is None:
+            raise ValueError('The number of qubits is None and must be set before the circuit '
+                             'can be created.')
 
         if q is None:
             q = QuantumRegister(self._num_qubits, name='q')
