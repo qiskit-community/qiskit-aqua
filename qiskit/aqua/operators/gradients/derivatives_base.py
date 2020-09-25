@@ -102,6 +102,7 @@ class DerivativeBase(ConverterBase):
             p_values_dict = dict(zip(bind_params, p_values))
             if not backend:
                 converter = self.convert(operator, grad_params).assign_parameters(p_values_dict)
+                return np.real(converter.eval())
             else:
                 if isinstance(backend, QuantumInstance):
                     if backend.is_statevector:
@@ -109,6 +110,13 @@ class DerivativeBase(ConverterBase):
                             p_values_dict)
                         return np.real(converter.eval())
                     else:
+                        try:
+                            import retworkx
+                            if retworkx.__version__ < '0.5.0':
+                                raise ImportError('Please update retworx to at least version 0.5.0')
+                        except ModuleNotFoundError:
+                            raise ImportError('Please install retworx>=0.5.0')
+
                         p_values_dict = {k: [v] for k, v in p_values_dict.items()}
                         converter = CircuitSampler(backend=backend).convert(
                             self.convert(operator, grad_params), p_values_dict)
@@ -119,13 +127,17 @@ class DerivativeBase(ConverterBase):
                             p_values_dict)
                         return np.real(converter.eval())
                     else:
+                        try:
+                            import retworkx
+                            if retworkx.__version__ < '0.5.0':
+                                raise ImportError('Please update retworx to at least version 0.5.0')
+                        except ModuleNotFoundError:
+                            raise ImportError('Please install retworx>=0.5.0')
                         p_values_dict = {k: [v] for k, v in p_values_dict.items()}
                         converter = CircuitSampler(backend=backend).convert(
                             self.convert(operator, grad_params), p_values_dict)
                         return np.real(converter.eval()[0])
             return
-
-
         return gradient_fn
 
     @staticmethod
