@@ -105,11 +105,6 @@ class IntegerToBinary(QuadraticProgramConverter):
             self, name: str, lowerbound: float, upperbound: float
     ) -> List[Tuple[str, int]]:
         var_range = upperbound - lowerbound
-        if var_range == 0:
-            raise QiskitOptimizationError(
-                "Can not convert integer variable \"{}\" to binary variables. \
-                Its upper bound - its lower bound is 0".format(name)
-            )
         power = int(np.log2(var_range))
         bounded_coef = var_range - (2 ** power - 1)
 
