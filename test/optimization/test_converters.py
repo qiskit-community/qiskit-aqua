@@ -696,13 +696,32 @@ class TestConverters(QiskitOptimizationTestCase):
         self.assertTrue(all(q_const.sense == Constraint.Sense.EQ
                             for q_const in new_op.quadratic_constraints))
 
-    def test_0var_range_intege(self):
-        """ Test IntegerToBinary converter when the var_rang of the slack variable is 0"""
-        with self.assertRaises(QiskitOptimizationError):
-            op = QuadraticProgram()
-            op.integer_var(0, 0, "x")
-            int2bin = IntegerToBinary()
-            int2bin.convert(op)
+    def test_integer_to_binary2(self):
+        """Test integer to binary variables 2"""
+        mod = QuadraticProgram()
+        mod.integer_var(name='x', lowerbound=0, upperbound=1)
+        mod.integer_var(name='y', lowerbound=0, upperbound=1)
+        mod.minimize(1, {'x': 1}, {('x', 'y'): 2})
+        mod.linear_constraint({'x': 1}, '==', 1)
+        mod2 = IntegerToBinary().convert(mod)
+        self.assertListEqual([e.name+'@0' for e in mod.variables], [e.name for e in mod2.variables])
+        self.assertDictEqual(mod.objective.linear.to_dict(),
+                             mod2.objective.linear.to_dict())
+        self.assertDictEqual(mod.objective.quadratic.to_dict(),
+                             mod2.objective.quadratic.to_dict())
+        self.assertEqual(mod.get_num_linear_constraints(),
+                         mod2.get_num_linear_constraints())
+        for cst, cst2 in zip(mod.linear_constraints, mod2.linear_constraints):
+            self.assertDictEqual(cst.linear.to_dict(),
+                                 cst2.linear.to_dict())
+        self.assertEqual(mod.get_num_quadratic_constraints(),
+                         mod2.get_num_quadratic_constraints())
+        for cst, cst2 in zip(mod.quadratic_constraints, mod2.quadratic_constraints):
+            self.assertDictEqual(cst.linear.to_dict(),
+                                 cst2.linear.to_dict())
+            self.assertDictEqual(cst.quadratic.to_dict(),
+                                 cst2.quadratic.to_dict())
+
 
 
 if __name__ == '__main__':
