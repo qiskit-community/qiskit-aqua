@@ -14,7 +14,7 @@
 
 from typing import Union
 
-from qiskit.aqua.operators.gradients import DerivativeBase, CircuitGradientMethod
+from qiskit.aqua.operators.gradients import DerivativeBase, CircuitQFI
 
 
 class QFIBase(DerivativeBase):
@@ -26,34 +26,30 @@ class QFIBase(DerivativeBase):
     """
 
     def __init__(self,
-                 qfi_method: Union[str, CircuitGradientMethod] = 'lin_comb'):
+                 qfi_method: Union[str, CircuitQFI] = 'lin_comb_full'):
         r"""
         Args:
             qfi_method: The method used to compute the state/probability gradient. Can be either
-                ``'param_shift'`` or ``'lin_comb'`` or ``'fin_diff'``.
-                Deprecated for observable gradient.
-
-
-        Raises:
-            ValueError: If method != ``fin_diff`` and ``epsilon`` is not None.
+                ``'lin_comb_full'`` or ``'overlap_diag'``` or ``'overlap_block_diag'```.
         """
 
-        if isinstance(qfi_method, CircuitGradientMethod):
+        if isinstance(qfi_method, CircuitQFI):
             self._qfi_method = qfi_method
 
-        elif qfi_method == 'lin_comb':
-            from .circuit_gradient_methods import LinCombQFI
-            self._qfi_method = LinCombQFI()
-        elif qfi_method == 'block_diag':
-            from .circuit_gradient_methods import BlockDiagQFI
-            self._qfi_method = BlockDiagQFI()
-        elif qfi_method == 'diag':
-            from .circuit_gradient_methods import DiagQFI
-            self._qfi_method = DiagQFI()
+        elif qfi_method == 'lin_comb_full':
+            from .circuit_qfis import LinCombFull
+            self._qfi_method = LinCombFull()
+        elif qfi_method == 'overlap_block_diag':
+            from .circuit_qfis import OverlapBlockDiag
+            self._qfi_method = OverlapBlockDiag()
+        elif qfi_method == 'overlap_diag':
+            from .circuit_qfis import OverlapDiag
+            self._qfi_method = OverlapDiag()
         else:
             raise ValueError("Unrecognized input provided for `method`. Please provide"
-                             " a CircuitGradientMethod object or one of the pre-defined string"
-                             " arguments: {'lin_comb', 'diag', 'block_diag'}. ")
+                             " a CircuitQFI object or one of the pre-defined string"
+                             " arguments: {'lin_comb_full', 'overlap_diag', "
+                             "'overlap_block_diag'}. ")
 
     @property
     def qfi_method(self):

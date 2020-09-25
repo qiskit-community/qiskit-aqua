@@ -12,8 +12,12 @@
 
 """The module for Aqua's first order derivatives."""
 
+from .circuit_qfi import CircuitQFI
 from .lin_comb_full import LinCombFull
-from .overlap_approx import OverlapApprox
+from .overlap_diag import OverlapDiag
+from .overlap_block_diag import OverlapBlockDiag
 
-__all__ = ['LinCombFull',
-           'OverlapApprox']
+__all__ = ['CircuitQFI',
+           'LinCombFull',
+           'OverlapDiag',
+           'OverlapBlockDiag']

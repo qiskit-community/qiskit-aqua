@@ -33,7 +33,7 @@ class Hessian(HessianBase):
     """Compute the Hessian of an expected value."""
 
     def __init__(self,
-                 hess_method: Union[str, CircuitGradientMethod] = 'param_shift',
+                 hess_method: Union[str, CircuitGradient] = 'param_shift',
                  **kwargs):
         r"""
         Args:
@@ -46,7 +46,7 @@ class Hessian(HessianBase):
         Raises:
             ValueError: If method != ``fin_diff`` and ``epsilon`` is not None.
         """
-        super().__init__(hess_method)
+        super().__init__(hess_method, **kwargs)
 
     def convert(self,
                 operator: OperatorBase,

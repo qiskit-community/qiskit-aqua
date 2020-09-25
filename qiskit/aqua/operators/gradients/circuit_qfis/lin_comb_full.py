@@ -42,14 +42,6 @@ class LinCombFull(CircuitQFI):
         [QFI]kl= Re[〈∂kψ|∂lψ〉−〈∂kψ|ψ〉〈ψ|∂lψ〉] * 4.
     """
 
-    def __init__(self,
-                approx: Optional[str] = 'full'):
-        self_approx = approx
-
-    @property
-    def approx(self):
-        return self._approx
-
     def convert(self,
                 operator: CircuitStateFn,
                 params: Optional[Union[Parameter, ParameterVector, List[Parameter]]] = None,
@@ -79,7 +71,7 @@ class LinCombFull(CircuitQFI):
 
         assert approx == 'full', 'LinCombFull currently only supports the full QFI matrix ' \
                                  'for a block-diagonal or diagonal approximation, please ' \
-                                 'see OverlapApprox'
+                                 'see OverlapDiag'
 
         if isinstance(operator, CircuitStateFn):
             pass

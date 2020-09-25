@@ -41,14 +41,12 @@ class CircuitQFI(ConverterBase):
     @abstractmethod
     def convert(self,
                 operator: OperatorBase,
-                params: Union[ParameterVector, Parameter, List[Parameter]],
-                approx: Optional[str] = None
+                params: Union[ParameterVector, Parameter, List[Parameter]]
                 ) -> OperatorBase:
         r"""
         Args:
             operator: The operator we are getting the QFI of
             params: The parameters we are computing the QFI with respect to..
-            approx: The type of approximation to use when taking the gradient
 
         Returns:
             An operator whose evaluation yields the QFI metric tensor.

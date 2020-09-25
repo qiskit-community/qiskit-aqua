@@ -22,7 +22,6 @@ from qiskit.aqua.operators import (
 
 from qiskit.aqua.operators.gradients.circuit_gradients.circuit_gradient import \
     CircuitGradient
-from qiskit.aqua.operators.gradients.derivatives_base import DerivativeBase
 from qiskit.aqua.operators.gradients.gradient_base import GradientBase
 from qiskit.aqua.operators.list_ops.composed_op import ComposedOp
 from qiskit.aqua.operators.list_ops.list_op import ListOp
@@ -39,7 +38,7 @@ class Gradient(GradientBase):
 
     def __init__(self,
 
-                 grad_method: Union[str, CircuitGradientMethod] = 'param_shift',
+                 grad_method: Union[str, CircuitGradient] = 'param_shift',
                  **kwargs):
         r"""
         Args:
@@ -52,9 +51,7 @@ class Gradient(GradientBase):
         Raises:
             ValueError: If method != ``fin_diff`` and ``epsilon`` is not None.
         """
-
-
-        super().__init__(grad_method)
+        super().__init__(grad_method, **kwargs)
         
     def convert(self,
                 operator: OperatorBase,

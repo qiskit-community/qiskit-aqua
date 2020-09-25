@@ -13,8 +13,7 @@
 """The base interface for Aqua's gradient."""
 from typing import Union
 
-from qiskit.aqua.operators.gradients.circuit_gradient_methods.circuit_gradient_method import \
-    CircuitGradientMethod
+from qiskit.aqua.operators.gradients.circuit_gradients import CircuitGradient
 
 from qiskit.aqua.operators.gradients.derivatives_base import DerivativeBase
 
@@ -23,7 +22,7 @@ class GradientBase(DerivativeBase):
     """Convert an operator expression to the first-order gradient."""
 
     def __init__(self,
-                 grad_method: Union[str, CircuitGradientMethod] = 'param_shift',
+                 grad_method: Union[str, CircuitGradient] = 'param_shift',
                  **kwargs):
         r"""
         Args:
@@ -37,23 +36,23 @@ class GradientBase(DerivativeBase):
             ValueError: If method != ``fin_diff`` and ``epsilon`` is not None.
         """
 
-        if isinstance(grad_method, CircuitGradientMethod):
+        if isinstance(grad_method, CircuitGradient):
             self._grad_method = grad_method
         elif grad_method == 'param_shift':
-            from .circuit_gradient_methods.param_shift_gradient import ParamShiftGradient
-            self._grad_method = ParamShiftGradient(analytic=True)
+            from .circuit_gradients.param_shift import ParamShift
+            self._grad_method = ParamShift(analytic=True)
 
         elif grad_method == 'fin_diff':
-            from .circuit_gradient_methods.param_shift_gradient import ParamShiftGradient
+            from .circuit_gradients.param_shift import ParamShift
             if 'epsilon' in kwargs:
                 epsilon = kwargs['epsilon']
             else:
                 epsilon = 1e-6
-            self._grad_method = ParamShiftGradient(analytic=False, epsilon=epsilon)
+            self._grad_method = ParamShift(analytic=False, epsilon=epsilon)
 
         elif grad_method == 'lin_comb':
-            from .circuit_gradient_methods.lin_comb_gradient import LinCombGradient
-            self._grad_method = LinCombGradient()
+            from .circuit_gradients.lin_comb import LinComb
+            self._grad_method = LinComb()
         else:
             raise ValueError("Unrecognized input provided for `method`. Please provide"
                              " a CircuitGradientMethod object or one of the pre-defined string"
