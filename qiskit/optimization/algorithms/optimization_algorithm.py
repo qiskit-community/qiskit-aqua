@@ -20,8 +20,8 @@ import numpy as np
 
 from .. import QiskitOptimizationError
 from ..problems.quadratic_program import QuadraticProgram, Variable
-# #from ..converters.quadratic_program_to_qubo import (QuadraticProgramToQubo,
-#                                                     QuadraticProgramConverter)
+from ..converters.quadratic_program_to_qubo import (QuadraticProgramToQubo,
+                                                     QuadraticProgramConverter)
 
 
 class OptimizationResultStatus(Enum):
@@ -206,8 +206,6 @@ class OptimizationResult:
 
 class OptimizationAlgorithm(ABC):
     """An abstract class for optimization algorithms in Qiskit's optimization module."""
-    from ..converters.quadratic_program_to_qubo import (QuadraticProgramToQubo,
-                                                        QuadraticProgramConverter)
 
     @abstractmethod
     def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
@@ -285,14 +283,15 @@ class OptimizationAlgorithm(ABC):
             else OptimizationResultStatus.INFEASIBLE
 
     def _prepare_converters(self, converters: Optional[Union[QuadraticProgramConverter,
-                                                             List[QuadraticProgramConverter]]]
-                            ) -> List[QuadraticProgramConverter]:
+                                                             List[QuadraticProgramConverter]]],
+                            penalty: float) -> List[QuadraticProgramConverter]:
         """Prepare a list of converters from the input.
 
         Args:
             converters: The converters to use for converting a problem into a different form.
                 By default, when None is specified, an internally created instance of
                 :class:`~qiskit.optimization.converters.QuadraticProgramToQubo` will be used.
+            penalty:
 
         Returns:
             The list of converters.
@@ -301,10 +300,8 @@ class OptimizationAlgorithm(ABC):
             TypeError: When the converters include those that are not
             :class:`~qiskit.optimization.converters.QuadraticProgramConverter type.
         """
-        from ..converters.quadratic_program_to_qubo import (QuadraticProgramToQubo,
-                                                        QuadraticProgramConverter)
         if converters is None:
-            converters_ = [QuadraticProgramToQubo()]
+            converters_ = [QuadraticProgramToQubo(penalty=penalty)]
         elif isinstance(converters, QuadraticProgramConverter):
             converters_ = [converters]
         elif isinstance(converters, list) and \

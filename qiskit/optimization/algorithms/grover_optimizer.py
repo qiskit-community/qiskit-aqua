@@ -63,7 +63,7 @@ class GroverOptimizer(OptimizationAlgorithm):
         if quantum_instance is not None:
             self.quantum_instance = quantum_instance
 
-        self._converters = self._prepare_converters(converters)
+        self._converters = self._prepare_converters(converters, penalty)
 
     @property
     def quantum_instance(self) -> QuantumInstance:

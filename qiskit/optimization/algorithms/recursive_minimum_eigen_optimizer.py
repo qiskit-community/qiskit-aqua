@@ -163,7 +163,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         self._penalty = penalty
         self._history = history
 
-        self._converters = self._prepare_converters(converters)
+        self._converters = self._prepare_converters(converters, penalty)
 
     def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
         """Checks whether a given problem can be solved with this optimizer.

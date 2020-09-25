@@ -123,7 +123,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         self._min_eigen_solver = min_eigen_solver
         self._penalty = penalty
 
-        self._converters = self._prepare_converters(converters)
+        self._converters = self._prepare_converters(converters, penalty)
 
     def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
         """Checks whether a given problem can be solved with this optimizer.
