@@ -703,6 +703,7 @@ class TestConverters(QiskitOptimizationTestCase):
         mod.integer_var(name='y', lowerbound=0, upperbound=1)
         mod.minimize(1, {'x': 1}, {('x', 'y'): 2})
         mod.linear_constraint({'x': 1}, '==', 1)
+        mod.quadratic_constraint({'x': 1}, {('x', 'y'): 2}, '==', 1)
         mod2 = IntegerToBinary().convert(mod)
         self.assertListEqual([e.name+'@0' for e in mod.variables], [e.name for e in mod2.variables])
         self.assertDictEqual(mod.objective.linear.to_dict(),
@@ -721,7 +722,6 @@ class TestConverters(QiskitOptimizationTestCase):
                                  cst2.linear.to_dict())
             self.assertDictEqual(cst.quadratic.to_dict(),
                                  cst2.quadratic.to_dict())
-
 
 
 if __name__ == '__main__':
