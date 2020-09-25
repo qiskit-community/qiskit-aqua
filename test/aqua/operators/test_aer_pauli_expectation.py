@@ -167,54 +167,31 @@ class TestAerPauliExpectation(QiskitAquaTestCase):
             actual_sampled = sut.convert(expect_op, params=param_bindings).eval()
             self.assertAlmostEqual(actual_sampled, expect_sampled, delta=.1)
 
-        def get_binding_status(sampler):
-            # sampler._transpiled_circ_templates:
-            #     set only if aer's binding was used.
-            #     renewed if var_form is renewed,
-            # sampler._last_ready_circ:
-            #     set only if aer's binding was used.
-            #     renewed if var_form or # of parameter sets are changed
-<<<<<<< HEAD
-            return (sampler._transpiled_circ_templates, sampler._last_ready_circ)
-
-        def validate_aer_binding_used(status):
-            self.assertIsNotNone(status[0])
-            self.assertIsNotNone(status[1])
-
-        def validate_aer_templates_reused(prev_status, cur_status):
-            self.assertIs(prev_status[0], cur_status[0])
-
-        def validate_aer_circuits_reused(prev_status, cur_status):
-            self.assertIs(prev_status[1], cur_status[1])
-=======
+        def get_circuit_templates(sampler):
             return sampler._transpiled_circ_templates
 
-        def validate_aer_binding_used(status):
-            self.assertIsNotNone(status)
+        def validate_aer_binding_used(templates):
+            self.assertIsNotNone(templates)
 
-        def validate_aer_templates_reused(prev_status, cur_status):
-            self.assertIs(prev_status, cur_status)
->>>>>>> upstream/master
+        def validate_aer_templates_reused(prev_templates, cur_templates):
+            self.assertIs(prev_templates, cur_templates)
 
         validate_sampler(self.sampler, aer_sampler, generate_parameters(1))
-        cur_status = get_binding_status(aer_sampler)
+        cur_templates = get_circuit_templates(aer_sampler)
 
-        validate_aer_binding_used(cur_status)
+        validate_aer_binding_used(cur_templates)
 
-        prev_status = cur_status
+        prev_templates = cur_templates
         validate_sampler(self.sampler, aer_sampler, generate_parameters(2))
-        cur_status = get_binding_status(aer_sampler)
+        cur_templates = get_circuit_templates(aer_sampler)
 
-        validate_aer_templates_reused(prev_status, cur_status)
+        validate_aer_templates_reused(prev_templates, cur_templates)
 
-        prev_status = cur_status
+        prev_templates = cur_templates
         validate_sampler(self.sampler, aer_sampler, generate_parameters(2))  # same num of params
-        cur_status = get_binding_status(aer_sampler)
+        cur_templates = get_circuit_templates(aer_sampler)
 
-        validate_aer_templates_reused(prev_status, cur_status)
-<<<<<<< HEAD
-        validate_aer_circuits_reused(prev_status, cur_status)
-=======
+        validate_aer_templates_reused(prev_templates, cur_templates)
 
     def test_pauli_expectation_param_qobj(self):
         """ Test PauliExpectation with param_qobj """
@@ -245,7 +222,6 @@ class TestAerPauliExpectation(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal([val1] * 2, val2, decimal=2)
         np.testing.assert_array_almost_equal(val1, val3, decimal=2)
         np.testing.assert_array_almost_equal([val1] * 2, val4, decimal=2)
->>>>>>> upstream/master
 
 
 if __name__ == '__main__':
