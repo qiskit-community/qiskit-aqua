@@ -114,8 +114,8 @@ Converters
 The Converter submodules include objects which manipulate Operators, usually recursing over an
 Operator structure and changing certain Operators' representation. For example, the
 :class:`~.expectations.PauliExpectation` traverses an Operator structure, and replaces all of the
-:class:`~.state_fns.OperatorStateFn` measurements containing non-diagonal Pauli terms into
-diagonalizing circuits following by :class:`~.state_fns.OperatorStateFn` measurement containing
+:class:`~.state_fns.DensityOperator` measurements containing non-diagonal Pauli terms into
+diagonalizing circuits following by :class:`~.state_fns.DensityOperator` measurement containing
 only diagonal Paulis.
 
 .. autosummary::
@@ -140,7 +140,7 @@ from .legacy import (LegacyBaseOperator, WeightedPauliOperator, Z2Symmetries,
 from .operator_base import OperatorBase
 from .primitive_ops import PrimitiveOp, PauliOp, MatrixOp, CircuitOp
 from .state_fns import (StateFn, DictStateFn, VectorStateFn,
-                        CircuitStateFn, OperatorStateFn)
+                        CircuitStateFn, DensityOperator)
 from .list_ops import ListOp, SummedOp, ComposedOp, TensoredOp
 from .converters import (ConverterBase, CircuitSampler, PauliBasisChange,
                          DictToCircuitSum, AbelianGrouper)
@@ -168,7 +168,7 @@ __all__ = [
     # Operators
     'OperatorBase',
     'PrimitiveOp', 'PauliOp', 'MatrixOp', 'CircuitOp',
-    'StateFn', 'DictStateFn', 'VectorStateFn', 'CircuitStateFn', 'OperatorStateFn',
+    'StateFn', 'DictStateFn', 'VectorStateFn', 'CircuitStateFn', 'DensityOperator',
     'ListOp', 'SummedOp', 'ComposedOp', 'TensoredOp',
     # Converters
     'ConverterBase', 'CircuitSampler', 'AbelianGrouper', 'DictToCircuitSum', 'PauliBasisChange',

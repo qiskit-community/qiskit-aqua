@@ -195,7 +195,7 @@ class TestStateConstruction(QiskitAquaTestCase):
         """Test that assign_parameters binds parameters of both the underlying primitive and coeffs.
         """
         theta = ParameterVector('theta', 2)
-        # only OperatorStateFn can have a primitive with a parameterized coefficient
+        # only DensityOperator can have a primitive with a parameterized coefficient
         op = StateFn(theta[0] * X) * theta[1]
         bound = op.assign_parameters(dict(zip(theta, [0.2, 0.3])))
         self.assertEqual(bound.coeff, 0.3)

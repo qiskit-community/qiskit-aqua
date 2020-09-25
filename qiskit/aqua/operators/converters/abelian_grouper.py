@@ -24,7 +24,7 @@ from ..list_ops.list_op import ListOp
 from ..list_ops.summed_op import SummedOp
 from ..operator_base import OperatorBase
 from ..primitive_ops.pauli_op import PauliOp
-from ..state_fns.operator_state_fn import OperatorStateFn
+from ..state_fns.operator_state_fn import DensityOperator
 
 
 class AbelianGrouper(ConverterBase):
@@ -70,8 +70,8 @@ class AbelianGrouper(ConverterBase):
                 return operator.traverse(self.convert)
             else:
                 return operator
-        elif isinstance(operator, OperatorStateFn) and self._traverse:
-            return OperatorStateFn(self.convert(operator.primitive),
+        elif isinstance(operator, DensityOperator) and self._traverse:
+            return DensityOperator(self.convert(operator.primitive),
                                    is_measurement=operator.is_measurement,
                                    coeff=operator.coeff)
         elif isinstance(operator, EvolvedOp) and self._traverse:

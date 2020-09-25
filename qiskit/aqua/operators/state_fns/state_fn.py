@@ -88,8 +88,8 @@ class StateFn(OperatorBase):
             return CircuitStateFn.__new__(CircuitStateFn)
 
         if isinstance(primitive, OperatorBase):
-            from .operator_state_fn import OperatorStateFn
-            return OperatorStateFn.__new__(OperatorStateFn)
+            from .operator_state_fn import DensityOperator
+            return DensityOperator.__new__(DensityOperator)
 
         raise TypeError('Unsupported primitive type {} passed into StateFn '
                         'factory constructor'.format(type(primitive)))
@@ -322,7 +322,7 @@ class StateFn(OperatorBase):
                  ) -> OperatorBase:
         r"""
         Apply the convert_fn to the internal primitive if the primitive is an Operator (as in
-        the case of ``OperatorStateFn``). Otherwise do nothing. Used by converters.
+        the case of ``DensityOperator``). Otherwise do nothing. Used by converters.
 
         Args:
             convert_fn: The function to apply to the internal OperatorBase.

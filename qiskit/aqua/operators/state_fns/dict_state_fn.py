@@ -230,8 +230,8 @@ class DictStateFn(StateFn):
             return np.conj(
                 front.adjoint().eval(self.adjoint().primitive)) * self.coeff  # type: ignore
 
-        from .operator_state_fn import OperatorStateFn
-        if isinstance(front, OperatorStateFn):
+        from .operator_state_fn import DensityOperator
+        if isinstance(front, DensityOperator):
             return cast(Union[OperatorBase, float, complex], front.adjoint().eval(self.adjoint()))
 
         # All other OperatorBases go here

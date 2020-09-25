@@ -196,7 +196,7 @@ class PauliOp(PrimitiveOp):
             elif isinstance(front, (PauliOp, CircuitOp, CircuitStateFn)):
                 new_front = self.compose(front)
 
-        # Covers VectorStateFn and OperatorStateFn
+        # Covers VectorStateFn and DensityOperator
             elif isinstance(front, OperatorBase):
                 new_front = self.to_matrix_op().eval(front.to_matrix_op())  # type: ignore
 

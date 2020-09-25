@@ -18,7 +18,7 @@ Expectations (:mod:`qiskit.aqua.operators.expectations`)
 
 Expectations are converters which enable the computation of the expectation value of an
 Observable with respect to some state function. They traverse an Operator tree, replacing
-:class:`~qiskit.aqua.operators.state_fns.OperatorStateFn` measurements with equivalent
+:class:`~qiskit.aqua.operators.state_fns.DensityOperator` measurements with equivalent
 measurements which are more amenable to computation on quantum or classical hardware.
 For example, if one would like to measure the
 expectation value of an Operator ``o`` expressed as a sum of Paulis with respect to some state

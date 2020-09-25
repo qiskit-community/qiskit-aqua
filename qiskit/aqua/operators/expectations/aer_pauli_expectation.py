@@ -22,7 +22,7 @@ from ..list_ops.composed_op import ComposedOp
 from ..list_ops.summed_op import SummedOp
 from ..primitive_ops.pauli_op import PauliOp
 from ..state_fns.circuit_state_fn import CircuitStateFn
-from ..state_fns.operator_state_fn import OperatorStateFn
+from ..state_fns.operator_state_fn import DensityOperator
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +43,7 @@ class AerPauliExpectation(ExpectationBase):
         Returns:
             The converted operator.
         """
-        if isinstance(operator, OperatorStateFn) and operator.is_measurement:
+        if isinstance(operator, DensityOperator) and operator.is_measurement:
             return self._replace_pauli_sums(operator.primitive) * operator.coeff
         elif isinstance(operator, ListOp):
             return operator.traverse(self.convert)

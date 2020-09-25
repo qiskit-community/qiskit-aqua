@@ -27,7 +27,7 @@ class ExpectationBase(ConverterBase):
     r"""
     A base for Expectation value converters. Expectations are converters which enable the
     computation of the expectation value of an Observable with respect to some state function.
-    They traverse an Operator tree, replacing OperatorStateFn measurements with equivalent
+    They traverse an Operator tree, replacing DensityOperator measurements with equivalent
     measurements which are more amenable to computation on quantum or classical hardware. For
     example, if one would like to measure the expectation value of an Operator ``o`` expressed
     as a sum of Paulis with respect to some state function, but only has access to diagonal

@@ -140,7 +140,7 @@ class MatrixOp(PrimitiveOp):
 
         # pylint: disable=cyclic-import,import-outside-toplevel
         from ..list_ops import ListOp
-        from ..state_fns import StateFn, OperatorStateFn
+        from ..state_fns import StateFn, DensityOperator
 
         new_front = None
 
@@ -152,8 +152,8 @@ class MatrixOp(PrimitiveOp):
             new_front = front.combo_fn([self.eval(front.coeff * front_elem)  # type: ignore
                                         for front_elem in front.oplist])
 
-        elif isinstance(front, OperatorStateFn):
-            new_front = OperatorStateFn(self.adjoint().compose(front.to_matrix_op()).compose(self))
+        elif isinstance(front, DensityOperator):
+            new_front = DensityOperator(self.adjoint().compose(front.to_matrix_op()).compose(self))
 
         elif isinstance(front, OperatorBase):
             new_front = StateFn(self.to_matrix() @ front.to_matrix())

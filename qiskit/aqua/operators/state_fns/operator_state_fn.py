@@ -10,7 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" OperatorStateFn Class """
+""" DensityOperator Class """
 
 from typing import Union, Set
 import numpy as np
@@ -26,9 +26,9 @@ from ..list_ops.summed_op import SummedOp
 
 # pylint: disable=invalid-name
 
-class OperatorStateFn(StateFn):
+class DensityOperator(StateFn):
     r"""
-    A class for state functions and measurements which are defined by a density Operator,
+    A class for state density operators
     stored using an ``OperatorBase``.
     """
 
@@ -61,28 +61,28 @@ class OperatorStateFn(StateFn):
                 'defined'.format(self.num_qubits, other.num_qubits))
 
         # Right now doesn't make sense to add a StateFn to a Measurement
-        if isinstance(other, OperatorStateFn) and self.is_measurement == other.is_measurement:
+        if isinstance(other, DensityOperator) and self.is_measurement == other.is_measurement:
             if isinstance(self.primitive.primitive, type(other.primitive.primitive)) and \
                     self.primitive == other.primitive:
                 return StateFn(self.primitive,
                                coeff=self.coeff + other.coeff,
                                is_measurement=self.is_measurement)
             # Covers MatrixOperator, Statevector and custom.
-            elif isinstance(other, OperatorStateFn):
+            elif isinstance(other, DensityOperator):
                 # Also assumes scalar multiplication is available
-                return OperatorStateFn(
+                return DensityOperator(
                     (self.coeff * self.primitive).add(other.primitive * other.coeff),
                     is_measurement=self._is_measurement)
 
         return SummedOp([self, other])
 
     def adjoint(self) -> OperatorBase:
-        return OperatorStateFn(self.primitive.adjoint(),
+        return DensityOperator(self.primitive.adjoint(),
                                coeff=np.conj(self.coeff),
                                is_measurement=(not self.is_measurement))
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
-        if isinstance(other, OperatorStateFn):
+        if isinstance(other, DensityOperator):
             return StateFn(self.primitive.tensor(other.primitive),
                            coeff=self.coeff * other.coeff,
                            is_measurement=self.is_measurement)
@@ -109,7 +109,7 @@ class OperatorStateFn(StateFn):
 
     def to_matrix_op(self, massive: bool = False) -> OperatorBase:
         """ Return a MatrixOp for this operator. """
-        return OperatorStateFn(self.primitive.to_matrix_op(massive=massive) * self.coeff,
+        return DensityOperator(self.primitive.to_matrix_op(massive=massive) * self.coeff,
                                is_measurement=self.is_measurement)
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
@@ -168,11 +168,11 @@ class OperatorStateFn(StateFn):
     def __str__(self) -> str:
         prim_str = str(self.primitive)
         if self.coeff == 1.0:
-            return "{}({})".format('OperatorStateFn' if not self.is_measurement
+            return "{}({})".format('DensityOperator' if not self.is_measurement
                                    else 'OperatorMeasurement', prim_str)
         else:
             return "{}({}) * {}".format(
-                'OperatorStateFn' if not self.is_measurement else 'OperatorMeasurement',
+                'DensityOperator' if not self.is_measurement else 'OperatorMeasurement',
                 prim_str,
                 self.coeff)
 
@@ -194,7 +194,7 @@ class OperatorStateFn(StateFn):
 
         if isinstance(self.primitive, ListOp) and self.primitive.distributive:
             coeff = self.coeff * self.primitive.coeff
-            evals = [OperatorStateFn(op, coeff=coeff, is_measurement=self.is_measurement).eval(
+            evals = [DensityOperator(op, coeff=coeff, is_measurement=self.is_measurement).eval(
                 front) for op in self.primitive.oplist]
             return self.primitive.combo_fn(evals)
 

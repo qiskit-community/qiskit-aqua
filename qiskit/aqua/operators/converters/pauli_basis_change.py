@@ -179,7 +179,7 @@ class PauliBasisChange(ConverterBase):
                                    dest_pauli_op: PauliOp) -> OperatorBase:
         r"""
         A built-in convenience replacement function which produces measurements
-        isomorphic to an ``OperatorStateFn`` measurement holding the origin ``PauliOp``.
+        isomorphic to an ``DensityOperator`` measurement holding the origin ``PauliOp``.
 
         Args:
             cob_instr_op: The basis-change ``CircuitOp``.
@@ -196,7 +196,7 @@ class PauliBasisChange(ConverterBase):
                                dest_pauli_op: PauliOp) -> OperatorBase:
         r"""
         A built-in convenience replacement function which produces state functions
-        isomorphic to an ``OperatorStateFn`` state function holding the origin ``PauliOp``.
+        isomorphic to an ``DensityOperator`` state function holding the origin ``PauliOp``.
 
         Args:
             cob_instr_op: The basis-change ``CircuitOp``.

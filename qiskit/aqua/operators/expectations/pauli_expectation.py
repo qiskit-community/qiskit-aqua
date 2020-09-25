@@ -21,7 +21,7 @@ from ..operator_base import OperatorBase
 from ..list_ops.list_op import ListOp
 from ..list_ops.composed_op import ComposedOp
 from ..state_fns.state_fn import StateFn
-from ..state_fns.operator_state_fn import OperatorStateFn
+from ..state_fns.operator_state_fn import DensityOperator
 from ..converters.pauli_basis_change import PauliBasisChange
 from ..converters.abelian_grouper import AbelianGrouper
 
@@ -59,7 +59,7 @@ class PauliExpectation(ExpectationBase):
             The converted operator.
         """
 
-        if isinstance(operator, OperatorStateFn) and operator.is_measurement:
+        if isinstance(operator, DensityOperator) and operator.is_measurement:
             # Change to Pauli representation if necessary
             if not {'Pauli'} == operator.primitive_strings():
                 logger.warning('Measured Observable is not composed of only Paulis, converting to '
