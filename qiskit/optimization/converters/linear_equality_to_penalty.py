@@ -59,10 +59,9 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
         self._dst = QuadraticProgram(name=problem.name)
 
         # If penalty is None, set the penalty coefficient by _auto_define_penalty()
-        if self._penalty is None:
-            penalty = self._auto_define_penalty()
-        else:
-            penalty = self._penalty
+        if self.penalty is None:
+            self.penalty = self._auto_define_penalty()
+        penalty = self.penalty
 
         # Set variables
         for x in self._src.variables:
