@@ -112,7 +112,6 @@ class CHC(VariationalForm):
             raise ValueError('The number of qubits is None and must be set before the circuit '
                              'can be created.')
 
-
         if q is None:
             q = QuantumRegister(self._num_qubits, name='q')
         if self._initial_state is not None:
