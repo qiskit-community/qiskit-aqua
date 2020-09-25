@@ -129,10 +129,12 @@ class Grover(QuantumAlgorithm):
                 'advanced' | 'noancilla')
             quantum_instance: Quantum Instance or Backend
             grover_operator: A GroverOperator for the Grover's algorithm can be set directly.
-            is_good_state: Answers the Grover's algorithm is looking for.
+            good_state: Answers the Grover's algorithm is looking for.
                 It is used to check whether the result is correct or not.
             num_solutions: num_solutions: is used to decide num_iterations
             state_preparation: TODO
+            iterations: TODO
+            post_processing: TODO
 
         Raises:
             TypeError: If ``init_state`` is of unsupported type or is of type ``InitialState` but
