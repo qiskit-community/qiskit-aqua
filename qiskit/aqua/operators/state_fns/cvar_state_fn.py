@@ -39,22 +39,23 @@ class CVarStateFn(OperatorStateFn):
     """
 
     @staticmethod
-    # pylint: disable=unused-argument
     def __new__(cls,
                 primitive: Union[str, dict, Result,
                                  list, np.ndarray, Statevector,
                                  QuantumCircuit, Instruction,
                                  OperatorBase] = None,
+                alpha: float = 1.0,
                 coeff: Union[int, float, complex, ParameterExpression] = 1.0,
-                alpha=1.0,
-                is_measurement: bool = False) -> 'StateFn':
-        return super().__new__(cls, primitive, coeff, is_measurement)
+                is_measurement: bool = True) -> 'StateFn':
+        obj = object.__new__(cls)
+        obj.__init__(primitive, alpha, coeff, is_measurement)
+        return obj
 
     # TODO allow normalization somehow?
     def __init__(self,
                  primitive: Union[OperatorBase] = None,
+                 alpha: float = 1.0,
                  coeff: Union[int, float, complex, ParameterExpression] = 1.0,
-                 alpha: float = 1,
                  is_measurement: bool = True) -> None:
         """
         Args:
@@ -251,9 +252,6 @@ class CVarStateFn(OperatorStateFn):
             # CVar = alpha*Hj + \sum_i P[i]*(H[i] - Hj)
             for h_i, p_i in zip(H, P):
                 cvar += p_i * (h_i - h_j)
-
-        print('normal', sum(p_i * h_i for p_i, h_i in zip(P, H)))
-        print('normal', sum(np.sqrt(p_i) * h_i for p_i, h_i in zip(P, H)))
 
         return cvar/alpha
 

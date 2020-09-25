@@ -53,8 +53,7 @@ class StateFn(OperatorBase):
                                  QuantumCircuit, Instruction,
                                  OperatorBase] = None,
                 coeff: Union[int, float, complex, ParameterExpression] = 1.0,
-                is_measurement: bool = False,
-                **kwargs) -> 'StateFn':
+                is_measurement: bool = False) -> 'StateFn':
         """ A factory method to produce the correct type of StateFn subclass
         based on the primitive passed in. Primitive, coeff, and is_measurement arguments
         are passed into subclass's init() as-is automatically by new().
