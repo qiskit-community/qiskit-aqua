@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -187,7 +185,8 @@ class IntegerToBinary(QuadraticProgramConverter):
 
         # set linear constraints
         for constraint in self._src.linear_constraints:
-            linear, constant = self._convert_linear_coefficients_dict(constraint.linear.to_dict())
+            linear, constant = self._convert_linear_coefficients_dict(
+                constraint.linear.to_dict(use_name=True))
             self._dst.linear_constraint(
                 linear, constraint.sense, constraint.rhs - constant, constraint.name
             )
@@ -195,10 +194,10 @@ class IntegerToBinary(QuadraticProgramConverter):
         # set quadratic constraints
         for constraint in self._src.quadratic_constraints:
             linear, linear_constant = self._convert_linear_coefficients_dict(
-                constraint.linear.to_dict()
+                constraint.linear.to_dict(use_name=True)
             )
             quadratic, q_linear, q_constant = self._convert_quadratic_coefficients_dict(
-                constraint.quadratic.to_dict()
+                constraint.quadratic.to_dict(use_name=True)
             )
 
             constant = linear_constant + q_constant
@@ -221,7 +220,7 @@ class IntegerToBinary(QuadraticProgramConverter):
         """
         new_x = self._interpret_var(result.x)
         return OptimizationResult(x=new_x, fval=result.fval, variables=self._src.variables,
-                                  raw_results=result.raw_results)
+                                  status=result.status, raw_results=result.raw_results)
 
     def _interpret_var(self, vals: Union[List[float], np.ndarray]) -> List[float]:
         # interpret integer values

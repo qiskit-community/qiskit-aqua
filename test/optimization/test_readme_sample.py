@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -33,6 +31,10 @@ class TestReadmeSample(QiskitOptimizationTestCase):
             """ overloads print to log values """
             if args:
                 self.log.debug(args[0], *args[1:])
+
+        # Fix the random seed of SPSA (Optional)
+        from qiskit.aqua import aqua_globals
+        aqua_globals.random_seed = 123
 
         # --- Exact copy of sample code ----------------------------------------
 

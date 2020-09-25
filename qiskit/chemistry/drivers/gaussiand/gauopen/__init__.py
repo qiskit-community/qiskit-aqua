@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This gauopen package contains code from the Gaussian Interfacing package
 # available at
 #

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -354,12 +352,14 @@ class CircuitSampler(ConverterBase):
             self._transpiled_circ_templates = [circ.assign_parameters(param_bindings[0])
                                                for circ in self._transpiled_circ_cache]
 
-        for param_binding in param_bindings:
-            for circ in self._transpiled_circ_cache:
+        ready_circ = []
+        for circ, temp in zip(self._transpiled_circ_cache, self._transpiled_circ_templates):
+            for param_binding in param_bindings:
                 self.quantum_instance._run_config.parameterizations.append(
                     self._generate_aer_params(circ, param_binding))
+                ready_circ.append(temp)
 
-        return self._transpiled_circ_templates
+        return ready_circ
 
     def _clean_parameterized_run_config(self) -> None:
         self.quantum_instance._run_config.parameterizations = []

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -63,6 +61,7 @@ Amplitude Amplifiers
    :nosignatures:
 
    Grover
+   GroverResult
 
 Amplitude Estimators
 ++++++++++++++++++++
@@ -72,9 +71,13 @@ Algorithms that estimate a value.
    :toctree: ../stubs/
    :nosignatures:
 
+   AmplitudeEstimationAlgorithmResult
    AmplitudeEstimation
+   AmplitudeEstimationResult
    IterativeAmplitudeEstimation
+   IterativeAmplitudeEstimationResult
    MaximumLikelihoodAmplitudeEstimation
+   MaximumLikelihoodAmplitudeEstimationResult
 
 Classifiers
 +++++++++++
@@ -141,8 +144,11 @@ Algorithms to find solutions for linear equations of equations.
    :toctree: ../stubs/
    :nosignatures:
 
+   LinearsolverResult
    HHL
+   HHLResult
    NumPyLSsolver
+   NumPyLSsolverResult
 
 Minimum Eigensolvers
 ++++++++++++++++++++
@@ -181,15 +187,21 @@ from .algorithm_result import AlgorithmResult
 from .quantum_algorithm import QuantumAlgorithm
 from .classical_algorithm import ClassicalAlgorithm
 from .vq_algorithm import VQAlgorithm, VQResult
-from .amplitude_amplifiers import Grover
-from .amplitude_estimators import (AmplitudeEstimation,
+from .amplitude_amplifiers import Grover, GroverResult
+from .amplitude_estimators import (AmplitudeEstimationAlgorithmResult,
+                                   AmplitudeEstimation,
+                                   AmplitudeEstimationResult,
                                    IterativeAmplitudeEstimation,
-                                   MaximumLikelihoodAmplitudeEstimation)
+                                   IterativeAmplitudeEstimationResult,
+                                   MaximumLikelihoodAmplitudeEstimation,
+                                   MaximumLikelihoodAmplitudeEstimationResult)
 from .classifiers import VQC, QSVM, SklearnSVM, SVM_Classical
 from .distribution_learners import QGAN
 from .eigen_solvers import NumPyEigensolver, ExactEigensolver, EigensolverResult
 from .factorizers import Shor
-from .linear_solvers import HHL, NumPyLSsolver, ExactLSsolver
+from .linear_solvers import (LinearsolverResult, HHL,
+                             HHLResult, NumPyLSsolver,
+                             NumPyLSsolverResult, ExactLSsolver)
 from .minimum_eigen_solvers import (VQE, VQEResult, QAOA, IQPE, IQPEResult, QPE, QPEResult,
                                     ClassicalCPLEX, CPLEX_Ising, NumPyMinimumEigensolver,
                                     MinimumEigensolver, MinimumEigensolverResult)
@@ -208,7 +220,9 @@ __all__ = [
     'VQResult',
     'NumPyEigensolver',
     'ExactEigensolver',
+    'LinearsolverResult',
     'NumPyLSsolver',
+    'NumPyLSsolverResult',
     'EigensolverResult',
     'ExactLSsolver',
     'NumPyMinimumEigensolver',
@@ -221,16 +235,22 @@ __all__ = [
     'EOH',
     'QSVM',
     'Grover',
+    'GroverResult',
     'IQPE',
     'IQPEResult',
     'QPE',
     'QPEResult',
+    'AmplitudeEstimationAlgorithmResult',
     'AmplitudeEstimation',
+    'AmplitudeEstimationResult',
     'IterativeAmplitudeEstimation',
+    'IterativeAmplitudeEstimationResult',
     'MaximumLikelihoodAmplitudeEstimation',
+    'MaximumLikelihoodAmplitudeEstimationResult',
     'Simon',
     'DeutschJozsa',
     'BernsteinVazirani',
     'HHL',
+    'HHLResult',
     'Shor',
 ]
