@@ -493,7 +493,7 @@ class TestGradients(QiskitAquaTestCase):
                                                  correct_values[i],
                                                  decimal=1)
 
-    @data('lin_comb', 'param_shift')
+    @data('lin_comb', 'param_shift', 'fin_diff')
     def test_circuit_sampler(self, method):
         """Test the gradient with circuit sampler
 
@@ -514,14 +514,21 @@ class TestGradients(QiskitAquaTestCase):
         qc.rz(params[0], q[0])
         qc.rx(params[1], q[0])
         op = ~StateFn(H) @ CircuitStateFn(primitive=qc, coeff=1.)
-        state_grad = Gradient(grad_method=method).convert(operator=op, params=params)
+
+        shots = 8000
+        if method == 'fin_diff':
+            np.random.seed = 8
+            state_grad = Gradient(grad_method=method, epsilon=shots**(-1/6.)).convert(operator=op,
+                                                                                      params=params)
+        else:
+            state_grad = Gradient(grad_method=method).convert(operator=op, params=params)
         values_dict = [{a: np.pi / 4, b: np.pi}, {params[0]: np.pi / 4, params[1]: np.pi / 4},
                        {params[0]: np.pi / 2, params[1]: np.pi / 4}]
         correct_values = [[-0.5 / np.sqrt(2), 1 / np.sqrt(2)], [-0.5 / np.sqrt(2) - 0.5, -1 / 2.],
                           [-0.5, -1 / np.sqrt(2)]]
 
         backend = BasicAer.get_backend('qasm_simulator')
-        q_instance = QuantumInstance(backend=backend, shots=8000)
+        q_instance = QuantumInstance(backend=backend, shots=shots)
 
         for i, value_dict in enumerate(values_dict):
             sampler = CircuitSampler(backend=q_instance).convert(state_grad,
@@ -529,7 +536,7 @@ class TestGradients(QiskitAquaTestCase):
                                                                          value_dict.items()})
             np.testing.assert_array_almost_equal(sampler.eval()[0], correct_values[i], decimal=1)
 
-    @data('lin_comb', 'param_shift')
+    @data('lin_comb', 'param_shift', 'fin_diff')
     def test_circuit_sampler2(self, method):
         """Test the probability gradient with the circuit sampler
 
@@ -551,15 +558,21 @@ class TestGradients(QiskitAquaTestCase):
 
         op = CircuitStateFn(primitive=qc, coeff=1.)
 
-        prob_grad = Gradient(grad_method=method).convert(operator=op, params=params)
+        shots = 8000
+        if method == 'fin_diff':
+            np.random.seed = 8
+            prob_grad = Gradient(grad_method=method, epsilon=shots**(-1/6.)).convert(operator=op,
+                                                                                      params=params)
+        else:
+            prob_grad = Gradient(grad_method=method).convert(operator=op, params=params)
         values_dict = [{a: [np.pi / 4], b: [0]}, {params[0]: [np.pi / 4], params[1]: [np.pi / 4]},
                        {params[0]: [np.pi / 2], params[1]: [np.pi]}]
         correct_values = [[[0, 0], [1 / (2 * np.sqrt(2)), - 1 / (2 * np.sqrt(2))]],
                             [[1 / 4, -1 / 4], [1 / 4, - 1 / 4]],
-                            [[ 0, 0],  [ - 1 / 2, 1 / 2]]]
+                            [[0, 0],  [- 1 / 2, 1 / 2]]]
 
         backend = BasicAer.get_backend('qasm_simulator')
-        q_instance = QuantumInstance(backend=backend, shots=10000)
+        q_instance = QuantumInstance(backend=backend, shots=shots)
 
         for i, value_dict in enumerate(values_dict):
             sampler = CircuitSampler(backend=q_instance).convert(prob_grad,

@@ -51,7 +51,7 @@ class Gradient(GradientBase):
         Raises:
             ValueError: If method != ``fin_diff`` and ``epsilon`` is not None.
         """
-        super().__init__(grad_method)
+        super().__init__(grad_method, **kwargs)
         
     def convert(self,
                 operator: OperatorBase,

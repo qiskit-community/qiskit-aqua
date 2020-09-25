@@ -46,7 +46,7 @@ class Hessian(HessianBase):
         Raises:
             ValueError: If method != ``fin_diff`` and ``epsilon`` is not None.
         """
-        super().__init__(hess_method)
+        super().__init__(hess_method, **kwargs)
 
     def convert(self,
                 operator: OperatorBase,
