@@ -204,7 +204,7 @@ class Gradient(GradientBase):
             if operator._combo_fn == ListOp([])._combo_fn:
                 return ListOp(oplist=grad_ops)
             elif isinstance(operator, SummedOp):
-                return SummedOp(oplist=grad_ops)
+                return SummedOp(oplist=[grad for grad in grad_ops if grad != ~Zero@One]).reduce()
             elif isinstance(operator, TensoredOp):
                 return TensoredOp(oplist=grad_ops)
 
