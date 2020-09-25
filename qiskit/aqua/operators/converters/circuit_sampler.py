@@ -35,7 +35,7 @@ logger = logging.getLogger(__name__)
 class CircuitSampler(ConverterBase):
     """
     The CircuitSampler traverses an Operator and converts any CircuitStateFns into
-    approximations of the state function by a DictStateFn or StateVector using a quantum
+    approximations of the state function by a DictStateVector or StateVector using a quantum
     backend. Note that in order to approximate the value of the CircuitStateFn, it must 1) send
     state function through a depolarizing channel, which will destroy all phase information and
     2) replace the sampled frequencies with **square roots** of the frequency, rather than the raw
@@ -56,11 +56,11 @@ class CircuitSampler(ConverterBase):
         Args:
             backend: The quantum backend or QuantumInstance to use to sample the circuits.
             statevector: If backend is a statevector backend, whether to replace the
-                CircuitStateFns with DictStateFns (from the counts) or StateVectors (from the
+                CircuitStateFns with DictStateVectors (from the counts) or StateVectors (from the
                 statevector). ``None`` will set this argument automatically based on the backend.
             attach_results: Whether to attach the data from the backend ``Results`` object for
                 a given ``CircuitStateFn``` to an ``execution_results`` field added the converted
-                ``DictStateFn`` or ``StateVector``.
+                ``DictStateVector`` or ``StateVector``.
             param_qobj: Whether to use Aer's parameterized Qobj capability to avoid re-assembling
                 the circuits.
 
@@ -152,7 +152,7 @@ class CircuitSampler(ConverterBase):
                 ) -> OperatorBase:
         r"""
         Converts the Operator to one in which the CircuitStateFns are replaced by
-        DictStateFns or StateVectors. Extracts the CircuitStateFns out of the Operator,
+        DictStateVectors or StateVectors. Extracts the CircuitStateFns out of the Operator,
         caches them, calls ``sample_circuits`` below to get their converted replacements,
         and replaces the CircuitStateFns in operator with the replacement StateFns.
 
@@ -162,7 +162,7 @@ class CircuitSampler(ConverterBase):
                 binding values.
 
         Returns:
-            The converted Operator with CircuitStateFns replaced by DictStateFns or StateVectors.
+            The converted Operator with CircuitStateFns replaced by DictStateVectors or StateVectors.
         """
         if self._last_op is None or id(operator) != id(self._last_op):
             # Clear caches
@@ -228,7 +228,7 @@ class CircuitSampler(ConverterBase):
                         ) -> Dict[int, Union[StateFn, List[StateFn]]]:
         r"""
         Samples the CircuitStateFns and returns a dict associating their ``id()`` values to their
-        replacement DictStateFn or StateVector. If param_bindings is provided,
+        replacement DictStateVector or StateVector. If param_bindings is provided,
         the CircuitStateFns are broken into their parameterizations, and a list of StateFns is
         returned in the dict for each circuit ``id()``. Note that param_bindings is provided here
         in a different format than in ``convert``, and lists of parameters within the dict is not

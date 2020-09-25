@@ -150,7 +150,7 @@ class PauliOp(PrimitiveOp):
 
         # pylint: disable=import-outside-toplevel,cyclic-import
         from ..state_fns.state_fn import StateFn
-        from ..state_fns.dict_state_fn import DictStateFn
+        from ..state_fns.dict_state_fn import DictStateVector
         from ..state_fns.circuit_state_fn import CircuitStateFn
         from ..list_ops.list_op import ListOp
         from .circuit_op import CircuitOp
@@ -173,7 +173,7 @@ class PauliOp(PrimitiveOp):
                     '{} and {}, respectively.'.format(
                         self.num_qubits, front.num_qubits))
 
-            if isinstance(front, DictStateFn):
+            if isinstance(front, DictStateVector):
 
                 new_dict = {}  # type: Dict
                 corrected_x_bits = self.primitive.x[::-1]  # type: ignore

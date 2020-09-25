@@ -57,7 +57,7 @@ class AerPauliExpectation(ExpectationBase):
         # The 'expval_measurement' label on the snapshot instruction is special - the
         # CircuitSampler will look for it to know that the circuit is a Expectation
         # measurement, and not simply a
-        # circuit to replace with a DictStateFn
+        # circuit to replace with a DictStateVector
 
         # Change to Pauli representation if necessary
         if not {'Pauli'} == operator.primitive_strings():

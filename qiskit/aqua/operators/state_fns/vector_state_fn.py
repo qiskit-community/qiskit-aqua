@@ -145,10 +145,10 @@ class StateVector(StateFn):
 
         # pylint: disable=cyclic-import,import-outside-toplevel
         from ..operator_globals import EVAL_SIG_DIGITS
-        from .dict_state_fn import DictStateFn
+        from .dict_state_fn import DictStateVector
         from .operator_state_fn import DensityOperator
         from .circuit_state_fn import CircuitStateFn
-        if isinstance(front, DictStateFn):
+        if isinstance(front, DictStateVector):
             return np.round(sum([v * self.primitive.data[int(b, 2)] * front.coeff  # type: ignore
                                  for (b, v) in front.primitive.items()]) * self.coeff,
                             decimals=EVAL_SIG_DIGITS)

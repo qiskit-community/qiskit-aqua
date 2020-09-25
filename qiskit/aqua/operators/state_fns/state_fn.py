@@ -76,8 +76,8 @@ class StateFn(OperatorBase):
 
         # pylint: disable=cyclic-import,import-outside-toplevel
         if isinstance(primitive, (str, dict, Result)):
-            from .dict_state_fn import DictStateFn
-            return DictStateFn.__new__(DictStateFn)
+            from .dict_state_fn import DictStateVector
+            return DictStateVector.__new__(DictStateVector)
 
         if isinstance(primitive, (list, np.ndarray, quantum_info.Statevector)):
             from .vector_state_fn import StateVector

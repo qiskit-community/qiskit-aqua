@@ -10,7 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" DictStateFn Class """
+""" DictStateVector Class """
 
 from typing import Optional, Union, Set, Dict, cast
 import itertools
@@ -26,8 +26,8 @@ from .state_fn import StateFn
 from ..list_ops.list_op import ListOp
 
 
-class DictStateFn(StateFn):
-    """ A class for state functions and measurements which are defined by a lookup table,
+class DictStateVector(StateFn):
+    """ A class for sparse state functions and measurements. The non-zero coefficients are
     stored in a dict.
     """
 
@@ -67,7 +67,7 @@ class DictStateFn(StateFn):
 
         if not isinstance(primitive, dict):
             raise TypeError(
-                'DictStateFn can only be instantiated with dict, '
+                'DictStateVector can only be instantiated with dict, '
                 'string, or Qiskit Result, not {}'.format(type(primitive)))
 
         super().__init__(primitive, coeff=coeff, is_measurement=is_measurement)
@@ -86,10 +86,10 @@ class DictStateFn(StateFn):
                 'defined'.format(self.num_qubits, other.num_qubits))
 
         # Right now doesn't make sense to add a StateFn to a Measurement
-        if isinstance(other, DictStateFn) and self.is_measurement == other.is_measurement:
+        if isinstance(other, DictStateVector) and self.is_measurement == other.is_measurement:
             # TODO add compatibility with vector and Operator?
             if self.primitive == other.primitive:
-                return DictStateFn(self.primitive,
+                return DictStateVector(self.primitive,
                                    coeff=self.coeff + other.coeff,
                                    is_measurement=self.is_measurement)
             else:
@@ -103,13 +103,13 @@ class DictStateFn(StateFn):
         return SummedOp([self, other])
 
     def adjoint(self) -> OperatorBase:
-        return DictStateFn({b: np.conj(v) for (b, v) in self.primitive.items()},
+        return DictStateVector({b: np.conj(v) for (b, v) in self.primitive.items()},
                            coeff=np.conj(self.coeff),
                            is_measurement=(not self.is_measurement))
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
         # Both dicts
-        if isinstance(other, DictStateFn):
+        if isinstance(other, DictStateVector):
             new_dict = {k1 + k2: v1 * v2 for ((k1, v1,), (k2, v2)) in
                         itertools.product(self.primitive.items(), other.primitive.items())}
             return StateFn(new_dict,
@@ -170,10 +170,10 @@ class DictStateFn(StateFn):
     def __str__(self) -> str:
         prim_str = str(self.primitive)
         if self.coeff == 1.0:
-            return "{}({})".format('DictStateFn' if not self.is_measurement
+            return "{}({})".format('DictStateVector' if not self.is_measurement
                                    else 'DictMeasurement', prim_str)
         else:
-            return "{}({}) * {}".format('DictStateFn' if not self.is_measurement
+            return "{}({}) * {}".format('DictStateVector' if not self.is_measurement
                                         else 'DictMeasurement',
                                         prim_str,
                                         self.coeff)
@@ -206,7 +206,7 @@ class DictStateFn(StateFn):
         # If the primitive is a lookup of bitstrings,
         # we define all missing strings to have a function value of
         # zero.
-        if isinstance(front, DictStateFn):
+        if isinstance(front, DictStateVector):
             return np.round(
                 cast(float, sum([v * front.primitive.get(b, 0) for (b, v) in
                                  self.primitive.items()]) * self.coeff * front.coeff),

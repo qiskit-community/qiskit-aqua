@@ -15,7 +15,7 @@ from typing import Optional, Any, Union, Tuple, List
 
 import numpy as np
 from qiskit.aqua.algorithms import MinimumEigensolver, MinimumEigensolverResult
-from qiskit.aqua.operators import StateFn, DictStateFn
+from qiskit.aqua.operators import StateFn, DictStateVector
 
 from .optimization_algorithm import (OptimizationResultStatus, OptimizationAlgorithm,
                                      OptimizationResult)
@@ -222,7 +222,7 @@ def _eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray, StateFn],
     Raises:
         TypeError: If the type of eigenvector is not supported.
     """
-    if isinstance(eigenvector, DictStateFn):
+    if isinstance(eigenvector, DictStateVector):
         eigenvector = {bitstr: val ** 2 for (bitstr, val) in eigenvector.primitive.items()}
     elif isinstance(eigenvector, StateFn):
         eigenvector = eigenvector.to_matrix()
