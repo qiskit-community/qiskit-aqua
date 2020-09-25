@@ -12,7 +12,7 @@
 
 """The Eigensolver algorithm."""
 
-from typing import List, Optional, Union, Dict, Any, Tuple
+from typing import List, Optional, Union, Dict, Any, Tuple, Callable
 import logging
 import pprint
 import warnings
@@ -48,7 +48,9 @@ class NumPyEigensolver(ClassicalAlgorithm):
                  operator: Optional[Union[OperatorBase, LegacyBaseOperator]] = None,
                  k: int = 1,
                  aux_operators: Optional[List[Optional[Union[OperatorBase,
-                                                             LegacyBaseOperator]]]] = None
+                                                             LegacyBaseOperator]]]] = None,
+                 filter_criterion: Callable[[Union[List, np.ndarray], float, Optional[List[float]]],
+                                            bool] = None
                  ) -> None:
         """
         Args:
@@ -58,6 +60,10 @@ class NumPyEigensolver(ClassicalAlgorithm):
                 application stack use this algorithm with an operator it creates.
             k: How many eigenvalues are to be computed, has a min. value of 1.
             aux_operators: Auxiliary operators to be evaluated at each eigenvalue
+            filter_criterion: callable that allows to filter eigenvalues, only feasible eigenstates are
+                returned as a solution. The callable has the signature
+                filter(eigenstate, eigenvalue, aux_values) and must return a boolean to indicate
+                which elements to keep.
         """
         validate_min('k', k, 1)
         super().__init__()
@@ -69,6 +75,8 @@ class NumPyEigensolver(ClassicalAlgorithm):
 
         self.operator = operator
         self.aux_operators = aux_operators
+
+        self._filter_criterion = filter_criterion
 
         self._ret = {}  # type: Dict[str, Any]
 
@@ -154,7 +162,7 @@ class NumPyEigensolver(ClassicalAlgorithm):
                 eigval, eigvec = np.linalg.eig(self._operator.to_matrix())
             else:
                 eigval, eigvec = scisparse.linalg.eigs(self._operator.to_spmatrix(),
-                                                       k=self._k, which='SR')
+                                                        k=self._k, which='SR')
         if self._k > 1:
             idx = eigval.argsort()
             eigval = eigval[idx]
@@ -212,10 +220,24 @@ class NumPyEigensolver(ClassicalAlgorithm):
         if self._operator is None:
             raise AquaError("Operator was never provided")
 
+        k_orig = self._k
+        if self._filter_criterion:
+            self._k = 2**self._operator.num_qubits
+
         self._ret = {}
         self._solve()
         self._get_ground_state_energy()
         self._get_energies()
+
+        if self._filter_criterion:
+
+            for i in range(self._k):
+                eigval = self._ret['eigvals'][i] if 'eigvals' in self._ret else None
+                eigvec = self._ret['eigvecs'][i] if 'eigvecs' in self._ret else None
+                auxvals = self._ret['aux_ops'][i] if 'aux_ops' in self._ret else None
+                print(eigval, eigvec, auxvals, self._filter_criterion(eigvec, eigval, auxvals))
+
+            self._k = k_orig
 
         logger.debug('NumPyEigensolver _run result:\n%s',
                      pprint.pformat(self._ret, indent=4))
