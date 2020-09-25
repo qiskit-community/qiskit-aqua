@@ -205,7 +205,7 @@ class GroverOptimizer(OptimizationAlgorithm):
                     # TODO: Utilize Grover's incremental feature - requires changes to Grover.
                     grover = Grover(oracle,
                                     state_preparation=a_operator,
-                                    is_good_state=is_good_state)
+                                    good_state=is_good_state)
                     circuit = grover.construct_circuit(rotation_count, measurement=measurement)
                 else:
                     circuit = a_operator
