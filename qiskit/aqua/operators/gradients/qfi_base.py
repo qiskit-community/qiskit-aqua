@@ -26,15 +26,11 @@ class QFIBase(DerivativeBase):
     """
 
     def __init__(self,
-                 qfi_method: Union[str, CircuitQFI] = 'lin_comb'):
+                 qfi_method: Union[str, CircuitQFI] = 'lin_comb_full'):
         r"""
         Args:
-            method: The method used to compute the state/probability gradient. Can be either
+            qfi_method: The method used to compute the state/probability gradient. Can be either
                 ``'lin_comb_full'`` or ``'overlap_diag'``` or ``'overlap_block_diag'```.
-
-
-        Raises:
-            ValueError: If method != ``fin_diff`` and ``epsilon`` is not None.
         """
 
         if isinstance(qfi_method, CircuitQFI):

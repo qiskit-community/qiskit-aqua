@@ -35,7 +35,7 @@ class QFI(QFIBase):
                  qfi_method: Union[str, CircuitQFI] = 'lin_comb_full'):
         r"""
         Args:
-            method: The method used to compute the state/probability gradient. Can be either
+            qfi_method: The method used to compute the state/probability gradient. Can be either
                 ``'lin_comb_full'`` or ``'overlap_diag'``` or ``'overlap_block_diag'```.
         """
         super().__init__(qfi_method)
