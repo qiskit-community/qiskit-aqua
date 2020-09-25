@@ -36,11 +36,10 @@ requirements = [
     "fastdtw",
     "setuptools>=40.1.0",
     "h5py",
-    "networkx>=2.2",
     "pandas",
     "quandl",
     "yfinance",
-    "retworkx>=0.4.0",
+    "retworkx>=0.5.0",
 ]
 
 if not hasattr(setuptools, 'find_namespace_packages') or not inspect.ismethod(setuptools.find_namespace_packages):
