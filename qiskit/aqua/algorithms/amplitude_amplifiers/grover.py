@@ -253,7 +253,7 @@ class Grover(QuantumAlgorithm):
                 current_max_num_iterations = 1
                 while current_max_num_iterations < self._max_num_iterations:
                     self._iterations.append(current_max_num_iterations)
-                    current_max_num_iterations = self._lam * current_max_num_iterations
+                    current_max_num_iterations = int(self._lam * current_max_num_iterations)
         elif num_solutions is not None:
             self._num_solutions = num_solutions
             self._iterations = [round(np.pi*np.sqrt(
@@ -428,7 +428,7 @@ def _oracle_component_to_circuit(oracle: Oracle):
             if qreg.name == "o":
                 break
             index += qreg.size
-        _output_register = index
+        _output_register = [index]
     else:
         _output_register = [i for i, qubit in enumerate(oracle.circuit.qubits)
                             if qubit in oracle.output_register[:]]
