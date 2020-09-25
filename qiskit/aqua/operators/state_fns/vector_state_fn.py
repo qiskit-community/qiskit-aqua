@@ -16,7 +16,7 @@
 from typing import Union, Set, Optional, Dict
 import numpy as np
 
-from qiskit.quantum_info import Statevector
+from qiskit import quantum_info
 from qiskit.circuit import ParameterExpression
 from qiskit.aqua import aqua_globals
 
@@ -32,20 +32,20 @@ class VectorStateFn(StateFn):
 
     # TODO allow normalization somehow?
     def __init__(self,
-                 primitive: Union[list, np.ndarray, Statevector] = None,
+                 primitive: Union[list, np.ndarray, quantum_info.Statevector] = None,
                  coeff: Union[int, float, complex, ParameterExpression] = 1.0,
                  is_measurement: bool = False) -> None:
         """
         Args:
-            primitive: The ``Statevector``, NumPy array, or list, which defines the behavior of
+            primitive: The ``quantum_info.Statevector``, NumPy array, or list, which defines the behavior of
                 the underlying function.
             coeff: A coefficient multiplying the state function.
             is_measurement: Whether the StateFn is a measurement operator
         """
         # Lists and Numpy arrays representing statevectors are stored
-        # in Statevector objects for easier handling.
+        # in quantum_info.Statevector objects for easier handling.
         if isinstance(primitive, (np.ndarray, list)):
-            primitive = Statevector(primitive)
+            primitive = quantum_info.Statevector(primitive)
 
         super().__init__(primitive, coeff=coeff, is_measurement=is_measurement)
 
@@ -64,7 +64,7 @@ class VectorStateFn(StateFn):
 
         # Right now doesn't make sense to add a StateFn to a Measurement
         if isinstance(other, VectorStateFn) and self.is_measurement == other.is_measurement:
-            # Covers MatrixOperator, Statevector and custom.
+            # Covers MatrixOperator, quantum_info.Statevector and custom.
             return VectorStateFn((self.coeff * self.primitive) + (other.primitive * other.coeff),
                                  is_measurement=self._is_measurement)
         # pylint: disable=cyclic-import,import-outside-toplevel

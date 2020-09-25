@@ -18,7 +18,7 @@ import numpy as np
 
 from qiskit import QuantumCircuit, BasicAer, execute
 from qiskit.circuit import ParameterVector
-from qiskit.quantum_info import Statevector
+from qiskit import quantum_info
 
 from qiskit.aqua.operators import (StateFn, Zero, One, Plus, Minus, PrimitiveOp,
                                    SummedOp, H, I, Z, X, Y, CX, CircuitStateFn, DictToCircuitSum)
@@ -54,11 +54,11 @@ class TestStateConstruction(QiskitAquaTestCase):
         # TODO Not a great test because doesn't test against validated values
         #  or test internal representation. Fix this.
         gnarly_state = (One ^ Plus ^ Zero ^ Minus * .3) @ \
-            StateFn(Statevector.from_label('r0+l')) + (StateFn(X ^ Z ^ Y ^ I) * .1j)
+            StateFn(quantum_info.Statevector.from_label('r0+l')) + (StateFn(X ^ Z ^ Y ^ I) * .1j)
         gnarly_mat = gnarly_state.to_matrix()
         gnarly_mat_separate = (One ^ Plus ^ Zero ^ Minus * .3).to_matrix()
         gnarly_mat_separate = np.dot(gnarly_mat_separate,
-                                     StateFn(Statevector.from_label('r0+l')).to_matrix())
+                                     StateFn(quantum_info.Statevector.from_label('r0+l')).to_matrix())
         gnarly_mat_separate = gnarly_mat_separate + (StateFn(X ^ Z ^ Y ^ I) * .1j).to_matrix()
         np.testing.assert_array_almost_equal(gnarly_mat, gnarly_mat_separate)
 

@@ -27,7 +27,8 @@ from qiskit.aqua import AquaError
 from qiskit.circuit import QuantumCircuit, QuantumRegister, Instruction, Parameter, ParameterVector
 
 from qiskit.extensions.exceptions import ExtensionError
-from qiskit.quantum_info import Operator, Pauli, Statevector
+from qiskit import quantum_info
+from qiskit.quantum_info import Operator, Pauli
 from qiskit.circuit.library import CZGate, ZGate
 
 from qiskit.aqua.operators import (
@@ -634,7 +635,7 @@ class TestOpConstruction(QiskitAquaTestCase):
           DensityOperator(CircuitOp(QuantumCircuit(1))))
     def test_statefn_eval(self, op):
         """Test calling eval on StateFn returns the statevector."""
-        expected = Statevector([1, 0])
+        expected = quantum_info.Statevector([1, 0])
         self.assertEqual(op.eval().primitive, expected)
 
 

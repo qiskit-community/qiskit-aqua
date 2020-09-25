@@ -15,7 +15,7 @@
 from typing import Union, Optional, Callable, Set, Dict, Tuple
 import numpy as np
 
-from qiskit.quantum_info import Statevector
+from qiskit import quantum_info
 from qiskit.result import Result
 from qiskit import QuantumCircuit
 from qiskit.circuit import Instruction, ParameterExpression
@@ -49,7 +49,7 @@ class StateFn(OperatorBase):
     # pylint: disable=unused-argument
     def __new__(cls,
                 primitive: Union[str, dict, Result,
-                                 list, np.ndarray, Statevector,
+                                 list, np.ndarray, quantum_info.Statevector,
                                  QuantumCircuit, Instruction,
                                  OperatorBase] = None,
                 coeff: Union[int, float, complex, ParameterExpression] = 1.0,
@@ -79,7 +79,7 @@ class StateFn(OperatorBase):
             from .dict_state_fn import DictStateFn
             return DictStateFn.__new__(DictStateFn)
 
-        if isinstance(primitive, (list, np.ndarray, Statevector)):
+        if isinstance(primitive, (list, np.ndarray, quantum_info.Statevector)):
             from .vector_state_fn import VectorStateFn
             return VectorStateFn.__new__(VectorStateFn)
 
@@ -97,7 +97,7 @@ class StateFn(OperatorBase):
     # TODO allow normalization somehow?
     def __init__(self,
                  primitive: Union[str, dict, Result,
-                                  list, np.ndarray, Statevector,
+                                  list, np.ndarray, quantum_info.Statevector,
                                   QuantumCircuit, Instruction,
                                   OperatorBase] = None,
                  coeff: Union[int, float, complex, ParameterExpression] = 1.0,
