@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -385,19 +383,13 @@ class Grover(QuantumAlgorithm):
         # If ``rotation_counts`` is specified, run Grover's circuit for the powers specified
         # in ``rotation_counts``. Once a good state is found (oracle_evaluation is True), stop.
         if not (self._incremental and self._rotation_counts is None):
-            #print("rotation_counts  ", self._rotation_counts)
             for target_num_iterations in self._iterations:
-                #print("target_num_iterations  ", target_num_iterations)
                 assignment, oracle_evaluation = self._run_experiment(target_num_iterations)
-                # print(assignment)
                 if oracle_evaluation:
-                    # print("oracle_evaluation")
                     break
                 if target_num_iterations > self._max_num_iterations:
-                    #print("too many iterations")
                     break
         else:
-            #print("lam   ", self._iterations)
             for current_max_num_iterations in self._iterations:
                 target_num_iterations = self.random.integers(current_max_num_iterations) + 1
                 assignment, oracle_evaluation = self._run_experiment(target_num_iterations)
