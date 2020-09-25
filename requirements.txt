@@ -10,7 +10,7 @@ docplex
 fastdtw
 setuptools>=40.1.0
 h5py
-networkx>=2.2
 pandas
 quandl
 yfinance
+retworkx>=0.5.0

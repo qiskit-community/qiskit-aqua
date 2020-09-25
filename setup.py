@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -38,10 +36,10 @@ requirements = [
     "fastdtw",
     "setuptools>=40.1.0",
     "h5py",
-    "networkx>=2.2",
     "pandas",
     "quandl",
     "yfinance",
+    "retworkx>=0.5.0",
 ]
 
 if not hasattr(setuptools, 'find_namespace_packages') or not inspect.ismethod(setuptools.find_namespace_packages):
@@ -61,7 +59,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url='https://github.com/Qiskit/qiskit-aqua',
     author='Qiskit Aqua Development Team',
-    author_email='qiskit@us.ibm.com',
+    author_email='hello@qiskit.org',
     license='Apache-2.0',
     classifiers=(
         "Environment :: Console",
@@ -72,17 +70,16 @@ setuptools.setup(
         "Operating System :: MacOS",
         "Operating System :: POSIX :: Linux",
         "Programming Language :: Python :: 3 :: Only",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Topic :: Scientific/Engineering"
     ),
     keywords='qiskit sdk quantum aqua',
-    packages=setuptools.find_namespace_packages(exclude=['test*']),
+    packages=setuptools.find_namespace_packages(include=['qiskit.*']),
     install_requires=requirements,
     include_package_data=True,
-    python_requires=">=3.5",
+    python_requires=">=3.6",
     extras_require={
         'torch': ["torch; sys_platform == 'linux' or (python_version < '3.8' and sys_platform != 'win32')"],
         'cplex': ["cplex; python_version >= '3.6' and python_version < '3.8'"],

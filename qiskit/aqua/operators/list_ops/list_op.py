@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -15,14 +13,18 @@
 """ ListOp Operator Class """
 
 from functools import reduce
-from typing import List, Union, Optional, Callable, Iterator, Set, Dict
+from typing import List, Union, Optional, Callable, Iterator, Set, Dict, cast
+from numbers import Number
 
 import numpy as np
 from scipy.sparse import spmatrix
 
-from qiskit.circuit import ParameterExpression
+from qiskit.circuit import QuantumCircuit, ParameterExpression
+
 from ..legacy.base_operator import LegacyBaseOperator
 from ..operator_base import OperatorBase
+from ... import AquaError
+from ...utils import arithmetic
 
 
 class ListOp(OperatorBase):
@@ -156,7 +158,16 @@ class ListOp(OperatorBase):
                  convert_fn: Callable,
                  coeff: Optional[Union[int, float, complex,
                                        ParameterExpression]] = None) -> OperatorBase:
-        """ Apply the convert_fn to each node in the oplist. """
+        """Apply the convert_fn to each node in the oplist.
+
+            Args:
+                convert_fn: The function to apply to the internal OperatorBase.
+                coeff: A coefficient to multiply by after applying convert_fn.
+                    If it is None, self.coeff is used instead.
+
+            Returns:
+                The converted ListOp.
+        """
         if coeff is None:
             coeff = self.coeff
 
@@ -204,11 +215,61 @@ class ListOp(OperatorBase):
         from .tensored_op import TensoredOp
         return TensoredOp([self] * other)
 
-    def compose(self, other: OperatorBase) -> OperatorBase:
+    def _expand_dim(self, num_qubits: int) -> 'ListOp':
+        return ListOp([op._expand_dim(num_qubits + self.num_qubits - op.num_qubits)
+                       for op in self.oplist], combo_fn=self.combo_fn, coeff=self.coeff)
+
+    def permute(self, permutation: List[int]) -> 'ListOp':
+        """Permute the qubits of the operator.
+
+        Args:
+            permutation: A list defining where each qubit should be permuted. The qubit at index
+                j should be permuted to position permutation[j].
+
+        Returns:
+            A new ListOp representing the permuted operator.
+
+        Raises:
+            AquaError: if indices do not define a new index for each qubit.
+        """
+        new_self = self
+        circuit_size = max(permutation) + 1
+
+        try:
+            if self.num_qubits != len(permutation):
+                raise AquaError("New index must be defined for each qubit of the operator.")
+        except ValueError:
+            raise AquaError("Permute is only possible if all operators in the ListOp have the "
+                            "same number of qubits.") from ValueError
+        if self.num_qubits < circuit_size:
+            # pad the operator with identities
+            new_self = self._expand_dim(circuit_size - self.num_qubits)
+        qc = QuantumCircuit(circuit_size)
+        # extend the indices to match the size of the circuit
+        permutation \
+            = list(filter(lambda x: x not in permutation, range(circuit_size))) + permutation
+
+        # decompose permutation into sequence of transpositions
+        transpositions = arithmetic.transpositions(permutation)
+        for trans in transpositions:
+            qc.swap(trans[0], trans[1])
+
+        from qiskit.aqua.operators import CircuitOp
+
+        return CircuitOp(qc.reverse_ops()) @ new_self @ CircuitOp(qc)
+
+    def compose(self, other: OperatorBase,
+                permutation: Optional[List[int]] = None, front: bool = False) -> OperatorBase:
+
+        new_self, other = self._expand_shorter_operator_and_permute(other, permutation)
+        new_self = cast(ListOp, new_self)
+
+        if front:
+            return other.compose(new_self)
         # Avoid circular dependency
         # pylint: disable=cyclic-import,import-outside-toplevel
         from .composed_op import ComposedOp
-        return ComposedOp([self, other])
+        return ComposedOp([new_self, other])
 
     def power(self, exponent: int) -> OperatorBase:
         if not isinstance(exponent, int) or exponent <= 0:
@@ -226,8 +287,17 @@ class ListOp(OperatorBase):
                 'in this case {0}x{0} elements.'
                 ' Set massive=True if you want to proceed.'.format(2 ** self.num_qubits))
 
-        # Combination function must be able to handle classical values
-        return self.combo_fn([op.to_matrix() * self.coeff for op in self.oplist])
+        # Combination function must be able to handle classical values.
+        # Note: this can end up, when we have list operators containing other list operators, as a
+        #       ragged array and numpy 1.19 raises a deprecation warning unless this is explicitly
+        #       done as object type now - was implicit before.
+        mat = self.combo_fn(np.asarray([op.to_matrix() * self.coeff for op in self.oplist],
+                                       dtype=object))
+        # Note: As ComposedOp has a combo function of inner product we can end up here not with
+        # a matrix (array) but a scalar. In which case we make a single element array of it.
+        if isinstance(mat, Number):
+            mat = [mat]
+        return np.asarray(mat, dtype=complex)
 
     def to_spmatrix(self) -> Union[spmatrix, List[spmatrix]]:
         """ Returns SciPy sparse matrix representation of the Operator.
@@ -241,8 +311,8 @@ class ListOp(OperatorBase):
             [op.to_spmatrix() for op in self.oplist]) * self.coeff  # type: ignore
 
     def eval(self,
-             front: Optional[Union[str, Dict[str, complex], 'OperatorBase']] = None
-             ) -> Union['OperatorBase', float, complex, list]:
+             front: Optional[Union[str, Dict[str, complex], OperatorBase]] = None
+             ) -> Union[OperatorBase, float, complex, list]:
         """
         Evaluate the Operator's underlying function, either on a binary string or another Operator.
         A square binary Operator can be defined as a function taking a binary function to another

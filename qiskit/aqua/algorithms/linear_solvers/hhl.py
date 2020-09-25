@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -14,12 +12,13 @@
 
 """The HHL algorithm."""
 
-from typing import Optional, Union, Dict, Any
+from typing import Optional, Union, Dict, Any, Tuple
 import logging
 from copy import deepcopy
 import numpy as np
 
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
+from qiskit.dagcircuit import DAGCircuit
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import QuantumAlgorithm
@@ -29,6 +28,7 @@ from qiskit.converters import circuit_to_dag
 from qiskit.aqua.components.initial_states import InitialState
 from qiskit.aqua.components.reciprocals import Reciprocal
 from qiskit.aqua.components.eigs import Eigenvalues
+from .linear_solver_result import LinearsolverResult
 
 logger = logging.getLogger(__name__)
 
@@ -144,14 +144,15 @@ class HHL(QuantumAlgorithm):
         self._ret = {}  # type: Dict[str, Any]
 
     @staticmethod
-    def matrix_resize(matrix, vector):
+    def matrix_resize(matrix: np.ndarray,
+                      vector: np.ndarray) -> Tuple[np.ndarray, np.ndarray, bool, bool]:
         """Resizes matrix if necessary
 
         Args:
-            matrix (np.array): the input matrix of linear system of equations
-            vector (np.array): the input vector of linear system of equations
+            matrix: the input matrix of linear system of equations
+            vector: the input vector of linear system of equations
         Returns:
-            tuple: new matrix, vector, truncate_powerdim, truncate_hermitian
+            new matrix, vector, truncate_powerdim, truncate_hermitian
         Raises:
             ValueError: invalid input
         """
@@ -186,17 +187,17 @@ class HHL(QuantumAlgorithm):
             matrix, vector = HHL.expand_to_hermitian(matrix, vector)
             truncate_hermitian = True
 
-        return (matrix, vector, truncate_powerdim, truncate_hermitian)
+        return matrix, vector, truncate_powerdim, truncate_hermitian
 
-    def construct_circuit(self, measurement=False):
+    def construct_circuit(self, measurement: bool = False) -> QuantumCircuit:
         """Construct the HHL circuit.
 
         Args:
-            measurement (bool): indicate whether measurement on ancillary qubit
+            measurement: indicate whether measurement on ancillary qubit
                 should be performed
 
         Returns:
-            QuantumCircuit: the QuantumCircuit object for the constructed circuit
+            the QuantumCircuit object for the constructed circuit
         """
 
         q = QuantumRegister(self._num_q, name="io")
@@ -230,17 +231,17 @@ class HHL(QuantumAlgorithm):
         return qc
 
     @staticmethod
-    def expand_to_powerdim(matrix, vector):
+    def expand_to_powerdim(matrix: np.ndarray, vector: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """ Expand a matrix to the next-larger 2**n dimensional matrix with
         ones on the diagonal and zeros on the off-diagonal and expand the
         vector with zeros accordingly.
 
         Args:
-            matrix (np.array): the input matrix
-            vector (np.array): the input vector
+            matrix: the input matrix
+            vector: the input vector
 
         Returns:
-           tuple(np.array, np.array): the expanded matrix, the expanded vector
+           the expanded matrix, the expanded vector
         """
         mat_dim = matrix.shape[0]
         next_higher = int(np.ceil(np.log2(mat_dim)))
@@ -254,16 +255,17 @@ class HHL(QuantumAlgorithm):
         return matrix, vector
 
     @staticmethod
-    def expand_to_hermitian(matrix, vector):
+    def expand_to_hermitian(matrix: np.ndarray,
+                            vector: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """ Expand a non-hermitian matrix A to a hermitian matrix by
         [[0, A.H], [A, 0]] and expand vector b to [b.conj, b].
 
         Args:
-            matrix (np.array): the input matrix
-            vector (np.array): the input vector
+            matrix: the input matrix
+            vector: the input vector
 
         Returns:
-            tuple(np.array, np.array): the expanded matrix, the expanded vector
+            the expanded matrix, the expanded vector
         """
         #
         half_dim = matrix.shape[0]
@@ -280,7 +282,7 @@ class HHL(QuantumAlgorithm):
         vector = new_vector.reshape(np.shape(new_vector)[1])
         return matrix, vector
 
-    def _resize_vector(self, vec):
+    def _resize_vector(self, vec: np.ndarray) -> np.ndarray:
         if self._truncate_hermitian:
             half_dim = int(vec.shape[0] / 2)
             vec = vec[:half_dim]
@@ -288,7 +290,7 @@ class HHL(QuantumAlgorithm):
             vec = vec[:self._original_dimension]
         return vec
 
-    def _resize_matrix(self, matrix):
+    def _resize_matrix(self, matrix: np.ndarray) -> np.ndarray:
         if self._truncate_hermitian:
             full_dim = matrix.shape[0]
             half_dim = int(full_dim / 2)
@@ -303,7 +305,7 @@ class HHL(QuantumAlgorithm):
             matrix = new_matrix
         return matrix
 
-    def _statevector_simulation(self):
+    def _statevector_simulation(self) -> None:
         """The statevector simulation.
 
         The HHL result gets extracted from the statevector. Only for
@@ -319,7 +321,7 @@ class HHL(QuantumAlgorithm):
         vec = vec / np.linalg.norm(vec)
         self._hhl_results(vec)
 
-    def _state_tomography(self):
+    def _state_tomography(self) -> None:
         """The state tomography.
 
         The HHL result gets extracted via state tomography. Available for
@@ -358,7 +360,7 @@ class HHL(QuantumAlgorithm):
         vec = np.sqrt(np.diag(rho_fit))
         self._hhl_results(vec)
 
-    def _tomo_postselect(self, results):
+    def _tomo_postselect(self, results: Any) -> Any:
         new_results = deepcopy(results)
 
         for resultidx, _ in enumerate(results.results):
@@ -384,7 +386,7 @@ class HHL(QuantumAlgorithm):
 
         return new_results
 
-    def _hhl_results(self, vec):
+    def _hhl_results(self, vec: np.ndarray) -> None:
         res_vec = self._resize_vector(vec)
         in_vec = self._resize_vector(self._vector)
         matrix = self._resize_matrix(self._matrix)
@@ -396,7 +398,7 @@ class HHL(QuantumAlgorithm):
         f2 = sum(np.angle(in_vec * tmp_vec.conj() - 1 + 1)) / (np.log2(matrix.shape[0]))
         self._ret["solution"] = f1 * res_vec * np.exp(-1j * f2)
 
-    def _run(self):
+    def _run(self) -> 'HHLResult':
         if self._quantum_instance.is_statevector:
             self.construct_circuit(measurement=False)
             self._statevector_simulation()
@@ -407,4 +409,74 @@ class HHL(QuantumAlgorithm):
         self._ret["matrix"] = self._resize_matrix(self._matrix)
         self._ret["vector"] = self._resize_vector(self._vector)
         self._ret["circuit_info"] = circuit_to_dag(self._circuit).properties()
-        return self._ret
+
+        ls_result = LinearsolverResult()
+        ls_result.solution = self._ret['solution']
+
+        result = HHLResult()
+        result.combine(ls_result)
+        result.probability_result = self._ret['probability_result']
+        result.output = self._ret['output']
+        result.matrix = self._ret['matrix']
+        result.vector = self._ret['vector']
+        result.circuit_info = self._ret['circuit_info']
+        return result
+
+
+class HHLResult(LinearsolverResult):
+    """ HHL Result."""
+
+    @property
+    def probability_result(self) -> Union[np.ndarray, float]:
+        """ return probability result """
+        return self.get('probability_result')
+
+    @probability_result.setter
+    def probability_result(self, value: Union[np.ndarray, float]) -> None:
+        """ set probability result """
+        self.data['probability_result'] = value
+
+    @property
+    def output(self) -> np.ndarray:
+        """ return output """
+        return self.get('output')
+
+    @output.setter
+    def output(self, value: np.ndarray) -> None:
+        """ set output """
+        self.data['output'] = value
+
+    @property
+    def matrix(self) -> np.ndarray:
+        """ return matrix """
+        return self.get('matrix')
+
+    @matrix.setter
+    def matrix(self, value: np.ndarray) -> None:
+        """ set matrix """
+        self.data['matrix'] = value
+
+    @property
+    def vector(self) -> np.ndarray:
+        """ return vector """
+        return self.get('vector')
+
+    @vector.setter
+    def vector(self, value: np.ndarray) -> None:
+        """ set vector """
+        self.data['vector'] = value
+
+    @property
+    def circuit_info(self) -> DAGCircuit:
+        """ return circuit info """
+        return self.get('circuit_info')
+
+    @circuit_info.setter
+    def circuit_info(self, value: DAGCircuit) -> None:
+        """ set circuit info """
+        self.data['circuit_info'] = value
+
+    @staticmethod
+    def from_dict(a_dict: Dict) -> 'HHLResult':
+        """ create new object from a dictionary """
+        return HHLResult(a_dict)

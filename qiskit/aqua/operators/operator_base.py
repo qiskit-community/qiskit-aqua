@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -14,7 +12,7 @@
 
 """ OperatorBase Class """
 
-from typing import Set, Union, Dict, Optional, List, cast
+from typing import Set, Union, Dict, Optional, List, cast, Tuple
 from numbers import Number
 from abc import ABC, abstractmethod
 import numpy as np
@@ -77,14 +75,19 @@ class OperatorBase(ABC):
         defined to be evaluated from Zero implicitly (i.e. it is as if ``.eval('0000')`` is already
         called implicitly to always "indexing" from column 0).
 
+        If ``front`` is None, the matrix-representation of the operator is returned.
+
         Args:
             front: The bitstring, dict of bitstrings (with values being coefficients), or
-                StateFn to evaluated by the Operator's underlying function.
+                StateFn to evaluated by the Operator's underlying function, or None.
 
         Returns:
             The output of the Operator's evaluation function. If self is a ``StateFn``, the result
             is a float or complex. If self is an Operator (``PrimitiveOp, ComposedOp, SummedOp,
-            EvolvedOp,`` etc.), the result is a StateFn. If either self or front contain proper
+            EvolvedOp,`` etc.), the result is a StateFn.
+            If ``front`` is None, the matrix-representation of the operator is returned, which
+            is a ``MatrixOp`` for the operators and a ``VectorStateFn`` for state-functions.
+            If either self or front contain proper
             ``ListOps`` (not ListOp subclasses), the result is an n-dimensional list of complex
             or StateFn results, resulting from the recursive evaluation by each OperatorBase
             in the ListOps.
@@ -449,6 +452,32 @@ class OperatorBase(ABC):
         """
         raise NotImplementedError
 
+    @abstractmethod
+    def _expand_dim(self, num_qubits: int) -> 'OperatorBase':
+        """Expands the operator with identity operator of dimension 2**num_qubits.
+
+        Returns:
+            Operator corresponding to self.tensor(identity_operator), where dimension of identity
+            operator is 2 ** num_qubits.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def permute(self, permutation: List[int]) -> 'OperatorBase':
+        """Permutes the qubits of the operator.
+
+        Args:
+            permutation: A list defining where each qubit should be permuted. The qubit at index
+                j should be permuted to position permutation[j].
+
+        Returns:
+            A new OperatorBase containing the permuted operator.
+
+        Raises:
+            AquaError: if indices do not define a new index for each qubit.
+        """
+        raise NotImplementedError
+
     def bind_parameters(self,
                         param_dict: Dict[ParameterExpression,
                                          Union[Number,
@@ -498,6 +527,24 @@ class OperatorBase(ABC):
         """ Gets a single non-list-nested param_dict for a given list index from a nested one. """
         return {k: v[i] for (k, v) in unrolled_dict.items()}
 
+    def _expand_shorter_operator_and_permute(self, other: 'OperatorBase',
+                                             permutation: Optional[List[int]] = None) \
+            -> Tuple['OperatorBase', 'OperatorBase']:
+        if permutation is not None:
+            other = other.permute(permutation)
+        new_self = self
+        if not self.num_qubits == other.num_qubits:
+            # pylint: disable=cyclic-import,import-outside-toplevel
+            from .operator_globals import Zero
+            if other == Zero:
+                # Zero is special - we'll expand it to the correct qubit number.
+                other = Zero.__class__('0' * self.num_qubits)
+            elif other.num_qubits < self.num_qubits:
+                other = other._expand_dim(self.num_qubits - other.num_qubits)
+            elif other.num_qubits > self.num_qubits:
+                new_self = self._expand_dim(other.num_qubits - self.num_qubits)
+        return new_self, other
+
     # Composition
 
     def __matmul__(self, other: 'OperatorBase') -> 'OperatorBase':
@@ -512,7 +559,8 @@ class OperatorBase(ABC):
         return self.compose(other)
 
     @abstractmethod
-    def compose(self, other: 'OperatorBase') -> 'OperatorBase':
+    def compose(self, other: 'OperatorBase',
+                permutation: Optional[List[int]] = None, front: bool = False) -> 'OperatorBase':
         r""" Return Operator Composition between self and other (linear algebra-style:
         A@B(x) = A(B(x))), overloaded by ``@``.
 
@@ -526,6 +574,8 @@ class OperatorBase(ABC):
 
         Args:
             other: The ``OperatorBase`` with which to compose self.
+            permutation: ``List[int]`` which defines permutation on other operator.
+            front: If front==True, return ``other.compose(self)``.
 
         Returns:
             An ``OperatorBase`` equivalent to the function composition of self and other.

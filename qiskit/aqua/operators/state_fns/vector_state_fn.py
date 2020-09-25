@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -15,8 +13,9 @@
 """ VectorStateFn Class """
 
 
-from typing import Union, Set
+from typing import Union, Set, Optional, Dict, List
 import numpy as np
+from qiskit import QuantumCircuit
 
 from qiskit.quantum_info import Statevector
 from qiskit.circuit import ParameterExpression
@@ -25,6 +24,7 @@ from qiskit.aqua import aqua_globals
 from ..operator_base import OperatorBase
 from .state_fn import StateFn
 from ..list_ops.list_op import ListOp
+from ...utils import arithmetic
 
 
 class VectorStateFn(StateFn):
@@ -78,6 +78,51 @@ class VectorStateFn(StateFn):
                              coeff=np.conj(self.coeff),
                              is_measurement=(not self.is_measurement))
 
+    def permute(self, permutation: List[int]) -> 'VectorStateFn':
+        new_self = self
+        new_num_qubits = max(permutation) + 1
+
+        if self.num_qubits != len(permutation):
+            # raise AquaError("New index must be defined for each qubit of the operator.")
+            pass
+        if self.num_qubits < new_num_qubits:
+            # pad the operator with identities
+            new_self = self._expand_dim(new_num_qubits - self.num_qubits)
+        qc = QuantumCircuit(new_num_qubits)
+
+        # extend the permutation indices to match the size of the new matrix
+        permutation \
+            = list(filter(lambda x: x not in permutation, range(new_num_qubits))) + permutation
+
+        # decompose permutation into sequence of transpositions
+        transpositions = arithmetic.transpositions(permutation)
+        for trans in transpositions:
+            qc.swap(trans[0], trans[1])
+        from .. import CircuitOp
+        matrix = CircuitOp(qc).to_matrix()
+        vector = new_self.primitive.data
+        return VectorStateFn(primitive=matrix.dot(vector),
+                             coeff=self.coeff,
+                             is_measurement=self.is_measurement)
+
+    def to_dict_fn(self) -> StateFn:
+        """Creates the equivalent state function of type DictStateFn.
+
+        Returns:
+            A new DictStateFn equivalent to ``self``.
+        """
+        from .dict_state_fn import DictStateFn
+
+        num_qubits = self.num_qubits
+        new_dict = {format(i, 'b').zfill(num_qubits): v for i, v in enumerate(self.primitive.data)}
+        return DictStateFn(new_dict, coeff=self.coeff, is_measurement=self.is_measurement)
+
+    def _expand_dim(self, num_qubits: int) -> 'VectorStateFn':
+        primitive = np.zeros(2**num_qubits, dtype=complex)
+        return VectorStateFn(self.primitive.tensor(primitive),
+                             coeff=self.coeff,
+                             is_measurement=self.is_measurement)
+
     def tensor(self, other: OperatorBase) -> OperatorBase:
         if isinstance(other, VectorStateFn):
             return StateFn(self.primitive.tensor(other.primitive),
@@ -128,8 +173,11 @@ class VectorStateFn(StateFn):
 
     # pylint: disable=too-many-return-statements
     def eval(self,
-             front: Union[str, dict, np.ndarray,
-                          OperatorBase] = None) -> Union[OperatorBase, float, complex]:
+             front: Optional[Union[str, Dict[str, complex], np.ndarray, OperatorBase]] = None
+             ) -> Union[OperatorBase, float, complex]:
+        if front is None:  # this object is already a VectorStateFn
+            return self
+
         if not self.is_measurement and isinstance(front, OperatorBase):
             raise ValueError(
                 'Cannot compute overlap with StateFn or Operator if not Measurement. Try taking '
@@ -144,9 +192,9 @@ class VectorStateFn(StateFn):
 
         # pylint: disable=cyclic-import,import-outside-toplevel
         from ..operator_globals import EVAL_SIG_DIGITS
-        from .dict_state_fn import DictStateFn
         from .operator_state_fn import OperatorStateFn
         from .circuit_state_fn import CircuitStateFn
+        from .dict_state_fn import DictStateFn
         if isinstance(front, DictStateFn):
             return np.round(sum([v * self.primitive.data[int(b, 2)] * front.coeff  # type: ignore
                                  for (b, v) in front.primitive.items()]) * self.coeff,

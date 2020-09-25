@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -31,8 +29,8 @@ class TestNumPyLSsolver(QiskitAquaTestCase):
         """ ELS test """
         algo = NumPyLSsolver(self.matrix, self.vector)
         result = algo.run()
-        np.testing.assert_array_almost_equal(result['solution'], [1, 0])
-        np.testing.assert_array_almost_equal(result['eigvals'], [3, -1])
+        np.testing.assert_array_almost_equal(result.solution, [1, 0])
+        np.testing.assert_array_almost_equal(result.eigvals, [3, -1])
 
 
 if __name__ == '__main__':
