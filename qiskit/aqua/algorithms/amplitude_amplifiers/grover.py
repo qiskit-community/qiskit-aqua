@@ -84,19 +84,19 @@ class Grover(QuantumAlgorithm):
 
     def __init__(self,
                  oracle: Union[Oracle, QuantumCircuit, Statevector],
-                 init_state: Optional[InitialState] = None,
                  state_preparation: Optional[Union[QuantumCircuit, InitialState]] = None,
-                 is_good_state: Union[Callable, List[int], Statevector] = None,
-                 grover_operator: Optional[QuantumCircuit] = None,
                  incremental: bool = False,
-                 num_iterations: Optional[int] = None,
+                 iterations: Union[int, List[int]] = 1,
                  lam: Optional[float] = None,
                  rotation_counts: Optional[List[int]] = None,
-                 num_solutions: Optional[int] = None,
-                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None,
                  mct_mode: Optional[str] = None,
+                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None,
+                 good_state: Union[Callable, List[int], Statevector] = None,
+                 num_solutions: Optional[int] = None,
+                 num_iterations: Optional[int] = None,
                  post_processing: Callable = None,
-                 iterations: Union[int, List[int]] = 1) -> None:
+                 grover_operator: Optional[QuantumCircuit] = None,
+                 init_state: Optional[InitialState] = None) -> None:
         # pylint: disable=line-too-long
         r"""
         Args:
@@ -228,14 +228,8 @@ class Grover(QuantumAlgorithm):
                         'Missing the evaluate_classically() method \
                             from the provided oracle instance.'
                     )
-                warnings.warn('Passing an qiskit.aqua.components.oracles.Oracle object is '
-                              'deprecated as of 0.8.0, and the support will be removed no '
-                              'earlier than 3 months after the release date. You should pass a '
-                              'QuantumCircuit or Statevector argument instead. See also the '
-                              'qiskit.circuit.library.GroverOperator for more information.',
-                              DeprecationWarning, stacklevel=2)
 
-                oracle, reflection_qubits, is_good_state = _oracle_component_to_circuit(oracle)
+                oracle, reflection_qubits, good_state = _oracle_component_to_circuit(oracle)
             elif not isinstance(oracle, (QuantumCircuit, Statevector)):
                 raise TypeError('Unsupported type "{}" of oracle'.format(type(oracle)))
 
@@ -244,7 +238,7 @@ class Grover(QuantumAlgorithm):
                                                    reflection_qubits=reflection_qubits,
                                                    mcx_mode=mct_mode)
 
-        self._is_good_state = is_good_state
+        self._is_good_state = good_state
         self._post_processing = post_processing
         self._incremental = incremental
         self._lam = lam
@@ -274,7 +268,7 @@ class Grover(QuantumAlgorithm):
             self._iterations = [iterations]
             self._num_iterations = iterations
 
-        if incremental:
+        if incremental or (isinstance(iterations, list) and len(iterations) > 1):
             logger.debug('Incremental mode specified, \
                 ignoring "num_iterations" and "num_solutions".')
         elif num_solutions:
@@ -383,18 +377,24 @@ class Grover(QuantumAlgorithm):
     def _run(self) -> 'GroverResult':
         # If ``rotation_counts`` is specified, run Grover's circuit for the powers specified
         # in ``rotation_counts``. Once a good state is found (oracle_evaluation is True), stop.
-        if self._incremental:
+        if not (self._incremental and self._rotation_counts is None):
+            #print("rotation_counts  ", self._rotation_counts)
+            for target_num_iterations in self._iterations:
+                #print("target_num_iterations  ", target_num_iterations)
+                assignment, oracle_evaluation = self._run_experiment(target_num_iterations)
+                #print(assignment)
+                if oracle_evaluation:
+                    #print("oracle_evaluation")
+                    break
+                if target_num_iterations > self._max_num_iterations:
+                    #print("too many iterations")
+                    break
+        else:
+            #print("lam   ", self._iterations)
             for current_max_num_iterations in self._iterations:
                 target_num_iterations = self.random.integers(current_max_num_iterations) + 1
                 assignment, oracle_evaluation = self._run_experiment(target_num_iterations)
-                if oracle_evaluation is True:
-                    break
-        else:
-            for target_num_iterations in self._iterations:
-                assignment, oracle_evaluation = self._run_experiment(target_num_iterations)
-                if oracle_evaluation is True:
-                    break
-                if target_num_iterations > self._max_num_iterations:
+                if oracle_evaluation:
                     break
 
         # TODO remove all former dictionary logic
