@@ -282,7 +282,7 @@ class Grover(QuantumAlgorithm):
         self._ret = {}  # type: Dict[str, Any]
 
     @staticmethod
-    def optimal_num_iterations(num_solutions, num_qubits):
+    def optimal_num_iterations(num_solutions: int, num_qubits: int) -> int:
         """Return the optimal number of iterations, if the number of solutions is known.
 
         Args:

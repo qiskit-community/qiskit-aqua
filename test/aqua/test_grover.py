@@ -254,12 +254,6 @@ class TestGroverFunctionality(QiskitAquaTestCase):
         ret = grover.run(self._sv)
         self.assertTrue(Operator(ret['circuit']).equiv(Operator(self._expected)))
 
-    def test_num_solution(self):
-        """Test specified num_solutions"""
-        grover = Grover(oracle=self._oracle, good_state=['111'], num_solutions=1)
-        ret = grover.run(self._sv)
-        self.assertTrue(Operator(ret['circuit']).equiv(Operator(self._expected)))
-
     def test_iterations(self):
         """Test the iterations argument"""
         grover = Grover(oracle=self._oracle, good_state=['111'], iterations=2)
