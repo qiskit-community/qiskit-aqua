@@ -285,7 +285,7 @@ class OperatorBase(ABC):
     def equals(self, other: 'OperatorBase') -> bool:
         r"""
         Evaluate Equality between Operators, overloaded by ``==``. Only returns True if self and
-        other are of the same representation (e.g. a DictStateVector and CircuitStateFn will never be
+        other are of the same representation (e.g. a DictStateVector and StateCircuit will never be
         equal, even if their vector representations are equal), their underlying primitives are
         equal (this means for ListOps, DensityOperators, or EvolvedOps the equality is evaluated
         recursively downwards), and their coefficients are equal.

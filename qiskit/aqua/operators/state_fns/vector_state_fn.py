@@ -109,8 +109,8 @@ class StateVector(StateFn):
 
     def to_circuit_op(self) -> OperatorBase:
         """ Return ``StateFnCircuit`` corresponding to this StateFn."""
-        from .circuit_state_fn import CircuitStateFn
-        csfn = CircuitStateFn.from_vector(self.to_matrix(massive=True)) * self.coeff  # type: ignore
+        from .circuit_state_fn import StateCircuit
+        csfn = StateCircuit.from_vector(self.to_matrix(massive=True)) * self.coeff  # type: ignore
         return csfn.adjoint() if self.is_measurement else csfn
 
     def __str__(self) -> str:
@@ -147,7 +147,7 @@ class StateVector(StateFn):
         from ..operator_globals import EVAL_SIG_DIGITS
         from .dict_state_fn import DictStateVector
         from .operator_state_fn import DensityOperator
-        from .circuit_state_fn import CircuitStateFn
+        from .circuit_state_fn import StateCircuit
         if isinstance(front, DictStateVector):
             return np.round(sum([v * self.primitive.data[int(b, 2)] * front.coeff  # type: ignore
                                  for (b, v) in front.primitive.items()]) * self.coeff,
@@ -158,8 +158,8 @@ class StateVector(StateFn):
             return np.round(np.dot(self.to_matrix(), front.to_matrix())[0],
                             decimals=EVAL_SIG_DIGITS)
 
-        if isinstance(front, CircuitStateFn):
-            # Don't reimplement logic from CircuitStateFn
+        if isinstance(front, StateCircuit):
+            # Don't reimplement logic from StateCircuit
             return np.conj(
                 front.adjoint().eval(self.adjoint().primitive)) * self.coeff  # type: ignore
 

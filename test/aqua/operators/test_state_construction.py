@@ -21,7 +21,7 @@ from qiskit.circuit import ParameterVector
 from qiskit import quantum_info
 
 from qiskit.aqua.operators import (StateFn, Zero, One, Plus, Minus, PrimitiveOp,
-                                   SummedOp, H, I, Z, X, Y, CX, CircuitStateFn, DictToCircuitSum)
+                                   SummedOp, H, I, Z, X, Y, CX, StateCircuit, DictToCircuitSum)
 
 
 # pylint: disable=invalid-name
@@ -109,10 +109,10 @@ class TestStateConstruction(QiskitAquaTestCase):
                      '1000000': .1,
                      '0000000': .2j,
                      '1111111': 0.5j}
-        sfc_sum = CircuitStateFn.from_dict(statedict)
+        sfc_sum = StateCircuit.from_dict(statedict)
         self.assertIsInstance(sfc_sum, SummedOp)
         for sfc_op in sfc_sum.oplist:
-            self.assertIsInstance(sfc_op, CircuitStateFn)
+            self.assertIsInstance(sfc_op, StateCircuit)
             samples = sfc_op.sample()
             self.assertIn(list(samples.keys())[0], statedict)
             self.assertEqual(sfc_op.coeff, statedict[list(samples.keys())[0]])
@@ -124,8 +124,8 @@ class TestStateConstruction(QiskitAquaTestCase):
                      '100': .1,
                      '000': .2,
                      '111': .5}
-        sfc = CircuitStateFn.from_dict(statedict)
-        self.assertIsInstance(sfc, CircuitStateFn)
+        sfc = StateCircuit.from_dict(statedict)
+        self.assertIsInstance(sfc, StateCircuit)
         samples = sfc.sample()
         np.testing.assert_array_almost_equal(StateFn(statedict).to_matrix(),
                                              np.round(sfc.to_matrix(), decimals=1))
@@ -135,7 +135,7 @@ class TestStateConstruction(QiskitAquaTestCase):
             self.assertAlmostEqual(v, np.abs(statedict[k]) ** .5, delta=.5)
 
         # Follows same code path as above, but testing to be thorough
-        sfc_vector = CircuitStateFn.from_vector(StateFn(statedict).to_matrix())
+        sfc_vector = StateCircuit.from_vector(StateFn(statedict).to_matrix())
         np.testing.assert_array_almost_equal(StateFn(statedict).to_matrix(), sfc_vector.to_matrix())
 
     def test_sampling(self):
@@ -144,7 +144,7 @@ class TestStateConstruction(QiskitAquaTestCase):
                      '100': .1,
                      '000': .2,
                      '111': .5}
-        sfc = CircuitStateFn.from_dict(statedict)
+        sfc = StateCircuit.from_dict(statedict)
         circ_samples = sfc.sample()
         dict_samples = StateFn(statedict).sample()
         vec_samples = StateFn(statedict).to_matrix_op().sample()
@@ -157,14 +157,14 @@ class TestStateConstruction(QiskitAquaTestCase):
 
     def test_dict_to_circuit_sum(self):
         """ Test DictToCircuitSum converter. """
-        # Test qubits < entires, so dict is converted to Initialize CircuitStateFn
+        # Test qubits < entires, so dict is converted to Initialize StateCircuit
         dict_state_3q = StateFn({'101': .5, '100': .1, '000': .2, '111': .5})
         circuit_state_3q = DictToCircuitSum().convert(dict_state_3q)
-        self.assertIsInstance(circuit_state_3q, CircuitStateFn)
+        self.assertIsInstance(circuit_state_3q, StateCircuit)
         np.testing.assert_array_almost_equal(dict_state_3q.to_matrix(),
                                              circuit_state_3q.to_matrix())
 
-        # Test qubits >= entires, so dict is converted to Initialize CircuitStateFn
+        # Test qubits >= entires, so dict is converted to Initialize StateCircuit
         dict_state_4q = dict_state_3q ^ Zero
         circuit_state_4q = DictToCircuitSum().convert(dict_state_4q)
         self.assertIsInstance(circuit_state_4q, SummedOp)
@@ -174,12 +174,12 @@ class TestStateConstruction(QiskitAquaTestCase):
         # Test StateVector conversion
         vect_state_3q = dict_state_3q.to_matrix_op()
         circuit_state_3q_vect = DictToCircuitSum().convert(vect_state_3q)
-        self.assertIsInstance(circuit_state_3q_vect, CircuitStateFn)
+        self.assertIsInstance(circuit_state_3q_vect, StateCircuit)
         np.testing.assert_array_almost_equal(vect_state_3q.to_matrix(),
                                              circuit_state_3q_vect.to_matrix())
 
     def test_circuit_permute(self):
-        r""" Test the CircuitStateFn's .permute method """
+        r""" Test the StateCircuit's .permute method """
         perm = range(7)[::-1]
         c_op = (((CX ^ 3) ^ X) @
                 (H ^ 7) @

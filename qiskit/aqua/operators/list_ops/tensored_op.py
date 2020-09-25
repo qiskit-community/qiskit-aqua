@@ -18,7 +18,7 @@ import numpy as np
 
 from qiskit.circuit import QuantumCircuit, ParameterExpression
 
-from ..state_fns.circuit_state_fn import CircuitStateFn
+from ..state_fns.circuit_state_fn import StateCircuit
 from ..operator_base import OperatorBase
 from ..primitive_ops.primitive_op import PrimitiveOp
 from .list_op import ListOp
@@ -86,7 +86,7 @@ class TensoredOp(ListOp):
             AquaError: for operators where a single underlying circuit can not be produced.
         """
         circuit_op = self.to_circuit_op()
-        if isinstance(circuit_op, (PrimitiveOp, CircuitStateFn)):
+        if isinstance(circuit_op, (PrimitiveOp, StateCircuit)):
             return circuit_op.to_circuit()
         raise AquaError('Conversion to_circuit supported only for operators, where a single '
                         'underlying circuit can be produced.')

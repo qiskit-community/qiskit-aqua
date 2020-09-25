@@ -84,8 +84,8 @@ class StateFn(OperatorBase):
             return StateVector.__new__(StateVector)
 
         if isinstance(primitive, (QuantumCircuit, Instruction)):
-            from .circuit_state_fn import CircuitStateFn
-            return CircuitStateFn.__new__(CircuitStateFn)
+            from .circuit_state_fn import StateCircuit
+            return StateCircuit.__new__(StateCircuit)
 
         if isinstance(primitive, OperatorBase):
             from .operator_state_fn import DensityOperator
@@ -251,7 +251,7 @@ class StateFn(OperatorBase):
         from qiskit.aqua.operators import CircuitOp
 
         if self.primitive == {'0' * self.num_qubits: 1.0} and isinstance(other, CircuitOp):
-            # Returning CircuitStateFn
+            # Returning StateCircuit
             return StateFn(other.primitive, is_measurement=self.is_measurement,
                            coeff=self.coeff * other.coeff)
 

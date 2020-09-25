@@ -140,7 +140,7 @@ from .legacy import (LegacyBaseOperator, WeightedPauliOperator, Z2Symmetries,
 from .operator_base import OperatorBase
 from .primitive_ops import PrimitiveOp, PauliOp, MatrixOp, CircuitOp
 from .state_fns import (StateFn, DictStateVector, StateVector,
-                        CircuitStateFn, DensityOperator)
+                        StateCircuit, DensityOperator)
 from .list_ops import ListOp, SummedOp, ComposedOp, TensoredOp
 from .converters import (ConverterBase, CircuitSampler, PauliBasisChange,
                          DictToCircuitSum, AbelianGrouper)
@@ -168,7 +168,7 @@ __all__ = [
     # Operators
     'OperatorBase',
     'PrimitiveOp', 'PauliOp', 'MatrixOp', 'CircuitOp',
-    'StateFn', 'DictStateVector', 'StateVector', 'CircuitStateFn', 'DensityOperator',
+    'StateFn', 'DictStateVector', 'StateVector', 'StateCircuit', 'DensityOperator',
     'ListOp', 'SummedOp', 'ComposedOp', 'TensoredOp',
     # Converters
     'ConverterBase', 'CircuitSampler', 'AbelianGrouper', 'DictToCircuitSum', 'PauliBasisChange',

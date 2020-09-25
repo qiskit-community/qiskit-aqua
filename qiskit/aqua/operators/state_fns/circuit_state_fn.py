@@ -10,7 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" CircuitStateFn Class """
+""" StateCircuit Class """
 
 
 from typing import Union, Set, List, Optional, Dict, cast
@@ -26,10 +26,10 @@ from ..list_ops.summed_op import SummedOp
 from .state_fn import StateFn
 
 
-class CircuitStateFn(StateFn):
+class StateCircuit(StateFn):
     r"""
     A class for state functions and measurements which are defined by the action of a
-    QuantumCircuit starting from \|0⟩, and stored using Terra's ``QuantumCircuit`` class.
+    QuantumCircuit on the state \|0⟩, and stored using Terra's ``QuantumCircuit`` class.
     """
 
     # TODO allow normalization somehow?
@@ -53,7 +53,7 @@ class CircuitStateFn(StateFn):
             primitive = qc
 
         if not isinstance(primitive, QuantumCircuit):
-            raise TypeError('CircuitStateFn can only be instantiated '
+            raise TypeError('StateCircuit can only be instantiated '
                             'with QuantumCircuit, not {}'.format(type(primitive)))
 
         if len(primitive.clbits) != 0:
@@ -62,14 +62,14 @@ class CircuitStateFn(StateFn):
         super().__init__(primitive, coeff=coeff, is_measurement=is_measurement)
 
     @staticmethod
-    def from_dict(density_dict: dict) -> 'CircuitStateFn':
-        """ Construct the CircuitStateFn from a dict mapping strings to probability densities.
+    def from_dict(density_dict: dict) -> 'StateCircuit':
+        """ Construct the StateCircuit from a dict mapping strings to probability densities.
 
         Args:
             density_dict: The dict representing the desired state.
 
         Returns:
-            The CircuitStateFn created from the dict.
+            The StateCircuit created from the dict.
         """
         # If the dict is sparse (elements <= qubits), don't go
         # building a statevector to pass to Qiskit's
@@ -82,25 +82,25 @@ class CircuitStateFn(StateFn):
                 for (index, bit) in enumerate(reversed(bstr)):
                     if bit == '1':
                         qc.x(index)
-                sf_circuit = CircuitStateFn(qc, coeff=prob)
+                sf_circuit = StateCircuit(qc, coeff=prob)
                 statefn_circuits += [sf_circuit]
             if len(statefn_circuits) == 1:
                 return statefn_circuits[0]
             else:
-                return cast(CircuitStateFn, SummedOp(cast(List[OperatorBase], statefn_circuits)))
+                return cast(StateCircuit, SummedOp(cast(List[OperatorBase], statefn_circuits)))
         else:
             sf_dict = StateFn(density_dict)
-            return CircuitStateFn.from_vector(sf_dict.to_matrix())
+            return StateCircuit.from_vector(sf_dict.to_matrix())
 
     @staticmethod
-    def from_vector(statevector: np.ndarray) -> 'CircuitStateFn':
-        """ Construct the CircuitStateFn from a vector representing the statevector.
+    def from_vector(statevector: np.ndarray) -> 'StateCircuit':
+        """ Construct the StateCircuit from a vector representing the statevector.
 
         Args:
             statevector: The statevector representing the desired state.
 
         Returns:
-            The CircuitStateFn created from the vector.
+            The StateCircuit created from the vector.
 
         Raises:
             ValueError: If a vector with complex values is passed, which the Initializer cannot
@@ -111,7 +111,7 @@ class CircuitStateFn(StateFn):
         if not np.all(np.abs(statevector) == statevector):
             # TODO maybe switch to Isometry?
             raise ValueError('Qiskit circuit Initializer cannot handle non-positive statevectors.')
-        return CircuitStateFn(Initialize(normalized_sv), coeff=normalization_coeff)
+        return StateCircuit(Initialize(normalized_sv), coeff=normalization_coeff)
 
     def primitive_strings(self) -> Set[str]:
         return {'QuantumCircuit'}
@@ -126,14 +126,14 @@ class CircuitStateFn(StateFn):
                              '{} and {}, is not well '
                              'defined'.format(self.num_qubits, other.num_qubits))
 
-        if isinstance(other, CircuitStateFn) and self.primitive == other.primitive:
-            return CircuitStateFn(self.primitive, coeff=self.coeff + other.coeff)
+        if isinstance(other, StateCircuit) and self.primitive == other.primitive:
+            return StateCircuit(self.primitive, coeff=self.coeff + other.coeff)
 
         # Covers all else.
         return SummedOp([self, other])
 
     def adjoint(self) -> OperatorBase:
-        return CircuitStateFn(self.primitive.inverse(),
+        return StateCircuit(self.primitive.inverse(),
                               coeff=np.conj(self.coeff),
                               is_measurement=(not self.is_measurement))
 
@@ -155,12 +155,12 @@ class CircuitStateFn(StateFn):
             # Avoid reimplementing compose logic
             composed_op_circs = op_circuit_self.compose(other.to_circuit_op())
 
-            # Returning CircuitStateFn
-            return CircuitStateFn(composed_op_circs.primitive,  # type: ignore
+            # Returning StateCircuit
+            return StateCircuit(composed_op_circs.primitive,  # type: ignore
                                   is_measurement=self.is_measurement,
                                   coeff=self.coeff * other.coeff)
 
-        if isinstance(other, CircuitStateFn) and self.is_measurement:
+        if isinstance(other, StateCircuit) and self.is_measurement:
             from .. import Zero
             return self.compose(CircuitOp(other.primitive,
                                           other.coeff)).compose(Zero ^ self.num_qubits)
@@ -188,7 +188,7 @@ class CircuitStateFn(StateFn):
             An ``OperatorBase`` equivalent to the tensor product of self and other.
         """
         # pylint: disable=import-outside-toplevel
-        if isinstance(other, CircuitStateFn) and other.is_measurement == self.is_measurement:
+        if isinstance(other, StateCircuit) and other.is_measurement == self.is_measurement:
             # Avoid reimplementing tensor, just use CircuitOp's
             from ..primitive_ops.circuit_op import CircuitOp
             from ..operator_globals import Zero
@@ -241,10 +241,10 @@ class CircuitStateFn(StateFn):
         qc = self.reduce().to_circuit()  # type: ignore
         prim_str = str(qc.draw(output='text'))
         if self.coeff == 1.0:
-            return "{}(\n{}\n)".format('CircuitStateFn' if not self.is_measurement
+            return "{}(\n{}\n)".format('StateCircuit' if not self.is_measurement
                                        else 'CircuitMeasurement', prim_str)
         else:
-            return "{}(\n{}\n) * {}".format('CircuitStateFn' if not self.is_measurement
+            return "{}(\n{}\n) * {}".format('StateCircuit' if not self.is_measurement
                                             else 'CircuitMeasurement',
                                             prim_str,
                                             self.coeff)
@@ -296,7 +296,7 @@ class CircuitStateFn(StateFn):
                                    for front_elem in front.oplist])
 
         # Composable with circuit
-        if isinstance(front, (PauliOp, CircuitOp, MatrixOp, CircuitStateFn)):
+        if isinstance(front, (PauliOp, CircuitOp, MatrixOp, StateCircuit)):
             new_front = self.compose(front)
             return cast(Union[OperatorBase, float, complex], new_front.eval())
 
@@ -357,7 +357,7 @@ class CircuitStateFn(StateFn):
                     del self.primitive.data[i]
         return self
 
-    def permute(self, permutation: List[int]) -> 'CircuitStateFn':
+    def permute(self, permutation: List[int]) -> 'StateCircuit':
         r"""
         Permute the qubits of the circuit.
 
@@ -366,7 +366,7 @@ class CircuitStateFn(StateFn):
                 j of the circuit should be permuted to position permutation[j].
 
         Returns:
-            A new CircuitStateFn containing the permuted circuit.
+            A new StateCircuit containing the permuted circuit.
         """
         new_qc = QuantumCircuit(self.num_qubits).compose(self.primitive, qubits=permutation)
-        return CircuitStateFn(new_qc, coeff=self.coeff, is_measurement=self.is_measurement)
+        return StateCircuit(new_qc, coeff=self.coeff, is_measurement=self.is_measurement)

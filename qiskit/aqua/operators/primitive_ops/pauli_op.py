@@ -109,8 +109,8 @@ class PauliOp(PrimitiveOp):
 
         # pylint: disable=cyclic-import,import-outside-toplevel
         from .circuit_op import CircuitOp
-        from ..state_fns.circuit_state_fn import CircuitStateFn
-        if isinstance(other, (CircuitOp, CircuitStateFn)):
+        from ..state_fns.circuit_state_fn import StateCircuit
+        if isinstance(other, (CircuitOp, StateCircuit)):
             return self.to_circuit_op().compose(other)
 
         return super().compose(other)
@@ -151,7 +151,7 @@ class PauliOp(PrimitiveOp):
         # pylint: disable=import-outside-toplevel,cyclic-import
         from ..state_fns.state_fn import StateFn
         from ..state_fns.dict_state_fn import DictStateVector
-        from ..state_fns.circuit_state_fn import CircuitStateFn
+        from ..state_fns.circuit_state_fn import StateCircuit
         from ..list_ops.list_op import ListOp
         from .circuit_op import CircuitOp
 
@@ -193,7 +193,7 @@ class PauliOp(PrimitiveOp):
                 raise ValueError('Operator composed with a measurement is undefined.')
 
             # Composable types with PauliOp
-            elif isinstance(front, (PauliOp, CircuitOp, CircuitStateFn)):
+            elif isinstance(front, (PauliOp, CircuitOp, StateCircuit)):
                 new_front = self.compose(front)
 
         # Covers StateVector and DensityOperator

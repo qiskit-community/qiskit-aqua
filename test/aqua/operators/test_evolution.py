@@ -110,7 +110,7 @@ class TestEvolution(QiskitAquaTestCase):
         for p in thetas:
             self.assertIn(p, evo.to_circuit().parameters)
 
-    # TODO test with other Op types than CircuitStateFn
+    # TODO test with other Op types than StateCircuit
     def test_bind_parameter_list(self):
         """ bind parameters list test """
         thetas = ParameterVector('θ', length=6)

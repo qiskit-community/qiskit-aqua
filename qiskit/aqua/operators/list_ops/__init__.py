@@ -51,7 +51,7 @@ example of this power is constructing a Quantum kernel matrix:
 
 This will return the two dimensional Quantum kernel matrix, where each element is the inner product
 of some pair of the data State functions, or in other terms, a measurement of one data
-:class:`~.state_fns.CircuitStateFn` by another.
+:class:`~.state_fns.StateCircuit` by another.
 
 You'll encounter the :class:`ListOp` subclasses (:class:`SummedOp`, :class:`ComposedOp`,
 or :class:`TensoredOp`) more often as lazy results of Operator construction operations than as

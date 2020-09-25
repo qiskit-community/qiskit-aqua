@@ -21,7 +21,7 @@ import numpy as np
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import (X, Y, Z, I, CX, H, S,
                                    ListOp, Zero, One, Plus, Minus, StateFn,
-                                   AerPauliExpectation, CircuitSampler, CircuitStateFn,
+                                   AerPauliExpectation, CircuitSampler, StateCircuit,
                                    PauliExpectation)
 from qiskit.circuit.library import RealAmplitudes
 
@@ -150,7 +150,7 @@ class TestAerPauliExpectation(QiskitAquaTestCase):
         var_form.num_qubits = 2
 
         observable_meas = self.expect.convert(StateFn(two_qubit_h2, is_measurement=True))
-        ansatz_circuit_op = CircuitStateFn(var_form)
+        ansatz_circuit_op = StateCircuit(var_form)
         expect_op = observable_meas.compose(ansatz_circuit_op).reduce()
 
         def generate_parameters(num):
@@ -205,7 +205,7 @@ class TestAerPauliExpectation(QiskitAquaTestCase):
                                      seed_transpiler=self.seed, shots=20000)
         qubit_op = (1 * I ^ I) + (2 * I ^ Z) + (3 * Z ^ I) + (4 * Z ^ Z) + (5 * X ^ X)
         var_form = RealAmplitudes(qubit_op.num_qubits)
-        ansatz_circuit_op = CircuitStateFn(var_form)
+        ansatz_circuit_op = StateCircuit(var_form)
         observable = PauliExpectation().convert(~StateFn(qubit_op))
         expect_op = observable.compose(ansatz_circuit_op).reduce()
         params1 = {}

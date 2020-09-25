@@ -28,7 +28,7 @@ from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.operators import (OperatorBase, ExpectationBase, ExpectationFactory, StateFn,
-                                   CircuitStateFn, LegacyBaseOperator, ListOp, I, CircuitSampler)
+                                   StateCircuit, LegacyBaseOperator, ListOp, I, CircuitSampler)
 from qiskit.aqua.components.optimizers import Optimizer, SLSQP
 from qiskit.aqua.components.variational_forms import VariationalForm
 from qiskit.aqua.utils.validation import validate_min
@@ -358,7 +358,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
                             'can be chosen automatically.')
 
         observable_meas = self.expectation.convert(StateFn(self.operator, is_measurement=True))
-        ansatz_circuit_op = CircuitStateFn(wave_function)
+        ansatz_circuit_op = StateCircuit(wave_function)
         return observable_meas.compose(ansatz_circuit_op).reduce()
 
     def construct_circuit(self,
@@ -378,7 +378,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
 
         # recursively extract circuits
         def extract_circuits(op):
-            if isinstance(op, CircuitStateFn):
+            if isinstance(op, StateCircuit):
                 circuits.append(op.primitive)
             elif isinstance(op, ListOp):
                 for op_i in op.oplist:
@@ -453,7 +453,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
 
         aux_op_meas = self.expectation.convert(StateFn(ListOp(self.aux_operators),
                                                        is_measurement=True))
-        aux_op_expect = aux_op_meas.compose(CircuitStateFn(self.get_optimal_circuit()))
+        aux_op_expect = aux_op_meas.compose(StateCircuit(self.get_optimal_circuit()))
         values = np.real(sampler.convert(aux_op_expect).eval())
 
         # Discard values below threshold

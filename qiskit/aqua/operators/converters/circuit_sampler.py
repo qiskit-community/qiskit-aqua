@@ -26,7 +26,7 @@ from qiskit.aqua.operators.operator_base import OperatorBase
 from qiskit.aqua.operators.operator_globals import Zero
 from qiskit.aqua.operators.list_ops.list_op import ListOp
 from qiskit.aqua.operators.state_fns.state_fn import StateFn
-from qiskit.aqua.operators.state_fns.circuit_state_fn import CircuitStateFn
+from qiskit.aqua.operators.state_fns.circuit_state_fn import StateCircuit
 from qiskit.aqua.operators.converters.converter_base import ConverterBase
 
 logger = logging.getLogger(__name__)
@@ -34,9 +34,9 @@ logger = logging.getLogger(__name__)
 
 class CircuitSampler(ConverterBase):
     """
-    The CircuitSampler traverses an Operator and converts any CircuitStateFns into
+    The CircuitSampler traverses an Operator and converts any StateCircuits into
     approximations of the state function by a DictStateVector or StateVector using a quantum
-    backend. Note that in order to approximate the value of the CircuitStateFn, it must 1) send
+    backend. Note that in order to approximate the value of the StateCircuit, it must 1) send
     state function through a depolarizing channel, which will destroy all phase information and
     2) replace the sampled frequencies with **square roots** of the frequency, rather than the raw
     probability of sampling (which would be the equivalent of sampling the **square** of the
@@ -56,10 +56,10 @@ class CircuitSampler(ConverterBase):
         Args:
             backend: The quantum backend or QuantumInstance to use to sample the circuits.
             statevector: If backend is a statevector backend, whether to replace the
-                CircuitStateFns with DictStateVectors (from the counts) or StateVectors (from the
+                StateCircuits with DictStateVectors (from the counts) or StateVectors (from the
                 statevector). ``None`` will set this argument automatically based on the backend.
             attach_results: Whether to attach the data from the backend ``Results`` object for
-                a given ``CircuitStateFn``` to an ``execution_results`` field added the converted
+                a given ``StateCircuit``` to an ``execution_results`` field added the converted
                 ``DictStateVector`` or ``StateVector``.
             param_qobj: Whether to use Aer's parameterized Qobj capability to avoid re-assembling
                 the circuits.
@@ -79,7 +79,7 @@ class CircuitSampler(ConverterBase):
         # Object state variables
         self._last_op = None
         self._reduced_op_cache = None
-        self._circuit_ops_cache = {}  # type: Dict[int, CircuitStateFn]
+        self._circuit_ops_cache = {}  # type: Dict[int, StateCircuit]
         self._transpiled_circ_cache = None  # type: Optional[List[Any]]
         self._transpiled_circ_templates = None  # type: Optional[List[Any]]
         self._transpile_before_bind = True
@@ -151,10 +151,10 @@ class CircuitSampler(ConverterBase):
                                       Union[float, List[float], List[List[float]]]]] = None
                 ) -> OperatorBase:
         r"""
-        Converts the Operator to one in which the CircuitStateFns are replaced by
-        DictStateVectors or StateVectors. Extracts the CircuitStateFns out of the Operator,
+        Converts the Operator to one in which the StateCircuits are replaced by
+        DictStateVectors or StateVectors. Extracts the StateCircuits out of the Operator,
         caches them, calls ``sample_circuits`` below to get their converted replacements,
-        and replaces the CircuitStateFns in operator with the replacement StateFns.
+        and replaces the StateCircuits in operator with the replacement StateFns.
 
         Args:
             operator: The Operator to convert
@@ -162,7 +162,7 @@ class CircuitSampler(ConverterBase):
                 binding values.
 
         Returns:
-            The converted Operator with CircuitStateFns replaced by DictStateVectors or StateVectors.
+            The converted Operator with StateCircuits replaced by DictStateVectors or StateVectors.
         """
         if self._last_op is None or id(operator) != id(self._last_op):
             # Clear caches
@@ -197,7 +197,7 @@ class CircuitSampler(ConverterBase):
                                                      param_bindings=p_b)
 
         def replace_circuits_with_dicts(operator, param_index=0):
-            if isinstance(operator, CircuitStateFn):
+            if isinstance(operator, StateCircuit):
                 return sampled_statefn_dicts[id(operator)][param_index]
             elif isinstance(operator, ListOp):
                 return operator.traverse(partial(replace_circuits_with_dicts,
@@ -213,34 +213,34 @@ class CircuitSampler(ConverterBase):
 
     def _extract_circuitstatefns(self, operator: OperatorBase) -> None:
         r"""
-        Recursively extract the ``CircuitStateFns`` contained in operator into the
+        Recursively extract the ``StateCircuits`` contained in operator into the
         ``_circuit_ops_cache`` field.
         """
-        if isinstance(operator, CircuitStateFn):
+        if isinstance(operator, StateCircuit):
             self._circuit_ops_cache[id(operator)] = operator
         elif isinstance(operator, ListOp):
             for op in operator.oplist:
                 self._extract_circuitstatefns(op)
 
     def sample_circuits(self,
-                        circuit_sfns: Optional[List[CircuitStateFn]] = None,
+                        circuit_sfns: Optional[List[StateCircuit]] = None,
                         param_bindings: Optional[List[Dict[Parameter, List[float]]]] = None
                         ) -> Dict[int, Union[StateFn, List[StateFn]]]:
         r"""
-        Samples the CircuitStateFns and returns a dict associating their ``id()`` values to their
+        Samples the StateCircuits and returns a dict associating their ``id()`` values to their
         replacement DictStateVector or StateVector. If param_bindings is provided,
-        the CircuitStateFns are broken into their parameterizations, and a list of StateFns is
+        the StateCircuits are broken into their parameterizations, and a list of StateFns is
         returned in the dict for each circuit ``id()``. Note that param_bindings is provided here
         in a different format than in ``convert``, and lists of parameters within the dict is not
         supported, and only binding dicts which are valid to be passed into Terra can be included
         in this list.
 
         Args:
-            circuit_sfns: The list of CircuitStateFns to sample.
-            param_bindings: The parameterizations to bind to each CircuitStateFn.
+            circuit_sfns: The list of StateCircuits to sample.
+            param_bindings: The parameterizations to bind to each StateCircuit.
 
         Returns:
-            The dictionary mapping ids of the CircuitStateFns to their replacement StateFns.
+            The dictionary mapping ids of the StateCircuits to their replacement StateFns.
         """
         if circuit_sfns or not self._transpiled_circ_cache:
             if self._statevector:

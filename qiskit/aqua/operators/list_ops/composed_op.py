@@ -22,7 +22,7 @@ from qiskit.circuit import ParameterExpression
 from ..operator_base import OperatorBase
 from .list_op import ListOp
 from ..state_fns.state_fn import StateFn
-from ..state_fns.circuit_state_fn import CircuitStateFn
+from ..state_fns.circuit_state_fn import StateCircuit
 from ... import AquaError
 
 
@@ -74,7 +74,7 @@ class ComposedOp(ListOp):
         """
         from qiskit.aqua.operators import PrimitiveOp
         circuit_op = self.to_circuit_op()
-        if isinstance(circuit_op, (PrimitiveOp, CircuitStateFn)):
+        if isinstance(circuit_op, (PrimitiveOp, StateCircuit)):
             return circuit_op.to_circuit()
         raise AquaError('Conversion to_circuit supported only for operators, where a single '
                         'underlying circuit can be produced.')

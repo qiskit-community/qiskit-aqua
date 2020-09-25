@@ -21,7 +21,7 @@ from ..list_ops.list_op import ListOp
 from ..list_ops.composed_op import ComposedOp
 from ..list_ops.summed_op import SummedOp
 from ..primitive_ops.pauli_op import PauliOp
-from ..state_fns.circuit_state_fn import CircuitStateFn
+from ..state_fns.circuit_state_fn import StateCircuit
 from ..state_fns.operator_state_fn import DensityOperator
 
 logger = logging.getLogger(__name__)
@@ -72,14 +72,14 @@ class AerPauliExpectation(ExpectationBase):
             snapshot_instruction = SnapshotExpectationValue('expval_measurement',
                                                             paulis,
                                                             variance=True)
-            snapshot_op = CircuitStateFn(snapshot_instruction, is_measurement=True)
+            snapshot_op = StateCircuit(snapshot_instruction, is_measurement=True)
             return snapshot_op
         if isinstance(operator, PauliOp):
             paulis = [[operator.coeff, operator.primitive]]
             snapshot_instruction = SnapshotExpectationValue('expval_measurement',
                                                             paulis,
                                                             variance=True)
-            snapshot_op = CircuitStateFn(snapshot_instruction, is_measurement=True)
+            snapshot_op = StateCircuit(snapshot_instruction, is_measurement=True)
             return snapshot_op
         if isinstance(operator, ListOp):
             return operator.traverse(cls._replace_pauli_sums)

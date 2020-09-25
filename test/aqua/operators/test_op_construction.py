@@ -33,7 +33,7 @@ from qiskit.circuit.library import CZGate, ZGate
 
 from qiskit.aqua.operators import (
     X, Y, Z, I, CX, T, H, PrimitiveOp, SummedOp, PauliOp, Minus, CircuitOp, MatrixOp, ListOp,
-    ComposedOp, StateFn, StateVector, DensityOperator, CircuitStateFn, DictStateVector,
+    ComposedOp, StateFn, StateVector, DensityOperator, StateCircuit, DictStateVector,
 )
 
 
@@ -629,7 +629,7 @@ class TestOpConstruction(QiskitAquaTestCase):
 
     @data(StateVector([1, 0]),
           DictStateVector({'0': 1}),
-          CircuitStateFn(QuantumCircuit(1)),
+          StateCircuit(QuantumCircuit(1)),
           DensityOperator(I),
           DensityOperator(MatrixOp([[1, 0], [0, 1]])),
           DensityOperator(CircuitOp(QuantumCircuit(1))))

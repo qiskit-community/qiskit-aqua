@@ -112,20 +112,20 @@ class CircuitOp(PrimitiveOp):
         other = self._check_zero_for_composition_and_expand(other)
         # pylint: disable=cyclic-import,import-outside-toplevel
         from ..operator_globals import Zero
-        from ..state_fns import CircuitStateFn
+        from ..state_fns import StateCircuit
         from .pauli_op import PauliOp
         from .matrix_op import MatrixOp
 
         if other == Zero ^ self.num_qubits:
-            return CircuitStateFn(self.primitive, coeff=self.coeff)
+            return StateCircuit(self.primitive, coeff=self.coeff)
 
         if isinstance(other, (PauliOp, CircuitOp, MatrixOp)):
             other = other.to_circuit_op()
 
-        if isinstance(other, (CircuitOp, CircuitStateFn)):
+        if isinstance(other, (CircuitOp, StateCircuit)):
             new_qc = other.primitive.compose(self.primitive)  # type: ignore
-            if isinstance(other, CircuitStateFn):
-                return CircuitStateFn(new_qc,
+            if isinstance(other, StateCircuit):
+                return StateCircuit(new_qc,
                                       is_measurement=other.is_measurement,
                                       coeff=self.coeff * other.coeff)
             else:
@@ -181,7 +181,7 @@ class CircuitOp(PrimitiveOp):
              front: Optional[Union[str, Dict[str, complex], np.ndarray, OperatorBase]] = None
              ) -> Union[OperatorBase, float, complex]:
         # pylint: disable=import-outside-toplevel
-        from ..state_fns import CircuitStateFn
+        from ..state_fns import StateCircuit
         from ..list_ops import ListOp
         from .pauli_op import PauliOp
         from .matrix_op import MatrixOp
@@ -191,7 +191,7 @@ class CircuitOp(PrimitiveOp):
                                    for front_elem in front.oplist])
 
         # Composable with circuit
-        if isinstance(front, (PauliOp, CircuitOp, MatrixOp, CircuitStateFn)):
+        if isinstance(front, (PauliOp, CircuitOp, MatrixOp, StateCircuit)):
             return self.compose(front)
 
         return cast(Union[OperatorBase, float, complex], self.to_matrix_op().eval(front=front))

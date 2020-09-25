@@ -163,8 +163,8 @@ class DictStateVector(StateFn):
 
     def to_circuit_op(self) -> OperatorBase:
         """ Return ``StateFnCircuit`` corresponding to this StateFn."""
-        from .circuit_state_fn import CircuitStateFn
-        csfn = CircuitStateFn.from_dict(self.primitive) * self.coeff  # type: ignore
+        from .circuit_state_fn import StateCircuit
+        csfn = StateCircuit.from_dict(self.primitive) * self.coeff  # type: ignore
         return csfn.adjoint() if self.is_measurement else csfn
 
     def __str__(self) -> str:
@@ -224,9 +224,9 @@ class DictStateVector(StateFn):
                                  self.primitive.items()]) * self.coeff),
                 decimals=EVAL_SIG_DIGITS)
 
-        from .circuit_state_fn import CircuitStateFn
-        if isinstance(front, CircuitStateFn):
-            # Don't reimplement logic from CircuitStateFn
+        from .circuit_state_fn import StateCircuit
+        if isinstance(front, StateCircuit):
+            # Don't reimplement logic from StateCircuit
             return np.conj(
                 front.adjoint().eval(self.adjoint().primitive)) * self.coeff  # type: ignore
 
