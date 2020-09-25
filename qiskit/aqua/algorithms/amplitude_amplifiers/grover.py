@@ -24,7 +24,7 @@ from qiskit.providers import BaseBackend
 from qiskit.quantum_info import Statevector
 
 from qiskit.aqua import QuantumInstance, AquaError
-from qiskit.aqua.utils import get_subsystem_density_matrix
+from qiskit.aqua.utils import get_subsystem_density_matrix, name_args
 from qiskit.aqua.utils.validation import validate_min, validate_in_set
 from qiskit.aqua.algorithms import QuantumAlgorithm, AlgorithmResult
 from qiskit.aqua.components.initial_states import InitialState
@@ -80,29 +80,35 @@ class Grover(QuantumAlgorithm):
     only means apply Q j-times where, Q is the grover op)
     """
 
+    @name_args([
+        ('oracle', ),
+        ('good_state', {InitialState: 'init_state'}),
+        ('state_preparation', {bool: 'incremental'}),
+        ('iterations', ),
+        ('post_processing', {float: 'lam'}),
+        ('grover_operator', {list: 'rotation_counts'}),
+        ('quantum_instance', {str: 'mct_mode'}),
+        ('incremental', {(BaseBackend, QuantumInstance): 'quantum_instance'})
+    ], skip=1)  # skip the argument 'self'
     def __init__(self,
                  oracle: Union[Oracle, QuantumCircuit, Statevector],
-                 state_preparation: Optional[Union[QuantumCircuit, InitialState]] = None,
-                 incremental: bool = False,
+                 good_state: Union[Callable[[str], bool], List[int], Statevector] = None,
+                 state_preparation: Optional[Union[QuantumCircuit, bool]] = None,
                  iterations: Union[int, List[int]] = 1,
+                 post_processing: Callable[[List[int]], List[int]] = None,
+                 grover_operator: Optional[QuantumCircuit] = None,
+                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None,
+                 init_state: Optional[InitialState] = None,
+                 incremental: bool = False,
+                 num_iterations: Optional[int] = None,
                  lam: Optional[float] = None,
                  rotation_counts: Optional[List[int]] = None,
                  mct_mode: Optional[str] = None,
-                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None,
-                 good_state: Union[Callable, List[int], Statevector] = None,
-                 num_solutions: Optional[int] = None,
-                 num_iterations: Optional[int] = None,
-                 post_processing: Callable = None,
-                 grover_operator: Optional[QuantumCircuit] = None,
-                 init_state: Optional[InitialState] = None) -> None:
+                 ) -> None:
         # pylint: disable=line-too-long
         r"""
         Args:
             oracle: The oracle component
-            init_state: An optional initial quantum state. If None (default) then Grover's Search
-                 by default uses uniform superposition to initialize its quantum state. However,
-                 an initial state may be supplied, if useful, for example, if the user has some
-                 prior knowledge regarding where the search target(s) might be located.
             state_preparation: An optional initial quantum state. If None (default) then Grover's
                  Search by default uses uniform superposition to initialize its quantum state.
                  However, an initial state may be supplied, if useful, for example, if the user has
@@ -121,18 +127,20 @@ class Grover(QuantumAlgorithm):
             rotation_counts: For incremental mode, if rotation_counts is defined, parameter *lam*
                 is ignored. rotation_counts is the list of integers that defines the number of
                 repetition of amplitude amplification for each round.
-            num_iterations: How many times the marking and reflection phase sub-circuit is
-                repeated to amplify the amplitude(s) of the target(s). Has a minimum value of 1.
             mct_mode: Multi-Control Toffoli mode ('basic' | 'basic-dirty-ancilla' |
                 'advanced' | 'noancilla')
             quantum_instance: Quantum Instance or Backend
             grover_operator: A GroverOperator for the Grover's algorithm can be set directly.
             good_state: Answers the Grover's algorithm is looking for.
                 It is used to check whether the result is correct or not.
-            num_solutions: num_solutions: is used to decide num_iterations
-            state_preparation: TODO
             iterations: TODO
             post_processing: TODO
+            init_state: An optional initial quantum state. If None (default) then Grover's Search
+                 by default uses uniform superposition to initialize its quantum state. However,
+                 an initial state may be supplied, if useful, for example, if the user has some
+                 prior knowledge regarding where the search target(s) might be located.
+            num_iterations: How many times the marking and reflection phase sub-circuit is
+                repeated to amplify the amplitude(s) of the target(s). Has a minimum value of 1.
 
         Raises:
             TypeError: If ``init_state`` is of unsupported type or is of type ``InitialState` but
@@ -155,7 +163,7 @@ class Grover(QuantumAlgorithm):
                           'no earlier than 3 months after the release date. You should use the '
                           'state_preparation argument instead and pass a QuantumCircuit or '
                           'Statevector instead of an InitialState.',
-                          DeprecationWarning, stacklevel=2)
+                          DeprecationWarning, stacklevel=3)
             state_preparation = init_state
 
         if mct_mode is not None:
@@ -166,7 +174,7 @@ class Grover(QuantumAlgorithm):
                           'earlier than 3 months after the release date. If you want to use a '
                           'special MCX mode you should use the GroverOperator in '
                           'qiskit.circuit.library directly and pass it to the grover_operator '
-                          'keyword argument.', DeprecationWarning, stacklevel=2)
+                          'keyword argument.', DeprecationWarning, stacklevel=3)
         else:
             mct_mode = 'noancilla'
 
@@ -176,7 +184,7 @@ class Grover(QuantumAlgorithm):
                           'If you want to use the incremental mode with the rotation_counts '
                           'argument or you should use the iterations argument instead and pass '
                           'a list of integers',
-                          DeprecationWarning, stacklevel=2)
+                          DeprecationWarning, stacklevel=3)
 
         if lam is not None:
             warnings.warn('The lam argument is deprecated as of 0.8.0, and will be '
@@ -184,7 +192,7 @@ class Grover(QuantumAlgorithm):
                           'If you want to use the incremental mode with the lam argument, '
                           'you should use the iterations argument instead and pass '
                           'a list of integers calculated with the lam argument.',
-                          DeprecationWarning, stacklevel=2)
+                          DeprecationWarning, stacklevel=3)
         else:
             lam = 1.34
 
@@ -195,7 +203,7 @@ class Grover(QuantumAlgorithm):
                           'If you want to use the num_iterations argument '
                           'you should use the iterations argument instead and pass an integer '
                           'for the number of iterations.',
-                          DeprecationWarning, stacklevel=2)
+                          DeprecationWarning, stacklevel=3)
 
         self._oracle = oracle
         # Construct GroverOperator circuit
@@ -207,7 +215,7 @@ class Grover(QuantumAlgorithm):
                 warnings.warn('Passing an InitialState component is deprecated as of 0.8.0, and '
                               'will be removed no earlier than 3 months after the release date. '
                               'You should pass a QuantumCircuit instead.',
-                              DeprecationWarning, stacklevel=2)
+                              DeprecationWarning, stacklevel=3)
                 if isinstance(oracle, Oracle):
                     state_preparation = init_state.construct_circuit(
                         mode='circuit', register=oracle.variable_register
@@ -250,14 +258,10 @@ class Grover(QuantumAlgorithm):
                 self._iterations = rotation_counts
             else:
                 self._iterations = []
-                current_max_num_iterations = 1
+                current_max_num_iterations = 1.0
                 while current_max_num_iterations < self._max_num_iterations:
                     self._iterations.append(current_max_num_iterations)
-                    current_max_num_iterations = int(self._lam * current_max_num_iterations)
-        elif num_solutions is not None:
-            self._num_solutions = num_solutions
-            self._iterations = [round(np.pi*np.sqrt(
-                2**len(self._grover_operator.reflection_qubits)/num_solutions)/4)]
+                    current_max_num_iterations = self._lam * current_max_num_iterations
         elif num_iterations is not None:
             self._iterations = [num_iterations]
             self._num_iterations = num_iterations
@@ -271,13 +275,24 @@ class Grover(QuantumAlgorithm):
         if incremental or (isinstance(iterations, list) and len(iterations) > 1):
             logger.debug('Incremental mode specified, \
                 ignoring "num_iterations" and "num_solutions".')
-        elif num_solutions:
-            logger.debug('"num_solutions" specified, ignoring "num_iterations".')
         elif self._max_num_iterations is not None:
             if self._num_iterations > self._max_num_iterations:
                 logger.warning('The specified value %s for "num_iterations" '
                                'might be too high.', self._num_iterations)
         self._ret = {}  # type: Dict[str, Any]
+
+    @staticmethod
+    def optimal_num_iterations(num_solutions, num_qubits):
+        """Return the optimal number of iterations, if the number of solutions is known.
+
+        Args:
+            num_solutions: The number of solutions.
+            num_qubits: The number of qubits used to encode the states.
+
+        Returns:
+            The optimal number of iterations for Grover's algorithm to succeed.
+        """
+        return round((np.pi * np.sqrt(2 ** num_qubits) / num_solutions) / 4)
 
     def _run_experiment(self, power):
         """Run a grover experiment for a given power of the Grover operator."""

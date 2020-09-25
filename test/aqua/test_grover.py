@@ -23,7 +23,7 @@ from ddt import ddt, idata, unpack
 from qiskit import BasicAer, QuantumCircuit, QuantumRegister
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import Grover
-from qiskit.aqua.components.initial_states import Zero
+from qiskit.aqua.components.initial_states import Zero, Custom
 from qiskit.aqua.components.oracles import LogicalExpressionOracle as LEO
 from qiskit.aqua.components.oracles import TruthTableOracle as TTO
 from qiskit.aqua.components.oracles import CustomCircuitOracle
@@ -92,6 +92,18 @@ class TestGrover(QiskitAquaTestCase):
         else:
             self.assertEqual(groundtruth, [])
             self.log.debug('Nothing found.')
+
+    def test_old_signature(self):
+        """Test the old signature without naming arguments works."""
+        oracle = TTO('0001')
+        circuit = QuantumCircuit(2)
+        circuit.h([0, 1])
+        init_state = Custom(2, circuit=circuit)
+        backend = BasicAer.get_backend('statevector_simulator')
+        grover = Grover(oracle, init_state, True, 10, 1.44, ROTATION_COUNTS[1],
+                        'noancilla', backend)
+        ret = grover.run()
+        self.assertEqual(ret.top_measurement, '11')
 
 
 class TestGroverConstructor(QiskitAquaTestCase):
