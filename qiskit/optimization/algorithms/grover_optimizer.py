@@ -49,7 +49,8 @@ class GroverOptimizer(OptimizationAlgorithm):
                 no improvement.
             quantum_instance: Instance of selected backend, defaults to Aer's statevector simulator.
             converters: The converters to use for converting a problem into a different form.
-                If not specified, ``QuadraticProgramToQubo`` will be used.
+                By default, when None is specified, an internally created instance of
+                :class:`~qiskit.optimization.converters.QuadraticProgramToQubo` will be used.
 
         Raises:
             TypeError: When there one of converters is an invalid type.
@@ -62,15 +63,7 @@ class GroverOptimizer(OptimizationAlgorithm):
         if quantum_instance is not None:
             self.quantum_instance = quantum_instance
 
-        if converters is None:
-            self._converters = [QuadraticProgramToQubo()]  # type: ignore
-        elif isinstance(converters, QuadraticProgramConverter):
-            self._converters = [converters]  # type: ignore
-        elif isinstance(converters, list) and \
-                all(isinstance(converter, QuadraticProgramConverter) for converter in converters):
-            self._converters = converters  # type: ignore
-        else:
-            raise TypeError('There are the unsupported types of converters in `converters`')
+        self._converters = self._prepare_converters(converters)
 
     @property
     def quantum_instance(self) -> QuantumInstance:
@@ -167,9 +160,7 @@ class GroverOptimizer(OptimizationAlgorithm):
         self._verify_compatibility(problem)
 
         # convert problem to QUBO
-        problem_ = problem
-        for converter in self._converters:
-            problem_ = converter.convert(problem_)
+        problem_ = self._convert(problem, self._converters)
         problem_init = deepcopy(problem_)
 
         # convert to minimization problem
@@ -284,8 +275,7 @@ class GroverOptimizer(OptimizationAlgorithm):
                                     status=OptimizationResultStatus.SUCCESS)
 
         # cast binaries back to integers
-        for converter in self._converters[::-1]:
-            result = converter.interpret(result)
+        result = self._interpret(result, self._converters)
 
         return GroverOptimizationResult(x=result.x, fval=result.fval, variables=result.variables,
                                         operation_counts=operation_count, n_input_qubits=n_key,

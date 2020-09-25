@@ -144,7 +144,8 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
             history: Whether the intermediate results are stored.
                 Default value is :py:obj:`~IntermediateResult.LAST_ITERATION`.
             converters: The converters to use for converting a problem into a different form.
-                If not specified, ``QuadraticProgramToQubo`` will be used.
+                By default, when None is specified, an internally created instance of
+                :class:`~qiskit.optimization.converters.QuadraticProgramToQubo` will be used.
 
         Raises:
             QiskitOptimizationError: In case of invalid parameters (num_min_vars < 1).
@@ -162,15 +163,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         self._penalty = penalty
         self._history = history
 
-        if converters is None:
-            self._converters = [QuadraticProgramToQubo()]  # type: ignore
-        elif isinstance(converters, QuadraticProgramConverter):
-            self._converters = [converters]  # type: ignore
-        elif isinstance(converters, list) and \
-                all(isinstance(converter, QuadraticProgramConverter) for converter in converters):
-            self._converters = converters  # type: ignore
-        else:
-            raise TypeError('There are the unsupported types of converters in `converters`')
+        self._converters = self._prepare_converters(converters)
 
     def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
         """Checks whether a given problem can be solved with this optimizer.
@@ -204,9 +197,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         self._verify_compatibility(problem)
 
         # convert problem to QUBO, this implicitly checks if the problem is compatible
-        problem_ = problem
-        for converter in self._converters:
-            problem_ = converter.convert(problem_)
+        problem_ = self._convert(problem, self._converters)
         problem_ref = deepcopy(problem_)
 
         # run recursive optimization until the resulting problem is small enough
@@ -301,8 +292,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         result = OptimizationResult(x=x_v, fval=fval, variables=problem_ref.variables,
                                     status=OptimizationResultStatus.SUCCESS)
 
-        for converter in self._converters[::-1]:
-            result = converter.interpret(result)
+        result = self._interpret(result, self._converters)
 
         return RecursiveMinimumEigenOptimizationResult(x=result.x, fval=result.fval,
                                                        variables=result.variables,

@@ -114,7 +114,8 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
             min_eigen_solver: The eigen solver to find the ground state of the Hamiltonian.
             penalty: The penalty factor to be used, or ``None`` for applying a default logic.
             converters: The converters to use for converting a problem into a different form.
-                If not specified, ``QuadraticProgramToQubo`` will be used.
+                By default, when None is specified, an internally created instance of
+                :class:`~qiskit.optimization.converters.QuadraticProgramToQubo` will be used.
 
         Raises:
             TypeError: When there one of converters is an invalid type.
@@ -122,15 +123,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         self._min_eigen_solver = min_eigen_solver
         self._penalty = penalty
 
-        if converters is None:
-            self._converters = [QuadraticProgramToQubo()]  # type: ignore
-        elif isinstance(converters, QuadraticProgramConverter):
-            self._converters = [converters]  # type: ignore
-        elif isinstance(converters, list) and \
-                all(isinstance(converter, QuadraticProgramConverter) for converter in converters):
-            self._converters = converters  # type: ignore
-        else:
-            raise TypeError('There are the unsupported types of converters in `converters`')
+        self._converters = self._prepare_converters(converters)
 
     def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
         """Checks whether a given problem can be solved with this optimizer.
@@ -163,9 +156,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         self._verify_compatibility(problem)
 
         # convert problem to QUBO
-        problem_ = problem
-        for converter in self._converters:
-            problem_ = converter.convert(problem_)
+        problem_ = self._convert(problem, self._converters)
 
         # construct operator and offset
         operator, offset = problem_.to_ising()
@@ -199,8 +190,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         result = OptimizationResult(x=x, fval=fval, variables=problem_.variables,
                                     status=OptimizationResultStatus.SUCCESS)
 
-        for converter in self._converters[::-1]:
-            result = converter.interpret(result)
+        result = self._interpret(result, self._converters)
 
         return MinimumEigenOptimizationResult(x=result.x, fval=result.fval,
                                               variables=result.variables,
