@@ -154,8 +154,11 @@ class CVarStateFn(OperatorStateFn):
 
     def to_matrix_op(self, massive: bool = False) -> OperatorBase:
         """ Return a MatrixOp for this operator. """
-        return OperatorStateFn(self.primitive.to_matrix_op(massive=massive) * self.coeff,
-                               is_measurement=self.is_measurement)
+        if self.alpha == 1:
+            return OperatorStateFn(self.primitive.to_matrix_op(massive=massive) * self.coeff,
+                                   is_measurement=self.is_measurement)
+        else:
+            raise NotImplementedError
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
         r"""
