@@ -10,7 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" VectorStateFn Class """
+""" StateVector Class """
 
 
 from typing import Union, Set, Optional, Dict
@@ -25,7 +25,7 @@ from .state_fn import StateFn
 from ..list_ops.list_op import ListOp
 
 
-class VectorStateFn(StateFn):
+class StateVector(StateFn):
     """ A class for state functions and measurements which are defined in vector
     representation, and stored using Terra's ``Statevector`` class.
     """
@@ -63,21 +63,21 @@ class VectorStateFn(StateFn):
                 'defined'.format(self.num_qubits, other.num_qubits))
 
         # Right now doesn't make sense to add a StateFn to a Measurement
-        if isinstance(other, VectorStateFn) and self.is_measurement == other.is_measurement:
+        if isinstance(other, StateVector) and self.is_measurement == other.is_measurement:
             # Covers MatrixOperator, quantum_info.Statevector and custom.
-            return VectorStateFn((self.coeff * self.primitive) + (other.primitive * other.coeff),
+            return StateVector((self.coeff * self.primitive) + (other.primitive * other.coeff),
                                  is_measurement=self._is_measurement)
         # pylint: disable=cyclic-import,import-outside-toplevel
         from .. import SummedOp
         return SummedOp([self, other])
 
     def adjoint(self) -> OperatorBase:
-        return VectorStateFn(self.primitive.conjugate(),
+        return StateVector(self.primitive.conjugate(),
                              coeff=np.conj(self.coeff),
                              is_measurement=(not self.is_measurement))
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
-        if isinstance(other, VectorStateFn):
+        if isinstance(other, StateVector):
             return StateFn(self.primitive.tensor(other.primitive),
                            coeff=self.coeff * other.coeff,
                            is_measurement=self.is_measurement)
@@ -116,10 +116,10 @@ class VectorStateFn(StateFn):
     def __str__(self) -> str:
         prim_str = str(self.primitive)
         if self.coeff == 1.0:
-            return "{}({})".format('VectorStateFn' if not self.is_measurement
+            return "{}({})".format('StateVector' if not self.is_measurement
                                    else 'MeasurementVector', prim_str)
         else:
-            return "{}({}) * {}".format('VectorStateFn' if not self.is_measurement
+            return "{}({}) * {}".format('StateVector' if not self.is_measurement
                                         else 'MeasurementVector',
                                         prim_str,
                                         self.coeff)
@@ -128,7 +128,7 @@ class VectorStateFn(StateFn):
     def eval(self,
              front: Optional[Union[str, Dict[str, complex], np.ndarray, OperatorBase]] = None
              ) -> Union[OperatorBase, float, complex]:
-        if front is None:  # this object is already a VectorStateFn
+        if front is None:  # this object is already a StateVector
             return self
 
         if not self.is_measurement and isinstance(front, OperatorBase):
@@ -153,7 +153,7 @@ class VectorStateFn(StateFn):
                                  for (b, v) in front.primitive.items()]) * self.coeff,
                             decimals=EVAL_SIG_DIGITS)
 
-        if isinstance(front, VectorStateFn):
+        if isinstance(front, StateVector):
             # Need to extract the element or np.array([1]) is returned.
             return np.round(np.dot(self.to_matrix(), front.to_matrix())[0],
                             decimals=EVAL_SIG_DIGITS)

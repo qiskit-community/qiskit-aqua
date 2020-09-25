@@ -86,7 +86,7 @@ class OperatorBase(ABC):
             is a float or complex. If self is an Operator (``PrimitiveOp, ComposedOp, SummedOp,
             EvolvedOp,`` etc.), the result is a StateFn.
             If ``front`` is None, the matrix-representation of the operator is returned, which
-            is a ``MatrixOp`` for the operators and a ``VectorStateFn`` for state-functions.
+            is a ``MatrixOp`` for the operators and a ``StateVector`` for state-functions.
             If either self or front contain proper
             ``ListOps`` (not ListOp subclasses), the result is an n-dimensional list of complex
             or StateFn results, resulting from the recursive evaluation by each OperatorBase

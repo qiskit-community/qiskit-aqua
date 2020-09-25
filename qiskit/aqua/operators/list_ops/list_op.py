@@ -376,7 +376,7 @@ class ListOp(OperatorBase):
 
     def to_matrix_op(self, massive: bool = False) -> OperatorBase:
         """ Returns an equivalent Operator composed of only NumPy-based primitives, such as
-        ``MatrixOp`` and ``VectorStateFn``. """
+        ``MatrixOp`` and ``StateVector``. """
         if self.__class__ == ListOp:
             return ListOp(
                 [op.to_matrix_op(massive=massive) for op in self.oplist],  # type: ignore

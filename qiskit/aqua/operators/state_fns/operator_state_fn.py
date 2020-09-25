@@ -19,7 +19,7 @@ from qiskit.circuit import ParameterExpression
 
 from ..operator_base import OperatorBase
 from .state_fn import StateFn
-from .vector_state_fn import VectorStateFn
+from .vector_state_fn import StateVector
 from ..list_ops.list_op import ListOp
 from ..list_ops.summed_op import SummedOp
 
@@ -182,7 +182,7 @@ class DensityOperator(StateFn):
                           OperatorBase] = None) -> Union[OperatorBase, float, complex]:
         if front is None:
             matrix = self.primitive.to_matrix_op().primitive.data
-            return VectorStateFn(matrix[0, :])
+            return StateVector(matrix[0, :])
 
         if not self.is_measurement and isinstance(front, OperatorBase):
             raise ValueError(

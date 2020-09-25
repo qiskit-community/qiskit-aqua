@@ -157,7 +157,7 @@ class SummedOp(ListOp):
 
     def to_matrix_op(self, massive: bool = False) -> OperatorBase:
         """ Returns an equivalent Operator composed of only NumPy-based primitives, such as
-        ``MatrixOp`` and ``VectorStateFn``. """
+        ``MatrixOp`` and ``StateVector``. """
         accum = self.oplist[0].to_matrix_op(massive=massive)  # type: ignore
         for i in range(1, len(self.oplist)):
             accum += self.oplist[i].to_matrix_op(massive=massive)  # type: ignore

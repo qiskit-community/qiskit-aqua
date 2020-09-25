@@ -216,7 +216,7 @@ class CircuitStateFn(StateFn):
                 ' in this case {0}x{0} elements.'
                 ' Set massive=True if you want to proceed.'.format(2 ** self.num_qubits))
 
-        # Rely on VectorStateFn's logic here.
+        # Rely on StateVector's logic here.
         return StateFn(self.to_matrix() * self.coeff).to_density_matrix()
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:

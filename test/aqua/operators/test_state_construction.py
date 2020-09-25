@@ -171,7 +171,7 @@ class TestStateConstruction(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(dict_state_4q.to_matrix(),
                                              circuit_state_4q.to_matrix())
 
-        # Test VectorStateFn conversion
+        # Test StateVector conversion
         vect_state_3q = dict_state_3q.to_matrix_op()
         circuit_state_3q_vect = DictToCircuitSum().convert(vect_state_3q)
         self.assertIsInstance(circuit_state_3q_vect, CircuitStateFn)

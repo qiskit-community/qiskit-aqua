@@ -80,8 +80,8 @@ class StateFn(OperatorBase):
             return DictStateFn.__new__(DictStateFn)
 
         if isinstance(primitive, (list, np.ndarray, quantum_info.Statevector)):
-            from .vector_state_fn import VectorStateFn
-            return VectorStateFn.__new__(VectorStateFn)
+            from .vector_state_fn import StateVector
+            return StateVector.__new__(StateVector)
 
         if isinstance(primitive, (QuantumCircuit, Instruction)):
             from .circuit_state_fn import CircuitStateFn
@@ -342,18 +342,18 @@ class StateFn(OperatorBase):
             return self
 
     def to_matrix_op(self, massive: bool = False) -> OperatorBase:
-        """ Return a ``VectorStateFn`` for this ``StateFn``.
+        """ Return a ``StateVector`` for this ``StateFn``.
 
         Args:
             massive: Whether to allow large conversions, e.g. creating a matrix representing
                 over 16 qubits.
 
         Returns:
-            A VectorStateFn equivalent to self.
+            A StateVector equivalent to self.
         """
         # pylint: disable=cyclic-import,import-outside-toplevel
-        from .vector_state_fn import VectorStateFn
-        return VectorStateFn(self.to_matrix(massive=massive), is_measurement=self.is_measurement)
+        from .vector_state_fn import StateVector
+        return StateVector(self.to_matrix(massive=massive), is_measurement=self.is_measurement)
 
     def to_legacy_op(self, massive: bool = False) -> LegacyBaseOperator:
         raise TypeError('A StateFn cannot be represented by LegacyBaseOperator.')

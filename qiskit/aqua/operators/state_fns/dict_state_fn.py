@@ -214,8 +214,8 @@ class DictStateFn(StateFn):
 
         # All remaining possibilities only apply when self.is_measurement is True
 
-        from .vector_state_fn import VectorStateFn
-        if isinstance(front, VectorStateFn):
+        from .vector_state_fn import StateVector
+        if isinstance(front, StateVector):
             # TODO does it need to be this way for measurement?
             # return sum([v * front.primitive.data[int(b, 2)] *
             # np.conj(front.primitive.data[int(b, 2)])

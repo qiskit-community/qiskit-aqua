@@ -46,7 +46,7 @@ State Functions
    StateFn
    CircuitStateFn
    DictStateFn
-   VectorStateFn
+   StateVector
    DensityOperator
 
 """
@@ -54,11 +54,11 @@ State Functions
 from .state_fn import StateFn
 from .dict_state_fn import DictStateFn
 from .operator_state_fn import DensityOperator
-from .vector_state_fn import VectorStateFn
+from .vector_state_fn import StateVector
 from .circuit_state_fn import CircuitStateFn
 
 __all__ = ['StateFn',
            'DictStateFn',
-           'VectorStateFn',
+           'StateVector',
            'CircuitStateFn',
            'DensityOperator']

@@ -16,7 +16,7 @@ import logging
 
 from ..operator_base import OperatorBase
 from ..state_fns.dict_state_fn import DictStateFn
-from ..state_fns.vector_state_fn import VectorStateFn
+from ..state_fns.vector_state_fn import StateVector
 from ..state_fns.circuit_state_fn import CircuitStateFn
 from ..list_ops.list_op import ListOp
 from .converter_base import ConverterBase
@@ -26,10 +26,10 @@ logger = logging.getLogger(__name__)
 
 class DictToCircuitSum(ConverterBase):
     r"""
-    Converts ``DictStateFns`` or ``VectorStateFns`` to equivalent ``CircuitStateFns`` or sums
+    Converts ``DictStateFns`` or ``StateVectors`` to equivalent ``CircuitStateFns`` or sums
     thereof. The behavior of this class can be mostly replicated by calling ``to_circuit_op`` on
     an Operator, but with the added control of choosing whether to convert only ``DictStateFns``
-    or ``VectorStateFns``, rather than both.
+    or ``StateVectors``, rather than both.
     """
 
     def __init__(self,
@@ -40,7 +40,7 @@ class DictToCircuitSum(ConverterBase):
         Args:
             traverse: Whether to recurse down into Operators with internal sub-operators for
                 conversion.
-            convert_dicts: Whether to convert VectorStateFn.
+            convert_dicts: Whether to convert StateVector.
             convert_vectors: Whether to convert DictStateFns.
         """
         self._traverse = traverse
@@ -59,7 +59,7 @@ class DictToCircuitSum(ConverterBase):
 
         if isinstance(operator, DictStateFn) and self._convert_dicts:
             return CircuitStateFn.from_dict(operator.primitive)
-        if isinstance(operator, VectorStateFn) and self._convert_vectors:
+        if isinstance(operator, StateVector) and self._convert_vectors:
             return CircuitStateFn.from_vector(operator.to_matrix(massive=True))
         elif isinstance(operator, ListOp) and 'Dict' in operator.primitive_strings():
             return operator.traverse(self.convert)
