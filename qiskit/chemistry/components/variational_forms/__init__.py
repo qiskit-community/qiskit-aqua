@@ -27,8 +27,12 @@ Variational Forms
    :nosignatures:
 
    UCCSD
+   UVCC
+   CHC
 
 """
 from .uccsd import UCCSD
+from .uvcc import UVCC
+from .chc import CHC
 
-__all__ = ['UCCSD']
+__all__ = ['UCCSD', 'UVCC', 'CHC']
