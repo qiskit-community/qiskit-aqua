@@ -14,11 +14,22 @@
 
 import logging
 import numpy as np
-import skquant.opt as skq
-from SQSnobFit import optset
+from qiskit.aqua import MissingOptionalLibraryError
 from .optimizer import Optimizer, OptimizerSupportLevel
 
 logger = logging.getLogger(__name__)
+
+try:
+    import skquant.opt as skq
+    _HAS_SKQUANT = True
+except ImportError:
+    _HAS_SKQUANT = False
+
+try:
+    from SQSnobFit import optset
+    _HAS_SKSNOBFIT = True
+except ImportError:
+    _HAS_SKSNOBFIT = False
 
 
 class SNOBFIT(Optimizer):
@@ -47,7 +58,20 @@ class SNOBFIT(Optimizer):
             maxfail: Maximum number of failures to improve the solution. Stops the algorithm
                     after maxfail is reached.
             verbose: Provide verbose (debugging) output.
+
+        Raises:
+            MissingOptionalLibraryError: scikit-quant or SQSnobFit not installed
         """
+        if not _HAS_SKQUANT:
+            raise MissingOptionalLibraryError(
+                libname='scikit-quant',
+                name='SNOBFIT',
+                pip_install='pip install qiskit-aqua[skquant]')
+        if not _HAS_SKSNOBFIT:
+            raise MissingOptionalLibraryError(
+                libname='SQSnobFit',
+                name='SNOBFIT',
+                pip_install='pip install SQSnobFit')
         super().__init__()
         self._maxiter = maxiter
         self._maxfail = maxfail

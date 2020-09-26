@@ -13,10 +13,16 @@
 """IMplicit FILtering (IMFIL) optimizer."""
 
 import logging
-import skquant.opt as skq
+from qiskit.aqua import MissingOptionalLibraryError
 from .optimizer import Optimizer, OptimizerSupportLevel
 
 logger = logging.getLogger(__name__)
+
+try:
+    import skquant.opt as skq
+    _HAS_SKQUANT = True
+except ImportError:
+    _HAS_SKQUANT = False
 
 
 class IMFIL(Optimizer):
@@ -39,7 +45,15 @@ class IMFIL(Optimizer):
         """
         Args:
             maxiter: Maximum number of function evaluations.
+
+        Raises:
+            MissingOptionalLibraryError: scikit-quant not installed
         """
+        if not _HAS_SKQUANT:
+            raise MissingOptionalLibraryError(
+                libname='scikit-quant',
+                name='IMFIL',
+                pip_install='pip install qiskit-aqua[skquant]')
         super().__init__()
         self._maxiter = maxiter
 

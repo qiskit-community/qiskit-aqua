@@ -16,7 +16,7 @@ import unittest
 from test.aqua import QiskitAquaTestCase
 from qiskit import BasicAer
 from qiskit.circuit.library import RealAmplitudes
-from qiskit.aqua import QuantumInstance
+from qiskit.aqua import QuantumInstance, MissingOptionalLibraryError
 from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.aqua.algorithms import VQE
 from qiskit.aqua import aqua_globals
@@ -52,18 +52,27 @@ class TestOptimizers(QiskitAquaTestCase):
 
     def test_bobyqa(self):
         """ BOBYQA optimizer test. """
-        optimizer = BOBYQA(maxiter=150)
-        self._optimize(optimizer)
+        try:
+            optimizer = BOBYQA(maxiter=150)
+            self._optimize(optimizer)
+        except MissingOptionalLibraryError as ex:
+            self.skipTest(str(ex))
 
     def test_snobfit(self):
         """ SNOBFIT optimizer test. """
-        optimizer = SNOBFIT(maxiter=100, maxfail=100, maxmp=20)
-        self._optimize(optimizer)
+        try:
+            optimizer = SNOBFIT(maxiter=100, maxfail=100, maxmp=20)
+            self._optimize(optimizer)
+        except MissingOptionalLibraryError as ex:
+            self.skipTest(str(ex))
 
     def test_imfil(self):
         """ IMFIL test. """
-        optimizer = IMFIL(maxiter=100)
-        self._optimize(optimizer)
+        try:
+            optimizer = IMFIL(maxiter=100)
+            self._optimize(optimizer)
+        except MissingOptionalLibraryError as ex:
+            self.skipTest(str(ex))
 
 
 if __name__ == '__main__':
