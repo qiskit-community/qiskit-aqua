@@ -304,7 +304,6 @@ class TestGradients(QiskitAquaTestCase):
                 np.testing.assert_array_almost_equal(prob_grad_result,
                                                      correct_values[i][j], decimal=1)
 
-    
     def test_lin_comb_qfi(self):
         """Test if the quantum fisher information calculation is correct
 
@@ -562,14 +561,14 @@ class TestGradients(QiskitAquaTestCase):
         if method == 'fin_diff':
             np.random.seed = 8
             prob_grad = Gradient(grad_method=method, epsilon=shots**(-1/6.)).convert(operator=op,
-                                                                                      params=params)
+                                                                                     params=params)
         else:
             prob_grad = Gradient(grad_method=method).convert(operator=op, params=params)
         values_dict = [{a: [np.pi / 4], b: [0]}, {params[0]: [np.pi / 4], params[1]: [np.pi / 4]},
                        {params[0]: [np.pi / 2], params[1]: [np.pi]}]
         correct_values = [[[0, 0], [1 / (2 * np.sqrt(2)), - 1 / (2 * np.sqrt(2))]],
-                            [[1 / 4, -1 / 4], [1 / 4, - 1 / 4]],
-                            [[0, 0],  [- 1 / 2, 1 / 2]]]
+                          [[1 / 4, -1 / 4], [1 / 4, - 1 / 4]],
+                          [[0, 0],  [- 1 / 2, 1 / 2]]]
 
         backend = BasicAer.get_backend('qasm_simulator')
         q_instance = QuantumInstance(backend=backend, shots=shots)
@@ -622,6 +621,38 @@ class TestGradients(QiskitAquaTestCase):
         np.testing.assert_almost_equal(result['optimal_value'], h2_energy, decimal=1)
 
 
+@ddt
+class TestParameterGradients(QiskitAquaTestCase):
+    """Test taking the gradient of parameter expressions."""
+
+    def test_grad(self):
+        """Test taking the gradient of parameter expressions."""
+        x, y = Parameter('x'), Parameter('y')
+        with self.subTest('linear'):
+            expr = 2 * x + y
+
+            grad = Gradient.parameter_expression_grad(expr, x)
+            self.assertEqual(grad, 2)
+
+            grad = Gradient.parameter_expression_grad(expr, y)
+            self.assertEqual(grad, 1)
+
+        with self.subTest('polynomial'):
+            expr = x * x * x - x * y + y * y
+
+            grad = Gradient.parameter_expression_grad(expr, x)
+            self.assertEqual(grad, 3 * x * x - y)
+
+            grad = Gradient.parameter_expression_grad(expr, y)
+            self.assertEqual(grad, -1 * x + 2 * y)
+
+    def test_converted_to_float_if_bound(self):
+        """Test the gradient is a float when no free symbols are left."""
+        x = Parameter('x')
+        expr = 2 * x + 1
+        grad = Gradient.parameter_expression_grad(expr, x)
+        self.assertIsInstance(grad, float)
+
+
 if __name__ == '__main__':
     unittest.main()
-
