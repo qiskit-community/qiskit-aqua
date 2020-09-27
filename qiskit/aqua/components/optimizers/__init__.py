@@ -58,6 +58,21 @@ Local Optimizers
    SPSA
    TNC
 
+Qiskit Aqua also provides the following optimizers, which are built-out using the optimizers from
+the `scikit-quant` package. The `scikit-quant` package is not installed by default but must be
+explicitly installed, if desired, by the user - the optimizers therein are provided under various
+licences so it has been made an optional install for the end user to choose whether to do so or
+not. To install the `scikit-quant` dependent package you can use
+`pip install qiskit-aqua[skquant]`.
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   BOBYQA
+   IMFIL
+   SNOBFIT
+
 Global Optimizers
 =================
 The global optimizers here all use NLopt for their core function and can only be
