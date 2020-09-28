@@ -15,12 +15,9 @@
 from typing import Union, List, Optional
 
 import numpy as np
-from jax import grad, jit
-from qiskit.aqua import AquaError
-from qiskit.aqua.operators import (
-    PauliExpectation
-)
 
+from qiskit.aqua import AquaError
+from qiskit.aqua.operators import PauliExpectation
 from qiskit.aqua.operators.gradients.circuit_gradients.circuit_gradient import \
     CircuitGradient
 from qiskit.aqua.operators.gradients.gradient_base import GradientBase
@@ -32,6 +29,13 @@ from qiskit.aqua.operators.operator_base import OperatorBase
 from qiskit.aqua.operators.operator_globals import Zero, One
 from qiskit.aqua.operators.state_fns.circuit_state_fn import CircuitStateFn
 from qiskit.circuit import ParameterExpression, ParameterVector
+
+try:
+    from jax import grad, jit
+
+    _HAS_JAX_ = True
+except ModuleNotFoundError:
+    _HAS_JAX_ = False
 
 
 class Gradient(GradientBase):
@@ -47,12 +51,12 @@ class Gradient(GradientBase):
                 gradient.
             epsilon: The offset size to use when computing finite difference gradients.
 
-        
+
         Raises:
             ValueError: If method != ``fin_diff`` and ``epsilon`` is not None.
         """
         super().__init__(grad_method, **kwargs)
-        
+
     def convert(self,
                 operator: OperatorBase,
                 params: Optional[Union[ParameterVector, ParameterExpression,
@@ -201,20 +205,20 @@ class Gradient(GradientBase):
             if operator._combo_fn == ListOp([])._combo_fn:
                 return ListOp(oplist=grad_ops)
             elif isinstance(operator, SummedOp):
-                return SummedOp(oplist=[grad for grad in grad_ops if grad != ~Zero@One]).reduce()
+                return SummedOp(oplist=[grad for grad in grad_ops if grad != ~Zero @ One]).reduce()
             elif isinstance(operator, TensoredOp):
                 return TensoredOp(oplist=grad_ops)
 
             if operator.grad_combo_fn:
                 grad_combo_fn = operator.grad_combo_fn
             else:
-                try:
+                if _HAS_JAX_:
                     grad_combo_fn = jit(grad(operator._combo_fn, holomorphic=True))
-                except Exception:
-                    raise TypeError(
-                        'This automatic differentiation function is based on JAX. Please use '
-                        '`import jax.numpy as jnp` instead of `import numpy as np` when defining '
-                        'a combo_fn.')
+                else:
+                    raise AquaError(
+                        'This automatic differentiation function is based on JAX. Please install '
+                        'jax and use `import jax.numpy as jnp` instead of `import numpy as np` when'
+                        'defining a combo_fn.')
 
             # f(g_1(x), g_2(x)) --> df/dx = df/dg_1 dg_1/dx + df/dg_2 dg_2/dx
             return ListOp([ListOp(operator.oplist, combo_fn=grad_combo_fn), ListOp(grad_ops)],
