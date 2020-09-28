@@ -10,7 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""TODO"""
+"""Base class for transformation to qubit operators for chemistry problems"""
 
 from abc import ABC, abstractmethod
 from typing import Tuple, List
@@ -21,16 +21,16 @@ from qiskit.chemistry.drivers import BaseDriver
 
 
 class QubitOperatorTransformation(ABC):
-    """TODO"""
+    """Base class for transformation to qubit operators for chemistry problems"""
 
     @abstractmethod
     def transform(self, driver: BaseDriver
                   ) -> Tuple[WeightedPauliOperator, List[WeightedPauliOperator]]:
-        """TODO"""
+        """transforms to qubit operators """
         raise NotImplementedError
 
     @abstractmethod
     def interpret(self, eigenvalue: float, eigenstate: List[float], aux_values: list
                   ) -> MolecularGroundStateResult:
-        """TODO"""
+        """interprets the results of the ground state calculation"""
         raise NotImplementedError

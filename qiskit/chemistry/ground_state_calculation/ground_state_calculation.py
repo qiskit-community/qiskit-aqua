@@ -20,7 +20,7 @@ from qiskit.chemistry.qubit_transformations import QubitOperatorTransformation
 
 
 class GroundStateCalculation(ABC):
-    """The ground state calculation interface."""
+    """The ground state calculation interface"""
 
     def __init__(self, transformation: QubitOperatorTransformation) -> None:
         """
@@ -41,12 +41,12 @@ class GroundStateCalculation(ABC):
     @abstractmethod
     def compute_ground_state(self, driver: BaseDriver) -> MolecularGroundStateResult:
         """Compute the ground state energy of the molecule that was supplied via the driver.
-
+        
         Args:
-            driver: TODO
+            driver: BaseDriver
 
         Returns:
-            A molecular ground state result TODO
+            A molecular ground state result
         """
         raise NotImplementedError
 

@@ -118,11 +118,30 @@ class FermionicTransformation(QubitOperatorTransformation, ChemistryOperator):
 
     def transform(self, driver: BaseDriver) -> Tuple[WeightedPauliOperator,
                                                      List[WeightedPauliOperator]]:
+        """
+        Transformation to qubit operator from the driver
+
+        Args:
+            driver:BaseDriver
+
+        Returns:
+            qubit operator, auxiliary operators
+        """
         q_molecule = driver.run()
         ops, aux_ops = self._do_transform(q_molecule)  # _do_transform(q_molecule)
         return ops, aux_ops
 
-    def _do_transform(self, qmolecule):
+    def _do_transform(self, qmolecule)-> Tuple[WeightedPauliOperator,
+                                                     List[WeightedPauliOperator]]:
+        """
+
+        Args:
+            qmolecule (Qmolecule): qmolecule
+
+        Returns:
+            (qubit operator, auxiliary operators)
+
+        """
         logger.debug('Processing started...')
         # Save these values for later combination with the quantum computation result
         self._hf_energy = qmolecule.hf_energy
@@ -211,6 +230,16 @@ class FermionicTransformation(QubitOperatorTransformation, ChemistryOperator):
         aux_ops = []
 
         def _add_aux_op(aux_op, name):
+            """
+            Add auxiliary operators
+
+            Args:
+                aux_op: auxiliary operators
+                name: name
+
+            Returns:
+
+            """
             aux_qop = FermionicTransformation._map_fermionic_operator_to_qubit(
                 aux_op, self._qubit_mapping, new_nel, self._two_qubit_reduction
                 )
@@ -227,6 +256,16 @@ class FermionicTransformation(QubitOperatorTransformation, ChemistryOperator):
 
         if qmolecule.has_dipole_integrals():
             def _dipole_op(dipole_integrals, axis):
+                """
+                Dipole operators
+
+                Args:
+                    dipole_integrals: dipole intergrals
+                    axis: axis for dipole moment calculation
+
+                Returns:
+                    (qubit_op_, shift, ph_shift_)
+                """
                 logger.debug('Creating aux op for dipole %s', axis)
                 fer_op_ = FermionicOperator(h1=dipole_integrals)
                 fer_op_, shift, did_shift_ = self._try_reduce_fermionic_operator(fer_op_,
@@ -281,7 +320,16 @@ class FermionicTransformation(QubitOperatorTransformation, ChemistryOperator):
         return qubit_op, aux_ops
 
     def _process_z2symmetry_reduction(self, qubit_op, aux_ops):
+        """
+        Implement z2 symmetries in the qubit operator
 
+        Args:
+            qubit_op : qubit operator
+            aux_ops: auxiliary operators
+
+        Returns:
+            (z2_qubit_op, z2_aux_ops, z2_symmetries)
+        """
         z2_symmetries = Z2Symmetries.find_Z2_symmetries(qubit_op)
         if z2_symmetries.is_empty():
             logger.debug('No Z2 symmetries found')
@@ -337,6 +385,16 @@ class FermionicTransformation(QubitOperatorTransformation, ChemistryOperator):
 
     @staticmethod
     def _check_commutes(cliffords, operator):
+        """
+        Check commutations
+
+        Args:
+            cliffords : cliffords
+            operator (Qubit Operator): qubit operator
+
+        Returns:
+            Boolean: does_commute
+        """
         commutes = []
         for clifford in cliffords:
             commutes.append(operator.commute_with(clifford))
@@ -375,7 +433,7 @@ class FermionicTransformation(QubitOperatorTransformation, ChemistryOperator):
             TODO
 
         Returns:
-            TODO
+            GroundState Result TODO
         """
         mgsr = MolecularGroundStateResult()
         mgsr.hartree_fock_energy = self._hf_energy
@@ -412,6 +470,14 @@ class FermionicTransformation(QubitOperatorTransformation, ChemistryOperator):
 
     # Called by public superclass method process_algorithm_result to complete specific processing
     def _process_algorithm_result(self, algo_result):
+        """
+
+        Args:
+            algo_resul (AlgorithmResult): AlgorithmResult
+
+        Returns:
+            Ground state calculation result
+        """
         if isinstance(algo_result, MinimumEigensolverResult):
             msgr = self.interpret(algo_result.eigenvalue, algo_result.eigenstate,
                                   algo_result.aux_operator_eigenvalues)
@@ -422,6 +488,17 @@ class FermionicTransformation(QubitOperatorTransformation, ChemistryOperator):
 
     @staticmethod
     def _try_reduce_fermionic_operator(fer_op, freeze_list, remove_list):
+        """
+        Trying to reduce the fermionic operator w.r.t to freeze and remove list if provided
+
+        Args:
+            fer_op (FermionicOperator) : fermionic operator
+            freeze_list (list): freeze list of orbitals
+            remove_list (list): remove list of orbitals
+
+        Returns:
+            (fermionic_operator, energy_shift, did_shift)
+        """
         # pylint: disable=len-as-condition
         did_shift = False
         energy_shift = 0.0
@@ -434,6 +511,18 @@ class FermionicTransformation(QubitOperatorTransformation, ChemistryOperator):
 
     @staticmethod
     def _map_fermionic_operator_to_qubit(fer_op, qubit_mapping, num_particles, two_qubit_reduction):
+        """
+
+        Args:
+            fer_op (FermionicOperator): Fermionic Operator
+            qubit_mapping (QubitMappingType): fermion to qubit mapping
+            num_particles (integer): number of particles
+            two_qubit_reduction (boolean): two qubit reduction
+
+        Returns:
+            qubit operator
+        """
+
         qubit_op = fer_op.mapping(map_type=qubit_mapping, threshold=0.00000001)
         if qubit_mapping == 'parity' and two_qubit_reduction:
             qubit_op = Z2Symmetries.two_qubit_reduction(qubit_op, num_particles)
@@ -441,6 +530,9 @@ class FermionicTransformation(QubitOperatorTransformation, ChemistryOperator):
 
     @staticmethod
     def _dipole_to_string(_dipole):
+        """
+        Dipole values to strings
+        """
         dips = [round(x, 8) for x in _dipole]
         value = '['
         for i, _ in enumerate(dips):
@@ -450,4 +542,7 @@ class FermionicTransformation(QubitOperatorTransformation, ChemistryOperator):
 
     @staticmethod
     def _float_to_string(value, precision=8):
+        """
+        Float to string for results
+        """
         return '0.0' if value == 0 else ('{:.' + str(precision) + 'f}').format(value).rstrip('0')
