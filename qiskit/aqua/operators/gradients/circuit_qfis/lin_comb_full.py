@@ -20,12 +20,10 @@ from typing import List, Union, Optional
 import numpy as np
 from qiskit.aqua import AquaError
 from qiskit.aqua.operators import ListOp, OperatorBase
-from qiskit.aqua.operators.gradients.circuit_gradients.circuit_gradient import \
-    CircuitGradient
 from qiskit.aqua.operators.operator_globals import I, Z, Y, X
 from qiskit.aqua.operators.state_fns import StateFn, CircuitStateFn
 from qiskit.circuit import Gate
-from qiskit.circuit import (QuantumCircuit, QuantumRegister, Parameter, ParameterVector,
+from qiskit.circuit import (QuantumCircuit, QuantumRegister, ParameterVector,
                             ParameterExpression)
 from qiskit.circuit.library import RZGate, RXGate, HGate, XGate, SdgGate, SGate, ZGate, UGate
 
@@ -44,7 +42,8 @@ class LinCombFull(CircuitQFI):
 
     def convert(self,
                 operator: CircuitStateFn,
-                params: Optional[Union[Parameter, ParameterVector, List[Parameter]]] = None,
+                params: Optional[Union[ParameterExpression, ParameterVector,
+                                       List[ParameterExpression]]] = None,
                 approx: Optional[str] = 'full'
                 ) -> ListOp(List[OperatorBase]):
         r"""

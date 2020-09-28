@@ -61,17 +61,20 @@ class ParamShift(CircuitGradient):
     # pylint: disable=arguments-differ
     def convert(self,
                 operator: OperatorBase,
-                params: Optional[Union[Parameter, ParameterVector, List[Parameter],
-                                       Tuple[Parameter, Parameter],
-                                       List[Tuple[Parameter, Parameter]]]] = None) -> OperatorBase:
+                params: Optional[Union[ParameterExpression, ParameterVector,
+                                       List[ParameterExpression],
+                                       Tuple[ParameterExpression, ParameterExpression],
+                                       List[Tuple[ParameterExpression,
+                                                  ParameterExpression]]]] = None) -> OperatorBase:
         """
         Args:
             operator: The operator corresponding to our quantum state we are taking the
                       gradient of: |ψ(ω)〉
             params: The parameters we are taking the gradient wrt: ω
-                    If a Parameter, ParameterVector or List[Parameter] is given, then
-                    the 1st oder derivative of the operator is calculated.
-                    If a Tuple[Parameter, Parameter] or List[Tuple[Parameter, Parameter]]
+                    If a ParameterExpression, ParameterVector or List[ParameterExpression] is given,
+                    then the 1st oder derivative of the operator is calculated.
+                    If a Tuple[ParameterExpression, ParameterExpression] or
+                    List[Tuple[ParameterExpression, ParameterExpression]]
                     is given, then the 2nd oder derivative of the operator is calculated.
 
         Returns:
@@ -81,12 +84,12 @@ class ParamShift(CircuitGradient):
             AquaError: If the parameters are given in an invalid format.
 
         """
-        if isinstance(params, Parameter) or isinstance(params, ParameterVector):
+        if isinstance(params, ParameterExpression) or isinstance(params, ParameterVector):
             return self.parameter_shift(operator, params)
         elif isinstance(params, tuple):
             return self.parameter_shift(self.parameter_shift(operator, params[0]), params[1])
         elif isinstance(params, Iterable):
-            if isinstance(params[0], Parameter):
+            if isinstance(params[0], ParameterExpression):
                 return self.parameter_shift(operator, params)
             elif isinstance(params[0], tuple):
                 return ListOp(
@@ -101,7 +104,7 @@ class ParamShift(CircuitGradient):
 
     def parameter_shift(self,
                         operator: OperatorBase,
-                        params: Union[Parameter, ParameterVector, List]) -> OperatorBase:
+                        params: Union[ParameterExpression, ParameterVector, List]) -> OperatorBase:
         r"""
         Args:
             operator: the operator containing circuits we are taking the derivative of
@@ -132,7 +135,7 @@ class ParamShift(CircuitGradient):
         # by this point, it's only one parameter
         param = params
 
-        if not isinstance(param, Parameter):
+        if not isinstance(param, ParameterExpression):
             raise ValueError
         if isinstance(operator, ListOp) and not isinstance(operator, ComposedOp):
             return_op = operator.traverse(partial(self.parameter_shift, params=param))

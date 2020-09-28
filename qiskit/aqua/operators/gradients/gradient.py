@@ -37,7 +37,6 @@ class Gradient(GradientBase):
     """Convert an operator expression to the first-order gradient."""
 
     def __init__(self,
-
                  grad_method: Union[str, CircuitGradient] = 'param_shift',
                  **kwargs):
         r"""
@@ -113,7 +112,7 @@ class Gradient(GradientBase):
             ValueError: If ``params`` contains a parameter not present in ``operator``.
             AquaError: If the coefficent of the operator could not be reduced to 1.
             NotImplementedError: If operator is a TensoredOp  # TODO support this
-            Exception: Unintended code is reached  # TODO proper warnings and errors
+            Exception: Unintended code is reached
         """
 
         def is_coeff_c(coeff, c):

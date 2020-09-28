@@ -69,10 +69,10 @@ class DerivativeBase(ConverterBase):
 
     def gradient_wrapper(self,
                          operator: OperatorBase,
-                         bind_params: Union[Parameter, ParameterVector, List[Parameter]],
-                         grad_params: Optional[Union[Parameter, ParameterVector, List[Parameter],
-                                                     Tuple[Parameter, Parameter],
-                                                     List[Tuple[Parameter, Parameter]]]] = None,
+                         bind_params: Union[ParameterExpression, ParameterVector, List[ParameterExpression]],
+                         grad_params: Optional[Union[ParameterExpression, ParameterVector, List[ParameterExpression],
+                                                     Tuple[ParameterExpression, ParameterExpression],
+                                                     List[Tuple[ParameterExpression, ParameterExpression]]]] = None,
                          backend: Optional[Union[BaseBackend, QuantumInstance]] = None) \
             -> Callable[[Iterable], np.ndarray]:
         """

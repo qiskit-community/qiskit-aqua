@@ -18,7 +18,7 @@ from typing import List, Union
 
 from qiskit.aqua.operators.converters.converter_base import ConverterBase
 from qiskit.aqua.operators.operator_base import OperatorBase
-from qiskit.circuit import Parameter, ParameterVector
+from qiskit.circuit import ParameterExpression, ParameterVector
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ class CircuitGradient(ConverterBase):
     @abstractmethod
     def convert(self,
                 operator: OperatorBase,
-                params: Union[ParameterVector, Parameter, List[Parameter]]
+                params: Union[ParameterVector, ParameterExpression, List[ParameterExpression]]
                 ) -> OperatorBase:
         r"""
         Args:

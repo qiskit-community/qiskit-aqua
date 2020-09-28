@@ -93,6 +93,8 @@ class NaturalGradient(GradientBase):
                 'Please make sure that the operator for which you want to compute Quantum '
                 'Fisher Information represents an expectation value and that the quantum '
                 'state is given as CircuitStateFn.')
+        if not isinstance(params, Iterable):
+            params = [params]
         if self._grad_method == 'fin_diff':
             grad = Gradient(self._grad_method, epsilon=self._epsilon).convert(operator, params)
         else:

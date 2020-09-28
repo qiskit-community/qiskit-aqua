@@ -39,7 +39,8 @@ class OverlapBlockDiag(CircuitQFI):
 
     def convert(self,
                 operator: Union[CircuitOp, CircuitStateFn],
-                params: Optional[Union[Parameter, ParameterVector, List[Parameter]]] = None
+                params: Optional[Union[ParameterExpression, ParameterVector,
+                                       List[ParameterExpression]]] = None
                 ) -> ListOp(List[OperatorBase]):
 
         r"""
@@ -58,13 +59,12 @@ class OverlapBlockDiag(CircuitQFI):
 
         if not isinstance(operator, (CircuitOp, CircuitStateFn)):
             raise NotImplementedError('operator mustdds be a CircuitOp or CircuitStateFn')
-
-
         return self._block_diag_approx(operator=operator, params=params)
 
     def _block_diag_approx(self,
                           operator: Union[CircuitOp, CircuitStateFn],
-                          params: Optional[Union[Parameter, ParameterVector, List[Parameter]]] = None
+                          params: Optional[Union[ParameterExpression, ParameterVector,
+                                                 List[ParameterExpression]]] = None
                           ) -> ListOp(List[OperatorBase]):
         r"""
         Args:
@@ -81,7 +81,6 @@ class OverlapBlockDiag(CircuitQFI):
         """
         
         circuit = operator.primitive
-
         # Parition the circuit into layers, and build the circuits to prepare $\psi_i$
         layers = self._partition_circuit(circuit)
         if layers[-1].num_parameters == 0:

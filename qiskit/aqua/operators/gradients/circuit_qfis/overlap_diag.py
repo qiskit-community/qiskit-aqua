@@ -18,14 +18,11 @@ from typing import List, Union, Optional
 import numpy as np
 from qiskit.aqua.operators import OperatorBase, ListOp, CircuitOp
 from qiskit.aqua.operators.expectations import PauliExpectation
-from qiskit.aqua.operators.gradients.circuit_gradients.circuit_gradient import \
-    CircuitGradient
 from qiskit.aqua.operators.operator_globals import I, Z, Y, X, Zero
 from qiskit.aqua.operators.state_fns import StateFn, CircuitStateFn
 from qiskit.circuit import Parameter, ParameterVector, ParameterExpression
 from qiskit.circuit.library import RZGate, RXGate, RYGate
 from qiskit.converters import dag_to_circuit, circuit_to_dag
-from scipy.linalg import block_diag
 from .circuit_qfi import CircuitQFI
 
 
@@ -40,7 +37,8 @@ class OverlapDiag(CircuitQFI):
 
     def convert(self,
                 operator: Union[CircuitOp, CircuitStateFn],
-                params: Optional[Union[Parameter, ParameterVector, List[Parameter]]] = None
+                params: Optional[Union[ParameterExpression, ParameterVector,
+                                       List[ParameterExpression]]] = None
                 ) -> ListOp(List[OperatorBase]):
 
         r"""
@@ -67,7 +65,7 @@ class OverlapDiag(CircuitQFI):
     # This should be fixed. 
     def _diagonal_approx(self,
                     operator: Union[CircuitOp, CircuitStateFn],
-                    params: Union[Parameter, ParameterVector, List] = None
+                    params: Union[ParameterExpression, ParameterVector, List] = None
                     ) -> OperatorBase:
         """
         Args:
