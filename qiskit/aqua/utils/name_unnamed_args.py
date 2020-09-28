@@ -10,12 +10,13 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Util to name unnamed arguments."""
+"""Tool to name unnamed arguments."""
 
 import functools
 
 
 def name_args(mapping, skip=0):
+    # pylint: disable=wrong-spelling-in-docstring
     """Decorator to convert unnamed arguments to named ones.
 
     Can be used to deprecate old signatures of a function, e.g.
