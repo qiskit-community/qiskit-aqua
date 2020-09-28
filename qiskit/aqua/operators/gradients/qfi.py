@@ -11,7 +11,7 @@
 # that they have been altered from the originals.
 
 """The module for Quantum the Fisher Information."""
-from collections.abc import Iterable
+
 from typing import List, Union, Optional
 
 from .qfi_base import QFIBase
