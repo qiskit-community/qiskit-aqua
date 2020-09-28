@@ -48,15 +48,11 @@ class OverlapBlockDiag(CircuitQFI):
             operator: The operator corresponding to the quantum state |ψ(ω)〉for which we compute
                 the QFI
             params: The parameters we are computing the QFI wrt: ω
-            apprix: The type of approximation to use when computing the QFI
 
         Returns:
             ListOp[ListOp] where the operator at position k,l corresponds to QFI_kl
 
-        Raises:
-            ValueError: If the value for ``approx`` is not supported.
         """
-
         if not isinstance(operator, (CircuitOp, CircuitStateFn)):
             raise NotImplementedError('operator mustdds be a CircuitOp or CircuitStateFn')
         return self._block_diag_approx(operator=operator, params=params)

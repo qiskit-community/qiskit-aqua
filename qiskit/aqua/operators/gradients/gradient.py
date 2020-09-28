@@ -11,6 +11,7 @@
 # that they have been altered from the originals.
 
 """The base interface for Aqua's gradient."""
+
 from typing import Union, List, Optional
 
 import numpy as np
@@ -68,8 +69,6 @@ class Gradient(GradientBase):
         Raises:
             ValueError: If ``params`` contains a parameter not present in ``operator``.
         """
-        # grad_combo_fn: Gradient for a custom operator combo_fn. The gradient for a standard
-        #     ``ListOp`` or SymPy combo_fn is automatically computed.
 
         if params is None:
             raise ValueError("No parameters were provided to differentiate")
@@ -135,10 +134,9 @@ class Gradient(GradientBase):
                 )
             return ListOp(param_grads)
 
-        # by this point, it's only one parameter
+        # By now params is a single parameter
         param = params
         # Handle Product Rules
-        # print('Op coeff ', operator._coeff)
         if not is_coeff_c(operator._coeff, 1.0):
 
             # Separate the operator from the coefficient

@@ -781,7 +781,7 @@ class LinComb(CircuitGradient):
             after: If the gate_to_insert should be inserted after the reference_gate set True.
 
         Raises:
-            AquaError: TODO
+            AquaError: Gate insertion fail
         """
 
         if isinstance(gate_to_insert, IGate):

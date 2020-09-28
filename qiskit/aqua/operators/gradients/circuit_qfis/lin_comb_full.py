@@ -44,14 +44,12 @@ class LinCombFull(CircuitQFI):
                 operator: CircuitStateFn,
                 params: Optional[Union[ParameterExpression, ParameterVector,
                                        List[ParameterExpression]]] = None,
-                approx: Optional[str] = 'full'
                 ) -> ListOp(List[OperatorBase]):
         r"""
         Args:
             operator: The operator corresponding to the quantum state |ψ(ω)〉for which we compute
                 the QFI
             params: The parameters we are computing the QFI wrt: ω
-            approx: The type of approximation to compute
 
         Returns:
             ListOp[ListOp] where the operator at position k,l corresponds to QFI_kl
@@ -65,12 +63,6 @@ class LinCombFull(CircuitQFI):
         qfi_observable = ~StateFn(4 * Z ^ (I ^ operator.num_qubits))
         phase_fix_observable = ~StateFn((X + 1j * Y) ^ (I ^ operator.num_qubits))
         # see https://arxiv.org/pdf/quant-ph/0108146.pdf
-        # Alternatively, define one operator which computes the QFI with phase fix directly
-        # qfi_observable = ~StateFn(Z ^ (I ^ op.num_qubits) - op)
-
-        assert approx == 'full', 'LinCombFull currently only supports the full QFI matrix ' \
-                                 'for a block-diagonal or diagonal approximation, please ' \
-                                 'see OverlapDiag'
 
         if isinstance(operator, CircuitStateFn):
             pass
@@ -298,7 +290,7 @@ class LinCombFull(CircuitQFI):
                                     elif param_occurence_j[1] == 1:
                                         LinComb.insert_gate(
                                             qfi_circuit, param_occurence_j[0],
-                                            gate_to_insert_j, after=True,
+                                            gate_toap_insert_j, after=True,
                                             additional_qubits=additional_qubits)
                                     else:
                                         LinComb.insert_gate(

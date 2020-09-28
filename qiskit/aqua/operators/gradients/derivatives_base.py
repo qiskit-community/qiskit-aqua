@@ -52,7 +52,8 @@ class DerivativeBase(ConverterBase):
     @abstractmethod
     def convert(self,
                 operator: OperatorBase,
-                params: Optional[Union[ParameterVector, Parameter, List[Parameter]]] = None
+                params: Optional[Union[ParameterVector, ParameterExpression,
+                                       List[ParameterExpression]]] = None
                 ) -> OperatorBase:
         r"""
         Args:
@@ -69,10 +70,14 @@ class DerivativeBase(ConverterBase):
 
     def gradient_wrapper(self,
                          operator: OperatorBase,
-                         bind_params: Union[ParameterExpression, ParameterVector, List[ParameterExpression]],
-                         grad_params: Optional[Union[ParameterExpression, ParameterVector, List[ParameterExpression],
-                                                     Tuple[ParameterExpression, ParameterExpression],
-                                                     List[Tuple[ParameterExpression, ParameterExpression]]]] = None,
+                         bind_params: Union[ParameterExpression, ParameterVector,
+                                            List[ParameterExpression]],
+                         grad_params: Optional[Union[ParameterExpression, ParameterVector,
+                                                     List[ParameterExpression],
+                                                     Tuple[ParameterExpression,
+                                                           ParameterExpression],
+                                                     List[Tuple[ParameterExpression,
+                                                                ParameterExpression]]]] = None,
                          backend: Optional[Union[BaseBackend, QuantumInstance]] = None) \
             -> Callable[[Iterable], np.ndarray]:
         """
@@ -95,8 +100,6 @@ class DerivativeBase(ConverterBase):
         """
         if not grad_params:
             grad_params = bind_params
-            # raise AquaError(
-            #     'Please define parameters for which the gradient/Hessian/QFI shall be computed')
 
         if not isinstance(backend, QuantumInstance):
             backend = QuantumInstance(backend)

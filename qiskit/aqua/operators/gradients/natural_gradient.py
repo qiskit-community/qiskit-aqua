@@ -79,7 +79,7 @@ class NaturalGradient(GradientBase):
                 ) -> OperatorBase:
         r"""
         Args:
-            operator: The operator we are taking the gradient of
+            operator: The operator we are taking the gradient of.
             params: The parameters we are taking the gradient with respect to.
 
         Returns:
@@ -125,8 +125,8 @@ class NaturalGradient(GradientBase):
         return self._regularization
 
     @staticmethod
-    def _reg_term_search(A: np.ndarray,
-                         C: np.ndarray,
+    def _reg_term_search(a: np.ndarray,
+                         c: np.ndarray,
                          reg_method: callable,
                          lambda1: float = 1e-3,
                          lambda4: float = 1.,
@@ -140,8 +140,8 @@ class NaturalGradient(GradientBase):
         `A simple algorithm to find the L-curve corner in the regularization of inverse problems
          <https://arxiv.org/pdf/1608.04571.pdf>`
         Args:
-            A: see (1) and (2)
-            C: see (1) and (2)
+            a: see (1) and (2)
+            c: see (1) and (2)
             reg_method: Given A, C and lambda the regularization method must return x_lambda
             - see (2)
             lambda1: left starting point for L-curve corner search
@@ -168,18 +168,18 @@ class NaturalGradient(GradientBase):
             eta = []
             for x in x_lambda:
                 try:
-                    eps.append(np.log(np.linalg.norm(np.matmul(A, x) - C) ** 2))
+                    eps.append(np.log(np.linalg.norm(np.matmul(a, x) - c) ** 2))
                 except Exception:
-                    eps.append(np.log(np.linalg.norm(np.matmul(A, np.transpose(x)) - C) ** 2))
+                    eps.append(np.log(np.linalg.norm(np.matmul(a, np.transpose(x)) - c) ** 2))
                 eta.append(np.log(max(np.linalg.norm(x) ** 2, 1e-6)))
             p_temp = 1
-            C_k = 0
+            c_k = 0
             for i in range(3):
                 p_temp *= (eps[np.mod(i + 1, 3)] - eps[i]) ** 2 + (
                         eta[np.mod(i + 1, 3)] - eta[i]) ** 2
-                C_k += eps[i] * eta[np.mod(i + 1, 3)] - eps[np.mod(i + 1, 3)] * eta[i]
-            C_k = 2 * C_k / max(1e-4, np.sqrt(p_temp))
-            return C_k
+                c_k += eps[i] * eta[np.mod(i + 1, 3)] - eps[np.mod(i + 1, 3)] * eta[i]
+            c_k = 2 * c_k / max(1e-4, np.sqrt(p_temp))
+            return c_k
 
         def get_lambda2_lambda3(lambda1, lambda4):
             gold_sec = (1 + np.sqrt(5)) / 2.
@@ -191,23 +191,23 @@ class NaturalGradient(GradientBase):
         lambda_ = [lambda1, lambda2, lambda3, lambda4]
         x_lambda = []
         for l in lambda_:
-            x_lambda.append(reg_method(A, C, l))
+            x_lambda.append(reg_method(a, c, l))
         counter = 0
         while (lambda_[3] - lambda_[0]) / lambda_[3] >= tol:
             counter += 1
-            C2 = _get_curvature(x_lambda[:-1])
-            C3 = _get_curvature(x_lambda[1:])
-            while C3 < 0:
+            c2 = _get_curvature(x_lambda[:-1])
+            c3 = _get_curvature(x_lambda[1:])
+            while c3 < 0:
                 lambda_[3] = lambda_[2]
                 x_lambda[3] = x_lambda[2]
                 lambda_[2] = lambda_[1]
                 x_lambda[2] = x_lambda[1]
                 lambda2, _ = get_lambda2_lambda3(lambda_[0], lambda_[3])
                 lambda_[1] = lambda2
-                x_lambda[1] = reg_method(A, C, lambda_[1])
-                C3 = _get_curvature(x_lambda[1:])
+                x_lambda[1] = reg_method(a, c, lambda_[1])
+                c3 = _get_curvature(x_lambda[1:])
 
-            if C2 > C3:
+            if c2 > c3:
                 lambda_mc = lambda_[1]
                 x_mc = x_lambda[1]
                 lambda_[3] = lambda_[2]
@@ -216,7 +216,7 @@ class NaturalGradient(GradientBase):
                 x_lambda[2] = x_lambda[1]
                 lambda2, _ = get_lambda2_lambda3(lambda_[0], lambda_[3])
                 lambda_[1] = lambda2
-                x_lambda[1] = reg_method(A, C, lambda_[1])
+                x_lambda[1] = reg_method(a, c, lambda_[1])
             else:
                 lambda_mc = lambda_[2]
                 x_mc = x_lambda[2]
@@ -226,12 +226,12 @@ class NaturalGradient(GradientBase):
                 x_lambda[1] = x_lambda[2]
                 _, lambda3 = get_lambda2_lambda3(lambda_[0], lambda_[3])
                 lambda_[2] = lambda3
-                x_lambda[2] = reg_method(A, C, lambda_[2])
+                x_lambda[2] = reg_method(a, c, lambda_[2])
         return lambda_mc, x_mc
 
     @staticmethod
-    def _ridge(A: np.ndarray,
-               C: np.ndarray,
+    def _ridge(a: np.ndarray,
+               c: np.ndarray,
                lambda_: float = 1.,
                auto_search: bool = True,
                lambda1: float = 1e-4,
@@ -239,7 +239,7 @@ class NaturalGradient(GradientBase):
                tol_search: float = 1e-8,
                fit_intercept: bool = True,
                normalize: bool = False,
-               copy_A: bool = True,
+               copy_a: bool = True,
                max_iter: int = 1000,
                tol: float = 0.0001,
                solver: str = 'auto',
@@ -250,8 +250,8 @@ class NaturalGradient(GradientBase):
         `Scikit Learn Ridge Regression
         <https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Ridge.html>`
         Args:
-            A: see (1) and (2)
-            C: see (1) and (2)
+            a: see (1) and (2)
+            c: see (1) and (2)
             lambda_ : regularization parameter used if auto_search = False
             auto_search: if True then use _reg_term_search to find a good regularization parameter
             lambda1: left starting point for L-curve corner search
@@ -259,7 +259,7 @@ class NaturalGradient(GradientBase):
             tol_search: termination threshold for regularization parameter search
             fit_intercept: if True calculate intercept
             normalize: deprecated if fit_intercept=False, if True normalize A for regression
-            copy_A: if True A is copied, else overwritten
+            copy_a: if True A is copied, else overwritten
             max_iter: max. number of iterations if solver is CG
             tol: precision of the regression solution
             solver: solver {‘auto’, ‘svd’, ‘cholesky’, ‘lsqr’, ‘sparse_cg’, ‘sag’, ‘saga’}
@@ -271,26 +271,26 @@ class NaturalGradient(GradientBase):
         """
 
         from sklearn.linear_model import Ridge
-        reg = Ridge(alpha=lambda_, fit_intercept=fit_intercept, normalize=normalize, copy_X=copy_A,
+        reg = Ridge(alpha=lambda_, fit_intercept=fit_intercept, normalize=normalize, copy_X=copy_a,
                     max_iter=max_iter,
                     tol=tol, solver=solver, random_state=random_state)
         if auto_search:
-            def reg_method(A, C, l):
+            def reg_method(a, c, l):
                 reg.set_params(alpha=l)
-                reg.fit(A, C)
+                reg.fit(a, c)
                 return reg.coef_
 
-            lambda_mc, x_mc = NaturalGradient._reg_term_search(A, C, reg_method, lambda1=lambda1,
+            lambda_mc, x_mc = NaturalGradient._reg_term_search(a, c, reg_method, lambda1=lambda1,
                                                                lambda4=lambda4, tol=tol_search)
         else:
             lambda_mc = lambda_
-            reg.fit(A, C)
+            reg.fit(a, c)
             x_mc = reg.coef_
         return lambda_mc, np.transpose(x_mc)
 
     @staticmethod
-    def _lasso(A: np.ndarray,
-               C: np.ndarray,
+    def _lasso(a: np.ndarray,
+               c: np.ndarray,
                lambda_: float = 1.,
                auto_search: bool = True,
                lambda1: float = 1e-4,
@@ -299,7 +299,7 @@ class NaturalGradient(GradientBase):
                fit_intercept: bool = True,
                normalize: bool = False,
                precompute: Union[bool, Iterable] = False,
-               copy_A: bool = True,
+               copy_a: bool = True,
                max_iter: int = 1000,
                tol: float = 0.0001,
                warm_start: bool = False,
@@ -312,8 +312,8 @@ class NaturalGradient(GradientBase):
         `Scikit Learn Lasso Regression
         <https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html>`
         Args:
-            A: mxn matrix
-            C: m vector
+            a: mxn matrix
+            c: m vector
             lambda_ : regularization parameter used if auto_search = False
             auto_search: if True then use _reg_term_search to find a good regularization parameter
             lambda1: left starting point for L-curve corner search
@@ -323,7 +323,7 @@ class NaturalGradient(GradientBase):
             normalize: deprecated if fit_intercept=False, if True normalize A for regression
             precompute: If True compute and use Gram matrix to speed up calculations.
                                              Gram matrix can also be given explicitly
-            copy_A: if True A is copied, else overwritten
+            copy_a: if True A is copied, else overwritten
             max_iter: max. number of iterations if solver is CG
             tol: precision of the regression solution
             warm_start: if True reuse solution from previous fit as initialization
@@ -337,94 +337,93 @@ class NaturalGradient(GradientBase):
         from sklearn.linear_model import Lasso
         reg = Lasso(alpha=lambda_, fit_intercept=fit_intercept, normalize=normalize,
                     precompute=precompute,
-                    copy_X=copy_A, max_iter=max_iter, tol=tol, warm_start=warm_start,
+                    copy_X=copy_a, max_iter=max_iter, tol=tol, warm_start=warm_start,
                     positive=positive,
                     random_state=random_state, selection=selection)
         if auto_search:
-            def reg_method(A, C, l):
+            def reg_method(a, c, l):
                 reg.set_params(alpha=l)
-                # reg.set_params({'alpha': l})
-                reg.fit(A, C)
+                reg.fit(a, c)
                 return reg.coef_
 
-            lambda_mc, x_mc = NaturalGradient._reg_term_search(A, C, reg_method, lambda1=lambda1,
+            lambda_mc, x_mc = NaturalGradient._reg_term_search(a, c, reg_method, lambda1=lambda1,
                                                                lambda4=lambda4, tol=tol_search)
         else:
             lambda_mc = lambda_
-            reg.fit(A, C)
+            reg.fit(a, c)
             x_mc = reg.coef_
         return lambda_mc, x_mc
 
     @staticmethod
-    def _regularized_sle_solver(A: np.ndarray,
-                                C: np.ndarray,
+    def _regularized_sle_solver(a: np.ndarray,
+                                c: np.ndarray,
                                 regularization: str = 'perturb_diag',
                                 lambda1: float = 1e-3,
                                 lambda4: float = 1.,
                                 alpha: float = 0.,
                                 tol_norm_x: Union[tuple, float] = (1e-8, 5.),
-                                tol_cond_A: float = 1000.) -> np.ndarray:
+                                tol_cond_a: float = 1000.) -> np.ndarray:
 
         """
         Solve a linear system of equations with a regularization method and automatic lambda fitting
         cite lambda fitting
         Args:
-            A: mxn matrix
-            C: m vector
+            a: mxn matrix
+            c: m vector
             regularization: Regularization scheme to be used: 'ridge', 'lasso',
                 'perturb_diag_elements' or 'perturb_diag'
             lambda1: left starting point for L-curve corner search (for 'ridge' and 'lasso')
             lambda4: right starting point for L-curve corner search (for 'ridge' and 'lasso')
             alpha: perturbation coefficient for 'perturb_diag_elements' and 'perturb_diag'
             tol_norm_x: tolerance for the norm of x
-            tol_cond_A: tolerance for the condition number of A
+            tol_cond_a: tolerance for the condition number of A
 
         Returns:
             solution to the regularized SLE
 
         """
         if regularization == 'ridge':
-            _, x = NaturalGradient._ridge(A, C, lambda1=lambda1)
+            _, x = NaturalGradient._ridge(a, c, lambda1=lambda1)
         elif regularization == 'lasso':
-            _, x = NaturalGradient._lasso(A, C, lambda1=lambda1)
+            _, x = NaturalGradient._lasso(a, c, lambda1=lambda1)
         elif regularization == 'perturb_diag_elements':
             alpha = 1e-7
-            while np.linalg.cond(A + alpha * np.diag(A)) > tol_cond_A:
+            while np.linalg.cond(a + alpha * np.diag(a)) > tol_cond_a:
                 alpha *= 10
             # include perturbation in A to avoid singularity
-            x, res, rank, sv = np.linalg.lstsq(A + alpha * np.diag(A), C, rcond=None)
+            x, res, rank, sv = np.linalg.lstsq(a + alpha * np.diag(a), c, rcond=None)
         elif regularization == 'perturb_diag':
             alpha = 1e-7
-            while np.linalg.cond(A + alpha * np.eye(len(C))) > tol_cond_A:
+            while np.linalg.cond(a + alpha * np.eye(len(c))) > tol_cond_a:
                 alpha *= 10
             # include perturbation in A to avoid singularity
-            x, _, _, _ = np.linalg.lstsq(A + alpha * np.eye(len(C)), C, rcond=None)
+            x, _, _, _ = np.linalg.lstsq(a + alpha * np.eye(len(c)), c, rcond=None)
         else:
             # include perturbation in A to avoid singularity
-            x, _, _, _ = np.linalg.lstsq(A, C, rcond=None)
+            x, _, _, _ = np.linalg.lstsq(a, c, rcond=None)
 
         if np.linalg.norm(x) > tol_norm_x[1] or np.linalg.norm(x) < tol_norm_x[0]:
             if regularization == 'ridge':
                 lambda1 = lambda1 / 10.
-                _, x = NaturalGradient._ridge(A, C, lambda1=lambda1, lambda4=lambda4)
+                _, x = NaturalGradient._ridge(a, c, lambda1=lambda1, lambda4=lambda4)
             elif regularization == 'lasso':
                 lambda1 = lambda1 / 10.
-                _, x = NaturalGradient._lasso(A, C, lambda1=lambda1)
+                _, x = NaturalGradient._lasso(a, c, lambda1=lambda1)
             elif regularization == 'perturb_diag_elements':
-                while np.linalg.cond(A + alpha * np.diag(A)) > tol_cond_A:
+                while np.linalg.cond(a + alpha * np.diag(a)) > tol_cond_a:
                     if alpha == 0:
                         alpha = 1e-7
                     else:
                         alpha *= 10
                 # include perturbation in A to avoid singularity
-                x, _, _, _ = np.linalg.lstsq(A + alpha * np.diag(A), C, rcond=None)
+                x, _, _, _ = np.linalg.lstsq(a + alpha * np.diag(a), c, rcond=None)
             else:
                 if alpha == 0:
                     alpha = 1e-7
                 else:
                     alpha *= 10
-                while np.linalg.cond(A + alpha * np.eye(len(C))) > tol_cond_A:
+                while np.linalg.cond(a + alpha * np.eye(len(c))) > tol_cond_a:
                     # include perturbation in A to avoid singularity
-                    x, res, rank, sv = np.linalg.lstsq(A + alpha * np.eye(len(C)), C, rcond=None)
+                    x, res, rank, sv = np.linalg.lstsq(a + alpha * np.eye(len(c)), c, rcond=None)
                     alpha *= 10
         return x

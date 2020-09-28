@@ -46,7 +46,6 @@ class OverlapDiag(CircuitQFI):
             operator: The operator corresponding to the quantum state |ψ(ω)〉for which we compute
                 the QFI
             params: The parameters we are computing the QFI wrt: ω
-            apprix: The type of approximation to use when computing the QFI
 
         Returns:
             ListOp[ListOp] where the operator at position k,l corresponds to QFI_kl

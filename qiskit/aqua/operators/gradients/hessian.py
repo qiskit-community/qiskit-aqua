@@ -21,7 +21,6 @@ from qiskit.aqua.operators import Zero, One, CircuitStateFn, StateFn
 from qiskit.aqua.operators.expectations import PauliExpectation
 from qiskit.aqua.operators.gradients.circuit_gradients.circuit_gradient \
     import CircuitGradient
-from qiskit.aqua.operators.gradients.derivatives_base import DerivativeBase
 from qiskit.aqua.operators.gradients.hessian_base import HessianBase
 from qiskit.aqua.operators.gradients.gradient import Gradient
 from qiskit.aqua.operators.list_ops import ListOp, ComposedOp, SummedOp, TensoredOp
@@ -56,8 +55,7 @@ class Hessian(HessianBase):
                 ) -> OperatorBase:
         """
         Args:
-            operator: The measurement operator we are taking the gradient of
-            operator:  The operator corresponding to our state preparation circuit
+            operator: The operator for which we compute the Hessian
             params: The parameters we are computing the Hessian with respect to
                     Either give directly the tuples/list of tuples for which the second order
                     derivative is to be computed or give a list of parameters to build the
@@ -66,7 +64,7 @@ class Hessian(HessianBase):
                     'lin_comb'.
 
         Returns:
-            gradient_operator: An operator whose evaluation yeild the Hessian
+            OperatorBase: An operator whose evaluation yields the Hessian
         """
         # if input is a tuple instead of a list, wrap it into a list
         if params is None:
