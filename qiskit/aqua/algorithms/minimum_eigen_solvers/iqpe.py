@@ -193,7 +193,7 @@ class IQPE(QuantumAlgorithm, MinimumEigensolver):
         qc += self._state_in.construct_circuit('circuit', q)
         # hadamard on a[0]
         qc.add_register(a)
-        qc.u(np.pi/2, 0, np.pi, a[0])
+        qc.h(a[0])
         # controlled-U
         qc_evolutions_inst = evolution_instruction(self._slice_pauli_list, -2 * np.pi,
                                                    self._num_time_slices,
