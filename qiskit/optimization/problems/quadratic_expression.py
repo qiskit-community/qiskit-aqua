@@ -168,7 +168,7 @@ class QuadraticExpression(QuadraticProgramElement):
                      self.quadratic_program.variables[j].name): v
                     for (i, j), v in coeffs.items()}
         else:
-            return dict(coeffs.items())
+            return {(int(i), int(j)): v for (i, j), v in coeffs.items()}
 
     def evaluate(self, x: Union[ndarray, List, Dict[Union[int, str], float]]) -> float:
         """Evaluate the quadratic expression for given variables: x * Q * x.
