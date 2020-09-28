@@ -25,6 +25,11 @@ from qiskit.aqua.operators.gradients.gradient import Gradient
 from qiskit.aqua.operators.list_ops import ListOp, ComposedOp, SummedOp, TensoredOp
 from qiskit.aqua.operators.operator_base import OperatorBase
 from qiskit.circuit import ParameterVector, ParameterExpression
+try:
+    from jax import grad, jit
+    _HAS_JAX_ = True
+except ModuleNotFoundError:
+    _HAS_JAX_ = False
 
 try:
     from jax import grad, jit
