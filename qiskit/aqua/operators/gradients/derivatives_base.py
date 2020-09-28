@@ -36,9 +36,9 @@ logger = logging.getLogger(__name__)
 
 class DerivativeBase(ConverterBase):
     r"""
-    Converter for differentiating opflow objects and handling 
+    Converter for differentiating opflow objects and handling
     things like properly differentiating combo_fn's and enforcing prodct rules
-    when operator coeficients are parameterized. 
+    when operator coeficients are parameterized.
 
     This is distinct from CircuitGradient converters which use quantum
     techniques such as parameter shifts and linear combination of unitaries
@@ -98,52 +98,32 @@ class DerivativeBase(ConverterBase):
             # raise AquaError(
             #     'Please define parameters for which the gradient/Hessian/QFI shall be computed')
 
+        if not isinstance(backend, QuantumInstance):
+            backend = QuantumInstance(backend)
+
+        if not backend.is_statevector:
+            try:
+                import retworkx
+                if retworkx.__version__ < '0.5.0':
+                    raise ImportError('Please update retworx to at least version 0.5.0')
+            except ModuleNotFoundError:
+                raise ImportError('Please install retworx>=0.5.0')
+
         def gradient_fn(p_values):
             p_values_dict = dict(zip(bind_params, p_values))
             if not backend:
                 converter = self.convert(operator, grad_params).assign_parameters(p_values_dict)
                 return np.real(converter.eval())
             else:
-                if isinstance(backend, QuantumInstance):
-                    if backend.is_statevector:
-                        converter = self.convert(operator, grad_params).assign_parameters(
-                            p_values_dict)
-                        return np.real(converter.eval())
-                    else:
-                        try:
-                            import retworkx
-                            if retworkx.__version__ < '0.5.0':
-                                raise ImportError('Please update retworx to at least version 0.5.0')
-                        except ModuleNotFoundError:
-                            raise ImportError('Please install retworx>=0.5.0')
-
-                        p_values_dict = {k: [v] for k, v in p_values_dict.items()}
-                        converter = CircuitSampler(backend=backend).convert(
-                            self.convert(operator, grad_params), p_values_dict)
-                        return np.real(converter.eval()[0])
-                else:
-                    if backend.name().startswith('statevector'):
-                        converter = self.convert(operator, grad_params).assign_parameters(
-                            p_values_dict)
-                        return np.real(converter.eval())
-                    else:
-                        try:
-                            import retworkx
-                            if retworkx.__version__ < '0.5.0':
-                                raise ImportError('Please update retworx to at least version 0.5.0')
-                        except ModuleNotFoundError:
-                            raise ImportError('Please install retworx>=0.5.0')
-                        p_values_dict = {k: [v] for k, v in p_values_dict.items()}
-                        converter = CircuitSampler(backend=backend).convert(
-                            self.convert(operator, grad_params), p_values_dict)
-                        return np.real(converter.eval()[0])
-            return
+                p_values_dict = {k: [v] for k, v in p_values_dict.items()}
+                converter = CircuitSampler(backend=backend).convert(
+                    self.convert(operator, grad_params), p_values_dict)
+                return np.real(converter.eval()[0])
         return gradient_fn
 
     @staticmethod
     def parameter_expression_grad(param_expr: ParameterExpression,
-                                  param: Parameter) -> ParameterExpression:
-
+                                  param: Parameter) -> Union[ParameterExpression, float]:
         """Get the derivative of a parameter expression w.r.t. the given parameter.
 
         Args:
@@ -169,17 +149,28 @@ class DerivativeBase(ConverterBase):
             keys = [keys]
         for key in keys:
             expr_grad += sy.Derivative(expr, key).doit()
-        return ParameterExpression(param_expr._parameter_symbols, expr=expr_grad)
+
+        # generate the new dictionary of symbols
+        # this needs to be done since in the derivative some symbols might disappear (e.g.
+        # when deriving linear expression)
+        parameter_symbols = {}
+        for parameter, symbol in param_expr._parameter_symbols.items():
+            if symbol in expr_grad.free_symbols:
+                parameter_symbols[parameter] = symbol
+
+        if len(parameter_symbols) > 0:
+            return ParameterExpression(parameter_symbols, expr=expr_grad)
+        return float(expr_grad)  # if no free symbols left, convert to float
 
     @classmethod
     def _erase_operator_coeffs(cls, operator: OperatorBase) -> OperatorBase:
-        """This method traverses an input operator and deletes all of the coefficients 
+        """This method traverses an input operator and deletes all of the coefficients
 
         Args:
             operator: An operator of type OperatorBase
 
         Returns:
-            An operator which is equal to the input operator but whose coefficients 
+            An operator which is equal to the input operator but whose coefficients
             have all been set to 1.0
 
         """
@@ -193,20 +184,20 @@ class DerivativeBase(ConverterBase):
     @classmethod
     def _factor_coeffs_out_of_composed_op(cls, operator: OperatorBase) -> OperatorBase:
         """Factor all coefficients of ComposedOp out into a single global coefficient.
- 
+
         Part of the automatic differentiation logic inside of Gradient and Hessian
-        counts on the fact that no product or chain rules need to be computed between 
-        operators or coefficients within a ComposedOp. To ensure this condition is met, 
+        counts on the fact that no product or chain rules need to be computed between
+        operators or coefficients within a ComposedOp. To ensure this condition is met,
         this function traverses an operator and replaces each ComposedOp with an equivalent
-        ComposedOp, but where all coefficients have been factored out and placed onto the 
-        ComposedOp. Note that this cannot be done properly if an OperatorMeasurement contains 
-        a SummedOp as it's primitive. 
+        ComposedOp, but where all coefficients have been factored out and placed onto the
+        ComposedOp. Note that this cannot be done properly if an OperatorMeasurement contains
+        a SummedOp as it's primitive.
 
         Args:
             operator: The operator whose coefficients are being re-organized
 
         Returns:
-            An operator equivalent to the input operator, but whose coefficients have been 
+            An operator equivalent to the input operator, but whose coefficients have been
             reorganized
 
         Raises:
