@@ -85,6 +85,7 @@ setuptools.setup(
         'cplex': ["cplex; python_version >= '3.6' and python_version < '3.8'"],
         'cvx': ['cvxpy>1.0.0,!=1.1.0,!=1.1.1,!=1.1.2'],
         'pyscf': ["pyscf; sys_platform != 'win32'"],
+        'skquant': ["scikit-quant"],
     },
     zip_safe=False
 )
