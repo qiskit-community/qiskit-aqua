@@ -321,13 +321,16 @@ class ParamShift(CircuitGradient):
 
     @classmethod
     def unroll_operator(cls, operator: OperatorBase) -> Union[OperatorBase, List[OperatorBase]]:
-        """TODO
+        """Traverse the operator and return all OperatorBase objects flattened
+           into a single list. This is used as a subroutine to extract all 
+           circuits within a large composite operator.
 
         Args:
-            operator: TODO
+            operator: An OperatorBase type object
 
         Returns:
-            TODO
+            A single flattened list of all OperatorBase objects within the 
+            input operator
 
         """
         if isinstance(operator, ListOp):
