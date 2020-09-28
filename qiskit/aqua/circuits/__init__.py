@@ -43,9 +43,8 @@ Circuits
 """
 
 from .boolean_logical_circuits import CNF, DNF, ESOP
-from .statevector_circuit import StateVectorCircuit
-# must be imported after StateVectorCircuit because of cyclic import
 from .phase_estimation_circuit import PhaseEstimationCircuit
+from .statevector_circuit import StateVectorCircuit
 from .weighted_sum_operator import WeightedSumOperator
 
 __all__ = [
