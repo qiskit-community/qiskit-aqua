@@ -10,14 +10,12 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""TODO"""
+"""Qubit operator transformation module."""
 
-from .ground_state_calculation import GroundStateCalculation
-from .adapt_vqe import AdaptVQE
-from .mes_ground_state_calculation import MinimumEigensolverGroundStateCalculation
-from .mes_factory import MESFactory
+from .bosonic_transformation import BosonicTransformation
+from .fermionic_transformation import FermionicTransformation
+from .qubit_operator_transformation import QubitOperatorTransformation
 
-__all__ = ['GroundStateCalculation',
-           'AdaptVQE',
-           'MinimumEigensolverGroundStateCalculation',
-           'MESFactory']
+__all__ = ['BosonicTransformation',
+           'FermionicTransformation',
+           'QubitOperatorTransformation']

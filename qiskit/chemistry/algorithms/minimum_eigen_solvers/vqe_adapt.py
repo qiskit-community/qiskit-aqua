@@ -24,28 +24,25 @@ from qiskit.providers import BaseBackend
 from qiskit import ClassicalRegister
 from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.algorithms import VQAlgorithm, VQE, VQEResult
-from qiskit.aqua.algorithms.minimum_eigen_solvers import (MinimumEigensolver,
-                                                          MinimumEigensolverResult)
+from qiskit.chemistry.components.variational_forms import UCCSD
+from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.aqua.operators import LegacyBaseOperator
 from qiskit.aqua.components.optimizers import Optimizer
 from qiskit.aqua.components.variational_forms import VariationalForm
-from qiskit.aqua.operators import OperatorBase, LegacyBaseOperator, WeightedPauliOperator
 from qiskit.aqua.utils.validation import validate_min
-from qiskit.chemistry.components.variational_forms import UCCSD
 
 logger = logging.getLogger(__name__)
 
 
-class VQEAdapt(VQAlgorithm, MinimumEigensolver):
-    """
-    The Adaptive VQE algorithm.
+class VQEAdapt(VQAlgorithm):
+    """DEPRECATED. The Adaptive VQE algorithm.
 
     See https://arxiv.org/abs/1812.11173
     """
 
-    def __init__(self,
-                 operator: LegacyBaseOperator = None,
-                 var_form_base: VariationalForm = None,
-                 optimizer: Optimizer = None,
+    # TODO make re-usable, implement MinimumEignesolver interface
+    def __init__(self, operator: LegacyBaseOperator,
+                 var_form_base: VariationalForm, optimizer: Optimizer,
                  initial_point: Optional[np.ndarray] = None,
                  excitation_pool: Optional[List[WeightedPauliOperator]] = None,
                  threshold: float = 1e-5,
@@ -71,27 +68,28 @@ class VQEAdapt(VQAlgorithm, MinimumEigensolver):
 
         Raises:
             ValueError: if var_form_base is not an instance of UCCSD.
-            See also: qiskit/chemistry/components/variational_forms/uccsd.py
+            See also: qiskit/chemistry/components/variational_forms/uccsd_adapt.py
         """
+        warnings.warn('The qiskit.chemistry.algorithms.minimum_eigen_solvers.VQEAdapt object is '
+                      'deprecated as of 0.8.0 and will be removed no sooner than 3 months after the'
+                      ' release. You should use qiskit.chemistry.ground_state_calculation.AdaptVQE '
+                      'instead.', DeprecationWarning, stacklevel=2)
         validate_min('threshold', threshold, 1e-15)
         validate_min('delta', delta, 1e-5)
-
-        if var_form_base is None or not isinstance(var_form_base, UCCSD):
-            raise ValueError("var_form_base has to be an instance of UCCSD.")
-
-        self._quantum_instance = None
         super().__init__(var_form=var_form_base,
                          optimizer=optimizer,
                          initial_point=initial_point,
                          quantum_instance=quantum_instance)
-
         self._ret = None  # type: Dict
         self._optimizer.set_max_evals_grouped(max_evals_grouped)
         if initial_point is None:
             self._initial_point = var_form_base.preferred_init_points
         self._operator = operator
-        self._var_form.manage_hopping_operators()
-        self._excitation_pool = self._var_form.excitation_pool \
+        if not isinstance(var_form_base, UCCSD):
+            raise ValueError("var_form_base has to be an instance of UCCSD.")
+        self._var_form_base = var_form_base
+        self._var_form_base.manage_hopping_operators()
+        self._excitation_pool = self._var_form_base.excitation_pool \
             if excitation_pool is None else excitation_pool
         self._threshold = threshold
         self._delta = delta
@@ -103,78 +101,21 @@ class VQEAdapt(VQAlgorithm, MinimumEigensolver):
             for aux_op in aux_operators:
                 self._aux_operators.append(aux_op)
 
-    @property
-    def operator(self) -> Optional[OperatorBase]:
-        """ Returns operator """
-        return self._operator
-
-    @operator.setter
-    def operator(self, operator: Union[OperatorBase, LegacyBaseOperator]) -> None:
-        """ set operator """
-        self._operator = operator
-
-    @property
-    def aux_operators(self) -> Optional[List[Optional[OperatorBase]]]:
-        """ Returns aux operators """
-        return self._aux_operators
-
-    @aux_operators.setter
-    def aux_operators(self,
-                      aux_operators: Optional[
-                          Union[OperatorBase,
-                                LegacyBaseOperator,
-                                List[Optional[Union[OperatorBase,
-                                                    LegacyBaseOperator]]]]]) -> None:
-        """ Set aux operators """
-        if aux_operators is None:
-            aux_operators = []
-        elif not isinstance(aux_operators, list):
-            aux_operators = [aux_operators]
-
-        self._aux_operators = aux_operators  # type: List
-
-    @property
-    def quantum_instance(self) -> Optional[QuantumInstance]:
-        """ Returns quantum instance """
-        return self._quantum_instance
-
-    @quantum_instance.setter
-    def quantum_instance(self, quantum_instance) -> None:
-        """ set quantum instance """
-        self._quantum_instance = quantum_instance
-
-    def supports_aux_operators(self) -> bool:
-        return True
-
-    def compute_minimum_eigenvalue(
-            self,
-            operator: Optional[Union[OperatorBase, LegacyBaseOperator]] = None,
-            aux_operators: Optional[List[Optional[Union[OperatorBase,
-                                                        LegacyBaseOperator]]]] = None
-    ) -> MinimumEigensolverResult:
-        super().compute_minimum_eigenvalue(operator, aux_operators)
-        return self._run()
-
-    def _compute_gradients(self,
-                           excitation_pool: List,
-                           theta: float,
-                           delta: float,
-                           var_form: VariationalForm,
-                           operator: LegacyBaseOperator,
-                           optimizer: Optimizer) -> List:
+    def _compute_gradients(self, excitation_pool, theta, delta,
+                           var_form, operator, optimizer):
         """
         Computes the gradients for all available excitation operators.
 
         Args:
-            excitation_pool: pool of excitation operators
-            theta: list of (up to now) optimal parameters
-            delta: finite difference step size (for gradient computation)
-            var_form: current variational form
-            operator: system Hamiltonian
-            optimizer: classical optimizer algorithm
+            excitation_pool (list): pool of excitation operators
+            theta (list): list of (up to now) optimal parameters
+            delta (float): finite difference step size (for gradient computation)
+            var_form (VariationalForm): current variational form
+            operator (LegacyBaseOperator): system Hamiltonian
+            optimizer (Optimizer): classical optimizer algorithm
 
         Returns:
-            List of pairs consisting of gradient and excitation operator.
+            list: List of pairs consisting of gradient and excitation operator.
         """
         res = []
         # compute gradients for all excitation in operator pool
@@ -205,10 +146,9 @@ class VQEAdapt(VQAlgorithm, MinimumEigensolver):
         Raises:
             AquaError: wrong setting of operator and backend.
         """
-        if self.operator is None:
-            raise AquaError("The operator was never provided.")
-
         self._ret = {}  # TODO should be eliminated
+        # self._operator = VQE._config_the_best_mode(self, self._operator,
+        #                                            self._quantum_instance.backend)
         self._quantum_instance.circuit_summary = True
 
         threshold_satisfied = False
@@ -223,7 +163,7 @@ class VQEAdapt(VQAlgorithm, MinimumEigensolver):
             logger.info('--- Iteration #%s ---', str(iteration))
             # compute gradients
             cur_grads = self._compute_gradients(self._excitation_pool, theta, self._delta,
-                                                self._var_form, self._operator,
+                                                self._var_form_base, self._operator,
                                                 self._optimizer)
             # pick maximum gradient
             max_grad_index, max_grad = max(enumerate(cur_grads),
@@ -249,11 +189,11 @@ class VQEAdapt(VQAlgorithm, MinimumEigensolver):
                 logger.info("Final maximum gradient: %s", str(np.abs(max_grad[0])))
                 alternating_sequence = True
                 break
-            # add new excitation to self._var_form
-            self._var_form.push_hopping_operator(max_grad[1])
+            # add new excitation to self._var_form_base
+            self._var_form_base.push_hopping_operator(max_grad[1])
             theta.append(0.0)
             # run VQE on current Ansatz
-            algorithm = VQE(self._operator, self._var_form, self._optimizer,
+            algorithm = VQE(self._operator, self._var_form_base, self._optimizer,
                             initial_point=theta)
             vqe_result = algorithm.run(self._quantum_instance)
             self._ret['opt_params'] = vqe_result.optimal_point
@@ -266,7 +206,7 @@ class VQEAdapt(VQAlgorithm, MinimumEigensolver):
 
         # once finished evaluate auxiliary operators if any
         if self._aux_operators is not None and self._aux_operators:
-            algorithm = VQE(self._operator, self._var_form, self._optimizer,
+            algorithm = VQE(self._operator, self._var_form_base, self._optimizer,
                             initial_point=theta, aux_operators=self._aux_operators)
             vqe_result = algorithm.run(self._quantum_instance)
             self._ret['opt_params'] = vqe_result.optimal_point
@@ -296,7 +236,7 @@ class VQEAdapt(VQAlgorithm, MinimumEigensolver):
         Auxiliary function to check for cycles in the indices of the selected excitations.
 
         Returns:
-            Whether repeating sequences of indices have been detected.
+            bool: Whether repeating sequences of indices have been detected.
         """
         cycle_regex = re.compile(r"(\b.+ .+\b)( \b\1\b)+")
         # reg-ex explanation:
@@ -324,7 +264,7 @@ class VQEAdapt(VQAlgorithm, MinimumEigensolver):
         if 'opt_params' not in self._ret:
             raise AquaError("Cannot find optimal circuit before running the "
                             "algorithm to find optimal params.")
-        return self._var_form.construct_circuit(self._ret['opt_params'])
+        return self._var_form_base.construct_circuit(self._ret['opt_params'])
 
     def get_optimal_vector(self):
         # pylint: disable=import-outside-toplevel
