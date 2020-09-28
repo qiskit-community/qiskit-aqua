@@ -15,7 +15,6 @@
 from typing import Optional, Union, List, Tuple
 
 import numpy as np
-from jax import grad, jit
 from qiskit.aqua.aqua_globals import AquaError
 from qiskit.aqua.operators import Zero, One, CircuitStateFn, StateFn
 from qiskit.aqua.operators.expectations import PauliExpectation
@@ -26,6 +25,13 @@ from qiskit.aqua.operators.gradients.gradient import Gradient
 from qiskit.aqua.operators.list_ops import ListOp, ComposedOp, SummedOp, TensoredOp
 from qiskit.aqua.operators.operator_base import OperatorBase
 from qiskit.circuit import ParameterVector, ParameterExpression
+
+try:
+    from jax import grad, jit
+
+    _HAS_JAX_ = True
+except ModuleNotFoundError:
+    _HAS_JAX_ = False
 
 
 class Hessian(HessianBase):
@@ -41,7 +47,7 @@ class Hessian(HessianBase):
                 Deprecated for observable gradient.
             epsilon: The offset size to use when computing finite difference gradients.
 
-        
+
         Raises:
             ValueError: If method != ``fin_diff`` and ``epsilon`` is not None.
         """
@@ -195,14 +201,13 @@ class Hessian(HessianBase):
             if operator.grad_combo_fn:
                 grad_combo_fn = operator.grad_combo_fn
             else:
-
-                try:
+                if _HAS_JAX_:
                     grad_combo_fn = jit(grad(operator._combo_fn, holomorphic=True))
-                except Exception:
-                    raise TypeError(
-                        'This automatic differentiation function is based on JAX. Please use '
-                        '`import jax.numpy as jnp` instead of `import numpy as np` when defining a '
-                        'combo_fn.')
+                else:
+                    raise AquaError(
+                        'This automatic differentiation function is based on JAX. Please install '
+                        'jax and use `import jax.numpy as jnp` instead of `import numpy as np` when'
+                        'defining a combo_fn.')
 
             # f(g_1(x), g_2(x)) --> df/dx = df/dg_1 dg_1/dx + df/dg_2 dg_2/dx
             return ListOp([ListOp(operator.oplist, combo_fn=grad_combo_fn), ListOp(grad_ops)],
