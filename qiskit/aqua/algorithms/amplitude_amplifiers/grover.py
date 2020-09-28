@@ -260,7 +260,7 @@ class Grover(QuantumAlgorithm):
                 self._iterations = []
                 current_max_num_iterations = 1.0
                 while current_max_num_iterations < self._max_num_iterations:
-                    self._iterations.append(current_max_num_iterations)
+                    self._iterations.append(int(current_max_num_iterations))
                     current_max_num_iterations = self._lam * current_max_num_iterations
         elif num_iterations is not None:
             self._iterations = [num_iterations]
@@ -320,6 +320,8 @@ class Grover(QuantumAlgorithm):
 
         self._ret['top_measurement'] = top_measurement
 
+        # as_list = [int(bit) for bit in top_measurement]
+        # return self.post_processing(as_list), self.is_good_state(top_measurement)
         return self.post_processing(top_measurement), self.is_good_state(top_measurement)
 
     def is_good_state(self, bitstr: str) -> bool:
@@ -336,8 +338,7 @@ class Grover(QuantumAlgorithm):
             True if the measurement is a good state, False otherwise.
         """
         if callable(self._is_good_state):
-            oracle_evaluation, _ = self._is_good_state(bitstr)
-            return oracle_evaluation
+            return self._is_good_state(bitstr)
         elif isinstance(self._is_good_state, list):
             return bitstr in self._is_good_state
         elif isinstance(self._is_good_state, Statevector):
@@ -346,11 +347,11 @@ class Grover(QuantumAlgorithm):
             raise NotImplementedError('Conversion to callable not implemented for {}'.format(
                 type(self._is_good_state)))
 
-    def post_processing(self, bitstr: str) -> str:
+    def post_processing(self, measurement: List[int]) -> List[int]:
         """Do the post-processing to the measurement result
 
         Args:
-            bitstr: The measurement as bitstring.
+            measurement: The measurement as list of int.
 
         Returns:
             Do the post-processing based on the post_processing argument.
@@ -359,12 +360,14 @@ class Grover(QuantumAlgorithm):
             Otherwise, just return the input bitstr
         """
         if self._post_processing is not None:
-            return self._post_processing(bitstr)
+            return self._post_processing(measurement)
 
         if isinstance(self._oracle, Oracle):
+            bitstr = measurement
+            # bitstr = ''.join([str(bit) for bit in measurement])
             return self._oracle.evaluate_classically(bitstr)[1]
 
-        return bitstr
+        return measurement
 
     def construct_circuit(self, power: Optional[int] = None,
                           measurement: bool = False) -> QuantumCircuit:
@@ -452,7 +455,8 @@ def _oracle_component_to_circuit(oracle: Oracle):
     reflection_qubits = [i for i, qubit in enumerate(oracle.circuit.qubits)
                          if qubit in oracle.variable_register[:]]
 
-    is_good_state = oracle.evaluate_classically
+    def is_good_state(bitstr):
+        return oracle.evaluate_classically(bitstr)[0]
 
     return circuit, reflection_qubits, is_good_state
 
