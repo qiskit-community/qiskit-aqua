@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -425,8 +425,10 @@ class FermionicTransformation(QubitOperatorTransformation, ChemistryOperator):
         return z2_symmetries
 
     # pylint: disable=unused-argument
-    def interpret(self, eigenvalue: float, eigenstate: List[float], aux_values: list
+    def interpret(self,
+                  eigenvalue: float, eigenstate: List[float], aux_values: list
                   ) -> MolecularGroundStateResult:
+
         """Interpret eigenvalue and eigenstate of qubit Hamiltonian w.r.t. driver.
 
         Args:
@@ -435,6 +437,7 @@ class FermionicTransformation(QubitOperatorTransformation, ChemistryOperator):
         Returns:
             GroundState Result TODO
         """
+        
         mgsr = MolecularGroundStateResult()
         mgsr.hartree_fock_energy = self._hf_energy
         mgsr.nuclear_repulsion_energy = self._nuclear_repulsion_energy

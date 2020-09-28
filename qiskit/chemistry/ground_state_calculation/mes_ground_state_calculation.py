@@ -68,9 +68,10 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
 
         aux_operators = aux_operators if solver.supports_aux_operators() else None
 
-        raw_gs_result = solver.compute_minimum_eigenvalue(operator, aux_operators)
+        self.raw_gs_result = solver.compute_minimum_eigenvalue(operator, aux_operators)
 
-        # The post processing is now in the tranformation so that it is fermionic or bosonic
-        # gsc_result = self._transformation.interpret(raw_gs_result['energy'], r['aux_values'],
-        # groundstate)  # gs = array/circuit+params
-        return self.transformation.interpret(raw_gs_result)
+        eigenvalue = raw_gs_result.eigenvalue
+        eigenstate = raw_gs_result.eigenstate
+        aux_values = raw_gs_result.aux_operator_eigenvalues
+        
+        return self.raw_gs_result, self.transformation.interpret(eigenvalue, eigenstate, aux_values)
