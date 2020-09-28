@@ -141,16 +141,6 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         """Sets the minimum eigensolver."""
         self._min_eigen_solver = min_eigen_solver
 
-    @property
-    def penalty(self) -> Optional[float]:
-        """Returns the penalty value."""
-        return self._penalty
-
-    @penalty.setter
-    def penalty(self, penalty: Optional[float]) -> None:
-        """Sets the penalty value."""
-        self._penalty = penalty
-
     def solve(self, problem: QuadraticProgram) -> MinimumEigenOptimizationResult:
         """Tries to solves the given problem using the optimizer.
 
