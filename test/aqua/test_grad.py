@@ -23,7 +23,7 @@ from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.operators import I, X, Z, StateFn, CircuitStateFn, ListOp, CircuitSampler
 from qiskit.aqua.operators.gradients import Gradient, NaturalGradient, Hessian
 from qiskit.aqua.operators.gradients.qfi import QFI
-from qiskit.circuit import Parameter, ParameterExpression
+from qiskit.circuit import Parameter, ParameterVector, ParameterExpression
 from sympy import Symbol, cos
 
 from test.aqua import QiskitAquaTestCase
@@ -234,6 +234,38 @@ class TestGradients(QiskitAquaTestCase):
             np.testing.assert_array_almost_equal(state_grad.assign_parameters(value_dict).eval(),
                                                  correct_values[i],
                                                  decimal=1)
+
+    @data('lin_comb', 'param_shift', 'fin_diff')
+    def test_state_gradient5(self, method):
+        """Test the state gradient
+
+        Tr(|psi><psi|Z) = sin(a0)sin(a1)
+        Tr(|psi><psi|X) = cos(a0)
+        d<H>/da0 = - 0.5 sin(a0) - 1 cos(a0)sin(a1)
+        d<H>/da1 = - 1 sin(a0)cos(a1)
+        """
+
+        H = 0.5 * X - 1 * Z
+        a = ParameterVector('a', 2)
+        params = a
+
+        q = QuantumRegister(1)
+        qc = QuantumCircuit(q)
+        qc.h(q)
+        qc.rz(params[0], q[0])
+        qc.rx(params[1], q[0])
+        op = ~StateFn(H) @ CircuitStateFn(primitive=qc, coeff=1.)
+
+        state_grad = Gradient(grad_method=method).convert(operator=op, params=params)
+        values_dict = [{a: [np.pi / 4, np.pi]}, {a: [np.pi / 4, np.pi / 4]},
+                       {a: [np.pi / 2, np.pi / 4]}]
+        correct_values = [[-0.5 / np.sqrt(2), 1 / np.sqrt(2)], [-0.5 / np.sqrt(2) - 0.5, -1 / 2.],
+                          [-0.5, -1 / np.sqrt(2)]]
+
+        for i, value_dict in enumerate(values_dict):
+            np.testing.assert_array_almost_equal(state_grad.assign_parameters(value_dict).eval(),
+                                                 correct_values[i], decimal=1)
+
 
     @data('lin_comb', 'param_shift', 'fin_diff')
     def test_state_hessian(self, method):
