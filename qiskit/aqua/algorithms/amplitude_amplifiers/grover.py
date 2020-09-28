@@ -330,10 +330,6 @@ class Grover(QuantumAlgorithm):
         Args:
             bitstr: The measurement as bitstring.
 
-        Raises:
-            NotImplementedError: If self._is_good_state couldn't be used to determine whether
-                the bitstring is a good state.
-
         Returns:
             True if the measurement is a good state, False otherwise.
         """
@@ -341,11 +337,8 @@ class Grover(QuantumAlgorithm):
             return self._is_good_state(bitstr)
         elif isinstance(self._is_good_state, list):
             return bitstr in self._is_good_state
-        elif isinstance(self._is_good_state, Statevector):
-            return bitstr in self._is_good_state.probabilities_dict()
-        else:
-            raise NotImplementedError('Conversion to callable not implemented for {}'.format(
-                type(self._is_good_state)))
+        # else isinstance(self._is_good_state, Statevector) must be True
+        return bitstr in self._is_good_state.probabilities_dict()
 
     def post_processing(self, measurement: List[int]) -> List[int]:
         """Do the post-processing to the measurement result
