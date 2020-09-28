@@ -100,17 +100,16 @@ class DerivativeBase(ConverterBase):
         """
         if not grad_params:
             grad_params = bind_params
-
-        if not isinstance(backend, QuantumInstance):
-            backend = QuantumInstance(backend)
-
-        if not backend.is_statevector:
-            try:
-                import retworkx
-                if retworkx.__version__ < '0.5.0':
-                    raise ImportError('Please update retworx to at least version 0.5.0')
-            except ModuleNotFoundError:
-                raise ImportError('Please install retworx>=0.5.0')
+        if backend:
+            if (isinstance(backend, QuantumInstance) and (not backend.is_statevector)) or \
+                (not isinstance(backend, QuantumInstance) and not
+                 backend.name().startswith('statevector')):
+                try:
+                    import retworkx
+                    if retworkx.__version__ < '0.5.0':
+                        raise ImportError('Please update retworx to at least version 0.5.0')
+                except ModuleNotFoundError:
+                    raise ImportError('Please install retworx>=0.5.0')
 
         def gradient_fn(p_values):
             p_values_dict = dict(zip(bind_params, p_values))
