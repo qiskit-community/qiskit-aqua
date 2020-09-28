@@ -16,7 +16,6 @@ from abc import ABC, abstractmethod
 from typing import Tuple, List
 
 from qiskit.aqua.operators.legacy import WeightedPauliOperator
-from qiskit.aqua.algorithms import MinimumEigensolverResult
 from qiskit.chemistry.core import MolecularGroundStateResult
 from qiskit.chemistry.drivers import BaseDriver
 
@@ -31,11 +30,7 @@ class QubitOperatorTransformation(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def interpret(self, value: float, state: List[float], aux_values: dict) -> MolecularGroundStateResult:
+    def interpret(self, eigenvalue: float, eigenstate: List[float], aux_values: list
+                  ) -> MolecularGroundStateResult:
         """TODO"""
         raise NotImplementedError
-
-    # @abstractmethod
-    # def interpret(value, aux_values, circuit, params=None):
-    # -> GroundStateResult:  # might be fermionic / bosonic
-    #    raise NotImplementedError()

@@ -82,6 +82,9 @@ class Hamiltonian(ChemistryOperator):
         Raises:
             QiskitChemistryError: Invalid symmetry reduction
         """
+        warnings.warn('The Hamiltonian class is deprecated as of Qiskit Aqua 0.8.0 and will be '
+                      'removed no earlier than 3 months after the release date. Instead, the '
+                      'FermionicTransformation can be used.', DeprecationWarning, stacklevel=2)
         transformation = transformation.value
         qubit_mapping = qubit_mapping.value
         orbital_reduction = orbital_reduction if orbital_reduction is not None else []
@@ -114,7 +117,7 @@ class Hamiltonian(ChemistryOperator):
         self._ph_y_dipole_shift = 0.0
         self._ph_z_dipole_shift = 0.0
 
-    def _do_tranform(self, qmolecule):
+    def _do_transform(self, qmolecule):
         logger.debug('Processing started...')
         # Save these values for later combination with the quantum computation result
         self._hf_energy = qmolecule.hf_energy
