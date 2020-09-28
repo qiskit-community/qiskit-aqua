@@ -15,7 +15,7 @@
 from test.chemistry import QiskitChemistryTestCase
 
 from qiskit import BasicAer
-from qiskit.aqua import QuantumInstance
+from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms import VQE
 from qiskit.aqua.components.optimizers import COBYLA
 from qiskit.chemistry import BosonicOperator
@@ -29,6 +29,7 @@ class TestCHCVSCF(QiskitChemistryTestCase):
     def setUp(self):
         super().setUp()
         self.reference_energy = 592.5346331967364
+        aqua_globals.random_seed = 14
 
     def test_chc_vscf(self):
         """ chc vscf test """
