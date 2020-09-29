@@ -21,7 +21,7 @@ import numpy as np
 from .. import QiskitOptimizationError
 from ..problems.quadratic_program import QuadraticProgram, Variable
 from ..converters.quadratic_program_to_qubo import (QuadraticProgramToQubo,
-                                                     QuadraticProgramConverter)
+                                                    QuadraticProgramConverter)
 
 
 class OptimizationResultStatus(Enum):
@@ -284,14 +284,14 @@ class OptimizationAlgorithm(ABC):
 
     def _prepare_converters(self, converters: Optional[Union[QuadraticProgramConverter,
                                                              List[QuadraticProgramConverter]]],
-                            penalty: float) -> List[QuadraticProgramConverter]:
+                            penalty: Optional[float] = None) -> List[QuadraticProgramConverter]:
         """Prepare a list of converters from the input.
 
         Args:
             converters: The converters to use for converting a problem into a different form.
                 By default, when None is specified, an internally created instance of
                 :class:`~qiskit.optimization.converters.QuadraticProgramToQubo` will be used.
-            penalty:
+            penalty: TODO
 
         Returns:
             The list of converters.
@@ -300,6 +300,7 @@ class OptimizationAlgorithm(ABC):
             TypeError: When the converters include those that are not
             :class:`~qiskit.optimization.converters.QuadraticProgramConverter type.
         """
+        converters_ = []  # type: List[QuadraticProgramConverter]
         if converters is None:
             converters_ = [QuadraticProgramToQubo(penalty=penalty)]
         elif isinstance(converters, QuadraticProgramConverter):
@@ -325,6 +326,10 @@ class OptimizationAlgorithm(ABC):
             The problem converted by the converters.
         """
         problem_ = problem
+
+        if not isinstance(converters, list):
+            converters = [converters]
+
         for converter in converters:
             problem_ = converter.convert(problem_)
 
@@ -343,6 +348,9 @@ class OptimizationAlgorithm(ABC):
         Returns:
             The result of the original problem.
         """
+        if not isinstance(converters, list):
+            converters = [converters]
+
         for converter in converters[::-1]:
             result = converter.interpret(result)
         return result

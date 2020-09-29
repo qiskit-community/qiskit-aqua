@@ -14,7 +14,6 @@
 
 from typing import Optional
 
-from ..algorithms.optimization_algorithm import OptimizationResult
 from ..exceptions import QiskitOptimizationError
 from ..problems.quadratic_program import QuadraticProgram
 from .quadratic_program_converter import QuadraticProgramConverter
@@ -76,7 +75,7 @@ class QuadraticProgramToQubo(QuadraticProgramConverter):
         # Return QUBO
         return problem_
 
-    def interpret(self, result: OptimizationResult) -> OptimizationResult:
+    def interpret(self, result: 'OptimizationResult') -> 'OptimizationResult':  # type: ignore
         """Convert a result of a converted problem into that of the original problem.
 
             Args:

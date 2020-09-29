@@ -41,7 +41,8 @@ class GroverOptimizer(OptimizationAlgorithm):
     def __init__(self, num_value_qubits: int, num_iterations: int = 3,
                  quantum_instance: Optional[Union[BaseBackend, QuantumInstance]] = None,
                  converters: Optional[Union[QuadraticProgramConverter,
-                                            List[QuadraticProgramConverter]]] = None) -> None:
+                                            List[QuadraticProgramConverter]]] = None,
+                 penalty: Optional[float] = None) -> None:
         """
         Args:
             num_value_qubits: The number of value qubits.
@@ -51,6 +52,7 @@ class GroverOptimizer(OptimizationAlgorithm):
             converters: The converters to use for converting a problem into a different form.
                 By default, when None is specified, an internally created instance of
                 :class:`~qiskit.optimization.converters.QuadraticProgramToQubo` will be used.
+            penalty: TODO
 
         Raises:
             TypeError: When there one of converters is an invalid type.

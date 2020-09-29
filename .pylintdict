@@ -539,6 +539,7 @@ qreg
 quadratically
 quadraticconstraint
 quadraticprogram
+quadraticprogramconverter
 quandl
 quant
 quantile
