@@ -80,6 +80,25 @@ class TestAdaptVQE(QiskitChemistryTestCase):
         res = calc.compute_ground_state(self.driver)
         self.assertAlmostEqual(res.eigenvalue.real, self.expected, places=6)
 
+    def test_custom_excitation_pool(self):
+        """ Test custom excitation pool """
+        class CustomMESFactory(MESFactory):
+            """A custom MES factory."""
+
+            def get_solver(self, transformation):
+                solver = super().get_solver(transformation)
+                # Here, we can create essentially any custom excitation pool.
+                # For testing purposes only, we simply select some hopping operator already
+                # available in the variational form object.
+                custom_excitation_pool = [solver.var_form._hopping_ops[2]]
+                solver.var_form.excitation_pool = custom_excitation_pool
+                return solver
+
+        solver = CustomMESFactory(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
+        calc = AdaptVQE(self.transformation, solver)
+        res = calc.compute_ground_state(self.driver)
+        self.assertAlmostEqual(res.eigenvalue.real, self.expected, places=6)
+
     def test_vqe_adapt_check_cyclicity(self):
         """ VQEAdapt index cycle detection """
         param_list = [
