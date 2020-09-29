@@ -199,7 +199,7 @@ class StateCircuit(StateFn):
             c_op_other = CircuitOp(other.primitive, other.coeff)
             c_op = c_op_self.tensor(c_op_other)
             if isinstance(c_op, CircuitOp):
-                return CircuitStateFn(primitive=c_op.primitive, coeff=c_op.coeff,
+                return StateCircuit(primitive=c_op.primitive, coeff=c_op.coeff,
                                       is_measurement=self.is_measurement)
         # pylint: disable=cyclic-import
         from ..list_ops.tensored_op import TensoredOp

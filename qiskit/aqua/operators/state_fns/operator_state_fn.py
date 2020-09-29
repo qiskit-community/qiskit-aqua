@@ -81,13 +81,13 @@ class DensityOperator(StateFn):
                                coeff=np.conj(self.coeff),
                                is_measurement=(not self.is_measurement))
 
-    def _expand_dim(self, num_qubits: int) -> 'OperatorStateFn':
-        return OperatorStateFn(self.primitive._expand_dim(num_qubits),
+    def _expand_dim(self, num_qubits: int) -> 'DensityOperator':
+        return DensityOperator(self.primitive._expand_dim(num_qubits),
                                coeff=self.coeff,
                                is_measurement=self.is_measurement)
 
-    def permute(self, permutation: List[int]) -> 'OperatorStateFn':
-        return OperatorStateFn(self.primitive.permute(permutation),
+    def permute(self, permutation: List[int]) -> 'DensityOperator':
+        return DensityOperator(self.primitive.permute(permutation),
                                coeff=self.coeff,
                                is_measurement=self.is_measurement)
 

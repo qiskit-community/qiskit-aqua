@@ -24,7 +24,7 @@ from qiskit.aqua import aqua_globals, AquaError
 from ..operator_base import OperatorBase
 from .state_fn import StateFn
 from ..list_ops.list_op import ListOp
-from .vector_state_fn import VectorStateFn
+from .vector_state_fn import StateVector
 
 
 class DictStateVector(StateFn):
@@ -108,7 +108,7 @@ class DictStateVector(StateFn):
                            coeff=np.conj(self.coeff),
                            is_measurement=(not self.is_measurement))
 
-    def permute(self, permutation: List[int]) -> 'DictStateFn':
+    def permute(self, permutation: List[int]) -> 'DictStateVector':
         new_num_qubits = max(permutation) + 1
         if self.num_qubits != len(permutation):
             raise AquaError("New index must be defined for each qubit of the operator.")
@@ -121,12 +121,12 @@ class DictStateVector(StateFn):
             return ''.join(list_key)
 
         new_dict = {perm(key): value for key, value in self.primitive.items()}
-        return DictStateFn(new_dict, coeff=self.coeff, is_measurement=self.is_measurement)
+        return DictStateVector(new_dict, coeff=self.coeff, is_measurement=self.is_measurement)
 
-    def _expand_dim(self, num_qubits: int) -> 'DictStateFn':
+    def _expand_dim(self, num_qubits: int) -> 'DictStateVector':
         pad = '0'*num_qubits
         new_dict = {key + pad: value for key, value in self.primitive.items()}
-        return DictStateFn(new_dict, coeff=self.coeff, is_measurement=self.is_measurement)
+        return DictStateVector(new_dict, coeff=self.coeff, is_measurement=self.is_measurement)
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
         # Both dicts

@@ -493,30 +493,30 @@ class TestOpConstruction(QiskitAquaTestCase):
         num_qubits = 3
         add_qubits = 2
 
-        # case CircuitStateFn, with primitive QuantumCircuit
+        # case StateCircuit, with primitive QuantumCircuit
         qc2 = QuantumCircuit(num_qubits)
         qc2.cx(0, 1)
 
-        cfn = CircuitStateFn(qc2, is_measurement=True)
+        cfn = StateCircuit(qc2, is_measurement=True)
 
         cfn_exp = cfn._expand_dim(add_qubits)
         self.assertEqual(cfn_exp.num_qubits, add_qubits + num_qubits)
 
-        # case OperatorStateFn, with OperatorBase primitive, in our case CircuitStateFn
-        osfn = OperatorStateFn(cfn)
+        # case DensityOperator, with OperatorBase primitive, in our case StateCircuit
+        osfn = DensityOperator(cfn)
         osfn_exp = osfn._expand_dim(add_qubits)
 
         self.assertEqual(osfn_exp.num_qubits, add_qubits + num_qubits)
 
-        # case DictStateFn
-        dsfn = DictStateFn('1'*num_qubits, is_measurement=True)
+        # case DictStateVector
+        dsfn = DictStateVector('1'*num_qubits, is_measurement=True)
         self.assertEqual(dsfn.num_qubits, num_qubits)
 
         dsfn_exp = dsfn._expand_dim(add_qubits)
         self.assertEqual(dsfn_exp.num_qubits, num_qubits + add_qubits)
 
-        # case VectorStateFn
-        vsfn = VectorStateFn(np.ones(2**num_qubits, dtype=complex))
+        # case StateVector
+        vsfn = StateVector(np.ones(2**num_qubits, dtype=complex))
         self.assertEqual(vsfn.num_qubits, num_qubits)
 
         vsfn_exp = vsfn._expand_dim(add_qubits)
@@ -530,8 +530,8 @@ class TestOpConstruction(QiskitAquaTestCase):
         primitive_list = [1.0/(i+1) for i in range(dim)]
         primitive_dict = {format(i, 'b').zfill(num_qubits): 1.0/(i+1) for i in range(dim)}
 
-        dict_fn = DictStateFn(primitive=primitive_dict, is_measurement=True)
-        vec_fn = VectorStateFn(primitive=primitive_list, is_measurement=True)
+        dict_fn = DictStateVector(primitive=primitive_dict, is_measurement=True)
+        vec_fn = StateVector(primitive=primitive_list, is_measurement=True)
 
         # check if dict_fn and vec_fn are equivalent
         equivalent = np.allclose(dict_fn.to_matrix(), vec_fn.to_matrix())
@@ -612,8 +612,8 @@ class TestOpConstruction(QiskitAquaTestCase):
         self.assertEqual(num_qubits, list_op.num_qubits)
 
         num_qubits = 4
-        circuit_fn = CircuitStateFn(primitive=circuit_op.primitive, is_measurement=True)
-        operator_fn = OperatorStateFn(primitive=circuit_op ^ circuit_op, is_measurement=True)
+        circuit_fn = StateCircuit(primitive=circuit_op.primitive, is_measurement=True)
+        operator_fn = DensityOperator(primitive=circuit_op ^ circuit_op, is_measurement=True)
 
         no_perm_op = circuit_fn @ operator_fn
         self.assertEqual(no_perm_op.num_qubits, num_qubits)
@@ -629,10 +629,10 @@ class TestOpConstruction(QiskitAquaTestCase):
         dic = {format(i, 'b').zfill(num_qubits): 1.0/(i+1) for i in range(dim)}
 
         is_measurement = True
-        op_state_fn = OperatorStateFn(matrix_op, is_measurement=is_measurement)  # num_qubit = 4
-        vec_state_fn = VectorStateFn(vec, is_measurement=is_measurement)  # 3
-        dic_state_fn = DictStateFn(dic, is_measurement=is_measurement)  # 3
-        circ_state_fn = CircuitStateFn(circuit_op.to_circuit(), is_measurement=is_measurement)  # 2
+        op_state_fn = DensityOperator(matrix_op, is_measurement=is_measurement)  # num_qubit = 4
+        vec_state_fn = StateVector(vec, is_measurement=is_measurement)  # 3
+        dic_state_fn = DictStateVector(dic, is_measurement=is_measurement)  # 3
+        circ_state_fn = StateCircuit(circuit_op.to_circuit(), is_measurement=is_measurement)  # 2
 
         composed_op = op_state_fn @ vec_state_fn @ dic_state_fn @ circ_state_fn
         self.assertEqual(composed_op.num_qubits, op_state_fn.num_qubits)

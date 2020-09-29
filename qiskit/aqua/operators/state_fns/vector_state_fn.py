@@ -78,7 +78,7 @@ class StateVector(StateFn):
                              coeff=np.conj(self.coeff),
                              is_measurement=(not self.is_measurement))
 
-    def permute(self, permutation: List[int]) -> 'VectorStateFn':
+    def permute(self, permutation: List[int]) -> 'StateVector':
         new_self = self
         new_num_qubits = max(permutation) + 1
 
@@ -101,25 +101,25 @@ class StateVector(StateFn):
         from .. import CircuitOp
         matrix = CircuitOp(qc).to_matrix()
         vector = new_self.primitive.data
-        return VectorStateFn(primitive=matrix.dot(vector),
+        return StateVector(primitive=matrix.dot(vector),
                              coeff=self.coeff,
                              is_measurement=self.is_measurement)
 
     def to_dict_fn(self) -> StateFn:
-        """Creates the equivalent state function of type DictStateFn.
+        """Creates the equivalent state function of type DictStateVector.
 
         Returns:
-            A new DictStateFn equivalent to ``self``.
+            A new DictStateVector equivalent to ``self``.
         """
-        from .dict_state_fn import DictStateFn
+        from .dict_state_fn import DictStateVector
 
         num_qubits = self.num_qubits
         new_dict = {format(i, 'b').zfill(num_qubits): v for i, v in enumerate(self.primitive.data)}
-        return DictStateFn(new_dict, coeff=self.coeff, is_measurement=self.is_measurement)
+        return DictStateVector(new_dict, coeff=self.coeff, is_measurement=self.is_measurement)
 
-    def _expand_dim(self, num_qubits: int) -> 'VectorStateFn':
+    def _expand_dim(self, num_qubits: int) -> 'StateVector':
         primitive = np.zeros(2**num_qubits, dtype=complex)
-        return VectorStateFn(self.primitive.tensor(primitive),
+        return StateVector(self.primitive.tensor(primitive),
                              coeff=self.coeff,
                              is_measurement=self.is_measurement)
 
