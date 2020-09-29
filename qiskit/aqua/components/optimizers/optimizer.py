@@ -35,7 +35,7 @@ class Optimizer(ABC):
 
     # Should be overridden by the sub-classes.
     # The array is defined here to avoid exceptions in the constructor code
-    _OPTIONS = []
+    _OPTIONS: List[str] = []
 
     @abstractmethod
     def __init__(self):
