@@ -12,18 +12,19 @@
 
 """ DictStateVector Class """
 
-from typing import Optional, Union, Set, Dict, cast
+from typing import Optional, Union, Set, Dict, cast, List
 import itertools
 import numpy as np
 from scipy import sparse
 
 from qiskit.result import Result
 from qiskit.circuit import ParameterExpression
-from qiskit.aqua import aqua_globals
+from qiskit.aqua import aqua_globals, AquaError
 
 from ..operator_base import OperatorBase
 from .state_fn import StateFn
 from ..list_ops.list_op import ListOp
+from .vector_state_fn import VectorStateFn
 
 
 class DictStateVector(StateFn):
@@ -106,6 +107,26 @@ class DictStateVector(StateFn):
         return DictStateVector({b: np.conj(v) for (b, v) in self.primitive.items()},
                            coeff=np.conj(self.coeff),
                            is_measurement=(not self.is_measurement))
+
+    def permute(self, permutation: List[int]) -> 'DictStateFn':
+        new_num_qubits = max(permutation) + 1
+        if self.num_qubits != len(permutation):
+            raise AquaError("New index must be defined for each qubit of the operator.")
+
+        # helper function to permute the key
+        def perm(key):
+            list_key = ['0'] * new_num_qubits
+            for i, k in enumerate(permutation):
+                list_key[k] = key[i]
+            return ''.join(list_key)
+
+        new_dict = {perm(key): value for key, value in self.primitive.items()}
+        return DictStateFn(new_dict, coeff=self.coeff, is_measurement=self.is_measurement)
+
+    def _expand_dim(self, num_qubits: int) -> 'DictStateFn':
+        pad = '0'*num_qubits
+        new_dict = {key + pad: value for key, value in self.primitive.items()}
+        return DictStateFn(new_dict, coeff=self.coeff, is_measurement=self.is_measurement)
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
         # Both dicts

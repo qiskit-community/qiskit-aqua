@@ -19,49 +19,49 @@ from qiskit.transpiler.passes import Unroller
 
 
 # pylint: disable=invalid-name
-def apply_cu1(circuit, lam, c, t, use_basis_gates=True):
-    """ apply cu1 """
+def apply_cp(circuit, lam, c, t, use_basis_gates=True):
+    """ apply cp """
     if use_basis_gates:
-        circuit.u1(lam / 2, c)
+        circuit.p(lam / 2, c)
         circuit.cx(c, t)
-        circuit.u1(-lam / 2, t)
+        circuit.p(-lam / 2, t)
         circuit.cx(c, t)
-        circuit.u1(lam / 2, t)
+        circuit.p(lam / 2, t)
     else:
-        circuit.cu1(lam, c, t)
+        circuit.cp(lam, c, t)
 
 
-def apply_cu3(circuit, theta, phi, lam, c, t, use_basis_gates=True):
-    """ apply cu3 """
+def apply_cu(circuit, theta, phi, lam, c, t, use_basis_gates=True):
+    """ apply cu """
     if use_basis_gates:
-        circuit.u1((lam + phi) / 2, c)
-        circuit.u1((lam - phi) / 2, t)
+        circuit.p((lam + phi) / 2, c)
+        circuit.p((lam - phi) / 2, t)
         circuit.cx(c, t)
-        circuit.u3(-theta / 2, 0, -(phi + lam) / 2, t)
+        circuit.u(-theta / 2, 0, -(phi + lam) / 2, t)
         circuit.cx(c, t)
-        circuit.u3(theta / 2, phi, 0, t)
+        circuit.u(theta / 2, phi, 0, t)
     else:
-        circuit.cu3(theta, phi, lam, c, t)
+        circuit.cu(theta, phi, lam, 0, c, t)
 
 
 # pylint: disable=invalid-name
 def apply_ccx(circuit, a, b, c, use_basis_gates=True):
     """ apply ccx """
     if use_basis_gates:
-        circuit.u2(0, np.pi, c)
+        circuit.u(np.pi/2, 0, np.pi, c)
         circuit.cx(b, c)
-        circuit.u1(-np.pi / 4, c)
+        circuit.p(-np.pi / 4, c)
         circuit.cx(a, c)
-        circuit.u1(np.pi / 4, c)
+        circuit.p(np.pi / 4, c)
         circuit.cx(b, c)
-        circuit.u1(-np.pi / 4, c)
+        circuit.p(-np.pi / 4, c)
         circuit.cx(a, c)
-        circuit.u1(np.pi / 4, b)
-        circuit.u1(np.pi / 4, c)
-        circuit.u2(0, np.pi, c)
+        circuit.p(np.pi / 4, b)
+        circuit.p(np.pi / 4, c)
+        circuit.u(np.pi/2, 0, np.pi, c)
         circuit.cx(a, b)
-        circuit.u1(np.pi / 4, a)
-        circuit.u1(-np.pi / 4, b)
+        circuit.p(np.pi / 4, a)
+        circuit.p(-np.pi / 4, b)
         circuit.cx(a, b)
     else:
         circuit.ccx(a, b, c)
@@ -111,14 +111,14 @@ def get_controlled_circuit(circuit, ctl_qubit, tgt_circuit=None, use_basis_gates
         qc.add_register(ctl_qubit.register)
     for op in ops:
         if op[0].name == 'id':
-            apply_cu3(qc, 0, 0, 0, ctl_qubit, op[1][0], use_basis_gates=use_basis_gates)
+            apply_cu(qc, 0, 0, 0, ctl_qubit, op[1][0], use_basis_gates=use_basis_gates)
         elif op[0].name == 'u1':
-            apply_cu1(qc, *op[0].params, ctl_qubit, op[1][0], use_basis_gates=use_basis_gates)
+            apply_cp(qc, *op[0].params, ctl_qubit, op[1][0], use_basis_gates=use_basis_gates)
         elif op[0].name == 'u2':
-            apply_cu3(qc, np.pi / 2, *op[0].params,
-                      ctl_qubit, op[1][0], use_basis_gates=use_basis_gates)
+            apply_cu(qc, np.pi / 2, *op[0].params,
+                     ctl_qubit, op[1][0], use_basis_gates=use_basis_gates)
         elif op[0].name == 'u3':
-            apply_cu3(qc, *op[0].params, ctl_qubit, op[1][0], use_basis_gates=use_basis_gates)
+            apply_cu(qc, *op[0].params, ctl_qubit, op[1][0], use_basis_gates=use_basis_gates)
         elif op[0].name == 'cx':
             apply_ccx(qc, ctl_qubit, op[1][0], op[1][1], use_basis_gates=use_basis_gates)
         elif op[0].name == 'measure':
