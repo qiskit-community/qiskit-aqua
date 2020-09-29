@@ -153,7 +153,7 @@ class UCCSD(VariationalForm):
                                            excitation_type=self._excitation_type,)
 
         self._hopping_ops, self._num_parameters = self._build_hopping_operators()
-        self._excitation_pool = None
+        self._excitation_pool = None  # type: Optional[List[WeightedPauliOperator]]
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
         self._logging_construct_circuit = True
