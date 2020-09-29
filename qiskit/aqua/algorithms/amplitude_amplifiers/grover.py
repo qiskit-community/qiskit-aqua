@@ -82,7 +82,7 @@ class Grover(QuantumAlgorithm):
                     = D \mathcal{S}_f,
 
     where :math:`\mathcal{S}_0` flips the phase of the all-zero state and acts as identity
-    on all other states. Sometimes the first three operands are summarised as diffusion operator,
+    on all other states. Sometimes the first three operands are summarized as diffusion operator,
     which implements a reflection over the equal superposition state.
 
     If the number of solutions is known, we can calculate how often :math:`\mathcal{Q}` should be
