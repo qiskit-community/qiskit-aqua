@@ -41,7 +41,7 @@ class GroundStateCalculation(ABC):
     @abstractmethod
     def compute_ground_state(self, driver: BaseDriver) -> MolecularGroundStateResult:
         """Compute the ground state energy of the molecule that was supplied via the driver.
-        
+
         Args:
             driver: BaseDriver
 
