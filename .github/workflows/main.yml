@@ -141,7 +141,7 @@ jobs:
           make mypy
         shell: bash
   Aqua:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: [3.7, 3.8]
