@@ -193,7 +193,7 @@ class IQPE(QuantumAlgorithm, MinimumEigensolver):
         qc += self._state_in.construct_circuit('circuit', q)
         # hadamard on a[0]
         qc.add_register(a)
-        qc.u2(0, np.pi, a[0])
+        qc.h(a[0])
         # controlled-U
         qc_evolutions_inst = evolution_instruction(self._slice_pauli_list, -2 * np.pi,
                                                    self._num_time_slices,
@@ -206,11 +206,11 @@ class IQPE(QuantumAlgorithm, MinimumEigensolver):
         else:
             qc.append(qc_evolutions_inst, list(q) + [a[0]])
         # global phase due to identity pauli
-        qc.u1(2 * np.pi * self._ancilla_phase_coef * (2 ** (k - 1)), a[0])
+        qc.p(2 * np.pi * self._ancilla_phase_coef * (2 ** (k - 1)), a[0])
         # rz on a[0]
-        qc.u1(omega, a[0])
+        qc.p(omega, a[0])
         # hadamard on a[0]
-        qc.u2(0, np.pi, a[0])
+        qc.u(np.pi/2, 0, np.pi, a[0])
         if measurement:
             c = ClassicalRegister(1, name='c')
             qc.add_register(c)
