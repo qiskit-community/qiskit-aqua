@@ -24,7 +24,7 @@ long_description = """<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Aqua
  machine learning and optimization modules to experiment with real-world applications to quantum computing."""
 
 requirements = [
-    "qiskit-terra>=0.15.0",
+    "qiskit-terra>=0.16.0",
     "qiskit-ignis>=0.4.0",
     "scipy>=1.4",
     "sympy>=1.3",

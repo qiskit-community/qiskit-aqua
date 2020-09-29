@@ -411,16 +411,8 @@ def _oracle_component_to_circuit(oracle: Oracle):
     """Convert an Oracle to a QuantumCircuit."""
     circuit = QuantumCircuit(oracle.circuit.num_qubits)
 
-    if isinstance(oracle, TruthTableOracle):
-        index = 0
-        for qreg in oracle.circuit.qregs:
-            if qreg.name == "o":
-                break
-            index += qreg.size
-        _output_register = [index]
-    else:
-        _output_register = [i for i, qubit in enumerate(oracle.circuit.qubits)
-                            if qubit in oracle.output_register[:]]
+    _output_register = [i for i, qubit in enumerate(oracle.circuit.qubits)
+                        if qubit in oracle.output_register[:]]
 
     circuit.x(_output_register)
     circuit.h(_output_register)

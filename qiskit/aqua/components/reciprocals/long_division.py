@@ -171,7 +171,7 @@ class LongDivision(Reciprocal):
                 for i in range(n):
                     qc2.cx(r, a[i])
 
-                un_qc = qc2.mirror()
+                un_qc = qc2.reverse_ops()
                 un_qc.cx(r, z[0])
                 return un_qc
 
@@ -247,11 +247,11 @@ class LongDivision(Reciprocal):
 
         if self._negative_evals:
             for i in range(0, self._precision + self._num_ancillae):
-                qc.cu3(self._scale * 2 ** (-i), 0, 0, rec_reg[i], ancilla)
-            qc.cu3(2 * np.pi, 0, 0, self._ev[0], ancilla)  # correcting the sign
+                qc.cu(self._scale * 2 ** (-i), 0, 0, 0, rec_reg[i], ancilla)
+            qc.cu(2 * np.pi, 0, 0, 0, self._ev[0], ancilla)  # correcting the sign
         else:
             for i in range(0, self._precision + self._num_ancillae):
-                qc.cu3(self._scale * 2 ** (-i), 0, 0, rec_reg[i], ancilla)
+                qc.cu(self._scale * 2 ** (-i), 0, 0, 0, rec_reg[i], ancilla)
 
         self._circuit = qc
         self._rec = rec_reg
