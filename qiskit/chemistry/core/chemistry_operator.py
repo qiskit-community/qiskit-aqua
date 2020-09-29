@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020
@@ -14,9 +16,11 @@ This module contains the definition of a base class for a chemistry operator.
 Such an operator takes a QMolecule and produces an input for
 a quantum algorithm
 """
+
 from abc import ABC, abstractmethod
+import warnings
 import logging
-from typing import Union, List, Tuple, Optional, cast
+from typing import Union, List, Tuple, Optional
 import numpy as np
 
 from qiskit.aqua.algorithms import MinimumEigensolverResult, EigensolverResult, AlgorithmResult
@@ -43,10 +47,14 @@ class ChemistryOperator(ABC):
 
     @abstractmethod
     def __init__(self):
+        warnings.warn('The ChemistryOperator is deprecated as of Qiskit Aqua 0.8.0 and will be '
+                      'removed no earlier than 3 months after the release date. Instead, the '
+                      'FermionicTransformation can be used to transform QMolecules and construct '
+                      'ground state result objects.', DeprecationWarning, stacklevel=2)
         self._molecule_info = {}
 
     @abstractmethod
-    def run(self, qmolecule):
+    def _do_transform(self, qmolecule):
         """
         Convert the qmolecule, according to the ChemistryOperator, into an Operator
         that can be given to a QuantumAlgorithm
@@ -153,6 +161,9 @@ class MolecularGroundStateResult(MolecularChemistryResult):
     Energies are in Hartree and dipole moments in A.U unless otherwise stated.
     """
 
+    # TODO we need to be able to extract the statevector or the optimal parameters that can
+    # construct the circuit of the GS from here (if the algorithm supports this)
+
     @property
     def energy(self) -> Optional[float]:
         """ Returns ground state energy if nuclear_repulsion_energy is available from driver """
@@ -233,7 +244,7 @@ class MolecularGroundStateResult(MolecularChemistryResult):
         """ Returns dipole moment """
         edm = self.electronic_dipole_moment
         if self.reverse_dipole_sign:
-            edm = cast(DipoleTuple, tuple(-1 * x if x is not None else None for x in edm))
+            edm = tuple(-1 * x if x is not None else None for x in edm)
         return _dipole_tuple_add(edm, self.nuclear_dipole_moment)
 
     @property
