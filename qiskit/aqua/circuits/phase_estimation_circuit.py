@@ -164,7 +164,7 @@ class PhaseEstimationCircuit:
                 self._state_in_circuit_factory.build(qc, q, aux)
 
             # Put all ancillae in uniform superposition
-            qc.u2(0, np.pi, a)
+            qc.u(np.pi/2, 0, np.pi, a)
 
             # phase kickbacks via dynamics
             if self._operator is not None:
@@ -205,7 +205,7 @@ class PhaseEstimationCircuit:
                     else:
                         qc.append(qc_evolutions_inst, qargs=list(q) + [a[i]])
                     # global phase shift for the ancilla due to the identity pauli term
-                    qc.u1(self._evo_time * self._ancilla_phase_coef * (2 ** i), a[i])
+                    qc.p(self._evo_time * self._ancilla_phase_coef * (2 ** i), a[i])
 
             elif self._unitary_circuit_factory is not None:
                 for i in range(self._num_ancillae):
