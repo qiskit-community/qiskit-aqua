@@ -230,28 +230,34 @@ class Grover(QuantumAlgorithm):
             self._grover_operator = _construct_grover_operator(oracle, state_preparation,
                                                                mct_mode)
 
+        max_iterations = np.ceil(2 ** (len(self._grover_operator.reflection_qubits) / 2))
         if incremental:  # TODO remove 3 months after 0.8.0
             if rotation_counts is not None:
-                self._iterations = rotation_counts
+                iterations = rotation_counts
                 self._sample_from_iterations = False
             else:
                 if lam is None:
                     lam = 1.34
-                max_iterations = np.ceil(2 ** (len(self._grover_operator.reflection_qubits) / 2))
 
-                self._iterations = []
+                iterations = []
                 self._sample_from_iterations = True
                 power = 1.0
                 while power < max_iterations:
-                    self._iterations.append(int(power))
+                    iterations.append(int(power))
                     power = lam * power
 
         elif num_iterations is not None:  # TODO remove 3 months after 0.8.0
-            self._iterations = [num_iterations]
-        elif isinstance(iterations, list):
-            self._iterations = iterations
-        else:
-            self._iterations = [iterations]
+            iterations = [num_iterations]
+        elif not isinstance(iterations, list):
+            iterations = [iterations]
+        # else: already a list
+
+        # cutoff if max_iterations is exceeded (legacy code, should considered for removal?)
+        self._iterations = []
+        for iteration in iterations:
+            self._iterations += [iteration]
+            if iteration > max_iterations:
+                break
 
         self._is_good_state = good_state
         self._sample_from_iterations = sample_from_iterations
