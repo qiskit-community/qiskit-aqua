@@ -64,6 +64,9 @@ class NLoptOptimizer(Optimizer):
                     ' for installation information')
 
         super().__init__()
+        for k, v in list(locals().items()):
+            if k in self._OPTIONS:
+                self._options[k] = v
 
         self._optimizer_names = {
             NLoptOptimizerType.GN_CRS2_LM: nlopt.GN_CRS2_LM,

@@ -60,6 +60,9 @@ class NFT(Optimizer):
                 arXiv preprint arXiv:1903.12166.
         """
         super().__init__()
+        for k, v in list(locals().items()):
+            if k in self._OPTIONS:
+                self._options[k] = v
 
     def get_support_level(self):
         """ return support level dictionary """
