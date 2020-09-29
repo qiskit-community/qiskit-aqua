@@ -20,7 +20,7 @@ from enum import Enum
 import numpy as np
 from qiskit.aqua.algorithms import MinimumEigensolverResult
 from qiskit.aqua.operators import Z2Symmetries, WeightedPauliOperator
-from qiskit.chemistry import QiskitChemistryError
+from qiskit.chemistry import QiskitChemistryError, QMolecule
 from qiskit.chemistry.fermionic_operator import FermionicOperator
 from qiskit.chemistry.core.chemistry_operator import (ChemistryOperator,
                                                       MolecularGroundStateResult,
@@ -122,7 +122,7 @@ class FermionicTransformation(QubitOperatorTransformation, ChemistryOperator):
         Transformation to qubit operator from the driver
 
         Args:
-            driver:BaseDriver
+            driver: Base Driver
 
         Returns:
             qubit operator, auxiliary operators
@@ -131,12 +131,12 @@ class FermionicTransformation(QubitOperatorTransformation, ChemistryOperator):
         ops, aux_ops = self._do_transform(q_molecule)  # _do_transform(q_molecule)
         return ops, aux_ops
 
-    def _do_transform(self, qmolecule)-> Tuple[WeightedPauliOperator,
-                                                     List[WeightedPauliOperator]]:
+    def _do_transform(self, qmolecule: QMolecule) -> Tuple[WeightedPauliOperator,
+                                                           List[WeightedPauliOperator]]:
         """
 
         Args:
-            qmolecule (Qmolecule): qmolecule
+            qmolecule: qmolecule
 
         Returns:
             (qubit operator, auxiliary operators)
@@ -182,7 +182,8 @@ class FermionicTransformation(QubitOperatorTransformation, ChemistryOperator):
         if orbitals_list:
             orbitals_list = np.array(orbitals_list)
             orbitals_list = \
-                orbitals_list[(orbitals_list >= 0) & (orbitals_list < qmolecule.num_orbitals)]
+                orbitals_list[(cast(np.ndarray, orbitals_list) >= 0) &
+                              (orbitals_list < qmolecule.num_orbitals)]
 
             freeze_list_alpha = [i for i in orbitals_list if i < num_alpha]
             freeze_list_beta = [i for i in orbitals_list if i < num_beta]
@@ -229,15 +230,13 @@ class FermionicTransformation(QubitOperatorTransformation, ChemistryOperator):
 
         aux_ops = []
 
-        def _add_aux_op(aux_op, name):
+        def _add_aux_op(aux_op: FermionicOperator, name: str) -> None:
             """
             Add auxiliary operators
 
             Args:
                 aux_op: auxiliary operators
                 name: name
-
-            Returns:
 
             """
             aux_qop = FermionicTransformation._map_fermionic_operator_to_qubit(
@@ -255,12 +254,13 @@ class FermionicTransformation(QubitOperatorTransformation, ChemistryOperator):
         _add_aux_op(fer_op.total_magnetization(), 'Magnetization')
 
         if qmolecule.has_dipole_integrals():
-            def _dipole_op(dipole_integrals, axis):
+            def _dipole_op(dipole_integrals: np.ndarray, axis: str) \
+                    -> Tuple[WeightedPauliOperator, float, float]:
                 """
                 Dipole operators
 
                 Args:
-                    dipole_integrals: dipole intergrals
+                    dipole_integrals: dipole integrals
                     axis: axis for dipole moment calculation
 
                 Returns:
@@ -319,7 +319,9 @@ class FermionicTransformation(QubitOperatorTransformation, ChemistryOperator):
         logger.debug('Processing complete ready to run algorithm')
         return qubit_op, aux_ops
 
-    def _process_z2symmetry_reduction(self, qubit_op, aux_ops):
+    def _process_z2symmetry_reduction(self,
+                                      qubit_op: WeightedPauliOperator,
+                                      aux_ops: WeightedPauliOperator) -> Tuple:
         """
         Implement z2 symmetries in the qubit operator
 
@@ -329,6 +331,9 @@ class FermionicTransformation(QubitOperatorTransformation, ChemistryOperator):
 
         Returns:
             (z2_qubit_op, z2_aux_ops, z2_symmetries)
+
+        Raises:
+            QiskitChemistryError: Invalid input
         """
         z2_symmetries = Z2Symmetries.find_Z2_symmetries(qubit_op)
         if z2_symmetries.is_empty():
@@ -356,7 +361,7 @@ class FermionicTransformation(QubitOperatorTransformation, ChemistryOperator):
 
             if self._z2symmetry_reduction == 'auto':
                 hf_state = HartreeFock(num_orbitals=self._molecule_info[self.INFO_NUM_ORBITALS],
-                                       qubit_mapping=self._qubit_mapping,
+                                       qubit_mapping=self._qubit_mapping.value,
                                        two_qubit_reduction=self._two_qubit_reduction,
                                        num_particles=self._molecule_info[self.INFO_NUM_PARTICLES])
                 z2_symmetries = FermionicTransformation._pick_sector(z2_symmetries, hf_state.bitstr)
@@ -384,13 +389,14 @@ class FermionicTransformation(QubitOperatorTransformation, ChemistryOperator):
         return z2_qubit_op, z2_aux_ops, z2_symmetries
 
     @staticmethod
-    def _check_commutes(cliffords, operator):
+    def _check_commutes(cliffords: List[WeightedPauliOperator],
+                        operator: WeightedPauliOperator) -> bool:
         """
         Check commutations
 
         Args:
             cliffords : cliffords
-            operator (Qubit Operator): qubit operator
+            operator: qubit operator
 
         Returns:
             Boolean: does_commute
@@ -403,17 +409,17 @@ class FermionicTransformation(QubitOperatorTransformation, ChemistryOperator):
         return does_commute
 
     @staticmethod
-    def _pick_sector(z2_symmetries, hf_str):
+    def _pick_sector(z2_symmetries: Z2Symmetries, hf_str: np.ndarray) -> Z2Symmetries:
         """
         Based on Hartree-Fock bit string and found symmetries to determine the sector.
         The input z2 symmetries will be mutated with the determined tapering values.
 
         Args:
-            z2_symmetries (Z2Symmetries): the z2 symmetries object.
-            hf_str (numpy.ndarray): Hartree-Fock bit string (the last index is for qubit 0).
+            z2_symmetries: the z2 symmetries object.
+            hf_str: Hartree-Fock bit string (the last index is for qubit 0).
 
         Returns:
-            Z2Symmetries: the original z2 symmetries filled with the correct tapering values.
+            the original z2 symmetries filled with the correct tapering values.
         """
         # Finding all the symmetries using the find_Z2_symmetries:
         taper_coef = []
@@ -437,7 +443,7 @@ class FermionicTransformation(QubitOperatorTransformation, ChemistryOperator):
         Returns:
             GroundState Result TODO
         """
-        
+
         mgsr = MolecularGroundStateResult()
         mgsr.hartree_fock_energy = self._hf_energy
         mgsr.nuclear_repulsion_energy = self._nuclear_repulsion_energy
@@ -472,14 +478,18 @@ class FermionicTransformation(QubitOperatorTransformation, ChemistryOperator):
         return mgsr
 
     # Called by public superclass method process_algorithm_result to complete specific processing
-    def _process_algorithm_result(self, algo_result):
+    def _process_algorithm_result(self, algo_result: MinimumEigensolverResult) \
+            -> MolecularGroundStateResult:
         """
 
         Args:
-            algo_resul (AlgorithmResult): AlgorithmResult
+            algo_result: Algorithm Result
 
         Returns:
             Ground state calculation result
+
+        Raises:
+            ValueError: Invalid input
         """
         if isinstance(algo_result, MinimumEigensolverResult):
             msgr = self.interpret(algo_result.eigenvalue, algo_result.eigenstate,
@@ -490,14 +500,16 @@ class FermionicTransformation(QubitOperatorTransformation, ChemistryOperator):
                          'all other types have been deprecated and removed.')
 
     @staticmethod
-    def _try_reduce_fermionic_operator(fer_op, freeze_list, remove_list):
+    def _try_reduce_fermionic_operator(fer_op: FermionicOperator,
+                                       freeze_list: List,
+                                       remove_list: List) -> Tuple:
         """
         Trying to reduce the fermionic operator w.r.t to freeze and remove list if provided
 
         Args:
-            fer_op (FermionicOperator) : fermionic operator
-            freeze_list (list): freeze list of orbitals
-            remove_list (list): remove list of orbitals
+            fer_op: fermionic operator
+            freeze_list: freeze list of orbitals
+            remove_list: remove list of orbitals
 
         Returns:
             (fermionic_operator, energy_shift, did_shift)
@@ -513,14 +525,17 @@ class FermionicTransformation(QubitOperatorTransformation, ChemistryOperator):
         return fer_op, energy_shift, did_shift
 
     @staticmethod
-    def _map_fermionic_operator_to_qubit(fer_op, qubit_mapping, num_particles, two_qubit_reduction):
+    def _map_fermionic_operator_to_qubit(fer_op: FermionicOperator,
+                                         qubit_mapping: QubitMappingType,
+                                         num_particles: List[int],
+                                         two_qubit_reduction: bool) -> WeightedPauliOperator:
         """
 
         Args:
-            fer_op (FermionicOperator): Fermionic Operator
-            qubit_mapping (QubitMappingType): fermion to qubit mapping
-            num_particles (integer): number of particles
-            two_qubit_reduction (boolean): two qubit reduction
+            fer_op: Fermionic Operator
+            qubit_mapping: fermionic to qubit mapping
+            num_particles: number of particles
+            two_qubit_reduction: two qubit reduction
 
         Returns:
             qubit operator

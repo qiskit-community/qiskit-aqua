@@ -18,7 +18,7 @@ a quantum algorithm
 from abc import ABC, abstractmethod
 import warnings
 import logging
-from typing import Union, List, Tuple, Optional
+from typing import Union, List, Tuple, Optional, cast
 import numpy as np
 
 from qiskit.aqua.algorithms import MinimumEigensolverResult, EigensolverResult, AlgorithmResult
@@ -242,7 +242,8 @@ class MolecularGroundStateResult(MolecularChemistryResult):
         """ Returns dipole moment """
         edm = self.electronic_dipole_moment
         if self.reverse_dipole_sign:
-            edm = tuple(-1 * x if x is not None else None for x in edm)
+            edm = cast(Tuple[Optional[float], Optional[float], Optional[float]],
+                       tuple(-1 * x if x is not None else None for x in edm))
         return _dipole_tuple_add(edm, self.nuclear_dipole_moment)
 
     @property

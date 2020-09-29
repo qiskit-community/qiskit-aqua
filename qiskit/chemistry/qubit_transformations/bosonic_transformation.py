@@ -16,6 +16,7 @@ from typing import Tuple, List
 
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.aqua.operators.legacy import WeightedPauliOperator
+from qiskit.chemistry.core import MolecularGroundStateResult
 from .qubit_operator_transformation import QubitOperatorTransformation
 
 
@@ -31,6 +32,7 @@ class BosonicTransformation(QubitOperatorTransformation):
         raise NotImplementedError()
         # take code from bosonic operator
 
-    def interpret(self):
+    def interpret(self, eigenvalue: float, eigenstate: List[float], aux_values: list
+                  ) -> MolecularGroundStateResult:
         """TODO"""
         pass

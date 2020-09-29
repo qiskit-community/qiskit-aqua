@@ -29,7 +29,7 @@ from qiskit.chemistry.drivers import BaseDriver
 class MolecularGroundStateEnergy:
     """ Molecular ground state energy chemistry application """
 
-    #TODO this needs to be deprecated in view of the new Ground State interface
+    # TODO this needs to be deprecated in view of the new Ground State interface
 
     def __init__(self,
                  driver: BaseDriver,
