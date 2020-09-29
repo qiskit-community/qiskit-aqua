@@ -77,9 +77,6 @@ class ADAM(Optimizer):
                 after every step to the given directory
         """
         super().__init__()
-        for k, v in locals().items():
-            if k in self._OPTIONS:
-                self._options[k] = v
         self._maxiter = maxiter
         self._snapshot_dir = snapshot_dir
         self._tol = tol

@@ -70,9 +70,6 @@ class P_BFGS(Optimizer):  # pylint: disable=invalid-name
         if max_processes:
             validate_min('max_processes', max_processes, 1)
         super().__init__()
-        for k, v in locals().items():
-            if k in self._OPTIONS:
-                self._options[k] = v
         self._max_processes = max_processes
 
     def get_support_level(self):

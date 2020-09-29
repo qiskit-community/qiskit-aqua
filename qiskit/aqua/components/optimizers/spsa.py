@@ -95,9 +95,6 @@ class SPSA(Optimizer):
                           'You should use maxiter instead.',
                           DeprecationWarning)
             maxiter = max_trials
-        for k, v in locals().items():
-            if k in self._OPTIONS:
-                self._options[k] = v
         self._maxiter = maxiter
         self._parameters = np.array([c0, c1, c2, c3, c4])
         self._skip_calibration = skip_calibration

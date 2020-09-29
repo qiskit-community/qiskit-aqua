@@ -56,9 +56,6 @@ class POWELL(Optimizer):
             tol: Tolerance for termination.
         """
         super().__init__()
-        for k, v in locals().items():
-            if k in self._OPTIONS:
-                self._options[k] = v
         self._tol = tol
 
     def get_support_level(self):

@@ -15,6 +15,8 @@
 from enum import IntEnum
 import logging
 from abc import ABC, abstractmethod
+from typing import List
+
 import numpy as np
 
 logger = logging.getLogger(__name__)
@@ -31,6 +33,10 @@ class OptimizerSupportLevel(IntEnum):
 class Optimizer(ABC):
     """Base class for optimization algorithm."""
 
+    # Should be overridden by the sub-classes.
+    # The array is defined here to avoid exceptions in the constructor code
+    _OPTIONS = []
+
     @abstractmethod
     def __init__(self):
         """
@@ -43,6 +49,9 @@ class Optimizer(ABC):
         self._initial_point_support_level = self.get_support_level()['initial_point']
         self._options = {}
         self._max_evals_grouped = 1
+        for k, v in list(locals().items()):
+            if k in self._OPTIONS:
+                self._options[k] = v
 
     @abstractmethod
     def get_support_level(self):
