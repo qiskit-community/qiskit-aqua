@@ -159,7 +159,8 @@ class Hamiltonian(ChemistryOperator):
         if orbitals_list:
             orbitals_list = np.array(orbitals_list)
             orbitals_list = \
-                orbitals_list[(orbitals_list >= 0) & (orbitals_list < qmolecule.num_orbitals)]
+                orbitals_list[(cast(np.ndarray, orbitals_list) >= 0) &
+                              (orbitals_list < qmolecule.num_orbitals)]
 
             freeze_list_alpha = [i for i in orbitals_list if i < num_alpha]
             freeze_list_beta = [i for i in orbitals_list if i < num_beta]
