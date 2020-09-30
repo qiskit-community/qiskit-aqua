@@ -29,7 +29,7 @@ from qiskit.chemistry.core import MolecularGroundStateResult
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.qubit_transformations import FermionicTransformation
 from .ground_state_calculation import GroundStateCalculation
-from .mes_factory import MESFactory
+from .mes_factories import MESFactory
 
 logger = logging.getLogger(__name__)
 

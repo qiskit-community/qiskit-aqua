@@ -20,7 +20,7 @@ from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.ground_state_calculation import GroundStateCalculation
 from qiskit.chemistry.qubit_transformations import QubitOperatorTransformation
 
-from .mes_factory import MESFactory
+from .mes_factories import MESFactory
 
 
 class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
@@ -32,7 +32,7 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
 
         Args:
             transformation: Qubit Operator Transformation
-            solver: Minimum Eigensolver or MESFactory object
+            solver: Minimum Eigensolver or MESFactory object, e.g. the VQEUCCSDFactory.
         """
         super().__init__(transformation)
         self._solver = solver

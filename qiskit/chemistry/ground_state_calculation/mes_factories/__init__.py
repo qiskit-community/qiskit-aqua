@@ -10,16 +10,11 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Ground state calculation algorithms."""
+"""Factories that create a minimum eigensolver based on a qubit transformation."""
 
-from .ground_state_calculation import GroundStateCalculation
-from .adapt_vqe import AdaptVQE
-from .mes_ground_state_calculation import MinimumEigensolverGroundStateCalculation
-from .mes_factories import MESFactory, VQEUCCSDFactory
+from .mes_factory import MESFactory
+from .vqe_uccsd_factory import VQEUCCSDFactory
 
-__all__ = ['GroundStateCalculation',
-           'AdaptVQE',
-           'MinimumEigensolverGroundStateCalculation',
-           'MESFactory',
+__all__ = ['MESFactory',
            'VQEUCCSDFactory'
            ]
