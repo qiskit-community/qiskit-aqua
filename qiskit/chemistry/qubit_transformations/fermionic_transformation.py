@@ -48,7 +48,7 @@ class QubitMappingType(Enum):
 
 
 class FermionicTransformation(QubitOperatorTransformation):
-    """A tranformation from a fermionic problem, represented by a driver, to a qubit operator."""
+    """A transformation from a fermionic problem, represented by a driver, to a qubit operator."""
 
     def __init__(self,
                  transformation: TransformationType = TransformationType.FULL,
