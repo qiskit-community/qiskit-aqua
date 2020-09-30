@@ -31,12 +31,13 @@ class GroundStateCalculation(ABC):
 
     @property
     def transformation(self) -> QubitOperatorTransformation:
-        """Return the transformation used obtain a qubit operator from the molecule.
-
-        Returns:
-            The transformation.
-        """
+        """Returns the transformation used to obtain a qubit operator from the molecule."""
         return self._transformation
+
+    @transformation.setter
+    def transformation(self, transformation: QubitOperatorTransformation) -> None:
+        """Sets the transformation used to obtain a qubit operator from the molecule."""
+        self._transformation = transformation
 
     @abstractmethod
     def compute_ground_state(self, driver: BaseDriver) -> MolecularGroundStateResult:

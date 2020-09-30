@@ -117,7 +117,7 @@ class Hamiltonian(ChemistryOperator):
         self._ph_y_dipole_shift = 0.0
         self._ph_z_dipole_shift = 0.0
 
-    def run(self, molecule: QMolecule) -> Tuple[WeightedPauliOperator, WeightedPauliOperator]:
+    def run(self, qmolecule: QMolecule) -> Tuple[WeightedPauliOperator, WeightedPauliOperator]:
         """ run method"""
         raise NotImplementedError()
 

@@ -39,9 +39,13 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
 
     @property
     def solver(self) -> Union[MinimumEigensolver, MESFactory]:
-        """Get the minimum eigensolver or factory."""
-
+        """Returns the minimum eigensolver or factory."""
         return self._solver
+
+    @solver.setter
+    def solver(self, solver: Union[MinimumEigensolver, MESFactory]) -> None:
+        """Sets the minimum eigensolver or factory."""
+        self._solver = solver
 
     def returns_groundstate(self) -> bool:
         """TODO

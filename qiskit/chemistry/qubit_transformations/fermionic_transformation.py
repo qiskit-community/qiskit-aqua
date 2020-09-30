@@ -22,8 +22,7 @@ from qiskit.aqua.algorithms import MinimumEigensolverResult
 from qiskit.aqua.operators import Z2Symmetries, WeightedPauliOperator
 from qiskit.chemistry import QiskitChemistryError, QMolecule
 from qiskit.chemistry.fermionic_operator import FermionicOperator
-from qiskit.chemistry.core.chemistry_operator import (ChemistryOperator,
-                                                      MolecularGroundStateResult,
+from qiskit.chemistry.core.chemistry_operator import (MolecularGroundStateResult,
                                                       DipoleTuple)
 from qiskit.chemistry.drivers import BaseDriver
 
@@ -46,7 +45,7 @@ class QubitMappingType(Enum):
     BRAVYI_KITAEV = 'bravyi_kitaev'
 
 
-class FermionicTransformation(QubitOperatorTransformation, ChemistryOperator):
+class FermionicTransformation(QubitOperatorTransformation):
     """
     A molecular Hamiltonian operator, representing the
     energy of the electrons and nuclei in a molecule.

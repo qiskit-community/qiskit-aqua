@@ -52,7 +52,7 @@ class ChemistryOperator(ABC):
         self._molecule_info = {}
 
     @abstractmethod
-    def _do_transform(self, qmolecule):
+    def run(self, qmolecule):
         """
         Convert the qmolecule, according to the ChemistryOperator, into an Operator
         that can be given to a QuantumAlgorithm
@@ -242,8 +242,7 @@ class MolecularGroundStateResult(MolecularChemistryResult):
         """ Returns dipole moment """
         edm = self.electronic_dipole_moment
         if self.reverse_dipole_sign:
-            edm = cast(Tuple[Optional[float], Optional[float], Optional[float]],
-                       tuple(-1 * x if x is not None else None for x in edm))
+            edm = cast(DipoleTuple, tuple(-1 * x if x is not None else None for x in edm))
         return _dipole_tuple_add(edm, self.nuclear_dipole_moment)
 
     @property
