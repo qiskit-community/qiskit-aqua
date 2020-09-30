@@ -9,10 +9,12 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
+"""This module implements a tranformation from a fermionic problem to a qubit operator.
+
+The problem is described in a driver.
 """
-This module implements a molecular Hamiltonian operator, representing the
-energy of the electrons and nuclei in a molecule.
-"""
+
 from typing import Optional, List, Union, cast, Tuple
 import logging
 from enum import Enum
@@ -46,10 +48,7 @@ class QubitMappingType(Enum):
 
 
 class FermionicTransformation(QubitOperatorTransformation):
-    """
-    A molecular Hamiltonian operator, representing the
-    energy of the electrons and nuclei in a molecule.
-    """
+    """A tranformation from a fermionic problem, represented by a driver, to a qubit operator."""
 
     def __init__(self,
                  transformation: TransformationType = TransformationType.FULL,
@@ -114,6 +113,8 @@ class FermionicTransformation(QubitOperatorTransformation):
         self._ph_x_dipole_shift = 0.0
         self._ph_y_dipole_shift = 0.0
         self._ph_z_dipole_shift = 0.0
+
+        self._molecule_info = {}
 
     def transform(self, driver: BaseDriver) -> Tuple[WeightedPauliOperator,
                                                      List[WeightedPauliOperator]]:
@@ -303,17 +304,16 @@ class FermionicTransformation(QubitOperatorTransformation):
         logger.info('Molecule num spin orbitals: %s, remaining for processing: %s',
                     nspinorbs, new_nspinorbs)
 
-        self._add_molecule_info(self.INFO_NUM_PARTICLES, [new_num_alpha, new_num_beta])
-        self._add_molecule_info(self.INFO_NUM_ORBITALS, new_nspinorbs)
-        self._add_molecule_info(self.INFO_TWO_QUBIT_REDUCTION,
-                                self._two_qubit_reduction
-                                if self._qubit_mapping == 'parity' else False)
+        self._molecule_info['num_particles'] = [new_num_alpha, new_num_beta]
+        self._molecule_info['num_orbitals'] = new_nspinorbs
+        reduction = self._two_qubit_reduction if self._qubit_mapping == 'parity' else False
+        self._molecule_info['two_qubit_reduction'] = reduction
 
         z2symmetries = Z2Symmetries([], [], [], None)
         if self._z2symmetry_reduction is not None:
             logger.debug('Processing z2 symmetries')
             qubit_op, aux_ops, z2symmetries = self._process_z2symmetry_reduction(qubit_op, aux_ops)
-        self._add_molecule_info(self.INFO_Z2SYMMETRIES, z2symmetries)
+        self._molecule_info['z2_symmetries'] = z2symmetries
 
         logger.debug('Processing complete ready to run algorithm')
         return qubit_op, aux_ops
@@ -359,10 +359,10 @@ class FermionicTransformation(QubitOperatorTransformation):
                     aux_ops[i] = None  # Discard since no meaningful measurement can be done
 
             if self._z2symmetry_reduction == 'auto':
-                hf_state = HartreeFock(num_orbitals=self._molecule_info[self.INFO_NUM_ORBITALS],
+                hf_state = HartreeFock(num_orbitals=self._molecule_info['num_orbitals'],
                                        qubit_mapping=self._qubit_mapping.value,
                                        two_qubit_reduction=self._two_qubit_reduction,
-                                       num_particles=self._molecule_info[self.INFO_NUM_PARTICLES])
+                                       num_particles=self._molecule_info['num_particles'])
                 z2_symmetries = FermionicTransformation._pick_sector(z2_symmetries, hf_state.bitstr)
             else:
                 if len(self._z2symmetry_reduction) != len(z2_symmetries.symmetries):
@@ -433,7 +433,6 @@ class FermionicTransformation(QubitOperatorTransformation):
     def interpret(self,
                   eigenvalue: float, eigenstate: List[float], aux_values: list
                   ) -> MolecularGroundStateResult:
-
         """Interpret eigenvalue and eigenstate of qubit Hamiltonian w.r.t. driver.
 
         Args:
