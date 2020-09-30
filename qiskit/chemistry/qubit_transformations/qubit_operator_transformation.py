@@ -16,7 +16,7 @@ from abc import ABC, abstractmethod
 from typing import Tuple, List
 
 from qiskit.aqua.operators.legacy import WeightedPauliOperator
-from qiskit.chemistry.core import MolecularGroundStateResult
+from qiskit.chemistry import ChemistryResult
 from qiskit.chemistry.drivers import BaseDriver
 
 
@@ -31,6 +31,6 @@ class QubitOperatorTransformation(ABC):
 
     @abstractmethod
     def interpret(self, eigenvalue: float, eigenstate: List[float], aux_values: list
-                  ) -> MolecularGroundStateResult:
+                  ) -> ChemistryResult:
         """interprets the results of the ground state calculation"""
         raise NotImplementedError
