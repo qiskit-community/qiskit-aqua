@@ -14,19 +14,24 @@
 """ Test Quantum Gradient Framework """
 
 import unittest
+from test.aqua import QiskitAquaTestCase
 from itertools import product
 
 import numpy as np
 from ddt import ddt, data, idata, unpack
+from sympy import Symbol, cos
+
+from qiskit import Aer
 from qiskit import QuantumCircuit, QuantumRegister, BasicAer
-from qiskit.aqua import QuantumInstance, aqua_globals
+from qiskit.aqua import QuantumInstance
+from qiskit.aqua import aqua_globals
+from qiskit.aqua.algorithms import VQE
+from qiskit.aqua.components.optimizers import CG
 from qiskit.aqua.operators import I, X, Z, StateFn, CircuitStateFn, ListOp, CircuitSampler
 from qiskit.aqua.operators.gradients import Gradient, NaturalGradient, Hessian
 from qiskit.aqua.operators.gradients.qfi import QFI
-from qiskit.circuit import Parameter, ParameterVector, ParameterExpression
-from sympy import Symbol, cos
-
-from test.aqua import QiskitAquaTestCase
+from qiskit.circuit import Parameter, ParameterExpression
+from qiskit.circuit import ParameterVector
 
 
 @ddt
@@ -36,10 +41,6 @@ class TestGradients(QiskitAquaTestCase):
     def setUp(self):
         super().setUp()
         aqua_globals.random_seed = 50
-        # Set quantum instance to run the quantum generator
-        self.qi = QuantumInstance(backend=BasicAer.get_backend('statevector_simulator'),
-                                  seed_simulator=2,
-                                  seed_transpiler=2)
 
     @data('lin_comb', 'param_shift', 'fin_diff')
     def test_gradient_p(self, method):
@@ -49,7 +50,7 @@ class TestGradients(QiskitAquaTestCase):
         Tr(|psi><psi|X) = cos(a)
         d<H>/da = - 0.5 sin(a)
         """
-        H = 0.5 * X - 1 * Z
+        ham = 0.5 * X - 1 * Z
         a = Parameter('a')
         params = [a]
 
@@ -57,7 +58,7 @@ class TestGradients(QiskitAquaTestCase):
         qc = QuantumCircuit(q)
         qc.h(q)
         qc.p(params[0], q[0])
-        op = ~StateFn(H) @ CircuitStateFn(primitive=qc, coeff=1.)
+        op = ~StateFn(ham) @ CircuitStateFn(primitive=qc, coeff=1.)
 
         state_grad = Gradient(grad_method=method).convert(operator=op, params=params)
         values_dict = [{a: np.pi / 4}, {a: 0}, {a: np.pi / 2}]
@@ -74,7 +75,7 @@ class TestGradients(QiskitAquaTestCase):
         Tr(|psi><psi|X) = cos^2(a/2) cos(b+c) - sin^2(a/2) cos(b-c)
         """
 
-        H = 0.5 * X - 1 * Z
+        ham = 0.5 * X - 1 * Z
         a = Parameter('a')
         b = Parameter('b')
         c = Parameter('c')
@@ -84,7 +85,7 @@ class TestGradients(QiskitAquaTestCase):
         qc.h(q)
         qc.u(a, b, c, q[0])
 
-        op = ~StateFn(H) @ CircuitStateFn(primitive=qc, coeff=1.)
+        op = ~StateFn(ham) @ CircuitStateFn(primitive=qc, coeff=1.)
         params = [a, b, c]
         state_grad = Gradient(grad_method=method).convert(operator=op, params=params)
         values_dict = [{a: np.pi / 4, b: 0, c: 0}, {a: np.pi / 4, b: np.pi / 4, c: np.pi / 4}]
@@ -93,18 +94,17 @@ class TestGradients(QiskitAquaTestCase):
             np.testing.assert_array_almost_equal(state_grad.assign_parameters(value_dict).eval(),
                                                  correct_values[i],
                                                  decimal=1)
-        """
-        Tr(|psi><psi|Z) = - 0.5 sin(a)cos(c)
-        Tr(|psi><psi|X) = cos^2(a/2) cos(b+c) - sin^2(a/2) cos(b-c)
-        dTr(|psi><psi|H)/da = 0.5(cos(2a)) + 0.5()
-        """
+
+        # Tr(|psi><psi|Z) = - 0.5 sin(a)cos(c)
+        # Tr(|psi><psi|X) = cos^2(a/2) cos(b+c) - sin^2(a/2) cos(b-c)
+        # dTr(|psi><psi|H)/da = 0.5(cos(2a)) + 0.5()
 
         q = QuantumRegister(1)
         qc = QuantumCircuit(q)
         qc.h(q)
         qc.u(a, a, a, q[0])
 
-        op = ~StateFn(H) @ CircuitStateFn(primitive=qc, coeff=1.)
+        op = ~StateFn(ham) @ CircuitStateFn(primitive=qc, coeff=1.)
         params = [a]
         state_grad = Gradient(grad_method=method).convert(operator=op, params=params)
         values_dict = [{a: np.pi / 4}, {a: np.pi / 2}]
@@ -124,7 +124,7 @@ class TestGradients(QiskitAquaTestCase):
         d<H>/db = - 1 sin(a)cos(b)
         """
 
-        H = 0.5 * X - 1 * Z
+        ham = 0.5 * X - 1 * Z
         a = Parameter('a')
         b = Parameter('b')
         params = [a, b]
@@ -134,7 +134,7 @@ class TestGradients(QiskitAquaTestCase):
         qc.h(q)
         qc.rz(params[0], q[0])
         qc.rx(params[1], q[0])
-        op = ~StateFn(H) @ CircuitStateFn(primitive=qc, coeff=1.)
+        op = ~StateFn(ham) @ CircuitStateFn(primitive=qc, coeff=1.)
 
         state_grad = Gradient(grad_method=method).convert(operator=op, params=params)
         values_dict = [{a: np.pi / 4, b: np.pi}, {params[0]: np.pi / 4, params[1]: np.pi / 4},
@@ -154,7 +154,7 @@ class TestGradients(QiskitAquaTestCase):
         Tr(|psi><psi|X) = cos(a)
         d<H>/da = - 0.5 sin(a) - 2 cos(a)sin(a)
         """
-        H = 0.5 * X - 1 * Z
+        ham = 0.5 * X - 1 * Z
         a = Parameter('a')
         # b = Parameter('b')
         params = [a]
@@ -164,7 +164,7 @@ class TestGradients(QiskitAquaTestCase):
         qc.h(q)
         qc.rz(a, q[0])
         qc.rx(a, q[0])
-        op = ~StateFn(H) @ CircuitStateFn(primitive=qc, coeff=1.)
+        op = ~StateFn(ham) @ CircuitStateFn(primitive=qc, coeff=1.)
 
         state_grad = Gradient(grad_method=method).convert(operator=op, params=params)
         values_dict = [{a: np.pi / 4}, {a: 0},
@@ -184,7 +184,7 @@ class TestGradients(QiskitAquaTestCase):
         Tr(|psi><psi|X) = cos(a)
         d<H>/da = - 0.5 sin(a) - 1 cos(a)sin(cos(a)+1) + 1 sin^2(a)cos(cos(a)+1)
         """
-        H = 0.5 * X - 1 * Z
+        ham = 0.5 * X - 1 * Z
         a = Parameter('a')
         # b = Parameter('b')
         params = [a]
@@ -197,7 +197,7 @@ class TestGradients(QiskitAquaTestCase):
         qc.h(q)
         qc.rz(a, q[0])
         qc.rx(c, q[0])
-        op = ~StateFn(H) @ CircuitStateFn(primitive=qc, coeff=1.)
+        op = ~StateFn(ham) @ CircuitStateFn(primitive=qc, coeff=1.)
 
         state_grad = Gradient(grad_method=method).convert(operator=op, params=params)
         values_dict = [{a: np.pi / 4}, {a: 0}, {a: np.pi / 2}]
@@ -214,7 +214,7 @@ class TestGradients(QiskitAquaTestCase):
          daTr(|psi><psi|ZX) = sin(a)
         """
 
-        H = X ^ Z
+        ham = X ^ Z
         a = Parameter('a')
         params = [a]
 
@@ -223,12 +223,12 @@ class TestGradients(QiskitAquaTestCase):
         qc.x(q[0])
         qc.h(q[1])
         qc.crz(a, q[0], q[1])
-        op = ~StateFn(H) @ CircuitStateFn(primitive=qc, coeff=1.)
+        op = ~StateFn(ham) @ CircuitStateFn(primitive=qc, coeff=1.)
 
         state_grad = Gradient(grad_method=method).convert(operator=op, params=params)
         values_dict = [{a: np.pi / 4}, {a: 0},
                        {a: np.pi / 2}]
-        correct_values = [1/np.sqrt(2), 0, 1]
+        correct_values = [1 / np.sqrt(2), 0, 1]
 
         for i, value_dict in enumerate(values_dict):
             np.testing.assert_array_almost_equal(state_grad.assign_parameters(value_dict).eval(),
@@ -245,7 +245,7 @@ class TestGradients(QiskitAquaTestCase):
         d<H>/da1 = - 1 sin(a0)cos(a1)
         """
 
-        H = 0.5 * X - 1 * Z
+        ham = 0.5 * X - 1 * Z
         a = ParameterVector('a', 2)
         params = a
 
@@ -254,7 +254,7 @@ class TestGradients(QiskitAquaTestCase):
         qc.h(q)
         qc.rz(params[0], q[0])
         qc.rx(params[1], q[0])
-        op = ~StateFn(H) @ CircuitStateFn(primitive=qc, coeff=1.)
+        op = ~StateFn(ham) @ CircuitStateFn(primitive=qc, coeff=1.)
 
         state_grad = Gradient(grad_method=method).convert(operator=op, params=params)
         values_dict = [{a: [np.pi / 4, np.pi]}, {a: [np.pi / 4, np.pi / 4]},
@@ -265,7 +265,6 @@ class TestGradients(QiskitAquaTestCase):
         for i, value_dict in enumerate(values_dict):
             np.testing.assert_array_almost_equal(state_grad.assign_parameters(value_dict).eval(),
                                                  correct_values[i], decimal=1)
-
 
     @data('lin_comb', 'param_shift', 'fin_diff')
     def test_state_hessian(self, method):
@@ -279,7 +278,7 @@ class TestGradients(QiskitAquaTestCase):
         d^2<H>/db^2 = + 1 sin(a)sin(b)
         """
 
-        H = 0.5 * X - 1 * Z
+        ham = 0.5 * X - 1 * Z
         a = Parameter('a')
         b = Parameter('b')
         params = [(a, a), (a, b), (b, b)]
@@ -290,7 +289,7 @@ class TestGradients(QiskitAquaTestCase):
         qc.rz(a, q[0])
         qc.rx(b, q[0])
 
-        op = ~StateFn(H) @ CircuitStateFn(primitive=qc, coeff=1.)
+        op = ~StateFn(ham) @ CircuitStateFn(primitive=qc, coeff=1.)
         state_hess = Hessian(method=method).convert(operator=op, params=params)
 
         values_dict = [{a: np.pi / 4, b: np.pi}, {a: np.pi / 4, b: np.pi / 4},
@@ -336,33 +335,8 @@ class TestGradients(QiskitAquaTestCase):
                 np.testing.assert_array_almost_equal(prob_grad_result,
                                                      correct_values[i][j], decimal=1)
 
-    def test_lin_comb_qfi(self):
-        """Test if the quantum fisher information calculation is correct
-
-        QFI = [[1, 0], [0, 1]] - [[0, 0], [0, cos^2(a)]]
-        """
-
-        a = Parameter('a')
-        b = Parameter('b')
-        params = [a, b]
-
-        q = QuantumRegister(1)
-        qc = QuantumCircuit(q)
-        qc.h(q)
-        qc.rz(params[0], q[0])
-        qc.rx(params[1], q[0])
-
-        op = CircuitStateFn(primitive=qc, coeff=1.)
-        qfi = QFI(qfi_method='lin_comb_full').convert(operator=op, params=params)
-        values_dict = [{params[0]: np.pi / 4, params[1]: 0.1}, {params[0]: np.pi, params[1]: 0.1},
-                       {params[0]: np.pi / 2, params[1]: 0.1}]
-        correct_values = [[[1, 0], [0, 0.5]], [[1, 0], [0, 0]], [[1, 0], [0, 1]]]
-        for i, value_dict in enumerate(values_dict):
-            np.testing.assert_array_almost_equal(qfi.assign_parameters(value_dict).eval(),
-                                                 correct_values[i], decimal=1)
-
-    @data('overlap_block_diag', 'overlap_diag')
-    def test_overlap_qfi(self, method):
+    @data('lin_comb_full', 'overlap_block_diag', 'overlap_diag')
+    def test_qfi(self, method):
         """Test if the quantum fisher information calculation is correct
 
         QFI = [[1, 0], [0, 1]] - [[0, 0], [0, cos^2(a)]]
@@ -387,12 +361,12 @@ class TestGradients(QiskitAquaTestCase):
             np.testing.assert_array_almost_equal(qfi.assign_parameters(value_dict).eval(),
                                                  correct_values[i], decimal=1)
 
-    @idata(product(['lin_comb', 'param_shift'],
+    @idata(product(['lin_comb', 'param_shift', 'fin_diff'],
                    [None, 'lasso', 'perturb_diag', 'perturb_diag_elements']))
     @unpack
     def test_natural_gradient(self, method, regularization):
         """Test the natural gradient"""
-        H = 0.5 * X - 1 * Z
+        ham = 0.5 * X - 1 * Z
         a = Parameter('a')
         b = Parameter('b')
         params = [a, b]
@@ -403,7 +377,7 @@ class TestGradients(QiskitAquaTestCase):
         qc.rz(params[0], q[0])
         qc.rx(params[1], q[0])
 
-        op = ~StateFn(H) @ CircuitStateFn(primitive=qc, coeff=1.)
+        op = ~StateFn(ham) @ CircuitStateFn(primitive=qc, coeff=1.)
         nat_grad = NaturalGradient(grad_method=method,
                                    regularization=regularization).convert(operator=op,
                                                                           params=params)
@@ -475,8 +449,8 @@ class TestGradients(QiskitAquaTestCase):
 
         coeff_0 = Parameter('c_0')
         coeff_1 = Parameter('c_1')
-        H = coeff_0 * X + coeff_1 * Z
-        op = ~StateFn(H) @ CircuitStateFn(primitive=qc, coeff=1.0)
+        ham = coeff_0 * X + coeff_1 * Z
+        op = ~StateFn(ham) @ CircuitStateFn(primitive=qc, coeff=1.0)
         gradient_coeffs = [coeff_0, coeff_1]
         coeff_grad = Gradient(grad_method=method).convert(op, gradient_coeffs)
         values_dict = [{coeff_0: 0.5, coeff_1: -1, a: np.pi / 4, b: np.pi},
@@ -510,8 +484,8 @@ class TestGradients(QiskitAquaTestCase):
 
         coeff_0 = Parameter('c_0')
         coeff_1 = Parameter('c_1')
-        H = coeff_0 * coeff_0 * X + coeff_1 * coeff_0 * Z
-        op = ~StateFn(H) @ CircuitStateFn(primitive=qc, coeff=1.)
+        ham = coeff_0 * coeff_0 * X + coeff_1 * coeff_0 * Z
+        op = ~StateFn(ham) @ CircuitStateFn(primitive=qc, coeff=1.)
         gradient_coeffs = [(coeff_0, coeff_0), (coeff_0, coeff_1), (coeff_1, coeff_1)]
         coeff_grad = Hessian(method=method).convert(op, gradient_coeffs)
         values_dict = [{coeff_0: 0.5, coeff_1: -1, a: np.pi / 4, b: np.pi},
@@ -534,7 +508,7 @@ class TestGradients(QiskitAquaTestCase):
         d<H>/db = - 1 sin(a)cos(b)
         """
 
-        H = 0.5 * X - 1 * Z
+        ham = 0.5 * X - 1 * Z
         a = Parameter('a')
         b = Parameter('b')
         params = [a, b]
@@ -544,13 +518,14 @@ class TestGradients(QiskitAquaTestCase):
         qc.h(q)
         qc.rz(params[0], q[0])
         qc.rx(params[1], q[0])
-        op = ~StateFn(H) @ CircuitStateFn(primitive=qc, coeff=1.)
+        op = ~StateFn(ham) @ CircuitStateFn(primitive=qc, coeff=1.)
 
         shots = 8000
         if method == 'fin_diff':
             np.random.seed = 8
-            state_grad = Gradient(grad_method=method, epsilon=shots**(-1/6.)).convert(operator=op,
-                                                                                      params=params)
+            state_grad = Gradient(grad_method=method, epsilon=shots ** (-1 / 6.)).convert(
+                operator=op,
+                params=params)
         else:
             state_grad = Gradient(grad_method=method).convert(operator=op, params=params)
         values_dict = [{a: np.pi / 4, b: np.pi}, {params[0]: np.pi / 4, params[1]: np.pi / 4},
@@ -592,15 +567,16 @@ class TestGradients(QiskitAquaTestCase):
         shots = 8000
         if method == 'fin_diff':
             np.random.seed = 8
-            prob_grad = Gradient(grad_method=method, epsilon=shots**(-1/6.)).convert(operator=op,
-                                                                                     params=params)
+            prob_grad = Gradient(grad_method=method, epsilon=shots ** (-1 / 6.)).convert(
+                operator=op,
+                params=params)
         else:
             prob_grad = Gradient(grad_method=method).convert(operator=op, params=params)
         values_dict = [{a: [np.pi / 4], b: [0]}, {params[0]: [np.pi / 4], params[1]: [np.pi / 4]},
                        {params[0]: [np.pi / 2], params[1]: [np.pi]}]
         correct_values = [[[0, 0], [1 / (2 * np.sqrt(2)), - 1 / (2 * np.sqrt(2))]],
                           [[1 / 4, -1 / 4], [1 / 4, - 1 / 4]],
-                          [[0, 0],  [- 1 / 2, 1 / 2]]]
+                          [[0, 0], [- 1 / 2, 1 / 2]]]
 
         backend = BasicAer.get_backend('qasm_simulator')
         q_instance = QuantumInstance(backend=backend, shots=shots)
@@ -611,40 +587,37 @@ class TestGradients(QiskitAquaTestCase):
             result = sampler.eval()
             np.testing.assert_array_almost_equal(result[0], correct_values[i], decimal=1)
 
-    @data('statevector_simulator', 'qasm_simulator')
-    def test_vqe(self, backend):
-        from qiskit import Aer
-        from qiskit.aqua import QuantumInstance
-        from qiskit.aqua.algorithms import VQE
-        from qiskit.aqua.components.optimizers import CG
-        from qiskit.circuit import ParameterVector
-
+    @idata(product(['statevector_simulator', 'qasm_simulator'],
+                   ['lin_comb', 'param_shift', 'fin_diff']))
+    @unpack
+    def test_vqe(self, backend, method):
+        """Test VQE with gradients"""
         qi_sv = QuantumInstance(Aer.get_backend(backend),
                                 seed_simulator=2,
                                 seed_transpiler=2)
         # Define the Hamiltonian
         h2_hamiltonian = -1.05 * (I ^ I) + 0.39 * (I ^ Z) - 0.39 * (Z ^ I) - 0.01 * (
-                    Z ^ Z) + 0.18 * (X ^ X)
+                Z ^ Z) + 0.18 * (X ^ X)
         h2_energy = -1.85727503
 
         # Define the Ansatz
         wavefunction = QuantumCircuit(2)
         params = ParameterVector('theta', length=8)
-        it = iter(params)
-        wavefunction.ry(next(it), 0)
-        wavefunction.ry(next(it), 1)
-        wavefunction.rz(next(it), 0)
-        wavefunction.rz(next(it), 1)
+        itr = iter(params)
+        wavefunction.ry(next(itr), 0)
+        wavefunction.ry(next(itr), 1)
+        wavefunction.rz(next(itr), 0)
+        wavefunction.rz(next(itr), 1)
         wavefunction.cx(0, 1)
-        wavefunction.ry(next(it), 0)
-        wavefunction.ry(next(it), 1)
-        wavefunction.rz(next(it), 0)
-        wavefunction.rz(next(it), 1)
+        wavefunction.ry(next(itr), 0)
+        wavefunction.ry(next(itr), 1)
+        wavefunction.rz(next(itr), 0)
+        wavefunction.rz(next(itr), 1)
 
         # Conjugate Gradient algorithm
         optimizer = CG(maxiter=50)
 
-        grad = Gradient(method='lin_comb')
+        grad = Gradient(method=method)
 
         # Gradient callable
         vqe = VQE(h2_hamiltonian, wavefunction, optimizer=optimizer, gradient=grad)
