@@ -15,11 +15,8 @@
 from typing import Union, List, Optional
 
 import numpy as np
-
 from qiskit.aqua import AquaError
 from qiskit.aqua.operators import PauliExpectation
-from qiskit.aqua.operators.gradients.circuit_gradients.circuit_gradient import \
-    CircuitGradient
 from qiskit.aqua.operators.gradients.gradient_base import GradientBase
 from qiskit.aqua.operators.list_ops.composed_op import ComposedOp
 from qiskit.aqua.operators.list_ops.list_op import ListOp
@@ -41,22 +38,6 @@ except ModuleNotFoundError:
 class Gradient(GradientBase):
     """Convert an operator expression to the first-order gradient."""
 
-    def __init__(self,
-                 grad_method: Union[str, CircuitGradient] = 'param_shift',
-                 **kwargs):
-        r"""
-        Args:
-            grad_method: The method used to compute the state/probability gradient. Can be either
-                ``'param_shift'`` or ``'lin_comb'`` or ``'fin_diff'``. Deprecated for observable
-                gradient.
-            epsilon: The offset size to use when computing finite difference gradients.
-
-
-        Raises:
-            ValueError: If method != ``fin_diff`` and ``epsilon`` is not None.
-        """
-        super().__init__(grad_method, **kwargs)
-
     def convert(self,
                 operator: OperatorBase,
                 params: Optional[Union[ParameterVector, ParameterExpression,
@@ -77,7 +58,7 @@ class Gradient(GradientBase):
         if params is None:
             raise ValueError("No parameters were provided to differentiate")
 
-        if isinstance(params, (ParameterVector, List)):
+        if isinstance(params, (ParameterVector, list)):
             param_grads = [self.convert(operator, param) for param in params]
             # If autograd returns None, then the corresponding parameter was probably not present
             # in the operator. This needs to be looked at more carefully as other things can
@@ -98,6 +79,7 @@ class Gradient(GradientBase):
         cleaned_op = self._factor_coeffs_out_of_composed_op(expec_op)
         return self.get_gradient(cleaned_op, param)
 
+    # pylint: disable=too-many-return-statements
     def get_gradient(self,
                      operator: OperatorBase,
                      params: Union[ParameterExpression, ParameterVector, List[ParameterExpression]]
@@ -115,6 +97,7 @@ class Gradient(GradientBase):
             ValueError: If ``params`` contains a parameter not present in ``operator``.
             AquaError: If the coefficent of the operator could not be reduced to 1.
             NotImplementedError: If operator is a TensoredOp  # TODO support this
+            TypeError: TODO
             Exception: Unintended code is reached
         """
 
@@ -124,7 +107,7 @@ class Gradient(GradientBase):
                 return expr == c
             return coeff == c
 
-        if isinstance(params, (ParameterVector, List)):
+        if isinstance(params, (ParameterVector, list)):
             param_grads = [self.get_gradient(operator, param) for param in params]
             # If autograd returns None, then the corresponding parameter was probably not present
             # in the operator. This needs to be looked at more carefully as other things can

@@ -30,8 +30,7 @@ class HessianBase(DerivativeBase):
             hess_method: The method used to compute the state/probability gradient. Can be either
                 ``'param_shift'`` or ``'lin_comb'`` or ``'fin_diff'``.
                 Deprecated for observable gradient.
-            epsilon: The offset size to use when computing finite difference gradients.
-
+            kwargs: TODO: The offset size to use when computing finite difference gradients.
 
         Raises:
             ValueError: If method != ``fin_diff`` and ``epsilon`` is not None.
@@ -45,10 +44,7 @@ class HessianBase(DerivativeBase):
 
         elif hess_method == 'fin_diff':
             from .circuit_gradients import ParamShift
-            if 'epsilon' in kwargs:
-                epsilon = kwargs['epsilon']
-            else:
-                epsilon = 1e-6
+            epsilon = kwargs.get('epsilon', 1e-6)
             self._hess_method = ParamShift(analytic=False, epsilon=epsilon)
 
         elif hess_method == 'lin_comb':
@@ -61,5 +57,11 @@ class HessianBase(DerivativeBase):
                              " arguments: {'param_shift', 'fin_diff', 'lin_comb'}. ")
 
     @property
-    def hess_method(self):
+    def hess_method(self) -> CircuitGradient:
+        """Returns ``CircuitGradient``.
+
+        Returns:
+            ``CircuitGradient``.
+
+        """
         return self._hess_method
