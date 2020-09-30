@@ -35,10 +35,7 @@ class Molecule:
                  multiplicity,
                  charge, 
                  degrees_of_freedom=None,
-                 masses=None,
-                 spins=None,
-                 basis_set='sto3g',
-                 hf_method=HFMethodType.RHF,
+                 masses=None
                  ):
         """
         Constructor.
@@ -57,9 +54,8 @@ class Molecule:
                                       {'atom_pair': (1, 2))
                 to specify the desired degree of freedom.
 
-            masses([float]): The list of masses of each atom.
-                If provided, must be the same length as number of atoms
-                in geometry.
+        TODO Fill this
+
         """
         self._geometry = geometry
         self._degrees_of_freedom = degrees_of_freedom
@@ -76,19 +72,6 @@ class Molecule:
             )
 
         self._masses = masses
-
-        if spins is not None and not len(spins) == len(self._geometry):
-            raise ValueError(
-                'Length of spins must match length of geometries, '
-                'found {} and {} respectively'.format(
-                    len(spins),
-                    len(self._geometry)
-                )
-            )
-
-        self._spins = spins
-        self._basis_set = basis_set
-        self._hf_method = hf_method
 
     @classmethod
     def __distance_modifier(cls, function, parameter, geometry, atom_pair):
@@ -303,11 +286,6 @@ class Molecule:
     @property
     def hf_method(self):
         return self._hf_method
-
-    @property
-    def spins(self):
-        return self._spins
-
     
     @property
     def masses(self):
