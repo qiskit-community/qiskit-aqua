@@ -10,7 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""This module implements a tranformation from a fermionic problem to a qubit operator.
+"""This module implements a transformation from a fermionic problem to a qubit operator.
 
 The problem is described in a driver.
 """

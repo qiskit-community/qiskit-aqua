@@ -29,7 +29,9 @@ from qiskit.chemistry.drivers import BaseDriver
 class MolecularGroundStateEnergy:
     """ Molecular ground state energy chemistry application """
 
-    # TODO this needs to be deprecated in view of the new Ground State interface
+    warnings.warn('The MolecularGroundStateEnergy class is deprecated as of Qiskit Aqua 0.8.0 and will be '
+                      'removed no earlier than 3 months after the release date. Instead, the '
+                      'GroundStateCalculation class can be used.', DeprecationWarning, stacklevel=2)
 
     def __init__(self,
                  driver: BaseDriver,
