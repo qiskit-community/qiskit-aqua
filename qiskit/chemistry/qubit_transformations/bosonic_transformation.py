@@ -22,7 +22,7 @@ from .qubit_operator_transformation import QubitOperatorTransformation
 class BosonicTransformation(QubitOperatorTransformation):
     """TODO"""
 
-    #comment
+    #bosonic
 
     def __init__(self, h, basis):
         pass
