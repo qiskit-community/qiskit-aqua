@@ -13,6 +13,8 @@
 """Test of ExcitationPreserving from the circuit library."""
 
 import warnings
+import unittest
+
 from test.chemistry import QiskitChemistryTestCase
 from qiskit import BasicAer
 from qiskit.circuit.library import ExcitationPreserving
@@ -67,3 +69,7 @@ class TestExcitationPreserving(QiskitChemistryTestCase):
         result = operator.process_algorithm_result(result)
         warnings.filterwarnings('always', category=DeprecationWarning)
         self.assertAlmostEqual(result.energy, self.reference_energy, places=6)
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -12,6 +12,8 @@
 
 """ Test Driver Methods PSI4 """
 
+import unittest
+
 from test.chemistry.test_driver_methods import TestDriverMethods
 from qiskit.chemistry.drivers import PSI4Driver
 from qiskit.chemistry import QiskitChemistryError
@@ -84,3 +86,7 @@ set {{
         driver = PSI4Driver(config=self.psi4_oh_config.format('uhf'))
         result = self._run_driver(driver)
         self._assert_energy_and_dipole(result, 'oh')
+
+
+if __name__ == '__main__':
+    unittest.main()

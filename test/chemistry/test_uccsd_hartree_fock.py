@@ -13,6 +13,8 @@
 """ Test of UCCSD and HartreeFock Aqua extensions """
 
 import warnings
+import unittest
+
 from test.chemistry import QiskitChemistryTestCase
 
 from ddt import ddt, idata, unpack
@@ -185,3 +187,7 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
             excitation_type=excitation_type)
 
         self.assertListEqual(list(excitations), self.EXCITATION_RESULTS[expected_result_idx])
+
+
+if __name__ == '__main__':
+    unittest.main()

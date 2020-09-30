@@ -13,11 +13,14 @@
 """ Test Driver Methods """
 
 import warnings
+import unittest
+
 from test.chemistry import QiskitChemistryTestCase
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 
 # TODO Ground state interface PR
+
 
 class TestDriverMethods(QiskitChemistryTestCase):
     """Common driver tests. For H2 @ 0.735, sto3g"""
@@ -61,3 +64,7 @@ class TestDriverMethods(QiskitChemistryTestCase):
     def _assert_energy_and_dipole(self, result, mol):
         self._assert_energy(result, mol)
         self.assertAlmostEqual(self.ref_dipoles[mol], result.total_dipole_moment, places=3)
+
+
+if __name__ == '__main__':
+    unittest.main()

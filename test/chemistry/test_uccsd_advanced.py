@@ -13,6 +13,8 @@
 """ Test of UCCSD and HartreeFock Aqua extensions """
 
 import warnings
+import unittest
+
 from test.chemistry import QiskitChemistryTestCase
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
@@ -325,3 +327,7 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
                     counter += 1
 
         return bool(counter == number_groups)
+
+
+if __name__ == '__main__':
+    unittest.main()

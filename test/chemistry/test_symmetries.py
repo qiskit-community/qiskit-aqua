@@ -13,6 +13,8 @@
 """ Test of Symmetry UCCSD processing """
 
 import warnings
+import unittest
+
 from test.chemistry import QiskitChemistryTestCase
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
@@ -107,3 +109,7 @@ class TestSymmetries(QiskitChemistryTestCase):
         warnings.filterwarnings('always', category=DeprecationWarning)
 
         self.assertAlmostEqual(result.energy, self.reference_energy, places=6)
+
+
+if __name__ == '__main__':
+    unittest.main()
