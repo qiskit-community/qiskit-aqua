@@ -40,7 +40,7 @@ class GroundStateCalculation(ABC):
         self._transformation = transformation
 
     @abstractmethod
-    def compute_ground_state(self, driver: BaseDriver) -> MolecularGroundStateResult:
+    def compute_groundstate(self, driver: BaseDriver) -> MolecularGroundStateResult:
         """Compute the ground state energy of the molecule that was supplied via the driver.
 
         Args:

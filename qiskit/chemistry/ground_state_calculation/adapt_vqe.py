@@ -131,7 +131,7 @@ class AdaptVQE(GroundStateCalculation):
         # nature of the algorithm.
         return match is not None or (len(indices) > 1 and indices[-2] == indices[-1])
 
-    def compute_ground_state(self, driver: BaseDriver) -> MolecularGroundStateResult:
+    def compute_groundstate(self, driver: BaseDriver) -> MolecularGroundStateResult:
         """Computes the ground state.
 
         Args:

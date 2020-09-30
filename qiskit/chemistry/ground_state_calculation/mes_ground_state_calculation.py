@@ -53,7 +53,7 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
 
         return False
 
-    def compute_ground_state(self, driver: BaseDriver) -> MolecularGroundStateResult:
+    def compute_groundstate(self, driver: BaseDriver) -> MolecularGroundStateResult:
         """Compute Ground State properties.
 
         Args:

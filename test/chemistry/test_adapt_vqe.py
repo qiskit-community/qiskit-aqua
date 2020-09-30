@@ -22,7 +22,7 @@ from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.components.initial_states import HartreeFock
 from qiskit.aqua.components.optimizers import L_BFGS_B
-from qiskit.chemistry.ground_state_calculation import AdaptVQE, MESFactory
+from qiskit.chemistry.ground_state_calculation import AdaptVQE, VQEUCCSDFactory, MESFactory
 from qiskit.chemistry.qubit_transformations import FermionicTransformation
 
 
@@ -46,14 +46,14 @@ class TestAdaptVQE(QiskitChemistryTestCase):
 
     def test_default(self):
         """ Default execution """
-        solver = MESFactory(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
+        solver = VQEUCCSDFactory(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
         calc = AdaptVQE(self.transformation, solver)
-        res = calc.compute_ground_state(self.driver)
+        res = calc.compute_groundstate(self.driver)
         self.assertAlmostEqual(res.eigenvalue.real, self.expected, places=6)
 
     def test_custom_minimum_eigensolver(self):
         """ Test custom MES """
-        solver = MESFactory(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
+        solver = VQEUCCSDFactory(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
 
         def get_custom_solver(self, transformation):
             num_orbitals = transformation._molecule_info['num_orbitals']
@@ -77,7 +77,7 @@ class TestAdaptVQE(QiskitChemistryTestCase):
         solver.get_solver = get_custom_solver.__get__(solver, MESFactory)
 
         calc = AdaptVQE(self.transformation, solver)
-        res = calc.compute_ground_state(self.driver)
+        res = calc.compute_groundstate(self.driver)
         self.assertAlmostEqual(res.eigenvalue.real, self.expected, places=6)
 
     def test_custom_excitation_pool(self):
@@ -96,7 +96,7 @@ class TestAdaptVQE(QiskitChemistryTestCase):
 
         solver = CustomMESFactory(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
         calc = AdaptVQE(self.transformation, solver)
-        res = calc.compute_ground_state(self.driver)
+        res = calc.compute_groundstate(self.driver)
         self.assertAlmostEqual(res.eigenvalue.real, self.expected, places=6)
 
     def test_vqe_adapt_check_cyclicity(self):
