@@ -13,7 +13,6 @@
 """ Molecular ground state energy  chemistry application """
 
 import warnings
-import logging
 from typing import List, Optional, Callable, Union
 
 from qiskit.providers import BaseBackend
