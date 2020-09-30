@@ -15,7 +15,7 @@
 import copy
 import itertools
 
-import networkx
+import retworkx
 import numpy as np
 from qiskit.quantum_info import Pauli
 from qiskit.aqua.operators import WeightedPauliOperator
@@ -249,9 +249,9 @@ def stabilizers(fer_op):
     edge_list = bravyi_kitaev_fast_edge_list(fer_op)
     num_qubits = edge_list.shape[1]
 
-    graph = networkx.Graph()
-    graph.add_edges_from(tuple(edge_list.transpose()))
-    stabs = np.asarray(networkx.cycle_basis(graph))
+    graph = retworkx.PyGraph()
+    graph.extend_from_edge_list(list(map(tuple, edge_list.transpose())))
+    stabs = np.asarray(retworkx.cycle_basis(graph))
     stabilizer_ops = []
     for stab in stabs:
         a_op = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
@@ -373,9 +373,9 @@ def vacuum_operator(fer_op):
     num_qubits = edge_list.shape[1]
     vac_operator = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
 
-    graph = networkx.Graph()
-    graph.add_edges_from(tuple(edge_list.transpose()))
-    stabs = np.asarray(networkx.cycle_basis(graph))
+    graph = retworkx.PyGraph()
+    graph.extend_from_edge_list(list(map(tuple, edge_list.transpose())))
+    stabs = np.asarray(retworkx.cycle_basis(graph))
     for stab in stabs:
         a_op = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
         stab = np.asarray(stab)

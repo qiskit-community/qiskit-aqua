@@ -32,6 +32,10 @@ class TestReadmeSample(QiskitOptimizationTestCase):
             if args:
                 self.log.debug(args[0], *args[1:])
 
+        # Fix the random seed of SPSA (Optional)
+        from qiskit.aqua import aqua_globals
+        aqua_globals.random_seed = 123
+
         # --- Exact copy of sample code ----------------------------------------
 
         import networkx as nx

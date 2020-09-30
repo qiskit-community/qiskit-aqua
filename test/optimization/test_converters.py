@@ -679,6 +679,50 @@ class TestConverters(QiskitOptimizationTestCase):
             quadratic.objective.quadratic.coefficients.toarray(), quadratic_matrix
         )
 
+    def test_0var_range_inequality(self):
+        """ Test InequalityToEquality converter when the var_rang of the slack variable is 0"""
+        op = QuadraticProgram()
+        op.binary_var('x')
+        op.binary_var('y')
+        op.linear_constraint(linear={'x': 1, 'y': 1}, sense='LE', rhs=0, name='xy_leq1')
+        op.linear_constraint(linear={'x': 1, 'y': 1}, sense='GE', rhs=2, name='xy_geq1')
+        op.quadratic_constraint(quadratic={('x', 'x'): 1}, sense='LE', rhs=0, name='xy_leq2')
+        op.quadratic_constraint(quadratic={('x', 'y'): 1}, sense='GE', rhs=1, name='xy_geq2')
+        ineq2eq = InequalityToEquality()
+        new_op = ineq2eq.convert(op)
+        self.assertEqual(new_op.get_num_vars(), 2)
+        self.assertTrue(all(l_const.sense == Constraint.Sense.EQ
+                            for l_const in new_op.linear_constraints))
+        self.assertTrue(all(q_const.sense == Constraint.Sense.EQ
+                            for q_const in new_op.quadratic_constraints))
+
+    def test_integer_to_binary2(self):
+        """Test integer to binary variables 2"""
+        mod = QuadraticProgram()
+        mod.integer_var(name='x', lowerbound=0, upperbound=1)
+        mod.integer_var(name='y', lowerbound=0, upperbound=1)
+        mod.minimize(1, {'x': 1}, {('x', 'y'): 2})
+        mod.linear_constraint({'x': 1}, '==', 1)
+        mod.quadratic_constraint({'x': 1}, {('x', 'y'): 2}, '==', 1)
+        mod2 = IntegerToBinary().convert(mod)
+        self.assertListEqual([e.name+'@0' for e in mod.variables], [e.name for e in mod2.variables])
+        self.assertDictEqual(mod.objective.linear.to_dict(),
+                             mod2.objective.linear.to_dict())
+        self.assertDictEqual(mod.objective.quadratic.to_dict(),
+                             mod2.objective.quadratic.to_dict())
+        self.assertEqual(mod.get_num_linear_constraints(),
+                         mod2.get_num_linear_constraints())
+        for cst, cst2 in zip(mod.linear_constraints, mod2.linear_constraints):
+            self.assertDictEqual(cst.linear.to_dict(),
+                                 cst2.linear.to_dict())
+        self.assertEqual(mod.get_num_quadratic_constraints(),
+                         mod2.get_num_quadratic_constraints())
+        for cst, cst2 in zip(mod.quadratic_constraints, mod2.quadratic_constraints):
+            self.assertDictEqual(cst.linear.to_dict(),
+                                 cst2.linear.to_dict())
+            self.assertDictEqual(cst.quadratic.to_dict(),
+                                 cst2.quadratic.to_dict())
+
 
 if __name__ == '__main__':
     unittest.main()

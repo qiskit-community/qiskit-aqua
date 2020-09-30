@@ -16,7 +16,9 @@ This module contains the definition of a base class for a chemistry operator.
 Such an operator takes a QMolecule and produces an input for
 a quantum algorithm
 """
+
 from abc import ABC, abstractmethod
+import warnings
 import logging
 from typing import Union, List, Tuple, Optional
 import numpy as np
@@ -45,10 +47,14 @@ class ChemistryOperator(ABC):
 
     @abstractmethod
     def __init__(self):
+        warnings.warn('The ChemistryOperator is deprecated as of Qiskit Aqua 0.8.0 and will be '
+                      'removed no earlier than 3 months after the release date. Instead, the '
+                      'FermionicTransformation can be used to transform QMolecules and construct '
+                      'ground state result objects.', DeprecationWarning, stacklevel=2)
         self._molecule_info = {}
 
     @abstractmethod
-    def run(self, qmolecule):
+    def _do_transform(self, qmolecule):
         """
         Convert the qmolecule, according to the ChemistryOperator, into an Operator
         that can be given to a QuantumAlgorithm
@@ -155,8 +161,8 @@ class MolecularGroundStateResult(MolecularChemistryResult):
     Energies are in Hartree and dipole moments in A.U unless otherwise stated.
     """
 
-    #TODO we need to be able to extract the statevector or the optimal parameters that can construct the circuit
-    # of the GS from here (if the algorithm supports this)
+    # TODO we need to be able to extract the statevector or the optimal parameters that can
+    # construct the circuit of the GS from here (if the algorithm supports this)
 
     @property
     def energy(self) -> Optional[float]:

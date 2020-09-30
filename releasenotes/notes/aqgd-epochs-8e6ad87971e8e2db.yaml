@@ -1,0 +1,10 @@
+---
+upgrade:
+  - Extension of the previous Analytic Quantum Gradient Descent (AQGD) classical optimizer with the 
+    AQGD with Epochs.
+    Now AQGD performs the gradient descent optimization with a momentum term, analytic gradients,
+    and an added customized step length schedule for parametrized quantum gates.
+    Gradients are computed "analytically" using the quantum circuit when evaluating
+    the objective function.
+
+    
