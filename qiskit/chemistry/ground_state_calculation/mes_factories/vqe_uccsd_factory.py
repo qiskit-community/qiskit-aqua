@@ -18,10 +18,11 @@ from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.qubit_transformations import QubitOperatorTransformation
 from qiskit.chemistry.components.initial_states import HartreeFock
 
+from .mes_factory import MESFactory
 
-class VQEUCCSDFactory:
-    """A factory to construct a minimum eigensolver suitable for a qubit operator transformation.
-    """
+
+class VQEUCCSDFactory(MESFactory):
+    """A factory to construct a VQE minimum eigensolver with UCCSD ansatz wavefunction."""
 
     def __init__(self, quantum_instance: QuantumInstance) -> None:
         """
@@ -31,15 +32,13 @@ class VQEUCCSDFactory:
         self._quantum_instance = quantum_instance
 
     def get_solver(self, transformation: QubitOperatorTransformation) -> MinimumEigensolver:
-        """Returns a minimum eigensolver, based on the qubit operator transformation.
-
-        By default the VQE with a UCCSD wavefunction ansatz is returned.
+        """Returns a VQE with a UCCSD wavefunction ansatz, based on ``transformation``.
 
         Args:
             transformation: The qubit operator transformation.
 
         Returns:
-            A minimum eigensolver suitable to compute the ground state of the molecule transformed
+            A VQE suitable to compute the ground state of the molecule transformed
             by ``transformation``.
         """
 
