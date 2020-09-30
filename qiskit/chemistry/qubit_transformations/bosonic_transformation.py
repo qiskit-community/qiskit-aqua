@@ -5,6 +5,8 @@ from .qubit_operator_transformation import QubitOperatorTransformation
 
 class BosonicTransformation(QubitOperatorTransformation):
 
+    #comment
+
     def __init__(self, h, basis):
         pass
 
