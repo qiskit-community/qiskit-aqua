@@ -24,9 +24,8 @@ from qiskit.aqua.operators import (OperatorBase, StateFn, Zero, One, CircuitStat
 from qiskit.aqua.operators import SummedOp, ListOp, ComposedOp, DictStateFn, VectorStateFn
 from qiskit.aqua.operators.gradients.circuit_gradients.circuit_gradient \
     import CircuitGradient
+from qiskit.aqua.operators.gradients.derivatives_base import DerivativeBase
 from qiskit.circuit import Parameter, ParameterExpression, ParameterVector
-
-from ..derivatives_base import DerivativeBase
 
 
 class ParamShift(CircuitGradient):
@@ -42,7 +41,6 @@ class ParamShift(CircuitGradient):
             epsilon: The offset size to use when computing finite difference gradients.
                      Ignored if analytic == True
 
-        
         Raises:
             ValueError: If method != ``fin_diff`` and ``epsilon`` is not None.
         """
@@ -51,11 +49,23 @@ class ParamShift(CircuitGradient):
         self._epsilon = epsilon
 
     @property
-    def analytic(self):
+    def analytic(self) -> bool:
+        """Returns ``analytic`` flag.
+
+        Returns:
+             ``analytic`` flag.
+
+        """
         return self._analytic
 
     @property
-    def epsilon(self):
+    def epsilon(self) -> float:
+        """Returns ``epsilon``.
+
+        Returns:
+            ``epsilon``.
+
+        """
         return self._epsilon
 
     # pylint: disable=arguments-differ
@@ -84,7 +94,7 @@ class ParamShift(CircuitGradient):
             AquaError: If the parameters are given in an invalid format.
 
         """
-        if isinstance(params, ParameterExpression) or isinstance(params, ParameterVector):
+        if isinstance(params, (ParameterExpression, ParameterVector)):
             return self.parameter_shift(operator, params)
         elif isinstance(params, tuple):
             return self.parameter_shift(self.parameter_shift(operator, params[0]), params[1])
@@ -247,11 +257,8 @@ class ParamShift(CircuitGradient):
                         prob_dict[key] += shift_constant * ((-1) ** i) * prob_counts
             return prob_dict
         elif isinstance(items[0], Iterable):
-            try:
-                return shift_constant * np.subtract(np.multiply(items[0], np.conj(items[0])),
-                                                    np.multiply(items[1], np.conj(items[1])))
-            except Exception:
-                pass
+            return shift_constant * np.subtract(np.multiply(items[0], np.conj(items[0])),
+                                                np.multiply(items[1], np.conj(items[1])))
 
         print('type error', x
               )
@@ -284,7 +291,7 @@ class ParamShift(CircuitGradient):
             return CircuitStateFn(circuit, coeff=operator.coeff)
         elif isinstance(operator, CircuitOp):
             return CircuitOp(circuit, coeff=operator.coeff)
-        elif isinstance(operator, ComposedOp) or isinstance(operator, ListOp):
+        elif isinstance(operator, (ComposedOp, ListOp)):
             return operator.traverse(
                 partial(ParamShift._replace_operator_circuit, circuit=circuit))
         else:
@@ -322,14 +329,14 @@ class ParamShift(CircuitGradient):
     @classmethod
     def unroll_operator(cls, operator: OperatorBase) -> Union[OperatorBase, List[OperatorBase]]:
         """Traverse the operator and return all OperatorBase objects flattened
-           into a single list. This is used as a subroutine to extract all 
+           into a single list. This is used as a subroutine to extract all
            circuits within a large composite operator.
 
         Args:
             operator: An OperatorBase type object
 
         Returns:
-            A single flattened list of all OperatorBase objects within the 
+            A single flattened list of all OperatorBase objects within the
             input operator
 
         """

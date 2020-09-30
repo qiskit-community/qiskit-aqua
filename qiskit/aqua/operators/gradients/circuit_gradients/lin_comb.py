@@ -12,10 +12,11 @@
 
 """The module to compute the state gradient with the linear combination method."""
 
+from collections.abc import Iterable
 from copy import deepcopy
 from functools import partial
 from itertools import product
-from typing import Iterable, List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 from qiskit.aqua.aqua_globals import AquaError
@@ -24,7 +25,7 @@ from qiskit.aqua.operators.operator_globals import Z, I, One, Zero
 from qiskit.aqua.operators.primitive_ops.primitive_op import PrimitiveOp
 from qiskit.aqua.operators.state_fns import StateFn, CircuitStateFn, DictStateFn, VectorStateFn
 from qiskit.circuit import Gate, Instruction, Qubit
-from qiskit.circuit import (QuantumCircuit, QuantumRegister, Parameter, ParameterVector,
+from qiskit.circuit import (QuantumCircuit, QuantumRegister, ParameterVector,
                             ParameterExpression)
 from qiskit.circuit.controlledgate import ControlledGate
 from qiskit.circuit.library import SGate, SdgGate, HGate
@@ -72,6 +73,7 @@ class LinComb(CircuitGradient):
 
         return self._prepare_operator(operator, params)
 
+    # pylint: disable=too-many-return-statements
     def _prepare_operator(self,
                           operator: OperatorBase,
                           params: Optional[Union[ParameterExpression, ParameterVector,
@@ -99,6 +101,10 @@ class LinComb(CircuitGradient):
                 See e.g. Evaluating analytic gradients on quantum hardware
                     Maria Schuld, Ville Bergholm, Christian Gogolin, Josh Izaac, and Nathan Killoran
                     Phys. Rev. A 99, 032331 – Published 21 March 2019
+
+        Raises:
+            ValueError: If ``operator`` does not correspond to an expectation value.
+            AquaError: If third or higher order gradients are requested.
         """
 
         if isinstance(operator, ComposedOp):
@@ -110,8 +116,7 @@ class LinComb(CircuitGradient):
             if operator[0].is_measurement:
                 if len(operator.oplist) == 2:
                     state_op = operator[1]
-                    if isinstance(params, ParameterExpression) or isinstance(params,
-                                                                             ParameterVector):
+                    if isinstance(params, (ParameterExpression, ParameterVector)):
                         return self._gradient_states(state_op, meas_op=(~StateFn(Z) ^ operator[0]),
                                                      target_params=params)
                     elif isinstance(params, tuple):
@@ -139,8 +144,7 @@ class LinComb(CircuitGradient):
                     state_op = deepcopy(operator)
                     state_op.oplist.pop(0)
 
-                    if isinstance(params, ParameterExpression) or isinstance(params,
-                                                                             ParameterVector):
+                    if isinstance(params, (ParameterExpression, ParameterVector)):
                         return state_op.traverse(
                             partial(self._gradient_states, meas_op=(~StateFn(Z) ^ operator[0]),
                                     target_params=params))
@@ -175,7 +179,7 @@ class LinComb(CircuitGradient):
             if operator.is_measurement:
                 return operator.traverse(partial(self._prepare_operator, params=params))
             else:
-                if isinstance(params, ParameterExpression) or isinstance(params, ParameterVector):
+                if isinstance(params, (ParameterExpression, ParameterVector)):
                     return self._gradient_states(operator, target_params=params)
                 elif isinstance(params, tuple):
                     return self._hessian_states(operator, target_params=params)
@@ -310,14 +314,15 @@ class LinComb(CircuitGradient):
                         else:
                             if gate_param == param:
                                 state = ListOp([state],
-                                               combo_fn=partial(self._combo_fn, state_op=state_op))
+                                               combo_fn=partial(self._grad_combo_fn,
+                                                                state_op=state_op))
                             else:
                                 if isinstance(gate_param, ParameterExpression):
                                     expr_grad = DerivativeBase.parameter_expression_grad(gate_param,
                                                                                          param)
                                     state = expr_grad * ListOp(
                                         [state],
-                                        combo_fn=partial(self._combo_fn, state_op=state_op))
+                                        combo_fn=partial(self._grad_combo_fn, state_op=state_op))
                                 else:
                                     state = ~Zero @ One
 
@@ -540,59 +545,10 @@ class LinComb(CircuitGradient):
                                             gate_param_a,
                                             param_a)
                                         meas *= expr_grad
-                                    try:
-                                        term = meas @ term
-                                    except Exception:
-                                        print('meas ', meas)
-                                        print('term ', term)
-
+                                    term = meas @ term
                                 else:
-                                    def combo_fn(x):
-                                        def get_result(item):
-                                            if isinstance(item, DictStateFn):
-                                                item = item.primitive
-                                            if isinstance(item, VectorStateFn):
-                                                item = item.primitive.data
-                                            if isinstance(item, Iterable):
-                                                # Generate the operator which computes the linear
-                                                # combination
-                                                lin_comb_op = 4 * (
-                                                        I ^ (state_op.num_qubits + 1)) ^ Z
-                                                lin_comb_op = lin_comb_op.to_matrix()
-                                                return list(
-                                                    np.diag(partial_trace(
-                                                        lin_comb_op.dot(
-                                                            np.outer(item, np.conj(item))),
-                                                        [0, 1]).data))
-                                            elif isinstance(item, dict):
-                                                prob_dict = {}
-                                                for key in item.keys():
-                                                    prob_counts = item[key] * np.conj(item[key])
-                                                    if int(key[-1]) == 1:
-                                                        prob_counts *= -1
-                                                    if key[:-2] not in prob_dict.keys():
-                                                        prob_dict[key[:-2]] = prob_counts
-                                                    else:
-                                                        prob_dict[key[:-2]] += prob_counts
-                                                for key in prob_dict.keys():
-                                                    prob_dict[key] = prob_dict[key] * 4
-                                                return prob_dict
-                                            else:
-                                                raise TypeError(
-                                                    'The state result should be either a '
-                                                    'DictStateFn or a VectorStateFn.')
-
-                                        if not isinstance(x, Iterable):
-                                            return get_result(x)
-                                        elif len(x) == 1:
-                                            return get_result(x[0])
-                                        else:
-                                            result = []
-                                            for item in x:
-                                                result.append(get_result(item))
-                                            return result
-
-                                    term = ListOp(term, combo_fn=combo_fn)
+                                    term = ListOp(term, combo_fn=partial(self._hess_combo_fn,
+                                                                         state_op=state_op))
                                     if isinstance(gate_param_a, ParameterExpression):
                                         expr_grad = DerivativeBase.parameter_expression_grad(
                                             gate_param_a,
@@ -617,7 +573,7 @@ class LinComb(CircuitGradient):
         return ListOp(hessian_ops)
 
     @staticmethod
-    def _combo_fn(x, state_op):
+    def _grad_combo_fn(x, state_op):
         def get_result(item):
             if isinstance(item, DictStateFn):
                 item = item.primitive
@@ -625,11 +581,11 @@ class LinComb(CircuitGradient):
                 item = item.primitive.data
             if isinstance(item, dict):
                 prob_dict = {}
-                for key in item.keys():
+                for key in item:
                     prob_counts = item[key] * np.conj(item[key])
                     if int(key[0]) == 1:
                         prob_counts *= -1
-                    if key[1:] not in prob_dict.keys():
+                    if key[1:] not in prob_dict:
                         prob_dict[key[1:]] = prob_counts
                     else:
                         prob_dict[key[1:]] += prob_counts
@@ -656,8 +612,54 @@ class LinComb(CircuitGradient):
             return result
 
     @staticmethod
+    def _hess_combo_fn(x, state_op):
+        def get_result(item):
+            if isinstance(item, DictStateFn):
+                item = item.primitive
+            if isinstance(item, VectorStateFn):
+                item = item.primitive.data
+            if isinstance(item, Iterable):
+                # Generate the operator which computes the linear
+                # combination
+                lin_comb_op = 4 * (
+                        I ^ (state_op.num_qubits + 1)) ^ Z
+                lin_comb_op = lin_comb_op.to_matrix()
+                return list(
+                    np.diag(partial_trace(
+                        lin_comb_op.dot(
+                            np.outer(item, np.conj(item))),
+                        [0, 1]).data))
+            elif isinstance(item, dict):
+                prob_dict = {}
+                for key in item:
+                    prob_counts = item[key] * np.conj(item[key])
+                    if int(key[-1]) == 1:
+                        prob_counts *= -1
+                    if key[:-2] not in prob_dict:
+                        prob_dict[key[:-2]] = prob_counts
+                    else:
+                        prob_dict[key[:-2]] += prob_counts
+                for key in prob_dict:
+                    prob_dict[key] *= 4
+                return prob_dict
+            else:
+                raise TypeError(
+                    'The state result should be either a '
+                    'DictStateFn or a VectorStateFn.')
+
+        if not isinstance(x, Iterable):
+            return get_result(x)
+        elif len(x) == 1:
+            return get_result(x[0])
+        else:
+            result = []
+            for item in x:
+                result.append(get_result(item))
+            return result
+
+    @staticmethod
     def _gate_gradient_dict(gate: Gate) -> List[Tuple[List[complex], List[Instruction]]]:
-        """Given a parameterized gate U(theta) with derivative
+        r"""Given a parameterized gate U(theta) with derivative
         dU(theta)/dtheta = sum_ia_iU(theta)V_i.
         This function returns a:=[a_0, ...] and V=[V_0, ...]
         Suppose U takes multiple parameters, i.e., U(theta^0, ... theta^k).
