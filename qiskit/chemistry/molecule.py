@@ -32,6 +32,8 @@ class Molecule:
 
     def __init__(self,
                  geometry,
+                 multiplicity,
+                 charge, 
                  degrees_of_freedom=None,
                  masses=None,
                  spins=None,
@@ -61,7 +63,9 @@ class Molecule:
         """
         self._geometry = geometry
         self._degrees_of_freedom = degrees_of_freedom
-
+        self._multiplicity = multiplicity
+        self._charge = charge
+        
         if masses is not None and not len(masses) == len(self._geometry):
             raise ValueError(
                 'Length of masses must match length of geometries, '
@@ -304,7 +308,15 @@ class Molecule:
     def spins(self):
         return self._spins
 
+    
     @property
     def masses(self):
         return self._masses
 
+    @property
+    def multipicity(self):
+        return self._multiplicity
+    
+    @property
+    def charge(self):
+        return self._charge
