@@ -15,7 +15,7 @@
 The problem is described in a driver.
 """
 
-from typing import Optional, List, Union, cast, Tuple
+from typing import Optional, List, Union, cast, Tuple, Dict, Any
 import logging
 from enum import Enum
 
@@ -113,7 +113,7 @@ class FermionicTransformation(QubitOperatorTransformation):
         self._ph_y_dipole_shift = 0.0
         self._ph_z_dipole_shift = 0.0
 
-        self._molecule_info = {}
+        self._molecule_info: Dict[str, Any] = {}
 
     def transform(self, driver: BaseDriver) -> Tuple[WeightedPauliOperator,
                                                      List[WeightedPauliOperator]]:
