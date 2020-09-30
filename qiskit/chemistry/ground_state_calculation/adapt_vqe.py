@@ -21,15 +21,15 @@ import warnings
 import numpy as np
 
 from qiskit.aqua import AquaError
-from qiskit.aqua.algorithms import VQEResult
+from qiskit.aqua.algorithms import VQEResult, VQE
 from qiskit.aqua.operators import LegacyBaseOperator, WeightedPauliOperator
 from qiskit.aqua.utils.validation import validate_min
 from qiskit.chemistry.components.variational_forms import UCCSD
-from qiskit.chemistry.core import MolecularGroundStateResult
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.qubit_transformations import FermionicTransformation
 from .ground_state_calculation import GroundStateCalculation
-from .mes_factories import MESFactory
+from .fermionic_ground_state_result import FermionicGroundStateResult
+from .mes_factories import VQEUCCSDFactory
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +39,7 @@ class AdaptVQE(GroundStateCalculation):
 
     def __init__(self,
                  transformation: FermionicTransformation,
-                 solver: MESFactory,
+                 solver: VQEUCCSDFactory,
                  threshold: float = 1e-5,
                  delta: float = 1,
                  max_iterations: Optional[int] = None,
@@ -47,7 +47,7 @@ class AdaptVQE(GroundStateCalculation):
         """
         Args:
             transformation: a fermionic driver to operator transformation strategy.
-            solver: a minimum eigensolver factory which uses the UCCSD variational form.
+            solver: a factory for the VQE solver employing a UCCSD variational form.
             threshold: the energy convergence threshold. It has a minimum value of 1e-15.
             delta: the finite difference step size for the gradient computation. It has a minimum
                    value of 1e-5.
@@ -131,21 +131,22 @@ class AdaptVQE(GroundStateCalculation):
         # nature of the algorithm.
         return match is not None or (len(indices) > 1 and indices[-2] == indices[-1])
 
-    def compute_groundstate(self, driver: BaseDriver) -> MolecularGroundStateResult:
+    def compute_groundstate(self, driver: BaseDriver) -> FermionicGroundStateResult:
         """Computes the ground state.
 
         Args:
             driver: a chemistry driver.
         Raises:
-            AquaError: if a variational form other than UCCSD is provided or if the algorithm
-                       finishes due to an unforeseen reason.
+            AquaError: if a solver other than VQE or a variational form other than UCCSD is provided
+                       or if the algorithm finishes due to an unforeseen reason.
         Returns:
-            A ground state result.
-            TODO replace with FermionicGroundStateResult
+            A fermionic ground state result.
         """
         operator, aux_operators = self._transformation.transform(driver)
 
         vqe = self._solver.get_solver(self._transformation)
+        if not isinstance(vqe, VQE):
+            raise AquaError("The AdaptVQE algorithm requires the use of the VQE solver")
         var_form = vqe.var_form
         if not isinstance(var_form, UCCSD):
             raise AquaError("The AdaptVQE algorithm requires the use of the UCCSD variational form")
@@ -224,8 +225,8 @@ class AdaptVQE(GroundStateCalculation):
         raw_result.finishing_criterion = finishing_criterion
 
         logger.info('The final energy is: %s', str(raw_result.optimal_value.real))
-        return raw_result
-        # TODO: return self.transformation.interpret(raw_result)
+        return self.transformation.interpret(raw_result.eigenvalue, raw_result.eigenstate,
+                                             raw_result.aux_operator_eigenvalues)
 
 
 class AdaptVQEResult(VQEResult):

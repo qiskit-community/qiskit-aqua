@@ -22,7 +22,7 @@ from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.components.initial_states import HartreeFock
 from qiskit.aqua.components.optimizers import L_BFGS_B
-from qiskit.chemistry.ground_state_calculation import AdaptVQE, VQEUCCSDFactory, MESFactory
+from qiskit.chemistry.ground_state_calculation import AdaptVQE, VQEUCCSDFactory
 from qiskit.chemistry.qubit_transformations import FermionicTransformation
 
 
@@ -49,7 +49,7 @@ class TestAdaptVQE(QiskitChemistryTestCase):
         solver = VQEUCCSDFactory(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
         calc = AdaptVQE(self.transformation, solver)
         res = calc.compute_groundstate(self.driver)
-        self.assertAlmostEqual(res.eigenvalue.real, self.expected, places=6)
+        self.assertAlmostEqual(res.electronic_energy, self.expected, places=6)
 
     def test_custom_minimum_eigensolver(self):
         """ Test custom MES """
@@ -60,7 +60,7 @@ class TestAdaptVQE(QiskitChemistryTestCase):
             num_particles = transformation._molecule_info['num_particles']
             qubit_mapping = transformation._qubit_mapping
             two_qubit_reduction = transformation._molecule_info['two_qubit_reduction']
-            z2_symmetries = transformation._molecule_info['z2symmetries']
+            z2_symmetries = transformation._molecule_info['z2_symmetries']
             initial_state = HartreeFock(num_orbitals, num_particles, qubit_mapping,
                                         two_qubit_reduction, z2_symmetries.sq_list)
             var_form = UCCSD(num_orbitals=num_orbitals,
@@ -74,15 +74,15 @@ class TestAdaptVQE(QiskitChemistryTestCase):
             return vqe
 
         # pylint: disable=no-value-for-parameter
-        solver.get_solver = get_custom_solver.__get__(solver, MESFactory)
+        solver.get_solver = get_custom_solver.__get__(solver, VQEUCCSDFactory)
 
         calc = AdaptVQE(self.transformation, solver)
         res = calc.compute_groundstate(self.driver)
-        self.assertAlmostEqual(res.eigenvalue.real, self.expected, places=6)
+        self.assertAlmostEqual(res.electronic_energy, self.expected, places=6)
 
     def test_custom_excitation_pool(self):
         """ Test custom excitation pool """
-        class CustomMESFactory(MESFactory):
+        class CustomFactory(VQEUCCSDFactory):
             """A custom MES factory."""
 
             def get_solver(self, transformation):
@@ -94,10 +94,10 @@ class TestAdaptVQE(QiskitChemistryTestCase):
                 solver.var_form.excitation_pool = custom_excitation_pool
                 return solver
 
-        solver = CustomMESFactory(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
+        solver = CustomFactory(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
         calc = AdaptVQE(self.transformation, solver)
         res = calc.compute_groundstate(self.driver)
-        self.assertAlmostEqual(res.eigenvalue.real, self.expected, places=6)
+        self.assertAlmostEqual(res.electronic_energy, self.expected, places=6)
 
     def test_vqe_adapt_check_cyclicity(self):
         """ VQEAdapt index cycle detection """
