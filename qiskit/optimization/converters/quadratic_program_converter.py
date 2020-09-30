@@ -11,7 +11,7 @@
 # that they have been altered from the originals.
 
 """An abstract class for optimization algorithms in Qiskit's optimization module."""
-
+from __future__ import annotations
 import warnings
 
 from abc import ABC, abstractmethod

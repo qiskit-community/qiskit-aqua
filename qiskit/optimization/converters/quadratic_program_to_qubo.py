@@ -11,7 +11,7 @@
 # that they have been altered from the originals.
 
 """A converter from quadratic program to a QUBO."""
-
+from __future__ import annotations
 from typing import Optional
 
 from ..exceptions import QiskitOptimizationError

@@ -11,7 +11,7 @@
 # that they have been altered from the originals.
 
 """The converter to map integer variables in a quadratic program to binary variables."""
-
+from __future__ import annotations
 import copy
 import logging
 from typing import Dict, List, Optional, Tuple, Union

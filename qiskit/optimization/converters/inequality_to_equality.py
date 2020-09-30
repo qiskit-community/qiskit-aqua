@@ -10,7 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 """The inequality to equality converter."""
-
+from __future__ import annotations
 import copy
 import logging
 import math

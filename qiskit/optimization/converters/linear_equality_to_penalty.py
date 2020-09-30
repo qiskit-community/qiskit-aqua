@@ -11,7 +11,7 @@
 # that they have been altered from the originals.
 
 """Converter to convert a problem with equality constraints to unconstrained with penalty terms."""
-
+from __future__ import annotations
 import copy
 import logging
 from math import fsum
