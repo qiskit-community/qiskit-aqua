@@ -12,15 +12,12 @@
 
 """ CircuitQFI Class """
 
-import logging
 from abc import abstractmethod
-from typing import List, Union, Optional
+from typing import List, Union
 
 from qiskit.aqua.operators.converters.converter_base import ConverterBase
 from qiskit.aqua.operators.operator_base import OperatorBase
 from qiskit.circuit import ParameterExpression, ParameterVector
-
-logger = logging.getLogger(__name__)
 
 
 class CircuitQFI(ConverterBase):
@@ -31,7 +28,7 @@ class CircuitQFI(ConverterBase):
 
     This is distinct from DerivativeBase converters which take gradients of composite
     operators and handle things like differentiating combo_fn's and enforcing prodct rules
-    when operator coeficients are parameterized. 
+    when operator coeficients are parameterized.
 
     CircuitQFI - uses quantum techniques to get the QFI of circuits
     DerivativeBase   - uses classical techniques to differentiate opflow data strctures

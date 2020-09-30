@@ -23,7 +23,9 @@ from qiskit.aqua.operators.state_fns import StateFn, CircuitStateFn
 from qiskit.circuit import Parameter, ParameterVector, ParameterExpression
 from qiskit.circuit.library import RZGate, RXGate, RYGate
 from qiskit.converters import dag_to_circuit, circuit_to_dag
+
 from .circuit_qfi import CircuitQFI
+from ..derivatives_base import DerivativeBase
 
 
 class OverlapDiag(CircuitQFI):
@@ -51,21 +53,21 @@ class OverlapDiag(CircuitQFI):
             ListOp[ListOp] where the operator at position k,l corresponds to QFI_kl
 
         Raises:
-            ValueError: If the value for ``approx`` is not supported.
+            NotImplementedError: If ``operator`` is neither ``CircuitOp`` nor ``CircuitStateFn``.
+
         """
 
         if not isinstance(operator, (CircuitOp, CircuitStateFn)):
-            raise NotImplementedError('operator mustdds be a CircuitOp or CircuitStateFn')
-
+            raise NotImplementedError('operator must be a CircuitOp or CircuitStateFn')
 
         return self._diagonal_approx(operator=operator, params=params)
 
-    #TODO, for some reason diagonal_approx doesn't use the same get_parameter_expression method. 
-    # This should be fixed. 
+    # TODO, for some reason diagonal_approx doesn't use the same get_parameter_expression method.
+    # This should be fixed.
     def _diagonal_approx(self,
-                    operator: Union[CircuitOp, CircuitStateFn],
-                    params: Union[ParameterExpression, ParameterVector, List] = None
-                    ) -> OperatorBase:
+                         operator: Union[CircuitOp, CircuitStateFn],
+                         params: Union[ParameterExpression, ParameterVector, List] = None
+                         ) -> OperatorBase:
         """
         Args:
             operator: The operator corresponding to the quantum state |ψ(ω)〉for which we compute
@@ -76,13 +78,13 @@ class OverlapDiag(CircuitQFI):
             ListOp where the operator at position k corresponds to QFI_k,k
 
         Raises:
-            NotImplementedError if a circuit is found such that one parameter controls multiple
-            gates, or one gate contains multiple parameters. 
+            NotImplementedError: If a circuit is found such that one parameter controls multiple
+                gates, or one gate contains multiple parameters.
 
         """
 
         if not isinstance(operator, (CircuitOp, CircuitStateFn)):
-            raise NotImplementedError
+            raise NotImplementedError('operator must be a CircuitOp or CircuitStateFn')
 
         circuit = operator.primitive
 
@@ -125,7 +127,7 @@ class OverlapDiag(CircuitQFI):
             op = meas_op @ psi @ Zero
             if isinstance(param_value, ParameterExpression) and not isinstance(param_value,
                                                                                Parameter):
-                expr_grad = self._parameter_expression_grad(param_value, param)
+                expr_grad = DerivativeBase.parameter_expression_grad(param_value, param)
                 op *= expr_grad
             rotated_op = PauliExpectation().convert(op)
             diag.append(rotated_op)

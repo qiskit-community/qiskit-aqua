@@ -27,9 +27,9 @@ from qiskit.circuit import (QuantumCircuit, QuantumRegister, ParameterVector,
                             ParameterExpression)
 from qiskit.circuit.library import RZGate, RXGate, HGate, XGate, SdgGate, SGate, ZGate, UGate
 
+from .circuit_qfi import CircuitQFI
 from ..circuit_gradients.lin_comb import LinComb
 from ..derivatives_base import DerivativeBase
-from .circuit_qfi import CircuitQFI
 
 
 class LinCombFull(CircuitQFI):
@@ -290,7 +290,7 @@ class LinCombFull(CircuitQFI):
                                     elif param_occurence_j[1] == 1:
                                         LinComb.insert_gate(
                                             qfi_circuit, param_occurence_j[0],
-                                            gate_toap_insert_j, after=True,
+                                            gate_to_insert_j, after=True,
                                             additional_qubits=additional_qubits)
                                     else:
                                         LinComb.insert_gate(

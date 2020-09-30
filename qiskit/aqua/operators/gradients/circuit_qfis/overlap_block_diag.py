@@ -16,6 +16,8 @@ from functools import cmp_to_key
 from typing import List, Union, Optional
 
 import numpy as np
+from scipy.linalg import block_diag
+from qiskit.aqua import AquaError
 from qiskit.aqua.operators import OperatorBase, ListOp, CircuitOp
 from qiskit.aqua.operators.expectations import PauliExpectation
 from qiskit.aqua.operators.operator_globals import I, Z, Y, X, Zero
@@ -23,8 +25,9 @@ from qiskit.aqua.operators.state_fns import StateFn, CircuitStateFn
 from qiskit.circuit import Parameter, ParameterVector, ParameterExpression
 from qiskit.circuit.library import RZGate, RXGate, RYGate
 from qiskit.converters import dag_to_circuit, circuit_to_dag
-from scipy.linalg import block_diag
+
 from .circuit_qfi import CircuitQFI
+from ..derivatives_base import DerivativeBase
 
 
 class OverlapBlockDiag(CircuitQFI):
@@ -52,16 +55,19 @@ class OverlapBlockDiag(CircuitQFI):
         Returns:
             ListOp[ListOp] where the operator at position k,l corresponds to QFI_kl
 
+        Raises:
+            NotImplementedError: If ``operator`` is neither ``CircuitOp`` nor ``CircuitStateFn``.
+
         """
         if not isinstance(operator, (CircuitOp, CircuitStateFn)):
-            raise NotImplementedError('operator mustdds be a CircuitOp or CircuitStateFn')
+            raise NotImplementedError('operator must be a CircuitOp or CircuitStateFn')
         return self._block_diag_approx(operator=operator, params=params)
 
     def _block_diag_approx(self,
-                          operator: Union[CircuitOp, CircuitStateFn],
-                          params: Optional[Union[ParameterExpression, ParameterVector,
-                                                 List[ParameterExpression]]] = None
-                          ) -> ListOp(List[OperatorBase]):
+                           operator: Union[CircuitOp, CircuitStateFn],
+                           params: Optional[Union[ParameterExpression, ParameterVector,
+                                                  List[ParameterExpression]]] = None
+                           ) -> ListOp(List[OperatorBase]):
         r"""
         Args:
             operator: The operator corresponding to the quantum state |ψ(ω)〉for which we compute
@@ -69,13 +75,15 @@ class OverlapBlockDiag(CircuitQFI):
             params: The parameters we are computing the QFI wrt: ω
 
         Returns:
-            ListOp[ListOp] where the operator at position k,l corresponds to QFI_kl
+            `ListOp[ListOp]` where the operator at position k,l corresponds to QFI_kl
 
         Raises:
-            NotImplementedError if a circuit is found such that one parameter controls multiple
-            gates, or one gate contains multiple parameters. 
+            NotImplementedError: If a circuit is found such that one parameter controls multiple
+                gates, or one gate contains multiple parameters.
+            AquaError: If there are more than one parameter.
+
         """
-        
+
         circuit = operator.primitive
         # Parition the circuit into layers, and build the circuits to prepare $\psi_i$
         layers = self._partition_circuit(circuit)
@@ -125,8 +133,10 @@ class OverlapBlockDiag(CircuitQFI):
                                               "gates parameterized by a single parameter. For such "
                                               "circuits use LinCombFull")
                 gate = circuit._parameter_table[param][0][0]
-                assert len(gate.params) == 1, "OverlapDiag cannot yet support gates with more than " \
-                                              "one parameter."
+                if len(gate.params) > 1:
+                    raise AquaError("OverlapDiag cannot yet support gates with more than one "
+                                    "parameter.")
+
                 param_value = gate.params[0]
                 return param_value
 
@@ -141,7 +151,8 @@ class OverlapBlockDiag(CircuitQFI):
                         block[i][i] = ListOp([single_terms[i]], combo_fn=lambda x: 1 - x[0] ** 2)
                         if isinstance(param_expr_i, ParameterExpression) and not isinstance(
                                 param_expr_i, Parameter):
-                            expr_grad_i = self._parameter_expression_grad(param_expr_i, p_i)
+                            expr_grad_i = DerivativeBase.parameter_expression_grad(
+                                param_expr_i, p_i)
                             block[i][j] *= (expr_grad_i) * (expr_grad_i)
                         continue
 
@@ -156,11 +167,11 @@ class OverlapBlockDiag(CircuitQFI):
 
                     if isinstance(param_expr_i, ParameterExpression) and not isinstance(
                             param_expr_i, Parameter):
-                        expr_grad_i = self._parameter_expression_grad(param_expr_i, p_i)
+                        expr_grad_i = DerivativeBase.parameter_expression_grad(param_expr_i, p_i)
                         block[i][j] *= expr_grad_i
                     if isinstance(param_expr_j, ParameterExpression) and not isinstance(
                             param_expr_j, Parameter):
-                        expr_grad_j = self._parameter_expression_grad(param_expr_j, p_j)
+                        expr_grad_j = DerivativeBase.parameter_expression_grad(param_expr_j, p_j)
                         block[i][j] *= expr_grad_j
 
             wrapped_block = ListOp([ListOp(row) for row in block])
