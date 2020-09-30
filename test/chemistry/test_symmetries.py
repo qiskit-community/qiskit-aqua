@@ -12,6 +12,7 @@
 
 """ Test of Symmetry UCCSD processing """
 
+import warnings
 from test.chemistry import QiskitChemistryTestCase
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
@@ -23,6 +24,8 @@ from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingT
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.components.initial_states import HartreeFock
+
+# TODO Ground state interface PR
 
 
 class TestSymmetries(QiskitChemistryTestCase):
@@ -39,11 +42,13 @@ class TestSymmetries(QiskitChemistryTestCase):
         except QiskitChemistryError:
             self.skipTest('PYSCF driver does not appear to be installed')
         self.qmolecule = driver.run()
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         self.core = Hamiltonian(transformation=TransformationType.FULL,
                                 qubit_mapping=QubitMappingType.PARITY,
                                 two_qubit_reduction=True,
                                 freeze_core=True,
                                 orbital_reduction=[])
+        warnings.filterwarnings('always', category=DeprecationWarning)
         self.qubit_op, _ = self.core.run(self.qmolecule)
         self.z2_symmetries = Z2Symmetries.find_Z2_symmetries(self.qubit_op)
 
@@ -97,6 +102,8 @@ class TestSymmetries(QiskitChemistryTestCase):
 
         algo_result = algo.run(quantum_instance)
 
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         result = self.core.process_algorithm_result(algo_result)
+        warnings.filterwarnings('always', category=DeprecationWarning)
 
         self.assertAlmostEqual(result.energy, self.reference_energy, places=6)

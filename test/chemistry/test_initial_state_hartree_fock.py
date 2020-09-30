@@ -12,6 +12,7 @@
 
 """ Test Initial State HartreeFock """
 
+import warnings
 import unittest
 from test.chemistry import QiskitChemistryTestCase
 import numpy as np
@@ -21,6 +22,8 @@ from qiskit.aqua.operators.legacy import op_converter
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
+
+# TODO Ground state interface PR
 
 
 @ddt
@@ -94,11 +97,13 @@ class TestInitialStateHartreeFock(QiskitChemistryTestCase):
         except QiskitChemistryError:
             self.skipTest('PYSCF driver does not appear to be installed')
         qmolecule = driver.run()
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         core = Hamiltonian(transformation=TransformationType.FULL,
                            qubit_mapping=mapping,
                            two_qubit_reduction=False,
                            freeze_core=False,
                            orbital_reduction=[])
+        warnings.filterwarnings('always', category=DeprecationWarning)
 
         qubit_op, _ = core.run(qmolecule)
         qubit_op = op_converter.to_matrix_operator(qubit_op)

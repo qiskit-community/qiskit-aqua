@@ -12,10 +12,12 @@
 
 """ Test Driver Methods """
 
+import warnings
 from test.chemistry import QiskitChemistryTestCase
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 
+# TODO Ground state interface PR
 
 class TestDriverMethods(QiskitChemistryTestCase):
     """Common driver tests. For H2 @ 0.735, sto3g"""
@@ -39,6 +41,7 @@ class TestDriverMethods(QiskitChemistryTestCase):
                     freeze_core=True):
         qmolecule = driver.run()
 
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         core = Hamiltonian(transformation=transformation,
                            qubit_mapping=qubit_mapping,
                            two_qubit_reduction=two_qubit_reduction,
@@ -49,6 +52,7 @@ class TestDriverMethods(QiskitChemistryTestCase):
 
         npme = NumPyMinimumEigensolver(qubit_op, aux_operators=aux_ops)
         result = core.process_algorithm_result(npme.compute_minimum_eigenvalue())
+        warnings.filterwarnings('always', category=DeprecationWarning)
         return result
 
     def _assert_energy(self, result, mol):

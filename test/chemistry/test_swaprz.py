@@ -12,6 +12,7 @@
 
 """Test of ExcitationPreserving from the circuit library."""
 
+import warnings
 from test.chemistry import QiskitChemistryTestCase
 from qiskit import BasicAer
 from qiskit.circuit.library import ExcitationPreserving
@@ -21,6 +22,8 @@ from qiskit.aqua.components.optimizers import SLSQP
 from qiskit.chemistry.components.initial_states import HartreeFock
 from qiskit.chemistry.drivers import HDF5Driver
 from qiskit.chemistry.core import Hamiltonian, QubitMappingType
+
+# TODO Ground state interface PR
 
 
 class TestExcitationPreserving(QiskitChemistryTestCase):
@@ -42,8 +45,10 @@ class TestExcitationPreserving(QiskitChemistryTestCase):
 
         driver = HDF5Driver(self.get_resource_path('test_driver_hdf5.hdf5'))
         qmolecule = driver.run()
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         operator = Hamiltonian(qubit_mapping=QubitMappingType.JORDAN_WIGNER,
                                two_qubit_reduction=False)
+        warnings.filterwarnings('always', category=DeprecationWarning)
         qubit_op, _ = operator.run(qmolecule)
 
         optimizer = SLSQP(maxiter=100)
@@ -58,5 +63,7 @@ class TestExcitationPreserving(QiskitChemistryTestCase):
         result = algo.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),
                                           seed_simulator=aqua_globals.random_seed,
                                           seed_transpiler=aqua_globals.random_seed))
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         result = operator.process_algorithm_result(result)
+        warnings.filterwarnings('always', category=DeprecationWarning)
         self.assertAlmostEqual(result.energy, self.reference_energy, places=6)
