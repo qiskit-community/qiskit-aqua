@@ -19,7 +19,7 @@ from qiskit.chemistry.qubit_transformations import QubitOperatorTransformation
 from qiskit.chemistry.components.initial_states import HartreeFock
 
 
-class MESFactory:
+class VQEUCCSDFactory:
     """A factory to construct a minimum eigensolver suitable for a qubit operator transformation.
     """
 
