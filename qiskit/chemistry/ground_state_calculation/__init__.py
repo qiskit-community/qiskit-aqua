@@ -12,15 +12,13 @@
 
 """Ground state calculation algorithms."""
 
-from .ground_state_calculation import GroundStateCalculation, GroundStateResult
-from .fermionic_ground_state_result import DipoleTuple, FermionicGroundStateResult
+from .ground_state_calculation import GroundStateCalculation
+from .fermionic_ground_state_result import FermionicGroundStateResult
 from .adapt_vqe import AdaptVQE
 from .mes_ground_state_calculation import MinimumEigensolverGroundStateCalculation
 from .mes_factories import MESFactory, VQEUCCSDFactory
 
 __all__ = ['GroundStateCalculation',
-           'GroundStateResult',
-           'DipoleTuple',
            'FermionicGroundStateResult',
            'AdaptVQE',
            'MinimumEigensolverGroundStateCalculation',

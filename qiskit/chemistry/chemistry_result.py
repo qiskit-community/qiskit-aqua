@@ -12,7 +12,15 @@
 
 """The chemistry result interface."""
 
-from qiskit.aqua.algorithms.algorithm_result import AlgorithmResult
+from typing import Tuple, Optional
+
+from qiskit.aqua.algorithms import AlgorithmResult
+
+# A dipole moment, when present as X, Y and Z components will normally have float values for all
+# the components. However when using Z2Symmetries, if the dipole component operator does not
+# commute with the symmetry then no evaluation is done and None will be used as the 'value'
+# indicating no measurement of the observable took place
+DipoleTuple = Tuple[Optional[float], Optional[float], Optional[float]]
 
 
 class ChemistryResult(AlgorithmResult):

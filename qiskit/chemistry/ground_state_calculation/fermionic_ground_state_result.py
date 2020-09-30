@@ -12,24 +12,17 @@
 
 """The fermionic ground state result."""
 
-from typing import List, Tuple, Optional, cast
+from typing import List, Optional, cast
 import logging
 import numpy as np
 
 from qiskit.aqua.algorithms import AlgorithmResult
-from qiskit.chemistry import QMolecule
-from .ground_state_calculation import GroundStateResult
+from qiskit.chemistry import QMolecule, ChemistryResult, DipoleTuple
 
 logger = logging.getLogger(__name__)
 
-# A dipole moment, when present as X, Y and Z components will normally have float values for all
-# the components. However when using Z2Symmetries, if the dipole component operator does not
-# commute with the symmetry then no evaluation is done and None will be used as the 'value'
-# indicating no measurement of the observable took place
-DipoleTuple = Tuple[Optional[float], Optional[float], Optional[float]]
 
-
-class FermionicGroundStateResult(GroundStateResult):
+class FermionicGroundStateResult(ChemistryResult):
     """The fermionic ground state result."""
 
     @property

@@ -22,13 +22,13 @@ from enum import Enum
 import numpy as np
 from qiskit.aqua.algorithms import MinimumEigensolverResult
 from qiskit.aqua.operators import Z2Symmetries, WeightedPauliOperator
-from qiskit.chemistry import QiskitChemistryError, QMolecule
+from qiskit.chemistry import QiskitChemistryError, QMolecule, DipoleTuple
 from qiskit.chemistry.fermionic_operator import FermionicOperator
 from qiskit.chemistry.drivers import BaseDriver
-from qiskit.chemistry.ground_state_calculation import DipoleTuple, FermionicGroundStateResult
 
 from .qubit_operator_transformation import QubitOperatorTransformation
 from ..components.initial_states import HartreeFock
+from ..ground_state_calculation.fermionic_ground_state_result import FermionicGroundStateResult
 
 logger = logging.getLogger(__name__)
 

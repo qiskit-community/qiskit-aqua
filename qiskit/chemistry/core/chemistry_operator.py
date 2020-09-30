@@ -18,7 +18,7 @@ a quantum algorithm
 from abc import ABC, abstractmethod
 import warnings
 import logging
-from typing import Union, List, Tuple, Optional, cast
+from typing import Dict, Union, List, Tuple, Optional, cast
 import numpy as np
 
 from qiskit.aqua.algorithms import MinimumEigensolverResult, EigensolverResult, AlgorithmResult

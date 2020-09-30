@@ -155,7 +155,7 @@ Submodules
 """
 
 from .qiskit_chemistry_error import QiskitChemistryError
-from .chemistry_result import ChemistryResult
+from .chemistry_result import ChemistryResult, DipoleTuple
 from .qmolecule import QMolecule
 from .bosonic_operator import BosonicOperator
 from .fermionic_operator import FermionicOperator
@@ -165,6 +165,7 @@ from ._logging import (get_qiskit_chemistry_logging,
 
 __all__ = ['QiskitChemistryError',
            'ChemistryResult',
+           'DipoleTuple',
            'QMolecule',
            'BosonicOperator',
            'FermionicOperator',
