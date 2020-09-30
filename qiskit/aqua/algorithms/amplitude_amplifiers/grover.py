@@ -28,7 +28,7 @@ from qiskit.aqua.utils import get_subsystem_density_matrix, name_args
 from qiskit.aqua.utils.validation import validate_min, validate_in_set
 from qiskit.aqua.algorithms import QuantumAlgorithm, AlgorithmResult
 from qiskit.aqua.components.initial_states import InitialState
-from qiskit.aqua.components.oracles import Oracle, TruthTableOracle
+from qiskit.aqua.components.oracles import Oracle
 
 
 logger = logging.getLogger(__name__)
