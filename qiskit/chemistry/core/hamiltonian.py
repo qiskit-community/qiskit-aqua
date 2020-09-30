@@ -119,9 +119,6 @@ class Hamiltonian(ChemistryOperator):
 
     def run(self, qmolecule: QMolecule) -> Tuple[WeightedPauliOperator, WeightedPauliOperator]:
         """ run method"""
-        raise NotImplementedError()
-
-    def _do_transform(self, qmolecule):
         logger.debug('Processing started...')
         # Save these values for later combination with the quantum computation result
         self._hf_energy = qmolecule.hf_energy
