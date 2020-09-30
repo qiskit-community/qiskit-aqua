@@ -15,7 +15,6 @@
 import logging
 from abc import abstractmethod
 from collections.abc import Iterable as IterableAbc
-from functools import partial
 from typing import Callable, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
@@ -89,27 +88,29 @@ class DerivativeBase(ConverterBase):
             bind_params: The operator parameters to which the parameter values are assigned.
             grad_params: The parameters with respect to which we are taking the gradient, Hessian
                         or QFI. If grad_params = None, then grad_params = bind_params
-            method: The method used to compute the gradient. Either 'param_shift' or 'fin_diff' or
-                'lin_comb'.
             backend: The quantum backend or QuantumInstance to use to evaluate the gradient,
                 Hessian or QFI.
 
         Returns:
             callable(param_values): Function to compute a gradient, Hessian or QFI. The function
             takes an Iterable as argument which holds the parameter values.
+
+        Raises:
+            ImportError: if 'retworkx>=0.5.0' is not installed.
         """
         if not grad_params:
             grad_params = bind_params
-        if backend:
-            if (isinstance(backend, QuantumInstance) and (not backend.is_statevector)) or \
-                (not isinstance(backend, QuantumInstance) and not
-                 backend.name().startswith('statevector')):
-                try:
-                    import retworkx
-                    if retworkx.__version__ < '0.5.0':
-                        raise ImportError('Please update retworx to at least version 0.5.0')
-                except ModuleNotFoundError:
-                    raise ImportError('Please install retworx>=0.5.0')
+        if backend and (
+                (isinstance(backend, QuantumInstance) and (not backend.is_statevector)) or
+                (not isinstance(backend, QuantumInstance) and
+                 not backend.name().startswith('statevector'))
+        ):
+            try:
+                import retworkx
+                if retworkx.__version__ < '0.5.0':
+                    raise ImportError('Please update retworx to at least version 0.5.0')
+            except ModuleNotFoundError as ex:
+                raise ImportError('Please install retworx>=0.5.0') from ex
 
         def gradient_fn(p_values):
             p_values_dict = dict(zip(bind_params, p_values))
@@ -121,6 +122,7 @@ class DerivativeBase(ConverterBase):
                 converter = CircuitSampler(backend=backend).convert(
                     self.convert(operator, grad_params), p_values_dict)
                 return np.real(converter.eval()[0])
+
         return gradient_fn
 
     @staticmethod

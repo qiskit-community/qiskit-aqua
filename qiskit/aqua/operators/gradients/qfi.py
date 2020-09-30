@@ -14,13 +14,12 @@
 
 from typing import List, Union, Optional
 
-from .qfi_base import QFIBase
 from qiskit.aqua.operators import OperatorBase, ListOp
-from qiskit.aqua.operators.gradients import CircuitQFI
+from qiskit.aqua.operators.expectations import PauliExpectation
 from qiskit.aqua.operators.state_fns import CircuitStateFn
 from qiskit.circuit import (ParameterExpression, ParameterVector)
 
-from qiskit.aqua.operators.expectations import PauliExpectation
+from .qfi_base import QFIBase
 
 
 class QFI(QFIBase):
@@ -30,15 +29,6 @@ class QFI(QFIBase):
 
         [QFI]kl= Re[〈∂kψ|∂lψ〉−〈∂kψ|ψ〉〈ψ|∂lψ〉] * 4.
     """
-
-    def __init__(self,
-                 qfi_method: Union[str, CircuitQFI] = 'lin_comb_full'):
-        r"""
-        Args:
-            qfi_method: The method used to compute the state/probability gradient. Can be either
-                ``'lin_comb_full'`` or ``'overlap_diag'``` or ``'overlap_block_diag'```.
-        """
-        super().__init__(qfi_method)
 
     def convert(self,
                 operator: CircuitStateFn,

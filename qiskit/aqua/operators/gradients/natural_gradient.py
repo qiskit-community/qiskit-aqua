@@ -28,10 +28,10 @@ from typing import Optional, Union
 import numpy as np
 from qiskit.aqua.operators import (OperatorBase, ListOp, ComposedOp, CircuitStateFn)
 from qiskit.aqua.operators.gradients.circuit_gradients import CircuitGradient
-from qiskit.aqua.operators.gradients.gradient_base import GradientBase
-from qiskit.aqua.operators.gradients.gradient import Gradient
-from qiskit.aqua.operators.gradients.qfi import QFI
 from qiskit.aqua.operators.gradients.circuit_qfis import CircuitQFI
+from qiskit.aqua.operators.gradients.gradient import Gradient
+from qiskit.aqua.operators.gradients.gradient_base import GradientBase
+from qiskit.aqua.operators.gradients.qfi import QFI
 from qiskit.circuit import ParameterVector, ParameterExpression
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
@@ -59,17 +59,14 @@ class NaturalGradient(GradientBase):
                 ``'ridge'`` and ``'lasso'`` use an automatic optimal parameter search
                 If regularization is None but the metric is ill-conditioned or singular then
                 a lstsq solver is used without regularization
-            epsilon: The offset size to use when computing finite difference gradients.
+            kwargs: TODO: The offset size to use when computing finite difference gradients.
         """
         super().__init__(grad_method)
 
         self._qfi_method = qfi_method
         self._regularization = regularization
         if grad_method == 'fin_diff':
-            if 'epsilon' in kwargs:
-                self._epsilon = kwargs['epsilon']
-            else:
-                self._epsilon = 1e-6
+            self._epsilon = kwargs.get('epsilon', 1e-6)
 
     # pylint: disable=arguments-differ
     def convert(self,
@@ -86,6 +83,8 @@ class NaturalGradient(GradientBase):
             An operator whose evaluation yields the NaturalGradient.
 
         Raises:
+            TypeError: If ``operator`` does not represent an expectation value or the quantum
+                state is not ``CircuitStateFn``.
             ValueError: If ``params`` contains a parameter not present in ``operator``.
         """
         if not isinstance(operator, ComposedOp) or not isinstance(operator[-1], CircuitStateFn):
@@ -117,11 +116,21 @@ class NaturalGradient(GradientBase):
         return ListOp([grad, metric], combo_fn=combo_fn)
 
     @property
-    def qfi_method(self):
+    def qfi_method(self) -> CircuitQFI:
+        """Returns ``CircuitQFI``.
+
+        Returns: ``CircuitQFI``
+
+        """
         return self._qfi_method
 
     @property
-    def regularization(self):
+    def regularization(self) -> Optional[str]:
+        """Returns the regularization option.
+
+        Returns: the regularization option.
+
+        """
         return self._regularization
 
     @staticmethod
@@ -153,15 +162,16 @@ class NaturalGradient(GradientBase):
         """
 
         def _get_curvature(x_lambda: List[List]) -> float:
-            """
-            Calculate Menger curvature
+            """Calculate Menger curvature
+
             Menger, K. (1930).  Untersuchungen  ̈uber Allgemeine Metrik. Math. Ann.,103(1), 466–501
 
             Args:
                 x_lambda: [[x_lambdaj], [x_lambdak], [x_lambdal]]
-                lambdaj < lambdak < lambdal
+                    lambdaj < lambdak < lambdal
 
-            Returns: Menger Curvature
+            Returns:
+                Menger Curvature
 
             """
             eps = []
@@ -169,7 +179,7 @@ class NaturalGradient(GradientBase):
             for x in x_lambda:
                 try:
                     eps.append(np.log(np.linalg.norm(np.matmul(a, x) - c) ** 2))
-                except Exception:
+                except ValueError:
                     eps.append(np.log(np.linalg.norm(np.matmul(a, np.transpose(x)) - c) ** 2))
                 eta.append(np.log(max(np.linalg.norm(x) ** 2, 1e-6)))
             p_temp = 1
@@ -190,14 +200,14 @@ class NaturalGradient(GradientBase):
         lambda2, lambda3 = get_lambda2_lambda3(lambda1, lambda4)
         lambda_ = [lambda1, lambda2, lambda3, lambda4]
         x_lambda = []
-        for l in lambda_:
-            x_lambda.append(reg_method(a, c, l))
+        for lam in lambda_:
+            x_lambda.append(reg_method(a, c, lam))
         counter = 0
         while (lambda_[3] - lambda_[0]) / lambda_[3] >= tol:
             counter += 1
-            c2 = _get_curvature(x_lambda[:-1])
-            c3 = _get_curvature(x_lambda[1:])
-            while c3 < 0:
+            c_2 = _get_curvature(x_lambda[:-1])
+            c_3 = _get_curvature(x_lambda[1:])
+            while c_3 < 0:
                 lambda_[3] = lambda_[2]
                 x_lambda[3] = x_lambda[2]
                 lambda_[2] = lambda_[1]
@@ -205,9 +215,9 @@ class NaturalGradient(GradientBase):
                 lambda2, _ = get_lambda2_lambda3(lambda_[0], lambda_[3])
                 lambda_[1] = lambda2
                 x_lambda[1] = reg_method(a, c, lambda_[1])
-                c3 = _get_curvature(x_lambda[1:])
+                c_3 = _get_curvature(x_lambda[1:])
 
-            if c2 > c3:
+            if c_2 > c_3:
                 lambda_mc = lambda_[1]
                 x_mc = x_lambda[1]
                 lambda_[3] = lambda_[2]
@@ -275,8 +285,8 @@ class NaturalGradient(GradientBase):
                     max_iter=max_iter,
                     tol=tol, solver=solver, random_state=random_state)
         if auto_search:
-            def reg_method(a, c, l):
-                reg.set_params(alpha=l)
+            def reg_method(a, c, alpha):
+                reg.set_params(alpha=alpha)
                 reg.fit(a, c)
                 return reg.coef_
 
@@ -311,6 +321,7 @@ class NaturalGradient(GradientBase):
         x_lambda = arg min{||Ax-C||^2/(2*n_samples) + lambda*||x||_1} (4)
         `Scikit Learn Lasso Regression
         <https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.Lasso.html>`
+
         Args:
             a: mxn matrix
             c: m vector
@@ -330,6 +341,7 @@ class NaturalGradient(GradientBase):
             positive: if True force positive coefficients
             random_state: seed for the pseudo random number generator used when data is shuffled
             selection: {'cyclic', 'random'}
+
         Returns:
             regularization coefficient, solution to the regularization inverse problem
 
@@ -341,8 +353,8 @@ class NaturalGradient(GradientBase):
                     positive=positive,
                     random_state=random_state, selection=selection)
         if auto_search:
-            def reg_method(a, c, l):
-                reg.set_params(alpha=l)
+            def reg_method(a, c, alpha):
+                reg.set_params(alpha=alpha)
                 reg.fit(a, c)
                 return reg.coef_
 
@@ -391,7 +403,7 @@ class NaturalGradient(GradientBase):
             while np.linalg.cond(a + alpha * np.diag(a)) > tol_cond_a:
                 alpha *= 10
             # include perturbation in A to avoid singularity
-            x, res, rank, sv = np.linalg.lstsq(a + alpha * np.diag(a), c, rcond=None)
+            x, _, _, _ = np.linalg.lstsq(a + alpha * np.diag(a), c, rcond=None)
         elif regularization == 'perturb_diag':
             alpha = 1e-7
             while np.linalg.cond(a + alpha * np.eye(len(c))) > tol_cond_a:
@@ -424,6 +436,6 @@ class NaturalGradient(GradientBase):
                     alpha *= 10
                 while np.linalg.cond(a + alpha * np.eye(len(c))) > tol_cond_a:
                     # include perturbation in A to avoid singularity
-                    x, res, rank, sv = np.linalg.lstsq(a + alpha * np.eye(len(c)), c, rcond=None)
+                    x, _, _, _ = np.linalg.lstsq(a + alpha * np.eye(len(c)), c, rcond=None)
                     alpha *= 10
         return x

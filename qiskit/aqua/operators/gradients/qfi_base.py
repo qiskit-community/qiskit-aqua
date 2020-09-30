@@ -31,6 +31,8 @@ class QFIBase(DerivativeBase):
         Args:
             qfi_method: The method used to compute the state/probability gradient. Can be either
                 ``'lin_comb_full'`` or ``'overlap_diag'``` or ``'overlap_block_diag'```.
+        Raises:
+            ValueError: if ``method`` is neither a ``CircuitQFI`` object nor a predefined string.
         """
 
         if isinstance(qfi_method, CircuitQFI):
@@ -52,5 +54,10 @@ class QFIBase(DerivativeBase):
                              "'overlap_block_diag'}. ")
 
     @property
-    def qfi_method(self):
+    def qfi_method(self) -> CircuitQFI:
+        """Returns ``CircuitQFI``.
+
+        Returns:
+            ``CircuitQFI``.
+        """
         return self._qfi_method

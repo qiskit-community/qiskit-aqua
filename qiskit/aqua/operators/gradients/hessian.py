@@ -18,18 +18,11 @@ import numpy as np
 from qiskit.aqua.aqua_globals import AquaError
 from qiskit.aqua.operators import Zero, One, CircuitStateFn, StateFn
 from qiskit.aqua.operators.expectations import PauliExpectation
-from qiskit.aqua.operators.gradients.circuit_gradients.circuit_gradient \
-    import CircuitGradient
-from qiskit.aqua.operators.gradients.hessian_base import HessianBase
 from qiskit.aqua.operators.gradients.gradient import Gradient
+from qiskit.aqua.operators.gradients.hessian_base import HessianBase
 from qiskit.aqua.operators.list_ops import ListOp, ComposedOp, SummedOp, TensoredOp
 from qiskit.aqua.operators.operator_base import OperatorBase
 from qiskit.circuit import ParameterVector, ParameterExpression
-try:
-    from jax import grad, jit
-    _HAS_JAX_ = True
-except ModuleNotFoundError:
-    _HAS_JAX_ = False
 
 try:
     from jax import grad, jit
@@ -41,22 +34,6 @@ except ModuleNotFoundError:
 
 class Hessian(HessianBase):
     """Compute the Hessian of an expected value."""
-
-    def __init__(self,
-                 hess_method: Union[str, CircuitGradient] = 'param_shift',
-                 **kwargs):
-        r"""
-        Args:
-            method: The method used to compute the state/probability gradient. Can be either
-                ``'param_shift'`` or ``'lin_comb'`` or ``'fin_diff'``.
-                Deprecated for observable gradient.
-            epsilon: The offset size to use when computing finite difference gradients.
-
-
-        Raises:
-            ValueError: If method != ``fin_diff`` and ``epsilon`` is not None.
-        """
-        super().__init__(hess_method, **kwargs)
 
     def convert(self,
                 operator: OperatorBase,
@@ -71,17 +48,18 @@ class Hessian(HessianBase):
                     Either give directly the tuples/list of tuples for which the second order
                     derivative is to be computed or give a list of parameters to build the
                     full Hessian for those parameters.
-            method: The method used to compute the gradient. Either 'param_shift' or 'fin_diff' or
-                    'lin_comb'.
 
         Returns:
             OperatorBase: An operator whose evaluation yields the Hessian
+
+        Raises:
+            ValueError: If `params` is not set.
         """
         # if input is a tuple instead of a list, wrap it into a list
         if params is None:
             raise ValueError("No parameters were provided to differentiate")
 
-        if isinstance(params, (ParameterVector, List)):
+        if isinstance(params, (ParameterVector, list)):
             # Case: a list of parameters were given, compute the Hessian for all param pairs
             if all(isinstance(param, ParameterExpression) for param in params):
                 return ListOp(
@@ -95,12 +73,29 @@ class Hessian(HessianBase):
         cleaned_op = self._factor_coeffs_out_of_composed_op(expec_op)
         return self.get_hessian(cleaned_op, params)
 
+    # pylint: disable=too-many-return-statements
     def get_hessian(self,
                     operator: OperatorBase,
                     params: Optional[Union[Tuple[ParameterExpression, ParameterExpression],
                                            List[Tuple[
                                                ParameterExpression, ParameterExpression]]]] = None
                     ) -> OperatorBase:
+        """Get the Hessian for the given operator w.r.t. the given parameters
+
+        Args:
+            operator: Operator w.r.t. which we take the Hessian.
+            params: Parameters w.r.t. which we compute the Hessian.
+
+        Returns:
+            Operator which represents the gradient w.r.t. the given params.
+
+        Raises:
+            ValueError: If ``params`` contains a parameter not present in ``operator``.
+            AquaError: If the coefficent of the operator could not be reduced to 1.
+            NotImplementedError: If operator is a TensoredOp  # TODO support this
+            TypeError: TODO
+            Exception: Unintended code is reached
+        """
 
         def is_coeff_c(coeff, c):
             if isinstance(coeff, ParameterExpression):
@@ -108,7 +103,7 @@ class Hessian(HessianBase):
                 return expr == c
             return coeff == c
 
-        if isinstance(params, (ParameterVector, List)):
+        if isinstance(params, (ParameterVector, list)):
             # Case: a list of parameters were given, compute the Hessian for all param pairs
             if all(isinstance(param, ParameterExpression) for param in params):
                 return ListOp(
@@ -125,12 +120,12 @@ class Hessian(HessianBase):
         if isinstance(params, ParameterExpression):
             return Gradient(grad_method=self._hess_method).get_gradient(operator, params)
 
-        assert isinstance(params, Tuple) and len(
+        assert isinstance(params, tuple) and len(
             params) == 2, "Parameters supplied in unsupported format"
 
         # By this point, it's only one parameter tuple
-        p0 = params[0]
-        p1 = params[1]
+        p_0 = params[0]
+        p_1 = params[1]
 
         # Handle Product Rules
         if not is_coeff_c(operator._coeff, 1.0):
@@ -138,14 +133,14 @@ class Hessian(HessianBase):
             coeff = operator._coeff
             op = operator / coeff
             # Get derivative of the operator (recursively)
-            d0_op = self.get_hessian(op, p0)
-            d1_op = self.get_hessian(op, p1)
+            d0_op = self.get_hessian(op, p_0)
+            d1_op = self.get_hessian(op, p_1)
             # ..get derivative of the coeff
-            d0_coeff = self.parameter_expression_grad(coeff, p0)
-            d1_coeff = self.parameter_expression_grad(coeff, p1)
+            d0_coeff = self.parameter_expression_grad(coeff, p_0)
+            d1_coeff = self.parameter_expression_grad(coeff, p_1)
 
             dd_op = self.get_hessian(op, params)
-            dd_coeff = self.parameter_expression_grad(d0_coeff, p1)
+            dd_coeff = self.parameter_expression_grad(d0_coeff, p_1)
 
             grad_op = 0
             # Avoid creating operators that will evaluate to zero
