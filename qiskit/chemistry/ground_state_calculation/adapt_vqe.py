@@ -64,7 +64,7 @@ class AdaptVQE(GroundStateCalculation):
         self._max_iterations = max_iterations
 
     def returns_groundstate(self) -> bool:
-        return False
+        return True
 
     def _compute_gradients(self,
                            excitation_pool: List[WeightedPauliOperator],
