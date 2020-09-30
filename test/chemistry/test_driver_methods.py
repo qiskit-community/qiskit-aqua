@@ -12,9 +12,14 @@
 
 """ Test Driver Methods """
 
+import warnings
+import unittest
+
 from test.chemistry import QiskitChemistryTestCase
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
+
+# TODO Ground state interface PR
 
 
 class TestDriverMethods(QiskitChemistryTestCase):
@@ -39,6 +44,7 @@ class TestDriverMethods(QiskitChemistryTestCase):
                     freeze_core=True):
         qmolecule = driver.run()
 
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         core = Hamiltonian(transformation=transformation,
                            qubit_mapping=qubit_mapping,
                            two_qubit_reduction=two_qubit_reduction,
@@ -49,6 +55,7 @@ class TestDriverMethods(QiskitChemistryTestCase):
 
         npme = NumPyMinimumEigensolver(qubit_op, aux_operators=aux_ops)
         result = core.process_algorithm_result(npme.compute_minimum_eigenvalue())
+        warnings.filterwarnings('always', category=DeprecationWarning)
         return result
 
     def _assert_energy(self, result, mol):
@@ -57,3 +64,7 @@ class TestDriverMethods(QiskitChemistryTestCase):
     def _assert_energy_and_dipole(self, result, mol):
         self._assert_energy(result, mol)
         self.assertAlmostEqual(self.ref_dipoles[mol], result.total_dipole_moment, places=3)
+
+
+if __name__ == '__main__':
+    unittest.main()

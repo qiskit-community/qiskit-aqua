@@ -82,6 +82,7 @@ class TestAdaptVQE(QiskitChemistryTestCase):
 
     def test_custom_excitation_pool(self):
         """ Test custom excitation pool """
+        # TODO rewrite this unittest once we have reworked how AdaptVQE will handle the solver
         class CustomFactory(VQEUCCSDFactory):
             """A custom MES factory."""
 
@@ -90,6 +91,7 @@ class TestAdaptVQE(QiskitChemistryTestCase):
                 # Here, we can create essentially any custom excitation pool.
                 # For testing purposes only, we simply select some hopping operator already
                 # available in the variational form object.
+                # pylint: disable=no-member
                 custom_excitation_pool = [solver.var_form._hopping_ops[2]]
                 solver.var_form.excitation_pool = custom_excitation_pool
                 return solver

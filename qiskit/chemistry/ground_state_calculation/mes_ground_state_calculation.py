@@ -15,9 +15,9 @@
 from typing import Union
 
 from qiskit.aqua.algorithms import MinimumEigensolver
-from qiskit.chemistry.core import MolecularGroundStateResult
 from qiskit.chemistry.drivers import BaseDriver
-from qiskit.chemistry.ground_state_calculation import GroundStateCalculation
+from qiskit.chemistry.ground_state_calculation import (GroundStateCalculation,
+                                                       FermionicGroundStateResult)
 from qiskit.chemistry.qubit_transformations import QubitOperatorTransformation
 
 from .mes_factories import MESFactory
@@ -53,7 +53,7 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
 
         return False
 
-    def compute_groundstate(self, driver: BaseDriver) -> MolecularGroundStateResult:
+    def compute_groundstate(self, driver: BaseDriver) -> FermionicGroundStateResult:
         """Compute Ground State properties.
 
         Args:

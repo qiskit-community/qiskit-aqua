@@ -25,6 +25,8 @@ from qiskit.aqua.components.optimizers import COBYLA, SPSA
 from qiskit.chemistry.drivers import HDF5Driver
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
 
+# TODO Ground state interface PR
+
 
 @ddt
 class TestEnd2End(QiskitChemistryTestCase):
@@ -35,11 +37,13 @@ class TestEnd2End(QiskitChemistryTestCase):
         driver = HDF5Driver(hdf5_input=self.get_resource_path('test_driver_hdf5.hdf5'))
         self.qmolecule = driver.run()
 
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         self.core = Hamiltonian(transformation=TransformationType.FULL,
                                 qubit_mapping=QubitMappingType.PARITY,
                                 two_qubit_reduction=True,
                                 freeze_core=False,
                                 orbital_reduction=[])
+        warnings.filterwarnings('always', category=DeprecationWarning)
 
         self.qubit_op, self.aux_ops = self.core.run(self.qmolecule)
         self.reference_energy = -1.857275027031588

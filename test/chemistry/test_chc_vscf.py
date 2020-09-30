@@ -12,6 +12,8 @@
 
 """ Test of CHC and VSCF Aqua extensions """
 
+import unittest
+
 from test.chemistry import QiskitChemistryTestCase
 
 from qiskit import BasicAer
@@ -76,3 +78,7 @@ class TestCHCVSCF(QiskitChemistryTestCase):
         energy = vqe_result['optimal_value']
 
         self.assertAlmostEqual(energy, self.reference_energy, places=4)
+
+
+if __name__ == '__main__':
+    unittest.main()

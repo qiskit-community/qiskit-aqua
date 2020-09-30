@@ -11,6 +11,10 @@
 # that they have been altered from the originals.
 
 """ Test of UCCSD and HartreeFock Aqua extensions """
+
+import warnings
+import unittest
+
 from test.chemistry import QiskitChemistryTestCase
 
 from ddt import ddt, idata, unpack
@@ -24,6 +28,8 @@ from qiskit.chemistry.components.initial_states import HartreeFock
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.drivers import HDF5Driver
 from qiskit.chemistry.core import Hamiltonian, QubitMappingType
+
+# TODO Ground state interface PR
 
 
 @ddt
@@ -39,8 +45,10 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
 
         driver = HDF5Driver(self.get_resource_path('test_driver_hdf5.hdf5'))
         qmolecule = driver.run()
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         core = Hamiltonian(qubit_mapping=QubitMappingType.PARITY,
                            two_qubit_reduction=True)
+        warnings.filterwarnings('always', category=DeprecationWarning)
         self.qubit_op, _ = core.run(qmolecule)
         self.core = core
 
@@ -60,7 +68,9 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         backend = BasicAer.get_backend('statevector_simulator')
         algo = VQE(self.qubit_op, self.var_form, self.optimizer)
         result = algo.run(QuantumInstance(backend))
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         result = self.core.process_algorithm_result(result)
+        warnings.filterwarnings('always', category=DeprecationWarning)
         self.assertAlmostEqual(result.energy, self.reference_energy, places=6)
 
     def test_uccsd_hf_qasm(self):
@@ -71,7 +81,9 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         result = algo.run(QuantumInstance(backend,
                                           seed_simulator=aqua_globals.random_seed,
                                           seed_transpiler=aqua_globals.random_seed))
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         result = self.core.process_algorithm_result(result)
+        warnings.filterwarnings('always', category=DeprecationWarning)
         self.assertAlmostEqual(result.energy, -1.138, places=2)
 
     def test_uccsd_hf_aer_statevector(self):
@@ -85,7 +97,9 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         backend = Aer.get_backend('statevector_simulator')
         algo = VQE(self.qubit_op, self.var_form, self.optimizer)
         result = algo.run(QuantumInstance(backend))
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         result = self.core.process_algorithm_result(result)
+        warnings.filterwarnings('always', category=DeprecationWarning)
         self.assertAlmostEqual(result.energy, self.reference_energy, places=6)
 
     def test_uccsd_hf_aer_qasm(self):
@@ -102,7 +116,9 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         result = algo.run(QuantumInstance(backend,
                                           seed_simulator=aqua_globals.random_seed,
                                           seed_transpiler=aqua_globals.random_seed))
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         result = self.core.process_algorithm_result(result)
+        warnings.filterwarnings('always', category=DeprecationWarning)
         self.assertAlmostEqual(result.energy, -1.138, places=2)
 
     def test_uccsd_hf_aer_qasm_snapshot(self):
@@ -116,7 +132,9 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         backend = Aer.get_backend('qasm_simulator')
         algo = VQE(self.qubit_op, self.var_form, self.optimizer, expectation=AerPauliExpectation())
         result = algo.run(QuantumInstance(backend))
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         result = self.core.process_algorithm_result(result)
+        warnings.filterwarnings('always', category=DeprecationWarning)
         self.assertAlmostEqual(result.energy, self.reference_energy, places=6)
 
     EXCITATION_RESULTS = \
@@ -169,3 +187,7 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
             excitation_type=excitation_type)
 
         self.assertListEqual(list(excitations), self.EXCITATION_RESULTS[expected_result_idx])
+
+
+if __name__ == '__main__':
+    unittest.main()
