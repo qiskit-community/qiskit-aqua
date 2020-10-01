@@ -11,7 +11,7 @@
 # that they have been altered from the originals.
 
 """The converter to map integer variables in a quadratic program to binary variables."""
-
+import sys
 import copy
 import logging
 from typing import Dict, List, Optional, Tuple, Union
@@ -26,6 +26,8 @@ from ..problems.variable import Variable
 from .quadratic_program_converter import QuadraticProgramConverter
 
 logger = logging.getLogger(__name__)
+if sys.version_info[0] == 3 and sys.version_info[1] >= 7:
+    from __future__ import annotations
 
 
 class IntegerToBinary(QuadraticProgramConverter):
