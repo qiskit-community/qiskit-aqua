@@ -1,0 +1,7 @@
+features:
+  - |
+    Implemented a ``to_gate`` method to ``CircuitOp``, ``PauliOp``, 
+    ``EvolvedOp``, and ``MatrixOp``. This method converts operators to 
+    ``Gate`` objects as requested in #1091. If the operator is not unitary, 
+    this method throws an error.  
+
