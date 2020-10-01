@@ -19,14 +19,16 @@ import logging
 import os
 import tempfile
 import numpy as np
-from qiskit.chemistry import QMolecule, QiskitChemistryError
-from qiskit.chemistry.drivers import BaseDriver
+from ..integrals_driver import IntegralsDriver
+from ...qiskit_chemistry_error import QiskitChemistryError
+from ...molecule import Molecule
+from ...qmolecule import QMolecule
 from .gaussian_utils import check_valid, run_g16
 
 logger = logging.getLogger(__name__)
 
 
-class GaussianDriver(BaseDriver):
+class GaussianDriver(IntegralsDriver):
     """
     Qiskit chemistry driver using the Gaussian™ 16 program.
 
@@ -40,17 +42,20 @@ class GaussianDriver(BaseDriver):
     """
 
     def __init__(self,
-                 config: Union[str, List[str]] =
+                 config: Union[str, List[str], Molecule] =
                  '# rhf/sto-3g scf(conventional)\n\n'
                  'h2 molecule\n\n0 1\nH   0.0  0.0    0.0\nH   0.0  0.0    0.735\n\n') -> None:
         """
         Args:
-            config: A molecular configuration conforming to Gaussian™ 16 format
+            config: A molecular configuration conforming to Gaussian™ 16 format or
+                    a molecule object
         Raises:
             QiskitChemistryError: Invalid Input
         """
         GaussianDriver._check_valid()
-        if not isinstance(config, list) and not isinstance(config, str):
+        if not isinstance(config, str) and \
+                not isinstance(config, list) and \
+                not isinstance(config, Molecule):
             raise QiskitChemistryError("Invalid input for Gaussian Driver '{}'".format(config))
 
         if isinstance(config, list):
@@ -63,8 +68,23 @@ class GaussianDriver(BaseDriver):
     def _check_valid():
         check_valid()
 
+    @staticmethod
+    def _from_molecule_to_str(mol: Molecule) -> str:
+        cfg1 = '# {}/{} scf(conventional)\n\n'.format(
+            mol.hf_method, mol.basis_set)
+        name = ''.join([name for (name, _) in mol.geometry])
+        geom = '\n'.join([name + ' ' + ' '.join(map(str, coord))
+                          for (name, coord) in mol.geometry])
+        cfg2 = '{} molecule\n\n{} {}\n{}\n\n'.format(
+            name, mol.charge, mol.multiplicity, geom)
+        return cfg1 + cfg2
+
     def run(self) -> QMolecule:
-        cfg = self._config
+        if isinstance(self._config, Molecule):
+            cfg = GaussianDriver._from_molecule_to_str(self._config)
+        else:
+            cfg = self._config
+
         while not cfg.endswith('\n\n'):
             cfg += '\n'
 
@@ -93,7 +113,7 @@ class GaussianDriver(BaseDriver):
             logger.warning("Failed to remove MatrixElement file %s", fname)
 
         q_mol.origin_driver_name = 'GAUSSIAN'
-        q_mol.origin_driver_config = self._config
+        q_mol.origin_driver_config = cfg
         return q_mol
 
     @staticmethod

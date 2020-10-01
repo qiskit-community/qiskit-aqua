@@ -14,40 +14,10 @@
 This module implements the abstract base class for driver modules.
 """
 
-from abc import ABC, abstractmethod
-from enum import Enum
-
-from qiskit.chemistry import QMolecule
-
-
-class UnitsType(Enum):
-    """ Units Type Enum """
-    ANGSTROM = 'Angstrom'
-    BOHR = 'Bohr'
-
-
-class HFMethodType(Enum):
-    """ HFMethodType Enum """
-    RHF = 'rhf'
-    ROHF = 'rohf'
-    UHF = 'uhf'
+from abc import ABC
 
 
 class BaseDriver(ABC):
     """
     Base class for Qiskit's chemistry drivers.
     """
-
-    @abstractmethod
-    def __init__(self):
-        pass
-
-    @abstractmethod
-    def run(self) -> QMolecule:
-        """
-        Runs driver to produce a QMolecule output.
-
-        Returns:
-            A QMolecule containing the molecular data.
-        """
-        pass

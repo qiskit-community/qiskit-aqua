@@ -15,8 +15,8 @@
 import unittest
 from test.chemistry import QiskitChemistryTestCase
 from test.chemistry.test_driver import TestDriver
-from qiskit.chemistry.drivers import PySCFDriver, UnitsType
-from qiskit.chemistry import QiskitChemistryError
+from qiskit.chemistry.drivers import PySCFDriver, UnitsType, HFMethodType
+from qiskit.chemistry import QiskitChemistryError, Molecule
 
 
 class TestDriverPySCF(QiskitChemistryTestCase, TestDriver):
@@ -30,6 +30,23 @@ class TestDriverPySCF(QiskitChemistryTestCase, TestDriver):
                                  charge=0,
                                  spin=0,
                                  basis='sto3g')
+        except QiskitChemistryError:
+            self.skipTest('PYSCF driver does not appear to be installed')
+        self.qmolecule = driver.run()
+
+
+class TestDriverPySCFMolecule(QiskitChemistryTestCase, TestDriver):
+    """PYSCF Driver Molecule tests."""
+
+    def setUp(self):
+        super().setUp()
+        mol = Molecule(geometry=[('H', [.0, .0, .0]), ('H', [.0, .0, 0.735])],
+                       multiplicity=0,
+                       charge=0)
+        mol.basis_set = 'sto3g'
+        mol.hf_method = HFMethodType.RHF.value
+        try:
+            driver = PySCFDriver(mol)
         except QiskitChemistryError:
             self.skipTest('PYSCF driver does not appear to be installed')
         self.qmolecule = driver.run()

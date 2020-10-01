@@ -12,14 +12,16 @@
 
 """ PyQuante Driver """
 
-from typing import Union, List
+from typing import Union, List, cast
 import importlib
 from enum import Enum
 import logging
 from qiskit.aqua.utils.validation import validate_min
-from qiskit.chemistry.drivers import BaseDriver, UnitsType, HFMethodType
-from qiskit.chemistry import QiskitChemistryError, QMolecule
-from qiskit.chemistry.drivers.pyquanted.integrals import compute_integrals
+from ..integrals_driver import IntegralsDriver, UnitsType, HFMethodType
+from ...qiskit_chemistry_error import QiskitChemistryError
+from ...molecule import Molecule
+from ...qmolecule import QMolecule
+from .integrals import compute_integrals
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +33,7 @@ class BasisType(Enum):
     B631GSS = '6-31g**'
 
 
-class PyQuanteDriver(BaseDriver):
+class PyQuanteDriver(IntegralsDriver):
     """
     Qiskit chemistry driver using the PyQuante2 library.
 
@@ -39,7 +41,8 @@ class PyQuanteDriver(BaseDriver):
     """
 
     def __init__(self,
-                 atoms: Union[str, List[str]] = 'H 0.0 0.0 0.0; H 0.0 0.0 0.735',
+                 atoms: Union[str, List[str], Molecule] =
+                 'H 0.0 0.0 0.0; H 0.0 0.0 0.735',
                  units: UnitsType = UnitsType.ANGSTROM,
                  charge: int = 0,
                  multiplicity: int = 1,
@@ -67,21 +70,28 @@ class PyQuanteDriver(BaseDriver):
         hf_method = hf_method.value
         validate_min('maxiters', maxiters, 1)
         self._check_valid()
-        if not isinstance(atoms, list) and not isinstance(atoms, str):
+        if not isinstance(atoms, str) and \
+                not isinstance(atoms, list) and \
+                not isinstance(atoms, Molecule):
             raise QiskitChemistryError("Invalid atom input for PYQUANTE Driver '{}'".format(atoms))
 
         if isinstance(atoms, list):
             atoms = ';'.join(atoms)
-        else:
+        elif isinstance(atoms, str):
             atoms = atoms.replace('\n', ';')
+        elif isinstance(atoms, Molecule):
+            if atoms.basis_set is None:
+                atoms.basis_set = cast(str, basis)
+            if atoms.hf_method is None:
+                atoms.hf_method = cast(str, hf_method)
 
         super().__init__()
         self._atoms = atoms
         self._units = units
         self._charge = charge
         self._multiplicity = multiplicity
-        self._basis = basis
-        self._hf_method = hf_method
+        self._basis = cast(str, basis)
+        self._hf_method = cast(str, hf_method)
         self._tol = tol
         self._maxiters = maxiters
 
@@ -99,22 +109,36 @@ class PyQuanteDriver(BaseDriver):
         raise QiskitChemistryError(err_msg)
 
     def run(self) -> QMolecule:
-        q_mol = compute_integrals(atoms=self._atoms,
+        if isinstance(self._atoms, Molecule):
+            atoms = ';'.join([name + ' ' + ' '.join(map(str, coord))
+                              for (name, coord) in self._atoms.geometry])
+            charge = self._atoms.charge
+            multiplicity = self._atoms.multiplicity
+            basis = self._atoms.basis_set
+            hf_method = self._atoms.hf_method
+        else:
+            atoms = self._atoms
+            charge = self._charge
+            multiplicity = self._multiplicity
+            basis = self._basis
+            hf_method = self._hf_method
+
+        q_mol = compute_integrals(atoms=atoms,
                                   units=self._units,
-                                  charge=self._charge,
-                                  multiplicity=self._multiplicity,
-                                  basis=self._basis,
-                                  hf_method=self._hf_method,
+                                  charge=charge,
+                                  multiplicity=multiplicity,
+                                  basis=basis,
+                                  hf_method=hf_method,
                                   tol=self._tol,
                                   maxiters=self._maxiters)
 
         q_mol.origin_driver_name = 'PYQUANTE'
-        cfg = ['atoms={}'.format(self._atoms),
+        cfg = ['atoms={}'.format(atoms),
                'units={}'.format(self._units),
-               'charge={}'.format(self._charge),
-               'multiplicity={}'.format(self._multiplicity),
-               'basis={}'.format(self._basis),
-               'hf_method={}'.format(self._hf_method),
+               'charge={}'.format(charge),
+               'multiplicity={}'.format(multiplicity),
+               'basis={}'.format(basis),
+               'hf_method={}'.format(hf_method),
                'tol={}'.format(self._tol),
                'maxiters={}'.format(self._maxiters),
                '']

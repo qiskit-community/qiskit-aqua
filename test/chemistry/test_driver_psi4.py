@@ -16,8 +16,8 @@ import unittest
 
 from test.chemistry import QiskitChemistryTestCase
 from test.chemistry.test_driver import TestDriver
-from qiskit.chemistry.drivers import PSI4Driver
-from qiskit.chemistry import QiskitChemistryError
+from qiskit.chemistry.drivers import PSI4Driver, HFMethodType
+from qiskit.chemistry import QiskitChemistryError, Molecule
 
 
 class TestDriverPSI4(QiskitChemistryTestCase, TestDriver):
@@ -39,6 +39,23 @@ class TestDriverPSI4(QiskitChemistryTestCase, TestDriver):
                 '  basis sto-3g',
                 '  scf_type pk',
                 '}'])
+        except QiskitChemistryError:
+            self.skipTest('PSI4 driver does not appear to be installed')
+        self.qmolecule = driver.run()
+
+
+class TestDriverPSI4Molecule(QiskitChemistryTestCase, TestDriver):
+    """PSI4 Driver molecule tests."""
+
+    def setUp(self):
+        super().setUp()
+        mol = Molecule(geometry=[('H', [.0, .0, .0]), ('H', [.0, .0, 0.735])],
+                       multiplicity=1,
+                       charge=0)
+        mol.basis_set = 'sto-3g'
+        mol.hf_method = HFMethodType.RHF.value
+        try:
+            driver = PSI4Driver(mol)
         except QiskitChemistryError:
             self.skipTest('PSI4 driver does not appear to be installed')
         self.qmolecule = driver.run()

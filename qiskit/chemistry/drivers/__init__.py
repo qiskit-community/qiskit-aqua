@@ -51,6 +51,7 @@ Driver Base Class
    :nosignatures:
 
    BaseDriver
+   IntegralsDriver
 
 Driver Common
 =============
@@ -59,8 +60,8 @@ Driver Common
    :toctree: ../stubs/
    :nosignatures:
 
-   UnitsType
    HFMethodType
+   UnitsType
    BasisType
    InitialGuess
 
@@ -111,7 +112,9 @@ of interest that is parsed from the log.
 
 
 """
-from ._basedriver import BaseDriver, UnitsType, HFMethodType
+
+from .base_driver import BaseDriver
+from .integrals_driver import IntegralsDriver, UnitsType, HFMethodType
 from .fcidumpd import FCIDumpDriver
 from .gaussiand import GaussianDriver, GaussianLogDriver, GaussianLogResult
 from .hdf5d import HDF5Driver
@@ -119,9 +122,10 @@ from .psi4d import PSI4Driver
 from .pyquanted import PyQuanteDriver, BasisType
 from .pyscfd import PySCFDriver, InitialGuess
 
-__all__ = ['BaseDriver',
+__all__ = ['HFMethodType',
+           'BaseDriver',
+           'IntegralsDriver',
            'UnitsType',
-           'HFMethodType',
            'FCIDumpDriver',
            'GaussianDriver',
            'GaussianLogDriver',

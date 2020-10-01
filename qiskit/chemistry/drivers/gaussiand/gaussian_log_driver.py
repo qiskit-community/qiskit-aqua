@@ -15,14 +15,15 @@
 from typing import Union, List
 import logging
 
-from qiskit.chemistry import QiskitChemistryError
+from ..base_driver import BaseDriver
+from ...qiskit_chemistry_error import QiskitChemistryError
 from .gaussian_utils import check_valid, run_g16
 from .gaussian_log_result import GaussianLogResult
 
 logger = logging.getLogger(__name__)
 
 
-class GaussianLogDriver:
+class GaussianLogDriver(BaseDriver):
     """  Gaussian™ 16 log driver.
 
     Qiskit chemistry driver using the Gaussian™ 16 program that provides the log

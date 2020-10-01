@@ -16,8 +16,8 @@ import unittest
 
 from test.chemistry import QiskitChemistryTestCase
 from test.chemistry.test_driver import TestDriver
-from qiskit.chemistry.drivers import GaussianDriver
-from qiskit.chemistry import QiskitChemistryError
+from qiskit.chemistry.drivers import GaussianDriver, HFMethodType
+from qiskit.chemistry import QiskitChemistryError, Molecule
 
 
 class TestDriverGaussian(QiskitChemistryTestCase, TestDriver):
@@ -36,6 +36,23 @@ class TestDriverGaussian(QiskitChemistryTestCase, TestDriver):
                  'H   0.0  0.0    0.735',
                  ''
                  ])
+        except QiskitChemistryError:
+            self.skipTest('GAUSSIAN driver does not appear to be installed')
+        self.qmolecule = driver.run()
+
+
+class TestDriverGaussianMolecule(QiskitChemistryTestCase, TestDriver):
+    """Gaussian Driver tests."""
+
+    def setUp(self):
+        super().setUp()
+        mol = Molecule(geometry=[('H', [.0, .0, .0]), ('H', [.0, .0, 0.735])],
+                       multiplicity=1,
+                       charge=0)
+        mol.basis_set = 'sto-3g'
+        mol.hf_method = HFMethodType.RHF.value
+        try:
+            driver = GaussianDriver(mol)
         except QiskitChemistryError:
             self.skipTest('GAUSSIAN driver does not appear to be installed')
         self.qmolecule = driver.run()
