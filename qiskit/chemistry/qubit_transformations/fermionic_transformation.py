@@ -20,15 +20,14 @@ import logging
 from enum import Enum
 
 import numpy as np
-from qiskit.aqua.algorithms import MinimumEigensolverResult
 from qiskit.aqua.operators import Z2Symmetries, WeightedPauliOperator
-from qiskit.chemistry import QiskitChemistryError, QMolecule, DipoleTuple
+from qiskit.chemistry import QiskitChemistryError, QMolecule
 from qiskit.chemistry.fermionic_operator import FermionicOperator
 from qiskit.chemistry.drivers import BaseDriver
+from qiskit.chemistry.results import DipoleTuple, FermionicResult
 
 from .qubit_operator_transformation import QubitOperatorTransformation
 from ..components.initial_states import HartreeFock
-from ..ground_state_calculation.fermionic_ground_state_result import FermionicGroundStateResult
 
 logger = logging.getLogger(__name__)
 
@@ -428,73 +427,41 @@ class FermionicTransformation(QubitOperatorTransformation):
         z2_symmetries.tapering_values = taper_coef
         return z2_symmetries
 
-    # pylint: disable=unused-argument
-    def interpret(self,
-                  eigenvalue: float, eigenstate: List[float], aux_values: list
-                  ) -> FermionicGroundStateResult:
-        """Interpret eigenvalue and eigenstate of qubit Hamiltonian w.r.t. driver.
+    def add_context(self, result: FermionicResult) -> None:
+        """Adds contextual information to the state result object.
 
         Args:
-            TODO
-
-        Returns:
-            GroundState Result TODO
+            result: a state result object.
         """
-
-        fgsr = FermionicGroundStateResult()
-        fgsr.hartree_fock_energy = self._hf_energy
-        fgsr.nuclear_repulsion_energy = self._nuclear_repulsion_energy
+        result.hartree_fock_energy = self._hf_energy
+        result.nuclear_repulsion_energy = self._nuclear_repulsion_energy
         if self._nuclear_dipole_moment is not None:
-            fgsr.nuclear_dipole_moment = tuple(x for x in self._nuclear_dipole_moment)
-        fgsr.computed_electronic_energy = eigenvalue.real
-        fgsr.ph_extracted_energy = self._ph_energy_shift
-        fgsr.frozen_extracted_energy = self._energy_shift
-        aux_ops_vals = aux_values
+            result.nuclear_dipole_moment = tuple(x for x in self._nuclear_dipole_moment)
+        result.ph_extracted_energy = self._ph_energy_shift
+        result.frozen_extracted_energy = self._energy_shift
+        aux_ops_vals = result.aux_values
         if aux_ops_vals is not None:
             # Dipole results if dipole aux ops were present
             dipole_idx = 3
             if len(aux_ops_vals) > dipole_idx:
-                fgsr.reverse_dipole_sign = self._reverse_dipole_sign
+                result.reverse_dipole_sign = self._reverse_dipole_sign
                 dipm = []
                 for i in range(dipole_idx, dipole_idx + 3):  # Gets X, Y and Z components
                     dipm.append(aux_ops_vals[i][0].real if aux_ops_vals[i] is not None else None)
-                fgsr.computed_dipole_moment = cast(DipoleTuple, tuple(dipm))
-                fgsr.ph_extracted_dipole_moment = (self._ph_x_dipole_shift,
-                                                   self._ph_y_dipole_shift,
-                                                   self._ph_z_dipole_shift)
-                fgsr.frozen_extracted_dipole_moment = (self._x_dipole_shift,
-                                                       self._y_dipole_shift,
-                                                       self._z_dipole_shift)
+                result.computed_dipole_moment = cast(DipoleTuple, tuple(dipm))
+                result.ph_extracted_dipole_moment = (self._ph_x_dipole_shift,
+                                                     self._ph_y_dipole_shift,
+                                                     self._ph_z_dipole_shift)
+                result.frozen_extracted_dipole_moment = (self._x_dipole_shift,
+                                                         self._y_dipole_shift,
+                                                         self._z_dipole_shift)
             # The first 3 entries are num particles, total angular momentum and magnetization
-            fgsr.num_particles = aux_ops_vals[0][0].real \
+            result.num_particles = aux_ops_vals[0][0].real \
                 if aux_ops_vals[0] is not None else None
-            fgsr.total_angular_momentum = aux_ops_vals[1][0].real \
+            result.total_angular_momentum = aux_ops_vals[1][0].real \
                 if aux_ops_vals[1] is not None else None
-            fgsr.magnetization = aux_ops_vals[2][0].real \
+            result.magnetization = aux_ops_vals[2][0].real \
                 if aux_ops_vals[2] is not None else None
-        return fgsr
-
-    # Called by public superclass method process_algorithm_result to complete specific processing
-    def _process_algorithm_result(self, algo_result: MinimumEigensolverResult) \
-            -> FermionicGroundStateResult:
-        """
-
-        Args:
-            algo_result: Algorithm Result
-
-        Returns:
-            Fermionic ground state calculation result
-
-        Raises:
-            ValueError: Invalid input
-        """
-        if isinstance(algo_result, MinimumEigensolverResult):
-            msgr = self.interpret(algo_result.eigenvalue, algo_result.eigenstate,
-                                  algo_result.aux_operator_eigenvalues)
-            msgr.algorithm_result = algo_result
-            return msgr
-        raise ValueError('_process_algorithm_result should be passed a MinimumEigensolverResult '
-                         'all other types have been deprecated and removed.')
 
     @staticmethod
     def _try_reduce_fermionic_operator(fer_op: FermionicOperator,

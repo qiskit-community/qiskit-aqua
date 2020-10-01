@@ -16,8 +16,8 @@ from abc import ABC, abstractmethod
 from typing import Tuple, List
 
 from qiskit.aqua.operators.legacy import WeightedPauliOperator
-from qiskit.chemistry import ChemistryResult
 from qiskit.chemistry.drivers import BaseDriver
+from qiskit.chemistry.results import StateResult
 
 
 class QubitOperatorTransformation(ABC):
@@ -30,7 +30,10 @@ class QubitOperatorTransformation(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def interpret(self, eigenvalue: float, eigenstate: List[float], aux_values: list
-                  ) -> ChemistryResult:
-        """interprets the results of the ground state calculation"""
+    def add_context(self, result: StateResult) -> None:
+        """Adds contextual information to the state result object.
+
+        Args:
+            result: a state result object.
+        """
         raise NotImplementedError
