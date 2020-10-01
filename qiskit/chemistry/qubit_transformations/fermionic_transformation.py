@@ -542,22 +542,3 @@ class FermionicTransformation(QubitOperatorTransformation):
         if qubit_mapping == 'parity' and two_qubit_reduction:
             qubit_op = Z2Symmetries.two_qubit_reduction(qubit_op, num_particles)
         return qubit_op
-
-    @staticmethod
-    def _dipole_to_string(_dipole):
-        """
-        Dipole values to strings
-        """
-        dips = [round(x, 8) for x in _dipole]
-        value = '['
-        for i, _ in enumerate(dips):
-            value += FermionicTransformation._float_to_string(dips[i])
-            value += '  ' if i < len(dips) - 1 else ']'
-        return value
-
-    @staticmethod
-    def _float_to_string(value, precision=8):
-        """
-        Float to string for results
-        """
-        return '0.0' if value == 0 else ('{:.' + str(precision) + 'f}').format(value).rstrip('0')
