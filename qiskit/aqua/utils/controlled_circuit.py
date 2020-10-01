@@ -48,7 +48,7 @@ def apply_cu(circuit, theta, phi, lam, c, t, use_basis_gates=True):
 def apply_ccx(circuit, a, b, c, use_basis_gates=True):
     """ apply ccx """
     if use_basis_gates:
-        circuit.h(c)
+        circuit.u(np.pi/2, 0, np.pi, c)
         circuit.cx(b, c)
         circuit.p(-np.pi / 4, c)
         circuit.cx(a, c)
@@ -58,7 +58,7 @@ def apply_ccx(circuit, a, b, c, use_basis_gates=True):
         circuit.cx(a, c)
         circuit.p(np.pi / 4, b)
         circuit.p(np.pi / 4, c)
-        circuit.h(c)
+        circuit.u(np.pi/2, 0, np.pi, c)
         circuit.cx(a, b)
         circuit.p(np.pi / 4, a)
         circuit.p(-np.pi / 4, b)
