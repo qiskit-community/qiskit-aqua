@@ -11,16 +11,13 @@
 # that they have been altered from the originals.
 
 """A converter from quadratic program to a QUBO."""
-import sys
+
 from typing import Optional
 
 import qiskit.optimization.algorithms  # pylint: disable=unused-import
 from ..exceptions import QiskitOptimizationError
 from ..problems.quadratic_program import QuadraticProgram
 from .quadratic_program_converter import QuadraticProgramConverter
-
-if sys.version_info[0] == 3 and sys.version_info[1] >= 7:
-    from __future__ import annotations
 
 
 class QuadraticProgramToQubo(QuadraticProgramConverter):
