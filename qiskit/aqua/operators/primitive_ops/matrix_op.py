@@ -18,7 +18,7 @@ import numpy as np
 from scipy.sparse import spmatrix
 
 from qiskit.quantum_info import Operator
-from qiskit.circuit import ParameterExpression, Instruction, Gate
+from qiskit.circuit import ParameterExpression, Instruction, Gate, QuantumCircuit
 from qiskit.extensions.hamiltonian_gate import HamiltonianGate
 
 from ..operator_base import OperatorBase
@@ -172,9 +172,11 @@ class MatrixOp(PrimitiveOp):
     def to_instruction(self) -> Instruction:
         return (self.coeff * self.primitive).to_instruction()  # type: ignore
 
-    def to_gate(self) -> Gate:
+    def to_gate(self, parameter_map=None, label="matop Gate") -> Gate:
         """ Returns a ``Gate`` equivalent to this Operator. """
-        return (self.coeff * self.primitive).to_gate()
+        qc = QuantumCircuit(self.primitive.num_qubits)
+        qc.append(self.primitive, [i for i in range(self.primitive.num_qubits)])
+        return qc.to_gate(parameter_map=parameter_map, label=label)
 
     def to_legacy_op(self, massive: bool = False) -> MatrixOperator:
         return MatrixOperator(self.to_matrix(massive=massive))

@@ -205,9 +205,9 @@ class CircuitOp(PrimitiveOp):
     def to_instruction(self) -> Instruction:
         return self.primitive.to_instruction()  # type: ignore
 
-    def to_gate(self) -> Gate:
-        """ Returns a ``Gate`` equivalent to this Operator. """
-        return self.primitive.to_gate()
+    # def to_gate(self) -> Gate:
+    #     """ Returns a ``Gate`` equivalent to this Operator. """
+    #     return self.primitive.to_gate()
 
     # Warning - modifying immutable object!!
     def reduce(self) -> OperatorBase:

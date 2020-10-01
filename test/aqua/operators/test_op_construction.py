@@ -231,7 +231,7 @@ class TestOpConstruction(QiskitAquaTestCase):
 
         matop = ((H ^ 3) + (Z ^ 3)).to_matrix_op()
         with self.subTest('non unitary matrix operator throws error'):
-            with self.assertRaises(QiskitError):
+            with self.assertRaises(ExtensionError):
                 matop.to_gate()
 
     def test_adjoint(self):
