@@ -18,7 +18,7 @@ import numpy as np
 from scipy.sparse import spmatrix
 
 from qiskit import QuantumCircuit
-from qiskit.circuit import ParameterExpression, Instruction
+from qiskit.circuit import ParameterExpression, Instruction, Gate
 from qiskit.quantum_info import Pauli
 from qiskit.circuit.library import RZGate, RYGate, RXGate, XGate, YGate, ZGate, IGate
 
@@ -273,6 +273,10 @@ class PauliOp(PrimitiveOp):
         # return PrimitiveOp(self.primitive.to_instruction(), coeff=self.coeff).reduce()
 
         return self.to_circuit().to_instruction()
+
+    def to_gate(self) -> Gate:
+        """ Returns a ``Gate`` equivalent to this Operator. """
+        return self.to_gate().to_instruction()
 
     def to_pauli_op(self, massive: bool = False) -> OperatorBase:
         return self

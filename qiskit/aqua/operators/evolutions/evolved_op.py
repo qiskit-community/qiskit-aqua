@@ -17,7 +17,7 @@ import logging
 import numpy as np
 import scipy
 
-from qiskit.circuit import ParameterExpression, Instruction
+from qiskit.circuit import ParameterExpression, Instruction, Gate
 
 from ..operator_base import OperatorBase
 from ..primitive_ops.primitive_op import PrimitiveOp
@@ -149,3 +149,7 @@ class EvolvedOp(PrimitiveOp):
     # pylint: disable=arguments-differ
     def to_instruction(self, massive: bool = False) -> Instruction:
         return self.primitive.to_matrix_op(massive=massive).exp_i()  # type: ignore
+
+    def to_gate(self, massive: bool = False) -> Gate:
+        """ Returns a ``Gate`` equivalent to this Operator. """
+        return self.primitive.to_matrix_op(massive=massive).to_gate()  # type: ignore

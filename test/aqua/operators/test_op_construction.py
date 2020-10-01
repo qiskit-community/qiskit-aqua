@@ -24,7 +24,9 @@ from ddt import ddt, data
 
 from qiskit import QiskitError
 from qiskit.aqua import AquaError
-from qiskit.circuit import QuantumCircuit, QuantumRegister, Instruction, Parameter, ParameterVector
+from qiskit.circuit import (
+    QuantumCircuit, QuantumRegister, Instruction, Parameter, ParameterVector, Gate
+)
 
 from qiskit.extensions.exceptions import ExtensionError
 from qiskit.quantum_info import Operator, Pauli, Statevector
@@ -220,6 +222,17 @@ class TestOpConstruction(QiskitAquaTestCase):
         with self.subTest('matrix operator is not unitary'):
             with self.assertRaises(ExtensionError):
                 matop.to_instruction()
+
+    def test_matrix_to_gate(self):
+        """Test MatrixOp.to_gate yields a Gate object."""
+        matop = (H ^ 3).to_matrix_op()
+        with self.subTest('assert to_gate returns Gate'):
+            self.assertIsInstance(matop.to_gate(), Gate)
+
+        matop = ((H ^ 3) + (Z ^ 3)).to_matrix_op()
+        with self.subTest('non unitary matrix operator throws error'):
+            with self.assertRaises(QiskitError):
+                matop.to_gate()
 
     def test_adjoint(self):
         """ adjoint test """
