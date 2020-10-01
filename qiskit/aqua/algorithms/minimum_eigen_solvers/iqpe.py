@@ -210,7 +210,7 @@ class IQPE(QuantumAlgorithm, MinimumEigensolver):
         # rz on a[0]
         qc.p(omega, a[0])
         # hadamard on a[0]
-        qc.u(np.pi/2, 0, np.pi, a[0])
+        qc.h(a[0])
         if measurement:
             c = ClassicalRegister(1, name='c')
             qc.add_register(c)
