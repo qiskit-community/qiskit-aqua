@@ -16,6 +16,7 @@ import logging
 import math
 from typing import List, Optional, Union
 
+import qiskit.optimization.algorithms  # pylint: disable=unused-import
 from .quadratic_program_converter import QuadraticProgramConverter
 from ..exceptions import QiskitOptimizationError
 from ..problems.constraint import Constraint
@@ -373,7 +374,8 @@ class InequalityToEquality(QuadraticProgramConverter):
             )
         return lhs_lb, lhs_ub
 
-    def interpret(self, result: 'OptimizationResult') -> 'OptimizationResult':  # type: ignore
+    def interpret(self, result: 'qiskit.optimization.algorithms.OptimizationResult') \
+            -> 'qiskit.optimization.algorithms.OptimizationResult':  # type: ignore
         """Convert a result of a converted problem into that of the original problem.
 
         Args:

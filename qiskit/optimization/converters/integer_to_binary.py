@@ -18,6 +18,7 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
+import qiskit.optimization.algorithms  # pylint: disable=unused-import
 from ..exceptions import QiskitOptimizationError
 from ..problems.quadratic_objective import QuadraticObjective
 from ..problems.quadratic_program import QuadraticProgram
@@ -207,7 +208,8 @@ class IntegerToBinary(QuadraticProgramConverter):
                 linear, quadratic, constraint.sense, constraint.rhs - constant, constraint.name
             )
 
-    def interpret(self, result: 'OptimizationResult') -> 'OptimizationResult':  # type: ignore
+    def interpret(self, result: 'qiskit.optimization.algorithms.OptimizationResult') \
+            -> 'qiskit.optimization.algorithms.OptimizationResult':  # type: ignore
         """Convert back the converted problem (binary variables)
         to the original (integer variables).
 

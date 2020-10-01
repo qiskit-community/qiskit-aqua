@@ -17,6 +17,7 @@ import logging
 from math import fsum
 from typing import Optional, cast, Union, Tuple, Dict
 
+import qiskit.optimization.algorithms  # pylint: disable=unused-import
 from ..exceptions import QiskitOptimizationError
 from ..problems.constraint import Constraint
 from ..problems.quadratic_objective import QuadraticObjective
@@ -157,7 +158,8 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
 
         return fsum(penalties)
 
-    def interpret(self, result: 'OptimizationResult') -> 'OptimizationResult':  # type: ignore
+    def interpret(self, result: 'qiskit.optimization.algorithms.OptimizationResult') \
+            -> 'qiskit.optimization.algorithms.OptimizationResult':  # type: ignore
         """Convert the result of the converted problem back to that of the original problem
 
         Args:
