@@ -12,7 +12,6 @@
 
 """The converter to map integer variables in a quadratic program to binary variables."""
 
-import sys
 import copy
 import logging
 from typing import Dict, List, Optional, Tuple, Union
