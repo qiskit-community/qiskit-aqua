@@ -53,13 +53,20 @@ class Molecule:
             masses: masses
 
         Raises:
-            ValueError: Invalid input.
+            ValueError: Length of masses must match length of geometries.
         """
         self._geometry = geometry
         self._degrees_of_freedom = degrees_of_freedom
         self._multiplicity = multiplicity
         self._charge = charge
 
+        self._check_masses(masses)
+
+        self._masses = masses
+        self._basis_set = None  # type: Optional[str]
+        self._hf_method = None  # type: Optional[str]
+
+    def _check_masses(self, masses: Optional[List[float]]):
         if masses is not None and not len(masses) == len(self._geometry):
             raise ValueError(
                 'Length of masses must match length of geometries, '
@@ -69,16 +76,12 @@ class Molecule:
                 )
             )
 
-        self._masses = masses
-        self._basis_set = None  # type: Optional[str]
-        self._hf_method = None  # type: Optional[str]
-
     @classmethod
-    def __distance_modifier(cls,
-                            function: Callable[[float, float], float],
-                            parameter: float,
-                            geometry: List[Tuple[str, List[float]]],
-                            atom_pair: Tuple[int, int]) -> List[Tuple[str, List[float]]]:
+    def _distance_modifier(cls,
+                           function: Callable[[float, float], float],
+                           parameter: float,
+                           geometry: List[Tuple[str, List[float]]],
+                           atom_pair: Tuple[int, int]) -> List[Tuple[str, List[float]]]:
         """
         Args:
             function: a function of two parameters (current distance,
@@ -130,7 +133,7 @@ class Molecule:
         def func(curr_dist, extra):  # pylint: disable=unused-argument
             return extra
 
-        return cls.__distance_modifier(func, distance, geometry, atom_pair)
+        return cls._distance_modifier(func, distance, geometry, atom_pair)
 
     @classmethod
     def absolute_stretching(cls,
@@ -154,8 +157,8 @@ class Molecule:
         def func(curr_dist, extra):
             return curr_dist + extra
 
-        return cls.__distance_modifier(func, perturbation, geometry,
-                                       atom_pair)
+        return cls._distance_modifier(func, perturbation, geometry,
+                                      atom_pair)
 
     @classmethod
     def relative_stretching(cls,
@@ -179,15 +182,15 @@ class Molecule:
         def func(curr_dist, extra):
             return curr_dist * extra
 
-        return cls.__distance_modifier(func, perturbation, geometry,
-                                       atom_pair)
+        return cls._distance_modifier(func, perturbation, geometry,
+                                      atom_pair)
 
     @classmethod
-    def __bend_modifier(cls,
-                        function: Callable[[float, float], float],
-                        parameter: float,
-                        geometry: List[Tuple[str, List[float]]],
-                        atom_trio: Tuple[int, int, int]) -> List[Tuple[str, List[float]]]:
+    def _bend_modifier(cls,
+                       function: Callable[[float, float], float],
+                       parameter: float,
+                       geometry: List[Tuple[str, List[float]]],
+                       atom_trio: Tuple[int, int, int]) -> List[Tuple[str, List[float]]]:
         """
         Args:
             function: a function of two parameters (current angle,
@@ -263,7 +266,7 @@ class Molecule:
         def func(curr_angle, extra):  # pylint: disable=unused-argument
             return extra
 
-        return cls.__bend_modifier(func, angle, geometry, atom_trio)
+        return cls._bend_modifier(func, angle, geometry, atom_trio)
 
     @classmethod
     def absolute_bending(cls,
@@ -289,7 +292,7 @@ class Molecule:
         def func(curr_angle, extra):
             return curr_angle + extra
 
-        return cls.__bend_modifier(func, bend, geometry, atom_trio)
+        return cls._bend_modifier(func, bend, geometry, atom_trio)
 
     @classmethod
     def relative_bending(cls,
@@ -316,7 +319,7 @@ class Molecule:
         def func(curr_angle, extra):
             return curr_angle * extra
 
-        return cls.__bend_modifier(func, bend, geometry, atom_trio)
+        return cls._bend_modifier(func, bend, geometry, atom_trio)
 
     def get_perturbed_geom(self,
                            perturbations: Optional[List[float]] = None) \
@@ -371,12 +374,34 @@ class Molecule:
         """ return masses """
         return self._masses
 
+    @masses.setter
+    def masses(self, value: Optional[List[float]]) -> None:
+        """ set masses
+        Args:
+            value: masses
+
+        Raises:
+            ValueError: Length of masses must match length of geometries.
+        """
+        self._check_masses(value)
+        self._masses = value
+
     @property
     def multiplicity(self) -> int:
         """ return multiplicity """
         return self._multiplicity
 
+    @multiplicity.setter
+    def multiplicity(self, value: int) -> None:
+        """ set multiplicity """
+        self._multiplicity = value
+
     @property
     def charge(self) -> int:
         """ return charge """
         return self._charge
+
+    @charge.setter
+    def charge(self, value: int) -> None:
+        """ set charge """
+        self._charge = value
