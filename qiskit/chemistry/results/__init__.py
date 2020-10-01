@@ -10,16 +10,15 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Ground state calculation algorithms."""
+"""Chemistry results module."""
 
-from .ground_state_calculation import GroundStateCalculation
-from .adapt_vqe import AdaptVQE
-from .mes_ground_state_calculation import MinimumEigensolverGroundStateCalculation
-from .mes_factories import MESFactory, VQEUCCSDFactory
+from .fermionic_result import DipoleTuple, FermionicResult, FermionicGroundStateResult
+from .state_result import StateResult, GroundStateResult
 
-__all__ = ['GroundStateCalculation',
-           'AdaptVQE',
-           'MinimumEigensolverGroundStateCalculation',
-           'MESFactory',
-           'VQEUCCSDFactory'
+
+__all__ = ['DipoleTuple',
+           'StateResult',
+           'GroundStateResult',
+           'FermionicResult',
+           'FermionicGroundStateResult',
            ]

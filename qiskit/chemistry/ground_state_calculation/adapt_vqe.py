@@ -27,8 +27,9 @@ from qiskit.aqua.utils.validation import validate_min
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.qubit_transformations import FermionicTransformation
+from qiskit.chemistry.results import FermionicGroundStateResult
+
 from .ground_state_calculation import GroundStateCalculation
-from .fermionic_ground_state_result import FermionicGroundStateResult
 from .mes_factories import VQEUCCSDFactory
 
 logger = logging.getLogger(__name__)

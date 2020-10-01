@@ -14,8 +14,8 @@
 
 from abc import ABC, abstractmethod
 
-from qiskit.chemistry import ChemistryResult
 from qiskit.chemistry.drivers import BaseDriver
+from qiskit.chemistry.results import GroundStateResult
 
 from ..qubit_transformations.qubit_operator_transformation import QubitOperatorTransformation
 
@@ -41,7 +41,7 @@ class GroundStateCalculation(ABC):
         self._transformation = transformation
 
     @abstractmethod
-    def compute_groundstate(self, driver: BaseDriver) -> ChemistryResult:
+    def compute_groundstate(self, driver: BaseDriver) -> GroundStateResult:
         """Compute the ground state energy of the molecule that was supplied via the driver.
 
         Args:

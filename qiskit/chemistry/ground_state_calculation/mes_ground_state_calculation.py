@@ -16,9 +16,9 @@ from typing import Union
 
 from qiskit.aqua.algorithms import MinimumEigensolver
 from qiskit.chemistry.drivers import BaseDriver
-from qiskit.chemistry.ground_state_calculation import (GroundStateCalculation,
-                                                       FermionicGroundStateResult)
+from qiskit.chemistry.ground_state_calculation import GroundStateCalculation
 from qiskit.chemistry.qubit_transformations import QubitOperatorTransformation
+from qiskit.chemistry.results import FermionicGroundStateResult
 
 from .mes_factories import MESFactory
 
