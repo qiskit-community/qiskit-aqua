@@ -21,7 +21,7 @@ import warnings
 import numpy as np
 
 from qiskit.aqua import AquaError
-from qiskit.aqua.algorithms import VQEResult, VQE
+from qiskit.aqua.algorithms import VQE
 from qiskit.aqua.operators import LegacyBaseOperator, WeightedPauliOperator
 from qiskit.aqua.utils.validation import validate_min
 from qiskit.chemistry.components.variational_forms import UCCSD
@@ -132,7 +132,7 @@ class AdaptVQE(GroundStateCalculation):
         # nature of the algorithm.
         return match is not None or (len(indices) > 1 and indices[-2] == indices[-1])
 
-    def compute_groundstate(self, driver: BaseDriver) -> FermionicGroundStateResult:
+    def compute_groundstate(self, driver: BaseDriver) -> 'AdaptVQEResult':
         """Computes the ground state.
 
         Args:
@@ -219,18 +219,21 @@ class AdaptVQE(GroundStateCalculation):
             raise AquaError('The algorithm finished due to an unforeseen reason!')
 
         # extend VQE returned information with additional outputs
-        raw_result = AdaptVQEResult()
-        raw_result.combine(raw_vqe_result)
-        raw_result.num_iterations = iteration
-        raw_result.final_max_gradient = max_grad[0]
-        raw_result.finishing_criterion = finishing_criterion
+        result = AdaptVQEResult()
+        result.raw_result = raw_vqe_result
+        result.computed_electronic_energy = raw_vqe_result.eigenvalue.real
+        result.aux_values = raw_vqe_result.aux_operator_eigenvalues
+        result.num_iterations = iteration
+        result.final_max_gradient = max_grad[0]
+        result.finishing_criterion = finishing_criterion
 
-        logger.info('The final energy is: %s', str(raw_result.optimal_value.real))
-        return self.transformation.interpret(raw_result.eigenvalue, raw_result.eigenstate,
-                                             raw_result.aux_operator_eigenvalues)
+        self.transformation.add_context(result)
+
+        logger.info('The final energy is: %s', str(result.computed_electronic_energy))
+        return result
 
 
-class AdaptVQEResult(VQEResult):
+class AdaptVQEResult(FermionicGroundStateResult):
     """ AdaptVQE Result."""
 
     @property
