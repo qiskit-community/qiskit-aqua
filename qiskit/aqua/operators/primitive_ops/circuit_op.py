@@ -19,7 +19,7 @@ import numpy as np
 import qiskit
 from qiskit import QuantumCircuit
 from qiskit.circuit.library import IGate
-from qiskit.circuit import Instruction, ParameterExpression, Gate
+from qiskit.circuit import Instruction, ParameterExpression
 
 from ..operator_base import OperatorBase
 from ..list_ops.summed_op import SummedOp

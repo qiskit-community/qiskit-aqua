@@ -17,7 +17,7 @@ import logging
 import numpy as np
 import scipy
 
-from qiskit.circuit import ParameterExpression, Instruction, Gate
+from qiskit.circuit import ParameterExpression, Instruction
 
 from ..operator_base import OperatorBase
 from ..primitive_ops.primitive_op import PrimitiveOp

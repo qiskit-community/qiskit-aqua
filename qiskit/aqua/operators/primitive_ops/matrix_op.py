@@ -175,7 +175,7 @@ class MatrixOp(PrimitiveOp):
     def to_gate(self, parameter_map=None, label="matop Gate") -> Gate:
         """ Returns a ``Gate`` equivalent to this Operator. """
         qc = QuantumCircuit(self.primitive.num_qubits)
-        qc.append(self.primitive, [i for i in range(self.primitive.num_qubits)])
+        qc.append(self.primitive, list(range(self.primitive.num_qubits)))
         return qc.to_gate(parameter_map=parameter_map, label=label)
 
     def to_legacy_op(self, massive: bool = False) -> MatrixOperator:
