@@ -17,7 +17,6 @@ import logging
 from abc import abstractmethod, ABC
 
 from qiskit import QuantumCircuit, QuantumRegister
-from qiskit.qasm import pi
 from qiskit.circuit.library import AND, OR
 
 from qiskit.aqua import AquaError
