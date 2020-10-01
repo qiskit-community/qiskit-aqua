@@ -63,8 +63,9 @@ class NumPyEigensolver(ClassicalAlgorithm, Eigensolver):
             filter_criterion: callable that allows to filter eigenvalues/eigenstates, only feasible
                 eigenstates are returned in the results. The callable has the signature
                 `filter(eigenstate, eigenvalue, aux_values)` and must return a boolean to indicate
-                which elements to keep. If the number of elements that satisfies the criterion is
-                smaller than `k` then the returned list has fewer elements and can even be empty.
+                whether to keep this value in the final returned result or not. If the number of
+                elements that satisfies the criterion is smaller than `k` then the returned list has
+                fewer elements and can even be empty.
         """
         validate_min('k', k, 1)
         super().__init__()

@@ -46,8 +46,8 @@ class NumPyMinimumEigensolver(ClassicalAlgorithm, MinimumEigensolver):
                 eigensolver is only searching over feasible states and returns an eigenstate that
                 has the smallest eigenvalue among feasible states. The callable has the signature
                 `filter(eigenstate, eigenvalue, aux_values)` and must return a boolean to indicate
-                which elements to keep. If the number of elements that satisfies the criterion is
-                smaller than `k` then the returned list has fewer elements and can even be empty.
+                whether to consider this value or not. If there is no
+                feasible element, the result can even be empty.
         """
         self._ces = NumPyEigensolver(operator=operator, k=1, aux_operators=aux_operators,
                                      filter_criterion=filter_criterion)
