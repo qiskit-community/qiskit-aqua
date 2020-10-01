@@ -11,7 +11,7 @@
 # that they have been altered from the originals.
 
 """Converter to convert a problem with equality constraints to unconstrained with penalty terms."""
-from __future__ import annotations
+import sys
 import copy
 import logging
 from math import fsum
@@ -25,6 +25,8 @@ from ..problems.variable import Variable
 from .quadratic_program_converter import QuadraticProgramConverter
 
 logger = logging.getLogger(__name__)
+if sys.version_info[0] == 3 and sys.version_info[1] >= 7:
+    from __future__ import annotations
 
 
 class LinearEqualityToPenalty(QuadraticProgramConverter):

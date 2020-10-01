@@ -10,20 +10,22 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 """The inequality to equality converter."""
-from __future__ import annotations
+import sys
 import copy
 import logging
 import math
 from typing import List, Optional, Union
 
-from .quadratic_program_converter import QuadraticProgramConverter
 from ..exceptions import QiskitOptimizationError
 from ..problems.constraint import Constraint
 from ..problems.quadratic_objective import QuadraticObjective
 from ..problems.quadratic_program import QuadraticProgram
 from ..problems.variable import Variable
+from .quadratic_program_converter import QuadraticProgramConverter
 
 logger = logging.getLogger(__name__)
+if sys.version_info[0] == 3 and sys.version_info[1] >= 7:
+    from __future__ import annotations
 
 
 class InequalityToEquality(QuadraticProgramConverter):

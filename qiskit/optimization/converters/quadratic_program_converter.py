@@ -11,12 +11,15 @@
 # that they have been altered from the originals.
 
 """An abstract class for optimization algorithms in Qiskit's optimization module."""
-from __future__ import annotations
+import sys
 import warnings
 
 from abc import ABC, abstractmethod
 
 from ..problems.quadratic_program import QuadraticProgram
+
+if sys.version_info[0] == 3 and sys.version_info[1] >= 7:
+    from __future__ import annotations
 
 
 class QuadraticProgramConverter(ABC):
