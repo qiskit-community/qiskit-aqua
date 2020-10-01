@@ -115,7 +115,7 @@ class CVarStateFn(OperatorStateFn):
         Raises:
             AquaError: The adjoint of a CVaRMeasurement is not defined.
         """
-        return AquaError("Adjoint of a cost function not defined")
+        raise AquaError("Adjoint of a CVaR measurement not defined")
 
     def mul(self, scalar: Union[int, float, complex, ParameterExpression]) -> OperatorBase:
         if not isinstance(scalar, (int, float, complex, ParameterExpression)):

@@ -14,11 +14,14 @@
 from test.aqua import QiskitAquaTestCase
 
 import numpy as np
-import warnings
+from ddt import ddt, data
 
 from qiskit import QuantumCircuit
 from qiskit.aqua import AquaError
-from qiskit.aqua.operators import CVarStateFn, StateFn, Z, I, X, Plus
+from qiskit.aqua.operators import (
+    CVarStateFn, StateFn, Z, I, X, Plus, PauliExpectation, MatrixExpectation, CVaRExpectation,
+    ListOp, CircuitOp
+)
 
 
 class TestCVaRMeasurement(QiskitAquaTestCase):
@@ -83,3 +86,47 @@ class TestCVaRMeasurement(QiskitAquaTestCase):
             op = X ^ Z + Z ^ I
             with self.assertRaises(AquaError):
                 _ = CVarStateFn(op)
+
+
+@ddt
+class TestCVaRExpectation(QiskitAquaTestCase):
+    """Test the CVaR expectation object."""
+
+    def test_construction(self):
+        """Test the correct operator expression is constructed."""
+
+        alpha = 0.5
+        base_expecation = PauliExpectation()
+        cvar_expecation = CVaRExpectation(alpha=alpha, expectation=base_expecation)
+
+        with self.subTest('single operator'):
+            op = ~StateFn(Z) @ Plus
+            expected = CVarStateFn(Z, alpha) @ Plus
+            cvar = cvar_expecation.convert(op)
+            self.assertEqual(cvar, expected)
+
+        with self.subTest('list operator'):
+            op = ~StateFn(ListOp([Z ^ Z, I ^ Z])) @ (Plus ^ Plus)
+            expected = ListOp(
+                [CVarStateFn((Z ^ Z), alpha) @ (Plus ^ Plus),
+                 CVarStateFn((I ^ Z), alpha) @ (Plus ^ Plus)]
+                )
+            cvar = cvar_expecation.convert(op)
+            self.assertEqual(cvar, expected)
+
+    @data(PauliExpectation(), MatrixExpectation())
+    def test_underlying_expectation(self, base_expecation):
+        """Test the underlying expectation works correctly."""
+
+        cvar_expecation = CVaRExpectation(alpha=0.3, expectation=base_expecation)
+        circuit = QuantumCircuit(2)
+        circuit.z(0)
+        circuit.cp(0.5, 0, 1)
+        circuit.t(1)
+        op = ~StateFn(CircuitOp(circuit)) @ (Plus ^ 2)
+
+        cvar = cvar_expecation.convert(op)
+        expected = base_expecation.convert(op)
+
+        # test if the operators have been transformed in the same manner
+        self.assertEqual(cvar.oplist[0].primitive, expected.oplist[0].primitive)

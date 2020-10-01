@@ -145,7 +145,7 @@ from .list_ops import ListOp, SummedOp, ComposedOp, TensoredOp
 from .converters import (ConverterBase, CircuitSampler, PauliBasisChange,
                          DictToCircuitSum, AbelianGrouper)
 from .expectations import (ExpectationBase, ExpectationFactory, PauliExpectation,
-                           MatrixExpectation, AerPauliExpectation)
+                           MatrixExpectation, AerPauliExpectation, CVaRExpectation)
 from .evolutions import (EvolutionBase, EvolutionFactory, EvolvedOp, PauliTrotterEvolution,
                          MatrixEvolution, TrotterizationBase, TrotterizationFactory, Trotter,
                          Suzuki, QDrift)
@@ -174,7 +174,7 @@ __all__ = [
     # Converters
     'ConverterBase', 'CircuitSampler', 'AbelianGrouper', 'DictToCircuitSum', 'PauliBasisChange',
     'ExpectationBase', 'ExpectationFactory', 'PauliExpectation', 'MatrixExpectation',
-    'AerPauliExpectation',
+    'AerPauliExpectation', 'CVaRExpectation',
     'EvolutionBase', 'EvolvedOp', 'EvolutionFactory', 'PauliTrotterEvolution', 'MatrixEvolution',
     'TrotterizationBase', 'TrotterizationFactory', 'Trotter', 'Suzuki', 'QDrift',
     # Convenience immutable instances

@@ -88,10 +88,6 @@ class StateFn(OperatorBase):
             return CircuitStateFn.__new__(CircuitStateFn)
 
         if isinstance(primitive, OperatorBase):
-            if 'alpha' in kwargs:
-                from .cvar_state_fn import CVarStateFn
-                return CVarStateFn.__new__(CVarStateFn)
-
             from .operator_state_fn import OperatorStateFn
             return OperatorStateFn.__new__(OperatorStateFn)
 
