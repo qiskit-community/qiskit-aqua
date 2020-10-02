@@ -45,7 +45,7 @@ def pauli_measurement(circuit, pauli, qr, cr, barrier=False):
         if pauli.x[qubit_idx]:
             if pauli.z[qubit_idx]:
                 # Measure Y
-                circuit.p(-np.pi / 2, qr[qubit_idx])  # sdg
+                circuit.sdg(qr[qubit_idx])  # sdg
                 circuit.h(qr[qubit_idx])  # h
             else:
                 # Measure X
