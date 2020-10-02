@@ -10,6 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+"""The Conditional Value at Risk (CVaR) measurement."""
 
 from test.aqua import QiskitAquaTestCase
 
@@ -19,7 +20,7 @@ from ddt import ddt, data
 from qiskit import QuantumCircuit
 from qiskit.aqua import AquaError
 from qiskit.aqua.operators import (
-    CVarStateFn, StateFn, Z, I, X, Plus, PauliExpectation, MatrixExpectation, CVaRExpectation,
+    CVaRMeasurement, StateFn, Z, I, X, Plus, PauliExpectation, MatrixExpectation, CVaRExpectation,
     ListOp, CircuitOp
 )
 
@@ -66,7 +67,7 @@ class TestCVaRMeasurement(QiskitAquaTestCase):
 
         for alpha in [0.2, 0.4, 1]:
             with self.subTest(alpha=alpha):
-                cvar = (CVarStateFn(Z, alpha) @ statefn).eval()
+                cvar = (CVaRMeasurement(Z, alpha) @ statefn).eval()
                 ref = self.expected_cvar(statefn.to_matrix(), Z, alpha)
                 self.assertAlmostEqual(cvar, ref)
 
@@ -76,16 +77,16 @@ class TestCVaRMeasurement(QiskitAquaTestCase):
 
         with self.subTest('alpha < 0'):
             with self.assertRaises(ValueError):
-                _ = CVarStateFn(op, alpha=-0.2)
+                _ = CVaRMeasurement(op, alpha=-0.2)
 
         with self.subTest('alpha > 1'):
             with self.assertRaises(ValueError):
-                _ = CVarStateFn(op, alpha=12.3)
+                _ = CVaRMeasurement(op, alpha=12.3)
 
         with self.subTest('operator not diagonal'):
             op = X ^ Z + Z ^ I
             with self.assertRaises(AquaError):
-                _ = CVarStateFn(op)
+                _ = CVaRMeasurement(op)
 
 
 @ddt
@@ -101,15 +102,15 @@ class TestCVaRExpectation(QiskitAquaTestCase):
 
         with self.subTest('single operator'):
             op = ~StateFn(Z) @ Plus
-            expected = CVarStateFn(Z, alpha) @ Plus
+            expected = CVaRMeasurement(Z, alpha) @ Plus
             cvar = cvar_expecation.convert(op)
             self.assertEqual(cvar, expected)
 
         with self.subTest('list operator'):
             op = ~StateFn(ListOp([Z ^ Z, I ^ Z])) @ (Plus ^ Plus)
             expected = ListOp(
-                [CVarStateFn((Z ^ Z), alpha) @ (Plus ^ Plus),
-                 CVarStateFn((I ^ Z), alpha) @ (Plus ^ Plus)]
+                [CVaRMeasurement((Z ^ Z), alpha) @ (Plus ^ Plus),
+                 CVaRMeasurement((I ^ Z), alpha) @ (Plus ^ Plus)]
                 )
             cvar = cvar_expecation.convert(op)
             self.assertEqual(cvar, expected)

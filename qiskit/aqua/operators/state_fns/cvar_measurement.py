@@ -15,7 +15,7 @@
 """ CVarStateFn Class """
 
 
-from typing import Union, Set, Dict, Optional, Callable
+from typing import Union, Optional, Callable
 import numpy as np
 
 from qiskit.aqua.aqua_error import AquaError
@@ -32,7 +32,7 @@ from .operator_state_fn import OperatorStateFn
 
 # pylint: disable=invalid-name
 
-class CVarStateFn(OperatorStateFn):
+class CVaRMeasurement(OperatorStateFn):
     r"""
     A class for state functions and measurements which are defined by a density Operator,
     stored using an ``OperatorBase``.
@@ -46,24 +46,22 @@ class CVarStateFn(OperatorStateFn):
                                  OperatorBase] = None,
                 alpha: float = 1.0,
                 coeff: Union[int, float, complex, ParameterExpression] = 1.0,
-                is_measurement: bool = True) -> 'StateFn':
+                ) -> 'StateFn':
         obj = object.__new__(cls)
-        obj.__init__(primitive, alpha, coeff, is_measurement)
+        obj.__init__(primitive, alpha, coeff)
         return obj
 
     # TODO allow normalization somehow?
     def __init__(self,
                  primitive: Union[OperatorBase] = None,
                  alpha: float = 1.0,
-                 coeff: Union[int, float, complex, ParameterExpression] = 1.0,
-                 is_measurement: bool = True) -> None:
+                 coeff: Union[int, float, complex, ParameterExpression] = 1.0) -> None:
         """
         Args:
             primitive: The ``OperatorBase`` which defines the behavior of the underlying State
                 function.
             coeff: A coefficient by which to multiply the state function
             alpha: TODO
-            is_measurement: Whether the StateFn is a measurement operator
 
         Raises:
             ValueError: TODO remove that this raises an error
@@ -72,8 +70,6 @@ class CVarStateFn(OperatorStateFn):
         """
         if primitive is None:
             raise ValueError
-        if not is_measurement:
-            raise ValueError("CostFnMeasurement is only defined as a measurement")
 
         if not 0 <= alpha <= 1:
             raise ValueError('The parameter alpha must be in [0, 1].')
@@ -93,16 +89,6 @@ class CVarStateFn(OperatorStateFn):
         """
         return self._alpha
 
-    def primitive_strings(self) -> Set[str]:
-        return self.primitive.primitive_strings()
-
-    @property
-    def num_qubits(self) -> int:
-        if hasattr(self.primitive, 'num_qubits'):
-            return self.primitive.num_qubits
-        else:
-            return None
-
     def add(self, other: OperatorBase) -> OperatorBase:
         raise NotImplementedError
 
@@ -115,7 +101,7 @@ class CVarStateFn(OperatorStateFn):
         Raises:
             AquaError: The adjoint of a CVaRMeasurement is not defined.
         """
-        raise AquaError("Adjoint of a CVaR measurement not defined")
+        raise AquaError('Adjoint of a CVaR measurement not defined')
 
     def mul(self, scalar: Union[int, float, complex, ParameterExpression]) -> OperatorBase:
         if not isinstance(scalar, (int, float, complex, ParameterExpression)):
@@ -124,64 +110,34 @@ class CVarStateFn(OperatorStateFn):
 
         return self.__class__(self.primitive,
                               coeff=self.coeff * scalar,
-                              is_measurement=self.is_measurement,
                               alpha=self._alpha)
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
         if isinstance(other, OperatorStateFn):
             return StateFn(self.primitive.tensor(other.primitive),
-                           coeff=self.coeff * other.coeff,
-                           is_measurement=self.is_measurement)
+                           coeff=self.coeff * other.coeff)
         # pylint: disable=cyclic-import,import-outside-toplevel
         from .. import TensoredOp
         return TensoredOp([self, other])
 
     def to_density_matrix(self, massive: bool = False) -> np.ndarray:
-        """ Return numpy matrix of density operator, warn if more than 16 qubits
-        to force the user to set
-        massive=True if they want such a large matrix. Generally big methods like
-        this should require the use of a
-        converter, but in this case a convenience method for quick hacking and
-        access to classical tools is
-        appropriate. """
-
-        if self.num_qubits > 16 and not massive:
-            raise ValueError(
-                'to_matrix will return an exponentially large matrix,'
-                ' in this case {0}x{0} elements.'
-                ' Set massive=True if you want to proceed.'.format(2 ** self.num_qubits))
-
-        return self.primitive.to_matrix() * self.coeff
+        """Not defined."""
+        raise NotImplementedError
 
     def to_matrix_op(self, massive: bool = False) -> OperatorBase:
-        """ Return a MatrixOp for this operator. """
-        if self.alpha == 1:
-            return OperatorStateFn(self.primitive.to_matrix_op(massive=massive) * self.coeff,
-                                   is_measurement=self.is_measurement)
-        else:
-            raise NotImplementedError
+        """Not defined."""
+        raise NotImplementedError
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
-        r"""
-        Not Implemented
-        """
+        """Not defined."""
         raise NotImplementedError
 
     def to_circuit_op(self) -> OperatorBase:
-        r""" Return ``StateFnCircuit`` corresponding to this StateFn. Ignore for now because this is
-        undefined. TODO maybe call to_pauli_op and diagonalize here, but that could be very
-        inefficient, e.g. splitting one Stabilizer measurement into hundreds of 1 qubit Paulis."""
+        """Not defined."""
         raise NotImplementedError
 
     def __str__(self) -> str:
-        prim_str = str(self.primitive)
-        if self.coeff == 1.0:
-            return "{}({})".format('CVarMeasurement', prim_str)
-        else:
-            return "{}({}) * {}".format(
-                'CVarMeasurement',
-                prim_str,
-                self.coeff)
+        return 'CVaRMeasurement({}) * {}'.format(str(self.primitive), self.coeff)
 
     def eval(self,
              front: Union[str, dict, np.ndarray,
@@ -203,16 +159,13 @@ class CVarStateFn(OperatorStateFn):
             key_len = int(np.ceil(np.log2(len(vec))))
             data = {format(index, '0'+str(key_len)+'b'): val for index, val in enumerate(vec)}
         else:
-            raise ValueError("Unexpected Input to CVarStateFn: ", type(front))
+            raise ValueError('Unsupported input to CVaRMeasurement.eval:', type(front))
 
         obs = self.primitive
         alpha = self._alpha
 
-        assert isinstance(data, Dict)
-        # TODO Handle probability gradients
-
         outcomes = list(data.items())
-        # Sort based on energy evaluation
+        # add energy evaluation
         for i, outcome in enumerate(outcomes):
             key = outcome[0]
             outcomes[i] += (obs.eval(key).adjoint().eval(key),)
@@ -223,35 +176,34 @@ class CVarStateFn(OperatorStateFn):
         # Here P are the probabilities of observing each state.
         # H are the expectation values of each state with the
         # provided Hamiltonian
-        _, P, H = zip(*outcomes)
+        _, probabilities, energies = zip(*outcomes)
 
         # Square the dict values
         # (since CircuitSampler takes the root...)
-        P = [p*np.conj(p) for p in P]
+        probabilities = [p_i * np.conj(p_i) for p_i in probabilities]
 
         # Determine j, the index of the measurement outcome
         # which will be only partially included in the CVar sum
         j = 0
         running_total = 0
-        for i, p_i in enumerate(P):
+        for i, p_i in enumerate(probabilities):
             running_total += p_i
             j = i
             if running_total > alpha:
                 break
 
-        h_j = H[j]
+        h_j = energies[j]
         cvar = alpha * h_j
 
-        if alpha == 0:
+        if alpha == 0 or j == 0:
             return h_j
 
-        if j > 0:
-            H = H[:j]
-            P = P[:j]
+        energies = energies[:j]
+        probabilities = probabilities[:j]
 
-            # CVar = alpha*Hj + \sum_i P[i]*(H[i] - Hj)
-            for h_i, p_i in zip(H, P):
-                cvar += p_i * (h_i - h_j)
+        # CVar = alpha*Hj + \sum_i P[i]*(H[i] - Hj)
+        for h_i, p_i in zip(energies, probabilities):
+            cvar += p_i * (h_i - h_j)
 
         return cvar/alpha
 
@@ -275,10 +227,7 @@ class CVarStateFn(OperatorStateFn):
             coeff = self.coeff
 
         if isinstance(self.primitive, OperatorBase):
-            return CVarStateFn(convert_fn(self.primitive),
-                               coeff=coeff,
-                               is_measurement=self.is_measurement,
-                               alpha=self._alpha)
+            return self.__class__(convert_fn(self.primitive), coeff=coeff, alpha=self._alpha)
         return self
 
     def sample(self,

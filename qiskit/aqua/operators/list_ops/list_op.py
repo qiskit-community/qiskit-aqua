@@ -329,7 +329,7 @@ class ListOp(OperatorBase):
                 vectors = [vec*evals[i]._coeff if evals[i]._coeff !=
                            1 else vec for i, vec in enumerate(evals)]
 
-                combined_data = self.combo_fn([vec for vec in vectors])
+                combined_data = self.combo_fn(vectors)
                 return VectorStateFn(primitive=combined_data,
                                      is_measurement=evals[0].is_measurement)
 
@@ -428,16 +428,15 @@ class ListOp(OperatorBase):
         such as ``CircuitOp`` and ``CircuitStateFn``. """
         # pylint: disable=cyclic-import
         from ..state_fns.operator_state_fn import OperatorStateFn
-        from ..state_fns.cvar_state_fn import CVarStateFn
 
         if self.__class__ == ListOp:
             return ListOp([op.to_circuit_op()  # type: ignore
-                           if not isinstance(op, (OperatorStateFn, CVarStateFn)) else op
+                           if not isinstance(op, OperatorStateFn) else op
                            for op in self.oplist],
                           combo_fn=self.combo_fn, coeff=self.coeff, abelian=self.abelian
                           ).reduce()
         return self.__class__([op.to_circuit_op()  # type: ignore
-                               if not isinstance(op, (OperatorStateFn, CVarStateFn)) else op
+                               if not isinstance(op, OperatorStateFn) else op
                                for op in self.oplist],
                               coeff=self.coeff, abelian=self.abelian).reduce()
 
