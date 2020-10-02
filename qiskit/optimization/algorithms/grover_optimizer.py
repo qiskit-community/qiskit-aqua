@@ -52,7 +52,8 @@ class GroverOptimizer(OptimizationAlgorithm):
             converters: The converters to use for converting a problem into a different form.
                 By default, when None is specified, an internally created instance of
                 :class:`~qiskit.optimization.converters.QuadraticProgramToQubo` will be used.
-            penalty: TODO
+            penalty: The penalty factor used in the default
+                :class:`~qiskit.optimization.converters.QuadraticProgramToQubo` converter
 
         Raises:
             TypeError: When there one of converters is an invalid type.
