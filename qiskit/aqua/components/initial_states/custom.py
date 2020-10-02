@@ -147,7 +147,7 @@ class Custom(InitialState):
                     svc.construct_circuit(circuit=circuit, register=register)
                 elif self._state == 'uniform':
                     for i in range(self._num_qubits):
-                        circuit.u(np.pi/2, 0.0, np.pi, register[i])
+                        circuit.h(register[i])
                 elif self._state == 'zero':
                     pass
                 else:
