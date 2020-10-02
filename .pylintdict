@@ -71,6 +71,7 @@ cfg
 chc
 chernoff
 chu
+chuang
 chuang's
 circ
 circuitop
@@ -102,6 +103,7 @@ coord
 coords
 cov
 coveney
+cp
 cplex
 cr
 crs
@@ -466,6 +468,7 @@ optimizers
 opv
 orbsym
 orthonormal
+otimes
 outers
 outpath
 overfit
