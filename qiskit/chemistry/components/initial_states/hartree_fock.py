@@ -148,7 +148,7 @@ class HartreeFock(InitialState):
             quantum_circuit = QuantumCircuit(register)
             for qubit_idx, bit in enumerate(self._bitstr[::-1]):
                 if bit:
-                    quantum_circuit.u(np.pi, 0.0, np.pi, register[qubit_idx])
+                    quantum_circuit.x(register[qubit_idx])
             return quantum_circuit
         else:
             raise ValueError('Mode should be either "vector" or "circuit"')

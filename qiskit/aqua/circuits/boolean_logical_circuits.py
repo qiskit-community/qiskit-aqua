@@ -17,7 +17,6 @@ import logging
 from abc import abstractmethod, ABC
 
 from qiskit import QuantumCircuit, QuantumRegister
-from qiskit.qasm import pi
 from qiskit.circuit.library import AND, OR
 
 from qiskit.aqua import AquaError
@@ -249,7 +248,7 @@ class BooleanLogicNormalForm(ABC):
         elif self._ast[0] == 'lit':
             idx = abs(self._ast[1]) - 1
             if self._ast[1] < 0:
-                circuit.u(pi, 0, pi, self._variable_register[idx])
+                circuit.x(self._variable_register[idx])
             circuit.cx(self._variable_register[idx], self._output_register[output_idx])
         else:
             raise AquaError('Unexpected tiny expression {}.'.format(self._ast))
@@ -423,7 +422,7 @@ class DNF(BooleanLogicNormalForm):
 
                 circuit.compose(or_circuit, qubits, inplace=True)
             else:
-                circuit.u(pi, 0, pi, self._output_register[0])
+                circuit.x(self._output_register[0])
         else:  # self._depth == 2
             # compute all clauses
             for clause_index, clause_expr in enumerate(self._ast[1:]):
@@ -446,20 +445,20 @@ class DNF(BooleanLogicNormalForm):
 
                     circuit.compose(and_circuit, qubits, inplace=True)
                 else:
-                    circuit.u(pi, 0, pi, self._clause_register[clause_index])
+                    circuit.x(self._clause_register[clause_index])
 
             # init the output qubit to 1
-            circuit.u(pi, 0, pi, self._output_register[self._output_idx])
+            circuit.x(self._output_register[self._output_idx])
 
             # collect results from all clauses
-            circuit.u(pi, 0, pi, self._clause_register)
+            circuit.x(self._clause_register)
             circuit.mct(
                 self._clause_register,
                 self._output_register[self._output_idx],
                 self._ancillary_register,
                 mode=mct_mode
             )
-            circuit.u(pi, 0, pi, self._clause_register)
+            circuit.x(self._clause_register)
 
             # uncompute all clauses
             for clause_index, clause_expr in enumerate(self._ast[1:]):
@@ -477,7 +476,7 @@ class DNF(BooleanLogicNormalForm):
 
                     circuit.compose(and_circuit, qubits, inplace=True)
                 else:
-                    circuit.u(pi, 0, pi, self._clause_register[clause_index])
+                    circuit.x(self._clause_register[clause_index])
         return circuit
 
 
