@@ -68,7 +68,7 @@ class TestInitialStateCustom(QiskitAquaTestCase):
         cct = custom.construct_circuit('circuit')
         self.assertEqual(cct.qasm(),
                          'OPENQASM 2.0;\ninclude "qelib1.inc";\nqreg q[2];\n'
-                         'u(pi/2,0,pi) q[0];\nu(pi/2,0,pi) q[1];\n')
+                         'h q[0];\nh q[1];\n')
 
     def test_qubits_2_random_vector(self):
         """ qubits 2 random vector test """
