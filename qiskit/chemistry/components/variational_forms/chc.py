@@ -161,7 +161,7 @@ class CHC(VariationalForm):
                     j = idx[2]
                     s = idx[3]  # pylint: disable=locally-disabled, invalid-name
 
-                    circuit.p(-np.pi / 2, q[r])
+                    circuit.sdg(q[r])
 
                     circuit.h(q[i])
                     circuit.h(q[r])
