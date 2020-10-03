@@ -126,7 +126,7 @@ class Grover(QuantumAlgorithm):
     def __init__(self,
                  oracle: Union[Oracle, QuantumCircuit, Statevector],
                  good_state: Optional[Union[Callable[[str], bool], List[str], Statevector]] = None,
-                 state_preparation: Optional[QuantumCircuit],
+                 state_preparation: Optional[QuantumCircuit] = None,
                  iterations: Union[int, List[int]] = 1,
                  sample_from_iterations: bool = False,
                  post_processing: Callable[[List[int]], List[int]] = None,
@@ -223,14 +223,14 @@ class Grover(QuantumAlgorithm):
 
         # Construct GroverOperator circuit
         if grover_operator is not None:
-            self._grover_operator = grover_operator
+            self.grover_operator = grover_operator
         else:
             # wrap in method to hide the logic of handling deprecated arguments, can be simplified
             # once the deprecated arguments are removed
-            self._grover_operator = _construct_grover_operator(oracle, state_preparation,
-                                                               mct_mode)
+            self.grover_operator = _construct_grover_operator(oracle, state_preparation,
+                                                              mct_mode)
 
-        max_iterations = np.ceil(2 ** (len(self._grover_operator.reflection_qubits) / 2))
+        max_iterations = np.ceil(2 ** (len(self.grover_operator.reflection_qubits) / 2))
         if incremental:  # TODO remove 3 months after 0.8.0
             if rotation_counts is not None:
                 iterations = rotation_counts
@@ -291,7 +291,7 @@ class Grover(QuantumAlgorithm):
             qc = self.construct_circuit(power, measurement=False)
             result = self._quantum_instance.execute(qc)
             statevector = result.get_statevector(qc)
-            num_bits = len(self._grover_operator.reflection_qubits)
+            num_bits = len(self.grover_operator.reflection_qubits)
             # trace out work qubits
             if qc.width() != num_bits:
                 rho = get_subsystem_density_matrix(
@@ -368,15 +368,15 @@ class Grover(QuantumAlgorithm):
         if power is None:
             power = self._iterations[0]
 
-        qc = QuantumCircuit(self._grover_operator.num_qubits, name='Grover circuit')
-        qc.compose(self._grover_operator.state_preparation, inplace=True)
+        qc = QuantumCircuit(self.grover_operator.num_qubits, name='Grover circuit')
+        qc.compose(self.grover_operator.state_preparation, inplace=True)
         if power > 0:
-            qc.compose(self._grover_operator.power(power), inplace=True)
+            qc.compose(self.grover_operator.power(power), inplace=True)
 
         if measurement:
-            measurement_cr = ClassicalRegister(len(self._grover_operator.reflection_qubits))
+            measurement_cr = ClassicalRegister(len(self.grover_operator.reflection_qubits))
             qc.add_register(measurement_cr)
-            qc.measure(self._grover_operator.reflection_qubits, measurement_cr)
+            qc.measure(self.grover_operator.reflection_qubits, measurement_cr)
 
         self._ret['circuit'] = qc
         return qc

@@ -118,14 +118,14 @@ class TestGroverConstructor(QiskitAquaTestCase):
         oracle = QuantumCircuit(2)
         oracle.cz(0, 1)
         grover = Grover(oracle=oracle, good_state=["11"])
-        grover_op = grover._grover_operator
+        grover_op = grover.grover_operator
         self.assertTrue(Operator(grover_op).equiv(Operator(self._expected_grover_op)))
 
     def test_oracle_statevector(self):
         """Test StateVector oracle"""
         mark_state = Statevector.from_label('11')
         grover = Grover(oracle=mark_state, good_state=['11'])
-        grover_op = grover._grover_operator
+        grover_op = grover.grover_operator
         self.assertTrue(Operator(grover_op).equiv(Operator(self._expected_grover_op)))
 
     def test_state_preparation_quantumcircuit(self):
@@ -136,7 +136,7 @@ class TestGroverConstructor(QiskitAquaTestCase):
         oracle.cz(0, 1)
         grover = Grover(oracle=oracle, state_preparation=state_preparation,
                         good_state=["011"])
-        grover_op = grover._grover_operator
+        grover_op = grover.grover_operator
         expected_grover_op = GroverOperator(oracle, state_preparation=state_preparation)
         self.assertTrue(Operator(grover_op).equiv(Operator(expected_grover_op)))
 
@@ -171,7 +171,7 @@ class TestGroverConstructor(QiskitAquaTestCase):
         grover_op = GroverOperator(oracle)
         grover = Grover(oracle=grover_op.oracle,
                         grover_operator=grover_op, good_state=["11"])
-        grover_op = grover._grover_operator
+        grover_op = grover.grover_operator
         self.assertTrue(Operator(grover_op).equiv(Operator(self._expected_grover_op)))
 
 
