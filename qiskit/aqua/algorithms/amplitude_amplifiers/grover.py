@@ -125,8 +125,8 @@ class Grover(QuantumAlgorithm):
     ], skip=1)  # skip the argument 'self'
     def __init__(self,
                  oracle: Union[Oracle, QuantumCircuit, Statevector],
-                 good_state: Optional[Union[Callable[[str], bool], List[int], Statevector]] = None,
-                 state_preparation: Optional[Union[QuantumCircuit, bool]] = None,
+                 good_state: Optional[Union[Callable[[str], bool], List[str], Statevector]] = None,
+                 state_preparation: Optional[QuantumCircuit],
                  iterations: Union[int, List[int]] = 1,
                  sample_from_iterations: bool = False,
                  post_processing: Callable[[List[int]], List[int]] = None,
@@ -144,9 +144,9 @@ class Grover(QuantumAlgorithm):
         Args:
             oracle: The oracle to flip the phase of good states, :math:`\mathcal{S}_f`.
             good_state: A callable to check if a given measurement corresponds to a good state.
-                For convenience, a list of integers or statevector can be passed instead of a
-                function. If the input is a list of integers, it specifies the indices of the qubits
-                that are in state :math:`|1\rangle` in a good state. If it is a ``Statevector``,
+                For convenience, a list of bitstrings or statevector can be passed instead of a
+                function. If the input is a list of bitstrings, each bitstrings in the list
+                represents a good state. If it is a :class:`~qiskit.quantum_info.Statevector`,
                 it represents a superposition of all good states.
             state_preparation: The state preparation :math:`\mathcal{A}`. If None then Grover's
                  Search by default uses uniform superposition.
