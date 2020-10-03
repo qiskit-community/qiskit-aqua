@@ -179,7 +179,7 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
                     'The number of variables in the passed result differs from '
                     'that of the original problem.'
                 )
-            # Substitute variables to obtain the function value and feasibility in the original problem
+            # Substitute variables to obtain the function value and feasibility in original problem
             substitute_dict = {}  # type: Dict[Union[str, int], float]
             variables = self._src.variables
             for i in range(len(result.x)):
@@ -193,8 +193,8 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
                 new_status = OptimizationResultStatus.INFEASIBLE
 
             return OptimizationResult(x=result.x, fval=substituted_qp.objective.constant,
-                                    variables=self._src.variables, status=new_status,
-                                    raw_results=result.raw_results)
+                                      variables=self._src.variables, status=new_status,
+                                      raw_results=result.raw_results)
 
     @property
     def penalty(self) -> Optional[float]:
