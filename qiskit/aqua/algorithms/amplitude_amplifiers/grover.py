@@ -386,7 +386,7 @@ class Grover(QuantumAlgorithm):
         # in ``rotation_counts``. Once a good state is found (oracle_evaluation is True), stop.
         for power in self._iterations:
             if self._sample_from_iterations:
-                power = self.random.integers(power) + 1
+                power = self.random.integers(power)
             assignment, oracle_evaluation = self._run_experiment(power)
             if oracle_evaluation:
                 break
