@@ -18,6 +18,7 @@ from test.aqua import QiskitAquaTestCase
 import numpy as np
 import scipy.linalg
 
+import qiskit
 from qiskit.circuit import ParameterVector, Parameter
 
 from qiskit.aqua.operators import (X, Y, Z, I, CX, H, ListOp, CircuitOp, Zero, EvolutionFactory,
@@ -28,6 +29,35 @@ from qiskit.aqua.operators import (X, Y, Z, I, CX, H, ListOp, CircuitOp, Zero, E
 
 class TestEvolution(QiskitAquaTestCase):
     """Evolution tests."""
+
+    def test_exp_i(self):
+        """ exponential of Pauli test """
+        op = Z.exp_i()
+        gate = op.to_circuit().data[0][0]
+        self.assertIsInstance(gate, qiskit.circuit.library.RZGate)
+        self.assertEqual(gate.params[0], 2)
+
+    def test_trotter_with_identity(self):
+        """ trotterization of operator with identity term """
+        op = (2.0 * I ^ I) + (Z ^ Y)
+        exact_matrix = scipy.linalg.expm(-1j * op.to_matrix())
+        evo = PauliTrotterEvolution(trotter_mode='suzuki', reps=2)
+        with self.subTest('all PauliOp terms'):
+            circ_op = evo.convert(EvolvedOp(op))
+            circuit_matrix = qiskit.quantum_info.Operator(circ_op.to_circuit()).data
+            np.testing.assert_array_almost_equal(exact_matrix, circuit_matrix)
+
+        with self.subTest('MatrixOp identity term'):
+            op = (2.0 * I ^ I).to_matrix_op() + (Z ^ Y)
+            circ_op = evo.convert(EvolvedOp(op))
+            circuit_matrix = qiskit.quantum_info.Operator(circ_op.to_circuit()).data
+            np.testing.assert_array_almost_equal(exact_matrix, circuit_matrix)
+
+        with self.subTest('CircuitOp identity term'):
+            op = (2.0 * I ^ I).to_circuit_op() + (Z ^ Y)
+            circ_op = evo.convert(EvolvedOp(op))
+            circuit_matrix = qiskit.quantum_info.Operator(circ_op.to_circuit()).data
+            np.testing.assert_array_almost_equal(exact_matrix, circuit_matrix)
 
     def test_pauli_evolution(self):
         """ pauli evolution test """

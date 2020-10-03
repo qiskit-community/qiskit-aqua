@@ -255,12 +255,20 @@ def get_tsp_solution(x):
 
     Returns:
         list[int]: sequence of cities to traverse.
+            The i-th item in the list corresponds to the city which is visited in the i-th step.
+            The list for an infeasible answer e.g. [[0,1],1,] can be interpreted as
+            visiting [city0 and city1] as the first city, then visit city1 as the second city,
+            then visit no where as the third city).
     """
     n = int(np.sqrt(len(x)))
     z = []
     for p__ in range(n):
+        p_th_step = []
         for i in range(n):
             if x[i * n + p__] >= 0.999:
-                assert len(z) == p__
-                z.append(i)
+                p_th_step.append(i)
+        if len(p_th_step) == 1:
+            z.extend(p_th_step)
+        else:
+            z.append(p_th_step)
     return z
