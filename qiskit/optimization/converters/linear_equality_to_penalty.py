@@ -171,27 +171,30 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
             QiskitOptimizationError: if the number of variables in the result differs from
                                      that of the original problem.
         """
-        if len(result.x) != self._src.get_num_vars():
-            raise QiskitOptimizationError(
-                'The number of variables in the passed result differs from '
-                'that of the original problem.'
-            )
-        # Substitute variables to obtain the function value and feasibility in the original problem
-        substitute_dict = {}  # type: Dict[Union[str, int], float]
-        variables = self._src.variables
-        for i in range(len(result.x)):
-            substitute_dict[variables[i].name] = float(result.x[i])
-        substituted_qp = self._src.substitute_variables(substitute_dict)
-
-        # Set the new status of optimization result
-        if substituted_qp.status == QuadraticProgramStatus.VALID:
-            new_status = OptimizationResultStatus.SUCCESS
+        if result.x is None:
+            return result
         else:
-            new_status = OptimizationResultStatus.INFEASIBLE
+            if len(result.x) != self._src.get_num_vars():
+                raise QiskitOptimizationError(
+                    'The number of variables in the passed result differs from '
+                    'that of the original problem.'
+                )
+            # Substitute variables to obtain the function value and feasibility in the original problem
+            substitute_dict = {}  # type: Dict[Union[str, int], float]
+            variables = self._src.variables
+            for i in range(len(result.x)):
+                substitute_dict[variables[i].name] = float(result.x[i])
+            substituted_qp = self._src.substitute_variables(substitute_dict)
 
-        return OptimizationResult(x=result.x, fval=substituted_qp.objective.constant,
-                                  variables=self._src.variables, status=new_status,
-                                  raw_results=result.raw_results)
+            # Set the new status of optimization result
+            if substituted_qp.status == QuadraticProgramStatus.VALID:
+                new_status = OptimizationResultStatus.SUCCESS
+            else:
+                new_status = OptimizationResultStatus.INFEASIBLE
+
+            return OptimizationResult(x=result.x, fval=substituted_qp.objective.constant,
+                                    variables=self._src.variables, status=new_status,
+                                    raw_results=result.raw_results)
 
     @property
     def penalty(self) -> Optional[float]:

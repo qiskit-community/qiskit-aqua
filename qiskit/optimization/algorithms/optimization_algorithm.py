@@ -108,10 +108,13 @@ class OptimizationAlgorithm(ABC):
         Returns:
             The status of the result.
         """
-        is_feasible = problem.is_feasible(x)
+        if x is None:
+            return OptimizationResultStatus.SUCCESS
+        else:
+            is_feasible = problem.is_feasible(x)
 
-        return OptimizationResultStatus.SUCCESS if is_feasible \
-            else OptimizationResultStatus.INFEASIBLE
+            return OptimizationResultStatus.SUCCESS if is_feasible \
+                else OptimizationResultStatus.INFEASIBLE
 
 
 class OptimizationResult:
@@ -169,18 +172,25 @@ class OptimizationResult:
         Raises:
             QiskitOptimizationError: if sizes of ``x`` and ``variables`` do not match.
         """
-        if len(x) != len(variables):
-            raise QiskitOptimizationError(
-                'Inconsistent size of optimal value and variables. x: size {} {}, '
-                'variables: size {} {}'.format(len(x), x, len(variables),
-                                               [v.name for v in variables]))
-        self._x = x if isinstance(x, np.ndarray) else np.array(x)  # pylint: disable=invalid-name
+        self._variables = variables
+        self._variable_names = [var.name for var in self._variables]
+        if x is None:
+            # if no state is given, it is set to None
+            self._x = None  # pylint: disable=invalid-name
+            self._variables_dict = None
+        else:
+            if len(x) != len(variables):
+                raise QiskitOptimizationError(
+                    'Inconsistent size of optimal value and variables. x: size {} {}, '
+                    'variables: size {} {}'.format(len(x), x, len(variables),
+                                                   [v.name for v in variables]))
+            self._x = x if isinstance(x, np.ndarray) else np.array(
+                x)  # pylint: disable=invalid-name
+            self._variables_dict = dict(zip(self._variable_names, self._x))
+
         self._fval = fval
         self._raw_results = raw_results
         self._status = status
-        self._variables = variables
-        self._variable_names = [var.name for var in self._variables]
-        self._variables_dict = dict(zip(self._variable_names, self._x))
 
     def __repr__(self) -> str:
         return 'optimal function value: {}\n' \

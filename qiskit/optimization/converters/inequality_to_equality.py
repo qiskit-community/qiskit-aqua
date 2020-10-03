@@ -383,11 +383,14 @@ class InequalityToEquality(QuadraticProgramConverter):
         Returns:
             The result of the original problem.
         """
-        # convert back the optimization result into that of the original problem
-        names = [x.name for x in self._dst.variables]
-        new_x = self._interpret_var(names, result.x)
-        return OptimizationResult(x=new_x, fval=result.fval, variables=self._src.variables,
-                                  status=result.status, raw_results=result.raw_results)
+        if result.x is None:
+            return result
+        else:
+            # convert back the optimization result into that of the original problem
+            names = [x.name for x in self._dst.variables]
+            new_x = self._interpret_var(names, result.x)
+            return OptimizationResult(x=new_x, fval=result.fval, variables=self._src.variables,
+                                      status=result.status, raw_results=result.raw_results)
 
     def _interpret_var(self, names, vals) -> List[int]:
         # interpret slack variables
