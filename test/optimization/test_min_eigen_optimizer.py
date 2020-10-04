@@ -24,6 +24,7 @@ from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.aqua.algorithms import QAOA
 from qiskit.aqua.algorithms import QPE
 from qiskit.aqua.components.optimizers import COBYLA
+from qiskit.aqua.components.initial_states import Custom
 
 from qiskit.optimization.algorithms import MinimumEigenOptimizer, CplexOptimizer
 from qiskit.optimization.problems import QuadraticProgram
@@ -93,39 +94,43 @@ class TestMinEigenOptimizer(QiskitOptimizationTestCase):
             self.fail(str(ex))
 
     @data(
-        ('qpe', 'statevector_simulator', 'op_ip1.lp'),
-        ('qpe', 'qasm_simulator', 'op_ip1.lp')
+        'statevector_simulator',
+        'qasm_simulator'
     )
-    def test_min_eigen_optimizer_without_state(self, config):
+    def test_min_eigen_optimizer_with_qpe(self, config):
         """ Min Eigen Optimizer Test """
         try:
             # unpack configuration
-            min_eigen_solver_name, backend, filename = config
+            backend = config
 
-            # get minimum eigen solver
-            min_eigen_solver = self.min_eigen_solvers[min_eigen_solver_name]
-            if backend:
-                min_eigen_solver.quantum_instance = BasicAer.get_backend(backend)
-
-            # construct minimum eigen optimizer
-            min_eigen_optimizer = MinimumEigenOptimizer(min_eigen_solver)
-
-            # load optimization problem
+            # construct optimization problem
+            # maximize {x - y}, where x,y in {0, 1}
             problem = QuadraticProgram()
-            lp_file = self.get_resource_path(path.join('resources', filename))
-            problem.read_from_lp_file(lp_file)
+            problem.binary_var('x')
+            problem.binary_var('y')
+            problem.maximize(linear=[1, -1])
 
             # solve problem with cplex
             cplex = CplexOptimizer()
             cplex_result = cplex.solve(problem)
+
+            # get minimum eigen solver
+            min_eigen_solver = QPE(quantum_instance=BasicAer.get_backend(backend), num_ancillae=5)
+
+            # set initial state
+            state_vector = np.zeros(4)
+            state_vector[1] = 1  # |01>
+            min_eigen_solver._state_in = Custom(2, state_vector=state_vector)
+
+            # construct minimum eigen optimizer
+            min_eigen_optimizer = MinimumEigenOptimizer(min_eigen_solver)
 
             # solve problem
             result = min_eigen_optimizer.solve(problem)
             self.assertIsNotNone(result)
 
             # analyze results
-            # TODO: this should return the right value (i.e., cplex_result.fval), not 0
-            self.assertAlmostEqual(0.0, result.fval)
+            self.assertAlmostEqual(cplex_result.fval, result.fval)
 
             # check that eigensolver result is present
             self.assertIsNotNone(result.min_eigen_solver_result)

@@ -182,7 +182,10 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
                 x = [float(e) for e in samples[0][0]]
                 fval = samples[0][1]
             else:
-                fval = eigen_result.eigenvalue
+                if eigen_result.eigenvalue is not None:
+                    fval = problem_.objective.sense.value * eigen_result.eigenvalue
+                else:
+                    fval = None
                 x = None
                 x_str = None
                 samples = None
