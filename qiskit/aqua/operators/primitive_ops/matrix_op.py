@@ -220,7 +220,7 @@ class MatrixOp(PrimitiveOp):
 
     def to_gate(self, parameter_map=None, label=None) -> Gate:
         """ Returns a ``Gate`` equivalent to this Operator. """
-        if isinstance(self.primitive, List):  # type: ignore
+        if isinstance(self.primitive, List):  # pylint: disable=W1116
             n = len(self.primitive)
         else:
             n = self.primitive.num_qubits
