@@ -98,10 +98,22 @@ FCIDump file and again needs no special install.
    HDF5Driver
    FCIDumpDriver
 
+The :class:`GaussianLogDriver` allows an arbitrary Gaussian Job Control File to be run and
+return a :class:`GaussianLogResult` containing the log as well as ready access certain data
+of interest that is parsed from the log.
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   GaussianLogDriver
+   GaussianLogResult
+
+
 """
 from ._basedriver import BaseDriver, UnitsType, HFMethodType
 from .fcidumpd import FCIDumpDriver
-from .gaussiand import GaussianDriver
+from .gaussiand import GaussianDriver, GaussianLogDriver, GaussianLogResult
 from .hdf5d import HDF5Driver
 from .psi4d import PSI4Driver
 from .pyquanted import PyQuanteDriver, BasisType
@@ -112,6 +124,8 @@ __all__ = ['BaseDriver',
            'HFMethodType',
            'FCIDumpDriver',
            'GaussianDriver',
+           'GaussianLogDriver',
+           'GaussianLogResult',
            'HDF5Driver',
            'PSI4Driver',
            'BasisType',
