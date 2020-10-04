@@ -12,7 +12,7 @@
 
 """ MatrixOp Class """
 
-from typing import Union, Optional, Set, Dict
+from typing import Union, Optional, Set, Dict, List
 import logging
 import numpy as np
 from scipy.sparse import spmatrix
@@ -174,7 +174,11 @@ class MatrixOp(PrimitiveOp):
 
     def to_gate(self, parameter_map=None, label="matop Gate") -> Gate:
         """ Returns a ``Gate`` equivalent to this Operator. """
-        qc = QuantumCircuit(self.primitive.num_qubits)
+        if isinstance(self.primitive, List):
+            n = len(self.primitive)
+        else:
+            n = self.primitive.num_qubits
+        qc = QuantumCircuit(n)
         qc.append(self.primitive, list(range(self.primitive.num_qubits)))
         return qc.to_gate(parameter_map=parameter_map, label=label)
 
