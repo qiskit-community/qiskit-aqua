@@ -29,10 +29,10 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
     def setUp(self):
         super().setUp()
         aqua_globals.random_seed = 1
-        self.sv = QuantumInstance(Aer.get_backend('statevector_simulator'),
-                                          seed_simulator=921, seed_transpiler=200)
-        self.qasm = QuantumInstance(Aer.get_backend('qasm_simulator'),
-                                          seed_simulator=123, seed_transpiler=123)
+        self.sv_simulator = QuantumInstance(Aer.get_backend('statevector_simulator'),
+                                            seed_simulator=921, seed_transpiler=200)
+        self.qasm_simulator = QuantumInstance(Aer.get_backend('qasm_simulator'),
+                                              seed_simulator=123, seed_transpiler=123)
 
     def validate_results(self, problem, results):
         """Validate the results object returned by GroverOptimizer."""
@@ -57,7 +57,7 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
         op.from_docplex(model)
 
         # Will not find a negative, should return 0.
-        gmf = GroverOptimizer(1, num_iterations=1, quantum_instance=self.sv)
+        gmf = GroverOptimizer(1, num_iterations=1, quantum_instance=self.sv_simulator)
         results = gmf.solve(op)
         np.testing.assert_array_almost_equal(results.x, [0, 0])
         self.assertEqual(results.fval, 0.0)
@@ -76,7 +76,7 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
 
         # Get the optimum key and value.
         n_iter = 8
-        gmf = GroverOptimizer(4, num_iterations=n_iter, quantum_instance=self.sv)
+        gmf = GroverOptimizer(4, num_iterations=n_iter, quantum_instance=self.sv_simulator)
         results = gmf.solve(op)
         self.validate_results(op, results)
 
@@ -97,7 +97,7 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
 
         # Get the optimum key and value.
         n_iter = 8
-        gmf = GroverOptimizer(4, num_iterations=n_iter, quantum_instance=self.sv)
+        gmf = GroverOptimizer(4, num_iterations=n_iter, quantum_instance=self.sv_simulator)
         results = gmf.solve(op)
         self.validate_results(op, results)
 
@@ -115,7 +115,7 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
 
         # Get the optimum key and value.
         n_iter = 10
-        gmf = GroverOptimizer(6, num_iterations=n_iter, quantum_instance=self.sv)
+        gmf = GroverOptimizer(6, num_iterations=n_iter, quantum_instance=self.sv_simulator)
         results = gmf.solve(op)
         self.validate_results(op, results)
 
@@ -133,7 +133,7 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
 
         # Get the optimum key and value.
         n_iter = 10
-        gmf = GroverOptimizer(6, num_iterations=n_iter, quantum_instance=self.qasm)
+        gmf = GroverOptimizer(6, num_iterations=n_iter, quantum_instance=self.qasm_simulator)
         results = gmf.solve(op)
         self.validate_results(op, results)
 
