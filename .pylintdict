@@ -51,6 +51,7 @@ bitstring
 bitstrings
 bksf
 bmod
+bobyqa
 bohr
 bool
 boolean
@@ -70,6 +71,7 @@ cfg
 chc
 chernoff
 chu
+chuang
 chuang's
 circ
 circuitop
@@ -101,6 +103,7 @@ coord
 coords
 cov
 coveney
+cp
 cplex
 cr
 crs
@@ -163,6 +166,7 @@ eigenenergies
 eigensolver
 eigensolvers
 eigenstate
+eigenstates
 eigrange
 eigs
 eigvals
@@ -275,6 +279,7 @@ ij
 ijkl
 ik
 imag
+imfil
 imode
 implicant
 implicants
@@ -365,11 +370,13 @@ matlab
 matmul
 maxcut
 maxdepth
+maxfail
 maxfev
 maxfun
 maxima
 maxiter
 maxiters
+maxmp
 McArdle
 mccluskey
 mct
@@ -462,6 +469,7 @@ optimizers
 opv
 orbsym
 orthonormal
+otimes
 outers
 outpath
 overfit
@@ -536,6 +544,7 @@ quadratically
 quadraticconstraint
 quadraticprogram
 quandl
+quant
 quantile
 quantized
 quantumcircuit
@@ -606,8 +615,10 @@ sigmoid
 simonetto
 sj
 sklearn
+skquant
 slsqp
 smode
+snobfit
 spsa
 sqrt
 srange

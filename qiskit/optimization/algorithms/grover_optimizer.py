@@ -22,8 +22,6 @@ import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms.amplitude_amplifiers.grover import Grover
-from qiskit.aqua.components.initial_states import Custom
-from qiskit.aqua.components.oracles import CustomCircuitOracle
 from qiskit.providers import BaseBackend
 from qiskit.circuit.library import QuadraticForm
 from .optimization_algorithm import (OptimizationResultStatus, OptimizationAlgorithm,
@@ -100,34 +98,27 @@ class GroverOptimizer(OptimizationAlgorithm):
         quadratic_form = QuadraticForm(self._num_value_qubits, quadratic, linear, offset,
                                        little_endian=False)
 
-        a_operator_circuit = QuantumCircuit(qr_key_value)
-        a_operator_circuit.h(list(range(self._num_key_qubits)))
-        a_operator_circuit.compose(quadratic_form, inplace=True)
+        a_operator = QuantumCircuit(qr_key_value)
+        a_operator.h(list(range(self._num_key_qubits)))
+        a_operator.compose(quadratic_form, inplace=True)
 
-        a_operator = Custom(a_operator_circuit.width(), circuit=a_operator_circuit)
         return a_operator
 
     def _get_oracle(self, qr_key_value):
         # Build negative value oracle O.
-        qr_key_value = qr_key_value or QuantumRegister(
-            self._num_key_qubits + self._num_value_qubits)
+        if qr_key_value is None:
+            qr_key_value = QuantumRegister(self._num_key_qubits + self._num_value_qubits)
+
         oracle_bit = QuantumRegister(1, "oracle")
-        oracle_circuit = QuantumCircuit(qr_key_value, oracle_bit)
-        oracle_circuit.z(self._num_key_qubits)  # recognize negative values.
+        oracle = QuantumCircuit(qr_key_value, oracle_bit)
+        oracle.z(self._num_key_qubits)  # recognize negative values.
 
-        def evaluate_classically(self, measurement):
-            """ evaluate classical """
+        def is_good_state(self, measurement):
+            """Check whether ``measurement`` is a good state or not."""
             value = measurement[self._num_key_qubits:self._num_key_qubits + self._num_value_qubits]
-            assignment = [(var + 1) * (int(tf) * 2 - 1) for tf, var in zip(measurement,
-                                                                           range(len(measurement)))]
-            evaluation = value[0] == '1'
-            return evaluation, assignment
+            return value[0] == '1'
 
-        oracle = CustomCircuitOracle(variable_register=qr_key_value,
-                                     output_register=oracle_bit,
-                                     circuit=oracle_circuit,
-                                     evaluate_classically_callback=evaluate_classically)
-        return oracle
+        return oracle, is_good_state
 
     def solve(self, problem: QuadraticProgram) -> OptimizationResult:
         """Tries to solves the given problem using the grover optimizer.
@@ -189,7 +180,7 @@ class GroverOptimizer(OptimizationAlgorithm):
         qr_key_value = QuantumRegister(self._num_key_qubits + self._num_value_qubits)
         orig_constant = problem_.objective.constant
         measurement = not self.quantum_instance.is_statevector
-        oracle = self._get_oracle(qr_key_value)
+        oracle, is_good_state = self._get_oracle(qr_key_value)
 
         while not optimum_found:
             m = 1
@@ -210,10 +201,12 @@ class GroverOptimizer(OptimizationAlgorithm):
                 # Apply Grover's Algorithm to find values below the threshold.
                 if rotation_count > 0:
                     # TODO: Utilize Grover's incremental feature - requires changes to Grover.
-                    grover = Grover(oracle, init_state=a_operator, num_iterations=rotation_count)
-                    circuit = grover.construct_circuit(measurement=measurement)
+                    grover = Grover(oracle,
+                                    state_preparation=a_operator,
+                                    good_state=is_good_state)
+                    circuit = grover.construct_circuit(rotation_count, measurement=measurement)
                 else:
-                    circuit = a_operator._circuit
+                    circuit = a_operator
 
                 # Get the next outcome.
                 outcome = self._measure(circuit)

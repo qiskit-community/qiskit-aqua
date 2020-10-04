@@ -679,6 +679,23 @@ class TestConverters(QiskitOptimizationTestCase):
             quadratic.objective.quadratic.coefficients.toarray(), quadratic_matrix
         )
 
+    def test_0var_range_inequality(self):
+        """ Test InequalityToEquality converter when the var_rang of the slack variable is 0"""
+        op = QuadraticProgram()
+        op.binary_var('x')
+        op.binary_var('y')
+        op.linear_constraint(linear={'x': 1, 'y': 1}, sense='LE', rhs=0, name='xy_leq1')
+        op.linear_constraint(linear={'x': 1, 'y': 1}, sense='GE', rhs=2, name='xy_geq1')
+        op.quadratic_constraint(quadratic={('x', 'x'): 1}, sense='LE', rhs=0, name='xy_leq2')
+        op.quadratic_constraint(quadratic={('x', 'y'): 1}, sense='GE', rhs=1, name='xy_geq2')
+        ineq2eq = InequalityToEquality()
+        new_op = ineq2eq.convert(op)
+        self.assertEqual(new_op.get_num_vars(), 2)
+        self.assertTrue(all(l_const.sense == Constraint.Sense.EQ
+                            for l_const in new_op.linear_constraints))
+        self.assertTrue(all(q_const.sense == Constraint.Sense.EQ
+                            for q_const in new_op.quadratic_constraints))
+
     def test_integer_to_binary2(self):
         """Test integer to binary variables 2"""
         mod = QuadraticProgram()
