@@ -12,7 +12,6 @@
 
 """ Test Min Eigen Optimizer """
 
-
 import unittest
 from os import path
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
