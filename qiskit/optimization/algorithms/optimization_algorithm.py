@@ -109,7 +109,7 @@ class OptimizationAlgorithm(ABC):
             The status of the result.
         """
         if x is None:
-            return OptimizationResultStatus.SUCCESS
+            return OptimizationResultStatus.FAILURE
         else:
             is_feasible = problem.is_feasible(x)
 

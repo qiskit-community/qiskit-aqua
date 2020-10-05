@@ -17,6 +17,7 @@ import numpy as np
 from qiskit.aqua.algorithms import MinimumEigensolver, MinimumEigensolverResult
 from qiskit.aqua.operators import StateFn, DictStateFn
 
+from .. import QiskitOptimizationError
 from .optimization_algorithm import (OptimizationResultStatus, OptimizationAlgorithm,
                                      OptimizationResult)
 from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
@@ -113,6 +114,10 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
             min_eigen_solver: The eigen solver to find the ground state of the Hamiltonian.
             penalty: The penalty factor to be used, or ``None`` for applying a default logic.
         """
+
+        if not min_eigen_solver.supports_aux_operators():
+            raise QiskitOptimizationError('Given MinimumEigensolver does not return the eigenstate '
+                                          + 'and is not supported by the MinimumEigenOptimizer.')
         self._min_eigen_solver = min_eigen_solver
         self._penalty = penalty
         self._qubo_converter = QuadraticProgramToQubo()
@@ -173,6 +178,10 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
 
             # analyze results
             # backend = getattr(self._min_eigen_solver, 'quantum_instance', None)
+            fval = None
+            x = None
+            x_str = None
+            samples = None
             if eigen_result.eigenstate is not None:
                 samples = _eigenvector_to_solutions(eigen_result.eigenstate, problem_)
                 # print(offset, samples)
@@ -181,14 +190,6 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
                 samples.sort(key=lambda x: problem_.objective.sense.value * x[1])
                 x = [float(e) for e in samples[0][0]]
                 fval = samples[0][1]
-            else:
-                if eigen_result.eigenvalue is not None:
-                    fval = problem_.objective.sense.value * eigen_result.eigenvalue
-                else:
-                    fval = None
-                x = None
-                x_str = None
-                samples = None
 
         # if Hamiltonian is empty, then the objective function is constant to the offset
         else:

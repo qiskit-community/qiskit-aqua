@@ -94,52 +94,6 @@ class TestMinEigenOptimizer(QiskitOptimizationTestCase):
             self.fail(str(ex))
 
     @data(
-        'statevector_simulator',
-        'qasm_simulator'
-    )
-    def test_min_eigen_optimizer_with_qpe(self, config):
-        """ Min Eigen Optimizer Test """
-        try:
-            # unpack configuration
-            backend = config
-
-            # construct optimization problem
-            # maximize {x - y}, where x,y in {0, 1}
-            problem = QuadraticProgram()
-            problem.binary_var('x')
-            problem.binary_var('y')
-            problem.maximize(linear=[1, -1])
-
-            # solve problem with cplex
-            cplex = CplexOptimizer()
-            cplex_result = cplex.solve(problem)
-
-            # get minimum eigen solver
-            min_eigen_solver = QPE(quantum_instance=BasicAer.get_backend(backend), num_ancillae=5)
-
-            # set initial state
-            state_vector = np.zeros(4)
-            state_vector[1] = 1  # |01>
-            min_eigen_solver._state_in = Custom(2, state_vector=state_vector)
-
-            # construct minimum eigen optimizer
-            min_eigen_optimizer = MinimumEigenOptimizer(min_eigen_solver)
-
-            # solve problem
-            result = min_eigen_optimizer.solve(problem)
-            self.assertIsNotNone(result)
-
-            # analyze results
-            self.assertAlmostEqual(cplex_result.fval, result.fval)
-
-            # check that eigensolver result is present
-            self.assertIsNotNone(result.min_eigen_solver_result)
-        except MissingOptionalLibraryError as ex:
-            self.skipTest(str(ex))
-        except RuntimeError as ex:
-            self.fail(str(ex))
-
-    @data(
         ('op_ip1.lp', -470, 12, OptimizationResultStatus.SUCCESS),
         ('op_ip1.lp', np.inf, None, OptimizationResultStatus.FAILURE),
         )
