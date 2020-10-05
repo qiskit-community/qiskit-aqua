@@ -222,12 +222,9 @@ class IntegerToBinary(QuadraticProgramConverter):
         # pylint: disable=cyclic-import
         from ..algorithms.optimization_algorithm import OptimizationResult
 
-        if result.x is None:
-            return result
-        else:
-            new_x = self._interpret_var(result.x)
-            return OptimizationResult(x=new_x, fval=result.fval, variables=self._src.variables,
-                                      status=result.status, raw_results=result.raw_results)
+        new_x = self._interpret_var(result.x)
+        return OptimizationResult(x=new_x, fval=result.fval, variables=self._src.variables,
+                                  status=result.status, raw_results=result.raw_results)
 
     def _interpret_var(self, vals: Union[List[float], np.ndarray]) -> List[float]:
         # interpret integer values
