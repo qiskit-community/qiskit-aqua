@@ -12,14 +12,15 @@
 
 """ PyQuante Driver """
 
-from typing import Union, List, cast
+from typing import Union, List, Optional
 import importlib
 from enum import Enum
 import logging
 from qiskit.aqua.utils.validation import validate_min
-from ..integrals_driver import IntegralsDriver, UnitsType, HFMethodType
+from ..units_type import UnitsType
+from ..fermionic_driver import FermionicDriver, HFMethodType
 from ...qiskit_chemistry_error import QiskitChemistryError
-from ...molecule import Molecule
+from ..molecule import Molecule
 from ...qmolecule import QMolecule
 from .integrals import compute_integrals
 
@@ -33,7 +34,7 @@ class BasisType(Enum):
     B631GSS = '6-31g**'
 
 
-class PyQuanteDriver(IntegralsDriver):
+class PyQuanteDriver(FermionicDriver):
     """
     Qiskit chemistry driver using the PyQuante2 library.
 
@@ -41,7 +42,7 @@ class PyQuanteDriver(IntegralsDriver):
     """
 
     def __init__(self,
-                 atoms: Union[str, List[str], Molecule] =
+                 atoms: Union[str, List[str]] =
                  'H 0.0 0.0 0.0; H 0.0 0.0 0.735',
                  units: UnitsType = UnitsType.ANGSTROM,
                  charge: int = 0,
@@ -49,7 +50,8 @@ class PyQuanteDriver(IntegralsDriver):
                  basis: BasisType = BasisType.BSTO3G,
                  hf_method: HFMethodType = HFMethodType.RHF,
                  tol: float = 1e-8,
-                 maxiters: int = 100) -> None:
+                 maxiters: int = 100,
+                 molecule: Optional[Molecule] = None) -> None:
         """
         Args:
             atoms: atoms list or string separated by semicolons or line breaks
@@ -61,37 +63,29 @@ class PyQuanteDriver(IntegralsDriver):
             tol: Convergence tolerance see pyquante2.scf hamiltonians and iterators
             maxiters: Convergence max iterations see pyquante2.scf hamiltonians and iterators,
                       has a min. value of 1.
+            molecule: molecule
 
         Raises:
             QiskitChemistryError: Invalid Input
         """
-        units = units.value
-        basis = basis.value
-        hf_method = hf_method.value
         validate_min('maxiters', maxiters, 1)
         self._check_valid()
-        if not isinstance(atoms, str) and \
-                not isinstance(atoms, list) and \
-                not isinstance(atoms, Molecule):
+        if not isinstance(atoms, str) and not isinstance(atoms, list):
             raise QiskitChemistryError("Invalid atom input for PYQUANTE Driver '{}'".format(atoms))
 
         if isinstance(atoms, list):
             atoms = ';'.join(atoms)
         elif isinstance(atoms, str):
             atoms = atoms.replace('\n', ';')
-        elif isinstance(atoms, Molecule):
-            if atoms.basis_set is None:
-                atoms.basis_set = cast(str, basis)
-            if atoms.hf_method is None:
-                atoms.hf_method = cast(str, hf_method)
 
-        super().__init__()
+        super().__init__(molecule=molecule,
+                         basis=basis.value,
+                         hf_method=hf_method.value,
+                         supports_molecule=True)
         self._atoms = atoms
-        self._units = units
+        self._units = units.value
         self._charge = charge
         self._multiplicity = multiplicity
-        self._basis = cast(str, basis)
-        self._hf_method = cast(str, hf_method)
         self._tol = tol
         self._maxiters = maxiters
 
@@ -109,22 +103,23 @@ class PyQuanteDriver(IntegralsDriver):
         raise QiskitChemistryError(err_msg)
 
     def run(self) -> QMolecule:
-        if isinstance(self._atoms, Molecule):
+        if self.molecule is not None:
             atoms = ';'.join([name + ' ' + ' '.join(map(str, coord))
-                              for (name, coord) in self._atoms.geometry])
-            charge = self._atoms.charge
-            multiplicity = self._atoms.multiplicity
-            basis = self._atoms.basis_set
-            hf_method = self._atoms.hf_method
+                              for (name, coord) in self.molecule.geometry])
+            charge = self.molecule.charge
+            multiplicity = self.molecule.multiplicity
+            units = self.molecule.units.value
         else:
             atoms = self._atoms
             charge = self._charge
             multiplicity = self._multiplicity
-            basis = self._basis
-            hf_method = self._hf_method
+            units = self._units
+
+        basis = self.basis
+        hf_method = self.hf_method
 
         q_mol = compute_integrals(atoms=atoms,
-                                  units=self._units,
+                                  units=units,
                                   charge=charge,
                                   multiplicity=multiplicity,
                                   basis=basis,
@@ -134,7 +129,7 @@ class PyQuanteDriver(IntegralsDriver):
 
         q_mol.origin_driver_name = 'PYQUANTE'
         cfg = ['atoms={}'.format(atoms),
-               'units={}'.format(self._units),
+               'units={}'.format(units),
                'charge={}'.format(charge),
                'multiplicity={}'.format(multiplicity),
                'basis={}'.format(basis),

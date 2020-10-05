@@ -24,14 +24,14 @@ from qiskit.chemistry.components.initial_states import HartreeFock
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.core import (Hamiltonian, TransformationType, QubitMappingType,
                                    ChemistryOperator, MolecularGroundStateResult)
-from qiskit.chemistry.drivers import IntegralsDriver
+from qiskit.chemistry.drivers import FermionicDriver
 
 
 class MolecularGroundStateEnergy:
     """ Molecular ground state energy chemistry application """
 
     def __init__(self,
-                 driver: IntegralsDriver,
+                 driver: FermionicDriver,
                  solver: Optional[MinimumEigensolver] = None,
                  transformation: TransformationType = TransformationType.FULL,
                  qubit_mapping: QubitMappingType = QubitMappingType.PARITY,
@@ -69,12 +69,12 @@ class MolecularGroundStateEnergy:
         self._z2symmetry_reduction = z2symmetry_reduction
 
     @property
-    def driver(self) -> IntegralsDriver:
+    def driver(self) -> FermionicDriver:
         """ Returns chemistry driver """
         return self._driver
 
     @driver.setter
-    def driver(self, driver: IntegralsDriver) -> None:
+    def driver(self, driver: FermionicDriver) -> None:
         self._driver = driver
 
     @property

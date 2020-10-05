@@ -56,6 +56,7 @@ class GaussianLogDriver(BaseDriver):
             jcf = '\n'.join(jcf)
 
         self._jcf = jcf
+        super().__init__()
 
     @staticmethod
     def _check_valid():

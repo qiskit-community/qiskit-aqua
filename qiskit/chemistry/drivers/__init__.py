@@ -51,7 +51,7 @@ Driver Base Class
    :nosignatures:
 
    BaseDriver
-   IntegralsDriver
+   FermionicDriver
 
 Driver Common
 =============
@@ -60,6 +60,7 @@ Driver Common
    :toctree: ../stubs/
    :nosignatures:
 
+   Molecule
    HFMethodType
    UnitsType
    BasisType
@@ -114,7 +115,9 @@ of interest that is parsed from the log.
 """
 
 from .base_driver import BaseDriver
-from .integrals_driver import IntegralsDriver, UnitsType, HFMethodType
+from .molecule import Molecule
+from .fermionic_driver import FermionicDriver, HFMethodType
+from .units_type import UnitsType
 from .fcidumpd import FCIDumpDriver
 from .gaussiand import GaussianDriver, GaussianLogDriver, GaussianLogResult
 from .hdf5d import HDF5Driver
@@ -123,8 +126,9 @@ from .pyquanted import PyQuanteDriver, BasisType
 from .pyscfd import PySCFDriver, InitialGuess
 
 __all__ = ['HFMethodType',
+           'Molecule',
            'BaseDriver',
-           'IntegralsDriver',
+           'FermionicDriver',
            'UnitsType',
            'FCIDumpDriver',
            'GaussianDriver',

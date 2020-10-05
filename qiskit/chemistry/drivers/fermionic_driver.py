@@ -11,7 +11,7 @@
 # that they have been altered from the originals.
 
 """
-This module implements the abstract base class for integral driver modules.
+This module implements the abstract base class for fermionic driver modules.
 """
 
 from abc import abstractmethod
@@ -21,12 +21,6 @@ from ..qmolecule import QMolecule
 from .base_driver import BaseDriver
 
 
-class UnitsType(Enum):
-    """ Units Type Enum """
-    ANGSTROM = 'Angstrom'
-    BOHR = 'Bohr'
-
-
 class HFMethodType(Enum):
     """ HFMethodType Enum """
     RHF = 'rhf'
@@ -34,9 +28,9 @@ class HFMethodType(Enum):
     UHF = 'uhf'
 
 
-class IntegralsDriver(BaseDriver):
+class FermionicDriver(BaseDriver):
     """
-    Base class for Qiskit's chemistry integral drivers.
+    Base class for Qiskit's chemistry fermionic drivers.
     """
 
     @abstractmethod

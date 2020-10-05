@@ -12,14 +12,15 @@
 
 """ PYSCF Driver """
 
-from typing import Optional, Union, List, cast
+from typing import Optional, Union, List
 import importlib
 from enum import Enum
 import logging
 from qiskit.aqua.utils.validation import validate_min
-from ..integrals_driver import IntegralsDriver, UnitsType, HFMethodType
+from ..units_type import UnitsType
+from ..fermionic_driver import FermionicDriver, HFMethodType
 from ...qiskit_chemistry_error import QiskitChemistryError
-from ...molecule import Molecule
+from ..molecule import Molecule
 from ...qmolecule import QMolecule
 from .integrals import compute_integrals
 
@@ -34,7 +35,7 @@ class InitialGuess(Enum):
     ATOM = 'atom'
 
 
-class PySCFDriver(IntegralsDriver):
+class PySCFDriver(FermionicDriver):
     """
     Qiskit chemistry driver using the PySCF library.
 
@@ -42,7 +43,7 @@ class PySCFDriver(IntegralsDriver):
     """
 
     def __init__(self,
-                 atom: Union[str, List[str], Molecule] =
+                 atom: Union[str, List[str]] =
                  'H 0.0 0.0 0.0; H 0.0 0.0 0.735',
                  unit: UnitsType = UnitsType.ANGSTROM,
                  charge: int = 0,
@@ -52,7 +53,8 @@ class PySCFDriver(IntegralsDriver):
                  conv_tol: float = 1e-9,
                  max_cycle: int = 50,
                  init_guess: InitialGuess = InitialGuess.MINAO,
-                 max_memory: Optional[int] = None) -> None:
+                 max_memory: Optional[int] = None,
+                 molecule: Optional[Molecule] = None) -> None:
         """
         Args:
             atom: atom list or string separated by semicolons or line breaks
@@ -66,41 +68,32 @@ class PySCFDriver(IntegralsDriver):
                        has a min. value of 1.
             init_guess: See PySCF pyscf/scf/hf.py init_guess_by_minao/1e/atom methods
             max_memory: maximum memory
+            molecule: molecule
 
         Raises:
             QiskitChemistryError: Invalid Input
         """
         self._check_valid()
-        if not isinstance(atom, str) and \
-                not isinstance(atom, list) and \
-                not isinstance(atom, Molecule):
+        if not isinstance(atom, str) and not isinstance(atom, list):
             raise QiskitChemistryError("Invalid atom input for PYSCF Driver '{}'".format(atom))
-
-        unit = unit.value
-        hf_method = hf_method.value
-        init_guess = init_guess.value
 
         if isinstance(atom, list):
             atom = ';'.join(atom)
         elif isinstance(atom, str):
             atom = atom.replace('\n', ';')
-        elif isinstance(atom, Molecule):
-            if atom.basis_set is None:
-                atom.basis_set = basis
-            if atom.hf_method is None:
-                atom.hf_method = cast(str, hf_method)
 
         validate_min('max_cycle', max_cycle, 1)
-        super().__init__()
+        super().__init__(molecule=molecule,
+                         basis=basis,
+                         hf_method=hf_method.value,
+                         supports_molecule=True)
         self._atom = atom
-        self._unit = unit
+        self._units = unit.value
         self._charge = charge
         self._spin = spin
-        self._basis = basis
-        self._hf_method = cast(str, hf_method)
         self._conv_tol = conv_tol
         self._max_cycle = max_cycle
-        self._init_guess = init_guess
+        self._init_guess = init_guess.value
         self._max_memory = max_memory
 
     @staticmethod
@@ -117,22 +110,23 @@ class PySCFDriver(IntegralsDriver):
         raise QiskitChemistryError(err_msg)
 
     def run(self) -> QMolecule:
-        if isinstance(self._atom, Molecule):
+        if self.molecule is not None:
             atom = ';'.join([name + ' ' + ' '.join(map(str, coord))
-                             for (name, coord) in self._atom.geometry])
-            charge = self._atom.charge
-            spin = self._atom.multiplicity
-            basis = self._atom.basis_set
-            hf_method = self._atom.hf_method
+                             for (name, coord) in self.molecule.geometry])
+            charge = self.molecule.charge
+            spin = self.molecule.multiplicity - 1
+            units = self.molecule.units.value
         else:
             atom = self._atom
             charge = self._charge
             spin = self._spin
-            basis = self._basis
-            hf_method = self._hf_method
+            units = self._units
+
+        basis = self.basis
+        hf_method = self.hf_method
 
         q_mol = compute_integrals(atom=atom,
-                                  unit=self._unit,
+                                  unit=units,
                                   charge=charge,
                                   spin=spin,
                                   basis=basis,
@@ -144,7 +138,7 @@ class PySCFDriver(IntegralsDriver):
 
         q_mol.origin_driver_name = 'PYSCF'
         cfg = ['atom={}'.format(atom),
-               'unit={}'.format(self._unit),
+               'unit={}'.format(units),
                'charge={}'.format(charge),
                'spin={}'.format(spin),
                'basis={}'.format(basis),

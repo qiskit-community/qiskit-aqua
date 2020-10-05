@@ -23,6 +23,8 @@ import copy
 import numpy as np
 import scipy.linalg
 
+from .units_type import UnitsType
+
 
 class Molecule:
     """
@@ -63,8 +65,6 @@ class Molecule:
         self._check_masses(masses)
 
         self._masses = masses
-        self._basis_set = None  # type: Optional[str]
-        self._hf_method = None  # type: Optional[str]
 
     def _check_masses(self, masses: Optional[List[float]]):
         if masses is not None and not len(masses) == len(self._geometry):
@@ -333,6 +333,11 @@ class Molecule:
         return geometry
 
     @property
+    def units(self):
+        """ return units """
+        return UnitsType.ANGSTROM
+
+    @property
     def geometry(self) -> List[Tuple[str, List[float]]]:
         """ return geometry """
         return self._geometry
@@ -348,26 +353,6 @@ class Molecule:
     def geometry_str(self) -> str:
         """ return geometry string """
         return Molecule.get_geometry_str(self.geometry)
-
-    @property
-    def basis_set(self) -> Optional[str]:
-        """ return basis set """
-        return self._basis_set
-
-    @basis_set.setter
-    def basis_set(self, value: str) -> None:
-        """ set basis set """
-        self._basis_set = value
-
-    @property
-    def hf_method(self) -> Optional[str]:
-        """ return hf method """
-        return self._hf_method
-
-    @hf_method.setter
-    def hf_method(self, value: str) -> None:
-        """ set hf method """
-        self._hf_method = value
 
     @property
     def masses(self) -> Optional[List[float]]:

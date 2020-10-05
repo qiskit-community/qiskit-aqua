@@ -15,8 +15,8 @@
 import unittest
 from test.chemistry import QiskitChemistryTestCase
 from test.chemistry.test_driver import TestDriver
-from qiskit.chemistry.drivers import PyQuanteDriver, UnitsType, BasisType, HFMethodType
-from qiskit.chemistry import QiskitChemistryError, Molecule
+from qiskit.chemistry.drivers import PyQuanteDriver, UnitsType, BasisType
+from qiskit.chemistry import QiskitChemistryError
 
 
 class TestDriverPyQuante(QiskitChemistryTestCase, TestDriver):
@@ -40,13 +40,8 @@ class TestDriverPyQuanteMolecule(QiskitChemistryTestCase, TestDriver):
 
     def setUp(self):
         super().setUp()
-        mol = Molecule(geometry=[('H', [.0, .0, .0]), ('H', [.0, .0, 0.735])],
-                       multiplicity=1,
-                       charge=0)
-        mol.basis_set = BasisType.BSTO3G.value
-        mol.hf_method = HFMethodType.RHF.value
         try:
-            driver = PyQuanteDriver(mol)
+            driver = PyQuanteDriver(molecule=TestDriver.MOLECULE)
         except QiskitChemistryError:
             self.skipTest('PYQUANTE driver does not appear to be installed')
         self.qmolecule = driver.run()
