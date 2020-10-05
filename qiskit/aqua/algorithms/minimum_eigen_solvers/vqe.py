@@ -29,6 +29,7 @@ from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.operators import (OperatorBase, ExpectationBase, ExpectationFactory, StateFn,
                                    CircuitStateFn, LegacyBaseOperator, ListOp, I, CircuitSampler)
+from qiskit.aqua.operators.gradients import GradientBase
 from qiskit.aqua.components.optimizers import Optimizer, SLSQP
 from qiskit.aqua.components.variational_forms import VariationalForm
 from qiskit.aqua.utils.validation import validate_min
