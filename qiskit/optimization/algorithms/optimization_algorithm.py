@@ -37,88 +37,6 @@ class OptimizationResultStatus(Enum):
     """the optimization algorithm obtained an infeasible solution."""
 
 
-class OptimizationAlgorithm(ABC):
-    """An abstract class for optimization algorithms in Qiskit's optimization module."""
-
-    @abstractmethod
-    def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
-        """Checks whether a given problem can be solved with the optimizer implementing this method.
-
-        Args:
-            problem: The optimization problem to check compatibility.
-
-        Returns:
-            Returns the incompatibility message. If the message is empty no issues were found.
-        """
-
-    def is_compatible(self, problem: QuadraticProgram) -> bool:
-        """Checks whether a given problem can be solved with the optimizer implementing this method.
-
-        Args:
-            problem: The optimization problem to check compatibility.
-
-        Returns:
-            Returns True if the problem is compatible, False otherwise.
-        """
-        return len(self.get_compatibility_msg(problem)) == 0
-
-    @abstractmethod
-    def solve(self, problem: QuadraticProgram) -> 'OptimizationResult':
-        """Tries to solves the given problem using the optimizer.
-
-        Runs the optimizer to try to solve the optimization problem.
-
-        Args:
-            problem: The problem to be solved.
-
-        Returns:
-            The result of the optimizer applied to the problem.
-
-        Raises:
-            QiskitOptimizationError: If the problem is incompatible with the optimizer.
-        """
-        raise NotImplementedError
-
-    def _verify_compatibility(self, problem: QuadraticProgram) -> None:
-        """Verifies that the problem is suitable for this optimizer. If the problem is not
-        compatible then an exception is raised. This method is for convenience for concrete
-        optimizers and is not intended to be used by end user.
-
-        Args:
-            problem: Problem to verify.
-
-        Returns:
-            None
-
-        Raises:
-            QiskitOptimizationError: If the problem is incompatible with the optimizer.
-
-        """
-        # check compatibility and raise exception if incompatible
-        msg = self.get_compatibility_msg(problem)
-        if msg:
-            raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
-
-    def _get_feasibility_status(self, problem: QuadraticProgram,
-                                x: Union[List[float], np.ndarray]) -> OptimizationResultStatus:
-        """Returns whether the input result is feasible or not for the given problem.
-
-        Args:
-            problem: Problem to verify.
-            x: the input result list.
-
-        Returns:
-            The status of the result.
-        """
-        if x is None:
-            return OptimizationResultStatus.FAILURE
-        else:
-            is_feasible = problem.is_feasible(x)
-
-            return OptimizationResultStatus.SUCCESS if is_feasible \
-                else OptimizationResultStatus.INFEASIBLE
-
-
 class OptimizationResult:
     """A base class for optimization results.
 
@@ -367,6 +285,9 @@ class OptimizationAlgorithm(ABC):
             The status of the result.
         """
         is_feasible = problem.is_feasible(x)
+
+        if x is None:
+            return OptimizationResultStatus.FAILURE
 
         return OptimizationResultStatus.SUCCESS if is_feasible \
             else OptimizationResultStatus.INFEASIBLE

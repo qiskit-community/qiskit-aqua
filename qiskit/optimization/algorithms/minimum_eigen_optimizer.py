@@ -212,7 +212,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
 
         result = self._interpret(result, self._converters)
 
-        if result.fval is None:
+        if result.fval is None or result.x is None:
             # if not function value is given, then something went wrong, e.g., a
             # NumPyMinimumEigensolver has been configured with an infeasible filter criterion.
             return MinimumEigenOptimizationResult(x=None, fval=None,
