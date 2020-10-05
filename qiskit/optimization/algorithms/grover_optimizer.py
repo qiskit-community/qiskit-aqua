@@ -197,6 +197,7 @@ class GroverOptimizer(OptimizationAlgorithm):
                 rotation_count = int(np.ceil(aqua_globals.random.uniform(0, m - 1)))
                 rotations += rotation_count
                 # Apply Grover's Algorithm to find values below the threshold.
+                # TODO: Utilize Grover's incremental feature - requires changes to Grover.
                 grover = Grover(oracle,
                                 state_preparation=a_operator,
                                 good_state=is_good_state)
