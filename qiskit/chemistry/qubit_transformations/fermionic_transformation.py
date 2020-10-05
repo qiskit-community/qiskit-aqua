@@ -127,6 +127,7 @@ class FermionicTransformation(QubitOperatorTransformation):
         """
         q_molecule = driver.run()
         ops, aux_ops = self._do_transform(q_molecule)  # _do_transform(q_molecule)
+
         return ops, aux_ops
 
     def _do_transform(self, qmolecule: QMolecule) -> Tuple[WeightedPauliOperator,
@@ -358,7 +359,7 @@ class FermionicTransformation(QubitOperatorTransformation):
 
             if self._z2symmetry_reduction == 'auto':
                 hf_state = HartreeFock(num_orbitals=self._molecule_info['num_orbitals'],
-                                       qubit_mapping=self._qubit_mapping.value,
+                                       qubit_mapping=self._qubit_mapping,
                                        two_qubit_reduction=self._two_qubit_reduction,
                                        num_particles=self._molecule_info['num_particles'])
                 z2_symmetries = FermionicTransformation._pick_sector(z2_symmetries, hf_state.bitstr)

@@ -23,7 +23,9 @@ from qiskit.aqua.algorithms import VQE
 from qiskit.aqua.components.optimizers import SLSQP
 from qiskit.chemistry.components.initial_states import HartreeFock
 from qiskit.chemistry.drivers import HDF5Driver
-from qiskit.chemistry.core import Hamiltonian, QubitMappingType
+from qiskit.chemistry.ground_state_calculation import MinimumEigensolverGroundStateCalculation
+from qiskit.chemistry.core import TransformationType, QubitMappingType
+from qiskit.chemistry.qubit_transformations import FermionicTransformation
 
 class TestExcitationPreserving(QiskitChemistryTestCase):
     """The ExcitationPresering wavefunction was design to preserve the excitation of the system.
@@ -42,31 +44,34 @@ class TestExcitationPreserving(QiskitChemistryTestCase):
     def test_excitation_preserving(self):
         """Test the excitation preserving wavefunction on a chemistry example."""
 
-        driver = HDF5Driver(self.get_resource_path('test_driver_hdf5.hdf5'))
-        qmolecule = driver.run()
         warnings.filterwarnings('ignore', category=DeprecationWarning)
-        operator = Hamiltonian(qubit_mapping=QubitMappingType.JORDAN_WIGNER,
-                               two_qubit_reduction=False)
+        self.driver = HDF5Driver(self.get_resource_path('test_driver_hdf5.hdf5'))
+        fermionic_transformation = FermionicTransformation(qubit_mapping=QubitMappingType.PARITY,
+                                                           two_qubit_reduction=False)
+
         warnings.filterwarnings('always', category=DeprecationWarning)
-        qubit_op, _ = operator.run(qmolecule)
+        qubit_op, _ = fermionic_transformation.transform(self.driver)
 
         optimizer = SLSQP(maxiter=100)
-        initial_state = HartreeFock(operator.molecule_info['num_orbitals'],
-                                    operator.molecule_info['num_particles'],
-                                    qubit_mapping=operator._qubit_mapping,
-                                    two_qubit_reduction=operator._two_qubit_reduction)
+        initial_state = HartreeFock(fermionic_transformation._molecule_info['num_orbitals'],
+                                    fermionic_transformation._molecule_info['num_particles'],
+                                    qubit_mapping=fermionic_transformation._qubit_mapping,
+                                    two_qubit_reduction=fermionic_transformation._two_qubit_reduction)
 
         wavefunction = ExcitationPreserving(qubit_op.num_qubits, initial_state=initial_state)
-        algo = VQE(qubit_op, wavefunction, optimizer)
 
-        result = algo.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),
-                                          seed_simulator=aqua_globals.random_seed,
-                                          seed_transpiler=aqua_globals.random_seed))
+        solver = VQE(var_form = wavefunction, optimizer = optimizer,
+                     quantum_instance = QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                                        seed_simulator=aqua_globals.random_seed,
+                                                        seed_transpiler=aqua_globals.random_seed))
+
+        gsc = MinimumEigensolverGroundStateCalculation(fermionic_transformation, solver)
+
+        result = gsc.compute_groundstate(self.driver)
+
         warnings.filterwarnings('ignore', category=DeprecationWarning)
-        result = operator.process_algorithm_result(result)
         warnings.filterwarnings('always', category=DeprecationWarning)
-        self.assertAlmostEqual(result.energy, self.reference_energy, places=6)
-
+        self.assertAlmostEqual(result.energy, self.reference_energy, places=4)
 
 if __name__ == '__main__':
     unittest.main()
