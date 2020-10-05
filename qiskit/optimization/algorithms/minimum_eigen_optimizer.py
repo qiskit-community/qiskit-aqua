@@ -119,7 +119,8 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
                 :class:`~qiskit.optimization.converters.QuadraticProgramToQubo` will be used.
 
         Raises:
-            TypeError: When there one of converters is an invalid type.
+            TypeError: When one of converters has an invalid type.
+            QiskitOptimizationError: When the minimum eigensolver does not return an eigenstate.
         """
 
         if not min_eigen_solver.supports_aux_operators():

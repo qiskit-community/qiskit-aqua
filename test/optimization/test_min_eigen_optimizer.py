@@ -12,9 +12,7 @@
 
 """ Test Min Eigen Optimizer """
 
-from qiskit.optimization.converters import (IntegerToBinary, InequalityToEquality,
-                                            LinearEqualityToPenalty, QuadraticProgramToQubo)
-from qiskit.optimization.algorithms.optimization_algorithm import OptimizationResultStatus
+
 import unittest
 from os import path
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
@@ -25,15 +23,12 @@ from qiskit import BasicAer
 from qiskit.aqua import MissingOptionalLibraryError
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.aqua.algorithms import QAOA
-from qiskit.aqua.algorithms import QPE
 from qiskit.aqua.components.optimizers import COBYLA
-from qiskit.aqua.components.initial_states import Custom
-
 from qiskit.optimization.algorithms import MinimumEigenOptimizer, CplexOptimizer
 from qiskit.optimization.problems import QuadraticProgram
-<< << << < HEAD
-== == == =
->>>>>> > master
+from qiskit.optimization.converters import (IntegerToBinary, InequalityToEquality,
+                                            LinearEqualityToPenalty, QuadraticProgramToQubo)
+from qiskit.optimization.algorithms.optimization_algorithm import OptimizationResultStatus
 
 
 @ddt
@@ -52,9 +47,6 @@ class TestMinEigenOptimizer(QiskitOptimizationTestCase):
         # QAOA
         optimizer = COBYLA()
         self.min_eigen_solvers['qaoa'] = QAOA(optimizer=optimizer)
-
-        # QPE
-        self.min_eigen_solvers['qpe'] = QPE()
 
     @data(
         ('exact', None, 'op_ip1.lp'),
