@@ -45,7 +45,6 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         fermionic_transformation = FermionicTransformation(qubit_mapping=QubitMappingType.PARITY,
                                                            two_qubit_reduction=False)
 
-        warnings.filterwarnings('always', category=DeprecationWarning)
         self.qubit_op, _ = fermionic_transformation.transform(self.driver)
         self.fermionic_transformation = fermionic_transformation
 
@@ -86,7 +85,6 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
 
         result = gsc.compute_groundstate(self.driver)
 
-        warnings.filterwarnings('always', category=DeprecationWarning)
         self.assertAlmostEqual(result.energy, -1.138, places=2)
 
     def test_uccsd_hf_aer_statevector(self):
@@ -105,8 +103,6 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
 
         result = gsc.compute_groundstate(self.driver)
 
-        warnings.filterwarnings('ignore', category=DeprecationWarning)
-        warnings.filterwarnings('always', category=DeprecationWarning)
         self.assertAlmostEqual(result.energy, self.reference_energy, places=6)
 
     def test_uccsd_hf_aer_qasm(self):
@@ -129,8 +125,6 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
 
         result = gsc.compute_groundstate(self.driver)
 
-        warnings.filterwarnings('ignore', category=DeprecationWarning)
-        warnings.filterwarnings('always', category=DeprecationWarning)
         self.assertAlmostEqual(result.energy, -1.138, places=2)
 
     def test_uccsd_hf_aer_qasm_snapshot(self):
@@ -150,8 +144,6 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         gsc = MinimumEigensolverGroundStateCalculation(self.fermionic_transformation, solver)
 
         result = gsc.compute_groundstate(self.driver)
-        warnings.filterwarnings('ignore', category=DeprecationWarning)
-        warnings.filterwarnings('always', category=DeprecationWarning)
         self.assertAlmostEqual(result.energy, self.reference_energy, places=6)
 
 if __name__ == '__main__':

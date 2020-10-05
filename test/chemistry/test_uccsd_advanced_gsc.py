@@ -12,7 +12,6 @@
 
 """ Test of UCCSD and HartreeFock Aqua extensions """
 
-import warnings
 import unittest
 
 from test.chemistry import QiskitChemistryTestCase
@@ -52,7 +51,6 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
                                                                     freeze_core=True,
                                                                     orbital_reduction=[])
 
-            warnings.filterwarnings('always', category=DeprecationWarning)
             self.qubit_op, _ = self.fermionic_transformation.transform(self.driver)
 
             z2_symmetries = Z2Symmetries.find_Z2_symmetries(self.qubit_op)
@@ -115,8 +113,6 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
 
         result = gsc.compute_groundstate(self.driver)
 
-        warnings.filterwarnings('ignore', category=DeprecationWarning)
-        warnings.filterwarnings('always', category=DeprecationWarning)
         self.assertAlmostEqual(result.energy, self.reference_energy_pUCCD, places=6)
 
     def test_uccsd_hf_qUCCD0(self):
@@ -147,8 +143,6 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
 
         result = gsc.compute_groundstate(self.driver)
 
-        warnings.filterwarnings('ignore', category=DeprecationWarning)
-        warnings.filterwarnings('always', category=DeprecationWarning)
         self.assertAlmostEqual(result.energy, self.reference_energy_UCCD0, places=6)
 
     def test_uccsd_hf_qUCCD0full(self):
@@ -180,8 +174,6 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
 
         result = gsc.compute_groundstate(self.driver)
 
-        warnings.filterwarnings('ignore', category=DeprecationWarning)
-        warnings.filterwarnings('always', category=DeprecationWarning)
         self.assertAlmostEqual(result.energy, self.reference_energy_UCCD0full, places=6)
 
     def test_uccsd_hf_qUCCSD(self):
@@ -195,7 +187,6 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
                                                            z2symmetry_reduction = 'auto'
                                                            )
 
-        warnings.filterwarnings('always', category=DeprecationWarning)
         qubit_op, _ = fermionic_transformation.transform(self.driver)
 
         # optimizer
@@ -228,8 +219,6 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
 
         result = gsc.compute_groundstate(self.driver)
 
-        warnings.filterwarnings('ignore', category=DeprecationWarning)
-        warnings.filterwarnings('always', category=DeprecationWarning)
         self.assertAlmostEqual(result.energy, self.reference_energy_UCCSD, places=6)
 
     def test_uccsd_hf_excitations(self):

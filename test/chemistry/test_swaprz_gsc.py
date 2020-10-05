@@ -44,12 +44,10 @@ class TestExcitationPreserving(QiskitChemistryTestCase):
     def test_excitation_preserving(self):
         """Test the excitation preserving wavefunction on a chemistry example."""
 
-        warnings.filterwarnings('ignore', category=DeprecationWarning)
         self.driver = HDF5Driver(self.get_resource_path('test_driver_hdf5.hdf5'))
         fermionic_transformation = FermionicTransformation(qubit_mapping=QubitMappingType.PARITY,
                                                            two_qubit_reduction=False)
 
-        warnings.filterwarnings('always', category=DeprecationWarning)
         qubit_op, _ = fermionic_transformation.transform(self.driver)
 
         optimizer = SLSQP(maxiter=100)
@@ -69,8 +67,6 @@ class TestExcitationPreserving(QiskitChemistryTestCase):
 
         result = gsc.compute_groundstate(self.driver)
 
-        warnings.filterwarnings('ignore', category=DeprecationWarning)
-        warnings.filterwarnings('always', category=DeprecationWarning)
         self.assertAlmostEqual(result.energy, self.reference_energy, places=4)
 
 if __name__ == '__main__':
