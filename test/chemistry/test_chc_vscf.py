@@ -15,10 +15,10 @@
 from test.chemistry import QiskitChemistryTestCase
 
 from qiskit import BasicAer
-from qiskit.chemistry import BosonicOperator
-
+from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms import VQE
 from qiskit.aqua.components.optimizers import COBYLA
+from qiskit.chemistry import BosonicOperator
 from qiskit.chemistry.components.initial_states import VSCF
 from qiskit.chemistry.components.variational_forms import UVCC, CHC
 
@@ -29,6 +29,7 @@ class TestCHCVSCF(QiskitChemistryTestCase):
     def setUp(self):
         super().setUp()
         self.reference_energy = 592.5346331967364
+        aqua_globals.random_seed = 14
 
     def test_chc_vscf(self):
         """ chc vscf test """
@@ -67,7 +68,8 @@ class TestCHCVSCF(QiskitChemistryTestCase):
         chc_varform = CHC(num_qubits, ladder=False, excitations=excitations,
                           initial_state=init_state)
 
-        backend = BasicAer.get_backend('statevector_simulator')
+        backend = QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                  seed_transpiler=2, seed_simulator=2)
         optimizer = COBYLA(maxiter=1000)
 
         algo = VQE(qubit_op, chc_varform, optimizer)
