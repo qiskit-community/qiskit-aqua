@@ -77,13 +77,13 @@ class OptimizationResult:
         should maintain the order when generating a new ``OptimizationResult`` object.
     """
 
-    def __init__(self, x: Union[List[float], np.ndarray], fval: float,
+    def __init__(self, x: Optional[Union[List[float], np.ndarray]], fval: float,
                  variables: List[Variable],
                  status: OptimizationResultStatus,
                  raw_results: Optional[Any] = None) -> None:
         """
         Args:
-            x: the optimal value found in the optimization.
+            x: the optimal value found in the optimization, or possibly None in case of FAILURE.
             fval: the optimal function value.
             variables: the list of variables of the optimization problem.
             raw_results: the original results object from the optimization algorithm.
@@ -146,8 +146,8 @@ class OptimizationResult:
             "instead {}({}) provided.".format(type(key), key))
 
     @property
-    def x(self) -> np.ndarray:
-        """Returns the optimal value found in the optimization.
+    def x(self) -> Optional[np.ndarray]:
+        """Returns the optimal value found in the optimization or None in case of FAILURE.
 
         Returns:
             The optimal value found in the optimization.
@@ -285,9 +285,6 @@ class OptimizationAlgorithm(ABC):
             The status of the result.
         """
         is_feasible = problem.is_feasible(x)
-
-        if x is None:
-            return OptimizationResultStatus.FAILURE
 
         return OptimizationResultStatus.SUCCESS if is_feasible \
             else OptimizationResultStatus.INFEASIBLE
