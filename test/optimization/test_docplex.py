@@ -16,7 +16,7 @@ import unittest
 from math import fsum, isclose
 from test.optimization import QiskitOptimizationTestCase
 
-import networkx as nx
+import retworkx as rx
 import numpy as np
 from docplex.mp.model import Model
 
@@ -160,17 +160,12 @@ class TestDocplex(QiskitOptimizationTestCase):
         """ Docplex maxcut test """
         # Generating a graph of 4 nodes
         n = 4
-        graph = nx.Graph()
-        graph.add_nodes_from(np.arange(0, n, 1))
+        graph = rx.PyGraph()
+        graph.add_nodes_from(np.arange(0, n, 1).tolist())
         elist = [(0, 1, 1.0), (0, 2, 1.0), (0, 3, 1.0), (1, 2, 1.0), (2, 3, 1.0)]
-        graph.add_weighted_edges_from(elist)
+        graph.add_edges_from(elist)
         # Computing the weight matrix from the random graph
-        w = np.zeros([n, n])
-        for i in range(n):
-            for j in range(n):
-                temp = graph.get_edge_data(i, j, default=0)
-                if temp != 0:
-                    w[i, j] = temp['weight']
+        w = rx.graph_adjacency_matrix(graph, lambda weight: weight)
 
         # Create an Ising Hamiltonian with docplex.
         mdl = Model(name='max_cut')
@@ -195,8 +190,8 @@ class TestDocplex(QiskitOptimizationTestCase):
         # Generating a graph of 3 nodes
         n = 3
         ins = tsp.random_tsp(n)
-        graph = nx.Graph()
-        graph.add_nodes_from(np.arange(0, n, 1))
+        graph = rx.PyGraph()
+        graph.add_nodes_from(np.arange(0, n, 1).tolist())
         num_node = ins.dim
 
         # Create an Ising Hamiltonian with docplex.

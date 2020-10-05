@@ -26,6 +26,7 @@ Ising Models
    :nosignatures:
 
    clique
+   common
    exact_cover
    graph_partition
    max_cut

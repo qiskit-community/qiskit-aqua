@@ -52,9 +52,11 @@ bitstring
 bitstrings
 bksf
 bmod
+bobyqa
 bohr
 bool
 boolean
+bosonic
 bpa
 brassard
 bravyi
@@ -67,6 +69,7 @@ cdf
 cdot
 ceil
 cfg
+chc
 chernoff
 chu
 chuang
@@ -101,6 +104,7 @@ coord
 coords
 cov
 coveney
+cp
 cplex
 cr
 crs
@@ -159,6 +163,7 @@ ecc
 eckstein
 ee
 eigen
+eigenenergies
 eigenphase
 eigenproblem
 eigensolver
@@ -167,6 +172,7 @@ eigenstate
 eigenstates
 eigrange
 eigs
+eigvals
 eigvecs
 einact
 el
@@ -277,6 +283,7 @@ ij
 ijkl
 ik
 imag
+imfil
 imode
 implicant
 implicants
@@ -311,6 +318,7 @@ izaac
 jac
 jacobian
 jb
+jcf
 ji
 jl
 jordan
@@ -338,6 +346,7 @@ len
 leq
 lhs
 libname
+Libor
 lih
 lijh
 lin
@@ -367,11 +376,14 @@ matlab
 matmul
 maxcut
 maxdepth
+maxfail
 maxfev
 maxfun
 maxima
 maxiter
 maxiters
+maxmp
+McArdle
 mccluskey
 mct
 mdl
@@ -388,6 +400,7 @@ minwidth
 mitarai
 mle
 moc
+modals
 mohij
 mohijkl
 mol
@@ -446,6 +459,7 @@ observables
 oe
 oi
 ok
+Ollitrault
 onee
 online
 onodera
@@ -461,6 +475,7 @@ optimizers
 opv
 orbsym
 orthonormal
+otimes
 outers
 outpath
 overfit
@@ -534,11 +549,14 @@ qreg
 quadratically
 quadraticconstraint
 quadraticprogram
+quadraticprogramconverter
 quandl
+quant
 quantile
 quantized
 quantumcircuit
 quantumregister
+quartic
 qubit
 qubitization
 qubits
@@ -604,8 +622,10 @@ sigmoid
 simonetto
 sj
 sklearn
+skquant
 slsqp
 smode
+snobfit
 spsa
 sqrt
 srange
@@ -702,17 +722,22 @@ upperbound
 username
 usr
 utils
+uvcc
 vals
 varform
 variational
 vartype
 vazirani
+vecs
+Veis
 vertices
+vibrational
 ville
 visualisation
 vqc
 vqe
 vqe's
+vscf
 watrous's
 wavefunction
 wavefunctions
