@@ -15,6 +15,8 @@
 import numpy as np
 from typing import Dict, List, Tuple, cast
 
+from qiskit.chemistry import WatsonHamiltonian
+
 class HarmonicBasis:
     """ Basis into which writing the Watson Hamiltonian.
 
@@ -24,16 +26,22 @@ class HarmonicBasis:
 
     """
 
-    def __init__(self, watson_hamiltonian, basis):
+    def __init__(self, watson_hamiltonian: WatsonHamiltonian, basis: List[int],
+                 truncation_order: int = 3):
         """
         A set of functions to transform a Watson Hamiltonian in the Harmonic basis
-        :param watson_hamiltonian:
-        :param basis:
+        Args:
+            watson_hamiltonian: A WatsonHamiltonian object which contains the hamiltonian information
+            basis: Is a list defining the number of modals per mode. E.g. for a 3 modes system
+                with 4 modals per mode basis = [4,4,4].
+            truncation_order: where is the Hamiltonian expansion truncation (1 for having only
+                              1-body terms, 2 for having on 1- and 2-body terms...)
         """
 
         self._watson = watson_hamiltonian
         self._basis = basis
         self._basis_size = max(basis)
+        self._truncation_order = truncation_order
 
     @staticmethod
     def _harmonic_integrals(m: int, n: int, power: int, kinetic_term: bool = False) -> float:
@@ -104,9 +112,6 @@ class HarmonicBasis:
         class to be mapped to a qubit hamiltonian.
 
         Args:
-            num_modals: number of modals per mode
-            truncation_order: where is the Hamiltonian expansion truncation (1 for having only
-                              1-body terms, 2 for having on 1- and 2-body terms...)
             threshold: the matrix elements of value below this threshold are discarded
 
         Returns:
@@ -126,7 +131,7 @@ class HarmonicBasis:
                                       num_modes, num_modals, num_modals,
                                       num_modes, num_modals, num_modals))}
 
-        for entry in self._watson:  # Entry is coeff (float) followed by indices (ints)
+        for entry in self._watson.data:  # Entry is coeff (float) followed by indices (ints)
             coeff0 = cast(float, entry[0])
             indices = cast(List[int], entry[1:])
 
@@ -230,7 +235,7 @@ class HarmonicBasis:
                 raise ValueError('Unexpected order value of {}'.format(order))
 
         harmonics = []  # type: List[List[Tuple[List[List[int]], float]]]
-        for idx in range(1, self._watson.truncation_order + 1):
+        for idx in range(1, self._truncation_order + 1):
             all_indices = np.nonzero(harmonic_dict[idx])
             if len(all_indices[0]) != 0:
                 harmonics.append([])
