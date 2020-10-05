@@ -24,14 +24,14 @@ class CircuitQFI(ConverterBase):
     r"""
     Converter for changing parameterized circuits into operators
     whose evaluation yields Quantum Fisher Information metric tensor
-    with respect to the circuit parameters
+    with respect to the given circuit parameters
 
     This is distinct from DerivativeBase converters which take gradients of composite
     operators and handle things like differentiating combo_fn's and enforcing prodct rules
     when operator coeficients are parameterized.
 
     CircuitQFI - uses quantum techniques to get the QFI of circuits
-    DerivativeBase   - uses classical techniques to differentiate opflow data strctures
+    DerivativeBase - uses classical techniques to differentiate opflow data structures
     """
 
     # pylint: disable=arguments-differ

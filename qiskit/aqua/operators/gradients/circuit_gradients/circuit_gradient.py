@@ -29,11 +29,11 @@ class CircuitGradient(ConverterBase):
     whose evaluation yields the gradient with respect to the circuit parameters.
 
     This is distinct from DerivativeBase converters which take gradients of composite
-    operators and handle things like differentiating combo_fn's and enforcing prodct rules
-    when operator coeficients are parameterized.
+    operators and handle things like differentiating combo_fn's and enforcing product rules
+    when operator coefficients are parameterized.
 
     CircuitGradient - uses quantum techniques to get derivatives of circuits
-    DerivativeBase    - uses classical techniques to differentiate opflow data strctures
+    DerivativeBase - uses classical techniques to differentiate operator flow data structures
     """
 
     # pylint: disable=arguments-differ

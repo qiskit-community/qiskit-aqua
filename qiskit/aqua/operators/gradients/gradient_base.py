@@ -14,7 +14,7 @@
 from typing import Union
 
 from qiskit.aqua.operators.gradients.circuit_gradients import CircuitGradient
-from qiskit.aqua.operators.gradients.derivatives_base import DerivativeBase
+from qiskit.aqua.operators.gradients.derivative_base import DerivativeBase
 
 
 class GradientBase(DerivativeBase):
@@ -28,7 +28,7 @@ class GradientBase(DerivativeBase):
             grad_method: The method used to compute the state/probability gradient. Can be either
                 ``'param_shift'`` or ``'lin_comb'`` or ``'fin_diff'``. Deprecated for observable
                 gradient.
-            kwargs: TODO: The offset size to use when computing finite difference gradients.
+            kwargs (dict): Optional parameters for a CircuitGradient
 
         Raises:
             ValueError: If method != ``fin_diff`` and ``epsilon`` is not None.

@@ -18,6 +18,7 @@ from qiskit.aqua.operators.gradients import DerivativeBase, CircuitQFI
 
 
 class QFIBase(DerivativeBase):
+
     r"""Compute the Quantum Fisher Information (QFI) given a pure, parametrized quantum state.
 
     The QFI is:

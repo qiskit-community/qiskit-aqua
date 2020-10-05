@@ -92,8 +92,9 @@ class Hessian(HessianBase):
         Raises:
             ValueError: If ``params`` contains a parameter not present in ``operator``.
             AquaError: If the coefficent of the operator could not be reduced to 1.
-            NotImplementedError: If operator is a TensoredOp  # TODO support this
-            TypeError: TODO
+                        AquaError: If the differentiation of a combo_fn requires JAX but the package
+                        is not installed.
+            TypeError: If the operator does not include a StateFn given by a quantum circuit
             Exception: Unintended code is reached
         """
 
@@ -116,7 +117,7 @@ class Hessian(HessianBase):
                     [self.get_hessian(operator, param_pair) for param_pair in params])
 
         # If a gradient is requested w.r.t a single parameter, then call the
-        # Gradient() class' autograd method.
+        # Gradient() class autograd method.
         if isinstance(params, ParameterExpression):
             return Gradient(grad_method=self._hess_method).get_gradient(operator, params)
 

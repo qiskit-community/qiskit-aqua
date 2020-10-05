@@ -11,6 +11,7 @@
 # that they have been altered from the originals.
 
 """The module for Quantum the Fisher Information."""
+
 import copy
 from functools import cmp_to_key
 from typing import List, Union, Optional
@@ -18,7 +19,7 @@ from typing import List, Union, Optional
 import numpy as np
 from scipy.linalg import block_diag
 from qiskit.aqua import AquaError
-from qiskit.aqua.operators import OperatorBase, ListOp, CircuitOp
+from qiskit.aqua.operators import ListOp, CircuitOp
 from qiskit.aqua.operators.expectations import PauliExpectation
 from qiskit.aqua.operators.operator_globals import I, Z, Y, X, Zero
 from qiskit.aqua.operators.state_fns import StateFn, CircuitStateFn
@@ -27,7 +28,7 @@ from qiskit.circuit.library import RZGate, RXGate, RYGate
 from qiskit.converters import dag_to_circuit, circuit_to_dag
 
 from .circuit_qfi import CircuitQFI
-from ..derivatives_base import DerivativeBase
+from ..derivative_base import DerivativeBase
 
 
 class OverlapBlockDiag(CircuitQFI):
@@ -44,7 +45,7 @@ class OverlapBlockDiag(CircuitQFI):
                 operator: Union[CircuitOp, CircuitStateFn],
                 params: Optional[Union[ParameterExpression, ParameterVector,
                                        List[ParameterExpression]]] = None
-                ) -> ListOp(List[OperatorBase]):
+                ) -> ListOp:
 
         r"""
         Args:
@@ -67,7 +68,7 @@ class OverlapBlockDiag(CircuitQFI):
                            operator: Union[CircuitOp, CircuitStateFn],
                            params: Optional[Union[ParameterExpression, ParameterVector,
                                                   List[ParameterExpression]]] = None
-                           ) -> ListOp(List[OperatorBase]):
+                           ) -> ListOp:
         r"""
         Args:
             operator: The operator corresponding to the quantum state |ψ(ω)〉for which we compute
@@ -290,7 +291,7 @@ class OverlapBlockDiag(CircuitQFI):
                     else:
                         raise NotImplementedError
 
-                    # get all qubit indices in this layer where the param parameterizes
+                    # Get all qubit indices in this layer where the param parameterizes
                     # an operation.
                     indices = [[q.index for q in qreg] for qreg in layer['partition']]
                     indices = [item for sublist in indices for item in sublist]

@@ -28,7 +28,9 @@ from ..list_ops.composed_op import ComposedOp
 from ..list_ops.list_op import ListOp
 from ..operator_base import OperatorBase
 from ..primitive_ops.primitive_op import PrimitiveOp
-from ..state_fns.operator_state_fn import OperatorStateFn
+from ..state_fns import StateFn, OperatorStateFn
+
+OperatorType = Union[StateFn, PrimitiveOp, ListOp]
 
 logger = logging.getLogger(__name__)
 
@@ -37,14 +39,14 @@ class DerivativeBase(ConverterBase):
     r"""
     Converter for differentiating opflow objects and handling
     things like properly differentiating combo_fn's and enforcing prodct rules
-    when operator coeficients are parameterized.
+    when operator coefficients are parameterized.
 
     This is distinct from CircuitGradient converters which use quantum
     techniques such as parameter shifts and linear combination of unitaries
     to compute derivatives of circuits.
 
     CircuitGradient - uses quantum techniques to get derivatives of circuits
-    DerivativeBase    - uses classical techniques to differentiate opflow data strctures
+    DerivativeBase - uses classical techniques to differentiate opflow data structures
     """
 
     # pylint: disable=arguments-differ
@@ -56,11 +58,11 @@ class DerivativeBase(ConverterBase):
                 ) -> OperatorBase:
         r"""
         Args:
-            operator: The operator we are taking the gradient of
-            params: The parameters we are taking the gradient with respect to..
+            operator: The operator we are taking the gradient, Hessian or QFI of
+            params: The parameters we are taking the gradient, Hessian or QFI with respect to.
 
         Returns:
-            An operator whose evaluation yields the Gradient.
+            An operator whose evaluation yields the gradient, Hessian or QFI.
 
         Raises:
             ValueError: If ``params`` contains a parameter not present in ``operator``.
@@ -79,8 +81,7 @@ class DerivativeBase(ConverterBase):
                                                                 ParameterExpression]]]] = None,
                          backend: Optional[Union[BaseBackend, QuantumInstance]] = None) \
             -> Callable[[Iterable], np.ndarray]:
-        """
-        Get a callable function which provides the respective gradient, Hessian or QFI for given
+        """Get a callable function which provides the respective gradient, Hessian or QFI for given
         parameter values. This callable can be used as gradient function for optimizers.
 
         Args:
@@ -138,11 +139,9 @@ class DerivativeBase(ConverterBase):
             ParameterExpression representing the gradient of param_expr w.r.t. param
         """
         if not isinstance(param_expr, ParameterExpression):
-            # TODO: return ParameterExpression
             return 0.0
 
         if param not in param_expr._parameter_symbols:
-            # TODO: return ParameterExpression
             return 0.0
 
         import sympy as sy
@@ -167,7 +166,7 @@ class DerivativeBase(ConverterBase):
         return float(expr_grad)  # if no free symbols left, convert to float
 
     @classmethod
-    def _erase_operator_coeffs(cls, operator: OperatorBase) -> OperatorBase:
+    def _erase_operator_coeffs(cls, operator: OperatorType) -> OperatorBase:
         """This method traverses an input operator and deletes all of the coefficients
 
         Args:
@@ -180,13 +179,12 @@ class DerivativeBase(ConverterBase):
         """
         if isinstance(operator, PrimitiveOp):
             return operator / operator._coeff
-        elif isinstance(operator, OperatorBase):
+        else:
             op_coeff = operator._coeff
             return (operator / op_coeff).traverse(cls._erase_operator_coeffs)
-        return operator
 
     @classmethod
-    def _factor_coeffs_out_of_composed_op(cls, operator: OperatorBase) -> OperatorBase:
+    def _factor_coeffs_out_of_composed_op(cls, operator: OperatorType) -> OperatorBase:
         """Factor all coefficients of ComposedOp out into a single global coefficient.
 
         Part of the automatic differentiation logic inside of Gradient and Hessian

@@ -14,7 +14,7 @@
 
 from .circuit_gradients.circuit_gradient import CircuitGradient
 from .circuit_qfis.circuit_qfi import CircuitQFI
-from .derivatives_base import DerivativeBase
+from .derivative_base import DerivativeBase
 from .gradient_base import GradientBase
 from .gradient import Gradient
 from .natural_gradient import NaturalGradient

@@ -15,25 +15,26 @@
 import copy
 from collections.abc import Iterable
 from copy import deepcopy
-from typing import List, Union, Optional
+from typing import List, Union, Optional, Tuple
 
 import numpy as np
 from qiskit.aqua import AquaError
-from qiskit.aqua.operators import ListOp, OperatorBase
+from qiskit.aqua.operators import ListOp
 from qiskit.aqua.operators.operator_globals import I, Z, Y, X
 from qiskit.aqua.operators.state_fns import StateFn, CircuitStateFn
-from qiskit.circuit import Gate
+from qiskit.circuit import Gate, Qubit
 from qiskit.circuit import (QuantumCircuit, QuantumRegister, ParameterVector,
                             ParameterExpression)
 from qiskit.circuit.library import RZGate, RXGate, HGate, XGate, SdgGate, SGate, ZGate, UGate
 
 from .circuit_qfi import CircuitQFI
 from ..circuit_gradients.lin_comb import LinComb
-from ..derivatives_base import DerivativeBase
+from ..derivative_base import DerivativeBase
 
 
 class LinCombFull(CircuitQFI):
-    r"""Compute the Quantum Fisher Information (QFI) given a pure, parametrized quantum state.
+    r"""Compute the full Quantum Fisher Information (QFI) given a pure, parametrized quantum state
+    with an additional working qubit and the linear combination of unitaries approach.
 
     The QFI is:
 
@@ -44,7 +45,7 @@ class LinCombFull(CircuitQFI):
                 operator: CircuitStateFn,
                 params: Optional[Union[ParameterExpression, ParameterVector,
                                        List[ParameterExpression]]] = None,
-                ) -> ListOp(List[OperatorBase]):
+                ) -> ListOp:
         r"""
         Args:
             operator: The operator corresponding to the quantum state |ψ(ω)〉for which we compute
@@ -79,7 +80,7 @@ class LinCombFull(CircuitQFI):
         phase_fix_states = []
         qr_work = QuantumRegister(1, 'work_qubit')
         work_q = qr_work[0]
-        additional_qubits = ([work_q], [])
+        additional_qubits: Tuple[List[Qubit], List[Qubit]] = ([work_q], [])
         # create a copy of the original state with an additional work_q register
         for param in params:
             param_gates = state_qc._parameter_table[param]
@@ -148,8 +149,7 @@ class LinCombFull(CircuitQFI):
 
                     grad_state.h(work_q)
 
-                    state = np.sqrt(np.abs(coeff_i)) * \
-                            operator.coeff * CircuitStateFn(grad_state)
+                    state = np.sqrt(np.abs(coeff_i)) * operator.coeff * CircuitStateFn(grad_state)
 
                     # Chain Rule parameter expressions
                     gate_param = param_occurence[0].params[param_occurence[1]]
@@ -179,7 +179,7 @@ class LinCombFull(CircuitQFI):
         LinComb.insert_gate(circuit, state_qc._parameter_table[params[0]][0][0], HGate(),
                             qubits=[work_qubit])
 
-        # Get the circuits needed to compute A_ij
+        # Get the circuits needed to compute〈∂iψ|∂jψ〉
         for i, param_i in enumerate(params):  # loop over parameters
             qfi_ops = []
             for j, param_j in enumerate(params):
@@ -314,9 +314,8 @@ class LinCombFull(CircuitQFI):
 
                                 qfi_circuit.h(work_qubit)
                                 # Convert the quantum circuit into a CircuitStateFn
-                                term = np.sqrt(np.abs(coeff_i) * np.abs(coeff_j)) * \
-                                       operator.coeff * \
-                                       CircuitStateFn(qfi_circuit)
+                                term = np.sqrt(np.abs(coeff_i) * np.abs(coeff_j)) * operator.coeff
+                                term = term * CircuitStateFn(qfi_circuit)
 
                                 # Chain Rule Parameter Expression
 
@@ -359,8 +358,8 @@ class LinCombFull(CircuitQFI):
         """Trim the given quantum circuit before the reference gate.
 
         Args:
-            circuit: The circuit onto which the gare is added.
-            reference_gate: A gate instance before or after which a gate is inserted.
+            circuit: The circuit to be trimmed.
+            reference_gate: The gate where the circuit is supposed to be trimmed.
 
         Returns:
             The trimmed circuit.

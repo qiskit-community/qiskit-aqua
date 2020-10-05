@@ -22,8 +22,7 @@ where R(x) represents the penalization term.
 import logging
 import os
 from collections.abc import Iterable
-from typing import List, Tuple
-from typing import Optional, Union
+from typing import List, Tuple, Callable, Optional, Union
 
 import numpy as np
 from qiskit.aqua.operators import (OperatorBase, ListOp, ComposedOp, CircuitStateFn)
@@ -59,7 +58,7 @@ class NaturalGradient(GradientBase):
                 ``'ridge'`` and ``'lasso'`` use an automatic optimal parameter search
                 If regularization is None but the metric is ill-conditioned or singular then
                 a lstsq solver is used without regularization
-            kwargs: TODO: The offset size to use when computing finite difference gradients.
+            kwargs (dict): Optional parameters for a CircuitGradient
         """
         super().__init__(grad_method)
 
@@ -136,10 +135,10 @@ class NaturalGradient(GradientBase):
     @staticmethod
     def _reg_term_search(a: np.ndarray,
                          c: np.ndarray,
-                         reg_method: callable,
+                         reg_method: Callable[[np.ndarray, np.ndarray, float], float],
                          lambda1: float = 1e-3,
                          lambda4: float = 1.,
-                         tol: float = 1e-8) -> float:
+                         tol: float = 1e-8) -> Tuple[float, np.ndarray]:
         """
         This method implements a search for a regularization parameter lambda by finding for the
         corner of the L-curve
@@ -158,10 +157,10 @@ class NaturalGradient(GradientBase):
             tol: termination threshold
 
         Returns:
-            regularization term - lambda
+            regularization coefficient, solution to the regularization inverse problem
         """
 
-        def _get_curvature(x_lambda: List[List]) -> float:
+        def _get_curvature(x_lambda: List) -> Union[int, float]:
             """Calculate Menger curvature
 
             Menger, K. (1930).  Untersuchungen  ̈uber Allgemeine Metrik. Math. Ann.,103(1), 466–501
@@ -373,12 +372,11 @@ class NaturalGradient(GradientBase):
                                 lambda1: float = 1e-3,
                                 lambda4: float = 1.,
                                 alpha: float = 0.,
-                                tol_norm_x: Union[tuple, float] = (1e-8, 5.),
+                                tol_norm_x: Tuple[float, float] = (1e-8, 5.),
                                 tol_cond_a: float = 1000.) -> np.ndarray:
 
         """
         Solve a linear system of equations with a regularization method and automatic lambda fitting
-        cite lambda fitting
         Args:
             a: mxn matrix
             c: m vector

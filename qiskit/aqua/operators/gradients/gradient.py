@@ -45,7 +45,7 @@ class Gradient(GradientBase):
                 ) -> OperatorBase:
         r"""
         Args:
-            operator: The operator we are taking the gradient of
+            operator: The operator we are taking the gradient of.
             params: params: The parameters we are taking the gradient with respect to.
 
         Returns:
@@ -96,8 +96,9 @@ class Gradient(GradientBase):
         Raises:
             ValueError: If ``params`` contains a parameter not present in ``operator``.
             AquaError: If the coefficent of the operator could not be reduced to 1.
-            NotImplementedError: If operator is a TensoredOp  # TODO support this
-            TypeError: TODO
+            AquaError: If the differentiation of a combo_fn requires JAX but the package is not
+                       installed.
+            TypeError: If the operator does not include a StateFn given by a quantum circuit
             Exception: Unintended code is reached
         """
 
@@ -159,8 +160,6 @@ class Gradient(GradientBase):
             # TODO if this is a sum of circuit state fns - traverse including autograd
             if isinstance(operator[-1], (CircuitStateFn)):
                 pass
-                # Do some checks and decide how you're planning on taking the gradient.
-                # for now we do param shift
             else:
                 raise TypeError(
                     'The gradient framework is compatible with states that are given as '
