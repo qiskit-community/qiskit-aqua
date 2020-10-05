@@ -9,62 +9,81 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-
-"""TODO"""
+"""
+This module implements a vibronic Hamiltonian operator, representing the
+energy of the nuclei in a molecule.
+"""
 
 import copy
 
-from typing import Tuple, List
+from typing import Tuple, List, Union
 from enum import Enum
 import numpy as np
 
 from qiskit.quantum_info import Pauli
 
-from qiskit.chemistry.drivers import BaseDriver
+from qiskit.chemistry.drivers import BaseDriver #Should we have a bosonic driver
+from qiskit.chemistry import QiskitChemistryError
+from qiskit.chemistry.components.bosonic_basis import HarmonicBasis
 from qiskit.aqua.operators.legacy import WeightedPauliOperator
 from .qubit_operator_transformation import QubitOperatorTransformation
 
 class TransformationType(Enum):
+    """ TransformationType enum """
     HARMONIC = 'harmonic'
-
 
 class QubitMappingType(Enum):
     """ QubitMappingType enum """
     DIRECT = 'direct'
 
-
 class BosonicTransformation(QubitOperatorTransformation):
-    """TODO"""
-
-    #bosonic
+    """A vibronic Hamiltonian operator representing the energy of the nuclei in the molecule"""
 
     def __init__(self, qubit_mapping: QubitMappingType = QubitMappingType.DIRECT,
                  transformation_type: TransformationType = TransformationType.HARMONIC,
                  basis_size: Union[int, List[int]] = 2,
-                 degree: int = 2):
+                 truncation: int = 3):
+        """
+        Args:
+            qubit_mapping: a string giving the type of mapping (only the 'direct' mapping is
+                implemented at this point)
+            transformation_type: a string giving the modal basis.
+                The Hamiltonian is expressed in this basis.
+            basis_size: define the number of modals per mode. If the number of modals is the
+                same for each mode, then only an int is required.
+                However, if the number of modals differ depending on the mode basis_size should be
+                a list of int, for example: [3,4] means 2 modes: first mode has 3 modals,
+                second mode has 4 modals.
+            truncation: where is the Hamiltonian expansion truncation (1 for having only
+                              1-body terms, 2 for having on 1- and 2-body terms...)
+        """
 
         self._qubit_mapping = qubit_mapping
         self._transformation_type = transformation_type
         self._basis_size = basis_size
-        self._degree = degree
+        self._truncation_order = truncation
 
         self._num_modes = None
         self._h_mat = None
 
-    def transform(self, driver: BosonicDriver
+    def transform(self, driver: BaseDriver
                   ) -> Tuple[WeightedPauliOperator, List[WeightedPauliOperator]]:
+        """
+        Transformation to qubit operator from the driver
 
-        # the driver can do a gaussian calculation
-        # the driver can read from a log file
-        # the driver can take a numpy array
-        # the driver can work in a harmonic basis but also in any other basis
+        Args:
+            driver: BaseDriver
+
+        Returns:
+            qubit operator, auxiliary operators
+        """
         watson = driver.run()
         self._num_modes = watson.num_modes
 
         if self._transformation_type == TransformationType.HARMONIC:
             if isinstance(self._basis_size, int):
                 self._basis_size = [self._basis_size] * self._num_modes
-            self._h_mat = HarmonicBasis(watson, self._basis_size).run()
+            self._h_mat = HarmonicBasis(watson, self._basis_size, self._truncation_order).run()
         else:
             raise QiskitChemistryError('Unknown Transformation type')
 
@@ -209,7 +228,7 @@ class BosonicTransformation(QubitOperatorTransformation):
 
         if qubit_mapping == 'direct':
 
-            for deg in range(self._degree):
+            for deg in range(self._truncation_order):
 
                 for element in self._h_mat[deg]:
                     paulis = []
@@ -230,78 +249,40 @@ class BosonicTransformation(QubitOperatorTransformation):
 
         return qubit_op
 
-    def ground_state_energy(self, vecs: np.ndarray, energies: np.ndarray) -> float:
-        """ Gets the relevant ground state energy
 
-        Returns the relevant ground state energy given the provided list of eigenvectors
-        and eigenenergies.
+    def direct_mapping_filtering_criterion(self, state) -> bool:
 
-        Args:
-            vecs: contains all the eigenvectors
-            energies: contains all the corresponding eigenenergies
+        """ Filters out the states of irrelevant symmetries
 
-        Returns:
-            The relevant ground state energy
+                Args:
+                    vecs: state to evaluate
 
-        """
-        gs_energy = 0
-        found_gs_energy = False
-        for v, vec in enumerate(vecs):
-            indices = np.nonzero(np.conj(vec.primitive.data)*vec.primitive.data > 1e-5)[0]
-            for i in indices:
-                bin_i = np.frombuffer(np.binary_repr(i, width=sum(self._basis)).encode('utf-8'),
-                                      dtype='S1').astype(int)
-                count = 0
-                nqi = 0
-                for m in range(self._num_modes):
-                    sub_bin = bin_i[nqi:nqi + self._basis[m]]
-                    occ_i = 0
-                    for idx_i in sub_bin:
-                        occ_i += idx_i
-                    if occ_i != 1:
-                        break
-                    count += 1
-                    nqi += self._basis[m]
-                if count == self._num_modes:
-                    gs_energy = energies[v]
-                    found_gs_energy = True
+                Returns:
+                    True if the state is has one and only one modal occupied per mode meaning
+                    that the direct mapping symmetries are respected and False otherwise
+
+                """
+
+        if isinstance(self._basis_size, int):
+            self._basis_size = [self._basis_size] * self._num_modes
+
+        indices = np.nonzero(np.conj(state) * state > 1e-5)[0]
+        for i in indices:
+            bin_i = np.frombuffer(np.binary_repr(i, width=sum(self._basis_size)).encode('utf-8'),
+                                  dtype='S1').astype(int)
+            count = 0
+            nqi = 0
+            for m in range(len(self._basis_size)):
+                sub_bin = bin_i[nqi:nqi + self._basis_size[m]]
+                occ_i = 0
+                for idx_i in sub_bin:
+                    occ_i += idx_i
+                if occ_i != 1:
                     break
-            if found_gs_energy:
-                break
-        return np.real(gs_energy)
+                count += 1
+                nqi += self._basis_size[m]
+        if count == len(self._basis_size):
+            return True
+        else:
+            return False
 
-    def print_exact_states(self, vecs: np.ndarray, energies: np.ndarray, threshold: float = 1e-3)\
-            -> None:
-        """  Prints the exact states.
-
-        Prints the relevant states (the ones with the correct symmetries) out of a list of states
-        that are usually obtained with an exact eigensolver.
-
-        Args:
-            vecs: contains all the states
-            energies: contains all the corresponding energies
-            threshold: threshold for showing the different configurations of a state
-        """
-
-        for v, vec in enumerate(vecs):
-            indices = np.nonzero(np.conj(vec.primitive.data) * vec.primitive.data > threshold)[0]
-            printmsg = True
-            for i in indices:
-                bin_i = np.frombuffer(np.binary_repr(i, width=sum(self._basis)).encode('utf-8'),
-                                      dtype='S1').astype(int)
-                count = 0
-                nqi = 0
-                for m in range(self._num_modes):
-                    sub_bin = bin_i[nqi:nqi + self._basis[m]]
-                    occ_i = 0
-                    for idx_i in sub_bin:
-                        occ_i += idx_i
-                    if occ_i != 1:
-                        break
-                    count += 1
-                    nqi += self._basis[m]
-                if count == self._num_modes:
-                    if printmsg:
-                        print('\n -', v, energies[v])
-                        printmsg = False
-                    print(vec.primitive.data[i], np.binary_repr(i, width=sum(self._basis)))
