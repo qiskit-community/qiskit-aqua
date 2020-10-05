@@ -12,6 +12,9 @@
 
 """ Test Min Eigen Optimizer """
 
+from qiskit.optimization.converters import (IntegerToBinary, InequalityToEquality,
+                                            LinearEqualityToPenalty, QuadraticProgramToQubo)
+from qiskit.optimization.algorithms.optimization_algorithm import OptimizationResultStatus
 import unittest
 from os import path
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
@@ -28,7 +31,9 @@ from qiskit.aqua.components.initial_states import Custom
 
 from qiskit.optimization.algorithms import MinimumEigenOptimizer, CplexOptimizer
 from qiskit.optimization.problems import QuadraticProgram
-from qiskit.optimization.algorithms.optimization_algorithm import OptimizationResultStatus
+<< << << < HEAD
+== == == =
+>>>>>> > master
 
 
 @ddt
@@ -134,6 +139,32 @@ class TestMinEigenOptimizer(QiskitOptimizationTestCase):
             self.skipTest(str(ex))
         except RuntimeError as ex:
             self.fail(str(ex))
+
+    def test_converter_list(self):
+        """Test converter list"""
+        op = QuadraticProgram()
+        op.integer_var(0, 3, "x")
+        op.binary_var('y')
+
+        op.maximize(linear={'x': 1, 'y': 2})
+        op.linear_constraint(linear={'x': 1, 'y': 1}, sense='LE', rhs=3, name='xy_leq')
+        min_eigen_solver = NumPyMinimumEigensolver()
+        # a single converter
+        qp2qubo = QuadraticProgramToQubo()
+        min_eigen_optimizer = MinimumEigenOptimizer(min_eigen_solver, converters=qp2qubo)
+        result = min_eigen_optimizer.solve(op)
+        self.assertEqual(result.fval, 4)
+        # a list of converters
+        ineq2eq = InequalityToEquality()
+        int2bin = IntegerToBinary()
+        penalize = LinearEqualityToPenalty()
+        converters = [ineq2eq, int2bin, penalize]
+        min_eigen_optimizer = MinimumEigenOptimizer(min_eigen_solver, converters=converters)
+        self.assertEqual(result.fval, 4)
+        with self.assertRaises(TypeError):
+            invalid = [qp2qubo, "invalid converter"]
+            MinimumEigenOptimizer(min_eigen_solver,
+                                  converters=invalid)
 
 
 if __name__ == '__main__':
