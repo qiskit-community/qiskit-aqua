@@ -71,7 +71,7 @@ class LinCombFull(CircuitQFI):
             raise TypeError(
                 'The gradient framework is compatible with states that are given as CircuitStateFn')
 
-        if not isinstance(params, Iterable):
+        if not isinstance(params, (list, np.ndarray)):
             params = [params]
         state_qc = copy.deepcopy(operator.primitive)
 

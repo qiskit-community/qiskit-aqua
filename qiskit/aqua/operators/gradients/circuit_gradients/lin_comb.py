@@ -126,7 +126,7 @@ class LinComb(CircuitGradient):
                         return self._gradient_states(state_op, meas_op=(~StateFn(Z) ^ operator[0]),
                                                      target_params=params)
                     elif isinstance(params, (Tuple[ParameterExpression, ParameterExpression])) or \
-                            (isinstance(params, List) and all(isinstance(param, Tuple)
+                            (isinstance(params, Iterable) and all(isinstance(param, tuple)
                                                               for param in params)):
                         return self._hessian_states(state_op,
                                                     meas_op=(4 * ~StateFn(Z ^ I) ^ operator[0]),
@@ -146,7 +146,7 @@ class LinComb(CircuitGradient):
                             partial(self._gradient_states, meas_op=(~StateFn(Z) ^ operator[0]),
                                     target_params=params))
                     elif isinstance(params, (Tuple[ParameterExpression, ParameterExpression])) or \
-                             (isinstance(params, List) and all(isinstance(param, Tuple)
+                             (isinstance(params, Iterable) and all(isinstance(param, tuple)
                                                                for param in params)):
                         return state_op.traverse(
                             partial(self._hessian_states,
@@ -170,7 +170,7 @@ class LinComb(CircuitGradient):
                                                           for param in params)):
                     return self._gradient_states(operator, target_params=params)
                 elif isinstance(params, (Tuple[ParameterExpression, ParameterExpression])) or \
-                        (isinstance(params, List) and all(isinstance(param, Tuple)
+                        (isinstance(params, Iterable) and all(isinstance(param, tuple)
                                                           for param in params)):
                     return self._hessian_states(operator, target_params=params)
                 else:
@@ -206,7 +206,7 @@ class LinComb(CircuitGradient):
         """
         state_qc = deepcopy(state_op.primitive)
 
-        if not isinstance(target_params, Iterable):
+        if not isinstance(target_params, (list, np.ndarray)):
             target_params = [target_params]
 
         if len(target_params) > 1:
@@ -215,7 +215,7 @@ class LinComb(CircuitGradient):
         # Define the working qubit to realize the linar combination of unitaries
         qr_work = QuantumRegister(1, 'work_qubit')
         work_q = qr_work[0]
-        additional_qubits = ([work_q], [])
+        additional_qubits: Tuple[List[Qubit], List[Qubit]] = ([work_q], [])
 
         for param in target_params:
             if param not in state_qc._parameter_table.get_keys():
