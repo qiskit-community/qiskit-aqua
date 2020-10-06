@@ -19,7 +19,7 @@ from typing import Callable, Iterable, List, Optional, Tuple, Union
 
 import numpy as np
 from qiskit.aqua import QuantumInstance
-from qiskit.circuit import Parameter, ParameterExpression, ParameterVector
+from qiskit.circuit import ParameterExpression, ParameterVector
 from qiskit.providers import BaseBackend
 
 from ..converters import CircuitSampler
@@ -128,7 +128,7 @@ class DerivativeBase(ConverterBase):
 
     @staticmethod
     def parameter_expression_grad(param_expr: ParameterExpression,
-                                  param: Parameter) -> Union[ParameterExpression, float]:
+                                  param: ParameterExpression) -> Union[ParameterExpression, float]:
         """Get the derivative of a parameter expression w.r.t. the given parameter.
 
         Args:
@@ -166,11 +166,11 @@ class DerivativeBase(ConverterBase):
         return float(expr_grad)  # if no free symbols left, convert to float
 
     @classmethod
-    def _erase_operator_coeffs(cls, operator: OperatorType) -> OperatorBase:
+    def _erase_operator_coeffs(cls, operator: OperatorBase) -> OperatorBase:
         """This method traverses an input operator and deletes all of the coefficients
 
         Args:
-            operator: An operator of type OperatorBase
+            operator: An operator type object.
 
         Returns:
             An operator which is equal to the input operator but whose coefficients
@@ -178,13 +178,13 @@ class DerivativeBase(ConverterBase):
 
         """
         if isinstance(operator, PrimitiveOp):
-            return operator / operator._coeff
+            return operator / operator.coeff
         else:
-            op_coeff = operator._coeff
+            op_coeff = operator.coeff
             return (operator / op_coeff).traverse(cls._erase_operator_coeffs)
 
     @classmethod
-    def _factor_coeffs_out_of_composed_op(cls, operator: OperatorType) -> OperatorBase:
+    def _factor_coeffs_out_of_composed_op(cls, operator: OperatorBase) -> OperatorBase:
         """Factor all coefficients of ComposedOp out into a single global coefficient.
 
         Part of the automatic differentiation logic inside of Gradient and Hessian
@@ -214,9 +214,9 @@ class DerivativeBase(ConverterBase):
             for op in operator.oplist:
 
                 if take_norm_of_coeffs:
-                    total_coeff *= (op._coeff * np.conj(op._coeff))
+                    total_coeff *= (op.coeff * np.conj(op.coeff))
                 else:
-                    total_coeff *= op._coeff
+                    total_coeff *= op.coeff
                 if hasattr(op, 'primitive'):
                     prim = op.primitive
                     if isinstance(prim, ListOp):
@@ -226,11 +226,11 @@ class DerivativeBase(ConverterBase):
                                          "gradients will not be handled properly.")
                     if hasattr(prim, 'coeff'):
                         if take_norm_of_coeffs:
-                            total_coeff *= (prim._coeff * np.conj(prim._coeff))
+                            total_coeff *= (prim.coeff * np.conj(prim.coeff))
                         else:
-                            total_coeff *= prim._coeff
+                            total_coeff *= prim.coeff
 
-                if isinstance(op, OperatorStateFn) and op._is_measurement:
+                if isinstance(op, OperatorStateFn) and op.is_measurement:
                     take_norm_of_coeffs = True
             return total_coeff * cls._erase_operator_coeffs(operator)
 

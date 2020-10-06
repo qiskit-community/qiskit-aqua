@@ -77,7 +77,7 @@ class LinCombFull(CircuitQFI):
 
         # First, the operators are computed which can compensate for a potential phase-mismatch
         # between target and trained state, i.e.〈ψ|∂lψ〉
-        phase_fix_states = []
+        phase_fix_states = None
         qr_work = QuantumRegister(1, 'work_qubit')
         work_q = qr_work[0]
         additional_qubits: Tuple[List[Qubit], List[Qubit]] = ([work_q], [])
@@ -166,7 +166,10 @@ class LinCombFull(CircuitQFI):
                         phase_fix_state = state
                     else:
                         phase_fix_state += state
-            phase_fix_states += [phase_fix_state]
+            if not phase_fix_states:
+                phase_fix_states = [phase_fix_state]
+            else:
+                phase_fix_states += [phase_fix_state]
 
         # Get  4 * Re[〈∂kψ|∂lψ]
         qfi_operators = []
@@ -181,7 +184,7 @@ class LinCombFull(CircuitQFI):
 
         # Get the circuits needed to compute〈∂iψ|∂jψ〉
         for i, param_i in enumerate(params):  # loop over parameters
-            qfi_ops = []
+            qfi_ops = None
             for j, param_j in enumerate(params):
                 # Construct the circuits
                 param_gates_i = state_qc._parameter_table[param_i]
@@ -347,7 +350,10 @@ class LinCombFull(CircuitQFI):
                                    combo_fn=phase_fix_combo_fn)
                 # Add the phase fix quantities to the entries of the QFI
                 # Get 4 * Re[〈∂kψ|∂lψ〉−〈∂kψ|ψ〉〈ψ|∂lψ〉]
-                qfi_ops += [qfi_op + phase_fix]
+                if not qfi_ops:
+                    qfi_ops = [qfi_op + phase_fix]
+                else:
+                    qfi_ops += [qfi_op + phase_fix]
             qfi_operators.append(ListOp(qfi_ops))
         # Return the full QFI
         return ListOp(qfi_operators)
