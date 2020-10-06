@@ -108,25 +108,30 @@ class LinComb(CircuitGradient):
 
         Raises:
             ValueError: If ``operator`` does not correspond to an expectation value.
+            TypeError: If the ``StateFn`` corresponding to the quantum state could not be extracted
+                       from ``operator``.
             AquaError: If third or higher order gradients are requested.
         """
 
         if isinstance(operator, ComposedOp):
             # Get the measurement and the state operator
-            if not isinstance(operator[0], StateFn) or not operator[0]._is_measurement:
+            if not isinstance(operator[0], StateFn) or not operator[0].is_measurement:
                 raise ValueError("The given operator does not correspond to an expectation value")
-            if not isinstance(operator[-1], StateFn) or operator[-1]._is_measurement:
+            if not isinstance(operator[-1], StateFn) or operator[-1].is_measurement:
                 raise ValueError("The given operator does not correspond to an expectation value")
             if operator[0].is_measurement:
                 if len(operator.oplist) == 2:
                     state_op = operator[1]
+                    if not isinstance(state_op, StateFn):
+                        raise TypeError('The StateFn representing the quantum state could not be'
+                                        'extracted.')
                     if isinstance(params, (ParameterExpression, ParameterVector)) or \
                             (isinstance(params, List) and all(isinstance(param, ParameterExpression)
                                                               for param in params)):
                         return self._gradient_states(state_op, meas_op=(~StateFn(Z) ^ operator[0]),
                                                      target_params=params)
                     elif isinstance(params, (Tuple[ParameterExpression, ParameterExpression])) or \
-                            (isinstance(params, Iterable) and all(isinstance(param, tuple)
+                            (isinstance(params, List) and all(isinstance(param, tuple)
                                                               for param in params)):
                         return self._hessian_states(state_op,
                                                     meas_op=(4 * ~StateFn(Z ^ I) ^ operator[0]),
@@ -138,6 +143,9 @@ class LinComb(CircuitGradient):
                 else:
                     state_op = deepcopy(operator)
                     state_op.oplist.pop(0)
+                    if not isinstance(state_op, StateFn):
+                        raise TypeError('The StateFn representing the quantum state could not be'
+                                        'extracted.')
 
                     if isinstance(params, (ParameterExpression, ParameterVector)) or \
                             (isinstance(params, List) and all(isinstance(param, ParameterExpression)
@@ -170,7 +178,7 @@ class LinComb(CircuitGradient):
                                                           for param in params)):
                     return self._gradient_states(operator, target_params=params)
                 elif isinstance(params, (Tuple[ParameterExpression, ParameterExpression])) or \
-                        (isinstance(params, Iterable) and all(isinstance(param, tuple)
+                        (isinstance(params, List) and all(isinstance(param, tuple)
                                                           for param in params)):
                     return self._hessian_states(operator, target_params=params)
                 else:
@@ -210,7 +218,7 @@ class LinComb(CircuitGradient):
             target_params = [target_params]
 
         if len(target_params) > 1:
-            states = []
+            states = None
 
         # Define the working qubit to realize the linar combination of unitaries
         qr_work = QuantumRegister(1, 'work_qubit')
@@ -313,7 +321,10 @@ class LinComb(CircuitGradient):
                             # Product Rule
                             op += state
                 if len(target_params) > 1:
-                    states += [op]
+                    if not states:
+                        states = [op]
+                    else:
+                        states += [op]
                 else:
                     return op
         if len(target_params) > 1:
@@ -324,10 +335,11 @@ class LinComb(CircuitGradient):
     def _hessian_states(self,
                         state_op: StateFn,
                         meas_op: Optional[OperatorBase] = None,
-                        target_params: Optional[
-                            Union[Tuple[ParameterExpression, ParameterExpression],
-                                  List[Tuple[ParameterExpression, ParameterExpression]]]]
-                        = None) -> OperatorBase:
+                        target_params: Optional[Union[Tuple[ParameterExpression,
+                                                            ParameterExpression],
+                                                      List[Tuple[ParameterExpression,
+                                                                 ParameterExpression]]]] = None
+                        ) -> OperatorBase:
         """Generate the operator states whose evaluation returns the Hessian (items).
 
         Args:
@@ -373,7 +385,7 @@ class LinComb(CircuitGradient):
         circuit = QuantumCircuit(*state_qc.qregs, qr_add0, qr_add1)
         circuit.data = state_qc.data
         # Get the circuits needed to compute the Hessian
-        hessian_ops = []
+        hessian_ops = None
         for param_a, param_b in tuples_list:
 
             if param_a not in state_qc._parameter_table.get_keys() or param_b \
@@ -549,7 +561,10 @@ class LinComb(CircuitGradient):
             if len(tuples_list) == 1:
                 return hessian_op
             else:
-                hessian_ops += [hessian_op]
+                if not hessian_ops:
+                    hessian_ops = [hessian_op]
+                else:
+                    hessian_ops += [hessian_op]
         return ListOp(hessian_ops)
 
     @staticmethod
