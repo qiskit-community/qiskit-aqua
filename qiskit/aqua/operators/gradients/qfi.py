@@ -27,7 +27,10 @@ class QFI(QFIBase):
 
     The QFI is:
 
+    .. code-block::
+
         [QFI]kl= Re[〈∂kψ|∂lψ〉−〈∂kψ|ψ〉〈ψ|∂lψ〉] * 4.
+
     """
 
     def convert(self,
