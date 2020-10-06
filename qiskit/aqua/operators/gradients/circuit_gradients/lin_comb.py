@@ -136,8 +136,9 @@ class LinComb(CircuitGradient):
                         return self._hessian_states(state_op,
                                                     meas_op=(4 * ~StateFn(Z ^ I) ^ operator[0]),
                                                     target_params=params)  # type: ignore
-                    raise AquaError('The linear combination gradient does only support the '
-                                    'computation of 1st gradients and 2nd order gradients.')
+                    else:
+                        raise AquaError('The linear combination gradient does only support the '
+                                        'computation of 1st gradients and 2nd order gradients.')
                 else:
                     state_op = deepcopy(operator)
                     state_op.oplist.pop(0)
@@ -159,10 +160,9 @@ class LinComb(CircuitGradient):
                                     meas_op=(4 * ~StateFn(Z ^ I) ^ operator[0]),
                                     target_params=params))
 
-                    else:
-                        raise AquaError(
-                            'The linear combination gradient does only support the computation '
-                            'of 1st gradients and 2nd order gradients.')
+                    raise AquaError(
+                        'The linear combination gradient does only support the computation '
+                        'of 1st gradients and 2nd order gradients.')
             else:
                 return operator.traverse(partial(self._prepare_operator, params=params))
         elif isinstance(operator, ListOp):
