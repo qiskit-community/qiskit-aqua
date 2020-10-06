@@ -81,11 +81,10 @@ class FermionicTransformation(QubitOperatorTransformation):
             QiskitChemistryError: Invalid symmetry reduction
         """
         transformation = transformation.value
-        qubit_mapping = qubit_mapping.value
         orbital_reduction = orbital_reduction if orbital_reduction is not None else []
         super().__init__()
         self._transformation = transformation
-        self._qubit_mapping = qubit_mapping
+        self._qubit_mapping = qubit_mapping.value
         self._two_qubit_reduction = two_qubit_reduction
         self._freeze_core = freeze_core
         self._orbital_reduction = orbital_reduction
@@ -359,7 +358,7 @@ class FermionicTransformation(QubitOperatorTransformation):
 
             if self._z2symmetry_reduction == 'auto':
                 hf_state = HartreeFock(num_orbitals=self._molecule_info['num_orbitals'],
-                                       qubit_mapping=self._qubit_mapping.value,
+                                       qubit_mapping=self._qubit_mapping,
                                        two_qubit_reduction=self._two_qubit_reduction,
                                        num_particles=self._molecule_info['num_particles'])
                 z2_symmetries = FermionicTransformation._pick_sector(z2_symmetries, hf_state.bitstr)
@@ -491,7 +490,7 @@ class FermionicTransformation(QubitOperatorTransformation):
 
     @staticmethod
     def _map_fermionic_operator_to_qubit(fer_op: FermionicOperator,
-                                         qubit_mapping: QubitMappingType,
+                                         qubit_mapping: str,
                                          num_particles: List[int],
                                          two_qubit_reduction: bool) -> WeightedPauliOperator:
         """
