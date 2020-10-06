@@ -217,7 +217,7 @@ class DerivativeBase(ConverterBase):
                 else:
                     total_coeff *= op.coeff  # type: ignore
                 if hasattr(op, 'primitive'):
-                    prim = op.primitive
+                    prim = op.primitive  # type: ignore
                     if isinstance(prim, ListOp):
                         raise ValueError("This operator was not properly decomposed. "
                                          "By this point, all operator measurements should "
