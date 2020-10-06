@@ -593,43 +593,43 @@ class TestGradients(QiskitAquaTestCase):
             result = sampler.eval()
             np.testing.assert_array_almost_equal(result[0], correct_values[i], decimal=1)
 
-    # @idata(product(['statevector_simulator', 'qasm_simulator'],
-    #                ['lin_comb', 'param_shift', 'fin_diff']))
-    # @unpack
-    # def test_vqe(self, backend, method):
-    #     """Test VQE with gradients"""
-    #     qi_sv = QuantumInstance(Aer.get_backend(backend),
-    #                             seed_simulator=2,
-    #                             seed_transpiler=2)
-    #     # Define the Hamiltonian
-    #     h2_hamiltonian = -1.05 * (I ^ I) + 0.39 * (I ^ Z) - 0.39 * (Z ^ I) - 0.01 * (
-    #             Z ^ Z) + 0.18 * (X ^ X)
-    #     h2_energy = -1.85727503
+    @idata(product(['statevector_simulator', 'qasm_simulator'],
+                   ['lin_comb', 'param_shift', 'fin_diff']))
+    @unpack
+    def test_vqe(self, backend, method):
+        """Test VQE with gradients"""
+        qi_sv = QuantumInstance(Aer.get_backend(backend),
+                                seed_simulator=2,
+                                seed_transpiler=2)
+        # Define the Hamiltonian
+        h2_hamiltonian = -1.05 * (I ^ I) + 0.39 * (I ^ Z) - 0.39 * (Z ^ I) - 0.01 * (
+                Z ^ Z) + 0.18 * (X ^ X)
+        h2_energy = -1.85727503
 
-    #     # Define the Ansatz
-    #     wavefunction = QuantumCircuit(2)
-    #     params = ParameterVector('theta', length=8)
-    #     itr = iter(params)
-    #     wavefunction.ry(next(itr), 0)
-    #     wavefunction.ry(next(itr), 1)
-    #     wavefunction.rz(next(itr), 0)
-    #     wavefunction.rz(next(itr), 1)
-    #     wavefunction.cx(0, 1)
-    #     wavefunction.ry(next(itr), 0)
-    #     wavefunction.ry(next(itr), 1)
-    #     wavefunction.rz(next(itr), 0)
-    #     wavefunction.rz(next(itr), 1)
+        # Define the Ansatz
+        wavefunction = QuantumCircuit(2)
+        params = ParameterVector('theta', length=8)
+        itr = iter(params)
+        wavefunction.ry(next(itr), 0)
+        wavefunction.ry(next(itr), 1)
+        wavefunction.rz(next(itr), 0)
+        wavefunction.rz(next(itr), 1)
+        wavefunction.cx(0, 1)
+        wavefunction.ry(next(itr), 0)
+        wavefunction.ry(next(itr), 1)
+        wavefunction.rz(next(itr), 0)
+        wavefunction.rz(next(itr), 1)
 
-    #     # Conjugate Gradient algorithm
-    #     optimizer = CG(maxiter=50)
+        # Conjugate Gradient algorithm
+        optimizer = CG(maxiter=50)
 
-    #     grad = Gradient(method=method)
+        grad = Gradient(method=method)
 
-    #     # Gradient callable
-    #     vqe = VQE(h2_hamiltonian, wavefunction, optimizer=optimizer, gradient=grad)
+        # Gradient callable
+        vqe = VQE(h2_hamiltonian, wavefunction, optimizer=optimizer, gradient=grad)
 
-    #     result = vqe.run(qi_sv)
-    #     np.testing.assert_almost_equal(result['optimal_value'], h2_energy, decimal=1)
+        result = vqe.run(qi_sv)
+        np.testing.assert_almost_equal(result['optimal_value'], h2_energy, decimal=1)
 
 
 @ddt

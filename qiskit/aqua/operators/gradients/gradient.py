@@ -29,10 +29,9 @@ from qiskit.circuit import ParameterExpression, ParameterVector
 
 try:
     from jax import grad, jit
-
-    _HAS_JAX_ = True
+    _HAS_JAX = True
 except ModuleNotFoundError:
-    _HAS_JAX_ = False
+    _HAS_JAX = False
 
 
 class Gradient(GradientBase):
@@ -194,7 +193,7 @@ class Gradient(GradientBase):
             if operator.grad_combo_fn:
                 grad_combo_fn = operator.grad_combo_fn
             else:
-                if _HAS_JAX_:
+                if _HAS_JAX:
                     grad_combo_fn = jit(grad(operator._combo_fn, holomorphic=True))
                 else:
                     raise AquaError(
