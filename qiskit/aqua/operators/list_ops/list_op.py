@@ -104,7 +104,6 @@ class ListOp(OperatorBase):
         """ The gradient of ``combo_fn``. """
         return self._grad_combo_fn
 
-
     @property
     def abelian(self) -> bool:
         """ Whether the Operators in ``oplist`` are known to commute with one another.
@@ -353,18 +352,16 @@ class ListOp(OperatorBase):
             NotImplementedError: Attempting to call ListOp's eval from a non-distributive subclass.
 
         """
-        # The below code only works for distributive ListOps, e.g. ListOp and SummedOp
-
-
+        # pylint: disable=cyclic-import
         from ..state_fns.dict_state_fn import DictStateFn
         from ..state_fns.vector_state_fn import VectorStateFn
 
+        # The below code only works for distributive ListOps, e.g. ListOp and SummedOp
         if not self.distributive:
-            raise NotImplementedError(r'ListOp\'s eval function is only defined for distributive '
-                                      r'Listops.')
+            raise NotImplementedError("ListOp's eval function is only defined for distributive "
+                                      "ListOps.")
 
         evals = [(self.coeff * op).eval(front) for op in self.oplist]  # type: ignore
-
 
         # Handle application of combo_fn for {Dict,Vector}StateFns
         if self._combo_fn != ListOp([])._combo_fn:
@@ -377,7 +374,6 @@ class ListOp(OperatorBase):
                     raise NotImplementedError("Combo_fn not yet supported for mixed measurement "
                                               "and non-measurement StateFns")
                 return self.combo_fn(evals)
-
 
         if all(isinstance(op, OperatorBase) for op in evals):
             return self.__class__(evals)
