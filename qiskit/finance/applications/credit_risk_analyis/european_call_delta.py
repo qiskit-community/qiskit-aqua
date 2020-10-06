@@ -13,6 +13,7 @@
 """The European Call Option Delta."""
 
 from typing import Tuple
+import numpy as np
 from qiskit.circuit import QuantumCircuit, QuantumRegister
 from qiskit.circuit.library import IntegerComparator
 
@@ -35,6 +36,7 @@ class EuropeanCallDelta(QuantumCircuit):
         # map strike price to {0, ..., 2^n-1}
         num_values = 2 ** num_state_qubits
         strike_price = (strike_price - bounds[0]) / (bounds[1] - bounds[0]) * (num_values - 1)
+        strike_price = int(np.ceil(strike_price))
 
         # create comparator
         comparator = IntegerComparator(num_state_qubits, strike_price)
@@ -45,3 +47,14 @@ class EuropeanCallDelta(QuantumCircuit):
         super().__init__(qr_state, qr_work)
 
         self.append(comparator.to_gate(), self.qubits)
+
+    def post_processing(self, scaled_value: float) -> float:
+        """Map the scaled value back to the original domain.
+
+        Args:
+            scaled_value: The scaled value.
+
+        Returns:
+            The scaled value mapped back to the original domain.
+        """
+        return scaled_value
