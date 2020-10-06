@@ -10,11 +10,9 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""
-A ground state calculation employing the AdaptVQE algorithm.
-"""
+"""A ground state calculation employing the AdaptVQE algorithm."""
 
-from typing import Optional, List
+from typing import Optional, List, Dict, Any
 import logging
 import re
 import warnings
@@ -132,18 +130,24 @@ class AdaptVQE(GroundStateCalculation):
         # nature of the algorithm.
         return match is not None or (len(indices) > 1 and indices[-2] == indices[-1])
 
-    def compute_groundstate(self, driver: BaseDriver) -> 'AdaptVQEResult':
+    def compute_groundstate(self, driver: BaseDriver,
+                            additional_operators: Optional[Dict[str, Any]] = None
+                            ) -> 'AdaptVQEResult':
         """Computes the ground state.
 
         Args:
             driver: a chemistry driver.
+            additional_operators: Additional auxiliary ``FermionicOperator``s to evaluate at the
+                ground state.
+
         Raises:
             AquaError: if a solver other than VQE or a variational form other than UCCSD is provided
                        or if the algorithm finishes due to an unforeseen reason.
+
         Returns:
             A fermionic ground state result.
         """
-        operator, aux_operators = self._transformation.transform(driver)
+        operator, aux_operators = self._transformation.transform(driver, additional_operators)
 
         vqe = self._solver.get_solver(self._transformation)
         if not isinstance(vqe, VQE):
@@ -207,7 +211,7 @@ class AdaptVQE(GroundStateCalculation):
 
         # once finished evaluate auxiliary operators if any
         if aux_operators is not None and aux_operators:
-            vqe.compute_minimum_eigenvalue(operator, aux_operators)
+            vqe.compute_minimum_eigenvalue(operator, list(aux_operators.values()))
 
         if threshold_satisfied:
             finishing_criterion = 'Threshold converged'
@@ -222,7 +226,7 @@ class AdaptVQE(GroundStateCalculation):
         result = AdaptVQEResult()
         result.raw_result = raw_vqe_result
         result.computed_electronic_energy = raw_vqe_result.eigenvalue.real
-        result.aux_values = raw_vqe_result.aux_operator_eigenvalues
+        result.aux_values = dict(zip(aux_operators.keys(), raw_vqe_result.aux_operator_eigenvalues))
         result.num_iterations = iteration
         result.final_max_gradient = max_grad[0]
         result.finishing_criterion = finishing_criterion

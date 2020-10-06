@@ -13,7 +13,7 @@
 """Base class for transformation to qubit operators for chemistry problems"""
 
 from abc import ABC, abstractmethod
-from typing import Tuple, List
+from typing import Tuple, Dict, Any, Optional
 
 from qiskit.aqua.operators.legacy import WeightedPauliOperator
 from qiskit.chemistry.drivers import BaseDriver
@@ -24,8 +24,9 @@ class QubitOperatorTransformation(ABC):
     """Base class for transformation to qubit operators for chemistry problems"""
 
     @abstractmethod
-    def transform(self, driver: BaseDriver
-                  ) -> Tuple[WeightedPauliOperator, List[WeightedPauliOperator]]:
+    def transform(self, driver: BaseDriver,
+                  additional_operators: Optional[Dict[str, Any]] = None
+                  ) -> Tuple[WeightedPauliOperator, Dict[str, WeightedPauliOperator]]:
         """transforms to qubit operators """
         raise NotImplementedError
 

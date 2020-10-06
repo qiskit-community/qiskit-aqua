@@ -13,6 +13,7 @@
 """The ground state calculation interface."""
 
 from abc import ABC, abstractmethod
+from typing import Dict, Any, Optional
 
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.results import GroundStateResult
@@ -41,11 +42,16 @@ class GroundStateCalculation(ABC):
         self._transformation = transformation
 
     @abstractmethod
-    def compute_groundstate(self, driver: BaseDriver) -> GroundStateResult:
+    def compute_groundstate(self, driver: BaseDriver,
+                            additional_operators: Optional[Dict[str, Any]] = None
+                            ) -> GroundStateResult:
         """Compute the ground state energy of the molecule that was supplied via the driver.
 
         Args:
             driver: BaseDriver
+            additional_operators: Additional auxiliary operators to evaluate. Must be of type
+                ``FermionicOperator`` if the qubit transformation is fermionic and of type
+                ``BosonicOperator`` it is bosonic.
 
         Returns:
             A molecular ground state result

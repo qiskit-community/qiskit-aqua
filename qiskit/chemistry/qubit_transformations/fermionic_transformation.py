@@ -114,28 +114,30 @@ class FermionicTransformation(QubitOperatorTransformation):
 
         self._molecule_info: Dict[str, Any] = {}
 
-    def transform(self, driver: BaseDriver) -> Tuple[WeightedPauliOperator,
-                                                     List[WeightedPauliOperator]]:
-        """
-        Transformation to qubit operator from the driver
+    def transform(self, driver: BaseDriver,
+                  additional_operators: Optional[Dict[str, Any]] = None
+                  ) -> Tuple[WeightedPauliOperator, Dict[str, WeightedPauliOperator]]:
+        """Transformation to qubit operator from the driver
 
         Args:
             driver: Base Driver
+            additional_operators: Additional ``FermionicOperator``s to map to a qubit operator.
 
         Returns:
             qubit operator, auxiliary operators
         """
         q_molecule = driver.run()
-        ops, aux_ops = self._do_transform(q_molecule)  # _do_transform(q_molecule)
+        ops, aux_ops = self._do_transform(q_molecule, additional_operators)
 
         return ops, aux_ops
 
-    def _do_transform(self, qmolecule: QMolecule) -> Tuple[WeightedPauliOperator,
-                                                           List[WeightedPauliOperator]]:
+    def _do_transform(self, qmolecule: QMolecule,
+                      additional_operators: Optional[Dict[str, Any]] = None
+                      ) -> Tuple[WeightedPauliOperator, Dict[str, WeightedPauliOperator]]:
         """
-
         Args:
             qmolecule: qmolecule
+            additional_operators: Additional ``FermionicOperator``s to map to a qubit operator.
 
         Returns:
             (qubit operator, auxiliary operators)
@@ -227,7 +229,7 @@ class FermionicTransformation(QubitOperatorTransformation):
 
         logger.debug('  num paulis: %s, num qubits: %s', len(qubit_op.paulis), qubit_op.num_qubits)
 
-        aux_ops = []
+        aux_ops = {}
 
         def _add_aux_op(aux_op: FermionicOperator, name: str) -> None:
             """
@@ -241,16 +243,21 @@ class FermionicTransformation(QubitOperatorTransformation):
             aux_qop = FermionicTransformation._map_fermionic_operator_to_qubit(
                 aux_op, self._qubit_mapping, new_nel, self._two_qubit_reduction
                 )
-            aux_qop.name = name
-            aux_ops.append(aux_qop)
+            aux_ops[name] = aux_qop
             logger.debug('  num paulis: %s', aux_qop.paulis)
 
+        # add standard auxiliary operators
         logger.debug('Creating aux op for Number of Particles')
         _add_aux_op(fer_op.total_particle_number(), 'Number of Particles')
         logger.debug('Creating aux op for S^2')
         _add_aux_op(fer_op.total_angular_momentum(), 'S^2')
         logger.debug('Creating aux op for Magnetization')
         _add_aux_op(fer_op.total_magnetization(), 'Magnetization')
+
+        # add user specified auxiliary operators
+        if additional_operators is not None:
+            for name, aux_op in additional_operators.items():
+                _add_aux_op(aux_op, name)
 
         if qmolecule.has_dipole_integrals():
             def _dipole_op(dipole_integrals: np.ndarray, axis: str) \
@@ -292,9 +299,8 @@ class FermionicTransformation(QubitOperatorTransformation):
             op_dipole_z, self._z_dipole_shift, self._ph_z_dipole_shift = \
                 _dipole_op(qmolecule.z_dipole_integrals, 'z')
 
-            aux_ops.append(op_dipole_x)
-            aux_ops.append(op_dipole_y)
-            aux_ops.append(op_dipole_z)
+            for op_dipole in [op_dipole_x, op_dipole_y, op_dipole_z]:
+                aux_ops[op_dipole.name] = op_dipole
 
         logger.info('Molecule num electrons: %s, remaining for processing: %s',
                     [num_alpha, num_beta], new_nel)
@@ -352,10 +358,10 @@ class FermionicTransformation(QubitOperatorTransformation):
             if not commutes:
                 raise QiskitChemistryError('Z2 symmetry failure main operator must commute '
                                            'with symmetries found from it')
-            for i, aux_op in enumerate(aux_ops):
+            for name, aux_op in aux_ops.items():
                 commutes = FermionicTransformation._check_commutes(symmetry_ops, aux_op)
                 if not commutes:
-                    aux_ops[i] = None  # Discard since no meaningful measurement can be done
+                    aux_ops[name] = None  # Discard since no meaningful measurement can be done
 
             if self._z2symmetry_reduction == 'auto':
                 hf_state = HartreeFock(num_orbitals=self._molecule_info['num_orbitals'],
@@ -379,10 +385,12 @@ class FermionicTransformation(QubitOperatorTransformation):
             logger.debug('Apply symmetry with tapering values %s', z2_symmetries.tapering_values)
             chop_to = 0.00000001  # Use same threshold as qubit mapping to chop tapered operator
             z2_qubit_op = z2_symmetries.taper(qubit_op).chop(chop_to)
-            z2_aux_ops = []
-            for aux_op in aux_ops:
-                z2_aux_ops.append(z2_symmetries.taper(aux_op).chop(chop_to) if aux_op is not None
-                                  else None)
+            z2_aux_ops = {}
+            for name, aux_op in aux_ops.items():
+                if aux_op is None:
+                    z2_aux_ops[name] = None
+                else:
+                    z2_aux_ops[name] = z2_symmetries.taper(aux_op).chop(chop_to)
 
         return z2_qubit_op, z2_aux_ops, z2_symmetries
 
@@ -443,26 +451,39 @@ class FermionicTransformation(QubitOperatorTransformation):
         aux_ops_vals = result.aux_values
         if aux_ops_vals is not None:
             # Dipole results if dipole aux ops were present
-            dipole_idx = 3
-            if len(aux_ops_vals) > dipole_idx:
-                result.reverse_dipole_sign = self._reverse_dipole_sign
-                dipm = []
-                for i in range(dipole_idx, dipole_idx + 3):  # Gets X, Y and Z components
-                    dipm.append(aux_ops_vals[i][0].real if aux_ops_vals[i] is not None else None)
-                result.computed_dipole_moment = cast(DipoleTuple, tuple(dipm))
+            dipole_names = ['Dipole ' + axis for axis in ['x', 'y', 'z']]
+            if all(name in result.aux_values for name in dipole_names):
+                # extract dipole moment in each axis
+                dipole_moment = []
+                for name in dipole_names:
+                    moment = result.aux_values[name]
+                    if moment is not None:
+                        dipole_moment += [moment.real[0]]
+                    else:
+                        dipole_moment += [None]
+
+                result.computed_dipole_moment = cast(DipoleTuple, tuple(dipole_moment))
                 result.ph_extracted_dipole_moment = (self._ph_x_dipole_shift,
                                                      self._ph_y_dipole_shift,
                                                      self._ph_z_dipole_shift)
                 result.frozen_extracted_dipole_moment = (self._x_dipole_shift,
                                                          self._y_dipole_shift,
                                                          self._z_dipole_shift)
-            # The first 3 entries are num particles, total angular momentum and magnetization
-            result.num_particles = aux_ops_vals[0][0].real \
-                if aux_ops_vals[0] is not None else None
-            result.total_angular_momentum = aux_ops_vals[1][0].real \
-                if aux_ops_vals[1] is not None else None
-            result.magnetization = aux_ops_vals[2][0].real \
-                if aux_ops_vals[2] is not None else None
+
+            if 'Number of Particles' in result.aux_values:
+                result.num_particles = result.aux_values['Number of Particles'][0].real
+            else:
+                result.num_particles = None
+
+            if 'S^2' in result.aux_values:
+                result.total_angular_momentum = result.aux_values['S^2'][0].real
+            else:
+                result.total_angular_momentum = None
+
+            if 'Magnetization' in result.aux_values:
+                result.magnetization = result.aux_values['Magnetization'][0].real
+            else:
+                result.magnetization = None
 
     @staticmethod
     def _try_reduce_fermionic_operator(fer_op: FermionicOperator,
