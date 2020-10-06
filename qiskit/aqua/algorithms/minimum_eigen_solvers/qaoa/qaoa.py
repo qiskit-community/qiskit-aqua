@@ -17,7 +17,7 @@ import logging
 import numpy as np
 
 from qiskit.providers import BaseBackend
-from qiskit.providers.v2 import Backend
+from qiskit.providers import Backend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import OperatorBase, ExpectationBase, LegacyBaseOperator
 from qiskit.aqua.components.initial_states import InitialState

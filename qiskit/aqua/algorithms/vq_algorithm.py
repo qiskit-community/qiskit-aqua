@@ -29,7 +29,7 @@ import numpy as np
 
 from qiskit.circuit import QuantumCircuit, ParameterVector
 from qiskit.providers import BaseBackend
-from qiskit.providers.v2 import Backend
+from qiskit.providers import Backend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import AlgorithmResult, QuantumAlgorithm
 from qiskit.aqua.components.optimizers import Optimizer, SLSQP

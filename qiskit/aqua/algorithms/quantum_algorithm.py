@@ -21,7 +21,7 @@ Doing so requires that the required algorithm interface is implemented.
 from abc import ABC, abstractmethod
 from typing import Union, Dict, Optional
 from qiskit.providers import BaseBackend
-from qiskit.providers.v2.backend import Backend
+from qiskit.providers.backend import Backend
 from qiskit.aqua import aqua_globals, QuantumInstance, AquaError
 
 

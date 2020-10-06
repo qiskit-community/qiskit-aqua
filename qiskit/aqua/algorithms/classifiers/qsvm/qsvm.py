@@ -23,7 +23,7 @@ from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
 from qiskit.circuit import ParameterVector
 from qiskit.providers import BaseBackend
-from qiskit.providers.v2 import Backend
+from qiskit.providers import Backend
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua import AquaError

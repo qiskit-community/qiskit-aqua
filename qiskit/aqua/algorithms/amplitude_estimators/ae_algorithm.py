@@ -20,7 +20,7 @@ from abc import abstractmethod
 from qiskit.circuit import QuantumCircuit
 from qiskit.circuit.library import GroverOperator
 from qiskit.providers import BaseBackend
-from qiskit.providers.v2 import Backend
+from qiskit.providers import Backend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import QuantumAlgorithm, AlgorithmResult
 from qiskit.aqua.utils import CircuitFactory

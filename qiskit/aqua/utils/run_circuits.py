@@ -21,7 +21,7 @@ import uuid
 
 import numpy as np
 from qiskit.providers import BaseBackend, JobStatus, JobError
-from qiskit.providers.v2 import Backend
+from qiskit.providers import Backend
 from qiskit.providers.jobstatus import JOB_FINAL_STATES
 from qiskit.providers.basicaer import BasicAerJob
 from qiskit.qobj import QasmQobj

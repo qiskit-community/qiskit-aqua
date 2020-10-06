@@ -18,7 +18,7 @@ import logging
 from typing import Optional, Union, Dict, Any
 from qiskit import QuantumRegister
 from qiskit.providers import BaseBackend
-from qiskit.providers.v2 import Backend
+from qiskit.providers import Backend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.operators.legacy import op_converter

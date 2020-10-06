@@ -18,7 +18,7 @@ from functools import partial
 from time import time
 
 from qiskit.providers import BaseBackend
-from qiskit.providers.v2 import Backend
+from qiskit.providers import Backend
 from qiskit.circuit import QuantumCircuit, Parameter, ParameterExpression
 from qiskit import QiskitError
 from qiskit.aqua import QuantumInstance

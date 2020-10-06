@@ -23,7 +23,7 @@ from scipy.optimize import bisect
 from qiskit import QuantumCircuit, ClassicalRegister
 from qiskit.circuit.library import QFT
 from qiskit.providers import BaseBackend
-from qiskit.providers.v2 import Backend
+from qiskit.providers import Backend
 from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.utils import CircuitFactory
 from qiskit.aqua.circuits import PhaseEstimationCircuit

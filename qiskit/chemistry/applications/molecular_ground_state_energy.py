@@ -15,7 +15,7 @@
 from typing import List, Optional, Callable, Union
 
 from qiskit.providers import BaseBackend
-from qiskit.providers.v2 import Backend
+from qiskit.providers import Backend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import MinimumEigensolver, VQE
 from qiskit.aqua.operators import Z2Symmetries

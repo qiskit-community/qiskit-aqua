@@ -18,7 +18,7 @@ from typing import Union, List, Optional, Callable
 import numpy as np
 from qiskit.circuit import QuantumCircuit
 from qiskit.providers import BaseBackend
-from qiskit.providers.v2 import Backend
+from qiskit.providers import Backend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import VQE
 from qiskit.aqua.operators import LegacyBaseOperator, Z2Symmetries

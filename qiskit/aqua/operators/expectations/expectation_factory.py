@@ -17,7 +17,7 @@ import logging
 
 from qiskit import BasicAer
 from qiskit.providers import BaseBackend
-from qiskit.providers.v2 import Backend
+from qiskit.providers import Backend
 from qiskit.aqua.utils.backend_utils import (is_statevector_backend,
                                              is_aer_qasm,
                                              has_aer)

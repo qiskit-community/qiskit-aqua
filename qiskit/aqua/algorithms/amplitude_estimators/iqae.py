@@ -20,7 +20,7 @@ from scipy.stats import beta
 
 from qiskit import ClassicalRegister, QuantumRegister, QuantumCircuit
 from qiskit.providers import BaseBackend
-from qiskit.providers.v2 import Backend
+from qiskit.providers import Backend
 from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.utils.circuit_factory import CircuitFactory
 from qiskit.aqua.utils.validation import validate_range, validate_in_set
