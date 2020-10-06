@@ -60,9 +60,6 @@ class Gradient(GradientBase):
 
         if isinstance(params, (ParameterVector, list)):
             param_grads = [self.convert(operator, param) for param in params]
-            # If autograd returns None, then the corresponding parameter was probably not present
-            # in the operator. This needs to be looked at more carefully as other things can
-            # probably trigger a return of None.
             absent_params = [params[i]
                              for i, grad_ops in enumerate(param_grads) if grad_ops is None]
             if len(absent_params) > 0:
@@ -95,7 +92,7 @@ class Gradient(GradientBase):
 
         Raises:
             ValueError: If ``params`` contains a parameter not present in ``operator``.
-            AquaError: If the coefficent of the operator could not be reduced to 1.
+            AquaError: If the coefficient of the operator could not be reduced to 1.
             AquaError: If the differentiation of a combo_fn requires JAX but the package is not
                        installed.
             TypeError: If the operator does not include a StateFn given by a quantum circuit
@@ -110,8 +107,8 @@ class Gradient(GradientBase):
 
         if isinstance(params, (ParameterVector, list)):
             param_grads = [self.get_gradient(operator, param) for param in params]
-            # If autograd returns None, then the corresponding parameter was probably not present
-            # in the operator. This needs to be looked at more carefully as other things can
+            # If get_gradient returns None, then the corresponding parameter was probably not
+            # present in the operator. This needs to be looked at more carefully as other things can
             # probably trigger a return of None.
             absent_params = [params[i]
                              for i, grad_ops in enumerate(param_grads) if grad_ops is None]
@@ -157,8 +154,8 @@ class Gradient(GradientBase):
                                 'collected inside the ComposedOp.')
 
             # Do some checks to make sure operator is sensible
-            # TODO if this is a sum of circuit state fns - traverse including autograd
-            if isinstance(operator[-1], (CircuitStateFn)):
+            # TODO add compatibility with sum of circuit state fns
+            if isinstance(operator[-1], CircuitStateFn):
                 pass
             else:
                 raise TypeError(

@@ -416,7 +416,7 @@ class TestGradients(QiskitAquaTestCase):
             import jax.numpy as jnp
             return jnp.power(x[0], 2) + jnp.cos(x[1])
 
-        def grad_combo_fn(x):  # should be `*x` to align with autograd
+        def grad_combo_fn(x):
             return np.array([2 * x[0], -np.sin(x[1])])
 
         op = ListOp([~StateFn(X) @ CircuitStateFn(primitive=qc, coeff=1.),
@@ -596,8 +596,8 @@ class TestGradients(QiskitAquaTestCase):
                                 seed_simulator=2,
                                 seed_transpiler=2)
         # Define the Hamiltonian
-        h2_hamiltonian = -1.05 * (I ^ I) + 0.39 * (I ^ Z) - 0.39 * (Z ^ I) - 0.01 * (
-                Z ^ Z) + 0.18 * (X ^ X)
+        h2_hamiltonian = -1.05 * (I ^ I) + 0.39 * (I ^ Z) - 0.39 * (Z ^ I) - 0.01 * (Z ^ Z) + 0.18 \
+                         * (X ^ X)
         h2_energy = -1.85727503
 
         # Define the Ansatz

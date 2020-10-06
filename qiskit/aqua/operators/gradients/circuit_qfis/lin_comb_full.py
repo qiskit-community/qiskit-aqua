@@ -13,7 +13,6 @@
 """The module for Quantum the Fisher Information."""
 
 import copy
-from collections.abc import Iterable
 from copy import deepcopy
 from typing import List, Union, Optional, Tuple
 

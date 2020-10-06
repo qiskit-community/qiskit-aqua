@@ -52,12 +52,12 @@ class NaturalGradient(GradientBase):
                 ``'param_shift'`` or ``'lin_comb'`` or ``'fin_diff'``.
             qfi_method: The method used to compute the QFI. Can be either
                 ``'lin_comb_full'`` or ``'overlap_block_diag'`` or ``'overlap_diag'``.
-            regularization: Use the following regularization with an lstsq method to solve the
-                underlying SLE
+            regularization: Use the following regularization with a least square method to solve the
+                underlying system of linear equations
                 Can be either None or ``'ridge'`` or ``'lasso'`` or ``'perturb_diag'``
                 ``'ridge'`` and ``'lasso'`` use an automatic optimal parameter search
                 If regularization is None but the metric is ill-conditioned or singular then
-                a lstsq solver is used without regularization
+                a least square solver is used without regularization
             kwargs (dict): Optional parameters for a CircuitGradient
         """
         super().__init__(grad_method)
@@ -184,8 +184,8 @@ class NaturalGradient(GradientBase):
             p_temp = 1
             c_k = 0
             for i in range(3):
-                p_temp *= (eps[np.mod(i + 1, 3)] - eps[i]) ** 2 + (
-                        eta[np.mod(i + 1, 3)] - eta[i]) ** 2
+                p_temp *= (eps[np.mod(i + 1, 3)] - eps[i]) ** 2 + (eta[np.mod(i + 1, 3)] - eta[i]) \
+                          ** 2
                 c_k += eps[i] * eta[np.mod(i + 1, 3)] - eps[np.mod(i + 1, 3)] * eta[i]
             c_k = 2 * c_k / max(1e-4, np.sqrt(p_temp))
             return c_k
@@ -389,7 +389,7 @@ class NaturalGradient(GradientBase):
             tol_cond_a: tolerance for the condition number of A
 
         Returns:
-            solution to the regularized SLE
+            solution to the regularized system of linear equations
 
         """
         if regularization == 'ridge':
