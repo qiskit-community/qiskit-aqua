@@ -8,8 +8,8 @@ adjoints
 admmstate
 ae
 aer
-aer's
 aerjob
+aer's
 affine
 aij
 al
@@ -29,6 +29,7 @@ aos
 ap
 api
 appfactory
+äquivalenzverbot
 arcsin
 arg
 args
@@ -115,9 +116,9 @@ cx's
 da
 das
 dat
-data's
 dataondemand
 datapoints
+data's
 dataset
 datasets
 dcs
@@ -477,8 +478,8 @@ params
 parikh
 pascual
 pauli
-pauli's
 pauliop
+pauli's
 paulis
 paulische
 pca
@@ -619,8 +620,8 @@ statevectors
 stdout
 stockmarket
 str
-subclass's
 subclasses
+subclass's
 subgraph
 submodule
 submodules
@@ -683,6 +684,7 @@ typea
 typeb
 typec
 uber
+über
 ucc
 uccd
 uccs
@@ -751,5 +753,6 @@ zmatrix
 zoufal
 zv
 zx
-äquivalenzverbot
-über
+θ
+ψ
+ω
