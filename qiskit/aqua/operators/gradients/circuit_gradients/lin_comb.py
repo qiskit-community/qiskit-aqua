@@ -130,16 +130,14 @@ class LinComb(CircuitGradient):
                                                               for param in params)):
                         return self._gradient_states(state_op, meas_op=(~StateFn(Z) ^ operator[0]),
                                                      target_params=params)
-                    elif isinstance(params, (Tuple[ParameterExpression, ParameterExpression])) or \
+                    elif isinstance(params, tuple) or \
                             (isinstance(params, list) and all(isinstance(param, tuple)
                                                               for param in params)):
                         return self._hessian_states(state_op,
                                                     meas_op=(4 * ~StateFn(Z ^ I) ^ operator[0]),
                                                     target_params=params)
-                    else:
-                        raise AquaError(
-                            'The linear combination gradient does only support the computation '
-                            'of 1st gradients and 2nd order gradients.')
+                    raise AquaError('The linear combination gradient does only support the '
+                                    'computation of 1st gradients and 2nd order gradients.')
                 else:
                     state_op = deepcopy(operator)
                     state_op.oplist.pop(0)
@@ -153,7 +151,7 @@ class LinComb(CircuitGradient):
                         return state_op.traverse(
                             partial(self._gradient_states, meas_op=(~StateFn(Z) ^ operator[0]),
                                     target_params=params))
-                    elif isinstance(params, (Tuple[ParameterExpression, ParameterExpression])) or \
+                    elif isinstance(params, tuple) or \
                         (isinstance(params, list) and all(isinstance(param, tuple)
                                                           for param in params)):
                         return state_op.traverse(
@@ -177,7 +175,7 @@ class LinComb(CircuitGradient):
                         (isinstance(params, list) and all(isinstance(param, ParameterExpression)
                                                           for param in params)):
                     return self._gradient_states(operator, target_params=params)
-                elif isinstance(params, (Tuple[ParameterExpression, ParameterExpression])) or \
+                elif isinstance(params, tuple) or \
                         (isinstance(params, list) and all(isinstance(param, tuple)
                                                           for param in params)):
                     return self._hessian_states(operator, target_params=params)
