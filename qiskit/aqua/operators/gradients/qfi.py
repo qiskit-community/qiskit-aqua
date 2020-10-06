@@ -40,7 +40,7 @@ class QFI(QFIBase):
                 ) -> ListOp:
         r"""
         Args:
-            operator: The operator corresponding to the quantum state |ψ(ω)〉for which we compute
+            operator: The operator corresponding to the quantum state \|ψ(ω)〉for which we compute
                 the QFI
             params: The parameters we are computing the QFI wrt: ω
 

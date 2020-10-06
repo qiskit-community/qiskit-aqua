@@ -24,7 +24,7 @@ from sympy import Symbol, cos
 try:
     import jax.numpy as jnp
     _HAS_JAX = True
-except ModuleNotFoundError:
+except ImportError:
     _HAS_JAX = False
 
 from qiskit import Aer

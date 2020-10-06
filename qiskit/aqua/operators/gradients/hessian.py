@@ -27,7 +27,7 @@ from qiskit.circuit import ParameterVector, ParameterExpression
 try:
     from jax import grad, jit
     _HAS_JAX = True
-except ModuleNotFoundError:
+except ImportError:
     _HAS_JAX = False
 
 

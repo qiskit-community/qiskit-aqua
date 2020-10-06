@@ -55,7 +55,6 @@ jobs:
           pip install pyenchant
           pip install cplex
           pip install "cvxpy>1.0.0"
-          pip install jax jaxlib
           pip install https://github.com/rpmuller/pyquante2/archive/master.zip
         shell: bash
       - name: Terminate if failure above
@@ -126,7 +125,6 @@ jobs:
       - name: Install Dependencies
         run: |
           pip install "cvxpy>1.0.0"
-          pip install jax jaxlib
           pip install https://github.com/rpmuller/pyquante2/archive/master.zip
       - name: Terminate if failure above
         run: exit 1
@@ -167,7 +165,6 @@ jobs:
       - name: Mypy under Python ${{ matrix.python-version }}
         run: |
           pip install cplex
-          pip install jax jaxlib
           make mypy
         shell: bash
   Aqua:

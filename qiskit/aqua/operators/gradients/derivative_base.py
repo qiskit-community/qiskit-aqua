@@ -108,10 +108,11 @@ class DerivativeBase(ConverterBase):
         ):
             try:
                 import retworkx
-                if retworkx.__version__ < '0.5.0':
-                    raise ImportError('Please update retworx to at least version 0.5.0')
-            except ModuleNotFoundError as ex:
+            except ImportError as ex:
                 raise ImportError('Please install retworx>=0.5.0') from ex
+
+            if retworkx.__version__ < '0.5.0':
+                raise ImportError('Please update retworx to at least version 0.5.0')
 
         def gradient_fn(p_values):
             p_values_dict = dict(zip(bind_params, p_values))
