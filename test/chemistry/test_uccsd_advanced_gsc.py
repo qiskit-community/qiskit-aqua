@@ -24,10 +24,10 @@ from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.components.initial_states import HartreeFock
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
-from qiskit.chemistry.core import QubitMappingType, TransformationType
 from qiskit.chemistry.ground_state_calculation import MinimumEigensolverGroundStateCalculation
 from qiskit.chemistry.core import TransformationType, QubitMappingType
 from qiskit.chemistry.qubit_transformations import FermionicTransformation
+
 
 # pylint: disable=invalid-name
 
@@ -45,11 +45,12 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
                                       spin=0,
                                       basis='631g')
 
-            self.fermionic_transformation = FermionicTransformation(transformation=TransformationType.FULL,
-                                                                    qubit_mapping=QubitMappingType.PARITY,
-                                                                    two_qubit_reduction=True,
-                                                                    freeze_core=True,
-                                                                    orbital_reduction=[])
+            self.fermionic_transformation = FermionicTransformation(
+                transformation=TransformationType.FULL,
+                qubit_mapping=QubitMappingType.PARITY,
+                two_qubit_reduction=True,
+                freeze_core=True,
+                orbital_reduction=[])
 
             self.qubit_op, _ = self.fermionic_transformation.transform(self.driver)
 
@@ -89,25 +90,28 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
 
         optimizer = SLSQP(maxiter=100)
 
-        initial_state = HartreeFock(self.fermionic_transformation._molecule_info['num_orbitals'],
-                                    self.fermionic_transformation._molecule_info['num_particles'],
-                                    qubit_mapping=self.fermionic_transformation._qubit_mapping,
-                                    two_qubit_reduction=self.fermionic_transformation._two_qubit_reduction)
+        initial_state = HartreeFock(
+            self.fermionic_transformation._molecule_info['num_orbitals'],
+            self.fermionic_transformation._molecule_info['num_particles'],
+            qubit_mapping=self.fermionic_transformation._qubit_mapping,
+            two_qubit_reduction=self.fermionic_transformation._two_qubit_reduction)
 
-        var_form = UCCSD(num_orbitals=self.fermionic_transformation._molecule_info['num_orbitals'],
-                         num_particles=self.fermionic_transformation._molecule_info['num_particles'],
-                         active_occupied=None, active_unoccupied=None,
-                         initial_state=initial_state,
-                         qubit_mapping=self.fermionic_transformation._qubit_mapping,
-                         two_qubit_reduction=self.fermionic_transformation._two_qubit_reduction,
-                         num_time_slices=1,
-                         shallow_circuit_concat=False,
-                         method_doubles='pucc',
-                         excitation_type='d'
-                         )
+        var_form = UCCSD(
+            num_orbitals=self.fermionic_transformation._molecule_info['num_orbitals'],
+            num_particles=self.fermionic_transformation._molecule_info['num_particles'],
+            active_occupied=None, active_unoccupied=None,
+            initial_state=initial_state,
+            qubit_mapping=self.fermionic_transformation._qubit_mapping,
+            two_qubit_reduction=self.fermionic_transformation._two_qubit_reduction,
+            num_time_slices=1,
+            shallow_circuit_concat=False,
+            method_doubles='pucc',
+            excitation_type='d'
+        )
 
-        solver = VQE(var_form= var_form, optimizer = optimizer,
-                     quantum_instance = QuantumInstance(backend=BasicAer.get_backend('statevector_simulator')))
+        solver = VQE(var_form=var_form, optimizer=optimizer,
+                     quantum_instance=QuantumInstance(
+                         backend=BasicAer.get_backend('statevector_simulator')))
 
         gsc = MinimumEigensolverGroundStateCalculation(self.fermionic_transformation, solver)
 
@@ -119,25 +123,28 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         """ singlet uccd test """
 
         optimizer = SLSQP(maxiter=100)
-        initial_state = HartreeFock(self.fermionic_transformation._molecule_info['num_orbitals'],
-                                    self.fermionic_transformation._molecule_info['num_particles'],
-                                    qubit_mapping=self.fermionic_transformation._qubit_mapping,
-                                    two_qubit_reduction=self.fermionic_transformation._two_qubit_reduction)
+        initial_state = HartreeFock(
+            self.fermionic_transformation._molecule_info['num_orbitals'],
+            self.fermionic_transformation._molecule_info['num_particles'],
+            qubit_mapping=self.fermionic_transformation._qubit_mapping,
+            two_qubit_reduction=self.fermionic_transformation._two_qubit_reduction)
 
-        var_form = UCCSD(num_orbitals=self.fermionic_transformation._molecule_info['num_orbitals'],
-                         num_particles=self.fermionic_transformation._molecule_info['num_particles'],
-                         active_occupied=None, active_unoccupied=None,
-                         initial_state=initial_state,
-                         qubit_mapping=self.fermionic_transformation._qubit_mapping,
-                         two_qubit_reduction=self.fermionic_transformation._two_qubit_reduction,
-                         num_time_slices=1,
-                         shallow_circuit_concat=False,
-                         method_doubles='succ',
-                         excitation_type='d'
-                         )
+        var_form = UCCSD(
+            num_orbitals=self.fermionic_transformation._molecule_info['num_orbitals'],
+            num_particles=self.fermionic_transformation._molecule_info['num_particles'],
+            active_occupied=None, active_unoccupied=None,
+            initial_state=initial_state,
+            qubit_mapping=self.fermionic_transformation._qubit_mapping,
+            two_qubit_reduction=self.fermionic_transformation._two_qubit_reduction,
+            num_time_slices=1,
+            shallow_circuit_concat=False,
+            method_doubles='succ',
+            excitation_type='d'
+        )
 
         solver = VQE(var_form=var_form, optimizer=optimizer,
-                     quantum_instance=QuantumInstance(backend=BasicAer.get_backend('statevector_simulator')))
+                     quantum_instance=QuantumInstance(
+                         backend=BasicAer.get_backend('statevector_simulator')))
 
         gsc = MinimumEigensolverGroundStateCalculation(self.fermionic_transformation, solver)
 
@@ -150,25 +157,28 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
 
         optimizer = SLSQP(maxiter=100)
 
-        initial_state = HartreeFock(self.fermionic_transformation._molecule_info['num_orbitals'],
-                                    self.fermionic_transformation._molecule_info['num_particles'],
-                                    qubit_mapping=self.fermionic_transformation._qubit_mapping,
-                                    two_qubit_reduction=self.fermionic_transformation._two_qubit_reduction)
+        initial_state = HartreeFock(
+            self.fermionic_transformation._molecule_info['num_orbitals'],
+            self.fermionic_transformation._molecule_info['num_particles'],
+            qubit_mapping=self.fermionic_transformation._qubit_mapping,
+            two_qubit_reduction=self.fermionic_transformation._two_qubit_reduction)
 
-        var_form = UCCSD(num_orbitals=self.fermionic_transformation._molecule_info['num_orbitals'],
-                         num_particles=self.fermionic_transformation._molecule_info['num_particles'],
-                         active_occupied=None, active_unoccupied=None,
-                         initial_state=initial_state,
-                         qubit_mapping=self.fermionic_transformation._qubit_mapping,
-                         two_qubit_reduction=self.fermionic_transformation._two_qubit_reduction,
-                         num_time_slices=1,
-                         shallow_circuit_concat=False,
-                         method_doubles='succ_full',
-                         excitation_type='d'
-                         )
+        var_form = UCCSD(
+            num_orbitals=self.fermionic_transformation._molecule_info['num_orbitals'],
+            num_particles=self.fermionic_transformation._molecule_info['num_particles'],
+            active_occupied=None, active_unoccupied=None,
+            initial_state=initial_state,
+            qubit_mapping=self.fermionic_transformation._qubit_mapping,
+            two_qubit_reduction=self.fermionic_transformation._two_qubit_reduction,
+            num_time_slices=1,
+            shallow_circuit_concat=False,
+            method_doubles='succ_full',
+            excitation_type='d'
+        )
 
         solver = VQE(var_form=var_form, optimizer=optimizer,
-                     quantum_instance=QuantumInstance(backend=BasicAer.get_backend('statevector_simulator')))
+                     quantum_instance=QuantumInstance(
+                         backend=BasicAer.get_backend('statevector_simulator')))
 
         gsc = MinimumEigensolverGroundStateCalculation(self.fermionic_transformation, solver)
 
@@ -179,13 +189,14 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
     def test_uccsd_hf_qUCCSD(self):
         """ uccsd tapering test using all double excitations """
 
-        fermionic_transformation = FermionicTransformation(transformation=TransformationType.FULL,
-                                                           qubit_mapping=QubitMappingType.PARITY,
-                                                           two_qubit_reduction=True,
-                                                           freeze_core=True,
-                                                           orbital_reduction=[],
-                                                           z2symmetry_reduction = 'auto'
-                                                           )
+        fermionic_transformation = FermionicTransformation(
+            transformation=TransformationType.FULL,
+            qubit_mapping=QubitMappingType.PARITY,
+            two_qubit_reduction=True,
+            freeze_core=True,
+            orbital_reduction=[],
+            z2symmetry_reduction='auto'
+        )
 
         qubit_op, _ = fermionic_transformation.transform(self.driver)
 
@@ -193,27 +204,30 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         optimizer = SLSQP(maxiter=100)
 
         # initial state
-        init_state = HartreeFock(num_orbitals=fermionic_transformation._molecule_info['num_orbitals'],
-                                 qubit_mapping=fermionic_transformation._qubit_mapping,
-                                 two_qubit_reduction=fermionic_transformation._two_qubit_reduction,
-                                 num_particles=fermionic_transformation._molecule_info['num_particles'],
-                                 sq_list=qubit_op.z2_symmetries.sq_list)
+        init_state = HartreeFock(
+            num_orbitals=fermionic_transformation._molecule_info['num_orbitals'],
+            qubit_mapping=fermionic_transformation._qubit_mapping,
+            two_qubit_reduction=fermionic_transformation._two_qubit_reduction,
+            num_particles=fermionic_transformation._molecule_info['num_particles'],
+            sq_list=qubit_op.z2_symmetries.sq_list)
 
-        var_form = UCCSD(num_orbitals=fermionic_transformation._molecule_info['num_orbitals'],
-                         num_particles=fermionic_transformation._molecule_info['num_particles'],
-                         active_occupied=None, active_unoccupied=None,
-                         initial_state=init_state,
-                         qubit_mapping=fermionic_transformation._qubit_mapping,
-                         two_qubit_reduction=fermionic_transformation._two_qubit_reduction,
-                         num_time_slices=1,
-                         z2_symmetries=qubit_op.z2_symmetries,
-                         shallow_circuit_concat=False,
-                         method_doubles='ucc',
-                         excitation_type='sd',
-                         skip_commute_test=True)
+        var_form = UCCSD(
+            num_orbitals=fermionic_transformation._molecule_info['num_orbitals'],
+            num_particles=fermionic_transformation._molecule_info['num_particles'],
+            active_occupied=None, active_unoccupied=None,
+            initial_state=init_state,
+            qubit_mapping=fermionic_transformation._qubit_mapping,
+            two_qubit_reduction=fermionic_transformation._two_qubit_reduction,
+            num_time_slices=1,
+            z2_symmetries=qubit_op.z2_symmetries,
+            shallow_circuit_concat=False,
+            method_doubles='ucc',
+            excitation_type='sd',
+            skip_commute_test=True)
 
         solver = VQE(var_form=var_form, optimizer=optimizer,
-                     quantum_instance=QuantumInstance(backend=BasicAer.get_backend('statevector_simulator')))
+                     quantum_instance=QuantumInstance(
+                         backend=BasicAer.get_backend('statevector_simulator')))
 
         gsc = MinimumEigensolverGroundStateCalculation(fermionic_transformation, solver)
 
@@ -225,25 +239,27 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         """ uccsd tapering test using all double excitations """
 
         # initial state
-        init_state = HartreeFock(num_orbitals=self.fermionic_transformation._molecule_info['num_orbitals'],
-                                 qubit_mapping=self.fermionic_transformation._qubit_mapping,
-                                 two_qubit_reduction=self.fermionic_transformation._two_qubit_reduction,
-                                 num_particles=self.fermionic_transformation._molecule_info['num_particles'],
-                                 sq_list=self.the_tapered_op.z2_symmetries.sq_list)
+        init_state = HartreeFock(
+            num_orbitals=self.fermionic_transformation._molecule_info['num_orbitals'],
+            qubit_mapping=self.fermionic_transformation._qubit_mapping,
+            two_qubit_reduction=self.fermionic_transformation._two_qubit_reduction,
+            num_particles=self.fermionic_transformation._molecule_info['num_particles'],
+            sq_list=self.the_tapered_op.z2_symmetries.sq_list)
 
         # check singlet excitations
-        var_form = UCCSD(num_orbitals=self.fermionic_transformation._molecule_info['num_orbitals'],
-                         num_particles=self.fermionic_transformation._molecule_info['num_particles'],
-                         active_occupied=None, active_unoccupied=None,
-                         initial_state=init_state,
-                         qubit_mapping=self.fermionic_transformation._qubit_mapping,
-                         two_qubit_reduction=self.fermionic_transformation._two_qubit_reduction,
-                         num_time_slices=1,
-                         z2_symmetries=self.the_tapered_op.z2_symmetries,
-                         shallow_circuit_concat=False,
-                         method_doubles='succ',
-                         excitation_type='d',
-                         skip_commute_test=True)
+        var_form = UCCSD(
+            num_orbitals=self.fermionic_transformation._molecule_info['num_orbitals'],
+            num_particles=self.fermionic_transformation._molecule_info['num_particles'],
+            active_occupied=None, active_unoccupied=None,
+            initial_state=init_state,
+            qubit_mapping=self.fermionic_transformation._qubit_mapping,
+            two_qubit_reduction=self.fermionic_transformation._two_qubit_reduction,
+            num_time_slices=1,
+            z2_symmetries=self.the_tapered_op.z2_symmetries,
+            shallow_circuit_concat=False,
+            method_doubles='succ',
+            excitation_type='d',
+            skip_commute_test=True)
 
         double_excitations_singlet = var_form._double_excitations
         res = TestUCCSDHartreeFock.excitation_lists_comparator(
@@ -251,18 +267,19 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         self.assertEqual(res, True)
 
         # check grouped singlet excitations
-        var_form = UCCSD(num_orbitals=self.fermionic_transformation._molecule_info['num_orbitals'],
-                         num_particles=self.fermionic_transformation._molecule_info['num_particles'],
-                         active_occupied=None, active_unoccupied=None,
-                         initial_state=init_state,
-                         qubit_mapping=self.fermionic_transformation._qubit_mapping,
-                         two_qubit_reduction=self.fermionic_transformation._two_qubit_reduction,
-                         num_time_slices=1,
-                         z2_symmetries=self.the_tapered_op.z2_symmetries,
-                         shallow_circuit_concat=False,
-                         method_doubles='succ_full',
-                         excitation_type='d',
-                         skip_commute_test=True)
+        var_form = UCCSD(
+            num_orbitals=self.fermionic_transformation._molecule_info['num_orbitals'],
+            num_particles=self.fermionic_transformation._molecule_info['num_particles'],
+            active_occupied=None, active_unoccupied=None,
+            initial_state=init_state,
+            qubit_mapping=self.fermionic_transformation._qubit_mapping,
+            two_qubit_reduction=self.fermionic_transformation._two_qubit_reduction,
+            num_time_slices=1,
+            z2_symmetries=self.the_tapered_op.z2_symmetries,
+            shallow_circuit_concat=False,
+            method_doubles='succ_full',
+            excitation_type='d',
+            skip_commute_test=True)
 
         double_excitations_singlet_grouped = var_form._double_excitations_grouped
         res_groups = TestUCCSDHartreeFock.group_excitation_lists_comparator(
@@ -346,6 +363,7 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
                     counter += 1
 
         return bool(counter == number_groups)
+
 
 if __name__ == '__main__':
     unittest.main()

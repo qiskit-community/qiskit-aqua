@@ -23,6 +23,7 @@ from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
 
+
 @ddt
 class TestInitialStateHartreeFock(QiskitChemistryTestCase):
     """ Initial State HartreeFock tests """
