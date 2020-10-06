@@ -25,6 +25,7 @@ from qiskit.chemistry.components.initial_states import HartreeFock
 from qiskit.chemistry.drivers import HDF5Driver
 from qiskit.chemistry.core import Hamiltonian, QubitMappingType
 
+
 class TestExcitationPreserving(QiskitChemistryTestCase):
     """The ExcitationPresering wavefunction was design to preserve the excitation of the system.
 
