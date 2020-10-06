@@ -180,7 +180,7 @@ class DerivativeBase(ConverterBase):
         if isinstance(operator, PrimitiveOp):
             return operator / operator.coeff
         else:
-            op_coeff = operator.coeff
+            op_coeff = operator.coeff  # type: ignore
             return (operator / op_coeff).traverse(cls._erase_operator_coeffs)
 
     @classmethod
@@ -212,11 +212,10 @@ class DerivativeBase(ConverterBase):
             total_coeff = 1.0
             take_norm_of_coeffs = False
             for op in operator.oplist:
-
                 if take_norm_of_coeffs:
-                    total_coeff *= (op.coeff * np.conj(op.coeff))
+                    total_coeff *= (op.coeff * np.conj(op.coeff))  # type: ignore
                 else:
-                    total_coeff *= op.coeff
+                    total_coeff *= op.coeff  # type: ignore
                 if hasattr(op, 'primitive'):
                     prim = op.primitive
                     if isinstance(prim, ListOp):
