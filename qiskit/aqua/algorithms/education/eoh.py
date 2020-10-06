@@ -18,6 +18,7 @@ import logging
 from typing import Optional, Union, Dict, Any
 from qiskit import QuantumRegister
 from qiskit.providers import BaseBackend
+from qiskit.providers import Backend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.operators.legacy import op_converter
@@ -47,7 +48,8 @@ class EOH(QuantumAlgorithm):
                  num_time_slices: int = 1,
                  expansion_mode: str = 'trotter',
                  expansion_order: int = 1,
-                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
+                 quantum_instance: Optional[
+                     Union[QuantumInstance, BaseBackend, Backend]] = None) -> None:
         """
         Args:
             operator: Operator to evaluate

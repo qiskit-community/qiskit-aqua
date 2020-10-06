@@ -16,6 +16,7 @@ import warnings
 from typing import List, Optional, Callable, Union
 
 from qiskit.providers import BaseBackend
+from qiskit.providers import Backend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import MinimumEigensolver, VQE
 from qiskit.aqua.operators import Z2Symmetries
@@ -140,7 +141,7 @@ class MolecularGroundStateEnergy:
         return core.process_algorithm_result(raw_result)
 
     @staticmethod
-    def get_default_solver(quantum_instance: Union[QuantumInstance, BaseBackend]) ->\
+    def get_default_solver(quantum_instance: Union[QuantumInstance, Backend, BaseBackend]) ->\
             Optional[Callable[[List, int, str, bool, Z2Symmetries], MinimumEigensolver]]:
         """
         Get the default solver callback that can be used with :meth:`compute_energy`

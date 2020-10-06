@@ -20,6 +20,7 @@ from abc import abstractmethod
 from qiskit.circuit import QuantumCircuit
 from qiskit.circuit.library import GroverOperator
 from qiskit.providers import BaseBackend
+from qiskit.providers import Backend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import QuantumAlgorithm, AlgorithmResult
 from qiskit.aqua.utils import CircuitFactory
@@ -64,7 +65,7 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
                  grover_operator: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
                  objective_qubits: Optional[List[int]] = None,
                  post_processing: Optional[Callable[[float], float]] = None,
-                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None,
+                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend, Backend]] = None,
                  a_factory: Optional[CircuitFactory] = None,
                  q_factory: Optional[CircuitFactory] = None,
                  i_objective: Optional[int] = None) -> None:
