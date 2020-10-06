@@ -111,7 +111,7 @@ class CircuitSampler(ConverterBase):
         return self.quantum_instance.backend
 
     @backend.setter
-    def backend(self, backend: Uniont[Backend, BaseBackend]):
+    def backend(self, backend: Union[Backend, BaseBackend]):
         """ Sets backend without additional configuration. """
         self.set_backend(backend)
 

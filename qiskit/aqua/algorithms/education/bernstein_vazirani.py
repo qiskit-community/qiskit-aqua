@@ -43,7 +43,8 @@ class BernsteinVazirani(QuantumAlgorithm):
 
     def __init__(self,
                  oracle: Oracle,
-                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend, Backend]] = None) -> None:
+                 quantum_instance: Optional[Union[QuantumInstance,
+                                                  BaseBackend, Backend]] = None) -> None:
         """
         Args:
             oracle: The oracle component
