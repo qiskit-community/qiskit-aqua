@@ -49,9 +49,14 @@ class PSI4Driver(FermionicDriver):
         """
         Args:
             config: A molecular configuration conforming to PSI4 format.
-            molecule: molecule
-            basis: basis set
-            hf_method: Hartree-Fock Method type
+            molecule: A driver independent Molecule definition instance may be provided. When
+                a molecule is supplied the `config` parameter is ignored and the Molecule instance,
+                along with `basis` and `hf_method` is used to build a basic config instead.
+                The Molecule object is read when the driver is run and converted to the driver
+                dependent configuration for the computation. This allows, for example, the Molecule
+                geometry to be updated to compute different points.
+            basis: Basis set
+            hf_method: Hartree-Fock Method type; `rhf`, `rohf`, `uhf`
 
         Raises:
             QiskitChemistryError: Invalid Input

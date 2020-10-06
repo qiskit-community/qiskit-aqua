@@ -10,12 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""
-This module implements an interface for a generic molecule.
-It defines the composing atoms (with properties like masses, and nuclear spin),
-and allows for changing the molecular geometry through given degrees of freedom
-(e.g. bond-stretching, angle-bending, etc.).
-"""
+"""Driver-independent Molecule definition."""
 
 from typing import Callable, Tuple, List, Optional
 import copy
@@ -27,54 +22,59 @@ from .units_type import UnitsType
 
 
 class Molecule:
-    """
-    Molecule class
+    """Driver-independent Molecule definition.
+
+    This module implements an interface for a driver-independent, i.e. generic molecule
+    definition. It defines the composing atoms (with properties like masses),
+    and allows for changing the molecular geometry through given degrees of freedom
+    (e.g. bond-stretching, angle-bending, etc.). The geometry as provided in the
+    constructor can be affected, through setting perturbations, and it is this perturbed
+    geometry that is supplied by the geometry getter. Setting perturbations to None will
+    cause the original geometry to be returned, and there is a getter to get this value
+    directly if its needed.
     """
 
     def __init__(self,
                  geometry: List[Tuple[str, List[float]]],
-                 multiplicity: int,
-                 charge: int,
+                 multiplicity: int = 1,
+                 charge: int = 0,
                  degrees_of_freedom: Optional[List[Callable]] = None,
                  masses: Optional[List[float]] = None
                  ) -> None:
         """
         Args:
-            geometry: 2d list containing atom string names
-                to generate PySCF molecule strings as keys and list of 3
-                floats representing Cartesian coordinates as values,
-                in units of **Angstroms**.
-            multiplicity: multiplicity
-            charge: charge
+            geometry: A list of atoms defining a given molecule where each item in the list
+                is an atom name together with a list of 3 floats representing the x,y and z
+                Cartesian coordinates of the atom's position in units of **Angstrom**.
+            multiplicity: Multiplicity (2S+1) of the molecule
+            charge: Charge on the molecule
             degrees_of_freedom: List of functions taking a
                 perturbation value and geometry and returns a perturbed
                 geometry. Helper functions for typical perturbations are
                 provided and can be used by the form
                 itertools.partial(Molecule.stretching_potential,{'atom_pair': (1, 2))
                 to specify the desired degree of freedom.
-            masses: masses
+            masses: Mass of each atom the molecule may optionally be provided.
 
         Raises:
             ValueError: Length of masses must match length of geometries.
         """
+        Molecule._check_consistency(geometry, masses)
+
         self._geometry = geometry
         self._degrees_of_freedom = degrees_of_freedom
         self._multiplicity = multiplicity
         self._charge = charge
-
-        self._check_masses(masses)
-
         self._masses = masses
 
-    def _check_masses(self, masses: Optional[List[float]]):
-        if masses is not None and not len(masses) == len(self._geometry):
-            raise ValueError(
-                'Length of masses must match length of geometries, '
-                'found {} and {} respectively'.format(
-                    len(masses),
-                    len(self._geometry)
-                )
-            )
+        self._perturbations = None  # type: Optional[List[float]]
+
+    @staticmethod
+    def _check_consistency(geometry: List[Tuple[str, List[float]]],
+                           masses: Optional[List[float]]):
+        if masses is not None and len(masses) != len(geometry):
+            raise ValueError('Length of masses {} must match length of geometries {}'.format(
+                len(masses), len(geometry)))
 
     @classmethod
     def _distance_modifier(cls,
@@ -321,72 +321,69 @@ class Molecule:
 
         return cls._bend_modifier(func, bend, geometry, atom_trio)
 
-    def get_perturbed_geom(self,
-                           perturbations: Optional[List[float]] = None) \
-            -> List[Tuple[str, List[float]]]:
+    def _get_perturbed_geom(self) -> List[Tuple[str, List[float]]]:
         """ get perturbed geometry """
-        if not perturbations or not self._degrees_of_freedom:
+        if self.perturbations is None or self._degrees_of_freedom is None:
             return self._geometry
+
         geometry = copy.deepcopy(self._geometry)
-        for per, dof in zip(perturbations, self._degrees_of_freedom):
+        for per, dof in zip(self.perturbations, self._degrees_of_freedom):
             geometry = dof(per, geometry)
         return geometry
 
     @property
     def units(self):
-        """ return units """
+        """ The geometry coordinate units """
         return UnitsType.ANGSTROM
 
     @property
     def geometry(self) -> List[Tuple[str, List[float]]]:
-        """ return geometry """
-        return self._geometry
-
-    @classmethod
-    def get_geometry_str(cls,
-                         geometry: List[Tuple[str, List[float]]]) -> str:
-        """ get geometry string """
-        return '; '.join([name + ' ' + ', '.join(map(str, coord))
-                          for (name, coord) in geometry])
-
-    @property
-    def geometry_str(self) -> str:
-        """ return geometry string """
-        return Molecule.get_geometry_str(self.geometry)
+        """ Get geometry accounting for any perturbations """
+        return self._get_perturbed_geom()
 
     @property
     def masses(self) -> Optional[List[float]]:
-        """ return masses """
+        """ Get masses """
         return self._masses
 
     @masses.setter
     def masses(self, value: Optional[List[float]]) -> None:
-        """ set masses
+        """ Set masses
         Args:
             value: masses
 
         Raises:
             ValueError: Length of masses must match length of geometries.
         """
-        self._check_masses(value)
+        Molecule._check_consistency(self._geometry, value)
         self._masses = value
 
     @property
     def multiplicity(self) -> int:
-        """ return multiplicity """
+        """ Get multiplicity """
         return self._multiplicity
 
     @multiplicity.setter
     def multiplicity(self, value: int) -> None:
-        """ set multiplicity """
+        """ Set multiplicity """
         self._multiplicity = value
 
     @property
     def charge(self) -> int:
-        """ return charge """
+        """ Get charge """
         return self._charge
 
     @charge.setter
     def charge(self, value: int) -> None:
-        """ set charge """
+        """ Set charge """
         self._charge = value
+
+    @property
+    def perturbations(self) -> Optional[List[float]]:
+        """ Get perturbations """
+        return self._perturbations
+
+    @perturbations.setter
+    def perturbations(self, value: Optional[List[float]]) -> None:
+        """ Set perturbations """
+        self._perturbations = value

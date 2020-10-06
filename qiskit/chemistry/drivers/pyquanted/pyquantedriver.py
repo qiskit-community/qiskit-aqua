@@ -54,16 +54,23 @@ class PyQuanteDriver(FermionicDriver):
                  molecule: Optional[Molecule] = None) -> None:
         """
         Args:
-            atoms: atoms list or string separated by semicolons or line breaks
-            units: angstrom or bohr
-            charge: charge
-            multiplicity: spin multiplicity
-            basis: sto3g or 6-31g or 6-31g**
+            atoms: Atoms list or string separated by semicolons or line breaks. Each element in the
+                list is an atom followed by position e.g. `H 0.0 0.0 0.5`. The preceding example
+                shows the `XYZ` format for position but `Z-Matrix` format is supported too here.
+            units: Angstrom or Bohr
+            charge: Charge on the molecule
+            multiplicity: Spin multiplicity (2S+1)
+            basis: Basis set; sto3g, 6-31g or 6-31g**
             hf_method: Hartree-Fock Method type
             tol: Convergence tolerance see pyquante2.scf hamiltonians and iterators
             maxiters: Convergence max iterations see pyquante2.scf hamiltonians and iterators,
-                      has a min. value of 1.
-            molecule: molecule
+                has a min. value of 1.
+            molecule: A driver independent Molecule definition instance may be provided. When
+                a molecule is supplied the `atoms`, `units`, `charge` and `multiplicity` parameters
+                are all ignored as the Molecule instance now defines these instead. The Molecule
+                object is read when the driver is run and converted to the driver dependent
+                configuration for the computation. This allows, for example, the Molecule geometry
+                to be updated to compute different points.
 
         Raises:
             QiskitChemistryError: Invalid Input

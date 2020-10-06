@@ -57,18 +57,25 @@ class PySCFDriver(FermionicDriver):
                  molecule: Optional[Molecule] = None) -> None:
         """
         Args:
-            atom: atom list or string separated by semicolons or line breaks
-            unit: angstrom or bohr
-            charge: charge
-            spin: spin
-            basis: basis set
+            atom: Atom list or string separated by semicolons or line breaks. Each element in the
+                list is an atom followed by position e.g. `H 0.0 0.0 0.5`. The preceding example
+                shows the `XYZ` format for position but `Z-Matrix` format is supported too here.
+            unit: Angstrom or Bohr
+            charge: Charge on the molecule
+            spin: Spin (2S), in accordance with how PySCF defines a molecule in pyscf.gto.mole.Mole
+            basis: Basis set
             hf_method: Hartree-Fock Method type
             conv_tol: Convergence tolerance see PySCF docs and pyscf/scf/hf.py
             max_cycle: Max convergence cycles see PySCF docs and pyscf/scf/hf.py,
-                       has a min. value of 1.
+                has a min. value of 1.
             init_guess: See PySCF pyscf/scf/hf.py init_guess_by_minao/1e/atom methods
-            max_memory: maximum memory
-            molecule: molecule
+            max_memory: Maximum memory that PySCF should use
+            molecule: A driver independent Molecule definition instance may be provided. When
+                a molecule is supplied the `atom`, `unit`, `charge` and `spin` parameters
+                are all ignored as the Molecule instance now defines these instead. The Molecule
+                object is read when the driver is run and converted to the driver dependent
+                configuration for the computation. This allows, for example, the Molecule geometry
+                to be updated to compute different points.
 
         Raises:
             QiskitChemistryError: Invalid Input
