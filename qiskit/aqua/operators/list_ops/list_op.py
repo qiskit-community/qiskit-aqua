@@ -363,7 +363,6 @@ class ListOp(OperatorBase):
 
         evals = [(self.coeff * op).eval(front) for op in self.oplist]  # type: ignore
 
-
         # Handle application of combo_fn for DictStateFn resp VectorStateFn operators
         if self._combo_fn != ListOp([])._combo_fn:
             if all(isinstance(op, DictStateFn) for op in evals) or \

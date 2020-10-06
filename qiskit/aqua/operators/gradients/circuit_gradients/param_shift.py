@@ -86,10 +86,10 @@ class ParamShift(CircuitGradient):
                       gradient of: |ψ(ω)〉
             params: The parameters we are taking the gradient wrt: ω
                     If a ParameterExpression, ParameterVector or List[ParameterExpression] is given,
-                    then the 1st oder derivative of the operator is calculated.
+                    then the 1st order derivative of the operator is calculated.
                     If a Tuple[ParameterExpression, ParameterExpression] or
                     List[Tuple[ParameterExpression, ParameterExpression]]
-                    is given, then the 2nd oder derivative of the operator is calculated.
+                    is given, then the 2nd order derivative of the operator is calculated.
 
         Returns:
             An operator corresponding to the gradient resp. Hessian. The order is in accordance with

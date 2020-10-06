@@ -38,7 +38,7 @@ logger = logging.getLogger(__name__)
 class DerivativeBase(ConverterBase):
     r"""
     Converter for differentiating opflow objects and handling
-    things like properly differentiating combo_fn's and enforcing prodct rules
+    things like properly differentiating combo_fn's and enforcing product rules
     when operator coefficients are parameterized.
 
     This is distinct from CircuitGradient converters which use quantum

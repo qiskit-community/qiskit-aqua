@@ -28,7 +28,7 @@ class CircuitQFI(ConverterBase):
 
     This is distinct from DerivativeBase converters which take gradients of composite
     operators and handle things like differentiating combo_fn's and enforcing product rules
-    when operator coeficients are parameterized.
+    when operator coefficients are parameterized.
 
     CircuitQFI - uses quantum techniques to get the QFI of circuits
     DerivativeBase - uses classical techniques to differentiate opflow data structures

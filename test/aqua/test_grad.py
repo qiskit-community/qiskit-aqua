@@ -603,7 +603,7 @@ class TestGradients(QiskitAquaTestCase):
                                 seed_transpiler=2)
         # Define the Hamiltonian
         h2_hamiltonian = -1.05 * (I ^ I) + 0.39 * (I ^ Z) - 0.39 * (Z ^ I) - 0.01 * (Z ^ Z) + 0.18 \
-                         * (X ^ X)
+            * (X ^ X)
         h2_energy = -1.85727503
 
         # Define the Ansatz
