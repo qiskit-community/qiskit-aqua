@@ -88,7 +88,7 @@ class OverlapDiag(CircuitQFI):
 
         circuit = operator.primitive
 
-        # Parition the circuit into layers, and build the circuits to prepare $\psi_i$
+        # Partition the circuit into layers, and build the circuits to prepare $\psi_i$
         layers = self._partition_circuit(circuit)
         if layers[-1].num_parameters == 0:
             layers.pop(-1)

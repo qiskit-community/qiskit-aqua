@@ -341,12 +341,12 @@ class LinComb(CircuitGradient):
         """Generate the operator states whose evaluation returns the Hessian (items).
 
         Args:
-            state_op: The operator representing the quantum state for which we compute the hessian.
+            state_op: The operator representing the quantum state for which we compute the Hessian.
             meas_op: The operator representing the observable for which we compute the gradient.
-            target_params: The parameters we are computing the hessian wrt: ω
+            target_params: The parameters we are computing the Hessian wrt: ω
 
         Returns:
-            Operators which give the hessian. If a parameter appears multiple times, one circuit is
+            Operators which give the Hessian. If a parameter appears multiple times, one circuit is
             created per parameterized gates to compute the product rule.
 
         Raises:
@@ -754,7 +754,7 @@ class LinComb(CircuitGradient):
         """Insert a gate into the circuit.
 
         Args:
-            circuit: The circuit onto which the gare is added.
+            circuit: The circuit onto which the gate is added.
             reference_gate: A gate instance before or after which a gate is inserted.
             gate_to_insert: The gate to be inserted.
             qubits: The qubits on which the gate is inserted. If None, the qubits of the

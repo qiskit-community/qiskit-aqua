@@ -94,7 +94,7 @@ class DerivativeBase(ConverterBase):
 
         Returns:
             callable(param_values): Function to compute a gradient, Hessian or QFI. The function
-            takes an Iterable as argument which holds the parameter values.
+            takes an iterable as argument which holds the parameter values.
 
         Raises:
             ImportError: if 'retworkx>=0.5.0' is not installed.
@@ -175,13 +175,13 @@ class DerivativeBase(ConverterBase):
         Returns:
             An operator which is equal to the input operator but whose coefficients
             have all been set to 1.0
-
+        Raises:
+            TypeError: If unknown operator type is reached.
         """
         if isinstance(operator, PrimitiveOp):
             return operator / operator.coeff
-        else:
-            op_coeff = operator.coeff  # type: ignore
-            return (operator / op_coeff).traverse(cls._erase_operator_coeffs)
+        op_coeff = operator.coeff  # type: ignore
+        return (operator / op_coeff).traverse(cls._erase_operator_coeffs)
 
     @classmethod
     def _factor_coeffs_out_of_composed_op(cls, operator: OperatorBase) -> OperatorBase:
@@ -225,13 +225,23 @@ class DerivativeBase(ConverterBase):
                                          "gradients will not be handled properly.")
                     if hasattr(prim, 'coeff'):
                         if take_norm_of_coeffs:
-                            total_coeff *= (prim.coeff * np.conj(prim.coeff))
+                            total_coeff *= (prim._coeff * np.conj(prim._coeff))
                         else:
-                            total_coeff *= prim.coeff
+                            total_coeff *= prim._coeff
+                # if isinstance(op, (StateFn, PrimitiveOp)):
+                #     if take_norm_of_coeffs:
+                #         total_coeff *= (op.coeff * np.conj(op.coeff))
+                #     else:
+                #         total_coeff *= op.coeff
+                # else:
+                #     raise ValueError("This operator was not properly decomposed. "
+                #                      "By this point, all operator measurements should "
+                #                      "contain single operators, otherwise the coefficient "
+                #                      "gradients will not be handled properly.")
 
                 if isinstance(op, OperatorStateFn) and op.is_measurement:
                     take_norm_of_coeffs = True
-            return total_coeff * cls._erase_operator_coeffs(operator)
+            return cls._erase_operator_coeffs(operator).mul(total_coeff)
 
         else:
             return operator
