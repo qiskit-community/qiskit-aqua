@@ -50,7 +50,7 @@ class FermionicTransformation(QubitOperatorTransformation):
 
     def __init__(self,
                  transformation: TransformationType = TransformationType.FULL,
-                 qubit_mapping: str = QubitMappingType.PARITY,
+                 qubit_mapping: QubitMappingType = QubitMappingType.PARITY,
                  two_qubit_reduction: bool = True,
                  freeze_core: bool = False,
                  orbital_reduction: Optional[List[int]] = None,
@@ -359,7 +359,7 @@ class FermionicTransformation(QubitOperatorTransformation):
 
             if self._z2symmetry_reduction == 'auto':
                 hf_state = HartreeFock(num_orbitals=self._molecule_info['num_orbitals'],
-                                       qubit_mapping=self._qubit_mapping,
+                                       qubit_mapping=self._qubit_mapping.value,
                                        two_qubit_reduction=self._two_qubit_reduction,
                                        num_particles=self._molecule_info['num_particles'])
                 z2_symmetries = FermionicTransformation._pick_sector(z2_symmetries, hf_state.bitstr)
