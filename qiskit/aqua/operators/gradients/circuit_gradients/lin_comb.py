@@ -126,12 +126,12 @@ class LinComb(CircuitGradient):
                         raise TypeError('The StateFn representing the quantum state could not be'
                                         'extracted.')
                     if isinstance(params, (ParameterExpression, ParameterVector)) or \
-                            (isinstance(params, List) and all(isinstance(param, ParameterExpression)
+                            (isinstance(params, list) and all(isinstance(param, ParameterExpression)
                                                               for param in params)):
                         return self._gradient_states(state_op, meas_op=(~StateFn(Z) ^ operator[0]),
                                                      target_params=params)
                     elif isinstance(params, (Tuple[ParameterExpression, ParameterExpression])) or \
-                            (isinstance(params, List) and all(isinstance(param, tuple)
+                            (isinstance(params, list) and all(isinstance(param, tuple)
                                                               for param in params)):
                         return self._hessian_states(state_op,
                                                     meas_op=(4 * ~StateFn(Z ^ I) ^ operator[0]),
@@ -148,7 +148,7 @@ class LinComb(CircuitGradient):
                                         'extracted.')
 
                     if isinstance(params, (ParameterExpression, ParameterVector)) or \
-                            (isinstance(params, List) and all(isinstance(param, ParameterExpression)
+                            (isinstance(params, list) and all(isinstance(param, ParameterExpression)
                                                               for param in params)):
                         return state_op.traverse(
                             partial(self._gradient_states, meas_op=(~StateFn(Z) ^ operator[0]),
@@ -174,11 +174,11 @@ class LinComb(CircuitGradient):
                 return operator.traverse(partial(self._prepare_operator, params=params))
             else:
                 if isinstance(params, (ParameterExpression, ParameterVector)) or \
-                        (isinstance(params, List) and all(isinstance(param, ParameterExpression)
+                        (isinstance(params, list) and all(isinstance(param, ParameterExpression)
                                                           for param in params)):
                     return self._gradient_states(operator, target_params=params)
                 elif isinstance(params, (Tuple[ParameterExpression, ParameterExpression])) or \
-                        (isinstance(params, List) and all(isinstance(param, tuple)
+                        (isinstance(params, list) and all(isinstance(param, tuple)
                                                           for param in params)):
                     return self._hessian_states(operator, target_params=params)
                 else:
@@ -753,7 +753,6 @@ class LinComb(CircuitGradient):
                     qubits: Optional[List[Qubit]] = None,
                     additional_qubits: Optional[Tuple[List[Qubit], List[Qubit]]] = None,
                     after: bool = False):
-
         """Insert a gate into the circuit.
 
         Args:

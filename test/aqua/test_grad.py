@@ -21,6 +21,12 @@ import numpy as np
 from ddt import ddt, data, idata, unpack
 from sympy import Symbol, cos
 
+try:
+    import jax.numpy as jnp
+    _HAS_JAX = True
+except ModuleNotFoundError:
+    _HAS_JAX = False
+
 from qiskit import Aer
 from qiskit import QuantumCircuit, QuantumRegister, BasicAer
 from qiskit.aqua import QuantumInstance
@@ -388,6 +394,7 @@ class TestGradients(QiskitAquaTestCase):
                                                  correct_values[i],
                                                  decimal=0)
 
+    @unittest.skipIf(not _HAS_JAX, 'Skipping test due to missing jax module.')
     @idata(product(['lin_comb', 'param_shift', 'fin_diff'], [True, False]))
     @unpack
     def test_jax_chain_rule(self, method: str, autograd: bool):
@@ -413,7 +420,6 @@ class TestGradients(QiskitAquaTestCase):
         qc.rx(params[1], q[0])
 
         def combo_fn(x):
-            import jax.numpy as jnp
             return jnp.power(x[0], 2) + jnp.cos(x[1])
 
         def grad_combo_fn(x):
