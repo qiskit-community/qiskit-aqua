@@ -21,9 +21,6 @@ from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
 from qiskit.chemistry import QiskitChemistryError
 
-# TODO Ground state interface PR
-
-
 class TestCoreHamiltonianOrbReduce(QiskitChemistryTestCase):
     """core/hamiltonian Driver tests."""
 

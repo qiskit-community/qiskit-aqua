@@ -39,20 +39,19 @@ class TestDriverMethods(QiskitChemistryTestCase):
     def _run_driver(driver, transformation=TransformationType.FULL,
                     qubit_mapping=QubitMappingType.JORDAN_WIGNER, two_qubit_reduction=False,
                     freeze_core=True):
-        qmolecule = driver.run()
 
-        warnings.filterwarnings('ignore', category=DeprecationWarning)
-        core = Hamiltonian(transformation=transformation,
-                           qubit_mapping=qubit_mapping,
-                           two_qubit_reduction=two_qubit_reduction,
-                           freeze_core=freeze_core,
-                           orbital_reduction=[])
+        fermionic_transformation = FermionicTransformation\
+            (transformation=transformation,
+             qubit_mapping=qubit_mapping,
+             two_qubit_reduction=two_qubit_reduction,
+             freeze_core=freeze_core,
+             orbital_reduction=[])
 
-        qubit_op, aux_ops = core.run(qmolecule)
+        solver = NumPyMinimumEigensolver()
 
-        npme = NumPyMinimumEigensolver(qubit_op, aux_operators=aux_ops)
-        result = core.process_algorithm_result(npme.compute_minimum_eigenvalue())
-        warnings.filterwarnings('always', category=DeprecationWarning)
+        gsc = MinimumEigensolverGroundStateCalculation(fermionic_transformation, solver)
+
+        result = gsc.compute_groundstate(self.driver)
         return result
 
     def _assert_energy(self, result, mol):
@@ -61,7 +60,6 @@ class TestDriverMethods(QiskitChemistryTestCase):
     def _assert_energy_and_dipole(self, result, mol):
         self._assert_energy(result, mol)
         self.assertAlmostEqual(self.ref_dipoles[mol], result.total_dipole_moment, places=3)
-
 
 if __name__ == '__main__':
     unittest.main()
