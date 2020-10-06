@@ -137,7 +137,8 @@ class TestCoreHamiltonianOrbReduce(QiskitChemistryTestCase):
              orbital_reduction=[-2, -1])
 
         qubit_op, _ = fermionic_transformation.transform(self.driver)
-        self._validate_vars(fermionic_transformation, energy_shift=-7.7962196, ph_energy_shift=-1.05785247)
+        self._validate_vars\
+            (fermionic_transformation, energy_shift=-7.7962196, ph_energy_shift=-1.05785247)
         self._validate_info(fermionic_transformation, num_particles=[1, 1], num_orbitals=6,
                             actual_two_qubit_reduction=True)
         self._validate_input_object(qubit_op, num_qubits=4, num_paulis=52)

@@ -75,7 +75,7 @@ class TestSymmetries(QiskitChemistryTestCase):
         """ tapered op test """
         tapered_ops = self.z2_symmetries.taper(self.qubit_op)
         smallest_idx = 0  # Prior knowledge of which tapered_op has ground state
-        the_tapered_op = tapered_ops[smallest_idxtest_symmetries.py]
+        the_tapered_op = tapered_ops[smallest_idx]
 
         optimizer = SLSQP(maxiter=1000)
 

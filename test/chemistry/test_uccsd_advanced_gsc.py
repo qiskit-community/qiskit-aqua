@@ -44,20 +44,17 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
                                       charge=0,
                                       spin=0,
                                       basis='631g')
-
-            self.fermionic_transformation = FermionicTransformation(
-                transformation=TransformationType.FULL,
+            self.fermionic_transformation = FermionicTransformation\
+                (transformation=TransformationType.FULL,
                 qubit_mapping=QubitMappingType.PARITY,
                 two_qubit_reduction=True,
                 freeze_core=True,
                 orbital_reduction=[])
-
             self.qubit_op, _ = self.fermionic_transformation.transform(self.driver)
 
-            z2_symmetries = fermionic_transformation.\
-                _molecule_info.pop('z2_symmetries')
-
+            z2_symmetries = Z2Symmetries.find_Z2_symmetries(self.qubit_op)
             tapered_ops = z2_symmetries.taper(self.qubit_op)
+
             smallest_eig_value = 99999999999999
             smallest_idx = -1
             for idx, _ in enumerate(tapered_ops):

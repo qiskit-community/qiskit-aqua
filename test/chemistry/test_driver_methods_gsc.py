@@ -12,11 +12,10 @@
 
 """ Test Driver Methods """
 
-import warnings
 import unittest
 
 from test.chemistry import QiskitChemistryTestCase
-from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
+from qiskit.chemistry.core import TransformationType, QubitMappingType
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 
 class TestDriverMethods(QiskitChemistryTestCase):
@@ -51,7 +50,7 @@ class TestDriverMethods(QiskitChemistryTestCase):
 
         gsc = MinimumEigensolverGroundStateCalculation(fermionic_transformation, solver)
 
-        result = gsc.compute_groundstate(self.driver)
+        result = gsc.compute_groundstate(driver)
         return result
 
     def _assert_energy(self, result, mol):

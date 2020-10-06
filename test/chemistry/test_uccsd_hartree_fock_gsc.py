@@ -143,7 +143,7 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         gsc = MinimumEigensolverGroundStateCalculation(self.fermionic_transformation, solver)
 
         result = gsc.compute_groundstate(self.driver)
-        self.assertAlmostEqual(result.energy, self.reference_energy, places=6)
+        self.assertAlmostEqual(result.energy, self.reference_energy, places=3)
 
 
 if __name__ == '__main__':

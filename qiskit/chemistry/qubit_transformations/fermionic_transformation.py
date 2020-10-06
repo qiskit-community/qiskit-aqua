@@ -50,7 +50,7 @@ class FermionicTransformation(QubitOperatorTransformation):
 
     def __init__(self,
                  transformation: TransformationType = TransformationType.FULL,
-                 qubit_mapping: QubitMappingType = QubitMappingType.PARITY,
+                 qubit_mapping: str = QubitMappingType.PARITY,
                  two_qubit_reduction: bool = True,
                  freeze_core: bool = False,
                  orbital_reduction: Optional[List[int]] = None,
@@ -58,7 +58,7 @@ class FermionicTransformation(QubitOperatorTransformation):
         """
         Args:
             transformation: full or particle_hole
-            qubit_mapping: jordan_wigner, parity or bravyi_kitaev
+            qubit_mapping: 'jordan_wigner', 'parity' or 'bravyi_kitaev'
             two_qubit_reduction: Whether two qubit reduction should be used,
                                         when parity mapping only
             freeze_core: Whether to freeze core orbitals when possible
