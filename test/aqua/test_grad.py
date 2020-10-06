@@ -621,7 +621,7 @@ class TestGradients(QiskitAquaTestCase):
         wavefunction.rz(next(itr), 1)
 
         # Conjugate Gradient algorithm
-        optimizer = CG(maxiter=50)
+        optimizer = CG(maxiter=10)
 
         grad = Gradient(method=method)
 
