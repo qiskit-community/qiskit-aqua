@@ -19,7 +19,7 @@ from qiskit.aqua.operators.gradients.circuit_gradients.circuit_gradient \
 from qiskit.aqua.operators.gradients.derivative_base import DerivativeBase
 
 
-class HessianBase(DerivativeBase):
+class HessianBase(DerivativeBase):  # pylint: disable=abstract-method
     """Compute the Hessian of an expected value."""
 
     def __init__(self,

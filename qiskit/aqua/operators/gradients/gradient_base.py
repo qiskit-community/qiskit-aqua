@@ -17,7 +17,7 @@ from qiskit.aqua.operators.gradients.circuit_gradients import CircuitGradient
 from qiskit.aqua.operators.gradients.derivative_base import DerivativeBase
 
 
-class GradientBase(DerivativeBase):
+class GradientBase(DerivativeBase):  # pylint: disable=abstract-method
     """Convert an operator expression to the first-order gradient."""
 
     def __init__(self,

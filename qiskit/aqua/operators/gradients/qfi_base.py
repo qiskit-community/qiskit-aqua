@@ -17,7 +17,7 @@ from typing import Union
 from qiskit.aqua.operators.gradients import DerivativeBase, CircuitQFI
 
 
-class QFIBase(DerivativeBase):
+class QFIBase(DerivativeBase):  # pylint: disable=abstract-method
 
     r"""Compute the Quantum Fisher Information (QFI) given a pure, parametrized quantum state.
 
