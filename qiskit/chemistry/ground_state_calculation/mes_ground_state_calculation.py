@@ -71,8 +71,9 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
         Returns:
             Ground state result TODO
         """
-        if any(not isinstance(op, FermionicOperator) for op in additional_operators.values()):
-            raise ValueError('The additional operators must be of type FermionicOperator.')
+        if additional_operators is not None:
+            if any(not isinstance(op, FermionicOperator) for op in additional_operators.values()):
+                raise ValueError('The additional operators must be of type FermionicOperator.')
 
         # get the operator and auxiliary operators, and transform the provided auxiliary operators
         # note that ``aux_operators`` contains not only the transformed ``aux_operators`` passed

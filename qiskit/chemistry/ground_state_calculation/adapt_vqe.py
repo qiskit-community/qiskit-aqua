@@ -210,8 +210,11 @@ class AdaptVQE(GroundStateCalculation):
             logger.info("Final maximum gradient: %s", str(np.abs(max_grad[0])))
 
         # once finished evaluate auxiliary operators if any
-        if aux_operators is not None and aux_operators:
-            vqe.compute_minimum_eigenvalue(operator, list(aux_operators.values()))
+        if aux_operators is not None:
+            aux_result = vqe.compute_minimum_eigenvalue(operator, list(aux_operators.values()))
+            aux_values = dict(zip(aux_operators.keys(), aux_result.aux_operator_eigenvalues))
+        else:
+            aux_values = None
 
         if threshold_satisfied:
             finishing_criterion = 'Threshold converged'
@@ -226,7 +229,7 @@ class AdaptVQE(GroundStateCalculation):
         result = AdaptVQEResult()
         result.raw_result = raw_vqe_result
         result.computed_electronic_energy = raw_vqe_result.eigenvalue.real
-        result.aux_values = dict(zip(aux_operators.keys(), raw_vqe_result.aux_operator_eigenvalues))
+        result.aux_values = aux_values
         result.num_iterations = iteration
         result.final_max_gradient = max_grad[0]
         result.finishing_criterion = finishing_criterion
