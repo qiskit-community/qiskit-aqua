@@ -19,6 +19,7 @@ from test.chemistry import QiskitChemistryTestCase
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 
+
 class TestDriverMethods(QiskitChemistryTestCase):
     """Common driver tests. For H2 @ 0.735, sto3g"""
 

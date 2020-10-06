@@ -21,6 +21,7 @@ from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
 from qiskit.chemistry import QiskitChemistryError
 
+
 class TestCoreHamiltonianOrbReduce(QiskitChemistryTestCase):
     """core/hamiltonian Driver tests."""
 

@@ -35,10 +35,10 @@ class TestCoreHamiltonianSymmetries(QiskitChemistryTestCase):
         super().setUp()
         try:
             self.driver = PySCFDriver(atom='Li .0 .0 -0.8; H .0 .0 0.8',
-                                 unit=UnitsType.ANGSTROM,
-                                 charge=0,
-                                 spin=0,
-                                 basis='sto3g')
+                                      unit=UnitsType.ANGSTROM,
+                                      charge=0,
+                                      spin=0,
+                                      basis='sto3g')
         except QiskitChemistryError:
             self.skipTest('PYSCF driver does not appear to be installed')
 
@@ -54,13 +54,13 @@ class TestCoreHamiltonianSymmetries(QiskitChemistryTestCase):
 
     def test_no_symmetry(self):
         """ No symmetry reduction """
-        fermionic_transformation = FermionicTransformation\
-            (transformation=TransformationType.FULL,
-             qubit_mapping=QubitMappingType.JORDAN_WIGNER,
-             two_qubit_reduction=False,
-             freeze_core=False,
-             orbital_reduction=None,
-             z2symmetry_reduction=None)
+        fermionic_transformation = \
+            FermionicTransformation(transformation=TransformationType.FULL,
+                                    qubit_mapping=QubitMappingType.JORDAN_WIGNER,
+                                    two_qubit_reduction=False,
+                                    freeze_core=False,
+                                    orbital_reduction=None,
+                                    z2symmetry_reduction=None)
 
         qubit_op, _ = fermionic_transformation.transform(self.driver)
         self.assertEqual(qubit_op.num_qubits, 12)
@@ -71,13 +71,13 @@ class TestCoreHamiltonianSymmetries(QiskitChemistryTestCase):
 
     def test_auto_symmetry(self):
         """ Auto symmetry reduction """
-        fermionic_transformation = FermionicTransformation \
-            (transformation=TransformationType.FULL,
-             qubit_mapping=QubitMappingType.JORDAN_WIGNER,
-             two_qubit_reduction=False,
-             freeze_core=False,
-             orbital_reduction=None,
-             z2symmetry_reduction='auto')
+        fermionic_transformation = \
+            FermionicTransformation(transformation=TransformationType.FULL,
+                                    qubit_mapping=QubitMappingType.JORDAN_WIGNER,
+                                    two_qubit_reduction=False,
+                                    freeze_core=False,
+                                    orbital_reduction=None,
+                                    z2symmetry_reduction='auto')
         qubit_op, _ = fermionic_transformation.transform(self.driver)
         self.assertEqual(qubit_op.num_qubits, 8)
         solver = NumPyMinimumEigensolver()
@@ -88,13 +88,13 @@ class TestCoreHamiltonianSymmetries(QiskitChemistryTestCase):
 
     def test_given_symmetry(self):
         """ Supplied symmetry reduction """
-        fermionic_transformation = FermionicTransformation\
-            (transformation=TransformationType.FULL,
-             qubit_mapping=QubitMappingType.JORDAN_WIGNER,
-             two_qubit_reduction=False,
-             freeze_core=False,
-             orbital_reduction=None,
-             z2symmetry_reduction=[1, 1, 1, 1])
+        fermionic_transformation = \
+            FermionicTransformation(transformation=TransformationType.FULL,
+                                    qubit_mapping=QubitMappingType.JORDAN_WIGNER,
+                                    two_qubit_reduction=False,
+                                    freeze_core=False,
+                                    orbital_reduction=None,
+                                    z2symmetry_reduction=[1, 1, 1, 1])
         qubit_op, _ = fermionic_transformation.transform(self.driver)
         self.assertEqual(qubit_op.num_qubits, 8)
         solver = NumPyMinimumEigensolver()
@@ -106,39 +106,38 @@ class TestCoreHamiltonianSymmetries(QiskitChemistryTestCase):
     def test_given_symmetry_fail_len(self):
         """ Supplied symmetry reduction invalid len """
         with self.assertRaises(QiskitChemistryError):
-            fermionic_transformation = FermionicTransformation\
-                (transformation=TransformationType.FULL,
-                 qubit_mapping=QubitMappingType.JORDAN_WIGNER,
-                 two_qubit_reduction=False,
-                 freeze_core=False,
-                 orbital_reduction=None,
-                 z2symmetry_reduction=[1, 1, 1])
+            fermionic_transformation = \
+                FermionicTransformation(transformation=TransformationType.FULL,
+                                        qubit_mapping=QubitMappingType.JORDAN_WIGNER,
+                                        two_qubit_reduction=False,
+                                        freeze_core=False,
+                                        orbital_reduction=None,
+                                        z2symmetry_reduction=[1, 1, 1])
 
             _, _ = fermionic_transformation.transform(self.driver)
-
 
     def test_given_symmetry_fail_values(self):
         """ Supplied symmetry reduction invalid values """
         with self.assertRaises(QiskitChemistryError):
-            fermionic_transformation = FermionicTransformation\
-                (transformation=TransformationType.FULL,
-                 qubit_mapping=QubitMappingType.JORDAN_WIGNER,
-                 two_qubit_reduction=False,
-                 freeze_core=False,
-                 orbital_reduction=None,
-                 z2symmetry_reduction=[1, 0, 1, 1])
+            fermionic_transformation = \
+                FermionicTransformation(transformation=TransformationType.FULL,
+                                        qubit_mapping=QubitMappingType.JORDAN_WIGNER,
+                                        two_qubit_reduction=False,
+                                        freeze_core=False,
+                                        orbital_reduction=None,
+                                        z2symmetry_reduction=[1, 0, 1, 1])
 
             _, _ = fermionic_transformation.transform(self.driver)
 
     def test_auto_symmetry_freeze_core(self):
         """ Auto symmetry reduction, with freeze core """
-        fermionic_transformation = FermionicTransformation \
-            (transformation=TransformationType.FULL,
-             qubit_mapping=QubitMappingType.JORDAN_WIGNER,
-             two_qubit_reduction=False,
-             freeze_core=True,
-             orbital_reduction=None,
-             z2symmetry_reduction='auto')
+        fermionic_transformation = \
+            FermionicTransformation(transformation=TransformationType.FULL,
+                                    qubit_mapping=QubitMappingType.JORDAN_WIGNER,
+                                    two_qubit_reduction=False,
+                                    freeze_core=True,
+                                    orbital_reduction=None,
+                                    z2symmetry_reduction='auto')
 
         qubit_op, _ = fermionic_transformation.transform(self.driver)
         self.assertEqual(qubit_op.num_qubits, 6)
@@ -151,13 +150,13 @@ class TestCoreHamiltonianSymmetries(QiskitChemistryTestCase):
     def test_auto_freeze_core_parity(self):
         """ Auto symmetry reduction, with freeze core and parity mapping """
 
-        fermionic_transformation = FermionicTransformation\
-            (transformation=TransformationType.FULL,
-             qubit_mapping=QubitMappingType.PARITY,
-             two_qubit_reduction=False,
-             freeze_core=True,
-             orbital_reduction=None,
-             z2symmetry_reduction='auto')
+        fermionic_transformation = \
+            FermionicTransformation(transformation=TransformationType.FULL,
+                                    qubit_mapping=QubitMappingType.PARITY,
+                                    two_qubit_reduction=False,
+                                    freeze_core=True,
+                                    orbital_reduction=None,
+                                    z2symmetry_reduction='auto')
 
         qubit_op, _ = fermionic_transformation.transform(self.driver)
         self.assertEqual(qubit_op.num_qubits, 6)
@@ -169,13 +168,13 @@ class TestCoreHamiltonianSymmetries(QiskitChemistryTestCase):
 
     def test_auto_freeze_core_parity_2(self):
         """ Auto symmetry reduction, with freeze core, parity and two q reduction """
-        fermionic_transformation = FermionicTransformation\
-            (transformation=TransformationType.FULL,
-             qubit_mapping=QubitMappingType.PARITY,
-             two_qubit_reduction=True,
-             freeze_core=True,
-             orbital_reduction=None,
-             z2symmetry_reduction='auto')
+        fermionic_transformation = \
+            FermionicTransformation(transformation=TransformationType.FULL,
+                                    qubit_mapping=QubitMappingType.PARITY,
+                                    two_qubit_reduction=True,
+                                    freeze_core=True,
+                                    orbital_reduction=None,
+                                    z2symmetry_reduction='auto')
 
         qubit_op, _ = fermionic_transformation.transform(self.driver)
         self.assertEqual(qubit_op.num_qubits, 6)
@@ -187,13 +186,13 @@ class TestCoreHamiltonianSymmetries(QiskitChemistryTestCase):
 
     def test_auto_ph_freeze_core_parity_2(self):
         """ Auto symmetry reduction, with freeze core, parity and two q reduction """
-        fermionic_transformation = FermionicTransformation \
-            (transformation=TransformationType.PARTICLE_HOLE,
-             qubit_mapping=QubitMappingType.PARITY,
-             two_qubit_reduction=True,
-             freeze_core=True,
-             orbital_reduction=None,
-             z2symmetry_reduction='auto')
+        fermionic_transformation = \
+            FermionicTransformation(transformation=TransformationType.PARTICLE_HOLE,
+                                    qubit_mapping=QubitMappingType.PARITY,
+                                    two_qubit_reduction=True,
+                                    freeze_core=True,
+                                    orbital_reduction=None,
+                                    z2symmetry_reduction='auto')
 
         qubit_op, _ = fermionic_transformation.transform(self.driver)
         self.assertEqual(qubit_op.num_qubits, 6)
@@ -205,13 +204,13 @@ class TestCoreHamiltonianSymmetries(QiskitChemistryTestCase):
 
     def test_vqe_auto_symmetry_freeze_core(self):
         """ Auto symmetry reduction, with freeze core using VQE """
-        fermionic_transformation = FermionicTransformation\
-            (transformation=TransformationType.FULL,
-             qubit_mapping=QubitMappingType.JORDAN_WIGNER,
-             two_qubit_reduction=False,
-             freeze_core=True,
-             orbital_reduction=None,
-             z2symmetry_reduction='auto')
+        fermionic_transformation = \
+            FermionicTransformation(transformation=TransformationType.FULL,
+                                    qubit_mapping=QubitMappingType.JORDAN_WIGNER,
+                                    two_qubit_reduction=False,
+                                    freeze_core=True,
+                                    orbital_reduction=None,
+                                    z2symmetry_reduction='auto')
 
         qubit_op, _ = fermionic_transformation.transform(self.driver)
         self.assertEqual(qubit_op.num_qubits, 6)
@@ -230,7 +229,7 @@ class TestCoreHamiltonianSymmetries(QiskitChemistryTestCase):
                          z2_symmetries=z2_symmetries)
 
         solver = VQE(var_form=var_form, optimizer=SLSQP(maxiter=500),
-                     quantum_instance = BasicAer.get_backend('statevector_simulator'))
+                     quantum_instance=BasicAer.get_backend('statevector_simulator'))
         gsc = MinimumEigensolverGroundStateCalculation(fermionic_transformation, solver)
         result = gsc.compute_groundstate(self.driver)
         self._validate_result(result)

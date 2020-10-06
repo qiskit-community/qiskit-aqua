@@ -85,21 +85,20 @@ class TestSymmetries(QiskitChemistryTestCase):
             num_particles=self.fermionic_transformation._molecule_info['num_particles'],
             sq_list=self.qubit_op.z2_symmetries.sq_list)
 
-        var_form = UCCSD(num_orbitals=
-                         self.fermionic_transformation._molecule_info['num_orbitals'],
-                         num_particles=
-                         self.fermionic_transformation._molecule_info['num_particles'],
-                         active_occupied=None, active_unoccupied=None,
-                         initial_state=init_state,
-                         qubit_mapping=self.fermionic_transformation._qubit_mapping,
-                         two_qubit_reduction=
-                         self.fermionic_transformation._two_qubit_reduction,
-                         num_time_slices=1,
-                         z2_symmetries=self.qubit_op.z2_symmetries)
+        var_form = UCCSD(
+            num_orbitals=self.fermionic_transformation._molecule_info['num_orbitals'],
+            num_particles=self.fermionic_transformation._molecule_info['num_particles'],
+            active_occupied=None,
+            active_unoccupied=None,
+            initial_state=init_state,
+            qubit_mapping=self.fermionic_transformation._qubit_mapping,
+            two_qubit_reduction=self.fermionic_transformation._two_qubit_reduction,
+            num_time_slices=1,
+            z2_symmetries=self.qubit_op.z2_symmetries)
 
         solver = VQE(var_form=var_form, optimizer=optimizer,
-                     quantum_instance=QuantumInstance \
-                         (backend=BasicAer.get_backend('statevector_simulator')))
+                     quantum_instance=QuantumInstance(
+                         backend=BasicAer.get_backend('statevector_simulator')))
 
         gsc = MinimumEigensolverGroundStateCalculation(self.fermionic_transformation, solver)
 

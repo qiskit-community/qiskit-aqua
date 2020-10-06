@@ -16,7 +16,10 @@ import unittest
 
 from test.chemistry import QiskitChemistryTestCase
 from qiskit.chemistry.core import TransformationType, QubitMappingType
+from qiskit.chemistry.qubit_transformations import FermionicTransformation
+from qiskit.chemistry.ground_state_calculation import MinimumEigensolverGroundStateCalculation
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
+
 
 class TestDriverMethods(QiskitChemistryTestCase):
     """Common driver tests. For H2 @ 0.735, sto3g"""
@@ -39,12 +42,12 @@ class TestDriverMethods(QiskitChemistryTestCase):
                     qubit_mapping=QubitMappingType.JORDAN_WIGNER, two_qubit_reduction=False,
                     freeze_core=True):
 
-        fermionic_transformation = FermionicTransformation\
-            (transformation=transformation,
-             qubit_mapping=qubit_mapping,
-             two_qubit_reduction=two_qubit_reduction,
-             freeze_core=freeze_core,
-             orbital_reduction=[])
+        fermionic_transformation = \
+            FermionicTransformation(transformation=transformation,
+                                    qubit_mapping=qubit_mapping,
+                                    two_qubit_reduction=two_qubit_reduction,
+                                    freeze_core=freeze_core,
+                                    orbital_reduction=[])
 
         solver = NumPyMinimumEigensolver()
 
@@ -59,6 +62,7 @@ class TestDriverMethods(QiskitChemistryTestCase):
     def _assert_energy_and_dipole(self, result, mol):
         self._assert_energy(result, mol)
         self.assertAlmostEqual(self.ref_dipoles[mol], result.total_dipole_moment, places=3)
+
 
 if __name__ == '__main__':
     unittest.main()

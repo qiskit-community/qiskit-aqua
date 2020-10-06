@@ -21,6 +21,7 @@ from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.core import TransformationType, QubitMappingType
 from qiskit.chemistry.qubit_transformations import FermionicTransformation
 
+
 class TestCoreHamiltonianOrbReduce(QiskitChemistryTestCase):
     """core/hamiltonian Driver tests."""
 
@@ -28,10 +29,10 @@ class TestCoreHamiltonianOrbReduce(QiskitChemistryTestCase):
         super().setUp()
         try:
             self.driver = PySCFDriver(atom='Li .0 .0 -0.8; H .0 .0 0.8',
-                                 unit=UnitsType.ANGSTROM,
-                                 charge=0,
-                                 spin=0,
-                                 basis='sto3g')
+                                      unit=UnitsType.ANGSTROM,
+                                      charge=0,
+                                      spin=0,
+                                      basis='sto3g')
         except QiskitChemistryError:
             self.skipTest('PYSCF driver does not appear to be installed')
 
@@ -58,12 +59,12 @@ class TestCoreHamiltonianOrbReduce(QiskitChemistryTestCase):
 
     def test_output(self):
         """ output test """
-        fermionic_transformation = FermionicTransformation\
-            (transformation=TransformationType.FULL,
-             qubit_mapping=QubitMappingType.JORDAN_WIGNER,
-             two_qubit_reduction=False,
-             freeze_core=False,
-             orbital_reduction=[])
+        fermionic_transformation = \
+            FermionicTransformation(transformation=TransformationType.FULL,
+                                    qubit_mapping=QubitMappingType.JORDAN_WIGNER,
+                                    two_qubit_reduction=False,
+                                    freeze_core=False,
+                                    orbital_reduction=[])
 
         qubit_op, _ = fermionic_transformation.transform(self.driver)
         self._validate_vars(fermionic_transformation)
@@ -72,12 +73,12 @@ class TestCoreHamiltonianOrbReduce(QiskitChemistryTestCase):
 
     def test_parity(self):
         """ parity test """
-        fermionic_transformation = FermionicTransformation\
-            (transformation=TransformationType.FULL,
-             qubit_mapping=QubitMappingType.PARITY,
-             two_qubit_reduction=True,
-             freeze_core=False,
-             orbital_reduction=[])
+        fermionic_transformation = \
+            FermionicTransformation(transformation=TransformationType.FULL,
+                                    qubit_mapping=QubitMappingType.PARITY,
+                                    two_qubit_reduction=True,
+                                    freeze_core=False,
+                                    orbital_reduction=[])
 
         qubit_op, _ = fermionic_transformation.transform(self.driver)
         self._validate_vars(fermionic_transformation)
@@ -86,12 +87,12 @@ class TestCoreHamiltonianOrbReduce(QiskitChemistryTestCase):
 
     def test_freeze_core(self):
         """ freeze core test """
-        fermionic_transformation = FermionicTransformation\
-            (transformation=TransformationType.FULL,
-             qubit_mapping=QubitMappingType.PARITY,
-             two_qubit_reduction=False,
-             freeze_core=True,
-             orbital_reduction=[])
+        fermionic_transformation = \
+            FermionicTransformation(transformation=TransformationType.FULL,
+                                    qubit_mapping=QubitMappingType.PARITY,
+                                    two_qubit_reduction=False,
+                                    freeze_core=True,
+                                    orbital_reduction=[])
 
         qubit_op, _ = fermionic_transformation.transform(self.driver)
         self._validate_vars(fermionic_transformation, energy_shift=-7.7962196)
@@ -100,12 +101,12 @@ class TestCoreHamiltonianOrbReduce(QiskitChemistryTestCase):
 
     def test_freeze_core_orb_reduction(self):
         """ freeze core orb reduction test """
-        fermionic_transformation = FermionicTransformation\
-            (transformation=TransformationType.FULL,
-             qubit_mapping=QubitMappingType.PARITY,
-             two_qubit_reduction=False,
-             freeze_core=True,
-             orbital_reduction=[-3, -2])
+        fermionic_transformation = \
+            FermionicTransformation(transformation=TransformationType.FULL,
+                                    qubit_mapping=QubitMappingType.PARITY,
+                                    two_qubit_reduction=False,
+                                    freeze_core=True,
+                                    orbital_reduction=[-3, -2])
 
         qubit_op, _ = fermionic_transformation.transform(self.driver)
         self._validate_vars(fermionic_transformation, energy_shift=-7.7962196)
@@ -114,12 +115,12 @@ class TestCoreHamiltonianOrbReduce(QiskitChemistryTestCase):
 
     def test_freeze_core_all_reduction(self):
         """ freeze core all reduction test """
-        fermionic_transformation = FermionicTransformation\
-            (transformation=TransformationType.FULL,
-             qubit_mapping=QubitMappingType.PARITY,
-             two_qubit_reduction=True,
-             freeze_core=True,
-             orbital_reduction=[-3, -2])
+        fermionic_transformation = \
+            FermionicTransformation(transformation=TransformationType.FULL,
+                                    qubit_mapping=QubitMappingType.PARITY,
+                                    two_qubit_reduction=True,
+                                    freeze_core=True,
+                                    orbital_reduction=[-3, -2])
 
         qubit_op, _ = fermionic_transformation.transform(self.driver)
         self._validate_vars(fermionic_transformation, energy_shift=-7.7962196)
@@ -129,19 +130,20 @@ class TestCoreHamiltonianOrbReduce(QiskitChemistryTestCase):
 
     def test_freeze_core_all_reduction_ph(self):
         """ freeze core all reduction ph test """
-        fermionic_transformation = FermionicTransformation\
-            (transformation=TransformationType.PARTICLE_HOLE,
-             qubit_mapping=QubitMappingType.PARITY,
-             two_qubit_reduction=True,
-             freeze_core=True,
-             orbital_reduction=[-2, -1])
+        fermionic_transformation = \
+            FermionicTransformation(transformation=TransformationType.PARTICLE_HOLE,
+                                    qubit_mapping=QubitMappingType.PARITY,
+                                    two_qubit_reduction=True,
+                                    freeze_core=True,
+                                    orbital_reduction=[-2, -1])
 
         qubit_op, _ = fermionic_transformation.transform(self.driver)
-        self._validate_vars\
-            (fermionic_transformation, energy_shift=-7.7962196, ph_energy_shift=-1.05785247)
+        self._validate_vars(fermionic_transformation, energy_shift=-7.7962196,
+                            ph_energy_shift=-1.05785247)
         self._validate_info(fermionic_transformation, num_particles=[1, 1], num_orbitals=6,
                             actual_two_qubit_reduction=True)
         self._validate_input_object(qubit_op, num_qubits=4, num_paulis=52)
+
 
 if __name__ == '__main__':
     unittest.main()
