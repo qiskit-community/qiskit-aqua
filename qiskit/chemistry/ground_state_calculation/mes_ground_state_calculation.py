@@ -12,9 +12,10 @@
 
 """Ground state computation using a minimum eigensolver."""
 
-from typing import Union, Dict, Any, Optional
+from typing import Union, List, Any, Optional
 
 from qiskit.aqua.algorithms import MinimumEigensolver
+from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.chemistry import FermionicOperator
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.ground_state_calculation import GroundStateCalculation
@@ -55,31 +56,32 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
         return False
 
     def compute_groundstate(self, driver: BaseDriver,
-                            additional_operators: Optional[Dict[str, Any]] = None
+                            aux_operators: Optional[List[Any]] = None
                             ) -> FermionicGroundStateResult:
         """Compute Ground State properties.
 
         Args:
             driver: A chemistry driver.
-            additional_operators: Additional auxiliary operators to evaluate at the ground state.
+            aux_operators: Additional auxiliary operators to evaluate at the ground state.
                 Depending on whether a fermionic or bosonic system is solved, the type of the
                 operators must be ``FermionicOperator`` or ``BosonicOperator``, respectively.
 
         Raises:
-            NotImplementedError: If an operator in ``additional_operators`` is not of type
+            NotImplementedError: If an operator in ``aux_operators`` is not of type
                 ``FermionicOperator``.
 
         Returns:
             Ground state result TODO
         """
-        if additional_operators is not None:
-            if any(not isinstance(op, FermionicOperator) for op in additional_operators.values()):
+        if aux_operators is not None:
+            if any(not isinstance(op, (WeightedPauliOperator, FermionicOperator))
+                   for op in aux_operators):
                 raise NotImplementedError('Currently only fermionic problems are supported.')
 
         # get the operator and auxiliary operators, and transform the provided auxiliary operators
         # note that ``aux_operators`` contains not only the transformed ``aux_operators`` passed
         # by the user but also additional ones from the transformation
-        operator, aux_operators = self.transformation.transform(driver, additional_operators)
+        operator, aux_operators = self.transformation.transform(driver, aux_operators)
 
         if isinstance(self._solver, MESFactory):
             # this must be called after transformation.transform
@@ -88,11 +90,12 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
             solver = self._solver
 
         # convert aux_operators to a list for the minimum eigensolver
-        mes_aux_ops = list(aux_operators.values()) if solver.supports_aux_operators() else None
-        raw_mes_result = solver.compute_minimum_eigenvalue(operator, mes_aux_ops)
+        if not solver.supports_aux_operators():
+            aux_operators = None
+        raw_mes_result = solver.compute_minimum_eigenvalue(operator, aux_operators)
 
         # convert the aux_values back to a dictionary
-        aux_values = dict(zip(aux_operators.keys(), raw_mes_result.aux_operator_eigenvalues))
+        aux_values = raw_mes_result.aux_operator_eigenvalues
 
         result = FermionicGroundStateResult()
         result.raw_result = raw_mes_result

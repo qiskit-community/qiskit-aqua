@@ -12,7 +12,7 @@
 
 """A ground state calculation employing the AdaptVQE algorithm."""
 
-from typing import Optional, List, Dict
+from typing import Optional, List, Union
 import logging
 import re
 import warnings
@@ -132,13 +132,14 @@ class AdaptVQE(GroundStateCalculation):
         return match is not None or (len(indices) > 1 and indices[-2] == indices[-1])
 
     def compute_groundstate(self, driver: BaseDriver,
-                            additional_operators: Optional[Dict[str, FermionicOperator]] = None
+                            aux_operators: Optional[List[Union[WeightedPauliOperator,
+                                                               FermionicOperator]]] = None
                             ) -> 'AdaptVQEResult':
         """Computes the ground state.
 
         Args:
             driver: a chemistry driver.
-            additional_operators: Additional auxiliary ``FermionicOperator``s to evaluate at the
+            aux_operators: Additional auxiliary ``FermionicOperator``s to evaluate at the
                 ground state.
 
         Raises:
@@ -148,7 +149,7 @@ class AdaptVQE(GroundStateCalculation):
         Returns:
             A fermionic ground state result.
         """
-        operator, aux_operators = self._transformation.transform(driver, additional_operators)
+        operator, aux_operators = self._transformation.transform(driver, aux_operators)
 
         vqe = self._solver.get_solver(self._transformation)
         if not isinstance(vqe, VQE):
@@ -213,7 +214,7 @@ class AdaptVQE(GroundStateCalculation):
         # once finished evaluate auxiliary operators if any
         if aux_operators is not None:
             aux_result = vqe.compute_minimum_eigenvalue(operator, list(aux_operators.values()))
-            aux_values = dict(zip(aux_operators.keys(), aux_result.aux_operator_eigenvalues))
+            aux_values = aux_result.aux_operator_eigenvalues
         else:
             aux_values = None
 

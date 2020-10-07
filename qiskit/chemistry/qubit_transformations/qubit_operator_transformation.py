@@ -13,7 +13,7 @@
 """Base class for transformation to qubit operators for chemistry problems"""
 
 from abc import ABC, abstractmethod
-from typing import Tuple, Dict, Any, Optional
+from typing import Tuple, List, Any, Optional
 
 from qiskit.aqua.operators.legacy import WeightedPauliOperator
 from qiskit.chemistry.drivers import BaseDriver
@@ -25,13 +25,13 @@ class QubitOperatorTransformation(ABC):
 
     @abstractmethod
     def transform(self, driver: BaseDriver,
-                  additional_operators: Optional[Dict[str, Any]] = None
-                  ) -> Tuple[WeightedPauliOperator, Dict[str, WeightedPauliOperator]]:
+                  aux_operators: Optional[List[Any]] = None
+                  ) -> Tuple[WeightedPauliOperator, List[WeightedPauliOperator]]:
         """Transformation from the ``driver`` to a qubit operator.
 
         Args:
             driver: A driver encoding the molecule information.
-            additional_operators: Additional auxiliary operators to evaluate. Must be of type
+            aux_operators: Additional auxiliary operators to evaluate. Must be of type
                 ``FermionicOperator`` if the qubit transformation is fermionic and of type
                 ``BosonicOperator`` it is bosonic.
 
