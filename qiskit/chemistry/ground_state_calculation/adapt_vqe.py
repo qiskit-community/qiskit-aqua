@@ -27,7 +27,7 @@ from qiskit.aqua.utils.validation import validate_min
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.qubit_transformations import FermionicTransformation
-from qiskit.chemistry.results import FermionicGroundStateResult
+from qiskit.chemistry.results import ElectronicStructureResult
 
 from .ground_state_calculation import GroundStateCalculation
 from .mes_factories import VQEUCCSDFactory
@@ -221,21 +221,22 @@ class AdaptVQE(GroundStateCalculation):
             raise AquaError('The algorithm finished due to an unforeseen reason!')
 
         # extend VQE returned information with additional outputs
-        result = AdaptVQEResult()
-        result.raw_result = raw_vqe_result
-        result.computed_electronic_energy = raw_vqe_result.eigenvalue.real
-        result.aux_values = raw_vqe_result.aux_operator_eigenvalues
+        eigenstate_result = ElectronicStructureResult()
+        eigenstate_result.raw_result = raw_vqe_result
+        eigenstate_result.eigenvalue = raw_vqe_result.eigenvalue
+        eigenstate_result.aux_values = raw_vqe_result.aux_operator_eigenvalues
+        electronic_result = self.transformation.interpret(eigenstate_result)
+
+        result = AdaptVQEResult(electronic_result.data)
         result.num_iterations = iteration
         result.final_max_gradient = max_grad[0]
         result.finishing_criterion = finishing_criterion
-
-        self.transformation.add_context(result)
 
         logger.info('The final energy is: %s', str(result.computed_electronic_energy))
         return result
 
 
-class AdaptVQEResult(FermionicGroundStateResult):
+class AdaptVQEResult(ElectronicStructureResult):
     """ AdaptVQE Result."""
 
     @property

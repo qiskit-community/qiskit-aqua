@@ -10,7 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""The fermionic ground state result."""
+"""The electronic structure result."""
 
 from typing import List, Optional, Tuple, cast
 
@@ -20,7 +20,7 @@ import numpy as np
 from qiskit.aqua.algorithms import AlgorithmResult
 from qiskit.chemistry import QMolecule
 
-from .state_result import StateResult, GroundStateResult
+from .eigenstate_result import EigenstateResult
 
 logger = logging.getLogger(__name__)
 
@@ -31,8 +31,8 @@ logger = logging.getLogger(__name__)
 DipoleTuple = Tuple[Optional[float], Optional[float], Optional[float]]
 
 
-class FermionicResult(StateResult):
-    """The fermionic ground state result."""
+class ElectronicStructureResult(EigenstateResult):
+    """The electronic structure result."""
 
     @property
     def algorithm_result(self) -> AlgorithmResult:
@@ -80,12 +80,16 @@ class FermionicResult(StateResult):
     @property
     def energy(self) -> Optional[float]:
         """ Returns ground state energy if nuclear_repulsion_energy is available from driver """
+        # TODO the fact that this property is computed on the fly breaks the `.combine()`
+        # functionality
         nre = self.nuclear_repulsion_energy
         return self.electronic_energy + nre if nre is not None else None
 
     @property
     def electronic_energy(self) -> float:
         """ Returns electronic part of ground state energy """
+        # TODO the fact that this property is computed on the fly breaks the `.combine()`
+        # functionality
         return (self.computed_electronic_energy
                 + self.ph_extracted_energy
                 + self.frozen_extracted_energy)
@@ -340,7 +344,3 @@ def _float_to_string(value: Optional[float], precision: int = 8) -> str:
         return 'None'
     else:
         return '0.0' if value == 0 else ('{:.' + str(precision) + 'f}').format(value).rstrip('0')
-
-
-class FermionicGroundStateResult(FermionicResult, GroundStateResult):
-    """The fermionic ground state result."""

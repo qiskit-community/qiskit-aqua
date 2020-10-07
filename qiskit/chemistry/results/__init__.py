@@ -12,13 +12,11 @@
 
 """Chemistry results module."""
 
-from .fermionic_result import DipoleTuple, FermionicResult, FermionicGroundStateResult
-from .state_result import StateResult, GroundStateResult
+from .electronic_structure_result import DipoleTuple, ElectronicStructureResult
+from .eigenstate_result import EigenstateResult
 
 
 __all__ = ['DipoleTuple',
-           'StateResult',
-           'GroundStateResult',
-           'FermionicResult',
-           'FermionicGroundStateResult',
+           'EigenstateResult',
+           'ElectronicStructureResult',
            ]

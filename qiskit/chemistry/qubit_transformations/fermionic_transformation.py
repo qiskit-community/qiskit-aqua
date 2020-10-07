@@ -24,7 +24,7 @@ from qiskit.aqua.operators import Z2Symmetries, WeightedPauliOperator
 from qiskit.chemistry import QiskitChemistryError, QMolecule
 from qiskit.chemistry.fermionic_operator import FermionicOperator
 from qiskit.chemistry.drivers import BaseDriver
-from qiskit.chemistry.results import DipoleTuple, FermionicResult
+from qiskit.chemistry.results import DipoleTuple, EigenstateResult, ElectronicStructureResult
 
 from .qubit_operator_transformation import QubitOperatorTransformation
 from ..components.initial_states import HartreeFock
@@ -427,19 +427,24 @@ class FermionicTransformation(QubitOperatorTransformation):
         z2_symmetries.tapering_values = taper_coef
         return z2_symmetries
 
-    def add_context(self, result: FermionicResult) -> None:
-        """Adds contextual information to the state result object.
+    def interpret(self, eigenstate_result: EigenstateResult) -> ElectronicStructureResult:
+        """Interprets an EigenstateResult in the context of this transformation.
 
         Args:
-            result: a state result object.
+            eigenstate_result: an eigenstate result object.
+
+        Returns:
+            An electronic structure result.
         """
+        result = ElectronicStructureResult(eigenstate_result.data)
+        result.computed_electronic_energy = eigenstate_result.eigenvalue.real
         result.hartree_fock_energy = self._hf_energy
         result.nuclear_repulsion_energy = self._nuclear_repulsion_energy
         if self._nuclear_dipole_moment is not None:
             result.nuclear_dipole_moment = tuple(x for x in self._nuclear_dipole_moment)
         result.ph_extracted_energy = self._ph_energy_shift
         result.frozen_extracted_energy = self._energy_shift
-        aux_ops_vals = result.aux_values
+        aux_ops_vals = eigenstate_result.aux_values
         if aux_ops_vals is not None:
             # Dipole results if dipole aux ops were present
             dipole_idx = 3
@@ -462,6 +467,8 @@ class FermionicTransformation(QubitOperatorTransformation):
                 if aux_ops_vals[1] is not None else None
             result.magnetization = aux_ops_vals[2][0].real \
                 if aux_ops_vals[2] is not None else None
+
+        return result
 
     @staticmethod
     def _try_reduce_fermionic_operator(fer_op: FermionicOperator,
