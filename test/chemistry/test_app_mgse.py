@@ -30,8 +30,6 @@ from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.core import QubitMappingType
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 
-# TODO Ground state interface PR
-
 
 class TestAppMGSE(QiskitChemistryTestCase):
     """Test molecular ground state energy application """

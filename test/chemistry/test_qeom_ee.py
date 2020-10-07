@@ -25,7 +25,7 @@ from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
 from qiskit.chemistry.algorithms import QEomEE
 
-# TODO Ground state interface PR
+# TODO Update this test after ESC is done
 
 
 class TestEomEE(QiskitAquaTestCase):

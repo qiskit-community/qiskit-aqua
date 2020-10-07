@@ -25,8 +25,6 @@ from qiskit.aqua.components.optimizers import COBYLA, SPSA
 from qiskit.chemistry.drivers import HDF5Driver
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
 
-# TODO Ground state interface PR
-
 
 @ddt
 class TestEnd2End(QiskitChemistryTestCase):
@@ -69,7 +67,6 @@ class TestEnd2End(QiskitChemistryTestCase):
         quantum_instance = QuantumInstance(backend, shots=shots)
         result = vqe.run(quantum_instance)
         self.assertAlmostEqual(result.eigenvalue.real, self.reference_energy, places=4)
-        # TODO test aux_ops properly
 
     def test_deprecated_algo_result(self):
         """ Test processing a deprecated dictionary result from algorithm """
