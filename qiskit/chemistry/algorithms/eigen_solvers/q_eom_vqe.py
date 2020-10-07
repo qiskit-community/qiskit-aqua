@@ -18,6 +18,7 @@ from typing import Union, List, Optional, Callable
 import numpy as np
 from qiskit.circuit import QuantumCircuit
 from qiskit.providers import BaseBackend
+from qiskit.providers import Backend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import VQE
 from qiskit.aqua.operators import LegacyBaseOperator, Z2Symmetries
@@ -49,7 +50,8 @@ class QEomVQE(VQE):
                  z2_symmetries: Optional[Z2Symmetries] = None,
                  untapered_op: Optional[LegacyBaseOperator] = None,
                  aux_operators: Optional[List[LegacyBaseOperator]] = None,
-                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
+                 quantum_instance: Optional[
+                     Union[QuantumInstance, Backend, BaseBackend]] = None) -> None:
         """
         Args:
             operator: qubit operator
