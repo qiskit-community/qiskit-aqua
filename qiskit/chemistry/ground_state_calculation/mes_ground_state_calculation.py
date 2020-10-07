@@ -61,11 +61,12 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
 
         Args:
             driver: A chemistry driver.
-            additional_operators: Additional auxiliary ``FermionicOperator``s to evaluate at the
-                ground state.
+            additional_operators: Additional auxiliary operators to evaluate at the ground state.
+                Depending on whether a fermionic or bosonic system is solved, the type of the
+                operators must be ``FermionicOperator`` or ``BosonicOperator``, respectively.
 
         Raises:
-            ValueError: If an operator in ``additional_operators`` is not of type
+            NotImplementedError: If an operator in ``additional_operators`` is not of type
                 ``FermionicOperator``.
 
         Returns:
@@ -73,7 +74,7 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
         """
         if additional_operators is not None:
             if any(not isinstance(op, FermionicOperator) for op in additional_operators.values()):
-                raise ValueError('The additional operators must be of type FermionicOperator.')
+                raise NotImplementedError('Currently only fermionic problems are supported.')
 
         # get the operator and auxiliary operators, and transform the provided auxiliary operators
         # note that ``aux_operators`` contains not only the transformed ``aux_operators`` passed

@@ -115,7 +115,7 @@ class FermionicTransformation(QubitOperatorTransformation):
         self._molecule_info: Dict[str, Any] = {}
 
     def transform(self, driver: BaseDriver,
-                  additional_operators: Optional[Dict[str, Any]] = None
+                  additional_operators: Optional[Dict[str, FermionicOperator]] = None
                   ) -> Tuple[WeightedPauliOperator, Dict[str, WeightedPauliOperator]]:
         """Transformation to qubit operator from the driver
 
@@ -132,7 +132,7 @@ class FermionicTransformation(QubitOperatorTransformation):
         return ops, aux_ops
 
     def _do_transform(self, qmolecule: QMolecule,
-                      additional_operators: Optional[Dict[str, Any]] = None
+                      additional_operators: Optional[Dict[str, FermionicOperator]] = None
                       ) -> Tuple[WeightedPauliOperator, Dict[str, WeightedPauliOperator]]:
         """
         Args:
@@ -458,7 +458,7 @@ class FermionicTransformation(QubitOperatorTransformation):
                 for name in dipole_names:
                     moment = result.aux_values[name]
                     if moment is not None:
-                        dipole_moment += [moment.real[0]]
+                        dipole_moment += [moment[0].real]
                     else:
                         dipole_moment += [None]
 
