@@ -97,7 +97,7 @@ features:
 
 
     The combination of the QFI and the gradient lead to a special form of a gradient, namely
-    
+
     NaturalGradients: The natural gradient is a special gradient method which rescales a gradient w.r.t. a state
     parameter with the inverse of the corresponding Quantum Fisher Information (QFI).
     ```
