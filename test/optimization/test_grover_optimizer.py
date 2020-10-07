@@ -13,6 +13,7 @@
 """Test Grover Optimizer."""
 
 import unittest
+from ddt import ddt, data
 from test.optimization import QiskitOptimizationTestCase
 from docplex.mp.model import Model
 import numpy as np
@@ -23,6 +24,7 @@ from qiskit.optimization.algorithms import GroverOptimizer, MinimumEigenOptimize
 from qiskit.optimization.problems import QuadraticProgram
 
 
+@ddt
 class TestGroverOptimizer(QiskitOptimizationTestCase):
     """GroverOptimizer tests."""
 
@@ -101,8 +103,12 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
         results = gmf.solve(op)
         self.validate_results(op, results)
 
-    def test_qubo_gas_int_paper_example(self):
-        """Test the example from https://arxiv.org/abs/1912.04088."""
+    @data('sv', 'qasm')
+    def test_qubo_gas_int_paper_example(self, simulator):
+        """
+        Test the example from https://arxiv.org/abs/1912.04088 using the state vector simulator
+        and the qasm simulator
+        """
 
         # Input.
         model = Model()
@@ -115,25 +121,9 @@ class TestGroverOptimizer(QiskitOptimizationTestCase):
 
         # Get the optimum key and value.
         n_iter = 10
-        gmf = GroverOptimizer(6, num_iterations=n_iter, quantum_instance=self.sv_simulator)
-        results = gmf.solve(op)
-        self.validate_results(op, results)
 
-    def test_qubo_gas_int_paper_example_qasm(self):
-        """Test the example from https://arxiv.org/abs/1912.04088."""
-
-        # Input.
-        model = Model()
-        x_0 = model.binary_var(name='x0')
-        x_1 = model.binary_var(name='x1')
-        x_2 = model.binary_var(name='x2')
-        model.minimize(-x_0+2*x_1-3*x_2-2*x_0*x_2-1*x_1*x_2)
-        op = QuadraticProgram()
-        op.from_docplex(model)
-
-        # Get the optimum key and value.
-        n_iter = 10
-        gmf = GroverOptimizer(6, num_iterations=n_iter, quantum_instance=self.qasm_simulator)
+        q_instance = self.sv_simulator if simulator == 'sv' else self.qasm_simulator
+        gmf = GroverOptimizer(6, num_iterations=n_iter, quantum_instance=q_instance)
         results = gmf.solve(op)
         self.validate_results(op, results)
 
