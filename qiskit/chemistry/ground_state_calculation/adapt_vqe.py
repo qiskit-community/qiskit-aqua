@@ -14,7 +14,7 @@
 A ground state calculation employing the AdaptVQE algorithm.
 """
 
-from typing import Optional, List
+from typing import Optional, List, Tuple
 import logging
 import re
 import warnings
@@ -72,7 +72,7 @@ class AdaptVQE(GroundStateCalculation):
                            theta: List[float],
                            var_form: UCCSD,
                            operator: LegacyBaseOperator,
-                           ) -> List:
+                           ) -> List[Tuple[float, WeightedPauliOperator]]:
         """
         Computes the gradients for all available excitation operators.
 
@@ -158,9 +158,9 @@ class AdaptVQE(GroundStateCalculation):
         threshold_satisfied = False
         alternating_sequence = False
         max_iterations_exceeded = False
-        prev_op_indices = []
-        theta = []  # type: List
-        max_grad = (0, 0)
+        prev_op_indices: List[int] = []
+        theta: List[float] = []
+        max_grad: Tuple[float, Optional[WeightedPauliOperator]] = (0., None)
         iteration = 0
         while self._max_iterations is None or iteration < self._max_iterations:
             iteration += 1
@@ -173,15 +173,17 @@ class AdaptVQE(GroundStateCalculation):
             # store maximum gradient's index for cycle detection
             prev_op_indices.append(max_grad_index)
             # log gradients
-            gradlog = "\nGradients in iteration #{}".format(str(iteration))
-            gradlog += "\nID: Excitation Operator: Gradient  <(*) maximum>"
-            for i, grad in enumerate(cur_grads):
-                gradlog += '\n{}: {}: {}'.format(str(i), str(grad[1]), str(grad[0]))
-                if grad[1] == max_grad[1]:
-                    gradlog += '\t(*)'
-            logger.info(gradlog)
+            if logger.isEnabledFor(logging.INFO):
+                gradlog = "\nGradients in iteration #{}".format(str(iteration))
+                gradlog += "\nID: Excitation Operator: Gradient  <(*) maximum>"
+                for i, grad in enumerate(cur_grads):
+                    gradlog += '\n{}: {}: {}'.format(str(i), str(grad[1]), str(grad[0]))
+                    if grad[1] == max_grad[1]:
+                        gradlog += '\t(*)'
+                logger.info(gradlog)
             if np.abs(max_grad[0]) < self._threshold:
-                logger.info("Adaptive VQE terminated succesfully with a final maximum gradient: %s",
+                logger.info("Adaptive VQE terminated successfully "
+                            "with a final maximum gradient: %s",
                             str(np.abs(max_grad[0])))
                 threshold_satisfied = True
                 break
