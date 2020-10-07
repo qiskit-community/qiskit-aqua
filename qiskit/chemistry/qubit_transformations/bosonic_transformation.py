@@ -166,24 +166,22 @@ class BosonicTransformation(QubitOperatorTransformation):
 
         return final_list
 
-    def _combine(self, modes: List[int], paulis: List[List[Tuple[float, Pauli]]],
-                 coeff: float) -> WeightedPauliOperator:
+    def _combine(self, modes: List[int], paulis: dict,
+                     coeff: float) -> WeightedPauliOperator:
         """ Combines the paulis of each mode together in one WeightedPauliOperator.
 
         Args:
             modes: list with the indices of the modes to be combined
-            paulis: list containing the list of paulis for each mode
+            paulis: dict containing the list of paulis for each mode
             coeff: coefficient multiplying the term
 
         Returns:
             WeightedPauliOperator acting on the modes given in argument
         """
         m = 0
-        idx = 0
 
         if m in modes:
-            pauli_list = paulis[idx]
-            idx += 1
+            pauli_list = paulis[m]
         else:
             a_z = np.asarray([0] * self._basis[m], dtype=np.bool)
             a_x = np.asarray([0] * self._basis[m], dtype=np.bool)
@@ -191,8 +189,7 @@ class BosonicTransformation(QubitOperatorTransformation):
 
         for m in range(1, self._num_modes):
             if m in modes:
-                new_list = paulis[idx]
-                idx += 1
+                new_list = paulis[m]
             else:
                 a_z = np.asarray([0] * self._basis[m], dtype=np.bool)
                 a_x = np.asarray([0] * self._basis[m], dtype=np.bool)
@@ -228,17 +225,17 @@ class BosonicTransformation(QubitOperatorTransformation):
 
         if qubit_mapping == 'direct':
 
-            for deg in range(self._truncation_order):
+            for deg in range(self._degree):
 
                 for element in self._h_mat[deg]:
-                    paulis = []
+                    paulis = {}
                     modes = []
                     coeff = element[1]
                     for i in range(deg+1):
                         m, bf1, bf2 = element[0][i]
                         modes.append(m)
-                        paulis.append((self._one_body_mapping((1, pau[m][bf1],
-                                                               pau[m][bf2]))).paulis)
+                        paulis[m]=(self._one_body_mapping((1, pau[m][bf1],
+                                                               pau[m][bf2]))).paulis
 
                     qubit_op += self._combine(modes, paulis, coeff)
 
@@ -248,7 +245,6 @@ class BosonicTransformation(QubitOperatorTransformation):
             raise ValueError('Only the direct mapping is implemented')
 
         return qubit_op
-
 
     def direct_mapping_filtering_criterion(self, state) -> bool:
 
