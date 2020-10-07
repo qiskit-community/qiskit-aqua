@@ -131,7 +131,7 @@ class AdaptVQE(GroundStateCalculation):
         return match is not None or (len(indices) > 1 and indices[-2] == indices[-1])
 
     def compute_groundstate(self, driver: BaseDriver,
-                            additional_operators: Optional[Dict[str, Any]] = None
+                            additional_operators: Optional[Dict[str, FermionicOperator]] = None
                             ) -> 'AdaptVQEResult':
         """Computes the ground state.
 
