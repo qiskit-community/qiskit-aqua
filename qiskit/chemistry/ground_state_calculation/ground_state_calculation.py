@@ -46,6 +46,7 @@ class GroundStateCalculation(ABC):
                             additional_operators: Optional[Dict[str, Any]] = None
                             ) -> GroundStateResult:
         """Compute the ground state energy of the molecule that was supplied via the driver.
+        This will return the ground state calculation result.
 
         Args:
             driver: BaseDriver

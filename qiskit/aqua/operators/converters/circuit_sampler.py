@@ -12,12 +12,13 @@
 
 """ CircuitSampler Class """
 
-from typing import Optional, Dict, List, Union, cast, Any
+from typing import Optional, Dict, List, Union, cast, Any, Tuple
 import logging
 from functools import partial
 from time import time
 
 from qiskit.providers import BaseBackend
+from qiskit.providers import Backend
 from qiskit.circuit import QuantumCircuit, Parameter, ParameterExpression
 from qiskit import QiskitError
 from qiskit.aqua import QuantumInstance
@@ -48,7 +49,7 @@ class CircuitSampler(ConverterBase):
     """
 
     def __init__(self,
-                 backend: Union[BaseBackend, QuantumInstance] = None,
+                 backend: Union[Backend, BaseBackend, QuantumInstance] = None,
                  statevector: Optional[bool] = None,
                  param_qobj: bool = False,
                  attach_results: bool = False) -> None:
@@ -101,7 +102,7 @@ class CircuitSampler(ConverterBase):
                              'backend, not {}.'.format(self.quantum_instance.backend))
 
     @property
-    def backend(self) -> BaseBackend:
+    def backend(self) -> Union[Backend, BaseBackend]:
         """ Returns the backend.
 
         Returns:
@@ -110,11 +111,11 @@ class CircuitSampler(ConverterBase):
         return self.quantum_instance.backend
 
     @backend.setter
-    def backend(self, backend: BaseBackend):
+    def backend(self, backend: Union[Backend, BaseBackend]):
         """ Sets backend without additional configuration. """
         self.set_backend(backend)
 
-    def set_backend(self, backend: BaseBackend, **kwargs) -> None:
+    def set_backend(self, backend: Union[Backend, BaseBackend], **kwargs) -> None:
         """ Sets backend with configuration.
 
         Raises:
@@ -133,13 +134,14 @@ class CircuitSampler(ConverterBase):
         return self._quantum_instance
 
     @quantum_instance.setter
-    def quantum_instance(self, quantum_instance: Union[QuantumInstance, BaseBackend]) -> None:
+    def quantum_instance(self, quantum_instance: Union[QuantumInstance,
+                                                       Backend, BaseBackend]) -> None:
         """ Sets the QuantumInstance.
 
         Raises:
             ValueError: statevector or param_qobj are True when not supported by backend.
         """
-        if isinstance(quantum_instance, BaseBackend):
+        if isinstance(quantum_instance, (Backend, BaseBackend)):
             quantum_instance = QuantumInstance(quantum_instance)
         self._quantum_instance = quantum_instance
         self._check_quantum_instance_and_modes_consistent()
@@ -317,27 +319,35 @@ class CircuitSampler(ConverterBase):
             sampled_statefn_dicts[id(op_c)] = c_statefns
         return sampled_statefn_dicts
 
-    def _generate_aer_params(self,
-                             circuit: QuantumCircuit,
-                             input_params: Dict[Parameter, List[float]]
-                             ) -> List[List[Any]]:
-        ret = []
+    def _build_aer_params(self,
+                          circuit: QuantumCircuit,
+                          building_param_tables: Dict[Tuple[int, int], List[float]],
+                          input_params: Dict[Parameter, List[float]]
+                          ) -> None:
+
+        def resolve_param(inst_param):
+            if not isinstance(inst_param, ParameterExpression):
+                return None
+            param_mappings = {}
+            for param in inst_param._parameter_symbols.keys():
+                if param not in input_params:
+                    raise ValueError('unexpected parameter: {0}'.format(param))
+                param_mappings[param] = input_params[param]
+            return float(inst_param.bind(param_mappings))
 
         gate_index = 0
         for inst, _, _ in circuit.data:
             param_index = 0
             for inst_param in inst.params:
-                param_mappings = {}
-                if isinstance(inst_param, ParameterExpression):
-                    for param in inst_param._parameter_symbols.keys():
-                        if param not in input_params:
-                            raise ValueError('unexpected parameter: {0}'.format(param))
-                        param_mappings[param] = input_params[param]
-                    val = float(inst_param.bind(param_mappings))
-                    ret.append([[gate_index, param_index], [val]])
+                val = resolve_param(inst_param)
+                if val is not None:
+                    param_key = (gate_index, param_index)
+                    if param_key in building_param_tables:
+                        building_param_tables[param_key].append(val)
+                    else:
+                        building_param_tables[param_key] = [val]
                 param_index += 1
             gate_index += 1
-        return ret
 
     def _prepare_parameterized_run_config(self, param_bindings:
                                           List[Dict[Parameter, List[float]]]) -> List[Any]:
@@ -352,14 +362,19 @@ class CircuitSampler(ConverterBase):
             self._transpiled_circ_templates = [circ.assign_parameters(param_bindings[0])
                                                for circ in self._transpiled_circ_cache]
 
-        ready_circ = []
-        for circ, temp in zip(self._transpiled_circ_cache, self._transpiled_circ_templates):
+        for circ in self._transpiled_circ_cache:
+            building_param_tables = {}  # type: Dict[Tuple[int, int], List[float]]
             for param_binding in param_bindings:
-                self.quantum_instance._run_config.parameterizations.append(
-                    self._generate_aer_params(circ, param_binding))
-                ready_circ.append(temp)
+                self._build_aer_params(circ, building_param_tables, param_binding)
+            param_tables = []
+            for gate_and_param_indices in building_param_tables:
+                gate_index = gate_and_param_indices[0]
+                param_index = gate_and_param_indices[1]
+                param_tables.append([
+                    [gate_index, param_index], building_param_tables[(gate_index, param_index)]])
+            self.quantum_instance._run_config.parameterizations.append(param_tables)
 
-        return ready_circ
+        return self._transpiled_circ_templates
 
     def _clean_parameterized_run_config(self) -> None:
         self.quantum_instance._run_config.parameterizations = []

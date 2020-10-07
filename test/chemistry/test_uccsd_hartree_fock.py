@@ -29,6 +29,7 @@ from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.drivers import HDF5Driver
 from qiskit.chemistry.core import Hamiltonian, QubitMappingType
 
+
 @ddt
 class TestUCCSDHartreeFock(QiskitChemistryTestCase):
     """Test for these aqua extensions."""

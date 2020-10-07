@@ -58,7 +58,7 @@ class FermionicTransformation(QubitOperatorTransformation):
         """
         Args:
             transformation: full or particle_hole
-            qubit_mapping: jordan_wigner, parity or bravyi_kitaev
+            qubit_mapping: 'jordan_wigner', 'parity' or 'bravyi_kitaev'
             two_qubit_reduction: Whether two qubit reduction should be used,
                                         when parity mapping only
             freeze_core: Whether to freeze core orbitals when possible
@@ -81,11 +81,10 @@ class FermionicTransformation(QubitOperatorTransformation):
             QiskitChemistryError: Invalid symmetry reduction
         """
         transformation = transformation.value
-        qubit_mapping = qubit_mapping.value
         orbital_reduction = orbital_reduction if orbital_reduction is not None else []
         super().__init__()
         self._transformation = transformation
-        self._qubit_mapping = qubit_mapping
+        self._qubit_mapping = qubit_mapping.value
         self._two_qubit_reduction = two_qubit_reduction
         self._freeze_core = freeze_core
         self._orbital_reduction = orbital_reduction
@@ -512,7 +511,7 @@ class FermionicTransformation(QubitOperatorTransformation):
 
     @staticmethod
     def _map_fermionic_operator_to_qubit(fer_op: FermionicOperator,
-                                         qubit_mapping: QubitMappingType,
+                                         qubit_mapping: str,
                                          num_particles: List[int],
                                          two_qubit_reduction: bool) -> WeightedPauliOperator:
         """

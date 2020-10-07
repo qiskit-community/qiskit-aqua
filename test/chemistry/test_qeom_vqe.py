@@ -31,7 +31,7 @@ from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingT
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.components.initial_states import HartreeFock
 
-# TODO Ground state interface PR
+# TODO Update test after ESC is done
 
 
 class TestEomVQE(QiskitAquaTestCase):

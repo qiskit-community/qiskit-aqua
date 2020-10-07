@@ -27,8 +27,6 @@ from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.components.initial_states import HartreeFock
 
-# TODO Ground state interface PR
-
 
 class TestSymmetries(QiskitChemistryTestCase):
     """Test for symmetry processing."""

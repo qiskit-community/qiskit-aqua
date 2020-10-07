@@ -20,6 +20,8 @@ import numpy as np
 
 from .. import QiskitOptimizationError
 from ..problems.quadratic_program import QuadraticProgram, Variable
+from ..converters.quadratic_program_to_qubo import (QuadraticProgramToQubo,
+                                                    QuadraticProgramConverter)
 
 
 class OptimizationResultStatus(Enum):
@@ -33,85 +35,6 @@ class OptimizationResultStatus(Enum):
 
     INFEASIBLE = 2
     """the optimization algorithm obtained an infeasible solution."""
-
-
-class OptimizationAlgorithm(ABC):
-    """An abstract class for optimization algorithms in Qiskit's optimization module."""
-
-    @abstractmethod
-    def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
-        """Checks whether a given problem can be solved with the optimizer implementing this method.
-
-        Args:
-            problem: The optimization problem to check compatibility.
-
-        Returns:
-            Returns the incompatibility message. If the message is empty no issues were found.
-        """
-
-    def is_compatible(self, problem: QuadraticProgram) -> bool:
-        """Checks whether a given problem can be solved with the optimizer implementing this method.
-
-        Args:
-            problem: The optimization problem to check compatibility.
-
-        Returns:
-            Returns True if the problem is compatible, False otherwise.
-        """
-        return len(self.get_compatibility_msg(problem)) == 0
-
-    @abstractmethod
-    def solve(self, problem: QuadraticProgram) -> 'OptimizationResult':
-        """Tries to solves the given problem using the optimizer.
-
-        Runs the optimizer to try to solve the optimization problem.
-
-        Args:
-            problem: The problem to be solved.
-
-        Returns:
-            The result of the optimizer applied to the problem.
-
-        Raises:
-            QiskitOptimizationError: If the problem is incompatible with the optimizer.
-        """
-        raise NotImplementedError
-
-    def _verify_compatibility(self, problem: QuadraticProgram) -> None:
-        """Verifies that the problem is suitable for this optimizer. If the problem is not
-        compatible then an exception is raised. This method is for convenience for concrete
-        optimizers and is not intended to be used by end user.
-
-        Args:
-            problem: Problem to verify.
-
-        Returns:
-            None
-
-        Raises:
-            QiskitOptimizationError: If the problem is incompatible with the optimizer.
-
-        """
-        # check compatibility and raise exception if incompatible
-        msg = self.get_compatibility_msg(problem)
-        if msg:
-            raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
-
-    def _get_feasibility_status(self, problem: QuadraticProgram,
-                                x: Union[List[float], np.ndarray]) -> OptimizationResultStatus:
-        """Returns whether the input result is feasible or not for the given problem.
-
-        Args:
-            problem: Problem to verify.
-            x: the input result list.
-
-        Returns:
-            The status of the result.
-        """
-        is_feasible = problem.is_feasible(x)
-
-        return OptimizationResultStatus.SUCCESS if is_feasible \
-            else OptimizationResultStatus.INFEASIBLE
 
 
 class OptimizationResult:
@@ -279,3 +202,156 @@ class OptimizationResult:
             The list of variable names of the optimization problem.
         """
         return self._variable_names
+
+
+class OptimizationAlgorithm(ABC):
+    """An abstract class for optimization algorithms in Qiskit's optimization module."""
+
+    @abstractmethod
+    def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
+        """Checks whether a given problem can be solved with the optimizer implementing this method.
+
+        Args:
+            problem: The optimization problem to check compatibility.
+
+        Returns:
+            Returns the incompatibility message. If the message is empty no issues were found.
+        """
+
+    def is_compatible(self, problem: QuadraticProgram) -> bool:
+        """Checks whether a given problem can be solved with the optimizer implementing this method.
+
+        Args:
+            problem: The optimization problem to check compatibility.
+
+        Returns:
+            Returns True if the problem is compatible, False otherwise.
+        """
+        return len(self.get_compatibility_msg(problem)) == 0
+
+    @abstractmethod
+    def solve(self, problem: QuadraticProgram) -> 'OptimizationResult':
+        """Tries to solves the given problem using the optimizer.
+
+        Runs the optimizer to try to solve the optimization problem.
+
+        Args:
+            problem: The problem to be solved.
+
+        Returns:
+            The result of the optimizer applied to the problem.
+
+        Raises:
+            QiskitOptimizationError: If the problem is incompatible with the optimizer.
+        """
+        raise NotImplementedError
+
+    def _verify_compatibility(self, problem: QuadraticProgram) -> None:
+        """Verifies that the problem is suitable for this optimizer. If the problem is not
+        compatible then an exception is raised. This method is for convenience for concrete
+        optimizers and is not intended to be used by end user.
+
+        Args:
+            problem: Problem to verify.
+
+        Returns:
+            None
+
+        Raises:
+            QiskitOptimizationError: If the problem is incompatible with the optimizer.
+
+        """
+        # check compatibility and raise exception if incompatible
+        msg = self.get_compatibility_msg(problem)
+        if msg:
+            raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
+
+    def _get_feasibility_status(self, problem: QuadraticProgram,
+                                x: Union[List[float], np.ndarray]) -> OptimizationResultStatus:
+        """Returns whether the input result is feasible or not for the given problem.
+
+        Args:
+            problem: Problem to verify.
+            x: the input result list.
+
+        Returns:
+            The status of the result.
+        """
+        is_feasible = problem.is_feasible(x)
+
+        return OptimizationResultStatus.SUCCESS if is_feasible \
+            else OptimizationResultStatus.INFEASIBLE
+
+    def _prepare_converters(self, converters: Optional[Union[QuadraticProgramConverter,
+                                                             List[QuadraticProgramConverter]]],
+                            penalty: Optional[float] = None) -> List[QuadraticProgramConverter]:
+        """Prepare a list of converters from the input.
+
+        Args:
+            converters: The converters to use for converting a problem into a different form.
+                By default, when None is specified, an internally created instance of
+                :class:`~qiskit.optimization.converters.QuadraticProgramToQubo` will be used.
+            penalty: The penalty factor used in the default
+                :class:`~qiskit.optimization.converters.QuadraticProgramToQubo` converter
+
+        Returns:
+            The list of converters.
+
+        Raises:
+            TypeError: When the converters include those that are not
+            :class:`~qiskit.optimization.converters.QuadraticProgramConverter type.
+        """
+        converters_ = []  # type: List[QuadraticProgramConverter]
+        if converters is None:
+            converters_ = [QuadraticProgramToQubo(penalty=penalty)]
+        elif isinstance(converters, QuadraticProgramConverter):
+            converters_ = [converters]
+        elif isinstance(converters, list) and \
+                all(isinstance(converter, QuadraticProgramConverter) for converter in converters):
+            converters_ = converters
+        else:
+            raise TypeError('`converters` must all be of the QuadraticProgramConverter type')
+
+        return converters_
+
+    def _convert(self, problem: QuadraticProgram,
+                 converters: Union[QuadraticProgramConverter,
+                                   List[QuadraticProgramConverter]]) -> QuadraticProgram:
+        """Convert the problem with the converters
+
+        Args:
+            problem: The problem to be solved
+            converters: The converters to use for converting a problem into a different form.
+
+        Returns:
+            The problem converted by the converters.
+        """
+        problem_ = problem
+
+        if not isinstance(converters, list):
+            converters = [converters]
+
+        for converter in converters:
+            problem_ = converter.convert(problem_)
+
+        return problem_
+
+    def _interpret(self, result: OptimizationResult,
+                   converters: Union[QuadraticProgramConverter,
+                                     List[QuadraticProgramConverter]]) -> OptimizationResult:
+        """Convert back the result of the converted problem to the result of the original problem.
+
+        Args:
+            result: The result of the converted problem.
+            converters: The converters to use for converting back the result of the problem
+                to the result of the original problem.
+
+        Returns:
+            The result of the original problem.
+        """
+        if not isinstance(converters, list):
+            converters = [converters]
+
+        for converter in converters[::-1]:
+            result = converter.interpret(result)
+        return result

@@ -16,7 +16,7 @@ import warnings
 
 from abc import ABC, abstractmethod
 
-from ..algorithms.optimization_algorithm import OptimizationResult
+import qiskit.optimization.algorithms  # pylint: disable=unused-import
 from ..problems.quadratic_program import QuadraticProgram
 
 
@@ -33,7 +33,8 @@ class QuadraticProgramConverter(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def interpret(self, result: OptimizationResult) -> OptimizationResult:
+    def interpret(self, result: 'qiskit.optimization.algorithms.OptimizationResult') \
+            -> 'qiskit.optimization.algorithms.OptimizationResult':  # type: ignore
         """ Interpret a result into another form using the information of conversion"""
 
         raise NotImplementedError
@@ -50,7 +51,8 @@ class QuadraticProgramConverter(ABC):
                       DeprecationWarning, stacklevel=1)
         return self.convert(problem)
 
-    def decode(self, result: OptimizationResult) -> OptimizationResult:  # type: ignore
+    def decode(self, result: 'qiskit.optimization.algorithms.OptimizationResult') \
+            -> 'qiskit.optimization.algorithms.OptimizationResult':  # type: ignore
         """DEPRECATED Decode a result into another form using the information of conversion."""
         warnings.warn('The qiskit.optimization.converters.QuadraticProgramConverter.decode() '
                       'method is deprecated as of 0.7.4 and will be removed no sooner '

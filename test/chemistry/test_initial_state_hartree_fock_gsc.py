@@ -12,20 +12,18 @@
 
 """ Test Initial State HartreeFock """
 
-import warnings
 import unittest
 from test.chemistry import QiskitChemistryTestCase
+
 import numpy as np
 from ddt import ddt, idata, unpack
 from qiskit.chemistry.components.initial_states import HartreeFock
 from qiskit.aqua.operators.legacy import op_converter
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
-from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
-from qiskit.chemistry.core import QubitMappingType, TransformationType
-from qiskit.chemistry.ground_state_calculation import MinimumEigensolverGroundStateCalculation
 from qiskit.chemistry.core import TransformationType, QubitMappingType
 from qiskit.chemistry.qubit_transformations import FermionicTransformation
+
 
 @ddt
 class TestInitialStateHartreeFock(QiskitChemistryTestCase):
@@ -110,12 +108,13 @@ class TestInitialStateHartreeFock(QiskitChemistryTestCase):
         hrfo = HartreeFock(fermionic_transformation._molecule_info['num_orbitals'],
                            fermionic_transformation._molecule_info['num_particles'],
                            mapping.value,
-                           two_qubit_reduction = False)
+                           two_qubit_reduction=False)
         qc = hrfo.construct_circuit('vector')
         hf_energy = qubit_op.evaluate_with_statevector(qc)[0].real \
-                    + fermionic_transformation._nuclear_repulsion_energy
+            + fermionic_transformation._nuclear_repulsion_energy
 
         self.assertAlmostEqual(fermionic_transformation._hf_energy, hf_energy, places=6)
+
 
 if __name__ == '__main__':
     unittest.main()

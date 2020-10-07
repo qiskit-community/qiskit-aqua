@@ -23,10 +23,11 @@ from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms.amplitude_amplifiers.grover import Grover
 from qiskit.providers import BaseBackend
+from qiskit.providers import Backend
 from qiskit.circuit.library import QuadraticForm
 from .optimization_algorithm import (OptimizationResultStatus, OptimizationAlgorithm,
                                      OptimizationResult)
-from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
+from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo, QuadraticProgramConverter
 from ..problems import Variable
 from ..problems.quadratic_program import QuadraticProgram
 
@@ -37,22 +38,34 @@ class GroverOptimizer(OptimizationAlgorithm):
     """Uses Grover Adaptive Search (GAS) to find the minimum of a QUBO function."""
 
     def __init__(self, num_value_qubits: int, num_iterations: int = 3,
-                 quantum_instance: Optional[Union[BaseBackend, QuantumInstance]] = None) -> None:
+                 quantum_instance: Optional[Union[BaseBackend, Backend, QuantumInstance]] = None,
+                 converters: Optional[Union[QuadraticProgramConverter,
+                                            List[QuadraticProgramConverter]]] = None,
+                 penalty: Optional[float] = None) -> None:
         """
         Args:
             num_value_qubits: The number of value qubits.
             num_iterations: The number of iterations the algorithm will search with
                 no improvement.
             quantum_instance: Instance of selected backend, defaults to Aer's statevector simulator.
+            converters: The converters to use for converting a problem into a different form.
+                By default, when None is specified, an internally created instance of
+                :class:`~qiskit.optimization.converters.QuadraticProgramToQubo` will be used.
+            penalty: The penalty factor used in the default
+                :class:`~qiskit.optimization.converters.QuadraticProgramToQubo` converter
+
+        Raises:
+            TypeError: When there one of converters is an invalid type.
         """
         self._num_value_qubits = num_value_qubits
         self._num_key_qubits = None
         self._n_iterations = num_iterations
         self._quantum_instance = None
-        self._qubo_converter = QuadraticProgramToQubo()
 
         if quantum_instance is not None:
             self.quantum_instance = quantum_instance
+
+        self._converters = self._prepare_converters(converters, penalty)
 
     @property
     def quantum_instance(self) -> QuantumInstance:
@@ -64,13 +77,14 @@ class GroverOptimizer(OptimizationAlgorithm):
         return self._quantum_instance
 
     @quantum_instance.setter
-    def quantum_instance(self, quantum_instance: Union[BaseBackend, QuantumInstance]) -> None:
+    def quantum_instance(self, quantum_instance: Union[Backend,
+                                                       BaseBackend, QuantumInstance]) -> None:
         """Set the quantum instance used to run the circuits.
 
         Args:
             quantum_instance: The quantum instance to be used in the algorithm.
         """
-        if isinstance(quantum_instance, BaseBackend):
+        if isinstance(quantum_instance, (BaseBackend, Backend)):
             self._quantum_instance = QuantumInstance(quantum_instance)
         else:
             self._quantum_instance = quantum_instance
@@ -142,7 +156,7 @@ class GroverOptimizer(OptimizationAlgorithm):
         self._verify_compatibility(problem)
 
         # convert problem to QUBO
-        problem_ = self._qubo_converter.convert(problem)
+        problem_ = self._convert(problem, self._converters)
         problem_init = deepcopy(problem_)
 
         # convert to minimization problem
@@ -154,7 +168,7 @@ class GroverOptimizer(OptimizationAlgorithm):
                 problem_.objective.linear[i] = -val
             for (i, j), val in problem_.objective.quadratic.to_dict().items():
                 problem_.objective.quadratic[i, j] = -val
-        self._num_key_qubits = len(problem_.objective.linear.to_array())
+        self._num_key_qubits = len(problem_.objective.linear.to_array())  # type: ignore
 
         # Variables for tracking the optimum.
         optimum_found = False
@@ -259,7 +273,7 @@ class GroverOptimizer(OptimizationAlgorithm):
                                     status=OptimizationResultStatus.SUCCESS)
 
         # cast binaries back to integers
-        result = self._qubo_converter.interpret(result)
+        result = self._interpret(result, self._converters)
 
         return GroverOptimizationResult(x=result.x, fval=result.fval, variables=result.variables,
                                         operation_counts=operation_count, n_input_qubits=n_key,
