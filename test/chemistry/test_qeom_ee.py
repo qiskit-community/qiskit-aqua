@@ -25,7 +25,7 @@ from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
 from qiskit.chemistry.algorithms import QEomEE
 
-# TODO Update this test after ESC is done
+# TODO Update this test after excited states PR is done
 
 
 class TestEomEE(QiskitAquaTestCase):

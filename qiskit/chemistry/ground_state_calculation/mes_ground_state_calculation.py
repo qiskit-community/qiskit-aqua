@@ -20,7 +20,7 @@ from qiskit.chemistry import FermionicOperator
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.ground_state_calculation import GroundStateCalculation
 from qiskit.chemistry.qubit_transformations import QubitOperatorTransformation
-from qiskit.chemistry.results import FermionicGroundStateResult
+from qiskit.chemistry.results import EigenstateResult
 
 from .mes_factories import MESFactory
 
@@ -57,11 +57,12 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
 
     def compute_groundstate(self, driver: BaseDriver,
                             aux_operators: Optional[List[Any]] = None
-                            ) -> FermionicGroundStateResult:
+                            ) -> EigenstateResult:
         """Compute Ground State properties.
 
         Args:
-            driver: A chemistry driver.
+            driver: a chemistry driver object which defines the chemical problem that is to be
+                    solved by this calculation.
             aux_operators: Additional auxiliary operators to evaluate at the ground state.
                 Depending on whether a fermionic or bosonic system is solved, the type of the
                 operators must be ``FermionicOperator`` or ``BosonicOperator``, respectively.
@@ -71,7 +72,8 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
                 ``FermionicOperator``.
 
         Returns:
-            Ground state result TODO
+            An eigenstate result. Depending on the transformation this can be an electronic
+            structure or bosonic result.
         """
         if aux_operators is not None:
             if any(not isinstance(op, (WeightedPauliOperator, FermionicOperator))
@@ -94,12 +96,9 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
             aux_operators = None
         raw_mes_result = solver.compute_minimum_eigenvalue(operator, aux_operators)
 
-        # convert the aux_values back to a dictionary
-        aux_values = raw_mes_result.aux_operator_eigenvalues
-
-        result = FermionicGroundStateResult()
-        result.raw_result = raw_mes_result
-        result.computed_electronic_energy = raw_mes_result.eigenvalue.real
-        result.aux_values = aux_values
-        self.transformation.add_context(result)
+        eigenstate_result = EigenstateResult()
+        eigenstate_result.raw_result = raw_mes_result
+        eigenstate_result.eigenvalue = raw_mes_result.eigenvalue
+        eigenstate_result.aux_values = raw_mes_result.aux_operator_eigenvalues
+        result = self.transformation.interpret(eigenstate_result)
         return result

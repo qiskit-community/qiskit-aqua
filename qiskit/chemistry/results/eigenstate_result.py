@@ -10,15 +10,25 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""State results module."""
+"""Eigenstate results module."""
 
 from typing import Optional, Dict
 
 from qiskit.aqua.algorithms import AlgorithmResult
 
 
-class StateResult(AlgorithmResult):
-    """The state result interface."""
+class EigenstateResult(AlgorithmResult):
+    """The eigenstate result interface."""
+
+    @property
+    def eigenvalue(self) -> Optional[complex]:
+        """ returns eigen value """
+        return self.get('eigenvalue')
+
+    @eigenvalue.setter
+    def eigenvalue(self, value: complex) -> None:
+        """ set eigen value """
+        self.data['eigenvalue'] = value
 
     @property
     def aux_values(self) -> Optional[Dict[str, float]]:
@@ -38,7 +48,3 @@ class StateResult(AlgorithmResult):
     @raw_result.setter
     def raw_result(self, result: AlgorithmResult) -> None:
         self.data['raw_result'] = result
-
-
-class GroundStateResult(StateResult):
-    """The ground state result interface."""

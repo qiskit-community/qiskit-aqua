@@ -17,7 +17,7 @@ from typing import Tuple, List, Any, Optional
 
 from qiskit.aqua.operators.legacy import WeightedPauliOperator
 from qiskit.chemistry.drivers import BaseDriver
-from qiskit.chemistry.results import StateResult
+from qiskit.chemistry.results import EigenstateResult
 
 
 class QubitOperatorTransformation(ABC):
@@ -41,10 +41,13 @@ class QubitOperatorTransformation(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def add_context(self, result: StateResult) -> None:
-        """Adds contextual information to the state result object.
+    def interpret(self, eigenstate_result: EigenstateResult) -> EigenstateResult:
+        """Interprets an EigenstateResult in the context of this transformation.
 
         Args:
-            result: a state result object.
+            eigenstate_result: an eigenstate result object.
+
+        Returns:
+            An "interpreted" eigenstate result.
         """
         raise NotImplementedError
