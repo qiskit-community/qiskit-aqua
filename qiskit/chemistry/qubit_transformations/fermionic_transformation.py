@@ -470,17 +470,17 @@ class FermionicTransformation(QubitOperatorTransformation):
                                                          self._y_dipole_shift,
                                                          self._z_dipole_shift)
 
-            if 'Number of Particles' in result.aux_values:
+            if 'Number of Particles' in result.aux_values.keys():
                 result.num_particles = result.aux_values['Number of Particles'][0].real
             else:
                 result.num_particles = None
 
-            if 'S^2' in result.aux_values:
+            if 'S^2' in result.aux_values.keys():
                 result.total_angular_momentum = result.aux_values['S^2'][0].real
             else:
                 result.total_angular_momentum = None
 
-            if 'Magnetization' in result.aux_values:
+            if 'Magnetization' in result.aux_values.keys():
                 result.magnetization = result.aux_values['Magnetization'][0].real
             else:
                 result.magnetization = None
