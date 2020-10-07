@@ -109,7 +109,7 @@ class Molecule:
         new_coord1 = coord2 + new_distance_vector
 
         ending_geometry = copy.deepcopy(geometry)
-        ending_geometry[a_1][1] = new_coord1.tolist()  # type: ignore
+        ending_geometry[a_1] = ending_geometry[a_1][0], new_coord1.tolist()
         return ending_geometry
 
     @classmethod
@@ -239,7 +239,7 @@ class Molecule:
         new_coord1 = rot_matrix @ starting_coord1
 
         ending_geometry = copy.deepcopy(geometry)
-        ending_geometry[a_1][1] = new_coord1.tolist()  # type: ignore
+        ending_geometry[a_1] = ending_geometry[a_1][0], new_coord1.tolist()
         return ending_geometry
 
     @classmethod
