@@ -74,8 +74,8 @@ class TestPortfolio(QiskitFinanceTestCase):
         selection = sample_most_likely(result.eigenstate)
         value = portfolio.portfolio_value(
             selection, self.muu, self.sigma, self.risk, self.budget, self.penalty)
-        np.testing.assert_array_equal(selection, [0, 1, 1, 0])
-        self.assertAlmostEqual(value, -0.00679917)
+        np.testing.assert_array_equal(selection, [1, 0, 0, 1])
+        self.assertAlmostEqual(value, 0.00971685)
 
 
 if __name__ == '__main__':

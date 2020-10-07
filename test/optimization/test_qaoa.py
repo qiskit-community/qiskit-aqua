@@ -134,6 +134,7 @@ class TestQAOA(QiskitOptimizationTestCase):
     @unpack
     def test_qaoa_initial_point(self, w, solutions, init_pt):
         """ Check first parameter value used is initial point as expected """
+        aqua_globals.random_seed = 0
         optimizer = COBYLA()
         qubit_op, _ = max_cut.get_operator(w)
 
@@ -152,11 +153,11 @@ class TestQAOA(QiskitOptimizationTestCase):
         x = sample_most_likely(result.eigenstate)
         graph_solution = max_cut.get_graph_solution(x)
 
-        if init_pt is None:       # If None the preferred initial point of QAOA variational form
-            init_pt = [0.0, 0.0]  # i.e. 0,0 should come through as the first point
+        if init_pt is None:                     # If None, the initial point of QAOA variational
+            init_pt = [2.00107415, 1.69511991]  # form should be generated randomly
 
         with self.subTest('Initial Point'):
-            self.assertListEqual(init_pt, first_pt)
+            np.testing.assert_almost_equal(first_pt, init_pt)
 
         with self.subTest('Solution'):
             self.assertIn(''.join([str(int(i)) for i in graph_solution]), solutions)
