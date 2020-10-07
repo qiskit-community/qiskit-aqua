@@ -268,11 +268,3 @@ class AdaptVQEResult(ElectronicStructureResult):
     def finishing_criterion(self, value: str) -> None:
         """ Sets finishing criterion """
         self.data['finishing_criterion'] = value
-
-    def __getitem__(self, key: object) -> object:
-        if key == 'final_max_grad':
-            warnings.warn('final_max_grad deprecated, use final_max_gradient property.',
-                          DeprecationWarning)
-            return super().__getitem__('final_max_gradient')
-
-        return super().__getitem__(key)
