@@ -116,14 +116,14 @@ class FermionicTransformation(QubitOperatorTransformation):
     def transform(self, driver: BaseDriver,
                   additional_operators: Optional[Dict[str, FermionicOperator]] = None
                   ) -> Tuple[WeightedPauliOperator, Dict[str, WeightedPauliOperator]]:
-        """Transformation to qubit operator from the driver
+        """Transformation from the ``driver`` to a qubit operator.
 
         Args:
-            driver: Base Driver
-            additional_operators: Additional ``FermionicOperator``s to map to a qubit operator.
+            driver: A driver encoding the molecule information.
+            additional_operators: Additional auxiliary ``FermionicOperator``s to evaluate.
 
         Returns:
-            qubit operator, auxiliary operators
+            A qubit operator and a dictionary of auxiliary operators.
         """
         q_molecule = driver.run()
         ops, aux_ops = self._do_transform(q_molecule, additional_operators)
@@ -242,6 +242,7 @@ class FermionicTransformation(QubitOperatorTransformation):
             aux_qop = FermionicTransformation._map_fermionic_operator_to_qubit(
                 aux_op, self._qubit_mapping, new_nel, self._two_qubit_reduction
                 )
+            aux_qop.name = name
             aux_ops[name] = aux_qop
             logger.debug('  num paulis: %s', aux_qop.paulis)
 
@@ -451,7 +452,7 @@ class FermionicTransformation(QubitOperatorTransformation):
         if aux_ops_vals is not None:
             # Dipole results if dipole aux ops were present
             dipole_names = ['Dipole ' + axis for axis in ['x', 'y', 'z']]
-            if all(name in result.aux_values for name in dipole_names):
+            if all(name in result.aux_values.keys() for name in dipole_names):
                 # extract dipole moment in each axis
                 dipole_moment = []
                 for name in dipole_names:

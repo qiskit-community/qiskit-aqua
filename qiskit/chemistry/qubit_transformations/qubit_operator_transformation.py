@@ -27,7 +27,17 @@ class QubitOperatorTransformation(ABC):
     def transform(self, driver: BaseDriver,
                   additional_operators: Optional[Dict[str, Any]] = None
                   ) -> Tuple[WeightedPauliOperator, Dict[str, WeightedPauliOperator]]:
-        """transforms to qubit operators """
+        """Transformation from the ``driver`` to a qubit operator.
+
+        Args:
+            driver: A driver encoding the molecule information.
+            additional_operators: Additional auxiliary operators to evaluate. Must be of type
+                ``FermionicOperator`` if the qubit transformation is fermionic and of type
+                ``BosonicOperator`` it is bosonic.
+
+        Returns:
+            A qubit operator and a dictionary of auxiliary operators.
+        """
         raise NotImplementedError
 
     @abstractmethod
