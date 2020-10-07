@@ -17,7 +17,6 @@ A ground state calculation employing the AdaptVQE algorithm.
 from typing import Optional, List, Tuple
 import logging
 import re
-import warnings
 import numpy as np
 
 from qiskit.aqua import AquaError
