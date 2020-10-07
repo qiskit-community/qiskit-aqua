@@ -141,7 +141,9 @@ class AdaptVQE(GroundStateCalculation):
             AquaError: if a solver other than VQE or a variational form other than UCCSD is provided
                        or if the algorithm finishes due to an unforeseen reason.
         Returns:
-            A fermionic ground state result.
+            An AdaptVQEResult which is an ElectronicStructureResult but also includes runtime
+            information about the AdaptVQE algorithm like the number of iterations, finishing
+            criterion, and the final maximum gradient.
         """
         operator, aux_operators = self._transformation.transform(driver)
 

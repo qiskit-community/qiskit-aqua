@@ -43,13 +43,13 @@ class GroundStateCalculation(ABC):
     @abstractmethod
     def compute_groundstate(self, driver: BaseDriver) -> EigenstateResult:
         """Compute the ground state energy of the molecule that was supplied via the driver.
-        This will return the ground state calculation result.
 
         Args:
-            driver: BaseDriver
+            driver: a chemistry driver object which defines the chemical problem that is to be
+                    solved by this calculation.
 
         Returns:
-            A molecular ground state result
+            An eigenstate result.
         """
         raise NotImplementedError
 

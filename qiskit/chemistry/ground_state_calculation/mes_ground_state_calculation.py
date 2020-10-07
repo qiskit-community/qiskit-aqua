@@ -57,10 +57,12 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
         """Compute Ground State properties.
 
         Args:
-            driver: A chemistry driver.
+            driver: a chemistry driver object which defines the chemical problem that is to be
+                    solved by this calculation.
 
         Returns:
-            Ground state result TODO
+            An eigenstate result. Depending on the transformation this can be an electronic
+            structure or bosonic result.
         """
         operator, aux_operators = self.transformation.transform(driver)
 
