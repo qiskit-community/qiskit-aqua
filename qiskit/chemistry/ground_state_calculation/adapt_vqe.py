@@ -12,7 +12,7 @@
 
 """A ground state calculation employing the AdaptVQE algorithm."""
 
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict
 import logging
 import re
 import warnings
@@ -22,6 +22,7 @@ from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms import VQE
 from qiskit.aqua.operators import LegacyBaseOperator, WeightedPauliOperator
 from qiskit.aqua.utils.validation import validate_min
+from qiskit.chemistry import FermionicOperator
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.qubit_transformations import FermionicTransformation
