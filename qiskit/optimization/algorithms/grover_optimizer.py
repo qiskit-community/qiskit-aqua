@@ -23,6 +23,7 @@ from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms.amplitude_amplifiers.grover import Grover
 from qiskit.providers import BaseBackend
+from qiskit.providers import Backend
 from qiskit.circuit.library import QuadraticForm
 from .optimization_algorithm import (OptimizationResultStatus, OptimizationAlgorithm,
                                      OptimizationResult)
@@ -37,7 +38,7 @@ class GroverOptimizer(OptimizationAlgorithm):
     """Uses Grover Adaptive Search (GAS) to find the minimum of a QUBO function."""
 
     def __init__(self, num_value_qubits: int, num_iterations: int = 3,
-                 quantum_instance: Optional[Union[BaseBackend, QuantumInstance]] = None,
+                 quantum_instance: Optional[Union[BaseBackend, Backend, QuantumInstance]] = None,
                  converters: Optional[Union[QuadraticProgramConverter,
                                             List[QuadraticProgramConverter]]] = None,
                  penalty: Optional[float] = None) -> None:
@@ -76,13 +77,14 @@ class GroverOptimizer(OptimizationAlgorithm):
         return self._quantum_instance
 
     @quantum_instance.setter
-    def quantum_instance(self, quantum_instance: Union[BaseBackend, QuantumInstance]) -> None:
+    def quantum_instance(self, quantum_instance: Union[Backend,
+                                                       BaseBackend, QuantumInstance]) -> None:
         """Set the quantum instance used to run the circuits.
 
         Args:
             quantum_instance: The quantum instance to be used in the algorithm.
         """
-        if isinstance(quantum_instance, BaseBackend):
+        if isinstance(quantum_instance, (BaseBackend, Backend)):
             self._quantum_instance = QuantumInstance(quantum_instance)
         else:
             self._quantum_instance = quantum_instance
