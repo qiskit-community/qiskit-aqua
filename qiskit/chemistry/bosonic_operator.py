@@ -14,7 +14,7 @@
 
 import copy
 import logging
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 import numpy as np
 
@@ -35,7 +35,7 @@ class BosonicOperator:
     - *Ollitrault Pauline J., Chemical science 11 (2020): 6842-6855.*
     """
 
-    def __init__(self, h: List[List[Tuple[List[List[int]], float]]], basis: List[int]) -> None:
+    def __init__(self, h: List[List[Tuple[List[List[int]], float]]], basis: Union[int,List[int]]) -> None:
         """
         The Bosonic operator in this class is written in the n-mode second quantization format
         (Eq. 10 in Ref. Ollitrault Pauline J., Chemical science 11 (2020): 6842-6855.)
@@ -53,10 +53,14 @@ class BosonicOperator:
             basis: Is a list defining the number of modals per mode. E.g. for a 3 modes system
                 with 4 modals per mode basis = [4,4,4].
         """
+
         self._basis = basis
         self._degree = len(h)
         self._num_modes = len(basis)
         self._h_mat = h
+
+        if isinstance(self._basis, int):
+            self._basis = [self._basis] * self._num_modes
 
     def _direct_mapping(self, n: int) -> List[Tuple[Pauli, Pauli]]:
         """ Performs the transformation: a[i] = IIXIII +- iIIYIII.
@@ -204,78 +208,38 @@ class BosonicOperator:
 
         return qubit_op
 
-    def ground_state_energy(self, vecs: np.ndarray, energies: np.ndarray) -> float:
-        """ Gets the relevant ground state energy
+    def direct_mapping_filtering_criterion(self, state) -> bool:
 
-        Returns the relevant ground state energy given the provided list of eigenvectors
-        and eigenenergies.
+        """ Filters out the states of irrelevant symmetries
 
-        Args:
-            vecs: contains all the eigenvectors
-            energies: contains all the corresponding eigenenergies
+                Args:
+                    vecs: state to evaluate
 
-        Returns:
-            The relevant ground state energy
+                Returns:
+                    True if the state is has one and only one modal occupied per mode meaning
+                    that the direct mapping symmetries are respected and False otherwise
 
-        """
-        gs_energy = 0
-        found_gs_energy = False
-        for v, vec in enumerate(vecs):
-            indices = np.nonzero(np.conj(vec.primitive.data)*vec.primitive.data > 1e-5)[0]
-            for i in indices:
-                bin_i = np.frombuffer(np.binary_repr(i, width=sum(self._basis)).encode('utf-8'),
-                                      dtype='S1').astype(int)
-                count = 0
-                nqi = 0
-                for m in range(self._num_modes):
-                    sub_bin = bin_i[nqi:nqi + self._basis[m]]
-                    occ_i = 0
-                    for idx_i in sub_bin:
-                        occ_i += idx_i
-                    if occ_i != 1:
-                        break
-                    count += 1
-                    nqi += self._basis[m]
-                if count == self._num_modes:
-                    gs_energy = energies[v]
-                    found_gs_energy = True
+                """
+
+        if isinstance(self._basis_size, int):
+            self._basis_size = [self._basis_size] * self._num_modes
+
+        indices = np.nonzero(np.conj(state) * state > 1e-5)[0]
+        for i in indices:
+            bin_i = np.frombuffer(np.binary_repr(i, width=sum(self._basis_size)).encode('utf-8'),
+                                  dtype='S1').astype(int)
+            count = 0
+            nqi = 0
+            for m in range(len(self._basis_size)):
+                sub_bin = bin_i[nqi:nqi + self._basis_size[m]]
+                occ_i = 0
+                for idx_i in sub_bin:
+                    occ_i += idx_i
+                if occ_i != 1:
                     break
-            if found_gs_energy:
-                break
-        return np.real(gs_energy)
-
-    def print_exact_states(self, vecs: np.ndarray, energies: np.ndarray, threshold: float = 1e-3)\
-            -> None:
-        """  Prints the exact states.
-
-        Prints the relevant states (the ones with the correct symmetries) out of a list of states
-        that are usually obtained with an exact eigensolver.
-
-        Args:
-            vecs: contains all the states
-            energies: contains all the corresponding energies
-            threshold: threshold for showing the different configurations of a state
-        """
-
-        for v, vec in enumerate(vecs):
-            indices = np.nonzero(np.conj(vec.primitive.data) * vec.primitive.data > threshold)[0]
-            printmsg = True
-            for i in indices:
-                bin_i = np.frombuffer(np.binary_repr(i, width=sum(self._basis)).encode('utf-8'),
-                                      dtype='S1').astype(int)
-                count = 0
-                nqi = 0
-                for m in range(self._num_modes):
-                    sub_bin = bin_i[nqi:nqi + self._basis[m]]
-                    occ_i = 0
-                    for idx_i in sub_bin:
-                        occ_i += idx_i
-                    if occ_i != 1:
-                        break
-                    count += 1
-                    nqi += self._basis[m]
-                if count == self._num_modes:
-                    if printmsg:
-                        print('\n -', v, energies[v])
-                        printmsg = False
-                    print(vec.primitive.data[i], np.binary_repr(i, width=sum(self._basis)))
+                count += 1
+                nqi += self._basis_size[m]
+        if count == len(self._basis_size):
+            return True
+        else:
+            return False
