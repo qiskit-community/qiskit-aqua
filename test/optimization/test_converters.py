@@ -292,6 +292,23 @@ class TestConverters(QiskitOptimizationTestCase):
         with self.assertRaises(QiskitOptimizationError):
             conv.convert(op)
 
+    def test_penalize_list_sense(self):
+        """ Test PenalizeLinearEqualityConstraints with penalty list and senses """
+        op = QuadraticProgram()
+        for i in range(3):
+            op.binary_var(name='x{}'.format(i))
+        # Linear constraints
+        linear_constraint = {'x0': 1, 'x1': 1}
+        op.linear_constraint(linear_constraint, Constraint.Sense.EQ, 1, 'x0x1')
+        linear_constraint = {'x1': 1, 'x2': -1}
+        op.linear_constraint(linear_constraint, Constraint.Sense.LE, 2, 'x1x2')
+        linear_constraint = {'x0': 1, 'x2': 3}
+        op.linear_constraint(linear_constraint, Constraint.Sense.GE, 2, 'x0x2')
+        self.assertEqual(op.get_num_linear_constraints(), 3)
+        conv = LinearEqualityToPenalty([1e5, 2e5, 3e5])
+        with self.assertRaises(QiskitOptimizationError):
+            conv.convert(op)
+
     def test_penalize_binary(self):
         """ Test PenalizeLinearEqualityConstraints with binary variables """
         op = QuadraticProgram()
@@ -306,6 +323,32 @@ class TestConverters(QiskitOptimizationTestCase):
         op.linear_constraint(linear_constraint, Constraint.Sense.EQ, 2, 'x0x2')
         self.assertEqual(op.get_num_linear_constraints(), 3)
         conv = LinearEqualityToPenalty()
+        op2 = conv.convert(op)
+        self.assertEqual(op2.get_num_linear_constraints(), 0)
+
+        result = OptimizationResult(x=np.arange(3), fval=0, variables=op2.variables,
+                                    status=OptimizationResultStatus.SUCCESS)
+        new_result = conv.interpret(result)
+        self.assertEqual(new_result.status, OptimizationResultStatus.INFEASIBLE)
+        np.testing.assert_array_almost_equal(new_result.x, np.arange(3))
+        self.assertListEqual(result.variable_names, ['x0', 'x1', 'x2'])
+        self.assertDictEqual(result.variables_dict, {'x0': 0, 'x1': 1, 'x2': 2})
+
+    def test_penalize_list_binary(self):
+        """ Test PenalizeLinearEqualityConstraints with penalty list and
+        binary variables """
+        op = QuadraticProgram()
+        for i in range(3):
+            op.binary_var(name='x{}'.format(i))
+        # Linear constraints
+        linear_constraint = {'x0': 1, 'x1': 1}
+        op.linear_constraint(linear_constraint, Constraint.Sense.EQ, 1, 'x0x1')
+        linear_constraint = {'x1': 1, 'x2': -1}
+        op.linear_constraint(linear_constraint, Constraint.Sense.EQ, 2, 'x1x2')
+        linear_constraint = {'x0': 1, 'x2': 3}
+        op.linear_constraint(linear_constraint, Constraint.Sense.EQ, 2, 'x0x2')
+        self.assertEqual(op.get_num_linear_constraints(), 3)
+        conv = LinearEqualityToPenalty([1e5, 2e5, 3e5])
         op2 = conv.convert(op)
         self.assertEqual(op2.get_num_linear_constraints(), 0)
 
@@ -332,6 +375,34 @@ class TestConverters(QiskitOptimizationTestCase):
         op.minimize(constant=3, linear={'x0': 1}, quadratic={('x1', 'x2'): 2})
         self.assertEqual(op.get_num_linear_constraints(), 3)
         conv = LinearEqualityToPenalty()
+        op2 = conv.convert(op)
+        self.assertEqual(op2.get_num_linear_constraints(), 0)
+
+        result = OptimizationResult(x=[0, 1, -1], fval=1, variables=op2.variables,
+                                    status=OptimizationResultStatus.SUCCESS)
+        new_result = conv.interpret(result)
+        self.assertAlmostEqual(new_result.fval, 1)
+        self.assertEqual(new_result.status, OptimizationResultStatus.SUCCESS)
+        np.testing.assert_array_almost_equal(new_result.x, [0, 1, -1])
+        self.assertListEqual(result.variable_names, ['x0', 'x1', 'x2'])
+        self.assertDictEqual(result.variables_dict, {'x0': 0, 'x1': 1, 'x2': -1})
+
+    def test_penalize_list_integer(self):
+        """ Test PenalizeLinearEqualityConstraints with penalty list and
+        integer variables """
+        op = QuadraticProgram()
+        for i in range(3):
+            op.integer_var(name='x{}'.format(i), lowerbound=-3, upperbound=3)
+        # Linear constraints
+        linear_constraint = {'x0': 1, 'x1': 1}
+        op.linear_constraint(linear_constraint, Constraint.Sense.EQ, 1, 'x0x1')
+        linear_constraint = {'x1': 1, 'x2': -1}
+        op.linear_constraint(linear_constraint, Constraint.Sense.EQ, 2, 'x1x2')
+        linear_constraint = {'x0': 1, 'x2': -1}
+        op.linear_constraint(linear_constraint, Constraint.Sense.EQ, 1, 'x0x2')
+        op.minimize(constant=3, linear={'x0': 1}, quadratic={('x1', 'x2'): 2})
+        self.assertEqual(op.get_num_linear_constraints(), 3)
+        conv = LinearEqualityToPenalty([1e5, 2e5, 3e5])
         op2 = conv.convert(op)
         self.assertEqual(op2.get_num_linear_constraints(), 0)
 
@@ -534,6 +605,18 @@ class TestConverters(QiskitOptimizationTestCase):
             'set the penalty coefficient manually.'
         )
         self.assertIn(warning, log.output)
+
+    def test_penalty_length(self):
+        """Test exception when penalty length does not match constraint."""
+        op = QuadraticProgram()
+        op.binary_var('x')
+        op.binary_var('y')
+        op.binary_var('z')
+        op.minimize(constant=3, linear={'x': 1}, quadratic={('x', 'y'): 2})
+        op.linear_constraint(linear={'x': 1, 'y': 1, 'z': 1}, sense='EQ', rhs=2, name='xyz_eq')
+        with self.assertRaises(QiskitOptimizationError):
+            lineq2penalty = LinearEqualityToPenalty([1e5, 2e5])
+            lineq2penalty.convert(op)
 
     def test_linear_equality_to_penalty_decode(self):
         """ Test decode func of LinearEqualityToPenalty"""
