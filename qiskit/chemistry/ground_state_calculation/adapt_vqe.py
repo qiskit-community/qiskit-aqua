@@ -28,12 +28,12 @@ from qiskit.aqua.algorithms import VQE
 from qiskit.aqua import AquaError
 
 from .mes_factories import VQEUCCSDFactory
-from .ground_state_calculation import GroundStateCalculation
+from .mes_ground_state_calculation import MinimumEigensolverGroundStateCalculation
 
 logger = logging.getLogger(__name__)
 
 
-class AdaptVQE(GroundStateCalculation):
+class AdaptVQE(MinimumEigensolverGroundStateCalculation):
     """A ground state calculation employing the AdaptVQE algorithm."""
 
     def __init__(self,
@@ -55,9 +55,8 @@ class AdaptVQE(GroundStateCalculation):
         validate_min('threshold', threshold, 1e-15)
         validate_min('delta', delta, 1e-5)
 
-        super().__init__(transformation)
+        super().__init__(transformation, solver)
 
-        self._solver = solver
         self._threshold = threshold
         self._delta = delta
         self._max_iterations = max_iterations
@@ -216,8 +215,7 @@ class AdaptVQE(GroundStateCalculation):
 
         # once finished evaluate auxiliary operators if any
         if aux_operators is not None:
-            aux_result = vqe.compute_minimum_eigenvalue(operator, aux_operators)
-            aux_values = aux_result.aux_operator_eigenvalues
+            aux_values = self.evaluate_operators(raw_vqe_result.eigenstate, aux_operators)
         else:
             aux_values = None
 

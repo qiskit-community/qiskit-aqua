@@ -12,10 +12,16 @@
 
 """Ground state computation using a minimum eigensolver."""
 
-from typing import Union, List, Any, Optional
+from typing import Union, List, Any, Optional, Dict
 
+import numpy as np
+
+from qiskit import QuantumCircuit
+from qiskit.circuit import Instruction
+from qiskit.quantum_info import Statevector
+from qiskit.result import Result
 from qiskit.aqua.algorithms import MinimumEigensolver
-from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.aqua.operators import OperatorBase, WeightedPauliOperator, StateFn, CircuitSampler
 from qiskit.chemistry import FermionicOperator
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.ground_state_calculation import GroundStateCalculation
@@ -103,3 +109,64 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
         eigenstate_result.aux_operator_eigenvalues = raw_mes_result.aux_operator_eigenvalues
         result = self.transformation.interpret(eigenstate_result)
         return result
+
+    def evaluate_operators(self,
+                           state: Union[str, dict, Result,
+                                        list, np.ndarray, Statevector,
+                                        QuantumCircuit, Instruction,
+                                        OperatorBase],
+                           operators: Union[WeightedPauliOperator, OperatorBase, list, dict]
+                           ) -> Union[float, List[float], Dict[str, float]]:
+        """Evaluates additional operators at the given state.
+
+        Args:
+            state: any kind of input that can be used to specify a state. See also ``StateFn`` for
+                   more details.
+            operators: either a single, list or dictionary of ``WeightedPauliOperator``s or any kind
+                       of operator implementing the ``OperatorBase``.
+
+        Returns:
+            The expectation value of the given operator(s). The return type will be identical to the
+            format of the provided operators.
+        """
+        # try to get a QuantumInstance from the solver
+        quantum_instance = getattr(self._solver, 'quantum_instance', None)
+
+        state = StateFn(state)
+
+        # handle all possible formats of operators
+        # i.e. if a user gives us a dict of operators, we return the results equivalently, etc.
+        if isinstance(operators, list):
+            results = []
+            for op in operators:
+                results.append(self._eval_op(state, op, quantum_instance))
+        elif isinstance(operators, dict):
+            results = {}  # type: ignore
+            for name, op in operators.items():
+                results[name] = self._eval_op(state, op, quantum_instance)
+        else:
+            results = self._eval_op(state, operators, quantum_instance)
+
+        return results
+
+    def _eval_op(self, state, op, quantum_instance):
+        if not isinstance(op, OperatorBase):
+            op = op.to_opflow()
+
+        # if the operator is empty we simply return 0
+        if op == 0:
+            # Note, that for some reason the individual results need to be wrapped in lists.
+            # See also: VQE._eval_aux_ops()
+            return [0.j]
+
+        exp = ~StateFn(op) @ state  # <state|op|state>
+
+        if quantum_instance is not None:
+            sampler = CircuitSampler(quantum_instance)
+            result = sampler.convert(exp).eval()
+        else:
+            result = exp.eval()
+
+        # Note, that for some reason the individual results need to be wrapped in lists.
+        # See also: VQE._eval_aux_ops()
+        return [result]
