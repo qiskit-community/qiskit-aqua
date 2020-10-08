@@ -20,6 +20,7 @@ from sympy import Matrix, mod_inverse
 
 from qiskit import ClassicalRegister, QuantumCircuit
 from qiskit.providers import BaseBackend
+from qiskit.providers import Backend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.utils import get_subsystem_density_matrix
@@ -44,7 +45,8 @@ class Simon(QuantumAlgorithm):
 
     def __init__(self,
                  oracle: Oracle,
-                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
+                 quantum_instance: Optional[
+                     Union[QuantumInstance, BaseBackend, Backend]] = None) -> None:
         """
         Args:
             oracle: The oracle component

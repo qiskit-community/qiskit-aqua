@@ -20,6 +20,7 @@ import numpy as np
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.dagcircuit import DAGCircuit
 from qiskit.providers import BaseBackend
+from qiskit.providers import Backend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.ignis.verification.tomography import state_tomography_circuits, \
@@ -95,7 +96,8 @@ class HHL(QuantumAlgorithm):
             num_q: int = 0,
             num_a: int = 0,
             orig_size: Optional[int] = None,
-            quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
+            quantum_instance: Optional[
+                Union[QuantumInstance, BaseBackend, Backend]] = None) -> None:
         """
         Args:
             matrix: The input matrix of linear system of equations

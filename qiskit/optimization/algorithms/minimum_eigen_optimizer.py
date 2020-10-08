@@ -19,7 +19,7 @@ from qiskit.aqua.operators import StateFn, DictStateFn
 
 from .optimization_algorithm import (OptimizationResultStatus, OptimizationAlgorithm,
                                      OptimizationResult)
-from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
+from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo, QuadraticProgramConverter
 from ..problems.quadratic_program import QuadraticProgram, Variable
 
 
@@ -101,8 +101,9 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         result = optimizer.solve(problem)
     """
 
-    def __init__(self, min_eigen_solver: MinimumEigensolver, penalty: Optional[float] = None
-                 ) -> None:
+    def __init__(self, min_eigen_solver: MinimumEigensolver, penalty: Optional[float] = None,
+                 converters: Optional[Union[QuadraticProgramConverter,
+                                            List[QuadraticProgramConverter]]] = None) -> None:
         """
         This initializer takes the minimum eigen solver to be used to approximate the ground state
         of the resulting Hamiltonian as well as a optional penalty factor to scale penalty terms
@@ -112,10 +113,17 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         Args:
             min_eigen_solver: The eigen solver to find the ground state of the Hamiltonian.
             penalty: The penalty factor to be used, or ``None`` for applying a default logic.
+            converters: The converters to use for converting a problem into a different form.
+                By default, when None is specified, an internally created instance of
+                :class:`~qiskit.optimization.converters.QuadraticProgramToQubo` will be used.
+
+        Raises:
+            TypeError: When there one of converters is an invalid type.
         """
         self._min_eigen_solver = min_eigen_solver
         self._penalty = penalty
-        self._qubo_converter = QuadraticProgramToQubo()
+
+        self._converters = self._prepare_converters(converters, penalty)
 
     def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
         """Checks whether a given problem can be solved with this optimizer.
@@ -158,7 +166,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         self._verify_compatibility(problem)
 
         # convert problem to QUBO
-        problem_ = self._qubo_converter.convert(problem)
+        problem_ = self._convert(problem, self._converters)
 
         # construct operator and offset
         operator, offset = problem_.to_ising()
@@ -191,7 +199,8 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         # translate result back to integers
         result = OptimizationResult(x=x, fval=fval, variables=problem_.variables,
                                     status=OptimizationResultStatus.SUCCESS)
-        result = self._qubo_converter.interpret(result)
+
+        result = self._interpret(result, self._converters)
 
         return MinimumEigenOptimizationResult(x=result.x, fval=result.fval,
                                               variables=result.variables,
