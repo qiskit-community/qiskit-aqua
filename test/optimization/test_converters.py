@@ -529,7 +529,7 @@ class TestConverters(QiskitOptimizationTestCase):
             _ = lineq2penalty.convert(op)
         warning = (
             'WARNING:qiskit.optimization.converters.linear_equality_to_penalty:'
-            'Warning: Using 100000.000000 for the penalty coefficient because a float '
+            'Warning: Using 100000.000000 for all the penalty coefficients because a float '
             'coefficient exists in constraints. \nThe value could be too small. If so, '
             'set the penalty coefficient manually.'
         )
