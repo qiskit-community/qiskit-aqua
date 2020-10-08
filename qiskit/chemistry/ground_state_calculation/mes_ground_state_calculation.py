@@ -100,6 +100,6 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
         eigenstate_result = EigenstateResult()
         eigenstate_result.raw_result = raw_mes_result
         eigenstate_result.eigenvalue = raw_mes_result.eigenvalue
-        eigenstate_result.aux_values = raw_mes_result.aux_operator_eigenvalues
+        eigenstate_result.aux_operator_eigenvalues = raw_mes_result.aux_operator_eigenvalues
         result = self.transformation.interpret(eigenstate_result)
         return result

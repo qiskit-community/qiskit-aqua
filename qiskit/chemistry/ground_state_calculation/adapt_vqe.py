@@ -234,7 +234,7 @@ class AdaptVQE(GroundStateCalculation):
         eigenstate_result = ElectronicStructureResult()
         eigenstate_result.raw_result = raw_vqe_result
         eigenstate_result.eigenvalue = raw_vqe_result.eigenvalue
-        eigenstate_result.aux_values = aux_values
+        eigenstate_result.aux_operator_eigenvalues = aux_values
         electronic_result = self.transformation.interpret(eigenstate_result)
 
         result = AdaptVQEResult(electronic_result.data)
