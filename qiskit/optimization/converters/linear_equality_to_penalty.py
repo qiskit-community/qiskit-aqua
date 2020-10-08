@@ -35,6 +35,9 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
         """
         Args:
             penalty: Penalty factor to scale equality constraints that are added to objective.
+                     The penalty factor can either be a single float that applies to all
+                     constraints or a list of float with the same length of the constraints
+                     that applies to all constraints correspondinly.
                      If None is passed, penalty factor will be automatically calculated.
         """
         self._src = None  # type: Optional[QuadraticProgram]
@@ -58,11 +61,23 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
         self._src = copy.deepcopy(problem)
         self._dst = QuadraticProgram(name=problem.name)
 
+        num_constraint = len(self._src.linear_constraints)
         # If penalty is None, set the penalty coefficient by _auto_define_penalty()
         if self._penalty is None:
             penalty = self._auto_define_penalty()
-        else:
+        elif isinstance(self._penalty, float):
+            penalty = [self._penalty] * num_constraint
+        elif isinstance(self._penalty, list):
             penalty = self._penalty
+        else:
+            raise QiskitOptimizationError('Unsupported penalty type: {}'.format(
+                type(self._penalty)))
+
+        if len(penalty) != num_constraint:
+            raise QiskitOptimizationError(
+                'Penlaty vector length ({}) does not match'
+                'the number ({}) of constraints.'.format(
+                    len(penalty), num_constraint))
 
         # Set variables
         for x in self._src.variables:
@@ -82,7 +97,7 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
         sense = self._src.objective.sense.value
 
         # convert linear constraints into penalty terms
-        for constraint in self._src.linear_constraints:
+        for i, constraint in enumerate(self._src.linear_constraints):
 
             if constraint.sense != Constraint.Sense.EQ:
                 raise QiskitOptimizationError(
@@ -94,13 +109,13 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
             row = constraint.linear.to_dict()
 
             # constant parts of penalty*(Constant-func)**2: penalty*(Constant**2)
-            offset += sense * penalty * constant ** 2
+            offset += sense * penalty[i] * constant ** 2
 
             # linear parts of penalty*(Constant-func)**2: penalty*(-2*Constant*func)
             for j, coef in row.items():
                 # if j already exists in the linear terms dic, add a penalty term
                 # into existing value else create new key and value in the linear_term dict
-                linear[j] = linear.get(j, 0.0) + sense * penalty * -2 * coef * constant
+                linear[j] = linear.get(j, 0.0) + sense * penalty[i] * -2 * coef * constant
 
             # quadratic parts of penalty*(Constant-func)**2: penalty*(func**2)
             for j, coef_1 in row.items():
@@ -112,7 +127,7 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
                     # according to implementation of quadratic terms in OptimizationModel,
                     # don't need to multiply by 2, since loops run over (x, y) and (y, x).
                     tup = cast(Union[Tuple[int, int], Tuple[str, str]], (j, k))
-                    quadratic[tup] = quadratic.get(tup, 0.0) + sense * penalty * coef_1 * coef_2
+                    quadratic[tup] = quadratic.get(tup, 0.0) + sense * penalty[i] * coef_1 * coef_2
 
         if self._src.objective.sense == QuadraticObjective.Sense.MINIMIZE:
             self._dst.minimize(offset, linear, quadratic)
@@ -130,7 +145,8 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
             If a constraint has a float coefficient,
             return the default value for the penalty factor.
         """
-        default_penalty = 1e5
+        num_constraint = len(self._src.linear_constraints)
+        default_penalty = [1e5] * num_constraint
 
         # Check coefficients of constraints.
         # If a constraint has a float coefficient, return the default value for the penalty factor.
@@ -140,11 +156,11 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
             terms.extend(coef for coef in constraint.linear.to_dict().values())
         if any(isinstance(term, float) and not term.is_integer() for term in terms):
             logger.warning(
-                'Warning: Using %f for the penalty coefficient because '
+                'Warning: Using %f for all the penalty coefficients because '
                 'a float coefficient exists in constraints. \n'
                 'The value could be too small. '
                 'If so, set the penalty coefficient manually.',
-                default_penalty,
+                default_penalty[0],
             )
             return default_penalty
 
@@ -156,7 +172,7 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
         # add quadratic terms of the object function.
         penalties.extend(abs(coef) for coef in self._src.objective.quadratic.to_dict().values())
 
-        return fsum(penalties)
+        return [fsum(penalties)] * num_constraint
 
     def interpret(self, result: 'qiskit.optimization.algorithms.OptimizationResult') \
             -> 'qiskit.optimization.algorithms.OptimizationResult':  # type: ignore
