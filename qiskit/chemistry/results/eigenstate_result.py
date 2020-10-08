@@ -10,24 +10,33 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""State results module."""
+"""Eigenstate results module."""
 
-from typing import Optional
-import numpy as np
+from typing import Optional, List
 
 from qiskit.aqua.algorithms import AlgorithmResult
 
 
-class StateResult(AlgorithmResult):
-    """The state result interface."""
+class EigenstateResult(AlgorithmResult):
+    """The eigenstate result interface."""
 
     @property
-    def aux_values(self) -> Optional[np.ndarray]:
+    def eigenvalue(self) -> Optional[complex]:
+        """ returns eigen value """
+        return self.get('eigenvalue')
+
+    @eigenvalue.setter
+    def eigenvalue(self, value: complex) -> None:
+        """ set eigen value """
+        self.data['eigenvalue'] = value
+
+    @property
+    def aux_values(self) -> Optional[List[float]]:
         """ return aux operator eigen values """
         return self.get('aux_values')
 
     @aux_values.setter
-    def aux_values(self, value: np.ndarray) -> None:
+    def aux_values(self, value: List[float]) -> None:
         """ set aux operator eigen values """
         self.data['aux_values'] = value
 
@@ -39,7 +48,3 @@ class StateResult(AlgorithmResult):
     @raw_result.setter
     def raw_result(self, result: AlgorithmResult) -> None:
         self.data['raw_result'] = result
-
-
-class GroundStateResult(StateResult):
-    """The ground state result interface."""

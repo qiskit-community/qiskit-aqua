@@ -13,9 +13,10 @@
 """The ground state calculation interface."""
 
 from abc import ABC, abstractmethod
+from typing import List, Any, Optional
 
 from qiskit.chemistry.drivers import BaseDriver
-from qiskit.chemistry.results import GroundStateResult
+from qiskit.chemistry.results import EigenstateResult
 
 from ..qubit_transformations.qubit_operator_transformation import QubitOperatorTransformation
 
@@ -41,15 +42,20 @@ class GroundStateCalculation(ABC):
         self._transformation = transformation
 
     @abstractmethod
-    def compute_groundstate(self, driver: BaseDriver) -> GroundStateResult:
+    def compute_groundstate(self, driver: BaseDriver,
+                            aux_operators: Optional[List[Any]] = None
+                            ) -> EigenstateResult:
         """Compute the ground state energy of the molecule that was supplied via the driver.
-        This will return the ground state calculation result.
 
         Args:
-            driver: BaseDriver
+            driver: a chemistry driver object which defines the chemical problem that is to be
+                    solved by this calculation.
+            aux_operators: Additional auxiliary operators to evaluate. Must be of type
+                ``FermionicOperator`` if the qubit transformation is fermionic and of type
+                ``BosonicOperator`` it is bosonic.
 
         Returns:
-            A molecular ground state result
+            An eigenstate result.
         """
         raise NotImplementedError
 

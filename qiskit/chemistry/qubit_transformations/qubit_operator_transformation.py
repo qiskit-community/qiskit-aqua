@@ -13,27 +13,41 @@
 """Base class for transformation to qubit operators for chemistry problems"""
 
 from abc import ABC, abstractmethod
-from typing import Tuple, List
+from typing import Tuple, List, Any, Optional
 
 from qiskit.aqua.operators.legacy import WeightedPauliOperator
 from qiskit.chemistry.drivers import BaseDriver
-from qiskit.chemistry.results import StateResult
+from qiskit.chemistry.results import EigenstateResult
 
 
 class QubitOperatorTransformation(ABC):
     """Base class for transformation to qubit operators for chemistry problems"""
 
     @abstractmethod
-    def transform(self, driver: BaseDriver
+    def transform(self, driver: BaseDriver,
+                  aux_operators: Optional[List[Any]] = None
                   ) -> Tuple[WeightedPauliOperator, List[WeightedPauliOperator]]:
-        """transforms to qubit operators """
+        """Transformation from the ``driver`` to a qubit operator.
+
+        Args:
+            driver: A driver encoding the molecule information.
+            aux_operators: Additional auxiliary operators to evaluate. Must be of type
+                ``FermionicOperator`` if the qubit transformation is fermionic and of type
+                ``BosonicOperator`` it is bosonic.
+
+        Returns:
+            A qubit operator and a dictionary of auxiliary operators.
+        """
         raise NotImplementedError
 
     @abstractmethod
-    def add_context(self, result: StateResult) -> None:
-        """Adds contextual information to the state result object.
+    def interpret(self, eigenstate_result: EigenstateResult) -> EigenstateResult:
+        """Interprets an EigenstateResult in the context of this transformation.
 
         Args:
-            result: a state result object.
+            eigenstate_result: an eigenstate result object.
+
+        Returns:
+            An "interpreted" eigenstate result.
         """
         raise NotImplementedError
