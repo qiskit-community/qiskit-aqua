@@ -19,7 +19,9 @@ from qiskit.aqua.operators.gradients import DerivativeBase, CircuitQFI
 
 class QFIBase(DerivativeBase):  # pylint: disable=abstract-method
 
-    r"""Compute the Quantum Fisher Information (QFI) given a pure, parametrized quantum state.
+    r"""Base class for Quantum Fisher Information (QFI).
+
+    Compute the Quantum Fisher Information (QFI) given a pure, parametrized quantum state.
 
     The QFI is:
 
@@ -31,9 +33,11 @@ class QFIBase(DerivativeBase):  # pylint: disable=abstract-method
         r"""
         Args:
             qfi_method: The method used to compute the state/probability gradient. Can be either
-                ``'lin_comb_full'`` or ``'overlap_diag'``` or ``'overlap_block_diag'```.
+                a :class:`CircuitQFI` instance or one of the following pre-defined strings
+                ``'lin_comb_full'``, ``'overlap_diag'``` or ``'overlap_block_diag'```.
         Raises:
-            ValueError: if ``method`` is neither a ``CircuitQFI`` object nor a predefined string.
+            ValueError: if ``qfi_method`` is neither a ``CircuitQFI`` object nor one of the
+                predefined strings.
         """
 
         if isinstance(qfi_method, CircuitQFI):
@@ -49,7 +53,7 @@ class QFIBase(DerivativeBase):  # pylint: disable=abstract-method
             from .circuit_qfis import OverlapDiag
             self._qfi_method = OverlapDiag()
         else:
-            raise ValueError("Unrecognized input provided for `method`. Please provide"
+            raise ValueError("Unrecognized input provided for `qfi_method`. Please provide"
                              " a CircuitQFI object or one of the pre-defined string"
                              " arguments: {'lin_comb_full', 'overlap_diag', "
                              "'overlap_block_diag'}. ")

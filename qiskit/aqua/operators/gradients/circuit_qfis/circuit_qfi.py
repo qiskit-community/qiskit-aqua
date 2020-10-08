@@ -21,7 +21,8 @@ from qiskit.circuit import ParameterExpression, ParameterVector
 
 
 class CircuitQFI(ConverterBase):
-    r"""
+    r"""Circuit to Quantum Fisher Information operator converter.
+
     Converter for changing parameterized circuits into operators
     whose evaluation yields Quantum Fisher Information metric tensor
     with respect to the given circuit parameters

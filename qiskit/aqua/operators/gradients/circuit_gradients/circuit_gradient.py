@@ -24,7 +24,8 @@ logger = logging.getLogger(__name__)
 
 
 class CircuitGradient(ConverterBase):
-    r"""
+    r"""Circuit to gradient operator converter.
+
     Converter for changing parameterized circuits into operators
     whose evaluation yields the gradient with respect to the circuit parameters.
 

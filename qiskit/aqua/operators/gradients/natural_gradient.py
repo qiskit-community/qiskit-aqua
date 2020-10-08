@@ -10,14 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""
-Given an ill-posed inverse problem
-    x = arg min{||Ax-C||^2} (1)
-one can use regularization schemes can be used to stabilize the system and find a numerical
-solution.
-    x_lambda = arg min{||Ax-C||^2 + lambda*R(x)} (2)
-where R(x) represents the penalization term.
-"""
+""" Natural Gradient. """
 
 import logging
 import os
@@ -39,7 +32,15 @@ logger = logging.getLogger(__name__)
 
 
 class NaturalGradient(GradientBase):
-    """Convert an operator expression to the first-order gradient."""
+    r"""Convert an operator expression to the first-order gradient.
+
+    Given an ill-posed inverse problem
+        x = arg min{||Ax-C||^2} (1)
+    one can use regularization schemes can be used to stabilize the system and find a numerical
+    solution.
+        x_lambda = arg min{||Ax-C||^2 + lambda*R(x)} (2)
+    where R(x) represents the penalization term.
+    """
 
     def __init__(self,
                  grad_method: Union[str, CircuitGradient] = 'lin_comb',

@@ -11,6 +11,7 @@
 # that they have been altered from the originals.
 
 """The base interface for Aqua's gradient."""
+
 from typing import Union
 
 from qiskit.aqua.operators.gradients.circuit_gradients import CircuitGradient
@@ -18,7 +19,10 @@ from qiskit.aqua.operators.gradients.derivative_base import DerivativeBase
 
 
 class GradientBase(DerivativeBase):  # pylint: disable=abstract-method
-    """Convert an operator expression to the first-order gradient."""
+    """Base class for first-order operator gradient.
+
+    Convert an operator expression to the first-order gradient.
+    """
 
     def __init__(self,
                  grad_method: Union[str, CircuitGradient] = 'param_shift',
@@ -49,8 +53,8 @@ class GradientBase(DerivativeBase):  # pylint: disable=abstract-method
             from .circuit_gradients.lin_comb import LinComb
             self._grad_method = LinComb()
         else:
-            raise ValueError("Unrecognized input provided for `method`. Please provide"
-                             " a CircuitGradientMethod object or one of the pre-defined string"
+            raise ValueError("Unrecognized input provided for `grad_method`. Please provide"
+                             " a CircuitGradient object or one of the pre-defined string"
                              " arguments: {'param_shift', 'fin_diff', 'lin_comb'}. ")
 
     @property

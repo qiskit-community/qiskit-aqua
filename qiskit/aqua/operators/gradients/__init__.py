@@ -10,7 +10,50 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""The module for Aqua's gradient."""
+"""
+Gradients (:mod:`qiskit.aqua.operators.gradients`)
+==================================================
+
+.. currentmodule:: qiskit.aqua.operators.gradients
+
+This function allows gradients of operators to be computed. Gradients are often used with
+optimizers, when finding a minimum, such as with :class:`~qiskit.aqua.algorithms.VQE`.
+
+Base Classes
+============
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   DerivativeBase
+   GradientBase
+   HessianBase
+   QFIBase
+
+Converters
+==========
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   CircuitGradient
+   CircuitQFI
+
+Gradients
+=========
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   Gradient
+   Hessian
+   NaturalGradient
+   QFI
+
+"""
 
 from .circuit_gradients.circuit_gradient import CircuitGradient
 from .circuit_qfis.circuit_qfi import CircuitQFI

@@ -36,7 +36,8 @@ logger = logging.getLogger(__name__)
 
 
 class DerivativeBase(ConverterBase):
-    r"""
+    r"""Base class for differentiating opflow objects.
+
     Converter for differentiating opflow objects and handling
     things like properly differentiating combo_fn's and enforcing product rules
     when operator coefficients are parameterized.

@@ -20,7 +20,7 @@ from qiskit.aqua.operators.gradients.derivative_base import DerivativeBase
 
 
 class HessianBase(DerivativeBase):  # pylint: disable=abstract-method
-    """Compute the Hessian of an expected value."""
+    """Base class for the Hessian of an expected value."""
 
     def __init__(self,
                  hess_method: Union[str, CircuitGradient] = 'param_shift',
@@ -52,8 +52,8 @@ class HessianBase(DerivativeBase):  # pylint: disable=abstract-method
             self._hess_method = LinComb()
 
         else:
-            raise ValueError("Unrecognized input provided for `method`. Please provide"
-                             " a CircuitGradientMethod object or one of the pre-defined string"
+            raise ValueError("Unrecognized input provided for `hess_method`. Please provide"
+                             " a CircuitGradient object or one of the pre-defined string"
                              " arguments: {'param_shift', 'fin_diff', 'lin_comb'}. ")
 
     @property
