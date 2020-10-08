@@ -18,7 +18,7 @@ import numpy as np
 from scipy.sparse import spmatrix
 
 from qiskit import QuantumCircuit
-from qiskit.circuit import ParameterExpression, Instruction
+from qiskit.circuit import ParameterExpression, Instruction, Gate
 from qiskit.quantum_info import Pauli
 from qiskit.circuit.library import RZGate, RYGate, RXGate, XGate, YGate, ZGate, IGate
 

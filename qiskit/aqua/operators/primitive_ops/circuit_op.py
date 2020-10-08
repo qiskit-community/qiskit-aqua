@@ -214,7 +214,7 @@ class CircuitOp(PrimitiveOp):
 
     def to_gate(self, label=None) -> Gate:
         """ Returns a ``Gate`` equivalent to this Operator. """
-        return self.primitive.to_gate(label=label)
+        return self.primitive.to_gate(label=label)  # type: ignore
 
     # Warning - modifying immutable object!!
     def reduce(self) -> OperatorBase:
