@@ -91,9 +91,10 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
         else:
             solver = self._solver
 
-        # convert aux_operators to a list for the minimum eigensolver
+        # if the eigensolver does not support auxiliary operators, reset them
         if not solver.supports_aux_operators():
             aux_operators = None
+
         raw_mes_result = solver.compute_minimum_eigenvalue(operator, aux_operators)
 
         eigenstate_result = EigenstateResult()
