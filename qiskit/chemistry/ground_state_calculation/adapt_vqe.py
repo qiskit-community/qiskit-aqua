@@ -10,26 +10,25 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""
-A ground state calculation employing the AdaptVQE algorithm.
-"""
+"""A ground state calculation employing the AdaptVQE algorithm."""
 
-from typing import Optional, List, Tuple
-import logging
 import re
+import logging
+from typing import Optional, List, Tuple, Union
 import numpy as np
 
-from qiskit.aqua import AquaError
-from qiskit.aqua.algorithms import VQE
-from qiskit.aqua.operators import LegacyBaseOperator, WeightedPauliOperator
-from qiskit.aqua.utils.validation import validate_min
-from qiskit.chemistry.components.variational_forms import UCCSD
-from qiskit.chemistry.drivers import BaseDriver
-from qiskit.chemistry.qubit_transformations import FermionicTransformation
 from qiskit.chemistry.results import ElectronicStructureResult
+from qiskit.chemistry.qubit_transformations import FermionicTransformation
+from qiskit.chemistry.drivers import BaseDriver
+from qiskit.chemistry.components.variational_forms import UCCSD
+from qiskit.chemistry import FermionicOperator
+from qiskit.aqua.utils.validation import validate_min
+from qiskit.aqua.operators import LegacyBaseOperator, WeightedPauliOperator
+from qiskit.aqua.algorithms import VQE
+from qiskit.aqua import AquaError
 
-from .ground_state_calculation import GroundStateCalculation
 from .mes_factories import VQEUCCSDFactory
+from .ground_state_calculation import GroundStateCalculation
 
 logger = logging.getLogger(__name__)
 
@@ -131,20 +130,27 @@ class AdaptVQE(GroundStateCalculation):
         # nature of the algorithm.
         return match is not None or (len(indices) > 1 and indices[-2] == indices[-1])
 
-    def compute_groundstate(self, driver: BaseDriver) -> 'AdaptVQEResult':
+    def compute_groundstate(self, driver: BaseDriver,
+                            aux_operators: Optional[List[Union[WeightedPauliOperator,
+                                                               FermionicOperator]]] = None
+                            ) -> 'AdaptVQEResult':
         """Computes the ground state.
 
         Args:
             driver: a chemistry driver.
+            aux_operators: Additional auxiliary ``FermionicOperator``s to evaluate at the
+                ground state.
+
         Raises:
             AquaError: if a solver other than VQE or a variational form other than UCCSD is provided
                        or if the algorithm finishes due to an unforeseen reason.
+
         Returns:
             An AdaptVQEResult which is an ElectronicStructureResult but also includes runtime
             information about the AdaptVQE algorithm like the number of iterations, finishing
             criterion, and the final maximum gradient.
         """
-        operator, aux_operators = self._transformation.transform(driver)
+        operator, aux_operators = self._transformation.transform(driver, aux_operators)
 
         vqe = self._solver.get_solver(self._transformation)
         if not isinstance(vqe, VQE):
@@ -209,8 +215,11 @@ class AdaptVQE(GroundStateCalculation):
             logger.info("Final maximum gradient: %s", str(np.abs(max_grad[0])))
 
         # once finished evaluate auxiliary operators if any
-        if aux_operators is not None and aux_operators:
-            vqe.compute_minimum_eigenvalue(operator, aux_operators)
+        if aux_operators is not None:
+            aux_result = vqe.compute_minimum_eigenvalue(operator, aux_operators)
+            aux_values = aux_result.aux_operator_eigenvalues
+        else:
+            aux_values = None
 
         if threshold_satisfied:
             finishing_criterion = 'Threshold converged'
@@ -225,7 +234,7 @@ class AdaptVQE(GroundStateCalculation):
         eigenstate_result = ElectronicStructureResult()
         eigenstate_result.raw_result = raw_vqe_result
         eigenstate_result.eigenvalue = raw_vqe_result.eigenvalue
-        eigenstate_result.aux_values = raw_vqe_result.aux_operator_eigenvalues
+        eigenstate_result.aux_values = aux_values
         electronic_result = self.transformation.interpret(eigenstate_result)
 
         result = AdaptVQEResult(electronic_result.data)
