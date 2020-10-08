@@ -130,7 +130,8 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
                     # according to implementation of quadratic terms in OptimizationModel,
                     # don't need to multiply by 2, since loops run over (x, y) and (y, x).
                     tup = cast(Union[Tuple[int, int], Tuple[str, str]], (j, k))
-                    quadratic[tup] = quadratic.get(tup, 0.0) + sense * penalties[i] * coef_1 * coef_2
+                    quadratic[tup] = quadratic.get(tup, 0.0) + \
+                        sense * penalties[i] * coef_1 * coef_2
 
         if self._src.objective.sense == QuadraticObjective.Sense.MINIMIZE:
             self._dst.minimize(offset, linear, quadratic)
