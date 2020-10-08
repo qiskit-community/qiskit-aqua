@@ -21,6 +21,7 @@ from qiskit import QuantumCircuit
 from qiskit.quantum_info import Operator
 from qiskit.circuit import ParameterExpression, Instruction, Gate
 from qiskit.extensions.hamiltonian_gate import HamiltonianGate
+from qiskit.extensions.unitary import UnitaryGate
 
 from ..operator_base import OperatorBase
 from ..primitive_ops.circuit_op import CircuitOp
@@ -218,15 +219,9 @@ class MatrixOp(PrimitiveOp):
     def to_instruction(self) -> Instruction:
         return (self.coeff * self.primitive).to_instruction()  # type: ignore
 
-    def to_gate(self, parameter_map=None, label=None) -> Gate:
+    def to_gate(self, label=None) -> Gate:
         """ Returns a ``Gate`` equivalent to this Operator. """
-        if isinstance(self.primitive, List):  # pylint: disable=typecheck
-            n = len(self.primitive)
-        else:
-            n = self.primitive.num_qubits
-        qc = QuantumCircuit(n)
-        qc.append(self.primitive, list(range(self.primitive.num_qubits)))
-        return qc.to_gate(parameter_map=parameter_map, label=label)
+        return UnitaryGate(self.primitive, label=label)
 
     def to_legacy_op(self, massive: bool = False) -> MatrixOperator:
         return MatrixOperator(self.to_matrix(massive=massive))
