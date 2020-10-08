@@ -28,7 +28,7 @@ from qiskit.chemistry.qubit_transformations import FermionicTransformation
 from qiskit.chemistry.ground_state_calculation import MinimumEigensolverGroundStateCalculation
 
 
-class TestCoreHamiltonianSymmetries(QiskitChemistryTestCase):
+class TestFermionicTransforationSymmetries(QiskitChemistryTestCase):
     """ Core hamiltonian Driver symmetry tests. """
 
     def setUp(self):

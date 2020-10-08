@@ -22,7 +22,7 @@ from qiskit.chemistry.core import TransformationType, QubitMappingType
 from qiskit.chemistry.qubit_transformations import FermionicTransformation
 
 
-class TestCoreHamiltonianOrbReduce(QiskitChemistryTestCase):
+class TestFermionicTransformationOrbReduce(QiskitChemistryTestCase):
     """core/hamiltonian Driver tests."""
 
     def setUp(self):
