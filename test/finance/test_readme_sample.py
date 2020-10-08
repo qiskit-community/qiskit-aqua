@@ -17,7 +17,6 @@ the issue then ensure changes are made to readme too.
 """
 
 import unittest
-import warnings
 
 from test.finance import QiskitFinanceTestCase
 
