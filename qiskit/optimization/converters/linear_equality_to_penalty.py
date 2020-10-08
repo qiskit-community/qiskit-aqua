@@ -37,7 +37,7 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
             penalty: Penalty factor to scale equality constraints that are added to objective.
                      The penalty factor can either be a single float that applies to all
                      constraints or a list of float with the same length of the constraints
-                     that applies to all constraints correspondinly.
+                     that applies to all constraints correspondingly.
                      If None is passed, penalty factor will be automatically calculated.
         """
         self._src = None  # type: Optional[QuadraticProgram]
@@ -64,20 +64,24 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
         num_constraint = len(self._src.linear_constraints)
         # If penalty is None, set the penalty coefficient by _auto_define_penalty()
         if self._penalty is None:
-            penalty = self._auto_define_penalty()
-        elif isinstance(self._penalty, float):
-            penalty = [self._penalty] * num_constraint
-        elif isinstance(self._penalty, list):
-            penalty = self._penalty
+            penaltys = self._auto_define_penalty()
+        elif isinstance(self._penalty, (float, int)):
+            penaltys = [self._penalty] * num_constraint
         else:
-            raise QiskitOptimizationError('Unsupported penalty type: {}'.format(
-                type(self._penalty)))
+            try:
+                penaltys = list(self._penalty)
+            except TypeError as e:
+                raise QiskitOptimizationError('Unsupported penalty type: {}'.format(
+                    type(self._penalty)))
+            if not all(isinstance(penalty, (float, int)) for penalty in penaltys):
+                raise QiskitOptimizationError('Unsupported penalty type')
 
-        if len(penalty) != num_constraint:
+
+        if len(penaltys) != num_constraint:
             raise QiskitOptimizationError(
                 'Penlaty vector length ({}) does not match'
                 'the number ({}) of constraints.'.format(
-                    len(penalty), num_constraint))
+                    len(penaltys), num_constraint))
 
         # Set variables
         for x in self._src.variables:
@@ -109,13 +113,13 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
             row = constraint.linear.to_dict()
 
             # constant parts of penalty*(Constant-func)**2: penalty*(Constant**2)
-            offset += sense * penalty[i] * constant ** 2
+            offset += sense * penaltys[i] * constant ** 2
 
             # linear parts of penalty*(Constant-func)**2: penalty*(-2*Constant*func)
             for j, coef in row.items():
                 # if j already exists in the linear terms dic, add a penalty term
                 # into existing value else create new key and value in the linear_term dict
-                linear[j] = linear.get(j, 0.0) + sense * penalty[i] * -2 * coef * constant
+                linear[j] = linear.get(j, 0.0) + sense * penaltys[i] * -2 * coef * constant
 
             # quadratic parts of penalty*(Constant-func)**2: penalty*(func**2)
             for j, coef_1 in row.items():
@@ -127,7 +131,7 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
                     # according to implementation of quadratic terms in OptimizationModel,
                     # don't need to multiply by 2, since loops run over (x, y) and (y, x).
                     tup = cast(Union[Tuple[int, int], Tuple[str, str]], (j, k))
-                    quadratic[tup] = quadratic.get(tup, 0.0) + sense * penalty[i] * coef_1 * coef_2
+                    quadratic[tup] = quadratic.get(tup, 0.0) + sense * penaltys[i] * coef_1 * coef_2
 
         if self._src.objective.sense == QuadraticObjective.Sense.MINIMIZE:
             self._dst.minimize(offset, linear, quadratic)
