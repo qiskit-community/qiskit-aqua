@@ -12,8 +12,7 @@
 
 """Eigenstate results module."""
 
-from typing import Optional
-import numpy as np
+from typing import Optional, List
 
 from qiskit.aqua.algorithms import AlgorithmResult
 
@@ -32,12 +31,12 @@ class EigenstateResult(AlgorithmResult):
         self.data['eigenvalue'] = value
 
     @property
-    def aux_values(self) -> Optional[np.ndarray]:
+    def aux_values(self) -> Optional[List[float]]:
         """ return aux operator eigen values """
         return self.get('aux_values')
 
     @aux_values.setter
-    def aux_values(self, value: np.ndarray) -> None:
+    def aux_values(self, value: List[float]) -> None:
         """ set aux operator eigen values """
         self.data['aux_values'] = value
 
