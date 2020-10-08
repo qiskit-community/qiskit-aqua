@@ -54,19 +54,14 @@ class TestConverters(QiskitOptimizationTestCase):
 
     def test_empty_problem(self):
         """ Test empty problem """
-        try:
-            warnings.filterwarnings(action="ignore", category=DeprecationWarning)
-            op = QuadraticProgram()
-            conv = InequalityToEquality()
-            op = conv.convert(op)
-            conv = IntegerToBinary()
-            op = conv.convert(op)
-            conv = LinearEqualityToPenalty()
-            op = conv.convert(op)
-            _, shift = op.to_ising()
-        finally:
-            warnings.filterwarnings(action="always", category=DeprecationWarning)
-
+        op = QuadraticProgram()
+        conv = InequalityToEquality()
+        op = conv.convert(op)
+        conv = IntegerToBinary()
+        op = conv.convert(op)
+        conv = LinearEqualityToPenalty()
+        op = conv.convert(op)
+        _, shift = op.to_ising()
         self.assertEqual(shift, 0.0)
 
     def test_valid_variable_type(self):

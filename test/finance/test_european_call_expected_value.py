@@ -13,7 +13,6 @@
 """ Test European Call Expected Value uncertainty problem """
 
 import unittest
-import warnings
 from test.finance import QiskitFinanceTestCase
 
 import numpy as np
@@ -35,11 +34,6 @@ class TestEuropeanCallExpectedValue(QiskitFinanceTestCase):
         super().setUp()
         self.seed = 457
         aqua_globals.random_seed = self.seed
-        warnings.filterwarnings(action="ignore", category=DeprecationWarning)
-
-    def tearDown(self):
-        super().tearDown()
-        warnings.filterwarnings(action="always", category=DeprecationWarning)
 
     def test_ecev(self):
         """ European Call Expected Value test """

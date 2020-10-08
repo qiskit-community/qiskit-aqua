@@ -25,14 +25,6 @@ from test.finance import QiskitFinanceTestCase
 class TestReadmeSample(QiskitFinanceTestCase):
     """Test sample code from readme"""
 
-    def setUp(self):
-        super().setUp()
-        warnings.filterwarnings(action="ignore", category=DeprecationWarning)
-
-    def tearDown(self):
-        super().tearDown()
-        warnings.filterwarnings(action="always", category=DeprecationWarning)
-
     def test_readme_sample(self):
         """ readme sample test """
         # pylint: disable=import-outside-toplevel,redefined-builtin
