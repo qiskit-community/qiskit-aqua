@@ -216,7 +216,7 @@ class AdaptVQE(GroundStateCalculation):
 
         # once finished evaluate auxiliary operators if any
         if aux_operators is not None:
-            aux_result = vqe.compute_minimum_eigenvalue(operator, list(aux_operators.values()))
+            aux_result = vqe.compute_minimum_eigenvalue(operator, aux_operators)
             aux_values = aux_result.aux_operator_eigenvalues
         else:
             aux_values = None
