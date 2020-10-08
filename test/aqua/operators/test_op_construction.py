@@ -213,6 +213,29 @@ class TestOpConstruction(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(
             qcop.to_matrix(), scipy.linalg.expm(-0.5j * Z.to_matrix()))
 
+    def test_circuit_op_to_gate(self):
+        """ test CircuitOp.to_gate """
+        qc = QuantumCircuit(1)
+        qc.rz(1.0, 0)
+        qcop = CircuitOp(qc)
+        with self.subTest('assert to_gate returns Gate'):
+            self.assertIsInstance(qcop.to_gate(), Gate)
+
+    def test_evolved_op_to_gate(self):
+        """ test EvolvedOp.to_gate """
+        from qiskit.extensions.hamiltonian_gate import HamiltonianGate
+
+        matop = (H ^ 3).to_matrix_op()
+        evolved_op = EvolvedOp(matop)
+        with self.subTest('assert to_gate returns Hamiltonian Gate'):
+            self.assertIsInstance(evolved_op.to_gate(time=1), HamiltonianGate)
+
+        matop = (X ^ Y ^ H ^ T).to_matrix_op()
+        evolved_op = EvolvedOp(matop)
+        with self.subTest("assert to_gate doesn't work for non Hermitian input"):
+            with self.assertRaises(ExtensionError):
+                evolved_op.to_gate(time=1)
+
     def test_matrix_to_instruction(self):
         """Test MatrixOp.to_instruction yields an Instruction object."""
         matop = (H ^ 3).to_matrix_op()
@@ -234,6 +257,12 @@ class TestOpConstruction(QiskitAquaTestCase):
         with self.subTest('non unitary matrix operator throws error'):
             with self.assertRaises(ExtensionError):
                 matop.to_gate()
+
+    def test_pauli_op_to_gate(self):
+        """Test PauliOp.to_gate yields a Gate object."""
+        pauli_op = (X ^ Y ^ Z)
+        with self.subTest('assert to_gate returns Gate'):
+            self.assertIsInstance(pauli_op.to_gate(), Gate)
 
     def test_adjoint(self):
         """ adjoint test """

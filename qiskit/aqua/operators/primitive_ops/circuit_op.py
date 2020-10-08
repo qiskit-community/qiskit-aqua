@@ -19,7 +19,7 @@ import numpy as np
 import qiskit
 from qiskit import QuantumCircuit
 from qiskit.circuit.library import IGate
-from qiskit.circuit import Instruction, ParameterExpression
+from qiskit.circuit import Instruction, ParameterExpression, Gate
 
 from ..operator_base import OperatorBase
 from ..list_ops.summed_op import SummedOp
@@ -212,9 +212,9 @@ class CircuitOp(PrimitiveOp):
     def to_instruction(self) -> Instruction:
         return self.primitive.to_instruction()  # type: ignore
 
-    # def to_gate(self) -> Gate:
-    #     """ Returns a ``Gate`` equivalent to this Operator. """
-    #     return self.primitive.to_gate()
+    def to_gate(self, label=None) -> Gate:
+        """ Returns a ``Gate`` equivalent to this Operator. """
+        return self.primitive.to_gate(label=label)
 
     # Warning - modifying immutable object!!
     def reduce(self) -> OperatorBase:

@@ -306,9 +306,9 @@ class PauliOp(PrimitiveOp):
 
         return self.to_circuit().to_instruction()
 
-    # def to_gate(self) -> Gate:
-    #     """ Returns a ``Gate`` equivalent to this Operator. """
-    #     return self.to_gate().to_instruction()
+    def to_gate(self, label=None) -> Gate:
+        """ Returns a ``Gate`` equivalent to this Operator. """
+        return self.to_circuit().to_gate(label=label)
 
     def to_pauli_op(self, massive: bool = False) -> OperatorBase:
         return self
