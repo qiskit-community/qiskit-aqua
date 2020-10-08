@@ -314,8 +314,8 @@ class FermionicTransformation(QubitOperatorTransformation):
 
         # add user specified auxiliary operators
         if aux_operators is not None:
-            for name, aux_op in aux_operators.items():
-                _add_aux_op(aux_op, name)
+            for aux_op in aux_operators:
+                _add_aux_op(aux_op, aux_op.name)
 
         logger.info('Molecule num electrons: %s, remaining for processing: %s',
                     [num_alpha, num_beta], new_nel)
