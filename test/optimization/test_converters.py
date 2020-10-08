@@ -14,6 +14,7 @@
 
 import logging
 import unittest
+import warnings
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 
 import numpy as np
@@ -567,30 +568,38 @@ class TestConverters(QiskitOptimizationTestCase):
 
     def test_empty_problem_deprecated(self):
         """ Test empty problem """
-        op = QuadraticProgram()
-        conv = InequalityToEquality()
-        op = conv.encode(op)
-        conv = IntegerToBinary()
-        op = conv.encode(op)
-        conv = LinearEqualityToPenalty()
-        op = conv.encode(op)
-        conv = QuadraticProgramToIsing()
-        _, shift = conv.encode(op)
+        try:
+            warnings.filterwarnings(action="ignore", category=DeprecationWarning)
+            op = QuadraticProgram()
+            conv = InequalityToEquality()
+            op = conv.encode(op)
+            conv = IntegerToBinary()
+            op = conv.encode(op)
+            conv = LinearEqualityToPenalty()
+            op = conv.encode(op)
+            conv = QuadraticProgramToIsing()
+            _, shift = conv.encode(op)
+        finally:
+            warnings.filterwarnings(action="always", category=DeprecationWarning)
+
         self.assertEqual(shift, 0.0)
 
     def test_valid_variable_type_deprecated(self):
         """Validate the types of the variables for QuadraticProgramToIsing."""
         # Integer variable
+        try:
+            warnings.filterwarnings(action="ignore", category=DeprecationWarning)
+            conv = QuadraticProgramToIsing()
+        finally:
+            warnings.filterwarnings(action="always", category=DeprecationWarning)
         with self.assertRaises(QiskitOptimizationError):
             op = QuadraticProgram()
             op.integer_var(0, 10, "int_var")
-            conv = QuadraticProgramToIsing()
             _ = conv.encode(op)
         # Continuous variable
         with self.assertRaises(QiskitOptimizationError):
             op = QuadraticProgram()
             op.continuous_var(0, 10, "continuous_var")
-            conv = QuadraticProgramToIsing()
             _ = conv.encode(op)
 
     def test_optimizationproblem_to_ising_deprecated(self):
@@ -607,9 +616,13 @@ class TestConverters(QiskitOptimizationTestCase):
             linear[x.name] = i + 1
         op.linear_constraint(linear, Constraint.Sense.EQ, 3, 'sum1')
         penalize = LinearEqualityToPenalty(penalty=1e5)
-        op2ope = QuadraticProgramToIsing()
-        op2 = penalize.encode(op)
-        qubitop, offset = op2ope.encode(op2)
+        try:
+            warnings.filterwarnings(action="ignore", category=DeprecationWarning)
+            op2 = penalize.encode(op)
+            conv = QuadraticProgramToIsing()
+            qubitop, offset = conv.encode(op2)
+        finally:
+            warnings.filterwarnings(action="always", category=DeprecationWarning)
 
         self.assertEqual(qubitop, QUBIT_OP_MAXIMIZE_SAMPLE)
         self.assertEqual(offset, OFFSET_MAXIMIZE_SAMPLE)
@@ -619,7 +632,12 @@ class TestConverters(QiskitOptimizationTestCase):
         op = QUBIT_OP_MAXIMIZE_SAMPLE
         offset = OFFSET_MAXIMIZE_SAMPLE
 
-        op2qp = IsingToQuadraticProgram(linear=True)
+        try:
+            warnings.filterwarnings(action="ignore", category=DeprecationWarning)
+            op2qp = IsingToQuadraticProgram(linear=True)
+        finally:
+            warnings.filterwarnings(action="always", category=DeprecationWarning)
+
         quadratic = op2qp.encode(op, offset)
 
         self.assertEqual(len(quadratic.variables), 4)
@@ -654,7 +672,12 @@ class TestConverters(QiskitOptimizationTestCase):
         op = QUBIT_OP_MAXIMIZE_SAMPLE
         offset = OFFSET_MAXIMIZE_SAMPLE
 
-        op2qp = IsingToQuadraticProgram(linear=False)
+        try:
+            warnings.filterwarnings(action="ignore", category=DeprecationWarning)
+            op2qp = IsingToQuadraticProgram(linear=False)
+        finally:
+            warnings.filterwarnings(action="always", category=DeprecationWarning)
+
         quadratic = op2qp.encode(op, offset)
 
         self.assertEqual(len(quadratic.variables), 4)
