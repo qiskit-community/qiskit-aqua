@@ -18,8 +18,7 @@ from qiskit.chemistry.qubit_transformations import QubitOperatorTransformation
 
 
 class MESFactory(ABC):
-    """A factory to construct a minimum eigensolver suitable for a qubit operator transformation.
-    """
+    """A factory to construct a minimum eigensolver based on a qubit operator transformation."""
 
     @abstractmethod
     def get_solver(self, transformation: QubitOperatorTransformation) -> MinimumEigensolver:

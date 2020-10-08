@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -22,7 +22,7 @@ from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.components.initial_states import HartreeFock
 from qiskit.aqua.components.optimizers import L_BFGS_B
-from qiskit.chemistry.ground_state_calculation import AdaptVQE, MESFactory
+from qiskit.chemistry.ground_state_calculation import AdaptVQE, VQEUCCSDFactory
 from qiskit.chemistry.qubit_transformations import FermionicTransformation
 
 
@@ -46,21 +46,21 @@ class TestAdaptVQE(QiskitChemistryTestCase):
 
     def test_default(self):
         """ Default execution """
-        solver = MESFactory(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
+        solver = VQEUCCSDFactory(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
         calc = AdaptVQE(self.transformation, solver)
-        res = calc.compute_ground_state(self.driver)
-        self.assertAlmostEqual(res.eigenvalue.real, self.expected, places=6)
+        res = calc.compute_groundstate(self.driver)
+        self.assertAlmostEqual(res.electronic_energy, self.expected, places=6)
 
     def test_custom_minimum_eigensolver(self):
         """ Test custom MES """
-        solver = MESFactory(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
+        solver = VQEUCCSDFactory(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
 
         def get_custom_solver(self, transformation):
             num_orbitals = transformation._molecule_info['num_orbitals']
             num_particles = transformation._molecule_info['num_particles']
             qubit_mapping = transformation._qubit_mapping
             two_qubit_reduction = transformation._molecule_info['two_qubit_reduction']
-            z2_symmetries = transformation._molecule_info['z2symmetries']
+            z2_symmetries = transformation._molecule_info['z2_symmetries']
             initial_state = HartreeFock(num_orbitals, num_particles, qubit_mapping,
                                         two_qubit_reduction, z2_symmetries.sq_list)
             var_form = UCCSD(num_orbitals=num_orbitals,
@@ -74,11 +74,32 @@ class TestAdaptVQE(QiskitChemistryTestCase):
             return vqe
 
         # pylint: disable=no-value-for-parameter
-        solver.get_solver = get_custom_solver.__get__(solver, MESFactory)
+        solver.get_solver = get_custom_solver.__get__(solver, VQEUCCSDFactory)
 
         calc = AdaptVQE(self.transformation, solver)
-        res = calc.compute_ground_state(self.driver)
-        self.assertAlmostEqual(res.eigenvalue.real, self.expected, places=6)
+        res = calc.compute_groundstate(self.driver)
+        self.assertAlmostEqual(res.electronic_energy, self.expected, places=6)
+
+    def test_custom_excitation_pool(self):
+        """ Test custom excitation pool """
+        # TODO rewrite this unittest once we have reworked how AdaptVQE will handle the solver
+        class CustomFactory(VQEUCCSDFactory):
+            """A custom MES factory."""
+
+            def get_solver(self, transformation):
+                solver = super().get_solver(transformation)
+                # Here, we can create essentially any custom excitation pool.
+                # For testing purposes only, we simply select some hopping operator already
+                # available in the variational form object.
+                # pylint: disable=no-member
+                custom_excitation_pool = [solver.var_form._hopping_ops[2]]
+                solver.var_form.excitation_pool = custom_excitation_pool
+                return solver
+
+        solver = CustomFactory(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
+        calc = AdaptVQE(self.transformation, solver)
+        res = calc.compute_groundstate(self.driver)
+        self.assertAlmostEqual(res.electronic_energy, self.expected, places=6)
 
     def test_vqe_adapt_check_cyclicity(self):
         """ VQEAdapt index cycle detection """

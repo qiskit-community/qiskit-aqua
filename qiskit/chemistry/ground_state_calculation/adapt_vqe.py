@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -10,26 +10,25 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""
-A ground state calculation employing the AdaptVQE algorithm.
-"""
+"""A ground state calculation employing the AdaptVQE algorithm."""
 
-from typing import Optional, List
-import logging
 import re
-import warnings
+import logging
+from typing import Optional, List, Tuple, Union
 import numpy as np
 
-from qiskit.aqua import AquaError
-from qiskit.aqua.algorithms import VQEResult
-from qiskit.aqua.operators import LegacyBaseOperator, WeightedPauliOperator
-from qiskit.aqua.utils.validation import validate_min
-from qiskit.chemistry.components.variational_forms import UCCSD
-from qiskit.chemistry.core import MolecularGroundStateResult
-from qiskit.chemistry.drivers import BaseDriver
+from qiskit.chemistry.results import ElectronicStructureResult
 from qiskit.chemistry.qubit_transformations import FermionicTransformation
+from qiskit.chemistry.drivers import BaseDriver
+from qiskit.chemistry.components.variational_forms import UCCSD
+from qiskit.chemistry import FermionicOperator
+from qiskit.aqua.utils.validation import validate_min
+from qiskit.aqua.operators import LegacyBaseOperator, WeightedPauliOperator
+from qiskit.aqua.algorithms import VQE
+from qiskit.aqua import AquaError
+
+from .mes_factories import VQEUCCSDFactory
 from .ground_state_calculation import GroundStateCalculation
-from .mes_factories import MESFactory
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +38,7 @@ class AdaptVQE(GroundStateCalculation):
 
     def __init__(self,
                  transformation: FermionicTransformation,
-                 solver: MESFactory,
+                 solver: VQEUCCSDFactory,
                  threshold: float = 1e-5,
                  delta: float = 1,
                  max_iterations: Optional[int] = None,
@@ -47,7 +46,7 @@ class AdaptVQE(GroundStateCalculation):
         """
         Args:
             transformation: a fermionic driver to operator transformation strategy.
-            solver: a minimum eigensolver factory which uses the UCCSD variational form.
+            solver: a factory for the VQE solver employing a UCCSD variational form.
             threshold: the energy convergence threshold. It has a minimum value of 1e-15.
             delta: the finite difference step size for the gradient computation. It has a minimum
                    value of 1e-5.
@@ -64,15 +63,14 @@ class AdaptVQE(GroundStateCalculation):
         self._max_iterations = max_iterations
 
     def returns_groundstate(self) -> bool:
-        """TODO"""
-        return False
+        return True
 
     def _compute_gradients(self,
                            excitation_pool: List[WeightedPauliOperator],
                            theta: List[float],
                            var_form: UCCSD,
                            operator: LegacyBaseOperator,
-                           ) -> List:
+                           ) -> List[Tuple[float, WeightedPauliOperator]]:
         """
         Computes the gradients for all available excitation operators.
 
@@ -132,38 +130,44 @@ class AdaptVQE(GroundStateCalculation):
         # nature of the algorithm.
         return match is not None or (len(indices) > 1 and indices[-2] == indices[-1])
 
-    # pylint: disable=arguments-differ
-    def compute_ground_state(self, driver: BaseDriver,
-                             custom_excitation_pool: List[WeightedPauliOperator] = None
-                             ) -> MolecularGroundStateResult:
+    def compute_groundstate(self, driver: BaseDriver,
+                            aux_operators: Optional[List[Union[WeightedPauliOperator,
+                                                               FermionicOperator]]] = None
+                            ) -> 'AdaptVQEResult':
         """Computes the ground state.
 
         Args:
             driver: a chemistry driver.
-            custom_excitation_pool: list of excitation operators to choose from.
+            aux_operators: Additional auxiliary ``FermionicOperator``s to evaluate at the
+                ground state.
+
         Raises:
-            AquaError: if a variational form other than UCCSD is provided or if the algorithm
-                       finishes due to an unforeseen reason.
+            AquaError: if a solver other than VQE or a variational form other than UCCSD is provided
+                       or if the algorithm finishes due to an unforeseen reason.
+
         Returns:
-            A ground state result.
-            TODO replace with FermionicGroundStateResult
+            An AdaptVQEResult which is an ElectronicStructureResult but also includes runtime
+            information about the AdaptVQE algorithm like the number of iterations, finishing
+            criterion, and the final maximum gradient.
         """
-        operator, aux_operators = self._transformation.transform(driver)
+        operator, aux_operators = self._transformation.transform(driver, aux_operators)
 
         vqe = self._solver.get_solver(self._transformation)
+        if not isinstance(vqe, VQE):
+            raise AquaError("The AdaptVQE algorithm requires the use of the VQE solver")
         var_form = vqe.var_form
         if not isinstance(var_form, UCCSD):
             raise AquaError("The AdaptVQE algorithm requires the use of the UCCSD variational form")
 
         var_form.manage_hopping_operators()
-        excitation_pool = custom_excitation_pool or var_form.excitation_pool
+        excitation_pool = var_form.excitation_pool
 
         threshold_satisfied = False
         alternating_sequence = False
         max_iterations_exceeded = False
-        prev_op_indices = []
-        theta = []  # type: List
-        max_grad = (0, 0)
+        prev_op_indices: List[int] = []
+        theta: List[float] = []
+        max_grad: Tuple[float, Optional[WeightedPauliOperator]] = (0., None)
         iteration = 0
         while self._max_iterations is None or iteration < self._max_iterations:
             iteration += 1
@@ -176,15 +180,17 @@ class AdaptVQE(GroundStateCalculation):
             # store maximum gradient's index for cycle detection
             prev_op_indices.append(max_grad_index)
             # log gradients
-            gradlog = "\nGradients in iteration #{}".format(str(iteration))
-            gradlog += "\nID: Excitation Operator: Gradient  <(*) maximum>"
-            for i, grad in enumerate(cur_grads):
-                gradlog += '\n{}: {}: {}'.format(str(i), str(grad[1]), str(grad[0]))
-                if grad[1] == max_grad[1]:
-                    gradlog += '\t(*)'
-            logger.info(gradlog)
+            if logger.isEnabledFor(logging.INFO):
+                gradlog = "\nGradients in iteration #{}".format(str(iteration))
+                gradlog += "\nID: Excitation Operator: Gradient  <(*) maximum>"
+                for i, grad in enumerate(cur_grads):
+                    gradlog += '\n{}: {}: {}'.format(str(i), str(grad[1]), str(grad[0]))
+                    if grad[1] == max_grad[1]:
+                        gradlog += '\t(*)'
+                logger.info(gradlog)
             if np.abs(max_grad[0]) < self._threshold:
-                logger.info("Adaptive VQE terminated succesfully with a final maximum gradient: %s",
+                logger.info("Adaptive VQE terminated successfully "
+                            "with a final maximum gradient: %s",
                             str(np.abs(max_grad[0])))
                 threshold_satisfied = True
                 break
@@ -209,8 +215,11 @@ class AdaptVQE(GroundStateCalculation):
             logger.info("Final maximum gradient: %s", str(np.abs(max_grad[0])))
 
         # once finished evaluate auxiliary operators if any
-        if aux_operators is not None and aux_operators:
-            vqe.compute_minimum_eigenvalue(operator, aux_operators)
+        if aux_operators is not None:
+            aux_result = vqe.compute_minimum_eigenvalue(operator, aux_operators)
+            aux_values = aux_result.aux_operator_eigenvalues
+        else:
+            aux_values = None
 
         if threshold_satisfied:
             finishing_criterion = 'Threshold converged'
@@ -222,18 +231,22 @@ class AdaptVQE(GroundStateCalculation):
             raise AquaError('The algorithm finished due to an unforeseen reason!')
 
         # extend VQE returned information with additional outputs
-        raw_result = AdaptVQEResult()
-        raw_result.combine(raw_vqe_result)
-        raw_result.num_iterations = iteration
-        raw_result.final_max_gradient = max_grad[0]
-        raw_result.finishing_criterion = finishing_criterion
+        eigenstate_result = ElectronicStructureResult()
+        eigenstate_result.raw_result = raw_vqe_result
+        eigenstate_result.eigenvalue = raw_vqe_result.eigenvalue
+        eigenstate_result.aux_values = aux_values
+        electronic_result = self.transformation.interpret(eigenstate_result)
 
-        logger.info('The final energy is: %s', str(raw_result.optimal_value.real))
-        return raw_result
-        # TODO: return self.transformation.interpret(raw_result)
+        result = AdaptVQEResult(electronic_result.data)
+        result.num_iterations = iteration
+        result.final_max_gradient = max_grad[0]
+        result.finishing_criterion = finishing_criterion
+
+        logger.info('The final energy is: %s', str(result.computed_electronic_energy))
+        return result
 
 
-class AdaptVQEResult(VQEResult):
+class AdaptVQEResult(ElectronicStructureResult):
     """ AdaptVQE Result."""
 
     @property
@@ -265,11 +278,3 @@ class AdaptVQEResult(VQEResult):
     def finishing_criterion(self, value: str) -> None:
         """ Sets finishing criterion """
         self.data['finishing_criterion'] = value
-
-    def __getitem__(self, key: object) -> object:
-        if key == 'final_max_grad':
-            warnings.warn('final_max_grad deprecated, use final_max_gradient property.',
-                          DeprecationWarning)
-            return super().__getitem__('final_max_gradient')
-
-        return super().__getitem__(key)

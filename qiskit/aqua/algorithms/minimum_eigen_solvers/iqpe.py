@@ -22,6 +22,7 @@ import numpy as np
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.quantum_info import Pauli
 from qiskit.providers import BaseBackend
+from qiskit.providers import Backend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import (WeightedPauliOperator, suzuki_expansion_slice_pauli_list,
                                    evolution_instruction)
@@ -62,7 +63,8 @@ class IQPE(QuantumAlgorithm, MinimumEigensolver):
                  expansion_mode: str = 'suzuki',
                  expansion_order: int = 2,
                  shallow_circuit_concat: bool = False,
-                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
+                 quantum_instance: Optional[
+                     Union[QuantumInstance, BaseBackend, Backend]] = None) -> None:
         """
 
         Args:
@@ -210,7 +212,7 @@ class IQPE(QuantumAlgorithm, MinimumEigensolver):
         # rz on a[0]
         qc.p(omega, a[0])
         # hadamard on a[0]
-        qc.u(np.pi/2, 0, np.pi, a[0])
+        qc.h(a[0])
         if measurement:
             c = ClassicalRegister(1, name='c')
             qc.add_register(c)

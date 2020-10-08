@@ -23,6 +23,7 @@ from scipy.optimize import bisect
 from qiskit import QuantumCircuit, ClassicalRegister
 from qiskit.circuit.library import QFT
 from qiskit.providers import BaseBackend
+from qiskit.providers import Backend
 from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.utils import CircuitFactory
 from qiskit.aqua.circuits import PhaseEstimationCircuit
@@ -67,7 +68,8 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
                  post_processing: Optional[Callable[[float], float]] = None,
                  phase_estimation_circuit: Optional[QuantumCircuit] = None,
                  iqft: Optional[QuantumCircuit] = None,
-                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None,
+                 quantum_instance: Optional[
+                     Union[QuantumInstance, BaseBackend, Backend]] = None,
                  a_factory: Optional[CircuitFactory] = None,
                  q_factory: Optional[CircuitFactory] = None,
                  i_objective: Optional[int] = None

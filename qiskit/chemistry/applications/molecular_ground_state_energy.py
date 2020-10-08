@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -14,9 +12,11 @@
 
 """ Molecular ground state energy  chemistry application """
 
+import warnings
 from typing import List, Optional, Callable, Union
 
 from qiskit.providers import BaseBackend
+from qiskit.providers import Backend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import MinimumEigensolver, VQE
 from qiskit.aqua.operators import Z2Symmetries
@@ -30,8 +30,6 @@ from qiskit.chemistry.drivers import BaseDriver
 
 class MolecularGroundStateEnergy:
     """ Molecular ground state energy chemistry application """
-
-    #TODO this needs to be deprecated in view of the new Ground State interface
 
     def __init__(self,
                  driver: BaseDriver,
@@ -62,6 +60,11 @@ class MolecularGroundStateEnergy:
                 See also :class:`~qiskit.chemistry.core.Hamiltonian` which has the core
                 processing behind this class.
         """
+
+        warnings.warn('The MolecularGroundStateEnergy class is deprecated as of Qiskit Aqua 0.8.0 '
+                      'and will be removed no earlier than 3 months after the release date. '
+                      'Instead, the GroundStateCalculation class can be used.',
+                      DeprecationWarning, stacklevel=2)
         self._driver = driver
         self._solver = solver
         self._transformation = transformation
@@ -138,7 +141,7 @@ class MolecularGroundStateEnergy:
         return core.process_algorithm_result(raw_result)
 
     @staticmethod
-    def get_default_solver(quantum_instance: Union[QuantumInstance, BaseBackend]) ->\
+    def get_default_solver(quantum_instance: Union[QuantumInstance, Backend, BaseBackend]) ->\
             Optional[Callable[[List, int, str, bool, Z2Symmetries], MinimumEigensolver]]:
         """
         Get the default solver callback that can be used with :meth:`compute_energy`

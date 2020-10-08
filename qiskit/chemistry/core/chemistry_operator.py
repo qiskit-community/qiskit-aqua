@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020
@@ -20,7 +18,7 @@ a quantum algorithm
 from abc import ABC, abstractmethod
 import warnings
 import logging
-from typing import Union, List, Tuple, Optional
+from typing import Dict, Union, List, Tuple, Optional, cast
 import numpy as np
 
 from qiskit.aqua.algorithms import MinimumEigensolverResult, EigensolverResult, AlgorithmResult
@@ -54,7 +52,7 @@ class ChemistryOperator(ABC):
         self._molecule_info = {}
 
     @abstractmethod
-    def _do_transform(self, qmolecule):
+    def run(self, qmolecule):
         """
         Convert the qmolecule, according to the ChemistryOperator, into an Operator
         that can be given to a QuantumAlgorithm
@@ -113,6 +111,13 @@ class MolecularChemistryResult(AlgorithmResult):
     Energies are in Hartree and dipole moments in A.U unless otherwise stated.
     """
 
+    def __init__(self, a_dict: Optional[Dict] = None) -> None:
+        super().__init__(a_dict)
+        warnings.warn('The qiskit.chemistry.chemistry_operator.MolecularChemistryResult object is '
+                      'deprecated as of 0.8.0 and will be removed no sooner than 3 months after the'
+                      ' release. You should use qiskit.chemistry.ground_state_calculation.'
+                      'FermionicGroundStateResult instead.', DeprecationWarning, stacklevel=2)
+
     @property
     def algorithm_result(self) -> AlgorithmResult:
         """ Returns raw algorithm result """
@@ -163,6 +168,13 @@ class MolecularGroundStateResult(MolecularChemistryResult):
 
     # TODO we need to be able to extract the statevector or the optimal parameters that can
     # construct the circuit of the GS from here (if the algorithm supports this)
+
+    def __init__(self, a_dict: Optional[Dict] = None) -> None:
+        super().__init__(a_dict)
+        warnings.warn('The qiskit.chemistry.chemistry_operator.MolecularGroundStateResult object '
+                      'is deprecated as of 0.8.0 and will be removed no sooner than 3 months after '
+                      'the release. You should use qiskit.chemistry.ground_state_calculation.'
+                      'FermionicGroundStateResult instead.', DeprecationWarning, stacklevel=2)
 
     @property
     def energy(self) -> Optional[float]:
@@ -244,7 +256,7 @@ class MolecularGroundStateResult(MolecularChemistryResult):
         """ Returns dipole moment """
         edm = self.electronic_dipole_moment
         if self.reverse_dipole_sign:
-            edm = tuple(-1 * x if x is not None else None for x in edm)
+            edm = cast(DipoleTuple, tuple(-1 * x if x is not None else None for x in edm))
         return _dipole_tuple_add(edm, self.nuclear_dipole_moment)
 
     @property

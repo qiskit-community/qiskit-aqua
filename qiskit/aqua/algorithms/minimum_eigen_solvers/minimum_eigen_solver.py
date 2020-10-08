@@ -52,7 +52,7 @@ class MinimumEigensolver(ABC):
         if operator is not None:
             self.operator = operator  # type: ignore
         if aux_operators is not None:
-            self.aux_operators = aux_operators if aux_operators else None  # type: ignore
+            self.aux_operators = aux_operators  # type: ignore
         return MinimumEigensolverResult()
 
     def supports_aux_operators(self) -> bool:

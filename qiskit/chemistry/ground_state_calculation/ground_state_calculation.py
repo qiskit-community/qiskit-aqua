@@ -13,10 +13,12 @@
 """The ground state calculation interface."""
 
 from abc import ABC, abstractmethod
+from typing import List, Any, Optional
 
 from qiskit.chemistry.drivers import BaseDriver
-from qiskit.chemistry.core import MolecularGroundStateResult
-from qiskit.chemistry.qubit_transformations import QubitOperatorTransformation
+from qiskit.chemistry.results import EigenstateResult
+
+from ..qubit_transformations.qubit_operator_transformation import QubitOperatorTransformation
 
 
 class GroundStateCalculation(ABC):
@@ -31,28 +33,35 @@ class GroundStateCalculation(ABC):
 
     @property
     def transformation(self) -> QubitOperatorTransformation:
-        """Return the tranformation used obtain a qubit operator from the molecule.
-
-        Returns:
-            The transformation.
-        """
+        """Returns the transformation used to obtain a qubit operator from the molecule."""
         return self._transformation
 
+    @transformation.setter
+    def transformation(self, transformation: QubitOperatorTransformation) -> None:
+        """Sets the transformation used to obtain a qubit operator from the molecule."""
+        self._transformation = transformation
+
     @abstractmethod
-    def compute_ground_state(self, driver: BaseDriver) -> MolecularGroundStateResult:
+    def compute_groundstate(self, driver: BaseDriver,
+                            aux_operators: Optional[List[Any]] = None
+                            ) -> EigenstateResult:
         """Compute the ground state energy of the molecule that was supplied via the driver.
 
         Args:
-            driver: BaseDriver
+            driver: a chemistry driver object which defines the chemical problem that is to be
+                    solved by this calculation.
+            aux_operators: Additional auxiliary operators to evaluate. Must be of type
+                ``FermionicOperator`` if the qubit transformation is fermionic and of type
+                ``BosonicOperator`` it is bosonic.
 
         Returns:
-            A molecular ground state result
+            An eigenstate result.
         """
         raise NotImplementedError
 
     @abstractmethod
     def returns_groundstate(self) -> bool:
-        """Whether this class returns only the groundstate energy or also the groundstate itself.
+        """Whether this class returns only the ground state energy or also the ground state itself.
 
         Returns:
             True, if this class also returns the ground state in the results object.

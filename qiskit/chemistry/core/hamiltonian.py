@@ -14,7 +14,7 @@ This module implements a molecular Hamiltonian operator, representing the
 energy of the electrons and nuclei in a molecule.
 """
 import warnings
-from typing import Optional, List, Union, cast
+from typing import Optional, List, Union, cast, Tuple
 import logging
 from enum import Enum
 
@@ -117,7 +117,8 @@ class Hamiltonian(ChemistryOperator):
         self._ph_y_dipole_shift = 0.0
         self._ph_z_dipole_shift = 0.0
 
-    def _do_transform(self, qmolecule):
+    def run(self, qmolecule: QMolecule) -> Tuple[WeightedPauliOperator, List[WeightedPauliOperator]]:
+        """ run method"""
         logger.debug('Processing started...')
         # Save these values for later combination with the quantum computation result
         self._hf_energy = qmolecule.hf_energy
@@ -158,7 +159,8 @@ class Hamiltonian(ChemistryOperator):
         if orbitals_list:
             orbitals_list = np.array(orbitals_list)
             orbitals_list = \
-                orbitals_list[(orbitals_list >= 0) & (orbitals_list < qmolecule.num_orbitals)]
+                orbitals_list[(cast(np.ndarray, orbitals_list) >= 0) &
+                              (orbitals_list < qmolecule.num_orbitals)]
 
             freeze_list_alpha = [i for i in orbitals_list if i < num_alpha]
             freeze_list_beta = [i for i in orbitals_list if i < num_beta]
