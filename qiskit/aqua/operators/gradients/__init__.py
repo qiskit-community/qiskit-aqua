@@ -42,7 +42,7 @@ Converters
    CircuitQFI
 
 Derivatives
-=========
+===========
 
 .. autosummary::
    :toctree: ../stubs/
