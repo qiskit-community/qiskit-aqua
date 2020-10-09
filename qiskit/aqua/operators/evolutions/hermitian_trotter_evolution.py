@@ -21,7 +21,7 @@ from qiskit.aqua.operators import MatrixOp, OperatorBase, TrotterizationBase, Tr
 from qiskit.aqua import AquaError
 
 
-class HermitianTrotterEvolution(PauliTrotterEvolution):
+class HermitianTrotterEvolution(PauliTrotterEvolution):  # pylint: disable=abstract-method
     """ Hermitian Trotter Evolution """
     def __init__(self, trotter_mode: Optional[Union[str, TrotterizationBase]] = 'trotter',
                  reps: Optional[int] = 1):
