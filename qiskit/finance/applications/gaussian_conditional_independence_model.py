@@ -59,7 +59,7 @@ class GaussianConditionalIndependenceModel(QuantumCircuit):
             return norm.pdf(x)
 
         # call super constructor
-        super().__init__(num_qubits)
+        super().__init__(num_qubits, name='P(X)')
 
         # create linear rotations for conditional defaults
         slopes = []
@@ -80,8 +80,9 @@ class GaussianConditionalIndependenceModel(QuantumCircuit):
             slopes += [slope]
 
         # create normal distribution
-        normal_distribution = NormalDistribution(n_normal, 0, 1, -normal_max_value,
-                                                 normal_max_value)
+        normal_distribution = NormalDistribution(n_normal, 0, 1,
+                                                 bounds=(-normal_max_value, normal_max_value),
+                                                 upto_phase=False)
 
         # build circuit
         self.append(normal_distribution, list(range(n_normal)))

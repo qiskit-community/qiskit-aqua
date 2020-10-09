@@ -18,9 +18,35 @@ from qiskit import QuantumCircuit
 
 
 class FixedIncomeExpectedValue(QuantumCircuit):
-    """The Fixed Income Expected Value.
+    r"""The Fixed Income Expected Value amplitude function.
 
-    Evaluates a fixed income asset with uncertain interest rates.
+    This circuit can be used to evaluate the expected value of the total value :math:`V` of the
+    assets
+
+    .. math::
+
+        V = \sum_{t=1}^T \frac{c_t}{(1+r_t)^t}.
+
+    Here :math:`c_t` are the cash flows of the assets and :math:`r_t` are the interest rates.
+    The interest rates are subject to uncertainty and can be described by a PCA-decomposition
+    into the ``pca_matrix`` :math:`A` and ``initial_interests` :math:`\vec{b}`. For a sample
+    :math:`\vec{x}` of a random variable, the interest rates are modelled as:
+
+    .. math::
+
+        \vec{r} = A \vec{x} + \vec{b}.
+
+    The number of qubits used to represent each asset is specified by ``num_qubits`` and the
+    bounds of the random variable by ``bounds``.
+
+    The approximation of the objective function follows [1].
+
+    References:
+
+        [1]: Woerner, S., & Egger, D. J. (2018).
+             Quantum Risk Analysis.
+             `arXiv:1806.06893 <http://arxiv.org/abs/1806.06893>`_
+
     """
 
     def __init__(self,
@@ -31,14 +57,14 @@ class FixedIncomeExpectedValue(QuantumCircuit):
                  rescaling_factor: float,
                  bounds: List[Tuple[float, float]],
                  ) -> None:
-        """
+        r"""
         Args:
-            num_qubits: TODO
-            pca_matrix: PCA matrix for delta_r (changes in interest rates)
-            initial_interests: offset for interest rates (= initial interest rates)
-            cash_flow: cash flow time series
-            rescaling_factor: approximation scaling factor
-            bounds: TODO
+            num_qubits: A list specifying the number of qubits used to discretize the assets.
+            pca_matrix: The PCA matrix for the changes in the interes rates, :math:`\delta_r`.
+            initial_interests: The initial interest rates / offsets for the interest rates.
+            cash_flow: The cash flow time series.
+            rescaling_factor: The scaling factor used in the Taylor approximation.
+            bounds: The bounds for return values the assets can attain.
         """
         self._rescaling_factor = rescaling_factor
 
@@ -48,11 +74,11 @@ class FixedIncomeExpectedValue(QuantumCircuit):
         # get number of time steps
         time_steps = len(cash_flow)
 
-        # get dimension of uncertain model
+        # get the number of assets
         dimensions = len(num_qubits)
 
         # initialize parent class
-        super().__init__(sum(num_qubits) + 1)
+        super().__init__(sum(num_qubits) + 1, name='F')
 
         # construct PCA-based cost function (1st order approximation):
         # c_t / (1 + A_t x + b_t)^{t+1} ~ c_t / (1 + b_t)^{t+1} - (t+1) c_t A_t /

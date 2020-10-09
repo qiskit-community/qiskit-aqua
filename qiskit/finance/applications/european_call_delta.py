@@ -44,7 +44,7 @@ class EuropeanCallDelta(QuantumCircuit):
         # initialize circuit
         qr_state = QuantumRegister(comparator.num_qubits - comparator.num_ancillas, 'state')
         qr_work = QuantumRegister(comparator.num_ancillas, 'work')
-        super().__init__(qr_state, qr_work)
+        super().__init__(qr_state, qr_work, name='ECD')
 
         self.append(comparator.to_gate(), self.qubits)
 
