@@ -214,8 +214,8 @@ class TestFermionicTransforationSymmetries(QiskitChemistryTestCase):
 
         qubit_op, _ = fermionic_transformation.transform(self.driver)
         self.assertEqual(qubit_op.num_qubits, 6)
-        num_orbitals = fermionic_transformation._molecule_info['num_orbitals']
-        num_particles = fermionic_transformation._molecule_info['num_particles']
+        num_orbitals = fermionic_transformation.molecule_info['num_orbitals']
+        num_particles = fermionic_transformation.molecule_info['num_particles']
         qubit_mapping = 'jordan_wigner'
         two_qubit_reduction = fermionic_transformation._two_qubit_reduction
         z2_symmetries = qubit_op.z2_symmetries

@@ -114,6 +114,16 @@ class FermionicTransformation(QubitOperatorTransformation):
 
         self._molecule_info: Dict[str, Any] = {}
 
+    @property
+    def molecule_info(self) -> Dict[str, Any]:
+        """Getter of the molecule information."""
+        return self._molecule_info
+
+    @property
+    def qubit_mapping(self) -> str:
+        """Getter of the qubit mapping."""
+        return self._qubit_mapping
+
     def transform(self, driver: BaseDriver,
                   aux_operators: Optional[List[FermionicOperator]] = None
                   ) -> Tuple[WeightedPauliOperator, List[WeightedPauliOperator]]:

@@ -57,11 +57,11 @@ class TestAdaptVQE(QiskitChemistryTestCase):
             """A custom MESFactory"""
 
             def get_solver(self, transformation):
-                num_orbitals = transformation._molecule_info['num_orbitals']
-                num_particles = transformation._molecule_info['num_particles']
-                qubit_mapping = transformation._qubit_mapping
-                two_qubit_reduction = transformation._molecule_info['two_qubit_reduction']
-                z2_symmetries = transformation._molecule_info['z2_symmetries']
+                num_orbitals = transformation.molecule_info['num_orbitals']
+                num_particles = transformation.molecule_info['num_particles']
+                qubit_mapping = transformation.qubit_mapping
+                two_qubit_reduction = transformation.molecule_info['two_qubit_reduction']
+                z2_symmetries = transformation.molecule_info['z2_symmetries']
                 initial_state = HartreeFock(num_orbitals, num_particles, qubit_mapping,
                                             two_qubit_reduction, z2_symmetries.sq_list)
                 var_form = UCCSD(num_orbitals=num_orbitals,
