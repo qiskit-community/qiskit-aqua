@@ -18,23 +18,20 @@ the issue then ensure changes are made to readme too.
 
 import unittest
 from test.optimization import QiskitOptimizationTestCase
+from qiskit.aqua import aqua_globals
+
+# pylint: disable=import-outside-toplevel,redefined-builtin
 
 
 class TestReadmeSample(QiskitOptimizationTestCase):
     """Test sample code from readme"""
 
-    def _test_readme_sample(self):
-        """ readme sample test """
-        # pylint: disable=import-outside-toplevel,redefined-builtin
+    def _sample_code(self):
 
         def print(*args):
             """ overloads print to log values """
             if args:
                 self.log.debug(args[0], *args[1:])
-
-        # Fix the random seed of SPSA (Optional)
-        from qiskit.aqua import aqua_globals
-        aqua_globals.random_seed = 123
 
         # --- Exact copy of sample code ----------------------------------------
 
@@ -77,20 +74,26 @@ class TestReadmeSample(QiskitOptimizationTestCase):
         print(result)  # prints solution, x=[1, 0, 1, 0], the cost, fval=4
         # ----------------------------------------------------------------------
 
-        np.testing.assert_array_almost_equal(result.x, [1, 0, 1, 0])
-        self.assertAlmostEqual(result.fval, 4.0)
+        return result
 
     def test_readme_sample(self):
         """ readme sample test """
 
-        # for now do this until NaN is fixed
+        print('')
+        import numpy as np
+        # for now do this until test is fixed
         msg = None
-        for _ in range(3):
+        for idx in range(3):
             try:
-                self._test_readme_sample()
+                print(f'Trial number {idx+1}')
+                # Fix the random seed of SPSA (Optional)
+                aqua_globals.random_seed = 123
+                result = self._sample_code()
+                np.testing.assert_array_almost_equal(result.x, [1, 0, 1, 0])
+                self.assertAlmostEqual(result.fval, 4.0)
                 msg = None
                 break
-            except ValueError as ex:
+            except Exception as ex:  # pylint: disable=broad-except
                 msg = str(ex)
 
         if msg is not None:
