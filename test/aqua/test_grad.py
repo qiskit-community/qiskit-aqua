@@ -296,7 +296,7 @@ class TestGradients(QiskitAquaTestCase):
         qc.rx(b, q[0])
 
         op = ~StateFn(ham) @ CircuitStateFn(primitive=qc, coeff=1.)
-        state_hess = Hessian(method=method).convert(operator=op, params=params)
+        state_hess = Hessian(hess_method=method).convert(operator=op, params=params)
 
         values_dict = [{a: np.pi / 4, b: np.pi}, {a: np.pi / 4, b: np.pi / 4},
                        {a: np.pi / 2, b: np.pi / 4}]
@@ -493,7 +493,7 @@ class TestGradients(QiskitAquaTestCase):
         ham = coeff_0 * coeff_0 * X + coeff_1 * coeff_0 * Z
         op = ~StateFn(ham) @ CircuitStateFn(primitive=qc, coeff=1.)
         gradient_coeffs = [(coeff_0, coeff_0), (coeff_0, coeff_1), (coeff_1, coeff_1)]
-        coeff_grad = Hessian(method=method).convert(op, gradient_coeffs)
+        coeff_grad = Hessian(hess_method=method).convert(op, gradient_coeffs)
         values_dict = [{coeff_0: 0.5, coeff_1: -1, a: np.pi / 4, b: np.pi},
                        {coeff_0: 0.5, coeff_1: -1, a: np.pi / 4, b: np.pi / 4}]
 
@@ -623,7 +623,7 @@ class TestGradients(QiskitAquaTestCase):
         # Conjugate Gradient algorithm
         optimizer = CG(maxiter=10)
 
-        grad = Gradient(method=method)
+        grad = Gradient(grad_method=method)
 
         # Gradient callable
         vqe = VQE(h2_hamiltonian, wavefunction, optimizer=optimizer, gradient=grad)
