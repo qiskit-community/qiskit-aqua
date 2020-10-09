@@ -97,8 +97,6 @@ class DerivativeBase(ConverterBase):
             callable(param_values): Function to compute a gradient, Hessian or QFI. The function
             takes an iterable as argument which holds the parameter values.
 
-        Raises:
-            ImportError: if 'retworkx>=0.5.0' is not installed.
         """
         if not grad_params:
             grad_params = bind_params
@@ -107,13 +105,6 @@ class DerivativeBase(ConverterBase):
                 (not isinstance(backend, QuantumInstance) and
                  not backend.name().startswith('statevector'))
         ):
-            try:
-                import retworkx
-            except ImportError as ex:
-                raise ImportError('Please install retworx>=0.5.0') from ex
-
-            if retworkx.__version__ < '0.5.0':
-                raise ImportError('Please update retworx to at least version 0.5.0')
 
         def gradient_fn(p_values):
             p_values_dict = dict(zip(bind_params, p_values))
