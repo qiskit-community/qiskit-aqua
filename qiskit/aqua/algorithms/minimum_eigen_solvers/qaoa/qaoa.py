@@ -70,7 +70,7 @@ class QAOA(VQE):
                  initial_state: Optional[InitialState] = None,
                  mixer: Union[OperatorBase, LegacyBaseOperator] = None,
                  initial_point: Optional[np.ndarray] = None,
-                 gradient: Optional[Union[GradientBase, Callable]] = None,
+                 gradient: Optional[Union[GradientBase, Callable[[Union[np.ndarray, List]], List]]] = None,
                  expectation: Optional[ExpectationBase] = None,
                  include_custom: bool = False,
                  max_evals_grouped: int = 1,
@@ -90,7 +90,8 @@ class QAOA(VQE):
                 constrained subspaces as per https://arxiv.org/abs/1709.03489
             initial_point: An optional initial point (i.e. initial parameter values)
                 for the optimizer. If ``None`` then it will simply compute a random one.
-            gradient: An optional gradient operator for optimizer.
+            gradient: An optional gradient operator respectively a gradient function used for
+                      optimization.
             expectation: The Expectation converter for taking the average value of the
                 Observable over the var_form state function. When None (the default) an
                 :class:`~qiskit.aqua.operators.expectations.ExpectationFactory` is used to select
