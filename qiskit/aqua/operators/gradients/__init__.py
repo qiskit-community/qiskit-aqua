@@ -41,7 +41,7 @@ Converters
    CircuitGradient
    CircuitQFI
 
-Gradients
+Derivatives
 =========
 
 .. autosummary::
