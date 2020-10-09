@@ -187,10 +187,10 @@ class TestEvolution(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(ref_mat, exp_mat)
 
     def test_hermitian_trotter_evolution(self):
-        """ test hermiatian evolution, based on pauli trotterization """
+        """ test hermitian evolution, based on pauli trotterization """
         A = np.random.rand(4, 4) + np.random.rand(4, 4) * 1j
-        H = A + A.conj().T
-        hamiltonian = MatrixOp(H)
+        H_op = A + A.conj().T
+        hamiltonian = MatrixOp(H_op)
 
         evolution = HermitianTrotterEvolution(trotter_mode='suzuki', reps=12)
         circuit_by_trotterization = evolution.convert(hamiltonian)

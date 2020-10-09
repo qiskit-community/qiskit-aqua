@@ -1,16 +1,28 @@
+# This code is part of Qiskit.
+#
+# (C) Copyright IBM 2020.
+#
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
+#
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
+
+""" Hermitian Trotter Evolution """
+
 from typing import Optional, Union
 import numpy as np
 
 from qiskit.quantum_info import Operator
-
 from qiskit.aqua.operators.evolutions import PauliTrotterEvolution
-
 from qiskit.aqua.operators import MatrixOp, OperatorBase, TrotterizationBase, TrotterizationFactory
-
 from qiskit.aqua import AquaError
 
 
 class HermitianTrotterEvolution(PauliTrotterEvolution):
+    """ Hermitian Trotter Evolution """
     def __init__(self, trotter_mode: Optional[Union[str, TrotterizationBase]] = 'trotter',
                  reps: Optional[int] = 1):
 
@@ -35,4 +47,3 @@ class HermitianTrotterEvolution(PauliTrotterEvolution):
             operator = MatrixOp(operator).to_pauli_op().exp_i()
 
         return super().convert(operator)
-
