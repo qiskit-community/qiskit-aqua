@@ -23,7 +23,7 @@ from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry import FermionicOperator
 from qiskit.aqua.utils.validation import validate_min
-from qiskit.aqua.operators import LegacyBaseOperator, WeightedPauliOperator
+from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.aqua.algorithms import VQE
 from qiskit.aqua import AquaError
 
