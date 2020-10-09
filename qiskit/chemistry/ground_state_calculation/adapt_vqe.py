@@ -27,7 +27,7 @@ from qiskit.aqua.operators import LegacyBaseOperator, WeightedPauliOperator
 from qiskit.aqua.algorithms import VQE
 from qiskit.aqua import AquaError
 
-from .mes_factories import VQEUCCSDFactory
+from .mes_factories import MESFactory
 from .mes_ground_state_calculation import MinimumEigensolverGroundStateCalculation
 
 logger = logging.getLogger(__name__)
@@ -38,7 +38,7 @@ class AdaptVQE(MinimumEigensolverGroundStateCalculation):
 
     def __init__(self,
                  transformation: FermionicTransformation,
-                 solver: VQEUCCSDFactory,
+                 solver: MESFactory,
                  threshold: float = 1e-5,
                  delta: float = 1,
                  max_iterations: Optional[int] = None,
