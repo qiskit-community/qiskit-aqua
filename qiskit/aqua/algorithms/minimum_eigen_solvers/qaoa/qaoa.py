@@ -110,7 +110,8 @@ class QAOA(VQE):
                 potentially the expectation values can be computed in parallel. Typically this is
                 possible when a finite difference gradient is used by the optimizer such that
                 multiple points to compute the gradient can be passed and if computed in parallel
-                improve overall execution time.
+                improve overall execution time. Deprecated if a gradient operator or function is
+                given.
             aux_operators: Optional list of auxiliary operators to be evaluated with the eigenstate
                 of the minimum eigenvalue main result and their expectation values returned.
                 For instance in chemistry these can be dipole operators, total particle count
