@@ -16,6 +16,7 @@ from typing import Optional, Union, Dict, List, Any, Callable
 import logging
 import warnings
 import operator
+import math
 import numpy as np
 
 from qiskit import ClassicalRegister, QuantumCircuit
@@ -125,7 +126,8 @@ class Grover(QuantumAlgorithm):
     ], skip=1)  # skip the argument 'self'
     def __init__(self,
                  oracle: Union[Oracle, QuantumCircuit, Statevector],
-                 good_state: Optional[Union[Callable[[str], bool], List[str], Statevector]] = None,
+                 good_state: Optional[Union[Callable[[str], bool],
+                                            List[str], List[int], Statevector]] = None,
                  state_preparation: Optional[QuantumCircuit] = None,
                  iterations: Union[int, List[int]] = 1,
                  sample_from_iterations: bool = False,
@@ -144,10 +146,12 @@ class Grover(QuantumAlgorithm):
         Args:
             oracle: The oracle to flip the phase of good states, :math:`\mathcal{S}_f`.
             good_state: A callable to check if a given measurement corresponds to a good state.
-                For convenience, a list of bitstrings or statevector can be passed instead of a
-                function. If the input is a list of bitstrings, each bitstrings in the list
-                represents a good state. If it is a :class:`~qiskit.quantum_info.Statevector`,
-                it represents a superposition of all good states.
+                For convenience, a list of bitstrings, a list of integer or statevector can be
+                passed instead of a function. If the input is a list of bitstrings, each bitstrings
+                in the list represents a good state. If the input is a list of integer,
+                each integer represent the index of the good state to be :math:`|1\rangle`.
+                If it is a :class:`~qiskit.quantum_info.Statevector`, it represents a superposition
+                of all good states.
             state_preparation: The state preparation :math:`\mathcal{A}`. If None then Grover's
                  Search by default uses uniform superposition.
             iterations: Specify the number of iterations/power of Grover's operator to be checked.
@@ -259,6 +263,9 @@ class Grover(QuantumAlgorithm):
             if iteration > max_iterations:
                 break
 
+        # check the type of good_state
+        _check_is_good_state(good_state)
+
         self._is_good_state = good_state
         self._sample_from_iterations = sample_from_iterations
         self._post_processing = post_processing
@@ -283,7 +290,7 @@ class Grover(QuantumAlgorithm):
         Returns:
             The optimal number of iterations for Grover's algorithm to succeed.
         """
-        return round((np.pi * np.sqrt(2 ** num_qubits) / num_solutions) / 4)
+        return math.floor(np.pi * np.sqrt(2 ** num_qubits / num_solutions) / 4)
 
     def _run_experiment(self, power):
         """Run a grover experiment for a given power of the Grover operator."""
@@ -327,7 +334,10 @@ class Grover(QuantumAlgorithm):
         if callable(self._is_good_state):
             return self._is_good_state(bitstr)
         elif isinstance(self._is_good_state, list):
-            return bitstr in self._is_good_state
+            if all(isinstance(good_bitstr, str) for good_bitstr in self._is_good_state):
+                return bitstr in self._is_good_state
+            else:
+                return all(bitstr[good_index] == '1' for good_index in self._is_good_state)
         # else isinstance(self._is_good_state, Statevector) must be True
         return bitstr in self._is_good_state.probabilities_dict()
 
@@ -515,6 +525,22 @@ def _check_deprecated_args(init_state, mct_mode, rotation_counts, lam, num_itera
                       'you should use the iterations argument instead and pass an integer '
                       'for the number of iterations.',
                       DeprecationWarning, stacklevel=3)
+
+
+def _check_is_good_state(is_good_state):
+    """Check whether a provided is_good_state is one of the supported types or not"""
+    is_compatible = False
+    if callable(is_good_state):
+        is_compatible = True
+    if isinstance(is_good_state, list):
+        if all(isinstance(good_bitstr, str) for good_bitstr in is_good_state) or \
+           all(isinstance(good_index, int) for good_index in is_good_state):
+            is_compatible = True
+    if isinstance(is_good_state, Statevector):
+        is_compatible = True
+
+    if not is_compatible:
+        raise TypeError('Unsupported type "{}" of is_good_state'.format(type(is_good_state)))
 
 
 class GroverResult(AlgorithmResult):
