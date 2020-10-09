@@ -214,13 +214,16 @@ class IntegerToBinary(QuadraticProgramConverter):
         to the original (integer variables).
 
         Args:
-            result: The result of the converted problem.
+            result: The result of the converted problem or the given result in case of FAILURE.
 
         Returns:
             The result of the original problem.
         """
         # pylint: disable=cyclic-import
         from ..algorithms.optimization_algorithm import OptimizationResult
+
+        if result.x is None:
+            return result
 
         new_x = self._interpret_var(result.x)
         return OptimizationResult(x=new_x, fval=result.fval, variables=self._src.variables,
