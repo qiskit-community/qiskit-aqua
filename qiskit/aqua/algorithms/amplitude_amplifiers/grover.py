@@ -159,8 +159,8 @@ class Grover(QuantumAlgorithm):
                 optimal number of iterations (see ``optimal_num_iterations``). Alternatively,
                 this can be a list of powers to check.
             sample_from_iterations: If True, instead of taking the values in ``iterations`` as
-                powers of the Grover operator, a random integer sample between 0 and the specified
-                iteration is used a power, see [1], Section 4.
+                powers of the Grover operator, a random integer sample between 0 and smaller value
+                than the iteration is used as a power, see [1], Section 4.
             post_processing: An optional post processing applied to the top measurement. Can be used
                 e.g. to convert from the bit-representation of the measurement `[1, 0, 1]` to a
                 DIMACS CNF format `[1, -2, 3]`.
@@ -337,7 +337,8 @@ class Grover(QuantumAlgorithm):
             if all(isinstance(good_bitstr, str) for good_bitstr in self._is_good_state):
                 return bitstr in self._is_good_state
             else:
-                return all(bitstr[good_index] == '1' for good_index in self._is_good_state)
+                return all(bitstr[good_index] == '1'  # type:ignore
+                           for good_index in self._is_good_state)
         # else isinstance(self._is_good_state, Statevector) must be True
         return bitstr in self._is_good_state.probabilities_dict()
 
