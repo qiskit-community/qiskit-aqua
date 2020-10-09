@@ -21,8 +21,10 @@ import scipy.linalg
 import qiskit
 from qiskit.circuit import ParameterVector, Parameter
 
+from qiskit.aqua.operators.evolutions.hermitian_trotter_evolution import HermitianTrotterEvolution
 from qiskit.aqua.operators import (X, Y, Z, I, CX, H, ListOp, CircuitOp, Zero, EvolutionFactory,
-                                   EvolvedOp, PauliTrotterEvolution, QDrift)
+                                   MatrixOp, EvolvedOp, QDrift,
+                                   MatrixEvolution, PauliTrotterEvolution)
 
 
 # pylint: disable=invalid-name
@@ -183,6 +185,22 @@ class TestEvolution(QiskitAquaTestCase):
         exp_mat = op.to_matrix_op().exp_i().to_matrix()
         ref_mat = scipy.linalg.expm(-1j * op.to_matrix())
         np.testing.assert_array_almost_equal(ref_mat, exp_mat)
+
+    def test_hermitian_trotter_evolution(self):
+        """ test hermiatian evolution, based on pauli trotterization """
+        A = np.random.rand(4, 4) + np.random.rand(4, 4) * 1j
+        H = A + A.conj().T
+        hamiltonian = MatrixOp(H)
+
+        evolution = HermitianTrotterEvolution(trotter_mode='suzuki', reps=12)
+        circuit_by_trotterization = evolution.convert(hamiltonian)
+
+        evolution = MatrixEvolution()
+        circuit_by_hamiltonian_gate = evolution.convert(EvolvedOp(hamiltonian))
+
+        circuits_equal = np.allclose(circuit_by_hamiltonian_gate.to_matrix(),
+                                     circuit_by_trotterization.to_matrix(), rtol=1e-2)
+        self.assertTrue(circuits_equal)
 
     def test_log_i(self):
         """ MatrixOp.log_i() test """
