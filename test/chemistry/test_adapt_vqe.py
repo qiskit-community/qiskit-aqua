@@ -82,7 +82,7 @@ class TestAdaptVQE(QiskitChemistryTestCase):
 
     def test_custom_excitation_pool(self):
         """ Test custom excitation pool """
-        # TODO rewrite this unittest once we have reworked how AdaptVQE will handle the solver
+
         class CustomFactory(VQEUCCSDFactory):
             """A custom MES factory."""
 
