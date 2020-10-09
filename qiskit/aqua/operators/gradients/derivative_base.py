@@ -96,15 +96,9 @@ class DerivativeBase(ConverterBase):
         Returns:
             callable(param_values): Function to compute a gradient, Hessian or QFI. The function
             takes an iterable as argument which holds the parameter values.
-
         """
         if not grad_params:
             grad_params = bind_params
-        if backend and (
-                (isinstance(backend, QuantumInstance) and (not backend.is_statevector)) or
-                (not isinstance(backend, QuantumInstance) and
-                 not backend.name().startswith('statevector'))
-        ):
 
         def gradient_fn(p_values):
             p_values_dict = dict(zip(bind_params, p_values))

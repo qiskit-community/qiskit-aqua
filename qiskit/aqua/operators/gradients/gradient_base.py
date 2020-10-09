@@ -30,8 +30,8 @@ class GradientBase(DerivativeBase):  # pylint: disable=abstract-method
         r"""
         Args:
             grad_method: The method used to compute the state/probability gradient. Can be either
-                ``'param_shift'`` or ``'lin_comb'`` or ``'fin_diff'``. Deprecated for observable
-                gradient.
+                ``'param_shift'`` or ``'lin_comb'`` or ``'fin_diff'``. Deprecated for gradients
+                w.r.t observable parameters.
             kwargs (dict): Optional parameters for a CircuitGradient
 
         Raises:
