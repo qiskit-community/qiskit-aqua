@@ -26,21 +26,21 @@ from qiskit.aqua.operators.legacy import WeightedPauliOperator
 from .qubit_operator_transformation import QubitOperatorTransformation
 
 
-class TransformationType(Enum):
-    """ TransformationType enum """
+class BosonicTransformationType(Enum):
+    """ BosonicTransformationType enum """
     HARMONIC = 'harmonic'
 
 
-class QubitMappingType(Enum):
-    """ QubitMappingType enum """
+class BosonicQubitMappingType(Enum):
+    """ BosonicQubitMappingType enum """
     DIRECT = 'direct'
 
 
 class BosonicTransformation(QubitOperatorTransformation):
     """A vibronic Hamiltonian operator representing the energy of the nuclei in the molecule"""
 
-    def __init__(self, qubit_mapping: QubitMappingType = QubitMappingType.DIRECT,
-                 transformation_type: TransformationType = TransformationType.HARMONIC,
+    def __init__(self, qubit_mapping: BosonicQubitMappingType = BosonicQubitMappingType.DIRECT,
+                 transformation_type: BosonicTransformationType = BosonicTransformationType.HARMONIC,
                  basis_size: Union[int, List[int]] = 2,
                  truncation: int = 3):
         """
@@ -81,7 +81,7 @@ class BosonicTransformation(QubitOperatorTransformation):
         watson = driver.run()
         self._num_modes = watson.num_modes
 
-        if self._transformation_type == TransformationType.HARMONIC:
+        if self._transformation_type == BosonicTransformationType.HARMONIC:
             if isinstance(self._basis_size, int):
                 self._basis_size = [self._basis_size] * self._num_modes
             self._h_mat = HarmonicBasis(watson, self._basis_size, self._truncation_order).run()

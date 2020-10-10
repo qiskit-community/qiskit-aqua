@@ -13,7 +13,15 @@
 """Qubit operator transformation module."""
 
 from .fermionic_transformation import FermionicTransformation
+from .fermionic_transformation import FermionicQubitMappingType, FermionicTransformationType
+from .bosonic_transformation import BosonicTransformation
+from .bosonic_transformation import BosonicQubitMappingType, BosonicTransformationType
 from .qubit_operator_transformation import QubitOperatorTransformation
 
 __all__ = ['FermionicTransformation',
+           'FermionicQubitMappingType',
+           'FermionicTransformationType',
+           'BosonicTransformation',
+           'BosonicQubitMappingType',
+           'BosonicTransformationType',
            'QubitOperatorTransformation']
