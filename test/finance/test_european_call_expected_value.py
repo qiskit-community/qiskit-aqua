@@ -24,7 +24,12 @@ from qiskit.aqua.algorithms import AmplitudeEstimation
 from qiskit.aqua.components.initial_states import Custom
 from qiskit.aqua.components.uncertainty_models import (UnivariateVariationalDistribution,
                                                        NormalDistribution)
-from qiskit.finance.components.uncertainty_problems import EuropeanCallExpectedValue
+from qiskit.circuit.library import LinearAmplitudeFunction
+from qiskit.finance.applications import EuropeanCallExpectedValue
+from qiskit.finance.components.uncertainty_problems import (
+    EuropeanCallExpectedValue as EuropeanCallExpectedValueFactory
+)
+from qiskit.quantum_info import Operator
 
 
 class TestEuropeanCallExpectedValue(QiskitFinanceTestCase):
@@ -35,7 +40,34 @@ class TestEuropeanCallExpectedValue(QiskitFinanceTestCase):
         self.seed = 457
         aqua_globals.random_seed = self.seed
 
-    def test_ecev(self):
+    def test_ecev_circuit(self):
+        """Test the expected circuit.
+
+        If it equals the correct ``LinearAmplitudeFunction`` we know the circuit is correct.
+        """
+        num_qubits = 3
+        rescaling_factor = 0.1
+        strike_price = 0.5
+        bounds = (0, 2)
+        ecev = EuropeanCallExpectedValue(num_qubits, strike_price, rescaling_factor, bounds)
+
+        breakpoints = [0, strike_price]
+        slopes = [0, 1]
+        offsets = [0, 0]
+        image = (0, 2 - strike_price)
+        domain = (0, 2)
+        linear_function = LinearAmplitudeFunction(
+            num_qubits,
+            slopes,
+            offsets,
+            domain=domain,
+            image=image,
+            breakpoints=breakpoints,
+            rescaling_factor=rescaling_factor)
+
+        self.assertTrue(Operator(ecev).equiv(linear_function))
+
+    def test_factory_end_to_end(self):
         """ European Call Expected Value test """
         bounds = np.array([0., 7.])
         num_qubits = [3]
@@ -60,9 +92,9 @@ class TestEuropeanCallExpectedValue(QiskitFinanceTestCase):
 
         strike_price = 2
         c_approx = 0.25
-        european_call = EuropeanCallExpectedValue(uncertainty_model,
-                                                  strike_price=strike_price,
-                                                  c_approx=c_approx)
+        european_call = EuropeanCallExpectedValueFactory(uncertainty_model,
+                                                         strike_price=strike_price,
+                                                         c_approx=c_approx)
 
         uncertainty_model.set_probabilities(
             QuantumInstance(BasicAer.get_backend('statevector_simulator')))
