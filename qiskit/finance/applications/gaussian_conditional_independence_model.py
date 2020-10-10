@@ -85,8 +85,8 @@ class GaussianConditionalIndependenceModel(QuantumCircuit):
                                                  upto_phase=False)
 
         # build circuit
-        self.append(normal_distribution, list(range(n_normal)))
+        self.append(normal_distribution.to_gate(), list(range(n_normal)))
         for k, (slope, offset) in enumerate(zip(slopes, offsets)):
             lry = LinearPauliRotations(n_normal, slope, offset)
             qubits = list(range(n_normal)) + [n_normal + k]
-            self.append(lry.to_instruction(), qubits)
+            self.append(lry.to_gate(), qubits)
