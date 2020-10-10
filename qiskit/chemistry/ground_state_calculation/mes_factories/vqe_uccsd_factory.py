@@ -15,7 +15,7 @@
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import MinimumEigensolver, VQE
 from qiskit.chemistry.components.variational_forms import UCCSD
-from qiskit.chemistry.qubit_transformations import QubitOperatorTransformation
+from qiskit.chemistry.qubit_transformations import FermionicTransformation
 from qiskit.chemistry.components.initial_states import HartreeFock
 
 from .mes_factory import MESFactory
@@ -31,22 +31,23 @@ class VQEUCCSDFactory(MESFactory):
         """
         self._quantum_instance = quantum_instance
 
-    def get_solver(self, transformation: QubitOperatorTransformation) -> MinimumEigensolver:
+    def get_solver(self, transformation: FermionicTransformation) -> MinimumEigensolver:
         """Returns a VQE with a UCCSD wavefunction ansatz, based on ``transformation``.
+        This works only with a ``FermionicTransformation``.
 
         Args:
-            transformation: The qubit operator transformation.
+            transformation: a fermionic qubit operator transformation.
 
         Returns:
             A VQE suitable to compute the ground state of the molecule transformed
             by ``transformation``.
         """
+        num_orbitals = transformation.molecule_info['num_orbitals']
+        num_particles = transformation.molecule_info['num_particles']
+        qubit_mapping = transformation.qubit_mapping
+        two_qubit_reduction = transformation.molecule_info['two_qubit_reduction']
+        z2_symmetries = transformation.molecule_info['z2_symmetries']
 
-        num_orbitals = transformation._molecule_info['num_orbitals']
-        num_particles = transformation._molecule_info['num_particles']
-        qubit_mapping = transformation._qubit_mapping
-        two_qubit_reduction = transformation._molecule_info['two_qubit_reduction']
-        z2_symmetries = transformation._molecule_info['z2_symmetries']
         initial_state = HartreeFock(num_orbitals, num_particles, qubit_mapping,
                                     two_qubit_reduction, z2_symmetries.sq_list)
         var_form = UCCSD(num_orbitals=num_orbitals,

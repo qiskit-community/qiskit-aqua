@@ -52,7 +52,7 @@ class TestSymmetries(QiskitChemistryTestCase):
 
         self.qubit_op, _ = self.fermionic_transformation.transform(self.driver)
 
-        self.z2_symmetries = self.fermionic_transformation._molecule_info.pop('z2_symmetries')
+        self.z2_symmetries = self.fermionic_transformation.molecule_info.pop('z2_symmetries')
 
         self.reference_energy = -7.882096489442
 
@@ -79,19 +79,19 @@ class TestSymmetries(QiskitChemistryTestCase):
 
         optimizer = SLSQP(maxiter=1000)
         init_state = HartreeFock(
-            num_orbitals=self.fermionic_transformation._molecule_info['num_orbitals'],
-            qubit_mapping=self.fermionic_transformation._qubit_mapping,
+            num_orbitals=self.fermionic_transformation.molecule_info['num_orbitals'],
+            qubit_mapping=self.fermionic_transformation.qubit_mapping,
             two_qubit_reduction=self.fermionic_transformation._two_qubit_reduction,
-            num_particles=self.fermionic_transformation._molecule_info['num_particles'],
+            num_particles=self.fermionic_transformation.molecule_info['num_particles'],
             sq_list=self.qubit_op.z2_symmetries.sq_list)
 
         var_form = UCCSD(
-            num_orbitals=self.fermionic_transformation._molecule_info['num_orbitals'],
-            num_particles=self.fermionic_transformation._molecule_info['num_particles'],
+            num_orbitals=self.fermionic_transformation.molecule_info['num_orbitals'],
+            num_particles=self.fermionic_transformation.molecule_info['num_particles'],
             active_occupied=None,
             active_unoccupied=None,
             initial_state=init_state,
-            qubit_mapping=self.fermionic_transformation._qubit_mapping,
+            qubit_mapping=self.fermionic_transformation.qubit_mapping,
             two_qubit_reduction=self.fermionic_transformation._two_qubit_reduction,
             num_time_slices=1,
             z2_symmetries=self.qubit_op.z2_symmetries)

@@ -14,7 +14,7 @@
 
 import unittest
 
-from test.chemistry.test_driver_methods import TestDriverMethods
+from test.chemistry.test_driver_methods_gsc import TestDriverMethods
 from qiskit.chemistry.drivers import PSI4Driver
 from qiskit.chemistry import QiskitChemistryError
 
