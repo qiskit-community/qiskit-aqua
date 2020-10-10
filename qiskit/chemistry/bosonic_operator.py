@@ -14,12 +14,11 @@
 
 import copy
 import logging
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Optional
 
 import numpy as np
 
 from qiskit.quantum_info import Pauli
-
 from qiskit.aqua.operators import WeightedPauliOperator
 
 logger = logging.getLogger(__name__)
@@ -208,12 +207,15 @@ class BosonicOperator:
 
         return qubit_op
 
-    def direct_mapping_filtering_criterion(self, state) -> bool:
+    def direct_mapping_filtering_criterion(self, state: Union[List, np.ndarray], value: float,
+                                               aux_values: Optional[List[float]] = None) -> bool:
 
         """ Filters out the states of irrelevant symmetries
 
                 Args:
-                    vecs: state to evaluate
+                    state: the statevector
+                    value: the energy
+                    aux_values: the auxiliary energies
 
                 Returns:
                     True if the state is has one and only one modal occupied per mode meaning
@@ -221,25 +223,23 @@ class BosonicOperator:
 
                 """
 
-        if isinstance(self._basis_size, int):
-            self._basis_size = [self._basis_size] * self._num_modes
-
         indices = np.nonzero(np.conj(state) * state > 1e-5)[0]
+        count = 0
         for i in indices:
-            bin_i = np.frombuffer(np.binary_repr(i, width=sum(self._basis_size)).encode('utf-8'),
+            bin_i = np.frombuffer(np.binary_repr(i, width=sum(self._basis)).encode('utf-8'),
                                   dtype='S1').astype(int)
             count = 0
             nqi = 0
-            for m in range(len(self._basis_size)):
-                sub_bin = bin_i[nqi:nqi + self._basis_size[m]]
+            for m in range(len(self._basis)):
+                sub_bin = bin_i[nqi:nqi + self._basis[m]]
                 occ_i = 0
                 for idx_i in sub_bin:
                     occ_i += idx_i
                 if occ_i != 1:
                     break
                 count += 1
-                nqi += self._basis_size[m]
-        if count == len(self._basis_size):
+                nqi += self._basis[m]
+        if count == len(self._basis):
             return True
         else:
             return False
