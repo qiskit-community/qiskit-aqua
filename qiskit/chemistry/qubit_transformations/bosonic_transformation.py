@@ -14,16 +14,20 @@ This module implements a vibronic Hamiltonian operator, representing the
 energy of the nuclei in a molecule.
 """
 
+import logging
 from typing import Tuple, List, Union, Any, Optional
 from enum import Enum
 
-from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry import QiskitChemistryError
+from qiskit.chemistry import WatsonHamiltonian
+from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.bosonic_operator import BosonicOperator
 from qiskit.chemistry.results import EigenstateResult, VibronicStructureResult
 from qiskit.chemistry.components.bosonic_basis import HarmonicBasis
 from qiskit.aqua.operators.legacy import WeightedPauliOperator
 from .qubit_operator_transformation import QubitOperatorTransformation
+
+logger = logging.getLogger(__name__)
 
 
 class BosonicTransformationType(Enum):
@@ -58,13 +62,20 @@ class BosonicTransformation(QubitOperatorTransformation):
                               1-body terms, 2 for having on 1- and 2-body terms...)
         """
 
-        self._qubit_mapping = qubit_mapping
-        self._transformation_type = transformation_type
+        self._qubit_mapping = qubit_mapping.value
+        self._transformation_type = transformation_type.value
         self._basis_size = basis_size
         self._truncation_order = truncation
 
         self._num_modes = None
         self._h_mat = None
+
+    @property
+    def num_modes(self):
+        """
+        Returns: the number of modes
+        """
+        return self._num_modes
 
     def transform(self, driver: BaseDriver,
                   aux_operators: Optional[List[Any]] = None
@@ -79,9 +90,19 @@ class BosonicTransformation(QubitOperatorTransformation):
             qubit operator, auxiliary operators
         """
         watson = driver.run()
+        ops, aux_ops = self._do_transform(watson, aux_operators)
+
+        return ops, aux_ops
+
+
+    def _do_transform(self, watson: WatsonHamiltonian,
+                      aux_operators: Optional[List[Union[BosonicOperator,
+                                                         WeightedPauliOperator]]] = None
+                      ) -> Tuple[WeightedPauliOperator, List[WeightedPauliOperator]]:
+
         self._num_modes = watson.num_modes
 
-        if self._transformation_type == BosonicTransformationType.HARMONIC:
+        if self._transformation_type == 'harmonic':
             if isinstance(self._basis_size, int):
                 self._basis_size = [self._basis_size] * self._num_modes
             self._h_mat = HarmonicBasis(watson, self._basis_size, self._truncation_order).run()
@@ -93,6 +114,36 @@ class BosonicTransformation(QubitOperatorTransformation):
         qubit_op.name = 'Bosonic Operator'
 
         aux_ops = []
+
+        def _add_aux_op(aux_op: BosonicOperator, name: str) -> None:
+            """
+            Add auxiliary operators
+
+            Args:
+                aux_op: auxiliary operators
+                name: name
+
+            """
+            if not isinstance(aux_op, WeightedPauliOperator):
+                aux_qop = BosonicTransformation._map_fermionic_operator_to_qubit(
+                    aux_op, self._qubit_mapping)
+                aux_qop.name = name
+            else:
+                aux_qop = aux_op
+
+            aux_ops.append(aux_qop)
+            logger.debug('  num paulis: %s', aux_qop.paulis)
+
+        logger.debug('Creating aux op for number of occupied modals per mode')
+
+        for mode in range(self._num_modes):
+            _add_aux_op(bos_op.number_occupied_modals_per_mode(mode),
+                        'Number of occupied modals in mode {}'.format(mode))
+
+        # add user specified auxiliary operators
+        if aux_operators is not None:
+            for aux_op in aux_operators:
+                _add_aux_op(aux_op, aux_op.name)
 
         return qubit_op, aux_ops
 
@@ -107,9 +158,32 @@ class BosonicTransformation(QubitOperatorTransformation):
         """
         result = VibronicStructureResult(eigenstate_result.data)
         result.computed_vibronic_energy = eigenstate_result.eigenvalue.real
-        result.num_occupied_modals_per_mode = eigenstate_result.num_occ_modals
+        if result.aux_operator_eigenvalues is not None:
+            occ_modals = []
+            for mode in range(self._num_modes):
+                if result.aux_operator_eigenvalues[mode] is not None:
+                    occ_modals.append(result.aux_operator_eigenvalues[mode][0].real)
+                else:
+                    occ_modals.append(None)
+            result.num_occupied_modals_per_mode = occ_modals
 
         return result
 
+    @staticmethod
+    def _map_fermionic_operator_to_qubit(bos_op: BosonicOperator,
+                                         qubit_mapping: str) -> WeightedPauliOperator:
+        """
+
+        Args:
+            bos_op: a BosonicOperator
+            qubit_mapping: the type of boson to qubit mapping
+
+        Returns: qubit operator
+
+        """
+
+        qubit_op = bos_op.mapping(qubit_mapping=qubit_mapping, threshold=0.00001)
+
+        return qubit_op
 
 

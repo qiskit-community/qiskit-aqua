@@ -243,3 +243,20 @@ class BosonicOperator:
             return True
         else:
             return False
+
+    def number_occupied_modals_per_mode(self, mode):
+        """
+        A bosonic operator which can be used to evaluate the number of
+        occupied modals in a given mode
+
+        Args:
+            mode: the index of the mode
+
+        Returns:
+            BosonicOperator: the corresponding bosonic operator
+        """
+        h = [[]]
+        for modal in range(self._basis[mode]):
+            h[0].append([[[mode, modal, modal]],1])
+
+        return BosonicOperator(h, self._basis)
