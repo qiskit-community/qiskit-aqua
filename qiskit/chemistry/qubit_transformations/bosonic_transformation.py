@@ -14,29 +14,27 @@ This module implements a vibronic Hamiltonian operator, representing the
 energy of the nuclei in a molecule.
 """
 
-import copy
-
-from typing import Tuple, List, Union
+from typing import Tuple, List, Union, Any, Optional
 from enum import Enum
-import numpy as np
 
-from qiskit.quantum_info import Pauli
-
-from qiskit.chemistry.drivers import BaseDriver #Should we have a bosonic driver
+from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.bosonic_operator import BosonicOperator
-from qiskit.chemistry.results import EigenstateResult, BosonicResult
+from qiskit.chemistry.results import EigenstateResult, VibronicStructureResult
 from qiskit.chemistry.components.bosonic_basis import HarmonicBasis
 from qiskit.aqua.operators.legacy import WeightedPauliOperator
 from .qubit_operator_transformation import QubitOperatorTransformation
+
 
 class TransformationType(Enum):
     """ TransformationType enum """
     HARMONIC = 'harmonic'
 
+
 class QubitMappingType(Enum):
     """ QubitMappingType enum """
     DIRECT = 'direct'
+
 
 class BosonicTransformation(QubitOperatorTransformation):
     """A vibronic Hamiltonian operator representing the energy of the nuclei in the molecule"""
@@ -68,7 +66,9 @@ class BosonicTransformation(QubitOperatorTransformation):
         self._num_modes = None
         self._h_mat = None
 
-    def transform(self, driver: BaseDriver) -> Tuple[WeightedPauliOperator, List[WeightedPauliOperator]]:
+    def transform(self, driver: BaseDriver,
+                  aux_operators: Optional[List[Any]] = None
+                  ) -> Tuple[WeightedPauliOperator, List[WeightedPauliOperator]]:
         """
         Transformation to qubit operator from the driver
 
@@ -96,9 +96,20 @@ class BosonicTransformation(QubitOperatorTransformation):
 
         return qubit_op, aux_ops
 
-    def interpret(self, eigenstate_result: EigenstateResult):
-        """TODO"""
-        pass
+    def interpret(self, eigenstate_result: EigenstateResult) -> VibronicStructureResult:
+        """Interprets an EigenstateResult in the context of this transformation.
+
+        Args:
+            eigenstate_result: an eigenstate result object.
+
+        Returns:
+            A vibronic structure result.
+        """
+        result = VibronicStructureResult(eigenstate_result.data)
+        result.computed_vibronic_energy = eigenstate_result.eigenvalue.real
+        result.num_occupied_modals_per_mode = eigenstate_result.num_occ_modals
+
+        return result
 
 
 
