@@ -22,6 +22,7 @@ from qiskit.aqua import AquaError
 
 
 class HermitianTrotterEvolution(PauliTrotterEvolution):
+    # pylint: disable=abstract-method
     r"""
     An Evolution algorithm which decompose a Hermitian operator to Pauli basis and applies Suzuki
     Trotter expansion using PauliTrotterEvolution.
