@@ -10,6 +10,8 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
+""" Hermitian Trotter Evolution """
+
 from typing import Optional, Union
 import numpy as np
 
