@@ -176,7 +176,7 @@ class UnivariatePiecewiseLinearObjective(CircuitFactory):
 
     def required_ancillas(self):
         """ requires ancillas """
-        return self._pwl_ry.num_ancilla_qubits
+        return self._pwl_ry.num_ancillas
 
     def build(self, qc, q, q_ancillas=None, params=None):
         """ build """

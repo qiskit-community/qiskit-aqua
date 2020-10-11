@@ -114,6 +114,16 @@ class FermionicTransformation(QubitOperatorTransformation):
 
         self._molecule_info: Dict[str, Any] = {}
 
+    @property
+    def molecule_info(self) -> Dict[str, Any]:
+        """Getter of the molecule information."""
+        return self._molecule_info
+
+    @property
+    def qubit_mapping(self) -> str:
+        """Getter of the qubit mapping."""
+        return self._qubit_mapping
+
     def transform(self, driver: BaseDriver,
                   aux_operators: Optional[List[FermionicOperator]] = None
                   ) -> Tuple[WeightedPauliOperator, List[WeightedPauliOperator]]:
@@ -314,8 +324,8 @@ class FermionicTransformation(QubitOperatorTransformation):
 
         # add user specified auxiliary operators
         if aux_operators is not None:
-            for name, aux_op in aux_operators.items():
-                _add_aux_op(aux_op, name)
+            for aux_op in aux_operators:
+                _add_aux_op(aux_op, aux_op.name)
 
         logger.info('Molecule num electrons: %s, remaining for processing: %s',
                     [num_alpha, num_beta], new_nel)
@@ -473,30 +483,30 @@ class FermionicTransformation(QubitOperatorTransformation):
             result.nuclear_dipole_moment = tuple(x for x in self._nuclear_dipole_moment)
         result.ph_extracted_energy = self._ph_energy_shift
         result.frozen_extracted_energy = self._energy_shift
-        if result.aux_values is not None:
+        if result.aux_operator_eigenvalues is not None:
             # the first three values are hardcoded to number of particles, angular momentum
             # and magnetization in this order
-            if result.aux_values[0] is not None:
-                result.num_particles = result.aux_values[0][0].real
+            if result.aux_operator_eigenvalues[0] is not None:
+                result.num_particles = result.aux_operator_eigenvalues[0][0].real
             else:
                 result.num_particles = None
 
-            if result.aux_values[1] is not None:
-                result.total_angular_momentum = result.aux_values[1][0].real
+            if result.aux_operator_eigenvalues[1] is not None:
+                result.total_angular_momentum = result.aux_operator_eigenvalues[1][0].real
             else:
                 result.total_angular_momentum = None
 
-            if result.aux_values[2] is not None:
-                result.magnetization = result.aux_values[2][0].real
+            if result.aux_operator_eigenvalues[2] is not None:
+                result.magnetization = result.aux_operator_eigenvalues[2][0].real
             else:
                 result.magnetization = None
 
             # the next three are hardcoded to Dipole moments, if they are set
-            if len(result.aux_values) >= 6 and self._has_dipole_moments:
+            if len(result.aux_operator_eigenvalues) >= 6 and self._has_dipole_moments:
                 # check if the names match
                 # extract dipole moment in each axis
                 dipole_moment = []
-                for moment in result.aux_values[3:6]:
+                for moment in result.aux_operator_eigenvalues[3:6]:
                     if moment is not None:
                         dipole_moment += [moment[0].real]
                     else:

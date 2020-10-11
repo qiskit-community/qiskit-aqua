@@ -15,7 +15,7 @@
 import unittest
 
 from test.chemistry import QiskitChemistryTestCase
-from test.chemistry.test_driver_methods import TestDriverMethods
+from test.chemistry.test_driver_methods_gsc import TestDriverMethods
 from qiskit.chemistry.drivers import FCIDumpDriver
 
 

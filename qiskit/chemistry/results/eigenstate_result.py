@@ -31,14 +31,14 @@ class EigenstateResult(AlgorithmResult):
         self.data['eigenvalue'] = value
 
     @property
-    def aux_values(self) -> Optional[List[float]]:
+    def aux_operator_eigenvalues(self) -> Optional[List[float]]:
         """ return aux operator eigen values """
-        return self.get('aux_values')
+        return self.get('aux_operator_eigenvalues')
 
-    @aux_values.setter
-    def aux_values(self, value: List[float]) -> None:
+    @aux_operator_eigenvalues.setter
+    def aux_operator_eigenvalues(self, value: List[float]) -> None:
         """ set aux operator eigen values """
-        self.data['aux_values'] = value
+        self.data['aux_operator_eigenvalues'] = value
 
     @property
     def raw_result(self) -> Optional[AlgorithmResult]:
