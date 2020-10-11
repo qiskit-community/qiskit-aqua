@@ -22,9 +22,8 @@ import qiskit
 from qiskit.circuit import ParameterVector, Parameter
 
 from qiskit.aqua.operators.evolutions.hermitian_trotter_evolution import HermitianTrotterEvolution
-from qiskit.aqua.operators import (X, Y, Z, I, CX, H, ListOp, CircuitOp, Zero, EvolutionFactory,
-                                   MatrixOp, EvolvedOp, QDrift,
-                                   MatrixEvolution, PauliTrotterEvolution)
+from qiskit.aqua.operators import (X, Y, Z, I, CX, H, ListOp, CircuitOp, Zero, MatrixOp, EvolvedOp,
+                                   EvolutionFactory, QDrift, MatrixEvolution, PauliTrotterEvolution)
 
 
 # pylint: disable=invalid-name
@@ -189,8 +188,8 @@ class TestEvolution(QiskitAquaTestCase):
     def test_hermitian_trotter_evolution(self):
         """ test hermiatian evolution, based on pauli trotterization """
         A = np.random.rand(4, 4) + np.random.rand(4, 4) * 1j
-        H = A + A.conj().T
-        hamiltonian = MatrixOp(H)
+        hermitian = A + A.conj().T
+        hamiltonian = MatrixOp(hermitian)
 
         evolution = HermitianTrotterEvolution(trotter_mode='suzuki', reps=12)
         circuit_by_trotterization = evolution.convert(hamiltonian)

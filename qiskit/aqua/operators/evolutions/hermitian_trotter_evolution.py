@@ -11,9 +11,21 @@ from qiskit.aqua import AquaError
 
 
 class HermitianTrotterEvolution(PauliTrotterEvolution):
+    r"""
+    An Evolution algorithm which decompose a Hermitian operator to Pauli basis and applies Suzuki
+    Trotter expansion using PauliTrotterEvolution.
+    """
+
     def __init__(self, trotter_mode: Optional[Union[str, TrotterizationBase]] = 'trotter',
                  reps: Optional[int] = 1):
-
+        """
+        Args:
+            trotter_mode: A string ('trotter', 'suzuki', or 'qdrift') to pass to the
+                TrotterizationFactory, or a TrotterizationBase, indicating how to combine
+                individual Pauli evolution circuits to equal the exponentiation of the Pauli sum.
+            reps: How many Trotterization repetitions to make, to improve the approximation
+                accuracy.
+        """
         if isinstance(trotter_mode, TrotterizationBase):
             self._trotter = trotter_mode
         else:
@@ -22,10 +34,20 @@ class HermitianTrotterEvolution(PauliTrotterEvolution):
         super().__init__(trotter_mode, reps)
 
     def convert(self, operator: MatrixOp) -> OperatorBase:
+        r"""
+        Check if the operator is Hermitian, decompose to Pauli basis and apply
+        PauliTrotterEvolution.
 
+        Args:
+            operator: The Operator to convert.
+
+        Returns:
+            The converted operator.
+        """
         def check_if_hermitian(matrix: np.ndarray):
             if not np.allclose(matrix, np.conjugate(matrix.T)):
-                raise AquaError("The input matrix for HermitianTrotterEvolution must be hermitian!")
+                raise AquaError("The operator to be converted by HermitianTrotterEvolution "
+                                "must be hermitian!")
 
         if isinstance(operator, MatrixOp):
             check_if_hermitian(operator.primitive.data)
@@ -35,4 +57,3 @@ class HermitianTrotterEvolution(PauliTrotterEvolution):
             operator = MatrixOp(operator).to_pauli_op().exp_i()
 
         return super().convert(operator)
-
