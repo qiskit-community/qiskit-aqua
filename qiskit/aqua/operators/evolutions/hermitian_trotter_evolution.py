@@ -12,9 +12,9 @@
 
 """ Hermitian Trotter Evolution """
 
+import logging
 from typing import Optional, Union
 import numpy as np
-import logging
 
 from qiskit.quantum_info import Operator
 from qiskit.aqua.operators.evolutions import PauliTrotterEvolution
