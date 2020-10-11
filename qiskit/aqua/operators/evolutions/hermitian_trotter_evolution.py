@@ -60,8 +60,8 @@ class HermitianTrotterEvolution(PauliTrotterEvolution):
         """
         def check_if_hermitian(matrix: np.ndarray):
             if not np.allclose(matrix, np.conjugate(matrix.T)):
-                raise AquaError("The operator to be converted by HermitianTrotterEvolution "
-                                "must be hermitian!")
+                raise AquaError("The operator to be converted by HermitianTrotterEvolution must "
+                                "be Hermitian!")
 
         if isinstance(operator, MatrixOp):
             check_if_hermitian(operator.primitive.data)
