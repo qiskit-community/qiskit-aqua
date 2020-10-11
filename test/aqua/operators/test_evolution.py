@@ -21,9 +21,9 @@ import scipy.linalg
 import qiskit
 from qiskit.circuit import ParameterVector, Parameter
 
-from qiskit.aqua.operators.evolutions.hermitian_trotter_evolution import HermitianTrotterEvolution
 from qiskit.aqua.operators import (X, Y, Z, I, CX, H, ListOp, CircuitOp, Zero, MatrixOp, EvolvedOp,
-                                   EvolutionFactory, QDrift, MatrixEvolution, PauliTrotterEvolution)
+                                   EvolutionFactory, QDrift, MatrixEvolution,
+                                   PauliTrotterEvolution, HermitianTrotterEvolution)
 
 
 # pylint: disable=invalid-name
@@ -187,6 +187,7 @@ class TestEvolution(QiskitAquaTestCase):
 
     def test_hermitian_trotter_evolution(self):
         """ test hermitian evolution, based on pauli trotterization """
+        np.random.seed(233423)
         A = np.random.rand(4, 4) + np.random.rand(4, 4) * 1j
         hermitian = A + A.conj().T
         hamiltonian = MatrixOp(hermitian)

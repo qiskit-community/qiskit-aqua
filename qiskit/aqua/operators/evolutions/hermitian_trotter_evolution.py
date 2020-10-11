@@ -14,11 +14,14 @@
 
 from typing import Optional, Union
 import numpy as np
+import logging
 
 from qiskit.quantum_info import Operator
 from qiskit.aqua.operators.evolutions import PauliTrotterEvolution
 from qiskit.aqua.operators import MatrixOp, OperatorBase, TrotterizationBase, TrotterizationFactory
 from qiskit.aqua import AquaError
+
+logger = logging.getLogger(__name__)
 
 
 class HermitianTrotterEvolution(PauliTrotterEvolution):

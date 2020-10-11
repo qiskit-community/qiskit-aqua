@@ -149,6 +149,7 @@ from .expectations import (ExpectationBase, ExpectationFactory, PauliExpectation
 from .evolutions import (EvolutionBase, EvolutionFactory, EvolvedOp, PauliTrotterEvolution,
                          MatrixEvolution, TrotterizationBase, TrotterizationFactory, Trotter,
                          Suzuki, QDrift)
+from .evolutions.hermitian_trotter_evolution import HermitianTrotterEvolution
 
 # Convenience immutable instances
 from .operator_globals import (EVAL_SIG_DIGITS,
@@ -174,8 +175,9 @@ __all__ = [
     'ConverterBase', 'CircuitSampler', 'AbelianGrouper', 'DictToCircuitSum', 'PauliBasisChange',
     'ExpectationBase', 'ExpectationFactory', 'PauliExpectation', 'MatrixExpectation',
     'AerPauliExpectation',
-    'EvolutionBase', 'EvolvedOp', 'EvolutionFactory', 'PauliTrotterEvolution', 'MatrixEvolution',
-    'TrotterizationBase', 'TrotterizationFactory', 'Trotter', 'Suzuki', 'QDrift',
+    'EvolutionBase', 'EvolvedOp', 'EvolutionFactory', 'HermitianTrotterEvolution',
+    'PauliTrotterEvolution', 'MatrixEvolution', 'TrotterizationBase', 'TrotterizationFactory',
+    'Trotter', 'Suzuki', 'QDrift',
     # Convenience immutable instances
     'X', 'Y', 'Z', 'I', 'CX', 'S', 'H', 'T', 'Swap', 'CZ', 'Zero', 'One', 'Plus', 'Minus'
 ]
