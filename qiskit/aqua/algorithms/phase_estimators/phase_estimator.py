@@ -117,7 +117,7 @@ class PhaseEstimator(QuantumAlgorithm):
         super().__init__(quantum_instance)
 
     def _add_classical_register(self) -> None:
-        """Explicitly add measurement instructions only if we are not using a state vector simulator."""
+        """Add measurement instructions only if we are not using a state vector simulator."""
         if not self._quantum_instance.is_statevector and not self._measurements_added:
             # Measure only the evaluation qubits.
             regname = 'meas'
@@ -137,7 +137,8 @@ class PhaseEstimator(QuantumAlgorithm):
         self._add_classical_register()
         return self._pe_circuit
 
-    def _compute_phases(self, circuit_result: Result) -> Union[numpy.ndarray, dict]:
+    def _compute_phases(self, circuit_result: Result) -> Union[numpy.ndarray,
+                                                               qiskit.result.Counts]:
         """Compute frequencies/counts of phases from the result of running the QPE circuit.
 
         How the frequencies are computed depends on whether the backend computes amplitude or
