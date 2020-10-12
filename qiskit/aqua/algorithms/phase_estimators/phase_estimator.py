@@ -137,12 +137,6 @@ class PhaseEstimator(QuantumAlgorithm):
         self._add_classical_register()
         return self._pe_circuit
 
-    # Favor construct_circuit
-    # @property
-    # def pe_circuit(self) -> QuantumCircuit:
-    #     """Return the phase estimation circuit. """
-    #     return self._pe_circuit
-
     def _compute_phases(self, circuit_result: Result) -> Union[numpy.ndarray, dict]:
         """Compute frequencies/counts of phases from the result of running the QPE circuit.
 
