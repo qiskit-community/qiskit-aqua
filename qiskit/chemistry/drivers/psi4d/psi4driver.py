@@ -12,15 +12,18 @@
 
 """ PSI4 Driver """
 
-from typing import Union, List
+from typing import Union, List, Optional
 import tempfile
 import os
 import subprocess
 import logging
 import sys
 from shutil import which
-from qiskit.chemistry import QMolecule, QiskitChemistryError
-from qiskit.chemistry.drivers import BaseDriver
+from ..units_type import UnitsType
+from ..fermionic_driver import FermionicDriver
+from ...qiskit_chemistry_error import QiskitChemistryError
+from ..molecule import Molecule
+from ...qmolecule import QMolecule
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +32,7 @@ PSI4 = 'psi4'
 PSI4_APP = which(PSI4)
 
 
-class PSI4Driver(BaseDriver):
+class PSI4Driver(FermionicDriver):
     """
     Qiskit chemistry driver using the PSI4 program.
 
@@ -39,21 +42,36 @@ class PSI4Driver(BaseDriver):
     def __init__(self,
                  config: Union[str, List[str]] =
                  'molecule h2 {\n  0 1\n  H  0.0 0.0 0.0\n  H  0.0 0.0 0.735\n}\n\n'
-                 'set {\n  basis sto-3g\n  scf_type pk\n  reference rhf\n') -> None:
+                 'set {\n  basis sto-3g\n  scf_type pk\n  reference rhf\n',
+                 molecule: Optional[Molecule] = None,
+                 basis: str = 'sto-3g',
+                 hf_method: str = 'rhf') -> None:
         """
         Args:
-            config: A molecular configuration conforming to PSI4 format
+            config: A molecular configuration conforming to PSI4 format.
+            molecule: A driver independent Molecule definition instance may be provided. When
+                a molecule is supplied the `config` parameter is ignored and the Molecule instance,
+                along with `basis` and `hf_method` is used to build a basic config instead.
+                The Molecule object is read when the driver is run and converted to the driver
+                dependent configuration for the computation. This allows, for example, the Molecule
+                geometry to be updated to compute different points.
+            basis: Basis set
+            hf_method: Hartree-Fock Method type; `rhf`, `rohf`, `uhf`
+
         Raises:
             QiskitChemistryError: Invalid Input
         """
         self._check_valid()
-        if not isinstance(config, list) and not isinstance(config, str):
-            raise QiskitChemistryError("Invalid input for PSI4 Driver '{}'".format(config))
+        if not isinstance(config, str) and not isinstance(config, list):
+            raise QiskitChemistryError("Invalid config for PSI4 Driver '{}'".format(config))
 
         if isinstance(config, list):
             config = '\n'.join(config)
 
-        super().__init__()
+        super().__init__(molecule=molecule,
+                         basis=basis,
+                         hf_method=hf_method,
+                         supports_molecule=True)
         self._config = config
 
     @staticmethod
@@ -61,14 +79,36 @@ class PSI4Driver(BaseDriver):
         if PSI4_APP is None:
             raise QiskitChemistryError("Could not locate {}".format(PSI4))
 
+    def _from_molecule_to_str(self) -> str:
+        units = None
+        if self.molecule.units == UnitsType.ANGSTROM:
+            units = 'ang'
+        elif self.molecule.units == UnitsType.BOHR:
+            units = 'bohr'
+        else:
+            raise QiskitChemistryError("Unknown unit '{}'".format(self.molecule.units.value))
+        name = ''.join([name for (name, _) in self.molecule.geometry])
+        geom = '\n'.join([name + ' ' + ' '.join(map(str, coord))
+                          for (name, coord) in self.molecule.geometry])
+        cfg1 = f'molecule {name} {{\nunits {units}\n'
+        cfg2 = f'{self.molecule.charge} {self.molecule.multiplicity}\n'
+        cfg3 = f'{geom}\nno_com\nno_reorient\n}}\n\n'
+        cfg4 = f'set {{\n basis {self.basis}\n scf_type pk\n reference {self.hf_method}\n}}'
+        return cfg1 + cfg2 + cfg3 + cfg4
+
     def run(self) -> QMolecule:
+        if self.molecule is not None:
+            cfg = self._from_molecule_to_str()
+        else:
+            cfg = self._config
+
         psi4d_directory = os.path.dirname(os.path.realpath(__file__))
         template_file = psi4d_directory + '/_template.txt'
         qiskit_chemistry_directory = os.path.abspath(os.path.join(psi4d_directory, '../..'))
 
         molecule = QMolecule()
 
-        input_text = self._config + '\n'
+        input_text = cfg + '\n'
         input_text += 'import sys\n'
         syspath = '[\'' + qiskit_chemistry_directory + '\',\'' + '\',\''.join(sys.path) + '\']'
 
@@ -116,7 +156,7 @@ class PSI4Driver(BaseDriver):
         # remove internal file
         _q_molecule.remove_file()
         _q_molecule.origin_driver_name = 'PSI4'
-        _q_molecule.origin_driver_config = self._config
+        _q_molecule.origin_driver_config = cfg
         return _q_molecule
 
     @staticmethod
