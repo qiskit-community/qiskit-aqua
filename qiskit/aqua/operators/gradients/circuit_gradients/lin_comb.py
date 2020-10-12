@@ -215,8 +215,8 @@ class LinComb(CircuitGradient):
         state_qc = deepcopy(state_op.primitive)
 
         # Define the working qubit to realize the linear combination of unitaries
-        qr_work = QuantumRegister(0, 'work_qubit_lin_comb_grad')
-        work_q = qr_work[-1]
+        qr_work = QuantumRegister(1, 'work_qubit_lin_comb_grad')
+        work_q = qr_work[0]
 
         if state_qc.has_register(qr_work):
             meas_op = (4 * ~StateFn(Z ^ I) ^ meas_op)
