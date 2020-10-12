@@ -12,10 +12,6 @@
 
 """ Test of UCCSD and HartreeFock Aqua extensions """
 
-import unittest
-
-from ddt import ddt, idata, unpack
-
 from test.chemistry import QiskitChemistryTestCase
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance, aqua_globals
@@ -28,6 +24,8 @@ from qiskit.chemistry.core import QubitMappingType
 from qiskit.chemistry.drivers import HDF5Driver
 from qiskit.chemistry.ground_state_calculation import MinimumEigensolverGroundStateCalculation
 from qiskit.chemistry.qubit_transformations import FermionicTransformation
+from ddt import ddt, idata, unpack
+
 
 @ddt
 class TestUCCSDHartreeFock(QiskitChemistryTestCase):
@@ -198,5 +196,4 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
 
         self.assertListEqual(list(excitations), self.EXCITATION_RESULTS[expected_result_idx])
 
-# if __name__ == '__main__':
-#     unittest.main()
+
