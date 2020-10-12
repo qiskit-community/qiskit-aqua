@@ -32,7 +32,7 @@ class PhaseEstimatorResult(AlgorithmResult):
     def __init__(self, num_evaluation_qubits: int,
                  circuit_result: Result,
                  phase_array: Optional[numpy.ndarray] = None,
-                 phase_dict: Optional[Dict] = None) -> None:
+                 phase_dict: Optional[Dict[str, float]] = None) -> None:
         """
         Args:
             num_evaluation_qubits: number of qubits in phase-readout register.
@@ -127,7 +127,7 @@ class PhaseEstimatorResult(AlgorithmResult):
                 phases = {_bit_string_to_phase(k): counts[k]
                           for k in counts.keys() if counts[k] > cutoff}
             else:
-                phases = {k: counts[k] for k in counts.keys() if counts[k] > cutoff}
+                phases = {k: counts[k] for k in counts.keys() if counts[k] > cutoff}  # type: ignore
 
         else:
             phases = {}

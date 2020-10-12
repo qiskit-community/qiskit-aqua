@@ -13,7 +13,8 @@
 """Result from running HamiltonianPE"""
 
 
-from typing import Dict, List, cast
+from typing import Dict, Optional, cast
+import numpy
 from qiskit.result import Result
 from .phase_estimator_result import PhaseEstimatorResult
 from .phase_estimation_scale import PhaseEstimationScale
@@ -30,7 +31,8 @@ class HamiltonianPEResult(PhaseEstimatorResult):
     """
     def __init__(self, num_evaluation_qubits: int, circuit_result: Result,
                  phase_estimation_scale: PhaseEstimationScale,
-                 phase_array: List = None, phase_dict: Dict = None) -> None:
+                 phase_array: Optional[numpy.ndarray] = None,
+                 phase_dict: Optional[Dict[str, float]] = None) -> None:
         """
         Args:
             num_evaluation_qubits: number of qubits in phase-readout register.
