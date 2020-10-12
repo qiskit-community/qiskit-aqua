@@ -29,7 +29,7 @@ from .phase_estimator_result import PhaseEstimatorResult, _sort_phases
 
 
 class PhaseEstimator(QuantumAlgorithm):
-    """Run the Quantum Phase Estimation algorithm.
+    """Run the Quantum Phase Estimation (QPE) algorithm.
 
     This runs a version of QPE with a multi-qubit register for reading the phase [1]. The main
     inputs are the number of qubits in the phase-reading register, a state preparation circuit to
