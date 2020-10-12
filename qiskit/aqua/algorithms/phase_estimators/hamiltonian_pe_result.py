@@ -13,7 +13,7 @@
 """Result from running HamiltonianPE"""
 
 
-from typing import Dict, Optional, Union, cast
+from typing import Dict, Union, cast
 import numpy
 from qiskit.result import Result
 from .phase_estimator_result import PhaseEstimatorResult
@@ -31,23 +31,17 @@ class HamiltonianPEResult(PhaseEstimatorResult):
     """
     def __init__(self, num_evaluation_qubits: int, circuit_result: Result,
                  phase_estimation_scale: PhaseEstimationScale,
-                 phase_array: Optional[numpy.ndarray] = None,
-                 phase_dict: Optional[Dict[str, float]] = None) -> None:
+                 phases: Union[numpy.ndarray, Dict[str, float]]) -> None:
         """
         Args:
             num_evaluation_qubits: number of qubits in phase-readout register.
             circuit_result: result object returned by method running circuit.
             phase_estimation_scale: object used to scale phases to obtain eigenvalues.
-            phase_array: ndarray of phases and frequencies determined by QPE.
-            phase_dict: dict of phases and counts determined by QPE.
-
-        Note:
-            Only one of `phase_array` and `phase_dict` is not `None`. `phase_array`
-            is not `None` if the QPE circuit was simulated by a statevector simulator.
+            phases: ndarray or dict of phases and frequencies determined by QPE.
         """
         self._phase_estimation_scale = phase_estimation_scale
 
-        super().__init__(num_evaluation_qubits, circuit_result, phase_array, phase_dict)
+        super().__init__(num_evaluation_qubits, circuit_result, phases)
 
     # pylint: disable=arguments-differ
     def filter_phases(self, cutoff: float = 0.0, scaled: bool = True,  # type: ignore

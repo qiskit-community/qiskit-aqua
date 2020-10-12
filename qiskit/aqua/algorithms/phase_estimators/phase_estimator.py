@@ -195,9 +195,5 @@ class PhaseEstimator(QuantumAlgorithm):
 
         circuit_result = self._quantum_instance.execute(self.construct_circuit())
         phases = self._compute_phases(circuit_result)
-        if isinstance(phases, numpy.ndarray):
-            return PhaseEstimatorResult(self._num_evaluation_qubits, phase_array=phases,
-                                        circuit_result=circuit_result)
-        else:
-            return PhaseEstimatorResult(self._num_evaluation_qubits, phase_dict=phases,
-                                        circuit_result=circuit_result)
+        return PhaseEstimatorResult(self._num_evaluation_qubits, circuit_result=circuit_result,
+                                    phases=phases)

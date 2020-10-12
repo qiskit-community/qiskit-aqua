@@ -155,18 +155,12 @@ class HamiltonianPE(PhaseEstimator):
         # It does not break any others that we tested.
         return unitary_circuit.decompose().decompose()
 
-
     def _run(self) -> HamiltonianPEResult:
         """Run the circuit and return and return `HamiltonianPEResult`.
         """
 
         circuit_result = self._quantum_instance.execute(self.construct_circuit())
         phases = self._compute_phases(circuit_result)
-        if isinstance(phases, numpy.ndarray):
-            return HamiltonianPEResult(
-                self._num_evaluation_qubits, phase_array=phases,
-                circuit_result=circuit_result, phase_estimation_scale=self._pe_scale)
-        else:
-            return HamiltonianPEResult(
-                self._num_evaluation_qubits, phase_dict=phases,
-                circuit_result=circuit_result, phase_estimation_scale=self._pe_scale)
+        return HamiltonianPEResult(
+            self._num_evaluation_qubits, phases=phases,
+            circuit_result=circuit_result, phase_estimation_scale=self._pe_scale)

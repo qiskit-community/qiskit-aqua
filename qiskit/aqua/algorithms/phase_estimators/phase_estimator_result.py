@@ -12,7 +12,7 @@
 
 """Result of running PhaseEstimator"""
 
-from typing import Optional, Dict
+from typing import Dict, Union
 import numpy
 from qiskit.result import Result
 
@@ -31,27 +31,17 @@ class PhaseEstimatorResult(AlgorithmResult):
 
     def __init__(self, num_evaluation_qubits: int,
                  circuit_result: Result,
-                 phase_array: Optional[numpy.ndarray] = None,
-                 phase_dict: Optional[Dict[str, float]] = None) -> None:
+                 phases: Union[numpy.ndarray, Dict[str, float]]) -> None:
         """
         Args:
             num_evaluation_qubits: number of qubits in phase-readout register.
             circuit_result: result object returned by method running circuit.
-            phase_array: ndarray of phases and frequencies determined by QPE.
-            phase_dict: dict of phases and counts determined by QPE.
-
-        Note:
-            Only one of `phase_array` and `phase_dict` is not `None`. `phase_array`
-            is not `None` if the QPE circuit was simulated by a statevector simulator.
+            phases: ndarray or dict of phases and frequencies determined by QPE.
         """
         # int: number of qubits in phase-readout register
         self._num_evaluation_qubits = num_evaluation_qubits
 
-        # ndarray: weights of phases computed by QPE
-        self._phase_array = phase_array
-
-        # dict: (or subclass) weights of phases computed by QPE
-        self._phase_dict = phase_dict
+        self._phases = phases
 
         # result of running the circuit (on hardware or simulator)
         self._circuit_result = circuit_result
@@ -59,22 +49,12 @@ class PhaseEstimatorResult(AlgorithmResult):
         super().__init__()
 
     @property
-    def phase_array(self) -> numpy.ndarray:
+    def phases(self) -> Union[numpy.ndarray, dict]:
         """Return all phases and their frequencies computed by QPE.
 
-        This is an array whose values correspond to weights on bit strings. Only one of
-        `phase_array` and `phase_dict` is not `None`.
+        This is an array or dict whose values correspond to weights on bit strings.
         """
-        return self._phase_array
-
-    @property
-    def phase_dict(self) -> dict:
-        """Return all phases and their frequencies computed by QPE.
-
-        This is a dict whose keys are bit strings and values are weights on bit strings. Only one of
-        `phase_array` and `phase_dict` is not `None`.
-        """
-        return self._phase_dict
+        return self._phases
 
     @property
     def circuit_result(self) -> Result:
@@ -91,11 +71,11 @@ class PhaseEstimatorResult(AlgorithmResult):
         eigenvector of the unitary so that the peak of the probability density occurs at the bit
         string that most closely approximates the true phase.
         """
-        if self._phase_dict is not None:
-            binary_phase_string = max(self._phase_dict, key=self._phase_dict.get)
+        if isinstance(self._phases, dict):
+            binary_phase_string = max(self._phases, key=self._phases.get)
         else:
             # numpy.argmax ignores complex part of number. But, we take abs anyway
-            idx = numpy.argmax(abs(self._phase_array))
+            idx = numpy.argmax(abs(self._phases))
             binary_phase_string = numpy.binary_repr(idx, self._num_evaluation_qubits)[::-1]
         phase = _bit_string_to_phase(binary_phase_string)
         return phase
@@ -121,8 +101,8 @@ class PhaseEstimatorResult(AlgorithmResult):
         Returns:
             A filtered dict of phases (keys) and frequencies (values).
         """
-        if self._phase_dict is not None:
-            counts = self._phase_dict
+        if isinstance(self._phases, dict):
+            counts = self._phases
             if as_float:
                 phases = {_bit_string_to_phase(k): counts[k]
                           for k in counts.keys() if counts[k] > cutoff}
@@ -131,7 +111,7 @@ class PhaseEstimatorResult(AlgorithmResult):
 
         else:
             phases = {}
-            for idx, amplitude in enumerate(self._phase_array):
+            for idx, amplitude in enumerate(self._phases):
                 if amplitude > cutoff:
                     # Each index corresponds to a computational basis state with the LSB rightmost.
                     # But, we chose to apply the unitaries such that the phase is recorded

@@ -65,7 +65,7 @@ class TestHamiltonianPE(QiskitAquaTestCase):
         self.assertAlmostEqual(phases[1], -1.484, delta=0.001)
 
     def test_matrix_evolution(self):
-        """1Q Hamiltonin with MatrixEvolution"""
+        """1Q Hamiltonian with MatrixEvolution"""
         hamiltonian = (0.5 * X) + (0.6 * Y) + (0.7 * I)
         state_preparation = None
         result = self.hamiltonian_pe(hamiltonian, state_preparation, evolution=MatrixEvolution())
