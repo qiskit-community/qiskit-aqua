@@ -196,7 +196,7 @@ class DerivativeBase(ConverterBase):
         if isinstance(operator, ListOp) and not isinstance(operator, ComposedOp):
             return operator.traverse(cls._factor_coeffs_out_of_composed_op)
         if isinstance(operator, ComposedOp):
-            total_coeff = 1.0
+            total_coeff = operator.coeff
             take_norm_of_coeffs = False
             for op in operator.oplist:
                 if take_norm_of_coeffs:
