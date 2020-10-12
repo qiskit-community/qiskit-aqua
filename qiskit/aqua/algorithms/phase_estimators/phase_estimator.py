@@ -117,7 +117,7 @@ class PhaseEstimator(QuantumAlgorithm):
         super().__init__(quantum_instance)
 
     def _add_classical_register(self) -> None:
-        """Explicitly add measurement instructions only if we are using a state vector simulator."""
+        """Explicitly add measurement instructions only if we are not using a state vector simulator."""
         if not self._quantum_instance.is_statevector and not self._measurements_added:
             # Measure only the evaluation qubits.
             regname = 'meas'
