@@ -339,8 +339,8 @@ class TestGradients(QiskitAquaTestCase):
                        {a: np.pi / 4, b: np.pi / 4},
                        {a: np.pi / 2, b: np.pi / 4}]
                        
-        correct_values = [[-1.28163104,  2.56326208,  1.06066017]
-                          [-0.04495626, -2.40716991,  1.8125    ]
+        correct_values = [[-1.28163104,  2.56326208,  1.06066017],
+                          [-0.04495626, -2.40716991,  1.8125    ],
                           [ 2.82842712, -1.5,         1.76776695]]
 
         for i, value_dict in enumerate(values_dict):
