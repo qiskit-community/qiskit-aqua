@@ -10,19 +10,19 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" TODO """
+""" The calculation of excited states via the numerical qEOM algorithm """
 
 import numpy as np
 import logging
 import itertools
 import sys
 
-from typing import Optional, List
+from typing import Optional, List, Union
 
 from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
 from qiskit.aqua import aqua_globals
-from qiskit.aqua.operators import Z2Symmetries, commutator
+from qiskit.aqua.operators import Z2Symmetries, commutator, WeightedPauliOperator
 from qiskit.chemistry.ground_state_calculation import GroundStateCalculation
 from qiskit.chemistry.excited_states_calculation import qEOMExcitedStatesCalculation
 
@@ -30,25 +30,38 @@ logger = logging.getLogger(__name__)
 
 
 class NumericalqEOMExcitedStatesCalculation(qEOMExcitedStatesCalculation):
+    """ The calculation of excited states via the numerical qEOM algorithm """
 
     def __init__(self, ground_state_calculation: GroundStateCalculation,
-                 excitation_type: str = 'SD', active_space: Optional[List[int]] = None):
-        super().__init__(ground_state_calculation,excitation_type,active_space)
+                 excitations: Union[str, List[List[int]]] = 'sd'):
+        """
+        Args:
+            ground_state_calculation: a GroundStateCalculation object. The qEOM algorithm
+                will use this ground state to compute the EOM matrix elements
+            excitations: The excitations to be included in the eom pseudo-eigenvalue problem.
+                If a string ('s', 'd' or 'sd') then all excitations of the given type will be used.
+                Otherwise a list of custom excitations can directly be provided.
+        """
 
-    def prepare_matrix_operators(self):
+        super().__init__(ground_state_calculation, excitations)
+        self.excitations = excitations
 
-        hopping_operators, type_of_commutativities = self._gsc.transformation.build_hopping_operators(
-            self._excitation_type, self._active_space) # already need the number of qubits etc
+    def prepare_matrix_operators(self) -> [dict, int]:
+        """construct the excitation operators for each matrix element
+        Returns: a dictionary of all matrix elements operators
+        """
 
-        eom_matrix_operators = self.build_all_commutators(hopping_operators, type_of_commutativities)
+        hopping_operators, type_of_commutativities, size = self._gsc.transformation.build_hopping_operators(
+            self._excitations)
 
-        return eom_matrix_operators
+        eom_matrix_operators = self.build_all_commutators(hopping_operators, type_of_commutativities, size)
 
-    def build_all_commutators(self, hopping_operators, type_of_commutativities):
+        return eom_matrix_operators, size
+
+    def build_all_commutators(self, hopping_operators: dict, type_of_commutativities: dict, size: int) -> dict:
         """Building all commutators for Q, W, M, V matrices.
 
         Args:
-            excitations_list (list): single excitations list + double excitation list
             hopping_operators (dict): all hopping operators based on excitations_list,
                                       key is the string of single/double excitation;
                                       value is corresponding operator.
@@ -56,13 +69,8 @@ class NumericalqEOMExcitedStatesCalculation(qEOMExcitedStatesCalculation):
                                      hopping operators with the
                                      Z2 symmetries found in the original operator.
         Returns:
-            dict: key: a string of matrix indices; value: the commutators for Q matrix
-            dict: key: a string of matrix indices; value: the commutators for W matrix
-            dict: key: a string of matrix indices; value: the commutators for M matrix
-            dict: key: a string of matrix indices; value: the commutators for V matrix
-            int: number of entries in the matrix
+            a dictionary that contains the operators for each matrix element
         """
-        size = len(hopping_operators.keys())
 
         all_matrix_operators = {}
 
@@ -76,7 +84,7 @@ class NumericalqEOMExcitedStatesCalculation(qEOMExcitedStatesCalculation):
                 n_u = nus[idx]
                 left_op = available_hopping_ops.get('E_{}'.format(m_u))
                 right_op_1 = available_hopping_ops.get('E_{}'.format(n_u))
-                right_op_2 = available_hopping_ops.get('E_dag_{}'.format(n_u))
+                right_op_2 = available_hopping_ops.get('Edag_{}'.format(n_u))
                 to_be_computed_list.append((m_u, n_u, left_op, right_op_1, right_op_2))
 
             if logger.isEnabledFor(logging.INFO):
@@ -89,13 +97,17 @@ class NumericalqEOMExcitedStatesCalculation(qEOMExcitedStatesCalculation):
             for result in results:
                 m_u, n_u, q_mat_op, w_mat_op, m_mat_op, v_mat_op = result
 
-                all_matrix_operators['q_{}_{}'.format(m_u, n_u)] = q_mat_op
-                all_matrix_operators['w_{}_{}'.format(m_u, n_u)] = w_mat_op
-                all_matrix_operators['m_{}_{}'.format(m_u, n_u)] = m_mat_op
-                all_matrix_operators['v_{}_{}'.format(m_u, n_u)] = v_mat_op
+                if q_mat_op is not None:
+                    all_matrix_operators['q_{}_{}'.format(m_u, n_u)] = q_mat_op
+                if w_mat_op is not None:
+                    all_matrix_operators['w_{}_{}'.format(m_u, n_u)] = w_mat_op
+                if m_mat_op is not None:
+                    all_matrix_operators['m_{}_{}'.format(m_u, n_u)] = m_mat_op
+                if v_mat_op is not None:
+                    all_matrix_operators['v_{}_{}'.format(m_u, n_u)] = v_mat_op
 
         try:
-            z2_symmetries = self._gsc.transformation.z2_symmetries
+            z2_symmetries = self._gsc.transformation.molecule_info['z2_symmetries']
         except:
             z2_symmetries = Z2Symmetries([],[],[])
 
@@ -111,18 +123,36 @@ class NumericalqEOMExcitedStatesCalculation(qEOMExcitedStatesCalculation):
                     value = np.asarray(value)
                     if np.all(value == targeted_sector):
                         available_hopping_ops[key] = hopping_operators[key]
-                _build_one_sector(available_hopping_ops, self._gsc.transformation.untapered_op,
+                _build_one_sector(available_hopping_ops, self._gsc.transformation.untapered_qubit_op,
                                   z2_symmetries, self._gcs.transormation.commutation_rule)
 
         else:
-            _build_one_sector(hopping_operators,self._gsc.transformation.untapered_op,
-                                  z2_symmetries, self._gcs.transormation.commutation_rule)
+            _build_one_sector(hopping_operators,self._gsc.transformation.untapered_qubit_op,
+                                  z2_symmetries, self._gsc.transformation.commutation_rule)
 
 
         return all_matrix_operators
 
     @staticmethod
-    def _build_commutator_routine(params, operator, z2_symmetries, sign):
+    def _build_commutator_routine(params: List, operator: WeightedPauliOperator,
+                                  z2_symmetries: Z2Symmetries, sign: int) -> [int, int,
+                                                                              WeightedPauliOperator,
+                                                                              WeightedPauliOperator,
+                                                                              WeightedPauliOperator,
+                                                                              WeightedPauliOperator]:
+        """
+        numerically computes the commutator / double commutator between operators
+        Args:
+            params: list containing the indices of matrix element and the corresponding
+                excitation operators
+            operator: the hamiltonian
+            z2_symmetries: z2_symmetries in case of tappering
+            sign: commute or anticommute
+
+        Returns: the indices of the matrix element and the corresponding qubit
+            operator for each of the EOM matrices
+
+        """
         m_u, n_u, left_op, right_op_1, right_op_2 = params
         if left_op is None:
             q_mat_op = None

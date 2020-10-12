@@ -10,113 +10,110 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" TODO """
+"""The calculation of excited states via the qEOM algorithm"""
 
 import numpy as np
 from abc import abstractmethod
 import logging
 from scipy import linalg
 
-from typing import Optional, List
+from typing import Optional, List, Union
 
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.ground_state_calculation import GroundStateCalculation
 from qiskit.chemistry.excited_states_calculation import ExcitedStatesCalculation
+from qiskit.chemistry.results import EigenstateResult
 
 logger = logging.getLogger(__name__)
 
 
 class qEOMExcitedStatesCalculation(ExcitedStatesCalculation):
+    """The calculation of excited states via the qEOM algorithm"""
 
     def __init__(self, ground_state_calculation: GroundStateCalculation,
-                 excitation_type: str = 'SD', active_space: Optional[List[int]] = None):
+                 excitations: Union[str, List[List[int]]] = 'sd'):
+        """
+        Args:
+            ground_state_calculation: a GroundStateCalculation object. The qEOM algorithm
+                will use this ground state to compute the EOM matrix elements
+            excitations: The excitations to be included in the eom pseudo-eigenvalue problem.
+                If a string ('s', 'd' or 'sd') then all excitations of the given type will be used.
+                Otherwise a list of custom excitations can directly be provided.
+        """
 
         super().__init__(ground_state_calculation)
-
-        self.excitation_type = excitation_type
-        self.active_space = active_space
+        self.excitations = excitations
 
     @property
-    def excitation_type(self) -> str:
-        """Returns the type of excitations to be included in the eom pseudo-eignevalue problem."""
-        return self._excitation_type
+    def excitations(self) -> Union[str, List[List[int]]]:
+        """Returns the excitations to be included in the eom pseudo-eignevalue problem."""
+        return self._excitations
 
-    @excitation_type.setter
-    def excitation_type(self, excitation_type: str) -> None:
-        """Sets the type of excitations to be included in the eom pseudo-eignevalue problem."""
-        if [letter not in ['S','D','T'] for letter in excitation_type]:
+    @excitations.setter
+    def excitations(self, excitations: Union[str, List[List[int]]]) -> None:
+        """The excitations to be included in the eom pseudo-eigenvalue problem. If a string then
+        all excitations of given type will be used. Otherwise a list of custom excitations can
+        directly be provided."""
+        if isinstance(excitations, str) and any([letter not in ['s','d'] for letter in excitations]):
             raise ValueError(
-                'Excitation type must be S (single), D (double), T (triple) or a combination of them')
-        self._excitation_type = excitation_type
-
-    @property
-    def active_space(self) -> Optional[List[int]]:
-        """Returns the active space in which the excitations are defined."""
-        return self._active_space
-
-    @active_space.setter
-    def active_space(self, active_space: List) -> None:
-        """Sets the active space in which the excitations are defined."""
-        self._active_space = active_space
+                'Excitation type must be s (singles), d (doubles) or sd (singles and doubles)')
+        self._excitations = excitations
 
     def compute_excitedstates(self, driver: BaseDriver):
         """
         construct and solves the EOM pseudo-eigenvalue problem to obtain the excitation energies
         and the excitation operators expansion coefficients
         Args:
-            driver:
+            driver: a chemistry driver object which defines the chemical problem that is to be
+                    solved by this calculation.
         """
 
         # 1. Run ground state calculation
-        ground_state_results = self._gsc.calculate_ground_state(driver)
+        eigenstate_result = self._gsc.compute_groundstate(driver)
 
         # 2. Prepare the excitation operators
-        matrix_operators_dict = self.prepare_matrix_operators()
-
-        # matrix_operators_names=[]
-        # matrix_operators_paulis=[]
-        # for name, pauli in matrix_operators_dict.items():
-        #     if pauli:
-        #         matrix_operators_names.append(name)
-        #         matrix_operators_paulis.append(pauli)
-        #
-        # measurement_results = { name : ground_state_results.aux_values[idx]
-        #                        for idx, name in enumerate(matrix_operators_names) }
+        matrix_operators_dict, size = self.prepare_matrix_operators()
 
         # 3. Evaluate eom operators
-        measurement_results = self._gsc.evaluate_operators(matrix_operators_dict)
+        measurement_results = self._gsc.evaluate_operators(eigenstate_result.raw_result['eigenstate'],
+                                                           matrix_operators_dict)
 
-        # 3. Postprocess ground_state_result to construct eom matrices
+
+        # 4. Postprocess ground_state_result to construct eom matrices
         m_mat, v_mat, q_mat, w_mat, m_mat_std, v_mat_std, q_mat_std, w_mat_std = \
-            self.build_eom_matrices(measurement_results)
+            self.build_eom_matrices(measurement_results, size)
 
-        # 4. solve pseudo-eigenvalue problem
+        # 5. solve pseudo-eigenvalue problem
         energy_gaps, expansion_coefs = self.compute_excitation_energies(m_mat, v_mat, q_mat, w_mat)
 
-        results = {'excitation energies': energy_gaps,
+        raw_results = {'excitation energies': energy_gaps,
                    'expansion coefficients': expansion_coefs,
                    'm_mat': m_mat, 'v_mat': v_mat, 'q_mat': q_mat, 'w_mat': w_mat,
                    'm_mat_std': m_mat_std, 'v_mat_std': v_mat_std,
                    'q_mat_std': q_mat_std, 'w_mat_std': w_mat_std}
 
-        return results
+        eigenstate_result.excited_states_raw_result = raw_results
+        for gap in energy_gaps:
+            eigenstate_result.energies.append(eigenstate_result.energies[0]+gap)
+
+        return raw_results
 
     @abstractmethod
     def prepare_matrix_operators(self):
+        """construct the excitation operators for each matrix element"""
         raise NotImplementedError
 
-
-    def build_eom_matrices(self, gs_results):
+    def build_eom_matrices(self, gs_results: dict, size: int) -> [np.ndarray, np.ndarray, np.ndarray,
+                                                           np.ndarray, float, float, float, float]:
         """
         Constructs the M, V, Q and W matrices from the results on the ground state
         Args:
-            gs_results:
+            size: size of eigenvalue problem
+            gs_results: a ground state result object
 
-        Returns:
+        Returns: the matrices and their standard deviation
 
         """
-
-        size = len(gs_results.keys)
 
         mus, nus = np.triu_indices(size)
 
@@ -174,18 +171,19 @@ class qEOMExcitedStatesCalculation(ExcitedStatesCalculation):
 
 
     @staticmethod
-    def compute_excitation_energies(m_mat, v_mat, q_mat, w_mat):
+    def compute_excitation_energies(m_mat: np.ndarray, v_mat: np.ndarray, q_mat: np.ndarray,
+                                    w_mat: np.ndarray) -> [np.ndarray, np.ndarray]:
         """Diagonalizing M, V, Q, W matrices for excitation energies.
 
         Args:
-            m_mat (numpy.ndarray): M matrices
-            v_mat (numpy.ndarray): V matrices
-            q_mat (numpy.ndarray): Q matrices
-            w_mat (numpy.ndarray): W matrices
+            m_mat : M matrices
+            v_mat : V matrices
+            q_mat : Q matrices
+            w_mat : W matrices
 
         Returns:
-            numpy.ndarray: 1-D vector stores all energy gap to reference state
-            numpy.ndarray: 2-D array storing the X and Y expansion coefficients
+            1-D vector stores all energy gap to reference state
+            2-D array storing the X and Y expansion coefficients
         """
         logger.debug('Diagonalizing qeom matrices for excited states...')
         a_mat = np.bmat([[m_mat, q_mat], [q_mat.T.conj(), m_mat.T.conj()]])

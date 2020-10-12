@@ -10,7 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" TODO """
+""" The excited states calculation interface """
 
 from abc import ABC, abstractmethod
 
@@ -19,21 +19,23 @@ from qiskit.chemistry.ground_state_calculation import GroundStateCalculation
 
 
 class ExcitedStatesCalculation(ABC):
-    """TODO"""
+    """The excited states calculation interface"""
 
     def __init__(self, ground_state_calculation: GroundStateCalculation) -> None:
         """
         Args:
-            ground_state_calculation: TODO
+            ground_state_calculation: a GroundStateCalculation object which defines
+            the methods and properties for the calculation of the ground state
         """
         self._gsc = ground_state_calculation
 
     @abstractmethod
     def compute_excitedstates(self, driver: BaseDriver):
-        """TODO
+        """Compute the excited states energies of the molecule that was supplied via the driver.
         Args:
-            driver: TODO
+            driver: a chemistry driver object which defines the chemical problem that is to be
+                    solved by this calculation.
         Returns:
-            ExcitedStateResult (TODO type hint)
+            an eigenstate result
         """
         raise NotImplementedError()
