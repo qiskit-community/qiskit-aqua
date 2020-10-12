@@ -379,13 +379,16 @@ class InequalityToEquality(QuadraticProgramConverter):
         """Convert a result of a converted problem into that of the original problem.
 
         Args:
-            result: The result of the converted problem.
+            result: The result of the converted problem or the given result in case of FAILURE.
 
         Returns:
             The result of the original problem.
         """
         # pylint: disable=cyclic-import
         from ..algorithms.optimization_algorithm import OptimizationResult
+
+        if result.x is None:
+            return result
 
         # convert back the optimization result into that of the original problem
         names = [x.name for x in self._dst.variables]

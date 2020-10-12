@@ -163,7 +163,7 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
         """Convert the result of the converted problem back to that of the original problem
 
         Args:
-            result: The result of the converted problem.
+            result: The result of the converted problem or the given result in case of FAILURE.
 
         Returns:
             The result of the original problem.
@@ -174,6 +174,9 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
         """
         # pylint: disable=cyclic-import
         from ..algorithms.optimization_algorithm import OptimizationResult, OptimizationResultStatus
+
+        if result.x is None:
+            return result
 
         if len(result.x) != self._src.get_num_vars():
             raise QiskitOptimizationError(

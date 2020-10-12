@@ -35,5 +35,17 @@ class TestDriverPyQuante(QiskitChemistryTestCase, TestDriver):
         self.qmolecule = driver.run()
 
 
+class TestDriverPyQuanteMolecule(QiskitChemistryTestCase, TestDriver):
+    """PYQUANTE Driver molecule tests."""
+
+    def setUp(self):
+        super().setUp()
+        try:
+            driver = PyQuanteDriver(molecule=TestDriver.MOLECULE)
+        except QiskitChemistryError:
+            self.skipTest('PYQUANTE driver does not appear to be installed')
+        self.qmolecule = driver.run()
+
+
 if __name__ == '__main__':
     unittest.main()
