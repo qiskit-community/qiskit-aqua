@@ -12,21 +12,24 @@
 
 """ Gaussian Driver """
 
-from typing import Union, List
+from typing import Union, List, Optional
 import sys
 import io
 import logging
 import os
 import tempfile
 import numpy as np
-from qiskit.chemistry import QMolecule, QiskitChemistryError
-from qiskit.chemistry.drivers import BaseDriver
+from ..units_type import UnitsType
+from ..fermionic_driver import FermionicDriver
+from ...qiskit_chemistry_error import QiskitChemistryError
+from ..molecule import Molecule
+from ...qmolecule import QMolecule
 from .gaussian_utils import check_valid, run_g16
 
 logger = logging.getLogger(__name__)
 
 
-class GaussianDriver(BaseDriver):
+class GaussianDriver(FermionicDriver):
     """
     Qiskit chemistry driver using the Gaussian™ 16 program.
 
@@ -42,29 +45,64 @@ class GaussianDriver(BaseDriver):
     def __init__(self,
                  config: Union[str, List[str]] =
                  '# rhf/sto-3g scf(conventional)\n\n'
-                 'h2 molecule\n\n0 1\nH   0.0  0.0    0.0\nH   0.0  0.0    0.735\n\n') -> None:
+                 'h2 molecule\n\n0 1\nH   0.0  0.0    0.0\nH   0.0  0.0    0.735\n\n',
+                 molecule: Optional[Molecule] = None,
+                 basis: str = 'sto-3g',
+                 hf_method: str = 'rhf') -> None:
         """
         Args:
-            config: A molecular configuration conforming to Gaussian™ 16 format
+            config: A molecular configuration conforming to Gaussian™ 16 format.
+            molecule: A driver independent Molecule definition instance may be provided. When
+                a molecule is supplied the `config` parameter is ignored and the Molecule instance,
+                along with `basis` and `hf_method` is used to build a basic config instead.
+                The Molecule object is read when the driver is run and converted to the driver
+                dependent configuration for the computation. This allows, for example, the Molecule
+                geometry to be updated to compute different points.
+            basis: Basis set
+            hf_method: Hartree-Fock Method type; `rhf`, `rohf`, `uhf`
+
         Raises:
             QiskitChemistryError: Invalid Input
         """
         GaussianDriver._check_valid()
-        if not isinstance(config, list) and not isinstance(config, str):
-            raise QiskitChemistryError("Invalid input for Gaussian Driver '{}'".format(config))
+        if not isinstance(config, str) and not isinstance(config, list):
+            raise QiskitChemistryError("Invalid config for Gaussian Driver '{}'".format(config))
 
         if isinstance(config, list):
             config = '\n'.join(config)
 
-        super().__init__()
+        super().__init__(molecule=molecule,
+                         basis=basis,
+                         hf_method=hf_method,
+                         supports_molecule=True)
         self._config = config
 
     @staticmethod
     def _check_valid():
         check_valid()
 
+    def _from_molecule_to_str(self) -> str:
+        units = None
+        if self.molecule.units == UnitsType.ANGSTROM:
+            units = 'Angstrom'
+        elif self.molecule.units == UnitsType.BOHR:
+            units = 'Bohr'
+        else:
+            raise QiskitChemistryError("Unknown unit '{}'".format(self.molecule.units.value))
+        cfg1 = f'# {self.hf_method}/{self.basis} UNITS={units} scf(conventional)\n\n'
+        name = ''.join([name for (name, _) in self.molecule.geometry])
+        geom = '\n'.join([name + ' ' + ' '.join(map(str, coord))
+                          for (name, coord) in self.molecule.geometry])
+        cfg2 = f'{name} molecule\n\n'
+        cfg3 = f'{self.molecule.charge} {self.molecule.multiplicity}\n{geom}\n\n'
+        return cfg1 + cfg2 + cfg3
+
     def run(self) -> QMolecule:
-        cfg = self._config
+        if self.molecule is not None:
+            cfg = self._from_molecule_to_str()
+        else:
+            cfg = self._config
+
         while not cfg.endswith('\n\n'):
             cfg += '\n'
 
@@ -93,7 +131,7 @@ class GaussianDriver(BaseDriver):
             logger.warning("Failed to remove MatrixElement file %s", fname)
 
         q_mol.origin_driver_name = 'GAUSSIAN'
-        q_mol.origin_driver_config = self._config
+        q_mol.origin_driver_config = cfg
         return q_mol
 
     @staticmethod
