@@ -99,9 +99,9 @@ class PhaseEstimationScale():
         """
         w = 2 * self._bound
         if isinstance(phases, list):
-            phases = [x * w if x <= 0.5 else (x - 1) * w for x in phases]
+            phases = [(x * w) if x <= 0.5 else ((x - 1) * w) for x in phases]
         else:
-            phases = {(x * w if x <= 0.5 else (x - 1) * w): phases[x] for x in phases.keys()}
+            phases = {((x * w) if x <= 0.5 else ((x - 1) * w)): phases[x] for x in phases.keys()}
 
         return phases
 

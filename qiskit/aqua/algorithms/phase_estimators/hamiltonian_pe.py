@@ -146,9 +146,15 @@ class HamiltonianPE(PhaseEstimator):
         scaled_hamiltonian = self._pe_scale.scale * self._hamiltonian
         unitary = self._evolution.convert(scaled_hamiltonian.exp_i())
         if not isinstance(unitary, QuantumCircuit):
-            return unitary.to_circuit()
+            unitary_circuit = unitary.to_circuit()
         else:
-            return unitary
+            unitary_circuit = unitary
+
+        # Decomposing twice allows some 1Q Hamiltonians to give correct results
+        # when using MatrixEvolution(), that otherwise would give incorrect results.
+        # It does not break any others that we tested.
+        return unitary_circuit.decompose().decompose()
+
 
     def _run(self) -> HamiltonianPEResult:
         """Run the circuit and return and return `HamiltonianPEResult`.

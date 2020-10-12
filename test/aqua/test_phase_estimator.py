@@ -17,9 +17,9 @@ from test.aqua import QiskitAquaTestCase
 import numpy as np
 from qiskit.aqua.algorithms.phase_estimators import PhaseEstimator, HamiltonianPE
 from qiskit.aqua.algorithms.phase_estimators.hamiltonian_pe import TempPauliEvolve
-from qiskit.aqua.operators.evolutions import PauliTrotterEvolution
+from qiskit.aqua.operators.evolutions import PauliTrotterEvolution, MatrixEvolution
 import qiskit
-from qiskit.aqua.operators import (H, X, Y, Z)
+from qiskit.aqua.operators import (H, X, Y, Z, I)
 
 
 class TestHamiltonianPE(QiskitAquaTestCase):
@@ -30,13 +30,13 @@ class TestHamiltonianPE(QiskitAquaTestCase):
         self.hamiltonian_1 = (0.5 * X) + Y + Z
 
     def hamiltonian_pe(self, hamiltonian, state_preparation=None, num_evaluation_qubits=6,
-                       backend=qiskit.Aer.get_backend('qasm_simulator')):
+                       backend=qiskit.Aer.get_backend('qasm_simulator'), evolution=TempPauliEvolve()):
         """Run HamiltonianPE and return result with all  phases."""
         quantum_instance = qiskit.aqua.QuantumInstance(backend=backend, shots=100000)
         phase_est = HamiltonianPE(
             num_evaluation_qubits=num_evaluation_qubits,
             hamiltonian=hamiltonian, quantum_instance=quantum_instance,
-            state_preparation=state_preparation, evolution=TempPauliEvolve())
+            state_preparation=state_preparation, evolution=evolution)
         result = phase_est.run()
         return result
 
@@ -62,6 +62,16 @@ class TestHamiltonianPE(QiskitAquaTestCase):
         phases = list(phase_dict.keys())
         self.assertAlmostEqual(phases[0], 1.484, delta=0.001)
         self.assertAlmostEqual(phases[1], -1.484, delta=0.001)
+
+    def test_matrix_evolution(self):
+        """1Q Hamiltonin with MatrixEvolution"""
+        hamiltonian = (0.5 * X) + (0.6 * Y) + (0.7 * I)
+        state_preparation = None
+        result = self.hamiltonian_pe(hamiltonian, state_preparation, evolution=MatrixEvolution())
+        phase_dict = result.filter_phases(0.2, as_float=True)
+        phases = list(phase_dict.keys())
+        self.assertAlmostEqual(phases[0], 0.0562, delta=0.001)
+        self.assertAlmostEqual(phases[1], -1.462, delta=0.001)
 
     def _setup_from_bound(self, evolution):
         hamiltonian = self.hamiltonian_1
