@@ -128,13 +128,8 @@ class LinComb(CircuitGradient):
                     if isinstance(params, (ParameterExpression, ParameterVector)) or \
                             (isinstance(params, list) and all(isinstance(param, ParameterExpression)
                                                               for param in params)):
-                        if isinstance(operator, CircuitGradient): #TODO Check
-                            return self._hessian_from_gradient_states(state_op,
-                                                        meas_op=(4 * ~StateFn(Z ^ I) ^ operator[0]),
-                                                        target_params=params)
 
-                        else:
-                            return self._gradient_states(state_op, meas_op=(~StateFn(Z) ^
+                        return self._gradient_states(state_op, meas_op=(~StateFn(Z) ^
                                                                             operator[0]),
                                                          target_params=params)
                     elif isinstance(params, tuple) or \
@@ -156,15 +151,9 @@ class LinComb(CircuitGradient):
                     if isinstance(params, (ParameterExpression, ParameterVector)) or \
                             (isinstance(params, list) and all(isinstance(param, ParameterExpression)
                                                               for param in params)):
-                        if isinstance(operator, CircuitGradient): #TODO Check
-                            return state_op.traverse(
-                                partial(self._hessian_from_gradient_states,
-                                        meas_op=(4 * ~StateFn(Z ^ I) ^ operator[0]),
-                                        target_params=params))
-                        else:
-                            return state_op.traverse(
-                                partial(self._gradient_states, meas_op=(~StateFn(Z) ^ operator[0]),
-                                        target_params=params))
+                        return state_op.traverse(partial(self._gradient_states,
+                                                         meas_op=operator[0],
+                                                         target_params=params))
                     elif isinstance(params, tuple) or \
                         (isinstance(params, list) and all(isinstance(param, tuple)
                                                           for param in params)):
@@ -187,10 +176,7 @@ class LinComb(CircuitGradient):
                 if isinstance(params, (ParameterExpression, ParameterVector)) or \
                         (isinstance(params, list) and all(isinstance(param, ParameterExpression)
                                                           for param in params)):
-                    if isinstance(operator, CircuitGradient): #TODO Check
-                        self._hessian_from_gradient_states(operator, target_params=params)
-                    else:
-                        return self._gradient_states(operator, target_params=params)
+                    return self._gradient_states(operator, target_params=params)
                 elif isinstance(params, tuple) or \
                         (isinstance(params, list) and all(isinstance(param, tuple)
                                                           for param in params)):
@@ -228,15 +214,22 @@ class LinComb(CircuitGradient):
         """
         state_qc = deepcopy(state_op.primitive)
 
+        # Define the working qubit to realize the linear combination of unitaries
+        qr_work = QuantumRegister(0, 'work_qubit_lin_comb_grad')
+        work_q = qr_work[-1]
+
+        if state_qc.has_register(qr_work):
+            meas_op = (4 * ~StateFn(Z ^ I) ^ meas_op)
+            return self._hessian_from_gradient_states(state_op, meas_op, target_params)
+        else:
+            meas_op = (2 * ~StateFn(Z) ^ meas_op)
+
         if not isinstance(target_params, (list, np.ndarray)):
             target_params = [target_params]
 
         if len(target_params) > 1:
             states = None
 
-        # Define the working qubit to realize the linar combination of unitaries
-        qr_work = QuantumRegister(1, 'work_qubit')
-        work_q = qr_work[0]
         additional_qubits: Tuple[List[Qubit], List[Qubit]] = ([work_q], [])
 
         for param in target_params:
@@ -300,7 +293,7 @@ class LinComb(CircuitGradient):
                                              additional_qubits=additional_qubits)
                         grad_state.h(work_q)
 
-                        state = np.sqrt(np.abs(coeff_i) * 2) * state_op.coeff * CircuitStateFn(
+                        state = np.sqrt(np.abs(coeff_i)) * state_op.coeff * CircuitStateFn(
                             grad_state)
                         # Chain Rule parameter expressions
                         gate_param = param_occurence[0].params[param_occurence[1]]
@@ -582,13 +575,14 @@ class LinComb(CircuitGradient):
         return ListOp(hessian_ops)
 
     def _hessian_from_gradient_states(self,
-                         state_op: StateFn,
-                         meas_op: Optional[OperatorBase] = None,
-                         target_params: Optional[
-                             Union[ParameterExpression, ParameterVector,
-                                   List[ParameterExpression]]] = None
-                         ) -> ListOp:
-        """Generate the hessian states from gradient.
+                                      state_op: StateFn,
+                                      meas_op: Optional[OperatorBase] = None,
+                                      target_params: Optional[Union[ParameterExpression,
+                                                                    ParameterVector,
+                                                                    List[ParameterExpression]]]
+                                      = None
+                                      ) -> ListOp:
+        """Generate the hessian states from a gradient state.
 
         Args:
             state_op: The operator representing the quantum state for which we compute the Hessian.
@@ -612,11 +606,11 @@ class LinComb(CircuitGradient):
         if len(target_params) > 1:
             states = None
 
-        # Define the working qubit to realize the linar combination of unitaries
+        # Define the working qubit to realize the linear combination of unitaries
         qr_work1 = QuantumRegister(1, 'work_qubit1')
         work_q1 = qr_work1[0]
         for qreg in state_qc.qregs:
-            if qreg.name == 'work_qubit':
+            if qreg.name == 'work_qubit_lin_comb_grad':
                 work_q0 = qreg
         additional_qubits: Tuple[List[Qubit], List[Qubit]] = ([work_q1], [])
 
@@ -683,7 +677,7 @@ class LinComb(CircuitGradient):
                         hessian_state.cz(work_q1, work_q0)
                         hessian_state.h(work_q1)
 
-                        state = np.sqrt(np.abs(coeff_i) * 2) * state_op.coeff * CircuitStateFn(
+                        state = np.sqrt(np.abs(coeff_i)) * state_op.coeff * CircuitStateFn(
                             hessian_state)
                         # Chain Rule parameter expressions
                         gate_param = param_occurence[0].params[param_occurence[1]]
@@ -744,10 +738,12 @@ class LinComb(CircuitGradient):
                         prob_counts *= -1
                     suffix = key[1:]
                     prob_dict[suffix] = prob_dict.get(suffix, 0) + prob_counts
+                for key in prob_dict:
+                    prob_dict[key] *= 2
                 return prob_dict
             elif isinstance(item, Iterable):
                 # Generate the operator which computes the linear combination
-                lin_comb_op = (I ^ state_op.num_qubits) ^ Z
+                lin_comb_op = 2 * (I ^ state_op.num_qubits) ^ Z
                 lin_comb_op = lin_comb_op.to_matrix()
                 return list(np.diag(
                     partial_trace(lin_comb_op.dot(np.outer(item, np.conj(item))), [0]).data))
