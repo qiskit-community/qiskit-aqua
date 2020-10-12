@@ -162,8 +162,14 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
         exp = ~StateFn(op) @ state  # <state|op|state>
 
         if quantum_instance is not None:
-            sampler = CircuitSampler(quantum_instance)
-            result = sampler.convert(exp).eval()
+            try:
+                sampler = CircuitSampler(quantum_instance)
+                result = sampler.convert(exp).eval()
+            except ValueError:
+                # TODO make this cleaner. The reason for it being here is that some quantum
+                # instances can lead to non-positive statevectors which the Qiskit circuit
+                # Initializer is unable to handle.
+                result = exp.eval()
         else:
             result = exp.eval()
 

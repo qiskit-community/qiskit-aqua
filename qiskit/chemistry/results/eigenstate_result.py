@@ -30,6 +30,14 @@ class EigenstateResult(AlgorithmResult):
         """ set eigen value """
         self.data['eigenvalue'] = value
 
+    # @eigenstates.setter
+
+    # @eigenenergies.setter
+
+    # @groundenergy.setter
+
+    # @groundstates.setter
+
     @property
     def aux_operator_eigenvalues(self) -> Optional[List[float]]:
         """ return aux operator eigen values """
