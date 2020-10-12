@@ -195,5 +195,3 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
             excitation_type=excitation_type)
 
         self.assertListEqual(list(excitations), self.EXCITATION_RESULTS[expected_result_idx])
-
-
