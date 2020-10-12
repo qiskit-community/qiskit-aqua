@@ -20,11 +20,14 @@ import logging
 from enum import Enum
 
 import numpy as np
+from qiskit.tools import parallel_map
+from qiskit.aqua import AquaError, aqua_globals
 from qiskit.aqua.operators import Z2Symmetries, WeightedPauliOperator
 from qiskit.chemistry import QiskitChemistryError, QMolecule
 from qiskit.chemistry.fermionic_operator import FermionicOperator
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.results import DipoleTuple, EigenstateResult, ElectronicStructureResult
+from qiskit.chemistry.components.variational_forms import UCCSD
 
 from .qubit_operator_transformation import QubitOperatorTransformation
 from ..components.initial_states import HartreeFock
@@ -94,6 +97,7 @@ class FermionicTransformation(QubitOperatorTransformation):
                     raise QiskitChemistryError('Invalid z2symmetry_reduction value')
         self._z2symmetry_reduction = z2symmetry_reduction
         self._has_dipole_moments = False
+        self._untapered_qubit_op = None
 
         # Store values that are computed by the classical logic in order
         # that later they may be combined with the quantum result
@@ -112,7 +116,14 @@ class FermionicTransformation(QubitOperatorTransformation):
         self._ph_y_dipole_shift = 0.0
         self._ph_z_dipole_shift = 0.0
 
+        self._active_dof = None
+
         self._molecule_info: Dict[str, Any] = {}
+
+    @property
+    def commutation_rule(self) -> int:
+        """Getter of the commutation rule"""
+        return -1
 
     @property
     def molecule_info(self) -> Dict[str, Any]:
@@ -239,6 +250,8 @@ class FermionicTransformation(QubitOperatorTransformation):
             )
         qubit_op.name = 'Fermionic Operator'
 
+        self._active_dof = [fer_op.modes, new_num_alpha, new_num_beta]
+
         logger.debug('  num paulis: %s, num qubits: %s', len(qubit_op.paulis), qubit_op.num_qubits)
 
         aux_ops = []  # list of the aux operators
@@ -338,6 +351,7 @@ class FermionicTransformation(QubitOperatorTransformation):
         self._molecule_info['num_orbitals'] = new_nspinorbs
         reduction = self._two_qubit_reduction if self._qubit_mapping == 'parity' else False
         self._molecule_info['two_qubit_reduction'] = reduction
+        self._untapered_qubit_op = qubit_op
 
         z2symmetries = Z2Symmetries([], [], [], None)
         if self._z2symmetry_reduction is not None:
@@ -348,6 +362,11 @@ class FermionicTransformation(QubitOperatorTransformation):
 
         logger.debug('Processing complete ready to run algorithm')
         return qubit_op, aux_ops
+
+    @property
+    def untapered_qubit_op(self):
+        """Getter for the untapered qubit operator"""
+        return self._untapered_qubit_op
 
     def _process_z2symmetry_reduction(self,
                                       qubit_op: WeightedPauliOperator,
@@ -569,3 +588,93 @@ class FermionicTransformation(QubitOperatorTransformation):
         if qubit_mapping == 'parity' and two_qubit_reduction:
             qubit_op = Z2Symmetries.two_qubit_reduction(qubit_op, num_particles)
         return qubit_op
+
+    @staticmethod
+    def _build_single_hopping_operator(index, num_particles, num_orbitals, qubit_mapping,
+                                       two_qubit_reduction, z2_symmetries):
+
+        h_1 = np.zeros((num_orbitals, num_orbitals), dtype=complex)
+        h_2 = np.zeros((num_orbitals, num_orbitals, num_orbitals, num_orbitals), dtype=complex)
+        if len(index) == 2:
+            i, j = index
+            h_1[i, j] = 4.0
+        elif len(index) == 4:
+            i, j, k, m = index
+            h_2[i, j, k, m] = 16.0
+        fer_op = FermionicOperator(h_1, h_2)
+        qubit_op = fer_op.mapping(qubit_mapping)
+        if qubit_mapping == 'parity' and two_qubit_reduction:
+            qubit_op = Z2Symmetries.two_qubit_reduction(qubit_op, num_particles)
+
+        commutativities = []
+        if not z2_symmetries.is_empty():
+            for symmetry in z2_symmetries.symmetries:
+                symmetry_op = WeightedPauliOperator(paulis=[[1.0, symmetry]])
+                commuting = qubit_op.commute_with(symmetry_op)
+                anticommuting = qubit_op.anticommute_with(symmetry_op)
+
+                if commuting != anticommuting:  # only one of them is True
+                    if commuting:
+                        commutativities.append(True)
+                    elif anticommuting:
+                        commutativities.append(False)
+                else:
+                    raise AquaError("Symmetry {} is nor commute neither anti-commute "
+                                    "to exciting operator.".format(symmetry.to_label()))
+
+        return qubit_op, commutativities
+
+    def build_hopping_operators(self, excitations: Union[str, List[List[int]]] = 'sd'):
+        """
+
+        Args:
+            excitations:
+
+        Returns:
+
+        """
+
+        num_orbitals, num_alpha, num_beta = self._active_dof
+
+        if isinstance(excitations, str):
+            excitations_list = UCCSD.compute_excitation_lists([num_alpha,num_beta], num_orbitals,
+                                                                excitation_type=excitations)
+        else:
+            excitations_list = excitations
+
+
+        size = len(excitations_list)
+
+        # get all to-be-processed index
+        mus, nus = np.triu_indices(size)
+
+        # build all hopping operators
+        hopping_operators = {}
+        type_of_commutativities = {}
+        to_be_executed_list = []
+        for idx, _ in enumerate(mus):
+            m_u = mus[idx]
+            n_u = nus[idx]
+            keys = ['E_{}'.format(m_u), 'E_{}'.format(n_u), 'Edag_{}'.format(n_u)]
+            values = [excitations_list[m_u], excitations_list[n_u],
+                                list(reversed(excitations_list[n_u]))]
+            for k in range(len(keys)):
+                key = keys[k]
+                if key not in hopping_operators:
+                    to_be_executed_list.append(values[k])
+                    hopping_operators[key] = None
+                    type_of_commutativities[key] = None
+
+
+        result = parallel_map(self._build_single_hopping_operator,
+                              to_be_executed_list,
+                              task_args=(num_alpha+num_beta, num_orbitals,
+                                         self._qubit_mapping,
+                                         self._two_qubit_reduction, self._molecule_info['z2_symmetries']),
+                              num_processes=aqua_globals.num_processes)
+
+        for key, res in zip(hopping_operators.keys(), result):
+            hopping_operators[key] = res[0]
+            type_of_commutativities[key] = res[1]
+
+        return hopping_operators, type_of_commutativities, size
