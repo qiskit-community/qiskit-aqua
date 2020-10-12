@@ -13,6 +13,7 @@
 """ Test of UCCSD and HartreeFock Aqua extensions """
 
 from test.chemistry import QiskitChemistryTestCase
+from ddt import ddt, idata, unpack
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms import VQE
@@ -24,7 +25,6 @@ from qiskit.chemistry.core import QubitMappingType
 from qiskit.chemistry.drivers import HDF5Driver
 from qiskit.chemistry.ground_state_calculation import MinimumEigensolverGroundStateCalculation
 from qiskit.chemistry.qubit_transformations import FermionicTransformation
-from ddt import ddt, idata, unpack
 
 
 @ddt
