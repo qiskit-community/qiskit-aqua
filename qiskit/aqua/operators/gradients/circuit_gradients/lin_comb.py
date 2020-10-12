@@ -37,7 +37,6 @@ from qiskit.circuit.library.standard_gates import (CXGate, CYGate, CZGate,
 from qiskit.quantum_info import partial_trace
 
 from .circuit_gradient import CircuitGradient
-from ..gradient import Gradient
 from ..derivative_base import DerivativeBase
 
 
@@ -635,7 +634,8 @@ class LinComb(CircuitGradient):
                         hessian_state.compose(state_qc, inplace=True)
 
                         # apply Hadamard on work_q
-                        self.insert_gate(hessian_state, param_occurence[0], HGate(), qubits=[work_q1])
+                        self.insert_gate(hessian_state, param_occurence[0], HGate(),
+                                         qubits=[work_q1])
 
                         # Fix work_q phase
                         coeff_i = coeffs[k]
@@ -700,7 +700,7 @@ class LinComb(CircuitGradient):
                         else:
                             if gate_param == param:
                                 state = ListOp([state],
-                                               combo_fn=partial(self._hessian_combo_fn,
+                                               combo_fn=partial(self._hess_combo_fn,
                                                                 state_op=state_op))
                             else:
                                 if isinstance(gate_param, ParameterExpression):
@@ -708,7 +708,7 @@ class LinComb(CircuitGradient):
                                                                                          param)
                                     state = expr_grad * ListOp(
                                         [state],
-                                        combo_fn=partial(self._hessian_combo_fn, state_op=state_op))
+                                        combo_fn=partial(self._hess_combo_fn, state_op=state_op))
                                 else:
                                     state = ~Zero @ One
 
