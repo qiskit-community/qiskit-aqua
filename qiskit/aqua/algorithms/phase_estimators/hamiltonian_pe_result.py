@@ -13,7 +13,7 @@
 """Result from running HamiltonianPE"""
 
 
-from typing import Dict, Optional, cast
+from typing import Dict, Optional, Union, cast
 import numpy
 from qiskit.result import Result
 from .phase_estimator_result import PhaseEstimatorResult
@@ -51,7 +51,7 @@ class HamiltonianPEResult(PhaseEstimatorResult):
 
     # pylint: disable=arguments-differ
     def filter_phases(self, cutoff: float = 0.0, scaled: bool = True,  # type: ignore
-                      as_float: bool = True) -> Dict:
+                      as_float: bool = True) -> Dict[Union[str, float], float]:
         """Filter phases as does `PhaseEstimatorResult.filter_phases`, with
         the addition that `phi` is shifted and translated to return eigenvalues
         of the Hamiltonian.

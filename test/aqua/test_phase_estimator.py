@@ -30,7 +30,8 @@ class TestHamiltonianPE(QiskitAquaTestCase):
         self.hamiltonian_1 = (0.5 * X) + Y + Z
 
     def hamiltonian_pe(self, hamiltonian, state_preparation=None, num_evaluation_qubits=6,
-                       backend=qiskit.Aer.get_backend('qasm_simulator'), evolution=TempPauliEvolve()):
+                       backend=qiskit.Aer.get_backend('qasm_simulator'),
+                       evolution=TempPauliEvolve()):
         """Run HamiltonianPE and return result with all  phases."""
         quantum_instance = qiskit.aqua.QuantumInstance(backend=backend, shots=100000)
         phase_est = HamiltonianPE(
