@@ -13,8 +13,15 @@
 """The ground state calculation interface."""
 
 from abc import ABC, abstractmethod
-from typing import List, Any, Optional
+from typing import Dict, List, Any, Optional, Union
 
+import numpy as np
+
+from qiskit import QuantumCircuit
+from qiskit.circuit import Instruction
+from qiskit.quantum_info import Statevector
+from qiskit.result import Result
+from qiskit.aqua.operators import OperatorBase, WeightedPauliOperator
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.results import EigenstateResult
 
@@ -66,5 +73,27 @@ class GroundStateCalculation(ABC):
         Returns:
             True, if this class also returns the ground state in the results object.
             False otherwise.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def evaluate_operators(self,
+                           state: Union[str, dict, Result,
+                                        list, np.ndarray, Statevector,
+                                        QuantumCircuit, Instruction,
+                                        OperatorBase],
+                           operators: Union[WeightedPauliOperator, OperatorBase, list, dict]
+                           ) -> Union[float, List[float], Dict[str, float]]:
+        """Evaluates additional operators at the given state.
+
+        Args:
+            state: any kind of input that can be used to specify a state. See also ``StateFn`` for
+                   more details.
+            operators: either a single, list or dictionary of ``WeightedPauliOperator``s or any kind
+                       of operator implementing the ``OperatorBase``.
+
+        Returns:
+            The expectation value of the given operator(s). The return type will be identical to the
+            format of the provided operators.
         """
         raise NotImplementedError

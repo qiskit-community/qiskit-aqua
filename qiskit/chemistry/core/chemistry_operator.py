@@ -166,9 +166,6 @@ class MolecularGroundStateResult(MolecularChemistryResult):
     Energies are in Hartree and dipole moments in A.U unless otherwise stated.
     """
 
-    # TODO we need to be able to extract the statevector or the optimal parameters that can
-    # construct the circuit of the GS from here (if the algorithm supports this)
-
     def __init__(self, a_dict: Optional[Dict] = None) -> None:
         super().__init__(a_dict)
         warnings.warn('The qiskit.chemistry.chemistry_operator.MolecularGroundStateResult object '

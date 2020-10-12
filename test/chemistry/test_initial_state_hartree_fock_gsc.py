@@ -105,8 +105,8 @@ class TestInitialStateHartreeFock(QiskitChemistryTestCase):
         qubit_op, _ = fermionic_transformation.transform(driver)
 
         qubit_op = op_converter.to_matrix_operator(qubit_op)
-        hrfo = HartreeFock(fermionic_transformation._molecule_info['num_orbitals'],
-                           fermionic_transformation._molecule_info['num_particles'],
+        hrfo = HartreeFock(fermionic_transformation.molecule_info['num_orbitals'],
+                           fermionic_transformation.molecule_info['num_particles'],
                            mapping.value,
                            two_qubit_reduction=False)
         qc = hrfo.construct_circuit('vector')
