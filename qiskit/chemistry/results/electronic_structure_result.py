@@ -78,12 +78,13 @@ class ElectronicStructureResult(EigenstateResult):
     # construct the circuit of the GS from here (if the algorithm supports this)
 
     @property
-    def energy(self) -> Optional[float]:
+    def energies(self) -> Optional[List[float]]:
         """ Returns ground state energy if nuclear_repulsion_energy is available from driver """
         # TODO the fact that this property is computed on the fly breaks the `.combine()`
         # functionality
         nre = self.nuclear_repulsion_energy
-        return self.electronic_energy + nre if nre is not None else None
+        energy_list = [self.electronic_energy + nre if nre is not None else None]
+        return energy_list
 
     @property
     def electronic_energy(self) -> float:
@@ -257,6 +258,14 @@ class ElectronicStructureResult(EigenstateResult):
     def magnetization(self, value: float) -> None:
         """ Sets measured magnetization """
         self.data['magnetization'] = value
+
+    @property
+    def excited_states_raw_results(self):
+        return self.get('esc_raw_results')
+
+    @excited_states_raw_results.setter
+    def excited_states_raw_results(self, value):
+        self.data['esc_raw_results'] = value
 
     def __str__(self) -> str:
         """ Printable formatted result """
