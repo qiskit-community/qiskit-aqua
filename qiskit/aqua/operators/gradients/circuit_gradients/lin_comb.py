@@ -130,8 +130,8 @@ class LinComb(CircuitGradient):
                                                               for param in params)):
 
                         return self._gradient_states(state_op, meas_op=(~StateFn(Z) ^
-                                                                            operator[0]),
-                                                         target_params=params)
+                                                                        operator[0]),
+                                                     target_params=params)
                     elif isinstance(params, tuple) or \
                             (isinstance(params, list) and all(isinstance(param, tuple)
                                                               for param in params)):
