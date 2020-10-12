@@ -60,24 +60,24 @@ class PhaseEstimator(QuantumAlgorithm):
     def __init__(self,
                  num_evaluation_qubits: int,
                  unitary: Optional[QuantumCircuit] = None,
+                 state_preparation: Optional[QuantumCircuit] = None,
                  pe_circuit: Optional[QuantumCircuit] = None,
                  num_unitary_qubits: Optional[int] = None,
-                 state_preparation: Optional[QuantumCircuit] = None,
                  quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
 
         """Args:
             num_evaluation_qubits: The number of qubits used in estimating the phase. The phase will
                                    be estimated as a binary string with this many bits.
-            pe_circuit: The phase estimation circuit.
-            num_unitary_qubits: Must agree with the number of qubits in the unitary in `pe_circuit`
-                                if `pe_circuit` is passed. This parameter will be set from `unitary`
-                                if `unitary` is passed.
             unitary: The circuit representing the unitary operator whose eigenvalues (via phase)
                      will be measured. Exactly one of `pe_circuit` and `unitary` must be passed.
             state_preparation: The circuit that prepares the state whose eigenphase will be
                                  measured.  If this parameter is omitted, no preparation circuit
                                  will be run and input state will be the all-zero state in the
                                  computational basis.
+            pe_circuit: The phase estimation circuit.
+            num_unitary_qubits: Must agree with the number of qubits in the unitary in `pe_circuit`
+                                if `pe_circuit` is passed. This parameter will be set from `unitary`
+                                if `unitary` is passed.
             quantum_instance: The quantum instance on which the circuit will be run.
 
            Raises:
