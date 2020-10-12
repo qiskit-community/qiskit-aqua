@@ -20,7 +20,7 @@ import logging
 import sys
 from shutil import which
 from ..units_type import UnitsType
-from ..fermionic_driver import FermionicDriver
+from ..fermionic_driver import FermionicDriver, HFMethodType
 from ...qiskit_chemistry_error import QiskitChemistryError
 from ..molecule import Molecule
 from ...qmolecule import QMolecule
@@ -45,7 +45,7 @@ class PSI4Driver(FermionicDriver):
                  'set {\n  basis sto-3g\n  scf_type pk\n  reference rhf\n',
                  molecule: Optional[Molecule] = None,
                  basis: str = 'sto-3g',
-                 hf_method: str = 'rhf') -> None:
+                 hf_method: HFMethodType = HFMethodType.RHF) -> None:
         """
         Args:
             config: A molecular configuration conforming to PSI4 format.
@@ -56,7 +56,7 @@ class PSI4Driver(FermionicDriver):
                 dependent configuration for the computation. This allows, for example, the Molecule
                 geometry to be updated to compute different points.
             basis: Basis set
-            hf_method: Hartree-Fock Method type; `rhf`, `rohf`, `uhf`
+            hf_method: Hartree-Fock Method type
 
         Raises:
             QiskitChemistryError: Invalid Input
@@ -70,7 +70,7 @@ class PSI4Driver(FermionicDriver):
 
         super().__init__(molecule=molecule,
                          basis=basis,
-                         hf_method=hf_method,
+                         hf_method=hf_method.value,
                          supports_molecule=True)
         self._config = config
 
