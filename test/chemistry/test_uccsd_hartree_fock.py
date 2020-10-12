@@ -49,13 +49,13 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         initial_state = HartreeFock(
             fermionic_transformation.molecule_info['num_orbitals'],
             fermionic_transformation.molecule_info['num_particles'],
-            qubit_mapping=fermionic_transformation.qubit_mapping,
+            qubit_mapping=fermionic_transformation._qubit_mapping,
             two_qubit_reduction=fermionic_transformation._two_qubit_reduction)
         self.var_form = UCCSD(
             num_orbitals=fermionic_transformation.molecule_info['num_orbitals'],
             num_particles=fermionic_transformation.molecule_info['num_particles'],
             initial_state=initial_state,
-            qubit_mapping=fermionic_transformation.qubit_mapping,
+            qubit_mapping=fermionic_transformation._qubit_mapping,
             two_qubit_reduction=fermionic_transformation._two_qubit_reduction)
 
     def test_uccsd_hf(self):

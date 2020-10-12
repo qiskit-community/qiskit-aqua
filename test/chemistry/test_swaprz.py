@@ -54,7 +54,7 @@ class TestExcitationPreserving(QiskitChemistryTestCase):
         initial_state = HartreeFock(
             fermionic_transformation.molecule_info['num_orbitals'],
             fermionic_transformation.molecule_info['num_particles'],
-            qubit_mapping=fermionic_transformation.qubit_mapping,
+            qubit_mapping=fermionic_transformation._qubit_mapping,
             two_qubit_reduction=fermionic_transformation._two_qubit_reduction)
 
         wavefunction = ExcitationPreserving(qubit_op.num_qubits, initial_state=initial_state)
