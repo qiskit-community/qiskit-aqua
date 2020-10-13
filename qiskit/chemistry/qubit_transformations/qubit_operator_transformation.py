@@ -17,7 +17,7 @@ from typing import Tuple, List, Optional, Union, Callable
 
 import numpy as np
 
-from qiskit.aqua.operators.legacy import WeightedPauliOperator
+from qiskit.aqua.operators import OperatorBase
 from qiskit.chemistry import FermionicOperator, BosonicOperator
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.results import EigenstateResult
@@ -30,7 +30,7 @@ class QubitOperatorTransformation(ABC):
     def transform(self, driver: BaseDriver,
                   aux_operators: Optional[Union[List[FermionicOperator],
                                                 List[BosonicOperator]]] = None
-                  ) -> Tuple[WeightedPauliOperator, List[WeightedPauliOperator]]:
+                  ) -> Tuple[OperatorBase, List[OperatorBase]]:
         """Transformation from the ``driver`` to a qubit operator.
 
         Args:
