@@ -12,7 +12,6 @@
 
 """ Natural Gradient. """
 
-import logging
 import os
 from collections.abc import Iterable
 from typing import List, Tuple, Callable, Optional, Union
@@ -27,8 +26,6 @@ from qiskit.aqua.operators.gradients.qfi import QFI
 from qiskit.circuit import ParameterVector, ParameterExpression
 
 os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
-
-logger = logging.getLogger(__name__)
 
 
 class NaturalGradient(GradientBase):
@@ -67,10 +64,9 @@ class NaturalGradient(GradientBase):
         """
         super().__init__(grad_method)
 
-        self._qfi_method = qfi_method
+        self._qfi_method = QFI(qfi_method)
         self._regularization = regularization
-        if grad_method == 'fin_diff':
-            self._epsilon = kwargs.get('epsilon', 1e-6)
+        self._epsilon = kwargs.get('epsilon', 1e-6)
 
     # pylint: disable=arguments-differ
     def convert(self,
@@ -98,11 +94,8 @@ class NaturalGradient(GradientBase):
                 'state is given as CircuitStateFn.')
         if not isinstance(params, Iterable):
             params = [params]
-        if self._grad_method == 'fin_diff':
-            grad = Gradient(self._grad_method, epsilon=self._epsilon).convert(operator, params)
-        else:
-            grad = Gradient(self._grad_method).convert(operator, params)
-        metric = QFI(self._qfi_method).convert(operator[-1], params) * 0.25
+        grad = Gradient(self._grad_method, epsilon=self._epsilon).convert(operator, params)
+        metric = self._qfi_method.convert(operator[-1], params) * 0.25
 
         def combo_fn(x):
             c = np.real(x[0])
@@ -126,7 +119,7 @@ class NaturalGradient(GradientBase):
         Returns: ``CircuitQFI``
 
         """
-        return self._qfi_method
+        return self._qfi_method.qfi_method
 
     @property
     def regularization(self) -> Optional[str]:
@@ -247,7 +240,6 @@ class NaturalGradient(GradientBase):
     def _ridge(a: np.ndarray,
                c: np.ndarray,
                lambda_: float = 1.,
-               auto_search: bool = True,
                lambda1: float = 1e-4,
                lambda4: float = 1e-1,
                tol_search: float = 1e-8,
@@ -267,7 +259,6 @@ class NaturalGradient(GradientBase):
             a: see (1) and (2)
             c: see (1) and (2)
             lambda_ : regularization parameter used if auto_search = False
-            auto_search: if True then use _reg_term_search to find a good regularization parameter
             lambda1: left starting point for L-curve corner search
             lambda4: right starting point for L-curve corner search
             tol_search: termination threshold for regularization parameter search
@@ -288,25 +279,20 @@ class NaturalGradient(GradientBase):
         reg = Ridge(alpha=lambda_, fit_intercept=fit_intercept, normalize=normalize, copy_X=copy_a,
                     max_iter=max_iter,
                     tol=tol, solver=solver, random_state=random_state)
-        if auto_search:
-            def reg_method(a, c, alpha):
-                reg.set_params(alpha=alpha)
-                reg.fit(a, c)
-                return reg.coef_
 
-            lambda_mc, x_mc = NaturalGradient._reg_term_search(a, c, reg_method, lambda1=lambda1,
-                                                               lambda4=lambda4, tol=tol_search)
-        else:
-            lambda_mc = lambda_
+        def reg_method(a, c, alpha):
+            reg.set_params(alpha=alpha)
             reg.fit(a, c)
-            x_mc = reg.coef_
+            return reg.coef_
+
+        lambda_mc, x_mc = NaturalGradient._reg_term_search(a, c, reg_method, lambda1=lambda1,
+                                                           lambda4=lambda4, tol=tol_search)
         return lambda_mc, np.transpose(x_mc)
 
     @staticmethod
     def _lasso(a: np.ndarray,
                c: np.ndarray,
                lambda_: float = 1.,
-               auto_search: bool = True,
                lambda1: float = 1e-4,
                lambda4: float = 1e-1,
                tol_search: float = 1e-8,
@@ -330,7 +316,6 @@ class NaturalGradient(GradientBase):
             a: mxn matrix
             c: m vector
             lambda_ : regularization parameter used if auto_search = False
-            auto_search: if True then use _reg_term_search to find a good regularization parameter
             lambda1: left starting point for L-curve corner search
             lambda4: right starting point for L-curve corner search
             tol_search: termination threshold for regularization parameter search
@@ -356,18 +341,15 @@ class NaturalGradient(GradientBase):
                     copy_X=copy_a, max_iter=max_iter, tol=tol, warm_start=warm_start,
                     positive=positive,
                     random_state=random_state, selection=selection)
-        if auto_search:
-            def reg_method(a, c, alpha):
-                reg.set_params(alpha=alpha)
-                reg.fit(a, c)
-                return reg.coef_
 
-            lambda_mc, x_mc = NaturalGradient._reg_term_search(a, c, reg_method, lambda1=lambda1,
-                                                               lambda4=lambda4, tol=tol_search)
-        else:
-            lambda_mc = lambda_
+        def reg_method(a, c, alpha):
+            reg.set_params(alpha=alpha)
             reg.fit(a, c)
-            x_mc = reg.coef_
+            return reg.coef_
+
+        lambda_mc, x_mc = NaturalGradient._reg_term_search(a, c, reg_method, lambda1=lambda1,
+                                                           lambda4=lambda4, tol=tol_search)
+
         return lambda_mc, x_mc
 
     @staticmethod
