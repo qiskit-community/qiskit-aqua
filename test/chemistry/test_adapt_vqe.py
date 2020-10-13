@@ -53,6 +53,8 @@ class TestAdaptVQE(QiskitChemistryTestCase):
 
     def test_custom_minimum_eigensolver(self):
         """ Test custom MES """
+        # Note: the VQEUCCSDFactory actually allows to specify an optimizer through its constructor.
+        # Thus, this example is quite far fetched but for a proof-of-principle test it still works.
         class CustomFactory(VQEUCCSDFactory):
             """A custom MESFactory"""
 

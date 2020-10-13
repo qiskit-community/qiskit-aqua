@@ -15,7 +15,7 @@
 import unittest
 
 from test.chemistry import QiskitChemistryTestCase
-from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.aqua.operators import OperatorBase
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.core import TransformationType, QubitMappingType
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
@@ -53,10 +53,10 @@ class TestFermionicTransformation(QiskitChemistryTestCase):
                           'two_qubit_reduction': actual_two_qubit_reduction})
 
     def _validate_input_object(self, qubit_op, num_qubits=4, num_paulis=15):
-        self.assertTrue(isinstance(qubit_op, WeightedPauliOperator))
+        self.assertTrue(isinstance(qubit_op, OperatorBase))
         self.assertIsNotNone(qubit_op)
         self.assertEqual(qubit_op.num_qubits, num_qubits)
-        self.assertEqual(len(qubit_op.to_dict()['paulis']), num_paulis)
+        self.assertEqual(len(qubit_op.oplist), num_paulis)
 
     def test_output(self):
         """ output test """

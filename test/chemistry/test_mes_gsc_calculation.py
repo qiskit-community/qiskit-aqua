@@ -23,7 +23,8 @@ from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry.qubit_transformations import FermionicTransformation
 from qiskit.chemistry.qubit_transformations.fermionic_transformation import QubitMappingType
 from qiskit.chemistry.ground_state_calculation import MinimumEigensolverGroundStateCalculation
-from qiskit.chemistry.ground_state_calculation.mes_factories import VQEUCCSDFactory
+from qiskit.chemistry.ground_state_calculation.mes_factories import (VQEUCCSDFactory,
+                                                                     NumPyMinimumEigensolverFactory)
 
 
 class TestMESGSCCalculation(QiskitChemistryTestCase):
@@ -43,6 +44,13 @@ class TestMESGSCCalculation(QiskitChemistryTestCase):
         self.reference_energy = -1.137306
 
         self.transformation = FermionicTransformation(qubit_mapping=QubitMappingType.JORDAN_WIGNER)
+
+    def test_npme(self):
+        """ Test NumPyMinimumEigensolver """
+        solver = NumPyMinimumEigensolverFactory()
+        calc = MinimumEigensolverGroundStateCalculation(self.transformation, solver)
+        res = calc.compute_groundstate(self.driver)
+        self.assertAlmostEqual(res.energy, self.reference_energy, places=6)
 
     def test_vqe_uccsd(self):
         """ Test VQE UCCSD case """
@@ -66,7 +74,7 @@ class TestMESGSCCalculation(QiskitChemistryTestCase):
         """ Test evaluating a single additional operator """
         calc, res, aux_ops = self._setup_evaluation_operators()
         # we filter the list because in this test we test a single operator evaluation
-        add_aux_op = [op for op in aux_ops if op.name.lower() == 'number of particles'][0]
+        add_aux_op = aux_ops[0][0]
 
         # now we have the ground state calculation evaluate it
         add_aux_op_res = calc.evaluate_operators(res.raw_result.eigenstate, add_aux_op)
@@ -80,7 +88,7 @@ class TestMESGSCCalculation(QiskitChemistryTestCase):
         expected_results = {'number of particles': 2,
                             's^2': 0,
                             'magnetization': 0}
-        add_aux_op = [op for op in aux_ops if op.name.lower() in list(expected_results.keys())]
+        add_aux_op = aux_ops[0:3]
 
         # now we have the ground state calculation evaluate them
         add_aux_op_res = calc.evaluate_operators(res.raw_result.eigenstate, add_aux_op)
@@ -96,7 +104,7 @@ class TestMESGSCCalculation(QiskitChemistryTestCase):
         expected_results = {'number of particles': 2,
                             's^2': 0,
                             'magnetization': 0}
-        add_aux_op = [op for op in aux_ops if op.name.lower() in list(expected_results.keys())]
+        add_aux_op = aux_ops[0:3]
         # now we convert it into a dictionary
         add_aux_op = dict(zip(expected_results.keys(), add_aux_op))
 

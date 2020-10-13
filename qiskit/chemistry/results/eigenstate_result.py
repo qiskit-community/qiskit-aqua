@@ -12,23 +12,59 @@
 
 """Eigenstate results module."""
 
-from typing import Optional, List
+from typing import Optional, List, Union
 
+import numpy as np
+
+from qiskit import QuantumCircuit
+from qiskit.circuit import Instruction
+from qiskit.quantum_info import Statevector
+from qiskit.result import Result
 from qiskit.aqua.algorithms import AlgorithmResult
+from qiskit.aqua.operators import OperatorBase
 
 
 class EigenstateResult(AlgorithmResult):
     """The eigenstate result interface."""
 
     @property
-    def eigenvalue(self) -> Optional[complex]:
-        """ returns eigen value """
-        return self.get('eigenvalue')
+    def eigenenergies(self) -> Optional[np.ndarray]:
+        """ returns eigen energies """
+        return self.get('eigenenergies')
 
-    @eigenvalue.setter
-    def eigenvalue(self, value: complex) -> None:
-        """ set eigen value """
-        self.data['eigenvalue'] = value
+    @eigenenergies.setter
+    def eigenenergies(self, value: np.ndarray) -> None:
+        """ set eigen energies """
+        self.data['eigenenergies'] = value
+
+    @property
+    def eigenstates(self) -> Optional[List[Union[str, dict, Result, list, np.ndarray, Statevector,
+                                                 QuantumCircuit, Instruction, OperatorBase]]]:
+        """ returns eigen states """
+        return self.get('eigenstates')
+
+    @eigenstates.setter
+    def eigenstates(self, value: List[Union[str, dict, Result, list, np.ndarray, Statevector,
+                                            QuantumCircuit, Instruction, OperatorBase]]) -> None:
+        """ set eigen states """
+        self.data['eigenstates'] = value
+
+    @property
+    def groundenergy(self) -> Optional[float]:
+        """ returns ground energy """
+        energies = self.get('eigenenergies')
+        if energies:
+            return energies[0].real
+        return None
+
+    @property
+    def groundstate(self) -> Optional[Union[str, dict, Result, list, np.ndarray, Statevector,
+                                            QuantumCircuit, Instruction, OperatorBase]]:
+        """ returns ground state """
+        states = self.get('eigenstates')
+        if states:
+            return states[0]
+        return None
 
     @property
     def aux_operator_eigenvalues(self) -> Optional[List[float]]:

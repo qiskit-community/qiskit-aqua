@@ -10,13 +10,14 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Factories that create a minimum eigensolver based on a qubit transformation."""
+"""
+This module declares the Unit Types.
+"""
 
-from .mes_factory import MESFactory
-from .numpy_minimum_eigensolver_factory import NumPyMinimumEigensolverFactory
-from .vqe_uccsd_factory import VQEUCCSDFactory
+from enum import Enum
 
-__all__ = ['MESFactory',
-           'NumPyMinimumEigensolverFactory',
-           'VQEUCCSDFactory'
-           ]
+
+class UnitsType(Enum):
+    """ Units Type Enum """
+    ANGSTROM = 'Angstrom'
+    BOHR = 'Bohr'

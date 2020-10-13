@@ -13,9 +13,13 @@
 """Base class for transformation to qubit operators for chemistry problems"""
 
 from abc import ABC, abstractmethod
-from typing import Tuple, List, Any, Optional
+from typing import Tuple, List, Optional, Union, Callable
 
-from qiskit.aqua.operators.legacy import WeightedPauliOperator
+import numpy as np
+
+from qiskit.aqua.algorithms import EigensolverResult, MinimumEigensolverResult
+from qiskit.aqua.operators import OperatorBase
+from qiskit.chemistry import FermionicOperator, BosonicOperator
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.results import EigenstateResult
 
@@ -25,8 +29,9 @@ class QubitOperatorTransformation(ABC):
 
     @abstractmethod
     def transform(self, driver: BaseDriver,
-                  aux_operators: Optional[List[Any]] = None
-                  ) -> Tuple[WeightedPauliOperator, List[WeightedPauliOperator]]:
+                  aux_operators: Optional[Union[List[FermionicOperator],
+                                                List[BosonicOperator]]] = None
+                  ) -> Tuple[OperatorBase, List[OperatorBase]]:
         """Transformation from the ``driver`` to a qubit operator.
 
         Args:
@@ -40,12 +45,21 @@ class QubitOperatorTransformation(ABC):
         """
         raise NotImplementedError
 
+    def get_default_filter_criterion(self) -> Optional[Callable[[Union[List, np.ndarray], float,
+                                                                 Optional[List[float]]], bool]]:
+        """Returns a default filter criterion method to filter the eigenvalues computed by the
+        eigen solver. For more information see also
+        aqua.algorithms.eigen_solvers.NumPyEigensolver.filter_criterion.
+        """
+        return None
+
     @abstractmethod
-    def interpret(self, eigenstate_result: EigenstateResult) -> EigenstateResult:
+    def interpret(self, raw_result: Union[EigenstateResult, EigensolverResult,
+                                          MinimumEigensolverResult]) -> EigenstateResult:
         """Interprets an EigenstateResult in the context of this transformation.
 
         Args:
-            eigenstate_result: an eigenstate result object.
+            raw_result: an eigenstate result object.
 
         Returns:
             An "interpreted" eigenstate result.

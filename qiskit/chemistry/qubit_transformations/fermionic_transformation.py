@@ -15,12 +15,14 @@
 The problem is described in a driver.
 """
 
-from typing import Optional, List, Union, cast, Tuple, Dict, Any
+from functools import partial
+from typing import Optional, List, Union, cast, Tuple, Dict, Any, Callable
 import logging
 from enum import Enum
 
 import numpy as np
-from qiskit.aqua.operators import Z2Symmetries, WeightedPauliOperator
+from qiskit.aqua.algorithms import EigensolverResult, MinimumEigensolverResult
+from qiskit.aqua.operators import Z2Symmetries, WeightedPauliOperator, OperatorBase
 from qiskit.chemistry import QiskitChemistryError, QMolecule
 from qiskit.chemistry.fermionic_operator import FermionicOperator
 from qiskit.chemistry.drivers import BaseDriver
@@ -126,7 +128,7 @@ class FermionicTransformation(QubitOperatorTransformation):
 
     def transform(self, driver: BaseDriver,
                   aux_operators: Optional[List[FermionicOperator]] = None
-                  ) -> Tuple[WeightedPauliOperator, List[WeightedPauliOperator]]:
+                  ) -> Tuple[OperatorBase, List[OperatorBase]]:
         """Transformation from the ``driver`` to a qubit operator.
 
         Args:
@@ -138,6 +140,11 @@ class FermionicTransformation(QubitOperatorTransformation):
         """
         q_molecule = driver.run()
         ops, aux_ops = self._do_transform(q_molecule, aux_operators)
+
+        # the internal method may still return legacy operators which is why we make sure to convert
+        # all of the operator to the operator flow
+        ops = ops.to_opflow() if isinstance(ops, WeightedPauliOperator) else ops
+        aux_ops = [a.to_opflow() if isinstance(a, WeightedPauliOperator) else a for a in aux_ops]
 
         return ops, aux_ops
 
@@ -444,6 +451,24 @@ class FermionicTransformation(QubitOperatorTransformation):
         logger.debug('  \'%s\' commutes: %s, %s', operator.name, does_commute, commutes)
         return does_commute
 
+    def get_default_filter_criterion(self) -> Optional[Callable[[Union[List, np.ndarray], float,
+                                                                 Optional[List[float]]], bool]]:
+        """Returns a default filter criterion method to filter the eigenvalues computed by the
+        eigen solver. For more information see also
+        aqua.algorithms.eigen_solvers.NumPyEigensolver.filter_criterion.
+
+        In the fermionic case the default filter ensures that the number of particles is being
+        preserved.
+        """
+
+        # pylint: disable=unused-argument
+        def filter_criterion(self, eigenstate, eigenvalue, aux_values):
+            # the first aux_value is the evaluated number of particles
+            num_particles_aux = aux_values[0][0]
+            return np.isclose(sum(self.molecule_info['num_particles']), num_particles_aux)
+
+        return partial(filter_criterion, self)
+
     @staticmethod
     def _pick_sector(z2_symmetries: Z2Symmetries, hf_str: np.ndarray) -> Z2Symmetries:
         """
@@ -466,17 +491,34 @@ class FermionicTransformation(QubitOperatorTransformation):
         z2_symmetries.tapering_values = taper_coef
         return z2_symmetries
 
-    def interpret(self, eigenstate_result: EigenstateResult) -> ElectronicStructureResult:
+    def interpret(self, raw_result: Union[EigenstateResult, EigensolverResult,
+                                          MinimumEigensolverResult]) -> ElectronicStructureResult:
         """Interprets an EigenstateResult in the context of this transformation.
 
         Args:
-            eigenstate_result: an eigenstate result object.
+            raw_result: an eigenstate result object.
 
         Returns:
             An electronic structure result.
         """
+        eigenstate_result = None
+        if isinstance(raw_result, EigenstateResult):
+            eigenstate_result = raw_result
+        elif isinstance(raw_result, EigensolverResult):
+            eigenstate_result = EigenstateResult()
+            eigenstate_result.raw_result = raw_result
+            eigenstate_result.eigenenergies = raw_result.eigenvalues
+            eigenstate_result.eigenstates = raw_result.eigenstates
+            eigenstate_result.aux_operator_eigenvalues = raw_result.aux_operator_eigenvalues
+        elif isinstance(raw_result, MinimumEigensolverResult):
+            eigenstate_result = EigenstateResult()
+            eigenstate_result.raw_result = raw_result
+            eigenstate_result.eigenenergies = np.asarray([raw_result.eigenvalue])
+            eigenstate_result.eigenstates = [raw_result.eigenstate]
+            eigenstate_result.aux_operator_eigenvalues = raw_result.aux_operator_eigenvalues
+
         result = ElectronicStructureResult(eigenstate_result.data)
-        result.computed_electronic_energy = eigenstate_result.eigenvalue.real
+        result.computed_electronic_energy = eigenstate_result.groundenergy
         result.hartree_fock_energy = self._hf_energy
         result.nuclear_repulsion_energy = self._nuclear_repulsion_energy
         if self._nuclear_dipole_moment is not None:
