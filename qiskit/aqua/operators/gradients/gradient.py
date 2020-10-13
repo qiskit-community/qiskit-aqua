@@ -121,7 +121,6 @@ class Gradient(GradientBase):
         param = params
         # Handle Product Rules
         if not is_coeff_c(operator._coeff, 1.0):
-            
             # Separate the operator from the coefficient
             coeff = operator._coeff
             op = operator / coeff

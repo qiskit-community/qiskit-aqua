@@ -182,7 +182,6 @@ class Hessian(HessianBase):
 
         # This is the recursive case where the chain rule is handled
         elif isinstance(operator, ListOp):
-            
             # These operators correspond to (d_op/d θ0,θ1) for op in operator.oplist
             # and params = (θ0,θ1)
             dd_ops = [self.get_hessian(op, params) for op in operator.oplist]
@@ -204,8 +203,8 @@ class Hessian(HessianBase):
             # These operators correspond to (d gi/d θ0)•(d gi/d θ1) for op in operator.oplist
             # and params = (θ0,θ1)
             d1d0_ops = ListOp([ListOp([Gradient(grad_method=self._hess_method).convert(op, param)
-                                       for param in params], combo_fn=lambda x: np.prod(x))
-                               for op in operator.oplist])
+                                       for param in params], combo_fn=lambda x: np.prod(x)) for
+                               op in operator.oplist])
 
             if operator.grad_combo_fn:
                 first_partial_combo_fn = operator.grad_combo_fn

@@ -27,7 +27,6 @@ try:
 except ImportError:
     _HAS_JAX = False
 
-from qiskit import Aer
 from qiskit import QuantumCircuit, QuantumRegister, BasicAer
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua import aqua_globals
@@ -380,11 +379,10 @@ class TestGradients(QiskitAquaTestCase):
         for tpl in params:
             state_hess += [Gradient(grad_method=method).convert(operator=Gradient(
                 grad_method=method).convert(operator=op, params=tpl[0]), params=tpl[1])]
-
+        state_hess = ListOp(state_hess)
         values_dict = [{a: np.pi / 4, b: np.pi}, 
                        {a: np.pi / 4, b: np.pi / 4},
                        {a: np.pi / 2, b: np.pi / 4}]
-                       
         correct_values = [[-1.28163104, 2.56326208, 1.06066017],
                           [-0.04495626, -2.40716991, 1.8125],
                           [2.82842712, -1.5, 1.76776695]]
@@ -701,15 +699,15 @@ class TestGradients(QiskitAquaTestCase):
 
         shots = 8000
         backend = BasicAer.get_backend(backend)
-        qi = QuantumInstance(backend=backend, shots=shots)
+        q_instance = QuantumInstance(backend=backend, shots=shots)
         if method == 'fin_diff':
             np.random.seed = 8
             prob_grad = Gradient(grad_method=method, epsilon=shots ** (-1 / 6.)).gradient_wrapper(
-                operator=op, bind_params=params, backend=qi)
+                operator=op, bind_params=params, backend=q_instance)
         else:
             prob_grad = Gradient(grad_method=method).gradient_wrapper(operator=op,
                                                                       bind_params=params,
-                                                                      backend=qi)
+                                                                      backend=q_instance)
         values = [[np.pi / 4, 0], [np.pi / 4, np.pi / 4], [np.pi / 2, np.pi]]
         correct_values = [[[0, 0], [1 / (2 * np.sqrt(2)), - 1 / (2 * np.sqrt(2))]],
                           [[1 / 4, -1 / 4], [1 / 4, - 1 / 4]],
@@ -722,9 +720,8 @@ class TestGradients(QiskitAquaTestCase):
         """Test VQE with gradients"""
         method = 'lin_comb'
         backend = 'qasm_simulator'
-        qi = QuantumInstance(BasicAer.get_backend(backend),
-                                seed_simulator=79,
-                                seed_transpiler=2)
+        q_instance = QuantumInstance(BasicAer.get_backend(backend), seed_simulator=79,
+                                     seed_transpiler=2)
         # Define the Hamiltonian
         h2_hamiltonian = -1.05 * (I ^ I) + 0.39 * (I ^ Z) - 0.39 * (Z ^ I) - 0.01 * (Z ^ Z) + 0.18 \
             * (X ^ X)
@@ -752,7 +749,7 @@ class TestGradients(QiskitAquaTestCase):
         # Gradient callable
         vqe = VQE(h2_hamiltonian, wavefunction, optimizer=optimizer, gradient=grad)
 
-        result = vqe.run(qi)
+        result = vqe.run(q_instance)
         np.testing.assert_almost_equal(result['optimal_value'], h2_energy, decimal=1)
 
 
