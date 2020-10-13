@@ -90,6 +90,14 @@ class HamiltonianPE(PhaseEstimator):
     present algorithm, we are not actually considering time evolution. Rather, the role of time is
     played by the scaling factor, which is chosen to best extract the eigenvalues of the
     Hamiltonian.
+
+    A few of the ideas in the algorithm may be found in Ref. [1].
+
+    **Reference:**
+
+    [1]: Quantum phase estimation of multiple eigenvalues for small-scale (noisy) experiments
+         T.E. O'Brien, B. Tarasinski, B.M. Terhal
+         https://arxiv.org/abs/1809.09697
     """
     def __init__(self,
                  num_evaluation_qubits: int,
