@@ -203,7 +203,7 @@ class Hessian(HessianBase):
             # These operators correspond to (d gi/d θ0)•(d gi/d θ1) for op in operator.oplist
             # and params = (θ0,θ1)
             d1d0_ops = ListOp([ListOp([Gradient(grad_method=self._hess_method).convert(op, param)
-                                       for param in params], combo_fn=lambda x: np.prod(x)) for
+                                       for param in params], combo_fn=np.prod) for
                                op in operator.oplist])
 
             if operator.grad_combo_fn:
