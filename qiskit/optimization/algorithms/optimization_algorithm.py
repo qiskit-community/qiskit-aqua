@@ -77,13 +77,13 @@ class OptimizationResult:
         should maintain the order when generating a new ``OptimizationResult`` object.
     """
 
-    def __init__(self, x: Union[List[float], np.ndarray], fval: float,
+    def __init__(self, x: Optional[Union[List[float], np.ndarray]], fval: float,
                  variables: List[Variable],
                  status: OptimizationResultStatus,
                  raw_results: Optional[Any] = None) -> None:
         """
         Args:
-            x: the optimal value found in the optimization.
+            x: the optimal value found in the optimization, or possibly None in case of FAILURE.
             fval: the optimal function value.
             variables: the list of variables of the optimization problem.
             raw_results: the original results object from the optimization algorithm.
@@ -92,18 +92,25 @@ class OptimizationResult:
         Raises:
             QiskitOptimizationError: if sizes of ``x`` and ``variables`` do not match.
         """
-        if len(x) != len(variables):
-            raise QiskitOptimizationError(
-                'Inconsistent size of optimal value and variables. x: size {} {}, '
-                'variables: size {} {}'.format(len(x), x, len(variables),
-                                               [v.name for v in variables]))
-        self._x = x if isinstance(x, np.ndarray) else np.array(x)  # pylint: disable=invalid-name
+        self._variables = variables
+        self._variable_names = [var.name for var in self._variables]
+        if x is None:
+            # if no state is given, it is set to None
+            self._x = None  # pylint: disable=invalid-name
+            self._variables_dict = None
+        else:
+            if len(x) != len(variables):
+                raise QiskitOptimizationError(
+                    'Inconsistent size of optimal value and variables. x: size {} {}, '
+                    'variables: size {} {}'.format(len(x), x, len(variables),
+                                                   [v.name for v in variables]))
+            self._x = x if isinstance(x, np.ndarray) else np.array(
+                x)  # pylint: disable=invalid-name
+            self._variables_dict = dict(zip(self._variable_names, self._x))
+
         self._fval = fval
         self._raw_results = raw_results
         self._status = status
-        self._variables = variables
-        self._variable_names = [var.name for var in self._variables]
-        self._variables_dict = dict(zip(self._variable_names, self._x))
 
     def __repr__(self) -> str:
         return 'optimal function value: {}\n' \
@@ -139,8 +146,8 @@ class OptimizationResult:
             "instead {}({}) provided.".format(type(key), key))
 
     @property
-    def x(self) -> np.ndarray:
-        """Returns the optimal value found in the optimization.
+    def x(self) -> Optional[np.ndarray]:
+        """Returns the optimal value found in the optimization or None in case of FAILURE.
 
         Returns:
             The optimal value found in the optimization.
