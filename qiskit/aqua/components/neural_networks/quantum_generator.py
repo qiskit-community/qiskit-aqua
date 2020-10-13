@@ -13,6 +13,7 @@
 """Quantum Generator."""
 
 from typing import Optional, List, Union, Dict, Any
+import warnings
 from copy import deepcopy
 import numpy as np
 
@@ -20,13 +21,10 @@ from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.circuit.library import TwoLocal
 from qiskit.aqua import aqua_globals
 from qiskit.aqua.components.optimizers import ADAM
-from qiskit.aqua.components.uncertainty_models import \
-    UniformDistribution, MultivariateUniformDistribution
 from qiskit.aqua.components.uncertainty_models import UnivariateVariationalDistribution, \
     MultivariateVariationalDistribution
 from qiskit.aqua import AquaError
 from qiskit.aqua.components.neural_networks.generative_network import GenerativeNetwork
-from qiskit.aqua.components.initial_states import Custom
 
 # pylint: disable=invalid-name
 
@@ -83,6 +81,11 @@ class QuantumGenerator(GenerativeNetwork):
 
         if isinstance(generator_circuit, (UnivariateVariationalDistribution,
                                           MultivariateVariationalDistribution)):
+            warnings.warn('Passing a UnivariateVariationalDistribution or MultivariateVariational'
+                          'Distribution is as ``generator_circuit`` is deprecated as of Aqua 0.8.0 '
+                          'and the support will be removed no earlier than 3 months after the '
+                          'release data. You should pass as QuantumCircuit instead.',
+                          DeprecationWarning, stacklevel=2)
             self._free_parameters = generator_circuit._var_form_params
             self.generator_circuit = generator_circuit._var_form
         else:
