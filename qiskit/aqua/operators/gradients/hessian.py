@@ -226,7 +226,8 @@ class Hessian(HessianBase):
                         'This automatic differentiation function is based on JAX. Please install '
                         'jax and use `import jax.numpy as jnp` instead of `import numpy as np` when'
                         'defining a combo_fn.')
-
+                
+            # pylint: disable=wrong-spelling-in-comment
             # For a general combo_fn F(g0, g1, ..., gk)
             # dF/d θ0,θ1 = sum_i: (∂F/∂gi)•(d gi/ d θ0,θ1) + (∂F/∂^2 gi)•(d gi/d θ0)•(d gi/d θ1)
 
