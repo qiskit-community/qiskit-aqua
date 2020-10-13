@@ -12,7 +12,7 @@
 
 """Ground state computation using a minimum eigensolver."""
 
-from typing import Union, List, Any, Optional, Dict
+from typing import Union, List, Optional, Dict
 
 import numpy as np
 
@@ -22,7 +22,7 @@ from qiskit.quantum_info import Statevector
 from qiskit.result import Result
 from qiskit.aqua.algorithms import MinimumEigensolver
 from qiskit.aqua.operators import OperatorBase, WeightedPauliOperator, StateFn, CircuitSampler
-from qiskit.chemistry import FermionicOperator
+from qiskit.chemistry import FermionicOperator, BosonicOperator
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.ground_state_calculation import GroundStateCalculation
 from qiskit.chemistry.qubit_transformations import QubitOperatorTransformation
@@ -60,7 +60,8 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
         return self._solver.supports_aux_operators()
 
     def compute_groundstate(self, driver: BaseDriver,
-                            aux_operators: Optional[List[Any]] = None
+                            aux_operators: Optional[Union[List[FermionicOperator],
+                                                          List[BosonicOperator]]] = None
                             ) -> EigenstateResult:
         """Compute Ground State properties.
 
