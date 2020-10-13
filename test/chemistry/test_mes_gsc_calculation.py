@@ -23,7 +23,8 @@ from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry.qubit_transformations import FermionicTransformation
 from qiskit.chemistry.qubit_transformations.fermionic_transformation import QubitMappingType
 from qiskit.chemistry.ground_state_calculation import MinimumEigensolverGroundStateCalculation
-from qiskit.chemistry.ground_state_calculation.mes_factories import VQEUCCSDFactory
+from qiskit.chemistry.ground_state_calculation.mes_factories import (VQEUCCSDFactory,
+                                                                     NumPyMinimumEigensolverFactory)
 
 
 class TestMESGSCCalculation(QiskitChemistryTestCase):
@@ -43,6 +44,13 @@ class TestMESGSCCalculation(QiskitChemistryTestCase):
         self.reference_energy = -1.137306
 
         self.transformation = FermionicTransformation(qubit_mapping=QubitMappingType.JORDAN_WIGNER)
+
+    def test_npme(self):
+        """ Test NumPyMinimumEigensolver """
+        solver = NumPyMinimumEigensolverFactory()
+        calc = MinimumEigensolverGroundStateCalculation(self.transformation, solver)
+        res = calc.compute_groundstate(self.driver)
+        self.assertAlmostEqual(res.energy, self.reference_energy, places=6)
 
     def test_vqe_uccsd(self):
         """ Test VQE UCCSD case """
