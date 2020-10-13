@@ -637,33 +637,28 @@ class FermionicTransformation(QubitOperatorTransformation):
         num_orbitals, num_alpha, num_beta = self._active_dof
 
         if isinstance(excitations, str):
-            excitations_list = UCCSD.compute_excitation_lists([num_alpha,num_beta], num_orbitals,
+            se_list, de_list = UCCSD.compute_excitation_lists([num_alpha,num_beta], num_orbitals,
                                                                 excitation_type=excitations)
+            excitations_list = se_list+de_list
         else:
             excitations_list = excitations
 
 
         size = len(excitations_list)
 
-        # get all to-be-processed index
-        mus, nus = np.triu_indices(size)
+        # # get all to-be-processed index
+        # mus, nus = np.triu_indices(size)
 
         # build all hopping operators
         hopping_operators = {}
         type_of_commutativities = {}
         to_be_executed_list = []
-        for idx, _ in enumerate(mus):
-            m_u = mus[idx]
-            n_u = nus[idx]
-            keys = ['E_{}'.format(m_u), 'E_{}'.format(n_u), 'Edag_{}'.format(n_u)]
-            values = [excitations_list[m_u], excitations_list[n_u],
-                                list(reversed(excitations_list[n_u]))]
-            for k in range(len(keys)):
-                key = keys[k]
-                if key not in hopping_operators:
-                    to_be_executed_list.append(values[k])
-                    hopping_operators[key] = None
-                    type_of_commutativities[key] = None
+        for idx in range(size):
+            to_be_executed_list += [excitations_list[idx], list(reversed(excitations_list[idx]))]
+            hopping_operators['E_{}'.format(idx)] = None
+            hopping_operators['Edag_{}'.format(idx)] = None
+            type_of_commutativities['E_{}'.format(idx)] = None
+            type_of_commutativities['Edag_{}'.format(idx)] = None
 
 
         result = parallel_map(self._build_single_hopping_operator,

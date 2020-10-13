@@ -14,7 +14,7 @@
 
 import unittest
 from test.chemistry import QiskitChemistryTestCase
-from qiskit.aqua.algorithms import NumPyMinimumEigensolver
+from qiskit.aqua.algorithms import NumPyMinimumEigensolver, NumPyEigensolver
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry.qubit_transformations import FermionicTransformation
@@ -37,8 +37,10 @@ class TestNumericalqEOMESCCalculation(QiskitChemistryTestCase):
             self.skipTest('PYSCF driver does not appear to be installed')
 
         self.reference_energy = -1.137306
-
         self.transformation = FermionicTransformation(qubit_mapping=QubitMappingType.JORDAN_WIGNER)
+        solver = NumPyEigensolver()
+        self.ref = solver
+
 
     def test_numpy_mes(self):
 

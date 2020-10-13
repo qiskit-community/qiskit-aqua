@@ -19,6 +19,8 @@ from scipy import linalg
 
 from typing import Optional, List, Union
 
+from qiskit.aqua.algorithms import AlgorithmResult
+
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.ground_state_calculation import GroundStateCalculation
 from qiskit.chemistry.excited_states_calculation import ExcitedStatesCalculation
@@ -26,7 +28,7 @@ from qiskit.chemistry.results import EigenstateResult
 
 logger = logging.getLogger(__name__)
 
-
+# capital letter
 class qEOMExcitedStatesCalculation(ExcitedStatesCalculation):
     """The calculation of excited states via the qEOM algorithm"""
 
@@ -69,13 +71,13 @@ class qEOMExcitedStatesCalculation(ExcitedStatesCalculation):
         """
 
         # 1. Run ground state calculation
-        eigenstate_result = self._gsc.compute_groundstate(driver)
+        groundstate_result = self._gsc.compute_groundstate(driver)
 
         # 2. Prepare the excitation operators
         matrix_operators_dict, size = self.prepare_matrix_operators()
 
         # 3. Evaluate eom operators
-        measurement_results = self._gsc.evaluate_operators(eigenstate_result.raw_result['eigenstate'],
+        measurement_results = self._gsc.evaluate_operators(groundstate_result.raw_result['eigenstate'],
                                                            matrix_operators_dict)
 
 
@@ -86,17 +88,33 @@ class qEOMExcitedStatesCalculation(ExcitedStatesCalculation):
         # 5. solve pseudo-eigenvalue problem
         energy_gaps, expansion_coefs = self.compute_excitation_energies(m_mat, v_mat, q_mat, w_mat)
 
-        raw_results = {'excitation energies': energy_gaps,
-                   'expansion coefficients': expansion_coefs,
-                   'm_mat': m_mat, 'v_mat': v_mat, 'q_mat': q_mat, 'w_mat': w_mat,
-                   'm_mat_std': m_mat_std, 'v_mat_std': v_mat_std,
-                   'q_mat_std': q_mat_std, 'w_mat_std': w_mat_std}
+        qeom_result = QEOMResult()
+        qeom_result.ground_state_raw_result = groundstate_result.raw_result
+        qeom_result.expansion_coefficients = expansion_coefs
+        qeom_result.excitation_energies = energy_gaps
+        qeom_result.m_matrix = m_mat
+        qeom_result.v_matrix = v_mat
+        qeom_result.q_matrix = q_mat
+        qeom_result.w_matrix = w_mat
+        qeom_result.m_matrix_std = m_mat_std
+        qeom_result.v_matrix_std = v_mat_std
+        qeom_result.q_matrix_std = q_mat_std
+        qeom_result.w_matrix_std = w_mat_std
 
-        eigenstate_result.excited_states_raw_result = raw_results
+        eigenstate_result = EigenstateResult()
+        eigenstate_result.eigenenergies = groundstate_result.eigenenergies
+        eigenstate_result.eigenstates = groundstate_result.eigenstates
+        eigenstate_result.groundenergy = groundstate_result.groundenergy
+        eigenstate_result.groundstate = groundstate_result.groundstate
+        eigenstate_result.aux_operator_eigenvalues = groundstate_result.aux_operator_eigenvalues
+        eigenstate_result.raw_result = qeom_result
+
         for gap in energy_gaps:
-            eigenstate_result.energies.append(eigenstate_result.energies[0]+gap)
+            eigenstate_result.eigenergies.append(eigenstate_result.eigenergies[0]+gap)
 
-        return raw_results
+        result = self._gsc.transformation.interpret(eigenstate_result)
+
+        return result
 
     @abstractmethod
     def prepare_matrix_operators(self):
@@ -128,22 +146,22 @@ class qEOMExcitedStatesCalculation(ExcitedStatesCalculation):
             m_u = mus[idx]
             n_u = nus[idx]
 
-            q_mat[m_u][n_u] = gs_results['q_{}_{}'.format(m_u, n_u)] if gs_results.get(
+            q_mat[m_u][n_u] = gs_results['q_{}_{}'.format(m_u, n_u)][0] if gs_results.get(
                 'q_{}_{}'.format(m_u, n_u)) is not None else q_mat[m_u][n_u]
-            w_mat[m_u][n_u] = gs_results['w_{}_{}'.format(m_u, n_u)] if gs_results.get(
+            w_mat[m_u][n_u] = gs_results['w_{}_{}'.format(m_u, n_u)][0] if gs_results.get(
                 'w_{}_{}'.format(m_u, n_u)) is not None else w_mat[m_u][n_u]
-            m_mat[m_u][n_u] = gs_results['m_{}_{}'.format(m_u, n_u)] if gs_results.get(
+            m_mat[m_u][n_u] = gs_results['m_{}_{}'.format(m_u, n_u)][0] if gs_results.get(
                 'm_{}_{}'.format(m_u, n_u)) is not None else m_mat[m_u][n_u]
-            v_mat[m_u][n_u] = gs_results['v_{}_{}'.format(m_u, n_u)] if gs_results.get(
+            v_mat[m_u][n_u] = gs_results['v_{}_{}'.format(m_u, n_u)][0] if gs_results.get(
                 'v_{}_{}'.format(m_u, n_u)) is not None else v_mat[m_u][n_u]
 
-            q_mat_std += gs_results['q_{}_{}_std'.format(m_u, n_u)] if gs_results.get(
+            q_mat_std += gs_results['q_{}_{}_std'.format(m_u, n_u)][0] if gs_results.get(
                 'q_{}_{}_std'.format(m_u, n_u)) is not None else 0
-            w_mat_std += gs_results['w_{}_{}_std'.format(m_u, n_u)] if gs_results.get(
+            w_mat_std += gs_results['w_{}_{}_std'.format(m_u, n_u)][0] if gs_results.get(
                 'w_{}_{}_std'.format(m_u, n_u)) is not None else 0
-            m_mat_std += gs_results['m_{}_{}_std'.format(m_u, n_u)] if gs_results.get(
+            m_mat_std += gs_results['m_{}_{}_std'.format(m_u, n_u)][0] if gs_results.get(
                 'm_{}_{}_std'.format(m_u, n_u)) is not None else 0
-            v_mat_std += gs_results['v_{}_{}_std'.format(m_u, n_u)] if gs_results.get(
+            v_mat_std += gs_results['v_{}_{}_std'.format(m_u, n_u)][0] if gs_results.get(
                 'v_{}_{}_std'.format(m_u, n_u)) is not None else 0
 
 
@@ -208,3 +226,94 @@ class qEOMExcitedStatesCalculation(ExcitedStatesCalculation):
         excitation_energies_gap = w
 
         return excitation_energies_gap, res[1]
+
+
+class QEOMResult(AlgorithmResult):
+
+    @property
+    def ground_state_raw_result(self):
+        return self.get('ground_state_raw_result')
+
+    @ground_state_raw_result.setter
+    def ground_state_raw_result(self, value) -> None:
+        self.data['ground_state_raw_result'] = value
+
+    @property
+    def excitation_energies(self) -> np.ndarray:
+        return self.get('excitation_energies')
+
+    @excitation_energies.setter
+    def excitation_energies(self, value: np.ndarray) -> None:
+        self.data['excitation_energies'] = value
+
+    @property
+    def expansion_coefficients(self) -> np.ndarray:
+        return self.get('expansion_coefficients')
+
+    @expansion_coefficients.setter
+    def expansion_coefficients(self, value: np.ndarray) -> None:
+        self.data['expansion_coefficients'] = value
+
+    @property
+    def m_matrix(self) -> np.ndarray:
+        return self.get('m_matrix')
+
+    @m_matrix.setter
+    def m_matrix(self, value: np.ndarray) -> None:
+        self.data['m_matrix'] = value
+
+    @property
+    def v_matrix(self) -> np.ndarray:
+        return self.get('v_matrix')
+
+    @v_matrix.setter
+    def v_matrix(self, value: np.ndarray) -> None:
+        self.data['v_matrix'] = value
+
+    @property
+    def q_matrix(self) -> np.ndarray:
+        return self.get('q_matrix')
+
+    @q_matrix.setter
+    def q_matrix(self, value: np.ndarray) -> None:
+        self.data['q_matrix'] = value
+
+    @property
+    def w_matrix(self) -> np.ndarray:
+        return self.get('w_matrix')
+
+    @w_matrix.setter
+    def w_matrix(self, value: np.ndarray) -> None:
+        self.data['w_matrix'] = value
+
+    @property
+    def m_matrix_std(self) -> float:
+        return self.get('m_matrix_std')
+
+    @m_matrix_std.setter
+    def m_matrix_std(self, value: float) -> None:
+        self.data['m_matrix_std'] = value
+
+    @property
+    def v_matrix_std(self) -> float:
+        return self.get('v_matrix_std')
+
+    @v_matrix_std.setter
+    def v_matrix_std(self, value: float) -> None:
+        self.data['v_matrix_std'] = value
+
+    @property
+    def q_matrix_std(self) -> float:
+        return self.get('q_matrix_std')
+
+    @q_matrix_std.setter
+    def q_matrix_std(self, value: float) -> None:
+        self.data['q_matrix_std'] = value
+
+    @property
+    def w_matrix_std(self) -> float:
+        return self.get('w_matrix_std')
+
+    @w_matrix_std.setter
+    def w_matrix_std(self, value: float) -> None:
+        self.data['w_matrix_std'] = value

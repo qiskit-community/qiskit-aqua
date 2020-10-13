@@ -21,6 +21,7 @@ from qiskit.chemistry.ground_state_calculation import GroundStateCalculation
 class ExcitedStatesCalculation(ABC):
     """The excited states calculation interface"""
 
+#remove gsc.
     def __init__(self, ground_state_calculation: GroundStateCalculation) -> None:
         """
         Args:

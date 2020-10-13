@@ -46,6 +46,7 @@ class NumericalqEOMExcitedStatesCalculation(qEOMExcitedStatesCalculation):
         super().__init__(ground_state_calculation, excitations)
         self.excitations = excitations
 
+# all methods here should be private
     def prepare_matrix_operators(self) -> [dict, int]:
         """construct the excitation operators for each matrix element
         Returns: a dictionary of all matrix elements operators
