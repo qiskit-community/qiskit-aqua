@@ -17,7 +17,7 @@ import logging
 from typing import Optional, List, Tuple, Union
 import numpy as np
 
-from qiskit.chemistry.results import EigenstateResult, ElectronicStructureResult
+from qiskit.chemistry.results import ElectronicStructureResult
 from qiskit.chemistry.qubit_transformations import FermionicTransformation
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.components.variational_forms import UCCSD

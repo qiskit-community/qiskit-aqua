@@ -146,7 +146,7 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
         return results
 
     def _eval_op(self, state, op, quantum_instance):
-        if not isinstance(op, OperatorBase):
+        if isinstance(op, WeightedPauliOperator):
             op = op.to_opflow()
 
         # if the operator is empty we simply return 0
