@@ -26,6 +26,8 @@ from qiskit.chemistry.qubit_transformations.fermionic_transformation import Qubi
 from qiskit.chemistry.ground_state_calculation import MinimumEigensolverGroundStateCalculation
 from qiskit.chemistry.ground_state_calculation import VQEUCCSDFactory
 from qiskit.chemistry.excited_states_calculation import NumericalQEOMExcitedStatesCalculation
+from qiskit.chemistry.excited_states_calculation import NumPyEigensolverFactory
+from qiskit.chemistry.excited_states_calculation import EigenSolverExcitedStatesCalculation
 
 class TestNumericalQEOMESCCalculation(QiskitChemistryTestCase):
     """ Test NumericalqEOM excited states calculation """
@@ -72,6 +74,20 @@ class TestNumericalQEOMESCCalculation(QiskitChemistryTestCase):
         for idx in range(len(self.reference_energies)):
             self.assertAlmostEqual(results.computed_energies[idx], self.reference_energies[idx],
                                    places=4)
+
+    # def test_numpy_factory(self):
+    #
+    #     solver = NumPyEigensolverFactory()
+    #     esc = EigenSolverExcitedStatesCalculation(self.transformation, solver)
+    #     results = esc.compute_excitedstates(self.driver)
+    #
+    #     print(results)
+    #     for idx in range(len(self.reference_energies)):
+    #         self.assertAlmostEqual(results.computed_energies[idx], self.reference_energies[idx],
+    #                                places=4)
+
+
+
 
 
 if __name__ == '__main__':

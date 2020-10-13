@@ -67,27 +67,29 @@ class ElectronicStructureResult(EigenstateResult):
     # construct the circuit of the GS from here (if the algorithm supports this)
 
     @property
-    def total_energies(self) -> np.asarray:
+    def total_energies(self) -> np.ndarray:
         """ Returns ground state energy if nuclear_repulsion_energy is available from driver """
         nre = self.nuclear_repulsion_energy if self.nuclear_repulsion_energy is not None else 0
+        # Adding float to np.ndarray adds it to each entry
         return self.electronic_energies + nre
 
     @property
-    def electronic_energies(self) -> np.asarray:
+    def electronic_energies(self) -> np.ndarray:
         """ Returns electronic part of ground state energy """
         # TODO the fact that this property is computed on the fly breaks the `.combine()`
         # functionality
+        # Adding float to np.ndarray adds it to each entry
         return (self.computed_energies
                 + self.ph_extracted_energy
                 + self.frozen_extracted_energy)
 
     @property
-    def computed_energies(self) -> np.asarray:
+    def computed_energies(self) -> np.ndarray:
         """ Returns computed electronic part of ground state energy """
         return self.get('computed_energies')
 
     @computed_energies.setter
-    def computed_energies(self, value: np.asarray) -> None:
+    def computed_energies(self, value: np.ndarray) -> None:
         """ Sets computed electronic part of ground state energy """
         self.data['computed_energies'] = value
 

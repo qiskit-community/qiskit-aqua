@@ -51,8 +51,10 @@ class NumericalQEOMExcitedStatesCalculation(QEOMExcitedStatesCalculation):
         Returns: a dictionary of all matrix elements operators
         """
 
-        hopping_operators, type_of_commutativities, size = self._gsc.transformation.build_hopping_operators(
+        hopping_operators, type_of_commutativities, excitation_indices = self._gsc.transformation.build_hopping_operators(
             self._excitations)
+
+        size = int(len(list(excitation_indices.keys()))/2)
 
         eom_matrix_operators = self._build_all_commutators(hopping_operators, type_of_commutativities, size)
 

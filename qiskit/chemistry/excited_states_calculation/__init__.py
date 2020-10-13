@@ -15,8 +15,13 @@
 from .excited_states_calculation import ExcitedStatesCalculation
 from .qeom_excited_states_calculation import QEOMExcitedStatesCalculation
 from .numerical_qeom_excited_states_calculation import NumericalQEOMExcitedStatesCalculation
+from .es_factory import ESFactory, NumPyEigensolverFactory
+from .es_excited_states_calculation import EigenSolverExcitedStatesCalculation
 
 __all__ = ['ExcitedStatesCalculation',
            'QEOMExcitedStatesCalculation',
-           'NumericalQEOMExcitedStatesCalculation'
+           'NumericalQEOMExcitedStatesCalculation',
+           'ESFactory',
+           'NumPyEigensolverFactory',
+           'EigenSolverExcitedStatesCalculation'
            ]

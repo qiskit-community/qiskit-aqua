@@ -251,7 +251,7 @@ class FermionicTransformation(QubitOperatorTransformation):
             )
         qubit_op.name = 'Fermionic Operator'
 
-        self._active_dof = [fer_op.modes, new_num_alpha, new_num_beta]
+        self._active_dof = [fer_op.modes, new_num_alpha, new_num_beta, fer_op.h1, fer_op.h2]
 
         logger.debug('  num paulis: %s, num qubits: %s', len(qubit_op.paulis), qubit_op.num_qubits)
 
@@ -363,6 +363,11 @@ class FermionicTransformation(QubitOperatorTransformation):
 
         logger.debug('Processing complete ready to run algorithm')
         return qubit_op, aux_ops
+
+    @property
+    def active_dof(self):
+        """ Getter for the active degrees of freedom """
+        return self._active_dof
 
     @property
     def untapered_qubit_op(self):
@@ -653,7 +658,7 @@ class FermionicTransformation(QubitOperatorTransformation):
 
         """
 
-        num_orbitals, num_alpha, num_beta = self._active_dof
+        num_orbitals, num_alpha, num_beta, _ , _ = self._active_dof
 
         if isinstance(excitations, str):
             se_list, de_list = UCCSD.compute_excitation_lists([num_alpha,num_beta], num_orbitals,
@@ -671,6 +676,7 @@ class FermionicTransformation(QubitOperatorTransformation):
         # build all hopping operators
         hopping_operators = {}
         type_of_commutativities = {}
+        excitation_indices = {}
         to_be_executed_list = []
         for idx in range(size):
             to_be_executed_list += [excitations_list[idx], list(reversed(excitations_list[idx]))]
@@ -678,6 +684,8 @@ class FermionicTransformation(QubitOperatorTransformation):
             hopping_operators['Edag_{}'.format(idx)] = None
             type_of_commutativities['E_{}'.format(idx)] = None
             type_of_commutativities['Edag_{}'.format(idx)] = None
+            excitation_indices['E_{}'.format(idx)] = excitations_list[idx]
+            excitation_indices['Edag_{}'.format(idx)] = list(reversed(excitations_list[idx]))
 
 
         result = parallel_map(self._build_single_hopping_operator,
@@ -691,4 +699,4 @@ class FermionicTransformation(QubitOperatorTransformation):
             hopping_operators[key] = res[0]
             type_of_commutativities[key] = res[1]
 
-        return hopping_operators, type_of_commutativities, size
+        return hopping_operators, type_of_commutativities, excitation_indices

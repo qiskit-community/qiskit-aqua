@@ -15,11 +15,12 @@
 from .ground_state_calculation import GroundStateCalculation
 from .adapt_vqe import AdaptVQE
 from .mes_ground_state_calculation import MinimumEigensolverGroundStateCalculation
-from .mes_factories import MESFactory, VQEUCCSDFactory
+from .mes_factories import MESFactory, VQEUCCSDFactory, NumPyMinimumEigensolverFactory
 
 __all__ = ['GroundStateCalculation',
            'AdaptVQE',
            'MinimumEigensolverGroundStateCalculation',
            'MESFactory',
-           'VQEUCCSDFactory'
+           'VQEUCCSDFactory',
+           'NumPyMinimumEigensolverFactory'
            ]
