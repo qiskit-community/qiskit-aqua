@@ -38,7 +38,6 @@ class BernoulliAFactory(UncertaintyProblem):
     """
 
     def __init__(self, probability=0.5):
-        #
         super().__init__(1)
         self._probability = probability
         self.i_state = 0

@@ -248,7 +248,7 @@ class LongDivision(Reciprocal):
         if self._negative_evals:
             for i in range(0, self._precision + self._num_ancillae):
                 qc.cu(self._scale * 2 ** (-i), 0, 0, 0, rec_reg[i], ancilla)
-            qc.cu(2 * np.pi, 0, 0, 0, self._ev[0], ancilla)  # correcting the sign
+            qc.cry(2 * np.pi, self._ev[0], ancilla)  # correcting the sign
         else:
             for i in range(0, self._precision + self._num_ancillae):
                 qc.cu(self._scale * 2 ** (-i), 0, 0, 0, rec_reg[i], ancilla)

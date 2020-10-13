@@ -16,8 +16,8 @@ import logging
 import math
 from typing import List, Optional, Union
 
+import qiskit.optimization.algorithms  # pylint: disable=unused-import
 from .quadratic_program_converter import QuadraticProgramConverter
-from ..algorithms.optimization_algorithm import OptimizationResult
 from ..exceptions import QiskitOptimizationError
 from ..problems.constraint import Constraint
 from ..problems.quadratic_objective import QuadraticObjective
@@ -374,15 +374,22 @@ class InequalityToEquality(QuadraticProgramConverter):
             )
         return lhs_lb, lhs_ub
 
-    def interpret(self, result: OptimizationResult) -> OptimizationResult:
+    def interpret(self, result: 'qiskit.optimization.algorithms.OptimizationResult') \
+            -> 'qiskit.optimization.algorithms.OptimizationResult':  # type: ignore
         """Convert a result of a converted problem into that of the original problem.
 
         Args:
-            result: The result of the converted problem.
+            result: The result of the converted problem or the given result in case of FAILURE.
 
         Returns:
             The result of the original problem.
         """
+        # pylint: disable=cyclic-import
+        from ..algorithms.optimization_algorithm import OptimizationResult
+
+        if result.x is None:
+            return result
+
         # convert back the optimization result into that of the original problem
         names = [x.name for x in self._dst.variables]
         new_x = self._interpret_var(names, result.x)

@@ -164,7 +164,7 @@ class PhaseEstimationCircuit:
                 self._state_in_circuit_factory.build(qc, q, aux)
 
             # Put all ancillae in uniform superposition
-            qc.u(np.pi/2, 0, np.pi, a)
+            qc.h(a)
 
             # phase kickbacks via dynamics
             if self._operator is not None:

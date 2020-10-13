@@ -21,6 +21,7 @@ import re
 import numpy as np
 
 from qiskit.providers import BaseBackend
+from qiskit.providers import Backend
 from qiskit import ClassicalRegister
 from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.algorithms import VQAlgorithm, VQE, VQEResult
@@ -51,7 +52,8 @@ class VQEAdapt(VQAlgorithm):
                  max_iterations: Optional[int] = None,
                  max_evals_grouped: int = 1,
                  aux_operators: Optional[List[LegacyBaseOperator]] = None,
-                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
+                 quantum_instance: Optional[
+                     Union[QuantumInstance, Backend, BaseBackend]] = None) -> None:
         """
         Args:
             operator: Qubit operator
