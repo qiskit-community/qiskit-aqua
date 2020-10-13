@@ -444,6 +444,12 @@ class FermionicTransformation(QubitOperatorTransformation):
         logger.debug('  \'%s\' commutes: %s, %s', operator.name, does_commute, commutes)
         return does_commute
 
+    # pylint: disable=unused-argument
+    def _eigensolver_filter_criterion(self, eigenstate, eigenvalue, aux_values):
+        # the first aux_value is the evaluated number of particles
+        num_particles_aux = aux_values[0][0]
+        return np.isclose(sum(self.molecule_info['num_particles']), num_particles_aux)
+
     @staticmethod
     def _pick_sector(z2_symmetries: Z2Symmetries, hf_str: np.ndarray) -> Z2Symmetries:
         """

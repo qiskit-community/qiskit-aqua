@@ -38,6 +38,18 @@ class NumPyMinimumEigensolverFactory(MESFactory):
         """
         self._filter_criterion = filter_criterion
 
+    @property
+    def filter_criterion(self) -> Callable[[Union[List, np.ndarray], float, Optional[List[float]]],
+                                           bool]:
+        """ returns filter criterion """
+        return self._filter_criterion
+
+    @filter_criterion.setter
+    def filter_criterion(self, value: Callable[[Union[List, np.ndarray], float,
+                                                Optional[List[float]]], bool]) -> None:
+        """ sets filter criterion """
+        self._filter_criterion = value
+
     def get_solver(self, transformation: FermionicTransformation) -> MinimumEigensolver:
         """Returns a VQE with a UCCSD wavefunction ansatz, based on ``transformation``.
         This works only with a ``FermionicTransformation``.
@@ -49,5 +61,9 @@ class NumPyMinimumEigensolverFactory(MESFactory):
             A NumPyMinimumEigensolver suitable to compute the ground state of the molecule
             transformed by ``transformation``.
         """
-        npme = NumPyMinimumEigensolver(filter_criterion=self._filter_criterion)
+        filter_criterion = self._filter_criterion
+        if not filter_criterion and hasattr(transformation, '_eigensolver_filter_criterion'):
+            filter_criterion = transformation._eigensolver_filter_criterion
+
+        npme = NumPyMinimumEigensolver(filter_criterion=filter_criterion)
         return npme
