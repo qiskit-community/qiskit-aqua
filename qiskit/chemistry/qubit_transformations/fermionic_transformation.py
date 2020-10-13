@@ -23,7 +23,8 @@ from enum import Enum
 import numpy as np
 from qiskit.tools import parallel_map
 from qiskit.aqua import AquaError, aqua_globals
-from qiskit.aqua.operators import Z2Symmetries, WeightedPauliOperator
+from qiskit.aqua.operators import Z2Symmetries, WeightedPauliOperator, OperatorBase
+from qiskit.aqua.algorithms import EigensolverResult, MinimumEigensolverResult
 from qiskit.chemistry import QiskitChemistryError, QMolecule
 from qiskit.chemistry.fermionic_operator import FermionicOperator
 from qiskit.chemistry.drivers import BaseDriver
@@ -138,7 +139,7 @@ class FermionicTransformation(QubitOperatorTransformation):
 
     def transform(self, driver: BaseDriver,
                   aux_operators: Optional[List[FermionicOperator]] = None
-                  ) -> Tuple[WeightedPauliOperator, List[WeightedPauliOperator]]:
+                  ) -> Tuple[OperatorBase, List[OperatorBase]]:
         """Transformation from the ``driver`` to a qubit operator.
 
         Args:
@@ -150,6 +151,11 @@ class FermionicTransformation(QubitOperatorTransformation):
         """
         q_molecule = driver.run()
         ops, aux_ops = self._do_transform(q_molecule, aux_operators)
+
+        # the internal method may still return legacy operators which is why we make sure to convert
+        # all of the operator to the operator flow
+        ops = ops.to_opflow() if isinstance(ops, WeightedPauliOperator) else ops
+        aux_ops = [a.to_opflow() if isinstance(a, WeightedPauliOperator) else a for a in aux_ops]
 
         return ops, aux_ops
 
@@ -509,15 +515,32 @@ class FermionicTransformation(QubitOperatorTransformation):
         z2_symmetries.tapering_values = taper_coef
         return z2_symmetries
 
-    def interpret(self, eigenstate_result: EigenstateResult) -> ElectronicStructureResult:
+    def interpret(self, raw_result: Union[EigenstateResult, EigensolverResult,
+                                          MinimumEigensolverResult]) -> ElectronicStructureResult:
         """Interprets an EigenstateResult in the context of this transformation.
 
         Args:
-            eigenstate_result: an eigenstate result object.
+            raw_result: an eigenstate result object.
 
         Returns:
             An electronic structure result.
         """
+        eigenstate_result = None
+        if isinstance(raw_result, EigenstateResult):
+            eigenstate_result = raw_result
+        elif isinstance(raw_result, EigensolverResult):
+            eigenstate_result = EigenstateResult()
+            eigenstate_result.raw_result = raw_result
+            eigenstate_result.eigenenergies = raw_result.eigenvalues
+            eigenstate_result.eigenstates = raw_result.eigenstates
+            eigenstate_result.aux_operator_eigenvalues = raw_result.aux_operator_eigenvalues
+        elif isinstance(raw_result, MinimumEigensolverResult):
+            eigenstate_result = EigenstateResult()
+            eigenstate_result.raw_result = raw_result
+            eigenstate_result.eigenenergies = np.asarray([raw_result.eigenvalue])
+            eigenstate_result.eigenstates = [raw_result.eigenstate]
+            eigenstate_result.aux_operator_eigenvalues = raw_result.aux_operator_eigenvalues
+
         result = ElectronicStructureResult(eigenstate_result.data)
         result.computed_energies = eigenstate_result.eigenenergies
         result.hartree_fock_energy = self._hf_energy

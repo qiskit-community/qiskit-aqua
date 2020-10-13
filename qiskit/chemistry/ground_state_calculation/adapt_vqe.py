@@ -17,7 +17,7 @@ import logging
 from typing import Optional, List, Tuple, Union
 import numpy as np
 
-from qiskit.chemistry.results import EigenstateResult, ElectronicStructureResult
+from qiskit.chemistry.results import ElectronicStructureResult
 from qiskit.chemistry.qubit_transformations import FermionicTransformation
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.components.variational_forms import UCCSD
@@ -218,6 +218,7 @@ class AdaptVQE(MinimumEigensolverGroundStateCalculation):
             aux_values = self.evaluate_operators(raw_vqe_result.eigenstate, aux_operators)
         else:
             aux_values = None
+        raw_vqe_result.aux_operator_eigenvalues = aux_values
 
         if threshold_satisfied:
             finishing_criterion = 'Threshold converged'
@@ -228,13 +229,7 @@ class AdaptVQE(MinimumEigensolverGroundStateCalculation):
         else:
             raise AquaError('The algorithm finished due to an unforeseen reason!')
 
-        # extend VQE returned information with additional outputs
-        eigenstate_result = EigenstateResult()
-        eigenstate_result.raw_result = raw_vqe_result
-        eigenstate_result.eigenenergies = np.asarray([raw_vqe_result.eigenvalue])
-        eigenstate_result.eigenstates = [raw_vqe_result.eigenstate]
-        eigenstate_result.aux_operator_eigenvalues = aux_values
-        electronic_result = self.transformation.interpret(eigenstate_result)
+        electronic_result = self.transformation.interpret(raw_vqe_result)
 
         result = AdaptVQEResult(electronic_result.data)
         result.num_iterations = iteration

@@ -12,7 +12,7 @@
 
 """Ground state computation using a minimum eigensolver."""
 
-from typing import Union, List, Any, Optional, Dict
+from typing import Union, List, Optional, Dict
 
 import numpy as np
 
@@ -22,7 +22,7 @@ from qiskit.quantum_info import Statevector
 from qiskit.result import Result
 from qiskit.aqua.algorithms import MinimumEigensolver
 from qiskit.aqua.operators import OperatorBase, WeightedPauliOperator, StateFn, CircuitSampler
-from qiskit.chemistry import FermionicOperator
+from qiskit.chemistry import FermionicOperator, BosonicOperator
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.ground_state_calculation import GroundStateCalculation
 from qiskit.chemistry.qubit_transformations import QubitOperatorTransformation
@@ -56,13 +56,12 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
         self._solver = solver
 
     def returns_groundstate(self) -> bool:
-        """TODO
-        whether the eigensolver returns the ground state or only ground state energy."""
-
-        return False
+        """Whether the eigensolver returns the ground state or only ground state energy."""
+        return self._solver.supports_aux_operators()
 
     def compute_groundstate(self, driver: BaseDriver,
-                            aux_operators: Optional[List[Any]] = None
+                            aux_operators: Optional[Union[List[FermionicOperator],
+                                                          List[BosonicOperator]]] = None
                             ) -> EigenstateResult:
         """Compute Ground State properties.
 
@@ -103,12 +102,7 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
 
         raw_mes_result = solver.compute_minimum_eigenvalue(operator, aux_operators)
 
-        eigenstate_result = EigenstateResult()
-        eigenstate_result.raw_result = raw_mes_result
-        eigenstate_result.eigenenergies = np.asarray([raw_mes_result.eigenvalue])
-        eigenstate_result.eigenstates = [raw_mes_result.eigenstate]
-        eigenstate_result.aux_operator_eigenvalues = raw_mes_result.aux_operator_eigenvalues
-        result = self.transformation.interpret(eigenstate_result)
+        result = self.transformation.interpret(raw_mes_result)
         return result
 
     def evaluate_operators(self,
@@ -152,7 +146,7 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
         return results
 
     def _eval_op(self, state, op, quantum_instance):
-        if not isinstance(op, OperatorBase):
+        if isinstance(op, WeightedPauliOperator):
             op = op.to_opflow()
 
         # if the operator is empty we simply return 0

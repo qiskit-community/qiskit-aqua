@@ -26,7 +26,8 @@ class NumPyMinimumEigensolverFactory(MESFactory):
 
     def __init__(self,
                  filter_criterion: Callable[[Union[List, np.ndarray], float, Optional[List[float]]],
-                                            bool] = None) -> None:
+                                            bool] = None,
+                 use_default_filter_criterion: bool = False) -> None:
         """
         Args:
             filter_criterion: callable that allows to filter eigenvalues/eigenstates. The minimum
@@ -35,8 +36,11 @@ class NumPyMinimumEigensolverFactory(MESFactory):
                 `filter(eigenstate, eigenvalue, aux_values)` and must return a boolean to indicate
                 whether to consider this value or not. If there is no
                 feasible element, the result can even be empty.
+            use_default_filter_criterion: whether to use the transformation's default filter
+                criterion if ``filter_criterion`` is ``None``.
         """
         self._filter_criterion = filter_criterion
+        self._use_default_filter_criterion = use_default_filter_criterion
 
     @property
     def filter_criterion(self) -> Callable[[Union[List, np.ndarray], float, Optional[List[float]]],
@@ -50,6 +54,16 @@ class NumPyMinimumEigensolverFactory(MESFactory):
         """ sets filter criterion """
         self._filter_criterion = value
 
+    @property
+    def use_default_filter_criterion(self) -> bool:
+        """ returns whether to use the default filter criterion """
+        return self._use_default_filter_criterion
+
+    @use_default_filter_criterion.setter
+    def use_default_filter_criterion(self, value: bool) -> None:
+        """ sets whether to use the default filter criterion """
+        self._use_default_filter_criterion = value
+
     def get_solver(self, transformation: FermionicTransformation) -> MinimumEigensolver:
         """Returns a VQE with a UCCSD wavefunction ansatz, based on ``transformation``.
         This works only with a ``FermionicTransformation``.
@@ -62,8 +76,11 @@ class NumPyMinimumEigensolverFactory(MESFactory):
             transformed by ``transformation``.
         """
         filter_criterion = self._filter_criterion
-        if not filter_criterion:
+        if not filter_criterion and self._use_default_filter_criterion:
             filter_criterion = transformation.get_default_filter_criterion()
 
         npme = NumPyMinimumEigensolver(filter_criterion=filter_criterion)
         return npme
+
+    def supports_aux_operators(self):
+        return NumPyMinimumEigensolver.supports_aux_operators()

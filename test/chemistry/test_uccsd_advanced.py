@@ -17,8 +17,7 @@ import unittest
 from test.chemistry import QiskitChemistryTestCase
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
-from qiskit.aqua.operators import Z2Symmetries
-from qiskit.aqua.algorithms import VQE, NumPyMinimumEigensolver
+from qiskit.aqua.algorithms import VQE
 from qiskit.aqua.components.optimizers import SLSQP
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.components.initial_states import HartreeFock
@@ -51,21 +50,6 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
                                         freeze_core=True,
                                         orbital_reduction=[])
             self.qubit_op, _ = self.fermionic_transformation.transform(self.driver)
-
-            z2_symmetries = Z2Symmetries.find_Z2_symmetries(self.qubit_op)
-            tapered_ops = z2_symmetries.taper(self.qubit_op)
-
-            smallest_eig_value = 99999999999999
-            smallest_idx = -1
-            for idx, _ in enumerate(tapered_ops):
-                ee = NumPyMinimumEigensolver(tapered_ops[idx])
-                curr_value = ee.compute_minimum_eigenvalue().eigenvalue.real
-                if curr_value < smallest_eig_value:
-                    smallest_eig_value = curr_value
-                    smallest_idx = idx
-
-            self.z2_symmetries = z2_symmetries
-            self.the_tapered_op = tapered_ops[smallest_idx]
 
             self.reference_energy_pUCCD = -1.1434447924298028
             self.reference_energy_UCCD0 = -1.1476045878481704
@@ -208,7 +192,7 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
             qubit_mapping=fermionic_transformation._qubit_mapping,
             two_qubit_reduction=fermionic_transformation._two_qubit_reduction,
             num_particles=fermionic_transformation.molecule_info['num_particles'],
-            sq_list=qubit_op.z2_symmetries.sq_list)
+            sq_list=fermionic_transformation.molecule_info['z2_symmetries'].sq_list)
 
         var_form = UCCSD(
             num_orbitals=fermionic_transformation.molecule_info['num_orbitals'],
@@ -218,7 +202,7 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
             qubit_mapping=fermionic_transformation._qubit_mapping,
             two_qubit_reduction=fermionic_transformation._two_qubit_reduction,
             num_time_slices=1,
-            z2_symmetries=qubit_op.z2_symmetries,
+            z2_symmetries=fermionic_transformation.molecule_info['z2_symmetries'],
             shallow_circuit_concat=False,
             method_doubles='ucc',
             excitation_type='sd',
@@ -228,9 +212,8 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
                      quantum_instance=QuantumInstance(
                          backend=BasicAer.get_backend('statevector_simulator')))
 
-        gsc = MinimumEigensolverGroundStateCalculation(fermionic_transformation, solver)
-
-        result = gsc.compute_groundstate(self.driver)
+        raw_result = solver.compute_minimum_eigenvalue(qubit_op, None)
+        result = fermionic_transformation.interpret(raw_result)
 
         self.assertAlmostEqual(result.energy, self.reference_energy_UCCSD, places=6)
 
@@ -243,7 +226,7 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
             qubit_mapping=self.fermionic_transformation._qubit_mapping,
             two_qubit_reduction=self.fermionic_transformation._two_qubit_reduction,
             num_particles=self.fermionic_transformation.molecule_info['num_particles'],
-            sq_list=self.the_tapered_op.z2_symmetries.sq_list)
+            sq_list=self.fermionic_transformation.molecule_info['z2_symmetries'].sq_list)
 
         # check singlet excitations
         var_form = UCCSD(
@@ -254,7 +237,7 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
             qubit_mapping=self.fermionic_transformation._qubit_mapping,
             two_qubit_reduction=self.fermionic_transformation._two_qubit_reduction,
             num_time_slices=1,
-            z2_symmetries=self.the_tapered_op.z2_symmetries,
+            z2_symmetries=self.fermionic_transformation.molecule_info['z2_symmetries'],
             shallow_circuit_concat=False,
             method_doubles='succ',
             excitation_type='d',
@@ -274,7 +257,7 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
             qubit_mapping=self.fermionic_transformation._qubit_mapping,
             two_qubit_reduction=self.fermionic_transformation._two_qubit_reduction,
             num_time_slices=1,
-            z2_symmetries=self.the_tapered_op.z2_symmetries,
+            z2_symmetries=self.fermionic_transformation.molecule_info['z2_symmetries'],
             shallow_circuit_concat=False,
             method_doubles='succ_full',
             excitation_type='d',
