@@ -106,6 +106,7 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
         eigenstate_result = EigenstateResult()
         eigenstate_result.raw_result = raw_mes_result
         eigenstate_result.eigenenergies = np.asarray([raw_mes_result.eigenvalue])
+        eigenstate_result.eigenstates = [raw_mes_result.eigenstate]
         eigenstate_result.aux_operator_eigenvalues = raw_mes_result.aux_operator_eigenvalues
         result = self.transformation.interpret(eigenstate_result)
         return result

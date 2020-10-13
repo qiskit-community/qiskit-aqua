@@ -232,6 +232,7 @@ class AdaptVQE(MinimumEigensolverGroundStateCalculation):
         eigenstate_result = EigenstateResult()
         eigenstate_result.raw_result = raw_vqe_result
         eigenstate_result.eigenenergies = np.asarray([raw_vqe_result.eigenvalue])
+        eigenstate_result.eigenstates = [raw_vqe_result.eigenstate]
         eigenstate_result.aux_operator_eigenvalues = aux_values
         electronic_result = self.transformation.interpret(eigenstate_result)
 

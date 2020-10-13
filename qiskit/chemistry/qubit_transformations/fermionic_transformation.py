@@ -15,7 +15,8 @@
 The problem is described in a driver.
 """
 
-from typing import Optional, List, Union, cast, Tuple, Dict, Any
+from functools import partial
+from typing import Optional, List, Union, cast, Tuple, Dict, Any, Callable
 import logging
 from enum import Enum
 
@@ -462,6 +463,24 @@ class FermionicTransformation(QubitOperatorTransformation):
         does_commute = np.all(commutes)
         logger.debug('  \'%s\' commutes: %s, %s', operator.name, does_commute, commutes)
         return does_commute
+
+    def get_default_filter_criterion(self) -> Optional[Callable[[Union[List, np.ndarray], float,
+                                                                 Optional[List[float]]], bool]]:
+        """Returns a default filter criterion method to filter the eigenvalues computed by the
+        eigen solver. For more information see also
+        aqua.algorithms.eigen_solvers.NumPyEigensolver.filter_criterion.
+
+        In the fermionic case the default filter ensures that the number of particles is being
+        preserved.
+        """
+
+        # pylint: disable=unused-argument
+        def filter_criterion(self, eigenstate, eigenvalue, aux_values):
+            # the first aux_value is the evaluated number of particles
+            num_particles_aux = aux_values[0][0]
+            return np.isclose(sum(self.molecule_info['num_particles']), num_particles_aux)
+
+        return partial(filter_criterion, self)
 
     @staticmethod
     def _pick_sector(z2_symmetries: Z2Symmetries, hf_str: np.ndarray) -> Z2Symmetries:
