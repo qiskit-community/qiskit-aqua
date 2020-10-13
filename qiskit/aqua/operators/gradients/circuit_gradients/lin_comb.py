@@ -219,10 +219,12 @@ class LinComb(CircuitGradient):
         work_q = qr_work[0]
 
         if state_qc.has_register(qr_work):
-            meas_op = (4 * ~StateFn(Z ^ I) ^ meas_op)
+            if meas_op:
+                meas_op = (4 * ~StateFn(Z ^ I) ^ meas_op)
             return self._hessian_from_gradient_states(state_op, meas_op, target_params)
         else:
-            meas_op = (2 * ~StateFn(Z) ^ meas_op)
+            if meas_op:
+                meas_op = (2 * ~StateFn(Z) ^ meas_op)
 
         if not isinstance(target_params, (list, np.ndarray)):
             target_params = [target_params]
