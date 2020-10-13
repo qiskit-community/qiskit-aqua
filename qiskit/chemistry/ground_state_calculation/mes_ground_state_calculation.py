@@ -56,10 +56,8 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
         self._solver = solver
 
     def returns_groundstate(self) -> bool:
-        """TODO
-        whether the eigensolver returns the ground state or only ground state energy."""
-
-        return False
+        """Whether the eigensolver returns the ground state or only ground state energy."""
+        return self._solver.supports_aux_operators()
 
     def compute_groundstate(self, driver: BaseDriver,
                             aux_operators: Optional[List[Any]] = None

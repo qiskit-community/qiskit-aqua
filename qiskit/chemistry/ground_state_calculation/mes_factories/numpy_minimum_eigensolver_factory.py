@@ -81,3 +81,6 @@ class NumPyMinimumEigensolverFactory(MESFactory):
 
         npme = NumPyMinimumEigensolver(filter_criterion=filter_criterion)
         return npme
+
+    def supports_aux_operators(self):
+        return NumPyMinimumEigensolver.supports_aux_operators()
