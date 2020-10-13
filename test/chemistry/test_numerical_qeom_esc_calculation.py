@@ -20,9 +20,9 @@ from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry.qubit_transformations import FermionicTransformation
 from qiskit.chemistry.qubit_transformations.fermionic_transformation import QubitMappingType
 from qiskit.chemistry.ground_state_calculation import MinimumEigensolverGroundStateCalculation
-from qiskit.chemistry.excited_states_calculation import NumericalqEOMExcitedStatesCalculation
+from qiskit.chemistry.excited_states_calculation import NumericalQEOMExcitedStatesCalculation
 
-class TestNumericalqEOMESCCalculation(QiskitChemistryTestCase):
+class TestNumericalQEOMESCCalculation(QiskitChemistryTestCase):
     """ Test NumericalqEOM excited states calculation """
 
     def setUp(self):
@@ -47,13 +47,13 @@ class TestNumericalqEOMESCCalculation(QiskitChemistryTestCase):
 
         solver = NumPyMinimumEigensolver()
         gsc = MinimumEigensolverGroundStateCalculation(self.transformation, solver)
-        esc = NumericalqEOMExcitedStatesCalculation(gsc, 'sd')
+        esc = NumericalQEOMExcitedStatesCalculation(gsc, 'sd')
         results = esc.compute_excitedstates(self.driver)
 
         for idx in range(len(self.reference_energies)):
             self.assertAlmostEqual(results.computed_energies[idx], self.reference_energies[idx],
                                    places=4)
-    
+
 
 if __name__ == '__main__':
     unittest.main()

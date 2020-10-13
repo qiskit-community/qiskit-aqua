@@ -17,7 +17,7 @@ from abc import abstractmethod
 import logging
 from scipy import linalg
 
-from typing import Optional, List, Union
+from typing import List, Union
 
 from qiskit.aqua.algorithms import AlgorithmResult
 
@@ -28,8 +28,8 @@ from qiskit.chemistry.results import EigenstateResult
 
 logger = logging.getLogger(__name__)
 
-# capital letter
-class qEOMExcitedStatesCalculation(ExcitedStatesCalculation):
+
+class QEOMExcitedStatesCalculation(ExcitedStatesCalculation):
     """The calculation of excited states via the qEOM algorithm"""
 
     def __init__(self, ground_state_calculation: GroundStateCalculation,
@@ -74,7 +74,7 @@ class qEOMExcitedStatesCalculation(ExcitedStatesCalculation):
         groundstate_result = self._gsc.compute_groundstate(driver)
 
         # 2. Prepare the excitation operators
-        matrix_operators_dict, size = self.prepare_matrix_operators()
+        matrix_operators_dict, size = self._prepare_matrix_operators()
 
         # 3. Evaluate eom operators
         measurement_results = self._gsc.evaluate_operators(groundstate_result.raw_result['eigenstate'],
@@ -83,10 +83,10 @@ class qEOMExcitedStatesCalculation(ExcitedStatesCalculation):
 
         # 4. Postprocess ground_state_result to construct eom matrices
         m_mat, v_mat, q_mat, w_mat, m_mat_std, v_mat_std, q_mat_std, w_mat_std = \
-            self.build_eom_matrices(measurement_results, size)
+            self._build_eom_matrices(measurement_results, size)
 
         # 5. solve pseudo-eigenvalue problem
-        energy_gaps, expansion_coefs = self.compute_excitation_energies(m_mat, v_mat, q_mat, w_mat)
+        energy_gaps, expansion_coefs = self._compute_excitation_energies(m_mat, v_mat, q_mat, w_mat)
 
         qeom_result = QEOMResult()
         qeom_result.ground_state_raw_result = groundstate_result.raw_result
@@ -114,12 +114,12 @@ class qEOMExcitedStatesCalculation(ExcitedStatesCalculation):
         return result
 
     @abstractmethod
-    def prepare_matrix_operators(self):
+    def _prepare_matrix_operators(self):
         """construct the excitation operators for each matrix element"""
         raise NotImplementedError
 
-    def build_eom_matrices(self, gs_results: dict, size: int) -> [np.ndarray, np.ndarray, np.ndarray,
-                                                           np.ndarray, float, float, float, float]:
+    def _build_eom_matrices(self, gs_results: dict, size: int) -> [np.ndarray, np.ndarray, np.ndarray,
+                                                                   np.ndarray, float, float, float, float]:
         """
         Constructs the M, V, Q and W matrices from the results on the ground state
         Args:
@@ -186,8 +186,8 @@ class qEOMExcitedStatesCalculation(ExcitedStatesCalculation):
 
 
     @staticmethod
-    def compute_excitation_energies(m_mat: np.ndarray, v_mat: np.ndarray, q_mat: np.ndarray,
-                                    w_mat: np.ndarray) -> [np.ndarray, np.ndarray]:
+    def _compute_excitation_energies(m_mat: np.ndarray, v_mat: np.ndarray, q_mat: np.ndarray,
+                                     w_mat: np.ndarray) -> [np.ndarray, np.ndarray]:
         """Diagonalizing M, V, Q, W matrices for excitation energies.
 
         Args:
@@ -229,88 +229,110 @@ class QEOMResult(AlgorithmResult):
 
     @property
     def ground_state_raw_result(self):
+        """ returns ground state raw result """
         return self.get('ground_state_raw_result')
 
     @ground_state_raw_result.setter
     def ground_state_raw_result(self, value) -> None:
+        """ sets ground state raw result """
         self.data['ground_state_raw_result'] = value
 
     @property
     def excitation_energies(self) -> np.ndarray:
+        """ returns the excitation energies (energy gaps) """
         return self.get('excitation_energies')
 
     @excitation_energies.setter
     def excitation_energies(self, value: np.ndarray) -> None:
+        """ sets the excitation energies (energy gaps) """
         self.data['excitation_energies'] = value
 
     @property
     def expansion_coefficients(self) -> np.ndarray:
+        """ returns the X and Y expansion coefficients """
         return self.get('expansion_coefficients')
 
     @expansion_coefficients.setter
     def expansion_coefficients(self, value: np.ndarray) -> None:
+        """ sets the X and Y expansion coefficients """
         self.data['expansion_coefficients'] = value
 
     @property
     def m_matrix(self) -> np.ndarray:
+        """ returns the M matrix """
         return self.get('m_matrix')
 
     @m_matrix.setter
     def m_matrix(self, value: np.ndarray) -> None:
+        """ sets the M matrix """
         self.data['m_matrix'] = value
 
     @property
     def v_matrix(self) -> np.ndarray:
+        """ returns the V matrix """
         return self.get('v_matrix')
 
     @v_matrix.setter
     def v_matrix(self, value: np.ndarray) -> None:
+        """ sets the V matrix """
         self.data['v_matrix'] = value
 
     @property
     def q_matrix(self) -> np.ndarray:
+        """ returns the Q matrix """
         return self.get('q_matrix')
 
     @q_matrix.setter
     def q_matrix(self, value: np.ndarray) -> None:
+        """ sets the Q matrix """
         self.data['q_matrix'] = value
 
     @property
     def w_matrix(self) -> np.ndarray:
+        """ returns the W matrix """
         return self.get('w_matrix')
 
     @w_matrix.setter
     def w_matrix(self, value: np.ndarray) -> None:
+        """ sets the W matrix """
         self.data['w_matrix'] = value
 
     @property
     def m_matrix_std(self) -> float:
+        """ returns the M matrix standard deviation """
         return self.get('m_matrix_std')
 
     @m_matrix_std.setter
     def m_matrix_std(self, value: float) -> None:
+        """ sets the M matrix standard deviation """
         self.data['m_matrix_std'] = value
 
     @property
     def v_matrix_std(self) -> float:
+        """ returns the V matrix standard deviation """
         return self.get('v_matrix_std')
 
     @v_matrix_std.setter
     def v_matrix_std(self, value: float) -> None:
+        """ sets the V matrix standard deviation """
         self.data['v_matrix_std'] = value
 
     @property
     def q_matrix_std(self) -> float:
+        """ returns the Q matrix standard deviation """
         return self.get('q_matrix_std')
 
     @q_matrix_std.setter
     def q_matrix_std(self, value: float) -> None:
+        """ sets the Q matrix standard deviation """
         self.data['q_matrix_std'] = value
 
     @property
     def w_matrix_std(self) -> float:
+        """ returns the W matrix standard deviation """
         return self.get('w_matrix_std')
 
     @w_matrix_std.setter
     def w_matrix_std(self, value: float) -> None:
+        """ sets the W matrix standard deviation """
         self.data['w_matrix_std'] = value

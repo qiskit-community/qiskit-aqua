@@ -13,10 +13,10 @@
 """Excited states calculation algorithms."""
 
 from .excited_states_calculation import ExcitedStatesCalculation
-from .qeom_excited_states_calculation import qEOMExcitedStatesCalculation
-from .numerical_qeom_excited_states_calculation import NumericalqEOMExcitedStatesCalculation
+from .qeom_excited_states_calculation import QEOMExcitedStatesCalculation
+from .numerical_qeom_excited_states_calculation import NumericalQEOMExcitedStatesCalculation
 
 __all__ = ['ExcitedStatesCalculation',
-           'qEOMExcitedStatesCalculation',
-           'NumericalqEOMExcitedStatesCalculation'
+           'QEOMExcitedStatesCalculation',
+           'NumericalQEOMExcitedStatesCalculation'
            ]

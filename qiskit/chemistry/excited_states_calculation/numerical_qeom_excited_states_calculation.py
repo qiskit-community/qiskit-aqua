@@ -24,12 +24,12 @@ from qiskit.tools.events import TextProgressBar
 from qiskit.aqua import aqua_globals
 from qiskit.aqua.operators import Z2Symmetries, commutator, WeightedPauliOperator
 from qiskit.chemistry.ground_state_calculation import GroundStateCalculation
-from qiskit.chemistry.excited_states_calculation import qEOMExcitedStatesCalculation
+from qiskit.chemistry.excited_states_calculation import QEOMExcitedStatesCalculation
 
 logger = logging.getLogger(__name__)
 
 
-class NumericalqEOMExcitedStatesCalculation(qEOMExcitedStatesCalculation):
+class NumericalQEOMExcitedStatesCalculation(QEOMExcitedStatesCalculation):
     """ The calculation of excited states via the numerical qEOM algorithm """
 
     def __init__(self, ground_state_calculation: GroundStateCalculation,
@@ -46,8 +46,7 @@ class NumericalqEOMExcitedStatesCalculation(qEOMExcitedStatesCalculation):
         super().__init__(ground_state_calculation, excitations)
         self.excitations = excitations
 
-# all methods here should be private
-    def prepare_matrix_operators(self) -> [dict, int]:
+    def _prepare_matrix_operators(self) -> [dict, int]:
         """construct the excitation operators for each matrix element
         Returns: a dictionary of all matrix elements operators
         """
@@ -55,11 +54,11 @@ class NumericalqEOMExcitedStatesCalculation(qEOMExcitedStatesCalculation):
         hopping_operators, type_of_commutativities, size = self._gsc.transformation.build_hopping_operators(
             self._excitations)
 
-        eom_matrix_operators = self.build_all_commutators(hopping_operators, type_of_commutativities, size)
+        eom_matrix_operators = self._build_all_commutators(hopping_operators, type_of_commutativities, size)
 
         return eom_matrix_operators, size
 
-    def build_all_commutators(self, hopping_operators: dict, type_of_commutativities: dict, size: int) -> dict:
+    def _build_all_commutators(self, hopping_operators: dict, type_of_commutativities: dict, size: int) -> dict:
         """Building all commutators for Q, W, M, V matrices.
 
         Args:
@@ -91,7 +90,7 @@ class NumericalqEOMExcitedStatesCalculation(qEOMExcitedStatesCalculation):
             if logger.isEnabledFor(logging.INFO):
                 logger.info("Building all commutators:")
                 TextProgressBar(sys.stderr)
-            results = parallel_map(NumericalqEOMExcitedStatesCalculation._build_commutator_routine,
+            results = parallel_map(NumericalQEOMExcitedStatesCalculation._build_commutator_routine,
                                    to_be_computed_list,
                                    task_args=(untapered_op, z2_symmetries, sign),
                                    num_processes=aqua_globals.num_processes)
