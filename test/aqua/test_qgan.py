@@ -14,8 +14,8 @@
 
 import unittest
 import warnings
-from ddt import ddt, data
 from test.aqua import QiskitAquaTestCase
+from ddt import ddt, data
 
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.circuit.library import RealAmplitudes

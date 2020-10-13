@@ -23,7 +23,6 @@ from qiskit.aqua import aqua_globals
 from qiskit.aqua.components.optimizers import ADAM
 from qiskit.aqua.components.uncertainty_models import UnivariateVariationalDistribution, \
     MultivariateVariationalDistribution
-from qiskit.aqua import AquaError
 from qiskit.aqua.components.neural_networks.generative_network import GenerativeNetwork
 
 # pylint: disable=invalid-name
