@@ -10,15 +10,17 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Test Fermionic Transformation """
+""" Test Bosonic Transformation """
 
 import unittest
 
 from test.chemistry import QiskitChemistryTestCase
+
 from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.chemistry.qubit_transformations import BosonicTransformation
-from qiskit.chemistry.qubit_transformations import BosonicTransformationType, BosonicQubitMappingType
-from qiskit.chemistry.drivers. gaussiand import GaussianLogResult
+from qiskit.chemistry.qubit_transformations import (BosonicTransformationType,
+                                                    BosonicQubitMappingType)
+from qiskit.chemistry.drivers import GaussianForcesDriver
 
 
 class TestBosonicTransformation(QiskitChemistryTestCase):
@@ -26,7 +28,8 @@ class TestBosonicTransformation(QiskitChemistryTestCase):
 
     def setUp(self):
         super().setUp()
-        self.driver = GaussianLogResult(self.get_resource_path('CO2_freq_B3LYP_ccpVDZ.log'))
+        logfile = self.get_resource_path('CO2_freq_B3LYP_ccpVDZ.log')
+        self.driver = GaussianForcesDriver(logfile=logfile)
 
     def _validate_input_object(self, qubit_op, num_qubits, num_paulis):
         self.assertTrue(isinstance(qubit_op, WeightedPauliOperator))
@@ -35,15 +38,16 @@ class TestBosonicTransformation(QiskitChemistryTestCase):
         self.assertEqual(len(qubit_op.to_dict()['paulis']), num_paulis)
 
     def test_output(self):
-        bosonic_transformation = BosonicTransformation(qubit_mapping=BosonicQubitMappingType.DIRECT,
-                                                       transformation_type=BosonicTransformationType.HARMONIC,
-                                                       basis_size=2, truncation=2)
+        bosonic_transformation = BosonicTransformation(
+            qubit_mapping=BosonicQubitMappingType.DIRECT,
+            transformation_type=BosonicTransformationType.HARMONIC,
+            basis_size=2,
+            truncation=2)
 
         qubit_op, aux_ops = bosonic_transformation.transform(self.driver)
         self.assertEqual(bosonic_transformation.num_modes, 4)
         self._validate_input_object(qubit_op, num_qubits=8, num_paulis=59)
         self.assertEqual(len(aux_ops), 4)
-
 
 
 if __name__ == '__main__':

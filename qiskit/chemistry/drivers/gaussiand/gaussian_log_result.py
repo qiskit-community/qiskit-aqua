@@ -211,7 +211,16 @@ class GaussianLogResult:
         num_indices = len(entry) - 3
         return [a2h_vals + 1 - a2h[cast(str, x)] for x in entry[0:num_indices]]
 
-    def run(self, normalize: bool = True) -> WatsonHamiltonian:
+    def get_watson_hamiltonian(self, normalize: bool = True) -> WatsonHamiltonian:
+        """
+        Get the force constants as a WatsonHamiltonian
+
+        Args:
+            normalize: Whether to normalize the factors or not
+
+        Returns:
+            A WatsonHamiltonian
+        """
         # Returns [value, idx0, idx1...] from 2 indices (quadratic) to 4 (quartic)
         qua = self.quadratic_force_constants
         cub = self.cubic_force_constants
@@ -247,4 +256,3 @@ class GaussianLogResult:
         watson = WatsonHamiltonian(modes, num_modes)
 
         return watson
-
