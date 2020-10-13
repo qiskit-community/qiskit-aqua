@@ -28,7 +28,7 @@ class TestNumericalqEOMESCCalculation(QiskitChemistryTestCase):
     def setUp(self):
         super().setUp()
         try:
-            self.driver = PySCFDriver(atom='H .0 .0 .0; H .0 .0 0.735',
+            self.driver = PySCFDriver(atom='H .0 .0 .0; H .0 .0 0.75',
                                       unit=UnitsType.ANGSTROM,
                                       charge=0,
                                       spin=0,
@@ -36,7 +36,8 @@ class TestNumericalqEOMESCCalculation(QiskitChemistryTestCase):
         except QiskitChemistryError:
             self.skipTest('PYSCF driver does not appear to be installed')
 
-        self.reference_energy = -1.137306
+        self.reference_energies = [-1.8427016, -1.8427016 + 0.5943372, -1.8427016 + 0.95788352,
+                                   -1.8427016 + 1.5969296]
         self.transformation = FermionicTransformation(qubit_mapping=QubitMappingType.JORDAN_WIGNER)
         solver = NumPyEigensolver()
         self.ref = solver
@@ -49,7 +50,10 @@ class TestNumericalqEOMESCCalculation(QiskitChemistryTestCase):
         esc = NumericalqEOMExcitedStatesCalculation(gsc, 'sd')
         results = esc.compute_excitedstates(self.driver)
 
-        print(results)
+        for idx in range(len(self.reference_energies)):
+            self.assertAlmostEqual(results.computed_energies[idx], self.reference_energies[idx],
+                                   places=4)
+    
 
 if __name__ == '__main__':
     unittest.main()

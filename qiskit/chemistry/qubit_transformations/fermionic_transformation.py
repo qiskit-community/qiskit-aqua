@@ -514,7 +514,7 @@ class FermionicTransformation(QubitOperatorTransformation):
             An electronic structure result.
         """
         result = ElectronicStructureResult(eigenstate_result.data)
-        result.computed_electronic_energy = eigenstate_result.groundenergy
+        result.computed_energies = eigenstate_result.eigenenergies
         result.hartree_fock_energy = self._hf_energy
         result.nuclear_repulsion_energy = self._nuclear_repulsion_energy
         if self._nuclear_dipole_moment is not None:

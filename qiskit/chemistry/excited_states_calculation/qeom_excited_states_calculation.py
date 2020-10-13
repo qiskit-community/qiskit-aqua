@@ -102,15 +102,12 @@ class qEOMExcitedStatesCalculation(ExcitedStatesCalculation):
         qeom_result.w_matrix_std = w_mat_std
 
         eigenstate_result = EigenstateResult()
-        eigenstate_result.eigenenergies = groundstate_result.eigenenergies
         eigenstate_result.eigenstates = groundstate_result.eigenstates
-        eigenstate_result.groundenergy = groundstate_result.groundenergy
-        eigenstate_result.groundstate = groundstate_result.groundstate
         eigenstate_result.aux_operator_eigenvalues = groundstate_result.aux_operator_eigenvalues
         eigenstate_result.raw_result = qeom_result
 
-        for gap in energy_gaps:
-            eigenstate_result.eigenergies.append(eigenstate_result.eigenergies[0]+gap)
+        eigenstate_result.eigenenergies = np.append(groundstate_result.eigenenergies,
+                  np.asarray([groundstate_result.eigenenergies[0] + gap for gap in energy_gaps]))
 
         result = self._gsc.transformation.interpret(eigenstate_result)
 
