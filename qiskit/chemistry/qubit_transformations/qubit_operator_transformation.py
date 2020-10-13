@@ -13,7 +13,9 @@
 """Base class for transformation to qubit operators for chemistry problems"""
 
 from abc import ABC, abstractmethod
-from typing import Tuple, List, Any, Optional
+from typing import Tuple, List, Any, Optional, Union, Callable
+
+import numpy as np
 
 from qiskit.aqua.operators.legacy import WeightedPauliOperator
 from qiskit.chemistry.drivers import BaseDriver
@@ -39,6 +41,14 @@ class QubitOperatorTransformation(ABC):
             A qubit operator and a dictionary of auxiliary operators.
         """
         raise NotImplementedError
+
+    def get_default_filter_criterion(self) -> Optional[Callable[[Union[List, np.ndarray], float,
+                                                                 Optional[List[float]]], bool]]:
+        """Returns a default filter criterion method to filter the eigenvalues computed by the
+        eigen solver. For more information see also
+        aqua.algorithms.eigen_solvers.NumPyEigensolver.filter_criterion.
+        """
+        return None
 
     @abstractmethod
     def interpret(self, eigenstate_result: EigenstateResult) -> EigenstateResult:

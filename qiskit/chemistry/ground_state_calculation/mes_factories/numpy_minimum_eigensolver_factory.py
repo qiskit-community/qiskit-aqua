@@ -62,8 +62,8 @@ class NumPyMinimumEigensolverFactory(MESFactory):
             transformed by ``transformation``.
         """
         filter_criterion = self._filter_criterion
-        if not filter_criterion and hasattr(transformation, '_eigensolver_filter_criterion'):
-            filter_criterion = transformation._eigensolver_filter_criterion
+        if not filter_criterion:
+            filter_criterion = transformation.get_default_filter_criterion()
 
         npme = NumPyMinimumEigensolver(filter_criterion=filter_criterion)
         return npme
