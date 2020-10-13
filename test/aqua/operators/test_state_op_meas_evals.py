@@ -19,7 +19,8 @@ import numpy
 
 from qiskit import Aer
 from qiskit.aqua import QuantumInstance
-from qiskit.aqua.operators import StateFn, Zero, One, H, X, I, Z, Plus, Minus, CircuitSampler
+from qiskit.aqua.operators import StateFn, Zero, One, H, X, I, Z, Plus, Minus, CircuitSampler, \
+    ListOp
 
 
 # pylint: disable=invalid-name
@@ -78,6 +79,12 @@ class TestStateOpMeasEvals(QiskitAquaTestCase):
             state = (Plus + Minus) / numpy.sqrt(2)
             sampler = CircuitSampler(q_instance).convert(~StateFn(op) @ state)
             self.assertAlmostEqual(sampler.eval(), 1+0j)
+
+        with self.subTest('ListOp evaluated to List'):
+            state = ListOp([Plus, Zero])
+            sampler = CircuitSampler(q_instance).convert(~state @ state)
+            self.assertListEqual(sampler.eval(),
+                                 [[1.0, 0.6987712429686843], [0.7064159097160821, 1.0]])
 
 
 if __name__ == '__main__':
