@@ -1,0 +1,7 @@
+---
+features:
+  - |
+    Adds new classes for phase estimation. PhaseEstimator performs phase estimation given
+    a unitary and initial state. HamiltonianPE exponentiates a Hermitian operators using a
+    subclass of EvolutionBase and performs phase estimation on the resulting unitary. These
+    classes are supported by results classes PhaseEstimatorResult and HamiltonianPEResult.
