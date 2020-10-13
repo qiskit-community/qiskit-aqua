@@ -902,13 +902,12 @@ class TestOpConstruction(QiskitAquaTestCase):
         """Test to_circuit_op method."""
         vector = np.array([2, 2])
         vsfn = VectorStateFn([1, 1], coeff=2)
-        dsfn = DictStateFn({'0': 1, '1':1}, coeff=2)
+        dsfn = DictStateFn({'0': 1, '1': 1}, coeff=2)
 
         for sfn in [vsfn, dsfn]:
             np.testing.assert_array_almost_equal(
                 sfn.to_circuit_op().eval().primitive.data, vector
             )
-
 
 
 class TestOpMethods(QiskitAquaTestCase):
