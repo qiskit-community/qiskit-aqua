@@ -21,15 +21,6 @@ from qiskit.chemistry.ground_state_calculation import GroundStateCalculation
 class ExcitedStatesCalculation(ABC):
     """The excited states calculation interface"""
 
-#remove gsc.
-    def __init__(self, ground_state_calculation: GroundStateCalculation) -> None:
-        """
-        Args:
-            ground_state_calculation: a GroundStateCalculation object which defines
-            the methods and properties for the calculation of the ground state
-        """
-        self._gsc = ground_state_calculation
-
     @abstractmethod
     def compute_excitedstates(self, driver: BaseDriver):
         """Compute the excited states energies of the molecule that was supplied via the driver.

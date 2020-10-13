@@ -43,7 +43,7 @@ class QEOMExcitedStatesCalculation(ExcitedStatesCalculation):
                 Otherwise a list of custom excitations can directly be provided.
         """
 
-        super().__init__(ground_state_calculation)
+        self._gsc = ground_state_calculation
         self.excitations = excitations
 
     @property
