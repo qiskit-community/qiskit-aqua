@@ -31,8 +31,6 @@ from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingT
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.components.initial_states import HartreeFock
 
-# TODO Update test after excited states PR is done
-
 
 class TestEomVQE(QiskitAquaTestCase):
     """Test Eom VQE."""
