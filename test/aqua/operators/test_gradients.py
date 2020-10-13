@@ -369,9 +369,10 @@ class TestGradients(QiskitAquaTestCase):
                                                  correct_values[i], decimal=1)
 
     @idata(product(['lin_comb', 'param_shift', 'fin_diff'],
+                   ['lin_comb_full', 'overlap_block_diag', 'overlap_diag'],
                    [None, 'lasso', 'ridge', 'perturb_diag', 'perturb_diag_elements']))
     @unpack
-    def test_natural_gradient(self, method, regularization):
+    def test_natural_gradient(self, grad_method, qfi_method, regularization):
         """Test the natural gradient"""
         ham = 0.5 * X - 1 * Z
         a = Parameter('a')
@@ -385,7 +386,8 @@ class TestGradients(QiskitAquaTestCase):
         qc.rx(params[1], q[0])
 
         op = ~StateFn(ham) @ CircuitStateFn(primitive=qc, coeff=1.)
-        nat_grad = NaturalGradient(grad_method=method,
+        nat_grad = NaturalGradient(grad_method=grad_method,
+                                   qfi_method=qfi_method,
                                    regularization=regularization).convert(operator=op,
                                                                           params=params)
         values_dict = [{params[0]: np.pi / 4, params[1]: np.pi / 2}]
@@ -409,10 +411,14 @@ class TestGradients(QiskitAquaTestCase):
         self.assertIsInstance(nat_grad.qfi_method, circuit_qfi)
 
     @idata(product(['lin_comb', 'param_shift', 'fin_diff'],
+                   ['lin_comb_full', 'overlap_block_diag', 'overlap_diag'],
                    [None, 'ridge', 'perturb_diag', 'perturb_diag_elements']))
     @unpack
-    def test_natural_gradient4(self, method, regularization):
+    def test_natural_gradient4(self, grad_method, qfi_method, regularization):
         """Test the natural gradient 4"""
+
+        # Avoid regularization = lasso intentionally because it does not converge
+
         ham = 0.5 * X - 1 * Z
         a = Parameter('a')
         params = a
@@ -423,7 +429,8 @@ class TestGradients(QiskitAquaTestCase):
         qc.rz(a, q[0])
 
         op = ~StateFn(ham) @ CircuitStateFn(primitive=qc, coeff=1.)
-        nat_grad = NaturalGradient(grad_method=method,
+        nat_grad = NaturalGradient(grad_method=grad_method,
+                                   qfi_method=qfi_method,
                                    regularization=regularization).convert(operator=op,
                                                                           params=params)
         values_dict = [{a: np.pi / 4}]
@@ -637,7 +644,6 @@ class TestGradients(QiskitAquaTestCase):
     @unpack
     def test_vqe(self, backend, method):
         """Test VQE with gradients"""
-        self.skipTest('skip vqe')
         qi_sv = QuantumInstance(Aer.get_backend(backend),
                                 seed_simulator=2,
                                 seed_transpiler=2)
