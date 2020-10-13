@@ -21,6 +21,7 @@ import logging
 from enum import Enum
 
 import numpy as np
+from qiskit.aqua.algorithms import EigensolverResult, MinimumEigensolverResult
 from qiskit.aqua.operators import Z2Symmetries, WeightedPauliOperator, OperatorBase
 from qiskit.chemistry import QiskitChemistryError, QMolecule
 from qiskit.chemistry.fermionic_operator import FermionicOperator
@@ -490,15 +491,32 @@ class FermionicTransformation(QubitOperatorTransformation):
         z2_symmetries.tapering_values = taper_coef
         return z2_symmetries
 
-    def interpret(self, eigenstate_result: EigenstateResult) -> ElectronicStructureResult:
+    def interpret(self, raw_result: Union[EigenstateResult, EigensolverResult,
+                                          MinimumEigensolverResult]) -> ElectronicStructureResult:
         """Interprets an EigenstateResult in the context of this transformation.
 
         Args:
-            eigenstate_result: an eigenstate result object.
+            raw_result: an eigenstate result object.
 
         Returns:
             An electronic structure result.
         """
+        eigenstate_result = None
+        if isinstance(raw_result, EigenstateResult):
+            eigenstate_result = raw_result
+        elif isinstance(raw_result, EigensolverResult):
+            eigenstate_result = EigenstateResult()
+            eigenstate_result.raw_result = raw_result
+            eigenstate_result.eigenenergies = raw_result.eigenvalues
+            eigenstate_result.eigenstates = raw_result.eigenstates
+            eigenstate_result.aux_operator_eigenvalues = raw_result.aux_operator_eigenvalues
+        elif isinstance(raw_result, MinimumEigensolverResult):
+            eigenstate_result = EigenstateResult()
+            eigenstate_result.raw_result = raw_result
+            eigenstate_result.eigenenergies = np.asarray([raw_result.eigenvalue])
+            eigenstate_result.eigenstates = [raw_result.eigenstate]
+            eigenstate_result.aux_operator_eigenvalues = raw_result.aux_operator_eigenvalues
+
         result = ElectronicStructureResult(eigenstate_result.data)
         result.computed_electronic_energy = eigenstate_result.groundenergy
         result.hartree_fock_energy = self._hf_energy
