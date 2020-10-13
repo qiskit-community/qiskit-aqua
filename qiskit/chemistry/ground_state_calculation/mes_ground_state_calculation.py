@@ -133,7 +133,8 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
         # try to get a QuantumInstance from the solver
         quantum_instance = getattr(self._solver, 'quantum_instance', None)
 
-        state = StateFn(state)
+        if not isinstance(state, StateFn):
+            state = StateFn(state)
 
         # handle all possible formats of operators
         # i.e. if a user gives us a dict of operators, we return the results equivalently, etc.
