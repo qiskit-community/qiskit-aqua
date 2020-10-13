@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -11,19 +11,14 @@
 # that they have been altered from the originals.
 
 """
-This module implements the abstract base class for driver modules.
+This module implements the abstract base class for fermionic driver modules.
 """
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from enum import Enum
 
-from qiskit.chemistry import QMolecule
-
-
-class UnitsType(Enum):
-    """ Units Type Enum """
-    ANGSTROM = 'Angstrom'
-    BOHR = 'Bohr'
+from ..qmolecule import QMolecule
+from .base_driver import BaseDriver
 
 
 class HFMethodType(Enum):
@@ -33,14 +28,10 @@ class HFMethodType(Enum):
     UHF = 'uhf'
 
 
-class BaseDriver(ABC):
+class FermionicDriver(BaseDriver):
     """
-    Base class for Qiskit's chemistry drivers.
+    Base class for Qiskit's chemistry fermionic drivers.
     """
-
-    @abstractmethod
-    def __init__(self):
-        pass
 
     @abstractmethod
     def run(self) -> QMolecule:

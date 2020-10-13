@@ -17,9 +17,10 @@ import numpy as np
 from qiskit.aqua.algorithms import MinimumEigensolver, MinimumEigensolverResult
 from qiskit.aqua.operators import StateFn, DictStateFn
 
+from .. import QiskitOptimizationError
 from .optimization_algorithm import (OptimizationResultStatus, OptimizationAlgorithm,
                                      OptimizationResult)
-from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
+from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo, QuadraticProgramConverter
 from ..problems.quadratic_program import QuadraticProgram, Variable
 
 
@@ -101,8 +102,9 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         result = optimizer.solve(problem)
     """
 
-    def __init__(self, min_eigen_solver: MinimumEigensolver, penalty: Optional[float] = None
-                 ) -> None:
+    def __init__(self, min_eigen_solver: MinimumEigensolver, penalty: Optional[float] = None,
+                 converters: Optional[Union[QuadraticProgramConverter,
+                                            List[QuadraticProgramConverter]]] = None) -> None:
         """
         This initializer takes the minimum eigen solver to be used to approximate the ground state
         of the resulting Hamiltonian as well as a optional penalty factor to scale penalty terms
@@ -112,10 +114,22 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         Args:
             min_eigen_solver: The eigen solver to find the ground state of the Hamiltonian.
             penalty: The penalty factor to be used, or ``None`` for applying a default logic.
+            converters: The converters to use for converting a problem into a different form.
+                By default, when None is specified, an internally created instance of
+                :class:`~qiskit.optimization.converters.QuadraticProgramToQubo` will be used.
+
+        Raises:
+            TypeError: When one of converters has an invalid type.
+            QiskitOptimizationError: When the minimum eigensolver does not return an eigenstate.
         """
+
+        if not min_eigen_solver.supports_aux_operators():
+            raise QiskitOptimizationError('Given MinimumEigensolver does not return the eigenstate '
+                                          + 'and is not supported by the MinimumEigenOptimizer.')
         self._min_eigen_solver = min_eigen_solver
         self._penalty = penalty
-        self._qubo_converter = QuadraticProgramToQubo()
+
+        self._converters = self._prepare_converters(converters, penalty)
 
     def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
         """Checks whether a given problem can be solved with this optimizer.
@@ -158,7 +172,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         self._verify_compatibility(problem)
 
         # convert problem to QUBO
-        problem_ = self._qubo_converter.convert(problem)
+        problem_ = self._convert(problem, self._converters)
 
         # construct operator and offset
         operator, offset = problem_.to_ising()
@@ -173,13 +187,18 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
 
             # analyze results
             # backend = getattr(self._min_eigen_solver, 'quantum_instance', None)
-            samples = _eigenvector_to_solutions(eigen_result.eigenstate, problem_)
-            # print(offset, samples)
-            # samples = [(res[0], problem_.objective.sense.value * (res[1] + offset), res[2])
-            #    for res in samples]
-            samples.sort(key=lambda x: problem_.objective.sense.value * x[1])
-            x = [float(e) for e in samples[0][0]]
-            fval = samples[0][1]
+            fval = None
+            x = None
+            x_str = None
+            samples = None
+            if eigen_result.eigenstate is not None:
+                samples = _eigenvector_to_solutions(eigen_result.eigenstate, problem_)
+                # print(offset, samples)
+                # samples = [(res[0], problem_.objective.sense.value * (res[1] + offset), res[2])
+                #    for res in samples]
+                samples.sort(key=lambda x: problem_.objective.sense.value * x[1])
+                x = [float(e) for e in samples[0][0]]
+                fval = samples[0][1]
 
         # if Hamiltonian is empty, then the objective function is constant to the offset
         else:
@@ -191,7 +210,17 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         # translate result back to integers
         result = OptimizationResult(x=x, fval=fval, variables=problem_.variables,
                                     status=OptimizationResultStatus.SUCCESS)
-        result = self._qubo_converter.interpret(result)
+
+        result = self._interpret(result, self._converters)
+
+        if result.fval is None or result.x is None:
+            # if not function value is given, then something went wrong, e.g., a
+            # NumPyMinimumEigensolver has been configured with an infeasible filter criterion.
+            return MinimumEigenOptimizationResult(x=None, fval=None,
+                                                  variables=result.variables,
+                                                  status=OptimizationResultStatus.FAILURE,
+                                                  samples=None,
+                                                  min_eigen_solver_result=eigen_result)
 
         return MinimumEigenOptimizationResult(x=result.x, fval=result.fval,
                                               variables=result.variables,
