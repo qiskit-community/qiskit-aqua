@@ -15,6 +15,7 @@
 from typing import List, Optional, Callable, Union
 
 from qiskit.providers import BaseBackend
+from qiskit.providers import Backend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import MinimumEigensolver, VQE
 from qiskit.aqua.operators import Z2Symmetries
@@ -23,14 +24,14 @@ from qiskit.chemistry.components.initial_states import HartreeFock
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.core import (Hamiltonian, TransformationType, QubitMappingType,
                                    ChemistryOperator, MolecularGroundStateResult)
-from qiskit.chemistry.drivers import BaseDriver
+from qiskit.chemistry.drivers import FermionicDriver
 
 
 class MolecularGroundStateEnergy:
     """ Molecular ground state energy chemistry application """
 
     def __init__(self,
-                 driver: BaseDriver,
+                 driver: FermionicDriver,
                  solver: Optional[MinimumEigensolver] = None,
                  transformation: TransformationType = TransformationType.FULL,
                  qubit_mapping: QubitMappingType = QubitMappingType.PARITY,
@@ -68,12 +69,12 @@ class MolecularGroundStateEnergy:
         self._z2symmetry_reduction = z2symmetry_reduction
 
     @property
-    def driver(self) -> BaseDriver:
+    def driver(self) -> FermionicDriver:
         """ Returns chemistry driver """
         return self._driver
 
     @driver.setter
-    def driver(self, driver: BaseDriver) -> None:
+    def driver(self, driver: FermionicDriver) -> None:
         self._driver = driver
 
     @property
@@ -134,7 +135,7 @@ class MolecularGroundStateEnergy:
         return core.process_algorithm_result(raw_result)
 
     @staticmethod
-    def get_default_solver(quantum_instance: Union[QuantumInstance, BaseBackend]) ->\
+    def get_default_solver(quantum_instance: Union[QuantumInstance, Backend, BaseBackend]) ->\
             Optional[Callable[[List, int, str, bool, Z2Symmetries], MinimumEigensolver]]:
         """
         Get the default solver callback that can be used with :meth:`compute_energy`

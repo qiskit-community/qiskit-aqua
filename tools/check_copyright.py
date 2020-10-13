@@ -152,7 +152,7 @@ class CopyrightChecker:
         for item in os.listdir(path):
             fullpath = os.path.join(path, item)
             if os.path.isdir(fullpath):
-                if not item.startswith('.git'):
+                if not item.startswith('.'):
                     files = self._check(fullpath)
                     files_with_utf8 += files[0]
                     files_with_invalid_year += files[1]
@@ -192,6 +192,7 @@ if __name__ == '__main__':
     if not ARGS.path:
         ARGS.path = os.getcwd()
 
+    ARGS.path = os.path.abspath(os.path.realpath(os.path.expanduser(ARGS.path)))
     INVALID_UTF8, INVALID_YEAR, HAS_HEADER = CopyrightChecker(ARGS.path).check()
     print("{} files have utf8 headers.".format(INVALID_UTF8))
     print("{} of {} files with copyright header have wrong years.".format(

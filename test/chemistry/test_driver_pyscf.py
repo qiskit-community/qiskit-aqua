@@ -35,5 +35,17 @@ class TestDriverPySCF(QiskitChemistryTestCase, TestDriver):
         self.qmolecule = driver.run()
 
 
+class TestDriverPySCFMolecule(QiskitChemistryTestCase, TestDriver):
+    """PYSCF Driver Molecule tests."""
+
+    def setUp(self):
+        super().setUp()
+        try:
+            driver = PySCFDriver(molecule=TestDriver.MOLECULE)
+        except QiskitChemistryError:
+            self.skipTest('PYSCF driver does not appear to be installed')
+        self.qmolecule = driver.run()
+
+
 if __name__ == '__main__':
     unittest.main()

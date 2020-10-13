@@ -17,7 +17,7 @@ import logging
 from math import fsum
 from typing import Optional, cast, Union, Tuple, Dict
 
-from ..algorithms.optimization_algorithm import OptimizationResult, OptimizationResultStatus
+import qiskit.optimization.algorithms  # pylint: disable=unused-import
 from ..exceptions import QiskitOptimizationError
 from ..problems.constraint import Constraint
 from ..problems.quadratic_objective import QuadraticObjective
@@ -158,11 +158,12 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
 
         return fsum(penalties)
 
-    def interpret(self, result: OptimizationResult) -> OptimizationResult:
+    def interpret(self, result: 'qiskit.optimization.algorithms.OptimizationResult') \
+            -> 'qiskit.optimization.algorithms.OptimizationResult':  # type: ignore
         """Convert the result of the converted problem back to that of the original problem
 
         Args:
-            result: The result of the converted problem.
+            result: The result of the converted problem or the given result in case of FAILURE.
 
         Returns:
             The result of the original problem.
@@ -171,6 +172,12 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
             QiskitOptimizationError: if the number of variables in the result differs from
                                      that of the original problem.
         """
+        # pylint: disable=cyclic-import
+        from ..algorithms.optimization_algorithm import OptimizationResult, OptimizationResultStatus
+
+        if result.x is None:
+            return result
+
         if len(result.x) != self._src.get_num_vars():
             raise QiskitOptimizationError(
                 'The number of variables in the passed result differs from '

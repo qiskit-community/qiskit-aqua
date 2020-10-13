@@ -27,9 +27,11 @@ Initial States
    :nosignatures:
 
    HartreeFock
+   VSCF
 
 """
 
 from .hartree_fock import HartreeFock
+from .vscf import VSCF
 
-__all__ = ['HartreeFock']
+__all__ = ['HartreeFock', 'VSCF']
