@@ -682,7 +682,7 @@ class TestGradients(QiskitAquaTestCase):
         # Define the Hamiltonian
         h2_hamiltonian = -1.05 * (I ^ I) + 0.39 * (I ^ Z) - 0.39 * (Z ^ I) - 0.01 * (Z ^ Z) + 0.18 \
             * (X ^ X)
-        h2_energy = -1.085727503
+        h2_energy = -1.85727503
 
         # Define the Ansatz
         wavefunction = QuantumCircuit(2)
@@ -707,7 +707,7 @@ class TestGradients(QiskitAquaTestCase):
         vqe = VQE(h2_hamiltonian, wavefunction, optimizer=optimizer, gradient=grad)
 
         result = vqe.run(q_instance)
-        np.testing.assert_almost_equal(result['optimal_value'], h2_energy, decimal=1)
+        np.testing.assert_almost_equal(result['optimal_value'], h2_energy, decimal=0)
 
 
 @ddt
