@@ -81,8 +81,7 @@ class GaussianConditionalIndependenceModel(QuantumCircuit):
 
         # create normal distribution
         normal_distribution = NormalDistribution(n_normal, 0, 1,
-                                                 bounds=(-normal_max_value, normal_max_value),
-                                                 upto_phase=False)
+                                                 bounds=(-normal_max_value, normal_max_value))
 
         # build circuit
         self.append(normal_distribution.to_gate(), list(range(n_normal)))

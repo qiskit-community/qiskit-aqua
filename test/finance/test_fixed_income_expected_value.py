@@ -17,41 +17,16 @@ from test.finance import QiskitFinanceTestCase
 
 import numpy as np
 
-from qiskit import QuantumCircuit
+from qiskit import QuantumCircuit, Aer
+from qiskit.aqua import QuantumInstance
+from qiskit.aqua.algorithms import IterativeAmplitudeEstimation
+from qiskit.circuit.library import NormalDistribution
 from qiskit.finance.applications import FixedIncomeExpectedValue
 from qiskit.quantum_info import Operator
 
 
 class TestFixedIncomeExpectedValue(QiskitFinanceTestCase):
     """Tests European Call Expected Value uncertainty problem """
-
-    # TODO add test that checks the function on amplitudes
-    # def assertFunctionIsCorrect(self, function_circuit, reference):
-    #     """Assert that ``function_circuit`` implements the reference function ``reference``."""
-    #     num_state_qubits = function_circuit.num_qubits - 1
-
-    #     circuit = QuantumCircuit(function_circuit.num_qubits)
-    #     circuit.h(list(range(num_state_qubits)))
-    #     circuit.append(function_circuit.to_instruction(), list(range(circuit.num_qubits)))
-
-    #     backend = BasicAer.get_backend('statevector_simulator')
-    #     statevector = execute(circuit, backend).result().get_statevector()
-
-    #     expected = []
-    #     for i, _ in enumerate(statevector):
-    #         state = bin(i)[2:].zfill(num_state_qubits + 1)
-    #         x, last_qubit = int(state[1:], 2), state[0]
-    #         if last_qubit == '0':
-    #             expected_amplitude = np.cos(reference(x)) / np.sqrt(2**num_state_qubits)
-    #         else:
-    #             expected_amplitude = np.sin(reference(x)) / np.sqrt(2**num_state_qubits)
-
-    #         expected += [expected_amplitude]
-
-    #     print(expected)
-    #     print(statevector)
-
-    # np.testing.assert_almost_equal(unrolled_probabilities, unrolled_expectations)
 
     def test_circuit(self):
         """Test the expected circuit."""
@@ -73,6 +48,47 @@ class TestFixedIncomeExpectedValue(QiskitFinanceTestCase):
         expected.ry(9 * np.pi / 16, 4)
 
         self.assertTrue(Operator(circuit).equiv(expected))
+
+    def test_application(self):
+        """Test an end-to-end application."""
+        a_n = np.eye(2)
+        b = np.zeros(2)
+
+        num_qubits = [2, 2]
+
+        # specify the lower and upper bounds for the different dimension
+        bounds = [
+            (0, 0.12),
+            (0, 0.24)
+        ]
+        mu = [0.12, 0.24]
+        sigma = 0.01 * np.eye(2)
+
+        # construct corresponding distribution
+        dist = NormalDistribution(num_qubits, mu, sigma, bounds=bounds)
+
+        # specify cash flow
+        c_f = [1.0, 2.0]
+
+        # specify approximation factor
+        rescaling_factor = 0.125
+
+        # get fixed income circuit appfactory
+        fixed_income = FixedIncomeExpectedValue(num_qubits, a_n, b, c_f, rescaling_factor, bounds)
+
+        # build statepreparation operator
+        state_preparation = fixed_income.compose(dist, front=True)
+
+        # run simulation
+        iae = IterativeAmplitudeEstimation(epsilon=0.01, alpha=0.05,
+                                           state_preparation=state_preparation,
+                                           post_processing=fixed_income.post_processing)
+        backend = QuantumInstance(Aer.get_backend('qasm_simulator'),
+                                  seed_simulator=2, seed_transpiler=2)
+        result = iae.run(backend)
+
+        # compare to precomputed solution
+        self.assertAlmostEqual(result.estimation, 2.3363151843369234)
 
 
 if __name__ == '__main__':
