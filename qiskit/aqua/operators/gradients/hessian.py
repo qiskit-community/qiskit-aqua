@@ -76,8 +76,8 @@ class Hessian(HessianBase):
     def get_hessian(self,
                     operator: OperatorBase,
                     params: Optional[Union[Tuple[ParameterExpression, ParameterExpression],
-                                           List[Tuple[ParameterExpression, ParameterExpression]]]
-                    ] = None
+                                           List[Tuple[ParameterExpression, ParameterExpression]]]]
+                    = None
                     ) -> OperatorBase:
         """Get the Hessian for the given operator w.r.t. the given parameters
 
