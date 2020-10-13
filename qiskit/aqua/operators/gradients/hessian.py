@@ -215,7 +215,8 @@ class Hessian(HessianBase):
             else:
                 if _HAS_JAX:
                     first_partial_combo_fn = jit(grad(operator._combo_fn, holomorphic=True))
-                    second_partial_combo_fn = jit(grad(lambda x: first_partial_combo_fn(x)[0], holomorphic=True))
+                    second_partial_combo_fn = jit(grad(lambda x: first_partial_combo_fn(x)[0],
+                                                       holomorphic=True))
                 else:
                     raise AquaError(
                         'This automatic differentiation function is based on JAX. Please install '
