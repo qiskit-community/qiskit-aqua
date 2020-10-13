@@ -38,7 +38,6 @@ class BernoulliAFactory(UncertaintyProblem):
     """
 
     def __init__(self, probability=0.5):
-        #
         super().__init__(1)
         self._probability = probability
         self.i_state = 0
@@ -563,9 +562,7 @@ class TestCreditRiskAnalysis(QiskitAquaTestCase):
         # n_s = WeightedSumOperator.get_required_sum_qubits(lgd)
 
         # create circuit factory (add Z qubits with weight/loss 0)
-        warnings.filterwarnings('ignore', category=DeprecationWarning)
         agg = WeightedSumOperator(n_z + k_l, [0] * n_z + lgd)
-        warnings.filterwarnings('always', category=DeprecationWarning)
 
         # define linear objective
         breakpoints = [0, var]

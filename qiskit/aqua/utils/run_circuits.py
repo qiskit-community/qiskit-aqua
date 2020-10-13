@@ -21,10 +21,12 @@ import uuid
 
 import numpy as np
 from qiskit.providers import BaseBackend, JobStatus, JobError
+from qiskit.providers import Backend
 from qiskit.providers.jobstatus import JOB_FINAL_STATES
 from qiskit.providers.basicaer import BasicAerJob
 from qiskit.qobj import QasmQobj
 from qiskit.exceptions import QiskitError
+from qiskit.aqua import MissingOptionalLibraryError
 from qiskit.aqua.aqua_error import AquaError
 from qiskit.aqua.utils.backend_utils import (is_aer_provider,
                                              is_basicaer_provider,
@@ -143,7 +145,13 @@ def _safe_submit_qobj(qobj, backend, backend_options, noise_config, skip_qobj_va
         except QiskitError as ex:
             failure_warn = True
             if is_ibmq_provider(backend):
-                from qiskit.providers.ibmq import IBMQBackendJobLimitError
+                try:
+                    from qiskit.providers.ibmq import IBMQBackendJobLimitError
+                except ImportError as ex:
+                    raise MissingOptionalLibraryError(
+                        libname='qiskit-ibmq-provider',
+                        name='_safe_submit_qobj',
+                        pip_install='pip install qiskit-ibmq-provider') from ex
                 if isinstance(ex, IBMQBackendJobLimitError):
 
                     oldest_running = backend.jobs(limit=1, descending=False,
@@ -218,7 +226,7 @@ def run_qobj(qobj, backend, qjob_config=None, backend_options=None,
     backend_options = backend_options or {}
     noise_config = noise_config or {}
 
-    if backend is None or not isinstance(backend, BaseBackend):
+    if backend is None or not isinstance(backend, (Backend, BaseBackend)):
         raise ValueError('Backend is missing or not an instance of BaseBackend')
 
     with_autorecover = not is_simulator_backend(backend)
@@ -337,7 +345,13 @@ def run_on_backend(backend, qobj, backend_options=None,
         job_id = str(uuid.uuid4())
         if is_aer_provider(backend):
             # pylint: disable=import-outside-toplevel
-            from qiskit.providers.aer.aerjob import AerJob
+            try:
+                from qiskit.providers.aer.aerjob import AerJob
+            except ImportError as ex:
+                raise MissingOptionalLibraryError(
+                    libname='qiskit-aer',
+                    name='run_on_backend',
+                    pip_install='pip install qiskit-aer') from ex
             temp_backend_options = \
                 backend_options['backend_options'] if backend_options != {} else None
             temp_noise_config = noise_config['noise_model'] if noise_config != {} else None

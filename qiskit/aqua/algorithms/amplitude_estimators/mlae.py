@@ -20,6 +20,7 @@ from scipy.optimize import brute
 from scipy.stats import norm, chi2
 
 from qiskit.providers import BaseBackend
+from qiskit.providers import Backend
 from qiskit import ClassicalRegister, QuantumRegister, QuantumCircuit
 from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.utils.circuit_factory import CircuitFactory
@@ -57,7 +58,8 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                  q_factory: Optional[CircuitFactory] = None,
                  i_objective: Optional[int] = None,
                  likelihood_evals: Optional[int] = None,
-                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
+                 quantum_instance: Optional[
+                     Union[QuantumInstance, BaseBackend, Backend]] = None) -> None:
         r"""
         Args:
             num_oracle_circuits: The number of circuits applying different powers of the Grover

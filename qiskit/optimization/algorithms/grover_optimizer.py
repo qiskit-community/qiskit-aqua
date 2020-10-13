@@ -23,6 +23,7 @@ from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms.amplitude_amplifiers.grover import Grover
 from qiskit.providers import BaseBackend
+from qiskit.providers import Backend
 from qiskit.circuit.library import QuadraticForm
 from .optimization_algorithm import (OptimizationResultStatus, OptimizationAlgorithm,
                                      OptimizationResult)
@@ -37,7 +38,7 @@ class GroverOptimizer(OptimizationAlgorithm):
     """Uses Grover Adaptive Search (GAS) to find the minimum of a QUBO function."""
 
     def __init__(self, num_value_qubits: int, num_iterations: int = 3,
-                 quantum_instance: Optional[Union[BaseBackend, QuantumInstance]] = None,
+                 quantum_instance: Optional[Union[BaseBackend, Backend, QuantumInstance]] = None,
                  converters: Optional[Union[QuadraticProgramConverter,
                                             List[QuadraticProgramConverter]]] = None,
                  penalty: Optional[float] = None) -> None:
@@ -76,13 +77,14 @@ class GroverOptimizer(OptimizationAlgorithm):
         return self._quantum_instance
 
     @quantum_instance.setter
-    def quantum_instance(self, quantum_instance: Union[BaseBackend, QuantumInstance]) -> None:
+    def quantum_instance(self, quantum_instance: Union[Backend,
+                                                       BaseBackend, QuantumInstance]) -> None:
         """Set the quantum instance used to run the circuits.
 
         Args:
             quantum_instance: The quantum instance to be used in the algorithm.
         """
-        if isinstance(quantum_instance, BaseBackend):
+        if isinstance(quantum_instance, (BaseBackend, Backend)):
             self._quantum_instance = QuantumInstance(quantum_instance)
         else:
             self._quantum_instance = quantum_instance
@@ -113,7 +115,6 @@ class GroverOptimizer(OptimizationAlgorithm):
         a_operator = QuantumCircuit(qr_key_value)
         a_operator.h(list(range(self._num_key_qubits)))
         a_operator.compose(quadratic_form, inplace=True)
-
         return a_operator
 
     def _get_oracle(self, qr_key_value):
@@ -209,16 +210,12 @@ class GroverOptimizer(OptimizationAlgorithm):
                 loops_with_no_improvement += 1
                 rotation_count = int(np.ceil(aqua_globals.random.uniform(0, m - 1)))
                 rotations += rotation_count
-
                 # Apply Grover's Algorithm to find values below the threshold.
-                if rotation_count > 0:
-                    # TODO: Utilize Grover's incremental feature - requires changes to Grover.
-                    grover = Grover(oracle,
-                                    state_preparation=a_operator,
-                                    good_state=is_good_state)
-                    circuit = grover.construct_circuit(rotation_count, measurement=measurement)
-                else:
-                    circuit = a_operator
+                # TODO: Utilize Grover's incremental feature - requires changes to Grover.
+                grover = Grover(oracle,
+                                state_preparation=a_operator,
+                                good_state=is_good_state)
+                circuit = grover.construct_circuit(rotation_count, measurement=measurement)
 
                 # Get the next outcome.
                 outcome = self._measure(circuit)
@@ -283,7 +280,6 @@ class GroverOptimizer(OptimizationAlgorithm):
         """Get probabilities from the given backend, and picks a random outcome."""
         probs = self._get_probs(circuit)
         freq = sorted(probs.items(), key=lambda x: x[1], reverse=True)
-
         # Pick a random outcome.
         freq[-1] = (freq[-1][0], 1.0 - sum(x[1] for x in freq[0:len(freq) - 1]))
         idx = aqua_globals.random.choice(len(freq), 1, p=[x[1] for x in freq])[0]
@@ -306,9 +302,8 @@ class GroverOptimizer(OptimizationAlgorithm):
             shots = self.quantum_instance.run_config.shots
             hist = {}
             for key in state:
-                hist[key] = state[key] / shots
+                hist[key[::-1]] = state[key] / shots
         hist = dict(filter(lambda p: p[1] > 0, hist.items()))
-
         return hist
 
     @staticmethod

@@ -20,6 +20,7 @@ from qiskit import QuantumCircuit
 from qiskit.quantum_info import Pauli
 
 from qiskit.providers import BaseBackend
+from qiskit.providers import Backend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import op_converter, OperatorBase
 from qiskit.aqua.utils import get_subsystem_density_matrix
@@ -62,7 +63,8 @@ class QPE(QuantumAlgorithm, MinimumEigensolver):
                  expansion_mode: str = 'trotter',
                  expansion_order: int = 1,
                  shallow_circuit_concat: bool = False,
-                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
+                 quantum_instance: Optional[
+                     Union[QuantumInstance, BaseBackend, Backend]] = None) -> None:
         """
 
         Args:
