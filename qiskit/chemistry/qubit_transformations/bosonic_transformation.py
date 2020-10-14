@@ -319,7 +319,7 @@ class BosonicTransformation(QubitOperatorTransformation):
         def filter_criterion(self, eigenstate, eigenvalue, aux_values):
             # the first num_modes aux_value is the evaluated number of particles for the given mode
             for mode in range(self._num_modes):
-                if not np.isclose([aux_values[mode][0]], [1]):
+                if not np.isclose(aux_values[mode][0], 1):
                     return False
             return True
 
