@@ -146,7 +146,9 @@ class TestEuropeanCallOption(QiskitFinanceTestCase):
     def test_delta(self, simulator, a_e, expect):
         """ delta test """
         # set A factory for amplitude estimation
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         a_e.a_factory = self.european_call_delta
+        warnings.filterwarnings('always', category=DeprecationWarning)
 
         # run simulation
         result = a_e.run(self._qasm if simulator == 'qasm' else self._statevector)
