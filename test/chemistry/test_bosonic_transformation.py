@@ -16,13 +16,17 @@ import unittest
 
 from test.chemistry import QiskitChemistryTestCase
 
+from qiskit import BasicAer
+from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.aqua.components.optimizers import COBYLA
 from qiskit.chemistry.qubit_transformations import BosonicTransformation
 from qiskit.chemistry.qubit_transformations import (BosonicTransformationType,
                                                     BosonicQubitMappingType)
 from qiskit.chemistry.drivers import GaussianForcesDriver
 from qiskit.chemistry.ground_state_calculation import NumPyMinimumEigensolverFactory
 from qiskit.chemistry.ground_state_calculation import MinimumEigensolverGroundStateCalculation
+from qiskit.chemistry.ground_state_calculation import VQEUVCCSDFactory
 
 
 class TestBosonicTransformation(QiskitChemistryTestCase):
@@ -52,6 +56,7 @@ class TestBosonicTransformation(QiskitChemistryTestCase):
         self._validate_input_object(qubit_op, num_qubits=8, num_paulis=59)
         self.assertEqual(len(aux_ops), 4)
 
+
     def test_numpy_me(self):
 
         bosonic_transformation = BosonicTransformation(
@@ -64,6 +69,22 @@ class TestBosonicTransformation(QiskitChemistryTestCase):
         gsc = MinimumEigensolverGroundStateCalculation(bosonic_transformation, solver)
         result = gsc.compute_groundstate(self.driver)
         self.assertEqual(result.computed_vibronic_energies[0], self.reference_energy, 4)
+
+    def test_vqe_uvccsd_factory(self):
+
+        bosonic_transformation = BosonicTransformation(
+            qubit_mapping=BosonicQubitMappingType.DIRECT,
+            transformation_type=BosonicTransformationType.HARMONIC,
+            basis_size=2,
+            truncation=2)
+
+        optimizer = COBYLA(maxiter=5000)
+        solver = VQEUVCCSDFactory(QuantumInstance(BasicAer.get_backend('statevector_simulator')),
+                                  optimizer=optimizer)
+        gsc = MinimumEigensolverGroundStateCalculation(bosonic_transformation, solver)
+        result = gsc.compute_groundstate(self.driver)
+        self.assertAlmostEqual(result.computed_vibronic_energies[0], self.reference_energy, places=1)
+
 
 
 if __name__ == '__main__':
