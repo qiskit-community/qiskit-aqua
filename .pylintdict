@@ -161,6 +161,7 @@ durr
 ecc
 eckstein
 ee
+egger
 eigen
 eigenenergies
 eigensolver
@@ -507,6 +508,7 @@ prebuilt
 precomputed
 preoracle
 prepend
+prepending
 preprint
 priori
 probs
@@ -571,6 +573,7 @@ renyi
 representable
 rescaled
 rescaling
+rescalings
 retval
 rhf
 rhobeg
@@ -721,6 +724,7 @@ varform
 variational
 vartype
 vazirani
+vec
 vecs
 Veis
 vertices
