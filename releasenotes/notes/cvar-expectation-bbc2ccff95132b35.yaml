@@ -1,0 +1,52 @@
+---
+features:
+  - |
+    CVaR Expectation Values
+
+    Given a diagonal observable H, often corresponding to the objective function of an optimization problem, we are
+    often not as interested in minimizing the average energy of our observed measurements. In this context, we are
+    satisfied if at least some of our measurements achieve low energy. (Note that this is emphatically not the case
+    for chemistry problems).
+
+    To this end, one might consider using the best observed sample as a cost function during variational
+    optimization. The issue here, is that this can result in a non-smooth optimization surface. For this reason,
+    one might consider smoothing the optimization surface by using not just the best observed sample, but instead
+    averaging over some fraction of best observed samples. This is exactly what the CVaR estimator accomplishes [1].
+
+    Let alpha be a real number in [0,1] which specifies the fraction of best observed samples which are
+    used to compute the objective function. Observe that if alpha = 1, CVaR is equivalent to a standard expectation
+    value. Similarly, if alpha = 0, then CVaR corresponds to using the best observed sample. Intermediate values of
+    alpha interpolate between these two objective functions.
+
+    The functionality to use CVaR is included into the oeprator flow through a new subclass of OperatorStateFn
+    called CVaRMeasurement. This new StateFn object is instantied in the same way as an OperatorMeasurement
+    with the exception that it also accepts an `alpha` parameter and that it automatically enforces the
+    `is_measurement` attribute to be True. Observe that it is unclear what a CVaRStateFn would represent were it
+    not a measurement.
+
+    Examples::
+
+            qc = QuantumCircuit(1)
+            qc.h(0)
+            op = CVaRMeasurement(Z, alpha=0.5) @ CircuitStateFn(primitive=qc, coeff=1.0)
+            result = op.eval()
+
+
+    Similarly, an operator corresponding to a standard expectation value can be converted into a CVaR expectation
+    using the CVaRExpectation converter.
+
+    Examples::
+
+            qc = QuantumCircuit(1)
+            qc.h(0)
+            op = ~StateFn(Z) @ CircuitStateFn(primitive=qc, coeff=1.0)
+            cvar_expecation = CVaRExpectation(alpha=0.1).convert(op)
+            result = cvar_expecation.eval()
+   
+    See [1] for additional details regarding this technique and it's empircal performance.
+
+    References:
+
+        [1]: Barkoutsos, P. K., Nannicini, G., Robert, A., Tavernelli, I., and Woerner, S.,
+             "Improving Variational Quantum Optimization using CVaR"
+             `arXiv:1907.04769 <https://arxiv.org/abs/1907.04769>`_
