@@ -36,6 +36,8 @@ class CVaRExpectation(ExpectationBase):
 
     Examples:
 
+        >>> from qiskit import Aer
+        >>> from qiskit.aqua.operators import Z, I, Plus, StateFn, CVarExpectation, CircuitSampler
         >>> operator = Z ^ I ^ Z ^ I
         >>> state = Plus ^ 4
         >>> op = ~StateFn(operator) @ state
