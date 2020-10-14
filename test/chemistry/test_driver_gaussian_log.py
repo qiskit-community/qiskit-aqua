@@ -122,8 +122,8 @@ class TestDriverGaussianLog(QiskitChemistryTestCase):
                     ('3b', '3b', '3b', '3b', 220.54851, 0.82484, 0.01484)]
         self.assertListEqual(qfc, expected)
 
-    def test_compute_modes(self):
-        """ Test the internal function that is computing modes """
+    def test_watson_hamiltonian(self):
+        """ Test the watson hamiltonian """
         result = GaussianLogResult(self.logfile)
         watson = result.get_watson_hamiltonian()
         expected = [[352.3005875, 2, 2],
@@ -156,17 +156,6 @@ class TestDriverGaussianLog(QiskitChemistryTestCase):
             msg = "mode[{}]={} does not match expected {}".format(i, entry, expected[i])
             self.assertAlmostEqual(entry[0], expected[i][0], msg=msg)
             self.assertListEqual(entry[1:], expected[i][1:], msg=msg)
-
-
-    # This is just a dummy test at present to print out the stages of the computation
-    # to get to the arrays that will be used to compute input for Bosonic Operator
-    def _test_modes(self):
-        """ Placeholder """
-        result = GaussianLogResult(self.logfile)
-        print("---------- OUT file equivalent ------------")
-        print(result._compute_modes())
-        print("---------- HAM file equivalent ------------")
-        print(result.compute_harmonic_modes(num_modals=3))
 
 
 if __name__ == '__main__':
