@@ -251,13 +251,10 @@ class BosonicTransformation(QubitOperatorTransformation):
             hml.append([])
 
         tmp = []
-        tmpdag = []
         for i in range(len(index))[::-1]:
             tmp.append(index[i])
-            tmpdag.append([index[i][0], index[i][2], index[i][1]])
 
         hml[-1].append([tmp, 1])
-        hml[-1].append([tmpdag, -1])
 
         dummpy_op = BosonicOperator(np.asarray(hml, dtype=object), basis)
         qubit_op = dummpy_op.mapping(qubit_mapping)
