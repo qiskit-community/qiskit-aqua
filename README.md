@@ -75,7 +75,7 @@ by doing so via the Aqua extra_requires, in this case `pip install qiskit-aqua[c
 that a version compatible with Qiskit is installed._
 
 * **IBM CPLEX** may be [installed](https://qiskit.org/documentation/apidoc/qiskit.aqua.algorithms.minimum_eigen_solvers.cplex.html)
-  to allow the use of the `ClassicalCPLEX` classical solver algorithm.
+  to allow the use of the `CplexOptimizer` classical solver algorithm.
   `pip install qiskit-aqua[cplex]` may be used to install the community version.
 * **PyTorch**, may be installed either using command `pip install qiskit-aqua[torch]` to install the
   package or refer to PyTorch [getting started](https://pytorch.org/get-started/locally/). PyTorch
