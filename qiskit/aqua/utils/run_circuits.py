@@ -343,7 +343,16 @@ def run_on_backend(backend, qobj, backend_options=None,
     """ run on backend """
     if skip_qobj_validation:
         if is_aer_provider(backend):
-            temp_backend_options = \
+           if backend_options is not None:
+                for option, value in backend_options.items():
+                    if option == 'backend_options':
+                        for key, val in value.items():
+                            setattr(qobj.config, key, val)
+                    else:
+                        setattr(qobj.config, option, value)
+            if noise_config is not None and 'noise_model' in noise_config:
+                qobj.config.noise_model = noise_config['noise_model']
+            job = backend.run(qobj, validate=False)
                 backend_options['backend_options'] if backend_options != {} else None
             temp_noise_config = noise_config['noise_model'] if noise_config != {} else None
 
