@@ -296,9 +296,9 @@ class OOVQE(GroundStateCalculation):
             self._vqe.var_form._bounds = self._bounds
             self._vqe.var_form._num_parameters = len(self._bounds)
             vqresult = self._vqe.find_minimum(initial_point=self.initial_point,
-                                         var_form=self._vqe.var_form,
-                                         cost_fn=self._energy_evaluation_oo,
-                                         optimizer=self._vqe.optimizer)
+                                              var_form=self._vqe.var_form,
+                                              cost_fn=self._energy_evaluation_oo,
+                                              optimizer=self._vqe.optimizer)
             total_time += vqresult.optimizer_time
 
         # write original number of parameters to avoid errors due to parameter number mismatch
