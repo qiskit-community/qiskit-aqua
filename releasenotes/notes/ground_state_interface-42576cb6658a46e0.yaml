@@ -9,8 +9,8 @@ features:
     ``AdaptVQE``
     Introduces ``chemistry/results`` where the eigenstate_result and the
     electronic_structure_result are also used for the algorithms.
-    Introduces Minimum Eigensolver factories ``mes_factories`` where chemistry specific minimum
-    eigensolvers can also be initialised
+    Introduces Minimum Eigensolver factories ``minimum_eigensolver_factories`` where chemistry specific
+    minimum eigensolvers can be initialised
     Introduces orbital optimization vqe ``oovqe`` as a ground state solver for chemistry applications
 deprecations:
   - |
