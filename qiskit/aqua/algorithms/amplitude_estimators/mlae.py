@@ -163,12 +163,16 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 self._circuits += [qc_k]
         else:  # using deprecated CircuitFactory
             # construct first part of circuit
-            q = QuantumRegister(self.a_factory.num_target_qubits, 'q')
+            q = QuantumRegister(self._a_factory.num_target_qubits, 'q')
             qc_0 = QuantumCircuit(q, name='qc_a')  # 0 applications of Q, only a single A operator
 
             # get number of ancillas
-            num_ancillas = np.maximum(self.a_factory.required_ancillas(),
-                                      self.q_factory.required_ancillas())
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            q_factory = self.q_factory
+            warnings.filterwarnings('always', category=DeprecationWarning)
+
+            num_ancillas = np.maximum(self._a_factory.required_ancillas(),
+                                      q_factory.required_ancillas())
 
             q_aux = None
             # pylint: disable=comparison-with-callable
@@ -181,13 +185,13 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 c = ClassicalRegister(1)
                 qc_0.add_register(c)
 
-            self.a_factory.build(qc_0, q, q_aux)
+            self._a_factory.build(qc_0, q, q_aux)
 
             for k in self._evaluation_schedule:
                 qc_k = qc_0.copy(name='qc_a_q_%s' % k)
 
                 if k != 0:
-                    self.q_factory.build_power(qc_k, q, k, q_aux)
+                    q_factory.build_power(qc_k, q, k, q_aux)
 
                 if measurement:
                     # real hardware can currently not handle operations after measurements,
@@ -475,7 +479,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
     def _run(self) -> 'MaximumLikelihoodAmplitudeEstimationResult':
         # check if A factory or state_preparation has been set
         if self.state_preparation is None:
-            if self.a_factory is None:  # getter emits deprecation warnings, therefore nest
+            if self._a_factory is None:  # getter emits deprecation warnings, therefore nest
                 raise AquaError('Either the state_preparation variable or the a_factory '
                                 '(deprecated) must be set to run the algorithm.')
 

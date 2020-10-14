@@ -290,7 +290,10 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
             return self._q_factory
 
         if self._a_factory is not None:
-            return QFactory(self._a_factory, self.i_objective)
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            q_factory = QFactory(self._a_factory, self.i_objective)
+            warnings.filterwarnings('always', category=DeprecationWarning)
+            return q_factory
 
         return None
 
@@ -372,7 +375,7 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
             to the target interval.
         """
         if self._a_factory is not None:
-            return self.a_factory.value_to_estimation(value)
+            return self._a_factory.value_to_estimation(value)
         return self._post_processing(value)
 
 
