@@ -57,12 +57,12 @@ class CVaRMeasurement(OperatorStateFn):
             primitive: The ``OperatorBase`` which defines the diagonal operator
                        measurement.
             coeff: A coefficient by which to multiply the state function
-            alpha: A real-valued parameter between 0 and 1 which specifies the 
-                   fraction of observed samples to include when computing the 
-                   objective value. alpha = 1 corresponds to a standard observable 
+            alpha: A real-valued parameter between 0 and 1 which specifies the
+                   fraction of observed samples to include when computing the
+                   objective value. alpha = 1 corresponds to a standard observable
                    expectation value. alpha = 0 corresponds to only using the single
                    sample with the lowest energy. alpha = 0.5 corresponds to ranking each
-                   observation by lowest energy and using the best 
+                   observation by lowest energy and using the best
 
         Raises:
             ValueError: TODO remove that this raises an error
@@ -84,12 +84,12 @@ class CVaRMeasurement(OperatorStateFn):
 
     @property
     def alpha(self) -> float:
-        """A real-valued parameter between 0 and 1 which specifies the 
-           fraction of observed samples to include when computing the 
-           objective value. alpha = 1 corresponds to a standard observable 
+        """A real-valued parameter between 0 and 1 which specifies the
+           fraction of observed samples to include when computing the
+           objective value. alpha = 1 corresponds to a standard observable
            expectation value. alpha = 0 corresponds to only using the single
            sample with the lowest energy. alpha = 0.5 corresponds to ranking each
-           observation by lowest energy and using the best half. 
+           observation by lowest energy and using the best half.
 
         Returns:
             The parameter alpha which was given at initialization
@@ -180,8 +180,8 @@ class CVaRMeasurement(OperatorStateFn):
         # Sort each observation based on it's energy
         outcomes = sorted(outcomes, key=lambda x: x[2])
 
-        # Here probabilities are the (root) probabilities of 
-        # observing each state. energies are the expectation 
+        # Here probabilities are the (root) probabilities of
+        # observing each state. energies are the expectation
         # values of each state with the provided Hamiltonian.
         _, probabilities, energies = zip(*outcomes)
 
@@ -190,7 +190,7 @@ class CVaRMeasurement(OperatorStateFn):
         probabilities = [p_i * np.conj(p_i) for p_i in probabilities]
 
         # Determine j, the index of the measurement outcome such
-        # that only some samples with this outcome will be used to 
+        # that only some samples with this outcome will be used to
         # compute the CVaR.
         j = 0
         running_total = 0

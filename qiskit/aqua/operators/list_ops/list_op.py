@@ -350,7 +350,6 @@ class ListOp(OperatorBase):
             raise NotImplementedError(r'ListOp\'s eval function is only defined for distributive '
                                       r'Listops.')
         evals = [(self.coeff * op).eval(front) for op in self.oplist]  # type: ignore
-        
         if all(isinstance(op, OperatorBase) for op in evals):
             return self.__class__(evals)
         elif any(isinstance(op, OperatorBase) for op in evals):
