@@ -110,7 +110,7 @@ class GaussianConditionalIndependenceModel(MultivariateDistribution):
 
     @staticmethod
     def _replacement():
-        return 'qiskit.finance.appplications.GaussianConditionalIndependenceModel'
+        return 'qiskit.finance.applications.GaussianConditionalIndependenceModel'
 
     def build(self, qc, q, q_ancillas=None, params=None):
         self._normal.build(qc, q, q_ancillas)
