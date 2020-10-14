@@ -148,8 +148,6 @@ class PolynomialExtrapolator(Extrapolator):
 
         ret_param_arr = []
         for params in param_arr:
-            # coefficients, _, _, _, _ = np.polyfit(data_points, params, deg=self._degree, full=True)
-            # todo: generates a warning in the tests: RankWarning: Polyfit may be poorly conditioned
             coefficients = np.polyfit(data_points, params, deg=self._degree)
             poly = np.poly1d(coefficients)
             ret_param_arr += [poly(points)]
