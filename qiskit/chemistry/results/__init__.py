@@ -13,10 +13,12 @@
 """Chemistry results module."""
 
 from .electronic_structure_result import DipoleTuple, ElectronicStructureResult
+from .vibronic_structure_result import VibronicStructureResult
 from .eigenstate_result import EigenstateResult
 
 
 __all__ = ['DipoleTuple',
            'EigenstateResult',
            'ElectronicStructureResult',
+           'VibronicStructureResult'
            ]

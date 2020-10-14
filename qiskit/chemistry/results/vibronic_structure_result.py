@@ -10,16 +10,15 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Ground state calculation algorithms."""
+"""The vibronic structure result."""
 
-from .ground_state_solver import GroundStateSolver
-from .adapt_vqe import AdaptVQE
-from .ground_state_eigensolver import GroundStateEigensolver
-from .minimum_eigensolver_factories import MinimumEigensolverFactory, VQEUCCSDFactory
+import logging
 
-__all__ = ['GroundStateSolver',
-           'AdaptVQE',
-           'GroundStateEigensolver',
-           'MinimumEigensolverFactory',
-           'VQEUCCSDFactory'
-           ]
+from .eigenstate_result import EigenstateResult
+
+logger = logging.getLogger(__name__)
+
+
+class VibronicStructureResult(EigenstateResult):
+    """The vibronic structure result."""
+    # TODO: just a placeholder to pass lint, needs to be defined
