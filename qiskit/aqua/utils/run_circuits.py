@@ -357,7 +357,7 @@ def run_on_backend(backend, qobj, backend_options=None,
                     config['noise_model'] = temp_noise_config
                 qobj.config = QasmQobjConfig.from_dict(config)
 
-            job = backend.run(qobj)
+            job = backend.run(qobj, validate=False)
         elif is_basicaer_provider(backend):
             job_id = str(uuid.uuid4())
             backend._set_options(qobj_config=qobj.config, **backend_options)
