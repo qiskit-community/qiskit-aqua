@@ -345,15 +345,11 @@ class ListOp(OperatorBase):
 
         """
         # The below code only works for distributive ListOps, e.g. ListOp and SummedOp
-
-        from ..state_fns.dict_state_fn import DictStateFn       # pylint: disable=cyclic-import
-        from ..state_fns.vector_state_fn import VectorStateFn   # pylint: disable=cyclic-import
-
         if not self.distributive:
             raise NotImplementedError(r'ListOp\'s eval function is only defined for distributive '
                                       r'Listops.')
+
         evals = [(self.coeff * op).eval(front) for op in self.oplist]  # type: ignore
-        
         if all(isinstance(op, OperatorBase) for op in evals):
             return self.__class__(evals)
         elif any(isinstance(op, OperatorBase) for op in evals):
@@ -449,7 +445,6 @@ class ListOp(OperatorBase):
         such as ``CircuitOp`` and ``CircuitStateFn``. """
         # pylint: disable=cyclic-import
         from ..state_fns.operator_state_fn import OperatorStateFn
-
         if self.__class__ == ListOp:
             return ListOp([op.to_circuit_op()  # type: ignore
                            if not isinstance(op, OperatorStateFn) else op
