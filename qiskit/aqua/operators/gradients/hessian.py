@@ -76,8 +76,8 @@ class Hessian(HessianBase):
     def get_hessian(self,
                     operator: OperatorBase,
                     params: Optional[Union[Tuple[ParameterExpression, ParameterExpression],
-                                           List[Tuple[
-                                               ParameterExpression, ParameterExpression]]]] = None
+                                           List[Tuple[ParameterExpression, ParameterExpression]]]]
+                    = None
                     ) -> OperatorBase:
         """Get the Hessian for the given operator w.r.t. the given parameters
 
@@ -165,13 +165,13 @@ class Hessian(HessianBase):
         # and moved out front.
         if isinstance(operator, ComposedOp):
 
-            if not is_coeff_c(operator._coeff, 1.):
+            if not is_coeff_c(operator.coeff, 1.):
                 raise AquaError('Operator pre-processing failed. Coefficients were not properly '
                                 'collected inside the ComposedOp.')
 
             # Do some checks to make sure operator is sensible
             # TODO enable compatibility with sum of CircuitStateFn operators
-            if isinstance(operator[-1], (CircuitStateFn)):
+            if isinstance(operator[-1], CircuitStateFn):
                 pass
             else:
                 raise TypeError(
@@ -182,7 +182,9 @@ class Hessian(HessianBase):
 
         # This is the recursive case where the chain rule is handled
         elif isinstance(operator, ListOp):
-            grad_ops = [self.get_hessian(op, params) for op in operator.oplist]
+            # These operators correspond to (d_op/d θ0,θ1) for op in operator.oplist
+            # and params = (θ0,θ1)
+            dd_ops = [self.get_hessian(op, params) for op in operator.oplist]
 
             # Note that this check to see if the ListOp has a default combo_fn
             # will fail if the user manually specifies the default combo_fn.
@@ -191,30 +193,54 @@ class Hessian(HessianBase):
             # An alternative is to check the byte code of the operator's combo_fn against the
             # default one.
             # This will work but look very ugly and may have other downsides I'm not aware of
-            if operator._combo_fn == ListOp([])._combo_fn:
-                return ListOp(oplist=grad_ops)
+            if operator.combo_fn == ListOp([]).combo_fn:
+                return ListOp(oplist=dd_ops)
             elif isinstance(operator, SummedOp):
-                return SummedOp(oplist=grad_ops)
+                return SummedOp(oplist=dd_ops)
             elif isinstance(operator, TensoredOp):
-                return TensoredOp(oplist=grad_ops)
+                return TensoredOp(oplist=dd_ops)
+
+            # These operators correspond to (d gi/d θ0)•(d gi/d θ1) for op in operator.oplist
+            # and params = (θ0,θ1)
+            d1d0_ops = ListOp([ListOp([Gradient(grad_method=self._hess_method).convert(op, param)
+                                       for param in params], combo_fn=np.prod) for
+                               op in operator.oplist])
 
             if operator.grad_combo_fn:
-                grad_combo_fn = operator.grad_combo_fn
+                first_partial_combo_fn = operator.grad_combo_fn
+                if _HAS_JAX:
+                    second_partial_combo_fn = jit(grad(lambda x: first_partial_combo_fn(x)[0],
+                                                       holomorphic=True))
+                else:
+                    raise AquaError(
+                        'This automatic differentiation function is based on JAX. Please '
+                        'install jax and use `import jax.numpy as jnp` instead of '
+                        '`import numpy as np` when defining a combo_fn.')
             else:
                 if _HAS_JAX:
-                    grad_combo_fn = jit(grad(operator._combo_fn, holomorphic=True))
+                    first_partial_combo_fn = jit(grad(operator.combo_fn, holomorphic=True))
+                    second_partial_combo_fn = jit(grad(lambda x: first_partial_combo_fn(x)[0],
+                                                       holomorphic=True))
                 else:
                     raise AquaError(
                         'This automatic differentiation function is based on JAX. Please install '
                         'jax and use `import jax.numpy as jnp` instead of `import numpy as np` when'
                         'defining a combo_fn.')
+            # pylint: disable=wrong-spelling-in-comment
+            # For a general combo_fn F(g0, g1, ..., gk)
+            # dF/d θ0,θ1 = sum_i: (∂F/∂gi)•(d gi/ d θ0,θ1) + (∂F/∂^2 gi)•(d gi/d θ0)•(d gi/d θ1)
 
-            # f(g_1(x), g_2(x)) --> df/dx = df/dg_1 dg_1/dx + df/dg_2 dg_2/dx
-            return ListOp([ListOp(operator.oplist, combo_fn=grad_combo_fn), ListOp(grad_ops)],
-                          combo_fn=lambda x: np.dot(x[0], x[1]))
+            # term1 = (∂F/∂gi)•(d gi/ d θ0,θ1)
+            term1 = ListOp([ListOp(operator.oplist, combo_fn=first_partial_combo_fn),
+                            ListOp(dd_ops)], combo_fn=lambda x: np.dot(x[0], x[1]))
+            # term2 = (∂F/∂^2 gi)•(d gi/d θ0)•(d gi/d θ1)
+            term2 = ListOp([ListOp(operator.oplist, combo_fn=second_partial_combo_fn), d1d0_ops],
+                           combo_fn=lambda x: np.dot(x[0], x[1]))
+
+            return SummedOp([term1, term2])
 
         elif isinstance(operator, StateFn):
-            if operator._is_measurement:
+            if operator.is_measurement:
                 raise TypeError('The computation of Hessians is only supported for Operators which '
                                 'represent expectation values.')
 

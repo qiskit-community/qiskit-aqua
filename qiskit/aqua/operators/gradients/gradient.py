@@ -69,7 +69,6 @@ class Gradient(GradientBase):
             return ListOp(param_grads)
 
         param = params
-
         # Preprocessing
         expec_op = PauliExpectation(group_paulis=False).convert(operator).reduce()
         cleaned_op = self._factor_coeffs_out_of_composed_op(expec_op)
@@ -122,7 +121,6 @@ class Gradient(GradientBase):
         param = params
         # Handle Product Rules
         if not is_coeff_c(operator._coeff, 1.0):
-
             # Separate the operator from the coefficient
             coeff = operator._coeff
             op = operator / coeff
