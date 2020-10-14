@@ -14,11 +14,13 @@
 
 from .ground_state_calculation import GroundStateCalculation
 from .adapt_vqe import AdaptVQE
+from .oovqe import OOVQE
 from .mes_ground_state_calculation import MinimumEigensolverGroundStateCalculation
 from .mes_factories import MESFactory, VQEUCCSDFactory
 
 __all__ = ['GroundStateCalculation',
            'AdaptVQE',
+           'OOVQE',
            'MinimumEigensolverGroundStateCalculation',
            'MESFactory',
            'VQEUCCSDFactory'
