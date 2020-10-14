@@ -80,10 +80,11 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
             An eigenstate result. Depending on the transformation this can be an electronic
             structure or bosonic result.
         """
-        if aux_operators is not None:
-            if any(not isinstance(op, (WeightedPauliOperator, FermionicOperator))
-                   for op in aux_operators):
-                raise NotImplementedError('Currently only fermionic problems are supported.')
+        #TODO remove this completely?
+        # if aux_operators is not None:
+        #     if any(not isinstance(op, (WeightedPauliOperator, FermionicOperator))
+        #            for op in aux_operators):
+        #         raise NotImplementedError('Currently only fermionic problems are supported.')
 
         # get the operator and auxiliary operators, and transform the provided auxiliary operators
         # note that ``aux_operators`` contains not only the transformed ``aux_operators`` passed

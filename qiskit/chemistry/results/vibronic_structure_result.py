@@ -15,6 +15,7 @@
 from typing import List, Optional
 
 import logging
+import numpy as np
 
 from qiskit.aqua.algorithms import AlgorithmResult
 
@@ -41,14 +42,14 @@ class VibronicStructureResult(EigenstateResult):
     # construct the circuit of the GS from here (if the algorithm supports this)
 
     @property
-    def computed_vibronic_energy(self) -> float:
+    def computed_vibronic_energies(self) -> np.ndarray:
         """ Returns computed electronic part of ground state energy """
-        return self.get('computed_vibronic_energy')
+        return self.get('computed_vibronic_energies')
 
-    @computed_vibronic_energy.setter
-    def computed_vibronic_energy(self, value: float) -> None:
+    @computed_vibronic_energies.setter
+    def computed_vibronic_energies(self, value: np.ndarray) -> None:
         """ Sets computed electronic part of ground state energy """
-        self.data['computed_vibronic_energy'] = value
+        self.data['computed_vibronic_energies'] = value
 
     @property
     def num_occupied_modals_per_mode(self) -> Optional[List[float]]:
@@ -71,7 +72,7 @@ class VibronicStructureResult(EigenstateResult):
         lines.append('=== GROUND STATE ENERGY ===')
         lines.append(' ')
         lines.append('* Vibronic ground state energy (cm^-1): {}'.
-                     format(round(self.computed_vibronic_energy, 12)))
+                     format(round(self.computed_vibronic_energies[0], 12)))
         if len(self.num_occupied_modals_per_mode) > 0:
             lines.append('The number of occupied modals is')
         for i in range(len(self.num_occupied_modals_per_mode)):

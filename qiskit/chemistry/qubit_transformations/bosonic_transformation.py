@@ -14,11 +14,12 @@ This module implements a vibronic Hamiltonian operator, representing the
 energy of the nuclei in a molecule.
 """
 
+from functools import partial
 import logging
-from typing import Tuple, List, Union, Any, Optional
+from typing import Tuple, List, Union, Any, Optional, Callable
 from enum import Enum
 import numpy as np
-
+from qiskit.aqua.algorithms import EigensolverResult, MinimumEigensolverResult
 from qiskit.tools import parallel_map
 from qiskit.aqua import AquaError, aqua_globals
 from qiskit.chemistry import QiskitChemistryError
@@ -134,7 +135,7 @@ class BosonicTransformation(QubitOperatorTransformation):
 
             """
             if not isinstance(aux_op, WeightedPauliOperator):
-                aux_qop = BosonicTransformation._map_fermionic_operator_to_qubit(
+                aux_qop = BosonicTransformation._map_bosonic_operator_to_qubit(
                     aux_op, self._qubit_mapping)
                 aux_qop.name = name
             else:
@@ -156,17 +157,35 @@ class BosonicTransformation(QubitOperatorTransformation):
 
         return qubit_op, aux_ops
 
-    def interpret(self, eigenstate_result: EigenstateResult) -> VibronicStructureResult:
+    def interpret(self, raw_result: Union[EigenstateResult, EigensolverResult,
+                                          MinimumEigensolverResult]) -> VibronicStructureResult:
         """Interprets an EigenstateResult in the context of this transformation.
 
-        Args:
-            eigenstate_result: an eigenstate result object.
+               Args:
+                   raw_result: an eigenstate result object.
 
-        Returns:
-            A vibronic structure result.
-        """
+               Returns:
+                   An vibronic structure result.
+               """
+
+        eigenstate_result = None
+        if isinstance(raw_result, EigenstateResult):
+            eigenstate_result = raw_result
+        elif isinstance(raw_result, EigensolverResult):
+            eigenstate_result = EigenstateResult()
+            eigenstate_result.raw_result = raw_result
+            eigenstate_result.eigenenergies = raw_result.eigenvalues
+            eigenstate_result.eigenstates = raw_result.eigenstates
+            eigenstate_result.aux_operator_eigenvalues = raw_result.aux_operator_eigenvalues
+        elif isinstance(raw_result, MinimumEigensolverResult):
+            eigenstate_result = EigenstateResult()
+            eigenstate_result.raw_result = raw_result
+            eigenstate_result.eigenenergies = np.asarray([raw_result.eigenvalue])
+            eigenstate_result.eigenstates = [raw_result.eigenstate]
+            eigenstate_result.aux_operator_eigenvalues = raw_result.aux_operator_eigenvalues
+
         result = VibronicStructureResult(eigenstate_result.data)
-        result.computed_vibronic_energy = eigenstate_result.eigenvalue.real
+        result.computed_vibronic_energies = eigenstate_result.eigenenergies
         if result.aux_operator_eigenvalues is not None:
             occ_modals = []
             for mode in range(self._num_modes):
@@ -179,8 +198,8 @@ class BosonicTransformation(QubitOperatorTransformation):
         return result
 
     @staticmethod
-    def _map_fermionic_operator_to_qubit(bos_op: BosonicOperator,
-                                         qubit_mapping: str) -> WeightedPauliOperator:
+    def _map_bosonic_operator_to_qubit(bos_op: BosonicOperator,
+                                       qubit_mapping: str) -> WeightedPauliOperator:
         """
 
         Args:
@@ -286,4 +305,23 @@ class BosonicTransformation(QubitOperatorTransformation):
             hopping_operators[key] = res[0]
 
         return hopping_operators, type_of_commutativities, excitation_indices
+
+    def get_default_filter_criterion(self) -> Optional[Callable[[Union[List, np.ndarray], float,
+                                                                 Optional[List[float]]], bool]]:
+        """Returns a default filter criterion method to filter the eigenvalues computed by the
+        eigen solver. For more information see also
+        aqua.algorithms.eigen_solvers.NumPyEigensolver.filter_criterion.
+        In the fermionic case the default filter ensures that the number of particles is being
+        preserved.
+        """
+
+        # pylint: disable=unused-argument
+        def filter_criterion(self, eigenstate, eigenvalue, aux_values):
+            # the first num_modes aux_value is the evaluated number of particles for the given mode
+            for mode in range(self._num_modes):
+                if not np.isclose([aux_values[mode][0]], [1]):
+                    return False
+            return True
+
+        return partial(filter_criterion, self)
 

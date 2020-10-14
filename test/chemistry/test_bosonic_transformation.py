@@ -21,6 +21,8 @@ from qiskit.chemistry.qubit_transformations import BosonicTransformation
 from qiskit.chemistry.qubit_transformations import (BosonicTransformationType,
                                                     BosonicQubitMappingType)
 from qiskit.chemistry.drivers import GaussianForcesDriver
+from qiskit.chemistry.ground_state_calculation import NumPyMinimumEigensolverFactory
+from qiskit.chemistry.ground_state_calculation import MinimumEigensolverGroundStateCalculation
 
 
 class TestBosonicTransformation(QiskitChemistryTestCase):
@@ -48,6 +50,12 @@ class TestBosonicTransformation(QiskitChemistryTestCase):
         self.assertEqual(bosonic_transformation.num_modes, 4)
         self._validate_input_object(qubit_op, num_qubits=8, num_paulis=59)
         self.assertEqual(len(aux_ops), 4)
+
+        solver = NumPyMinimumEigensolverFactory(use_default_filter_criterion = True)
+        gsc = MinimumEigensolverGroundStateCalculation(bosonic_transformation, solver)
+        result = gsc.compute_groundstate(self.driver)
+
+
 
 
 if __name__ == '__main__':
