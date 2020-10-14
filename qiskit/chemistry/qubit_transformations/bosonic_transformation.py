@@ -76,11 +76,16 @@ class BosonicTransformation(QubitOperatorTransformation):
         self._h_mat = None
 
     @property
-    def num_modes(self):
+    def num_modes(self) -> int:
         """
         Returns: the number of modes
         """
         return self._num_modes
+
+    @property
+    def basis(self) -> Union[int, List[int]]:
+        """ returns the basis (number of modals per mode) """
+        return  self._basis_size
 
     @property
     def commutation_rule(self) -> int:
