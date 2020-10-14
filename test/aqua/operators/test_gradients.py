@@ -122,7 +122,7 @@ class TestGradients(QiskitAquaTestCase):
 
     @data('lin_comb', 'param_shift', 'fin_diff')
     def test_gradient_rxx(self, method):
-        """Test the state gradient for RXX
+        """Test the state gradient for XX rotation
         """
         ham = Z ^ X
         a = Parameter('a')
@@ -143,7 +143,7 @@ class TestGradients(QiskitAquaTestCase):
 
     @data('lin_comb', 'param_shift', 'fin_diff')
     def test_gradient_ryy(self, method):
-        """Test the state gradient for RYY
+        """Test the state gradient for YY rotation
         """
         ham = Y ^ Y
         a = Parameter('a')
@@ -162,7 +162,7 @@ class TestGradients(QiskitAquaTestCase):
 
     @data('lin_comb', 'param_shift', 'fin_diff')
     def test_gradient_rzz(self, method):
-        """Test the state gradient for RZZ
+        """Test the state gradient for ZZ rotation
         """
         ham = Z ^ X
         a = Parameter('a')
