@@ -342,23 +342,19 @@ def run_on_backend(backend, qobj, backend_options=None,
                    noise_config=None, skip_qobj_validation=False):
     """ run on backend """
     if skip_qobj_validation:
-        job_id = str(uuid.uuid4())
         if is_aer_provider(backend):
-            # pylint: disable=import-outside-toplevel
-            try:
-                from qiskit.providers.aer.aerjob import AerJob
-            except ImportError as ex:
-                raise MissingOptionalLibraryError(
-                    libname='qiskit-aer',
-                    name='run_on_backend',
-                    pip_install='pip install qiskit-aer') from ex
-            temp_backend_options = \
-                backend_options['backend_options'] if backend_options != {} else None
-            temp_noise_config = noise_config['noise_model'] if noise_config != {} else None
-            job = AerJob(backend, job_id,
-                         backend._run_job, qobj, temp_backend_options, temp_noise_config, False)
-            job._future = job._executor.submit(job._fn, job._job_id, job._qobj, *job._args)
+            if backend_options is not None:
+                for option, value in backend_options.items():
+                    if option == 'backend_options':
+                        for key, val in value.items():
+                            setattr(qobj.config, key, val)
+                    else:
+                        setattr(qobj.config, option, value)
+            if noise_config is not None and 'noise_model' in noise_config:
+                qobj.config.noise_model = noise_config['noise_model']
+            job = backend.run(qobj, validate=False)
         elif is_basicaer_provider(backend):
+            job_id = str(uuid.uuid4())
             backend._set_options(qobj_config=qobj.config, **backend_options)
             job = BasicAerJob(backend, job_id, backend._run_job, qobj)
             job._future = job._executor.submit(job._fn, job._job_id, job._qobj)
