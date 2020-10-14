@@ -30,6 +30,7 @@ from .operator_state_fn import OperatorStateFn
 
 class CVaRMeasurement(OperatorStateFn):
     r"""A specialized measurement class to compute CVaR expectation values.
+        See https://arxiv.org/pdf/1907.04769.pdf for further details.
 
     Used in :class:`~qiskit.aqua.operators.CVaRExpectation`, see there for more details.
     """
@@ -53,10 +54,15 @@ class CVaRMeasurement(OperatorStateFn):
                  coeff: Union[int, float, complex, ParameterExpression] = 1.0) -> None:
         """
         Args:
-            primitive: The ``OperatorBase`` which defines the behavior of the underlying State
-                function.
+            primitive: The ``OperatorBase`` which defines the diagonal operator
+                       measurement.
             coeff: A coefficient by which to multiply the state function
-            alpha: TODO
+            alpha: A real-valued parameter between 0 and 1 which specifies the 
+                   fraction of observed samples to include when computing the 
+                   objective value. alpha = 1 corresponds to a standard observable 
+                   expectation value. alpha = 0 corresponds to only using the single
+                   sample with the lowest energy. alpha = 0.5 corresponds to ranking each
+                   observation by lowest energy and using the best 
 
         Raises:
             ValueError: TODO remove that this raises an error
@@ -78,10 +84,15 @@ class CVaRMeasurement(OperatorStateFn):
 
     @property
     def alpha(self) -> float:
-        """TODO
+        """A real-valued parameter between 0 and 1 which specifies the 
+           fraction of observed samples to include when computing the 
+           objective value. alpha = 1 corresponds to a standard observable 
+           expectation value. alpha = 0 corresponds to only using the single
+           sample with the lowest energy. alpha = 0.5 corresponds to ranking each
+           observation by lowest energy and using the best half. 
 
         Returns:
-            TODO
+            The parameter alpha which was given at initialization
         """
         return self._alpha
 
@@ -169,17 +180,18 @@ class CVaRMeasurement(OperatorStateFn):
         # Sort each observation based on it's energy
         outcomes = sorted(outcomes, key=lambda x: x[2])
 
-        # Here P are the probabilities of observing each state.
-        # H are the expectation values of each state with the
-        # provided Hamiltonian
+        # Here probabilities are the (root) probabilities of 
+        # observing each state. energies are the expectation 
+        # values of each state with the provided Hamiltonian.
         _, probabilities, energies = zip(*outcomes)
 
         # Square the dict values
         # (since CircuitSampler takes the root...)
         probabilities = [p_i * np.conj(p_i) for p_i in probabilities]
 
-        # Determine j, the index of the measurement outcome
-        # which will be only partially included in the CVaR sum
+        # Determine j, the index of the measurement outcome such
+        # that only some samples with this outcome will be used to 
+        # compute the CVaR.
         j = 0
         running_total = 0
         for i, p_i in enumerate(probabilities):
@@ -196,8 +208,10 @@ class CVaRMeasurement(OperatorStateFn):
 
         energies = energies[:j]
         probabilities = probabilities[:j]
-
-        # CVaR = alpha*Hj + \sum_i P[i]*(H[i] - Hj)
+        # Let H_i be the energy associated with outcome i
+        # and let the outcomes be sorted by asceending energy.
+        # Let p_i be the probability of observing outcome i.
+        # CVaR = alpha*H_j + \sum_i p_i*(H_i - H_j)
         for h_i, p_i in zip(energies, probabilities):
             cvar += p_i * (h_i - h_j)
 
