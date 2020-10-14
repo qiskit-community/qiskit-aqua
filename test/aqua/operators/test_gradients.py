@@ -411,7 +411,7 @@ class TestGradients(QiskitAquaTestCase):
     @idata(product(['lin_comb', 'param_shift', 'fin_diff'],
                    [None, 'lasso', 'ridge', 'perturb_diag', 'perturb_diag_elements']))
     @unpack
-    def test_natural_gradient(self, grad_method, regularization):
+    def test_natural_gradient(self, method, regularization):
         """Test the natural gradient"""
         ham = 0.5 * X - 1 * Z
         a = Parameter('a')
@@ -425,7 +425,7 @@ class TestGradients(QiskitAquaTestCase):
         qc.rx(params[1], q[0])
 
         op = ~StateFn(ham) @ CircuitStateFn(primitive=qc, coeff=1.)
-        nat_grad = NaturalGradient(grad_method=grad_method,
+        nat_grad = NaturalGradient(grad_method=method,
                                    regularization=regularization).convert(operator=op,
                                                                           params=params)
         values_dict = [{params[0]: np.pi / 4, params[1]: np.pi / 2}]
