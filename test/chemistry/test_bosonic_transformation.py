@@ -56,22 +56,20 @@ class TestBosonicTransformation(QiskitChemistryTestCase):
         self._validate_input_object(qubit_op, num_qubits=8, num_paulis=59)
         self.assertEqual(len(aux_ops), 4)
 
-
-    def test_numpy_me(self):
-
+    def test_with_numpy_minimum_eigensolver(self):
         bosonic_transformation = BosonicTransformation(
             qubit_mapping=BosonicQubitMappingType.DIRECT,
             transformation_type=BosonicTransformationType.HARMONIC,
             basis_size=2,
             truncation=2)
 
-        solver = NumPyMinimumEigensolverFactory(use_default_filter_criterion = True)
+        solver = NumPyMinimumEigensolverFactory(use_default_filter_criterion=True)
         gsc = MinimumEigensolverGroundStateCalculation(bosonic_transformation, solver)
         result = gsc.compute_groundstate(self.driver)
-        self.assertEqual(result.computed_vibronic_energies[0], self.reference_energy, 4)
+        self.assertAlmostEqual(result.computed_vibronic_energies[0],
+                               self.reference_energy, places=4)
 
     def test_vqe_uvccsd_factory(self):
-
         bosonic_transformation = BosonicTransformation(
             qubit_mapping=BosonicQubitMappingType.DIRECT,
             transformation_type=BosonicTransformationType.HARMONIC,
@@ -83,8 +81,8 @@ class TestBosonicTransformation(QiskitChemistryTestCase):
                                   optimizer=optimizer)
         gsc = MinimumEigensolverGroundStateCalculation(bosonic_transformation, solver)
         result = gsc.compute_groundstate(self.driver)
-        self.assertAlmostEqual(result.computed_vibronic_energies[0], self.reference_energy, places=1)
-
+        self.assertAlmostEqual(result.computed_vibronic_energies[0], self.reference_energy,
+                               places=1)
 
 
 if __name__ == '__main__':
