@@ -161,6 +161,7 @@ dω
 ecc
 eckstein
 ee
+egger
 eigen
 eigenenergies
 eigensolver
@@ -501,6 +502,7 @@ precompute
 precomputed
 preoracle
 prepend
+prepending
 preprint
 preprocessing
 priori
@@ -564,6 +566,7 @@ renyi
 representable
 rescaled
 rescaling
+rescalings
 retval
 rhf
 rhobeg
@@ -713,6 +716,7 @@ varform
 variational
 vartype
 vazirani
+vec
 vecs
 veis
 vibrational
