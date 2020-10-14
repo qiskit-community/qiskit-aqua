@@ -200,7 +200,7 @@ class Hessian(HessianBase):
             elif isinstance(operator, TensoredOp):
                 return TensoredOp(oplist=dd_ops)
 
-            # These operators correspond to (d gi/d θ0)•(d gi/d θ1) for op in operator.oplist
+            # These operators correspond to (d g_i/d θ0)•(d g_i/d θ1) for op in operator.oplist
             # and params = (θ0,θ1)
             d1d0_ops = ListOp([ListOp([Gradient(grad_method=self._hess_method).convert(op, param)
                                        for param in params], combo_fn=np.prod) for
@@ -227,13 +227,14 @@ class Hessian(HessianBase):
                         'jax and use `import jax.numpy as jnp` instead of `import numpy as np` when'
                         'defining a combo_fn.')
             # pylint: disable=wrong-spelling-in-comment
-            # For a general combo_fn F(g0, g1, ..., gk)
-            # dF/d θ0,θ1 = sum_i: (∂F/∂gi)•(d gi/ d θ0,θ1) + (∂F/∂^2 gi)•(d gi/d θ0)•(d gi/d θ1)
+            # For a general combo_fn F(g_0, g_1, ..., g_k)
+            # dF/d θ0,θ1 = sum_i: (∂F/∂g_i)•(d g_i/ d θ0,θ1) + (∂F/∂^2 g_i)•(d g_i/d θ0)•(d g_i/d
+            # θ1)
 
-            # term1 = (∂F/∂gi)•(d gi/ d θ0,θ1)
+            # term1 = (∂F/∂g_i)•(d g_i/ d θ0,θ1)
             term1 = ListOp([ListOp(operator.oplist, combo_fn=first_partial_combo_fn),
                             ListOp(dd_ops)], combo_fn=lambda x: np.dot(x[0], x[1]))
-            # term2 = (∂F/∂^2 gi)•(d gi/d θ0)•(d gi/d θ1)
+            # term2 = (∂F/∂^2 g_i)•(d g_i/d θ0)•(d g_i/d θ1)
             term2 = ListOp([ListOp(operator.oplist, combo_fn=second_partial_combo_fn), d1d0_ops],
                            combo_fn=lambda x: np.dot(x[0], x[1]))
 
