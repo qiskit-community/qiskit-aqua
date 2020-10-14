@@ -612,7 +612,7 @@ class TestGradients(QiskitAquaTestCase):
 
         shots = 8000
         if method == 'fin_diff':
-            np.random.seed = 8
+            np.random.seed(8)
             state_grad = Gradient(grad_method=method, epsilon=shots ** (-1 / 6.)).convert(
                 operator=op,
                 params=params)
@@ -656,7 +656,7 @@ class TestGradients(QiskitAquaTestCase):
 
         shots = 8000
         if method == 'fin_diff':
-            np.random.seed = 8
+            np.random.seed(8)
             prob_grad = Gradient(grad_method=method, epsilon=shots ** (-1 / 6.)).convert(
                 operator=op,
                 params=params)
@@ -702,7 +702,7 @@ class TestGradients(QiskitAquaTestCase):
         backend = BasicAer.get_backend(backend)
         q_instance = QuantumInstance(backend=backend, shots=shots)
         if method == 'fin_diff':
-            np.random.seed = 8
+            np.random.seed(8)
             prob_grad = Gradient(grad_method=method, epsilon=shots ** (-1 / 6.)).gradient_wrapper(
                 operator=op, bind_params=params, backend=q_instance)
         else:
