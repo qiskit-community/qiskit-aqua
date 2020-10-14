@@ -345,8 +345,8 @@ class TestProblemSetting(QiskitAquaTestCase):
         self.a_integral = SineIntegralAFactory(num_qubits)
         with warnings.catch_warnings():
             warnings.filterwarnings('ignore', category=DeprecationWarning)
-            self.q_intergal = QFactory(self.a_integral, num_qubits)
-        self.i_intergal = num_qubits
+            self.q_integral = QFactory(self.a_integral, num_qubits)
+        self.i_integral = num_qubits
 
     @idata([
         [AmplitudeEstimation(2)],
@@ -405,7 +405,7 @@ class TestProblemSetting(QiskitAquaTestCase):
         # Case 2: Change to SineIntegralAFactory with default Q operator
         qae.a_factory = self.a_integral
         self.assertIsInstance(qae.q_factory.a_factory, SineIntegralAFactory)
-        self.assertEqual(qae.i_objective, self.i_intergal)
+        self.assertEqual(qae.i_objective, self.i_integral)
 
         # Case 3: Set to BernoulliAFactory with special Q operator
         qae.a_factory = self.a_bernoulli
