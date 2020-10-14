@@ -166,11 +166,11 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             q = QuantumRegister(self._a_factory.num_target_qubits, 'q')
             qc_0 = QuantumCircuit(q, name='qc_a')  # 0 applications of Q, only a single A operator
 
-            # get number of ancillas
             warnings.filterwarnings('ignore', category=DeprecationWarning)
             q_factory = self.q_factory
             warnings.filterwarnings('always', category=DeprecationWarning)
 
+            # get number of ancillas
             num_ancillas = np.maximum(self._a_factory.required_ancillas(),
                                       q_factory.required_ancillas())
 
@@ -182,7 +182,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
 
             # add classical register if needed
             if measurement:
-                c = ClassicalRegister(1)
+                c = ClassicalRegister(len(self.objective_qubits))
                 qc_0.add_register(c)
 
             self._a_factory.build(qc_0, q, q_aux)
@@ -198,7 +198,7 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                     # which might happen if the circuit gets transpiled, hence we're adding
                     # a safeguard-barrier
                     qc_k.barrier()
-                    qc_k.measure(q[self.i_objective], c[0])
+                    qc_k.measure([q[obj] for obj in self.objective_qubits], c)
 
                 self._circuits += [qc_k]
 

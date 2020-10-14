@@ -25,8 +25,8 @@ class CircuitFactory(ABC):
     """ Base class for CircuitFactories """
 
     def __init__(self, num_target_qubits: int) -> None:
-        warnings.warn('The {0} is deprecated as of Aqua 0.8.0 and will be removed no earlier than '
-                      '3 months after the release date. You can use {1} instead.'
+        warnings.warn('The {} is deprecated as of Aqua 0.8.0 and will be removed no earlier than '
+                      '3 months after the release date. You can use {} instead.'
                       ''.format(self.__class__.__name__, self._replacement()),
                       DeprecationWarning, stacklevel=2)
         self._num_target_qubits = num_target_qubits
