@@ -12,7 +12,6 @@
 
 """ controlled circuit """
 
-import numpy as np
 from qiskit.circuit import QuantumCircuit
 from qiskit.converters import circuit_to_dag, dag_to_circuit
 from qiskit.transpiler.passes import Unroller
@@ -103,7 +102,7 @@ def get_controlled_circuit(circuit, ctl_qubit, tgt_circuit=None, use_basis_gates
         clbits.extend(creg)
 
     # get all operations
-    unroller = Unroller(basis=['u1', 'u2', 'u3', 'cx'])
+    unroller = Unroller(basis=['u', 'p', 'cx'])
     ops = dag_to_circuit(unroller.run(circuit_to_dag(circuit))).data
 
     # process all basis gates to add control
@@ -112,12 +111,9 @@ def get_controlled_circuit(circuit, ctl_qubit, tgt_circuit=None, use_basis_gates
     for op in ops:
         if op[0].name == 'id':
             apply_cu(qc, 0, 0, 0, ctl_qubit, op[1][0], use_basis_gates=use_basis_gates)
-        elif op[0].name == 'u1':
+        elif op[0].name == 'p':
             apply_cp(qc, *op[0].params, ctl_qubit, op[1][0], use_basis_gates=use_basis_gates)
-        elif op[0].name == 'u2':
-            apply_cu(qc, np.pi / 2, *op[0].params,
-                     ctl_qubit, op[1][0], use_basis_gates=use_basis_gates)
-        elif op[0].name == 'u3':
+        elif op[0].name == 'u':
             apply_cu(qc, *op[0].params, ctl_qubit, op[1][0], use_basis_gates=use_basis_gates)
         elif op[0].name == 'cx':
             apply_ccx(qc, ctl_qubit, op[1][0], op[1][1], use_basis_gates=use_basis_gates)

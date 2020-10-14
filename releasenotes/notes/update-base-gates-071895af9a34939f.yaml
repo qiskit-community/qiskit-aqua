@@ -1,0 +1,8 @@
+---
+fixes:
+  - |
+    As a follow-up to the deprecation of U1/U2/U3 and U as the base-gate that 
+    cannot be decomposed further (instead of previously U3), change the base 
+    gates from `u1 u2 u3` to `p u`. This resolves errors where we assumed one 
+    could always unroll to `u3 cx`, which now is not possible anymore as `u` 
+    does not have a definition. Instead it is always possible to unroll to `u cx`.
