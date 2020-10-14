@@ -540,8 +540,8 @@ class LinComb(CircuitGradient):
                                         meas *= expr_grad
                                     term = meas @ term
                                 else:
-                                    term = ListOp([term], combo_fn=partial(self._hess_combo_fn,
-                                                                         state_op=state_op))
+                                    term = ListOp([term], combo_fn=partial(self._hess_combo_fn, 
+                                                                           state_op=state_op))
                                     if isinstance(gate_param_a, ParameterExpression):
                                         expr_grad = DerivativeBase.parameter_expression_grad(
                                             gate_param_a,
