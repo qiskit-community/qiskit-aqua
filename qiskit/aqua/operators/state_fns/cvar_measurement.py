@@ -267,7 +267,7 @@ def _check_is_diagonal(operator: OperatorBase) -> bool:
 
     if isinstance(operator, SummedOp) and operator.primitive_strings == {'Pauli'}:
         # cover the case of sums of diagonal paulis, but don't raise since there might be summands
-        # cancelling the non-diagonal parts
+        # canceling the non-diagonal parts
 
         # ignoring mypy since we know that all operators are PauliOps
         if np.all(not np.any(op.primitive.x) for op in operator.oplist):  # type: ignore
