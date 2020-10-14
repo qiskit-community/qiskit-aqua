@@ -16,7 +16,7 @@ from typing import Optional, Union, List, Callable
 import numpy as np
 
 from qiskit.aqua.algorithms import MinimumEigensolver, NumPyMinimumEigensolver
-from qiskit.chemistry.qubit_transformations import FermionicTransformation, BosonicTransformation
+from qiskit.chemistry.qubit_transformations import QubitOperatorTransformation
 
 from .mes_factory import MESFactory
 
@@ -64,9 +64,9 @@ class NumPyMinimumEigensolverFactory(MESFactory):
         """ sets whether to use the default filter criterion """
         self._use_default_filter_criterion = value
 
-    def get_solver(self, transformation: Union[
-            FermionicTransformation, BosonicTransformation]) -> MinimumEigensolver:
-        """Returns a VQE with a UCCSD wavefunction ansatz, based on ``transformation``.
+    def get_solver(self, transformation: QubitOperatorTransformation) -> MinimumEigensolver:
+        """Returns a NumPyMinimumEigensolver which possibly uses the default filter criterion
+        provided by the ``transformation``.
 
         Args:
             transformation: a fermionic/bosonic qubit operator transformation.
