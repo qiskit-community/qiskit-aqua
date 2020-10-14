@@ -22,8 +22,8 @@ from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.components.initial_states import HartreeFock
 from qiskit.aqua.components.optimizers import L_BFGS_B
-from qiskit.chemistry.ground_state_calculation import AdaptVQE, VQEUCCSDFactory
-from qiskit.chemistry.qubit_transformations import FermionicTransformation
+from qiskit.chemistry.algorithms.ground_state_solvers import AdaptVQE, VQEUCCSDFactory
+from qiskit.chemistry.transformations import FermionicTransformation
 
 
 class TestAdaptVQE(QiskitChemistryTestCase):
@@ -48,7 +48,7 @@ class TestAdaptVQE(QiskitChemistryTestCase):
         """ Default execution """
         solver = VQEUCCSDFactory(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
         calc = AdaptVQE(self.transformation, solver)
-        res = calc.compute_groundstate(self.driver)
+        res = calc.solve(self.driver)
         self.assertAlmostEqual(res.electronic_energy, self.expected, places=6)
 
     def test_custom_minimum_eigensolver(self):
@@ -79,7 +79,7 @@ class TestAdaptVQE(QiskitChemistryTestCase):
         solver = CustomFactory(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
 
         calc = AdaptVQE(self.transformation, solver)
-        res = calc.compute_groundstate(self.driver)
+        res = calc.solve(self.driver)
         self.assertAlmostEqual(res.electronic_energy, self.expected, places=6)
 
     def test_custom_excitation_pool(self):
@@ -100,7 +100,7 @@ class TestAdaptVQE(QiskitChemistryTestCase):
 
         solver = CustomFactory(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
         calc = AdaptVQE(self.transformation, solver)
-        res = calc.compute_groundstate(self.driver)
+        res = calc.solve(self.driver)
         self.assertAlmostEqual(res.electronic_energy, self.expected, places=6)
 
     def test_vqe_adapt_check_cyclicity(self):

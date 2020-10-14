@@ -24,7 +24,7 @@ from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.results import EigenstateResult
 
 
-class QubitOperatorTransformation(ABC):
+class Transformation(ABC):
     """Base class for transformation to qubit operators for chemistry problems"""
 
     @abstractmethod

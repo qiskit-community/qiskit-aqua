@@ -1,14 +1,14 @@
 ---
 features:
   - |
-    Introduces ``qubit_transformations`` for the fermionic and bosonic transformation of a problem
+    Introduces ``transformations`` for the fermionic and bosonic transformation of a problem
     instance. Transforms the fermionic (or bosonic) operator to qubit operator
-    Introduces ``ground_state_calculation`` for the calculation of ground state properties. The
+    Introduces ``ground_state_solvers`` for the calculation of ground state properties. The
     calculation can be done either using an ``MinimumEigensolver`` or using ``AdaptVQE``
 deprecations:
   - |
     ``Core Hamiltonian`` class is deprecated in favor of the ``FermionicTransformation``
-    ``Chemistry Operator`` class is deprecated in facor of the ``qubit_tranformations``
+    ``Chemistry Operator`` class is deprecated in facor of the ``tranformations``
     ``minimum_eigen_solvers/vqe_adapt`` is also deprecate and moved as an implementation
-    of the ground_state_calculation interface
-    ``applications/molecular_ground_state_energy`` is deprecated in favor of ``ground_state_calculation``
+    of the ground_state_solver interface
+    ``applications/molecular_ground_state_energy`` is deprecated in favor of ``ground_state_solver``

@@ -28,7 +28,7 @@ from qiskit.chemistry.fermionic_operator import FermionicOperator
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.results import DipoleTuple, EigenstateResult, ElectronicStructureResult
 
-from .qubit_operator_transformation import QubitOperatorTransformation
+from .transformation import Transformation
 from ..components.initial_states import HartreeFock
 
 logger = logging.getLogger(__name__)
@@ -47,7 +47,7 @@ class QubitMappingType(Enum):
     BRAVYI_KITAEV = 'bravyi_kitaev'
 
 
-class FermionicTransformation(QubitOperatorTransformation):
+class FermionicTransformation(Transformation):
     """A transformation from a fermionic problem, represented by a driver, to a qubit operator."""
 
     def __init__(self,

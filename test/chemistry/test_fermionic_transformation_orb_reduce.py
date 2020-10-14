@@ -19,7 +19,7 @@ from qiskit.aqua.operators import OperatorBase
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.core import TransformationType, QubitMappingType
-from qiskit.chemistry.qubit_transformations import FermionicTransformation
+from qiskit.chemistry.transformations import FermionicTransformation
 
 
 class TestFermionicTransformationOrbReduce(QiskitChemistryTestCase):

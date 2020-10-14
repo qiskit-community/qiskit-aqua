@@ -21,9 +21,9 @@ from qiskit.aqua.algorithms import VQE
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.components.initial_states import HartreeFock
 from qiskit.aqua.components.optimizers import COBYLA
-from qiskit.chemistry.ground_state_calculation import VQEUCCSDFactory, OOVQE
-from qiskit.chemistry.qubit_transformations import FermionicTransformation
-from qiskit.chemistry.qubit_transformations.fermionic_transformation import QubitMappingType
+from qiskit.chemistry.algorithms.ground_state_solvers import VQEUCCSDFactory, OOVQE
+from qiskit.chemistry.transformations import FermionicTransformation
+from qiskit.chemistry.transformations.fermionic_transformation import QubitMappingType
 
 
 class TestOOVQE(QiskitChemistryTestCase):
@@ -100,7 +100,7 @@ class TestOOVQE(QiskitChemistryTestCase):
         calc = OOVQE(self.transformation1, solver, self.driver1, iterative_oo=False,
                      initial_point=self.initial_point1)
         calc._vqe.optimizer.set_options(maxiter=1)
-        algo_result = calc.compute_groundstate(self.driver1)
+        algo_result = calc.solve(self.driver1)
         self.assertAlmostEqual(algo_result.computed_electronic_energy, self.energy1_rotation, 4)
 
     def test_oovqe(self):
@@ -111,7 +111,7 @@ class TestOOVQE(QiskitChemistryTestCase):
         calc = OOVQE(self.transformation1, solver, self.driver1, iterative_oo=False,
                      initial_point=self.initial_point1)
         calc._vqe.optimizer.set_options(maxiter=3, rhobeg=0.01)
-        algo_result = calc.compute_groundstate(self.driver1)
+        algo_result = calc.solve(self.driver1)
         self.assertLessEqual(algo_result.computed_electronic_energy, self.energy1, 4)
 
     def test_iterative_oovqe(self):
@@ -121,7 +121,7 @@ class TestOOVQE(QiskitChemistryTestCase):
         calc = OOVQE(self.transformation1, solver, self.driver1, iterative_oo=True,
                      initial_point=self.initial_point1, iterative_oo_iterations=2)
         calc._vqe.optimizer.set_options(maxiter=2, rhobeg=0.01)
-        algo_result = calc.compute_groundstate(self.driver1)
+        algo_result = calc.solve(self.driver1)
         self.assertLessEqual(algo_result.computed_electronic_energy, self.energy1)
 
     def test_oovqe_with_frozen_core(self):
@@ -130,7 +130,7 @@ class TestOOVQE(QiskitChemistryTestCase):
         solver = self.make_solver()
         calc = OOVQE(self.transformation2, solver, self.driver2, iterative_oo=False)
         calc._vqe.optimizer.set_options(maxiter=2, rhobeg=1)
-        algo_result = calc.compute_groundstate(self.driver2)
+        algo_result = calc.solve(self.driver2)
         self.assertLessEqual(algo_result.computed_electronic_energy +
                              self.transformation2._energy_shift +
                              self.transformation2._nuclear_repulsion_energy, self.energy2)
@@ -141,7 +141,7 @@ class TestOOVQE(QiskitChemistryTestCase):
         solver = self.make_solver()
         calc = OOVQE(self.transformation1, solver, self.driver3, iterative_oo=False)
         calc._vqe.optimizer.set_options(maxiter=2, rhobeg=0.01)
-        algo_result = calc.compute_groundstate(self.driver3)
+        algo_result = calc.solve(self.driver3)
         self.assertLessEqual(algo_result.computed_electronic_energy, self.energy3)
 
 

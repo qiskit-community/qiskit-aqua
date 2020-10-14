@@ -13,7 +13,7 @@
 """Qubit operator transformation module."""
 
 from .fermionic_transformation import FermionicTransformation
-from .qubit_operator_transformation import QubitOperatorTransformation
+from .transformation import Transformation
 
 __all__ = ['FermionicTransformation',
-           'QubitOperatorTransformation']
+           'Transformation']

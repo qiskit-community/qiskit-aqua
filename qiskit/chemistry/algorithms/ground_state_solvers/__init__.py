@@ -12,16 +12,16 @@
 
 """Ground state calculation algorithms."""
 
-from .ground_state_calculation import GroundStateCalculation
+from .ground_state_solver import GroundStateSolver
 from .adapt_vqe import AdaptVQE
 from .oovqe import OOVQE
-from .mes_ground_state_calculation import MinimumEigensolverGroundStateCalculation
-from .mes_factories import MESFactory, VQEUCCSDFactory
+from .ground_state_eigensolver import GroundStateEigensolver
+from .minimum_eigensolver_factories import MinimumEigensolverFactory, VQEUCCSDFactory
 
-__all__ = ['GroundStateCalculation',
+__all__ = ['GroundStateSolver',
            'AdaptVQE',
            'OOVQE',
-           'MinimumEigensolverGroundStateCalculation',
-           'MESFactory',
+           'GroundStateEigensolver',
+           'MinimumEigensolverFactory',
            'VQEUCCSDFactory'
            ]

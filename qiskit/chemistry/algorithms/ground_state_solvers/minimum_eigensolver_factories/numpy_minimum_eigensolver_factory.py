@@ -16,12 +16,11 @@ from typing import Optional, Union, List, Callable
 import numpy as np
 
 from qiskit.aqua.algorithms import MinimumEigensolver, NumPyMinimumEigensolver
-from qiskit.chemistry.qubit_transformations import QubitOperatorTransformation
+from ....transformations.transformation import Transformation
+from .minimum_eigensolver_factory import MinimumEigensolverFactory
 
-from .mes_factory import MESFactory
 
-
-class NumPyMinimumEigensolverFactory(MESFactory):
+class NumPyMinimumEigensolverFactory(MinimumEigensolverFactory):
     """A factory to construct a NumPyMinimumEigensolver."""
 
     def __init__(self,
@@ -64,7 +63,7 @@ class NumPyMinimumEigensolverFactory(MESFactory):
         """ sets whether to use the default filter criterion """
         self._use_default_filter_criterion = value
 
-    def get_solver(self, transformation: QubitOperatorTransformation) -> MinimumEigensolver:
+    def get_solver(self, transformation: Transformation) -> MinimumEigensolver:
         """Returns a NumPyMinimumEigensolver which possibly uses the default filter criterion
         provided by the ``transformation``.
 

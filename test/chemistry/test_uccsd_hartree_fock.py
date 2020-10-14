@@ -23,8 +23,8 @@ from qiskit.chemistry.components.initial_states import HartreeFock
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.core import QubitMappingType
 from qiskit.chemistry.drivers import HDF5Driver
-from qiskit.chemistry.ground_state_calculation import MinimumEigensolverGroundStateCalculation
-from qiskit.chemistry.qubit_transformations import FermionicTransformation
+from qiskit.chemistry.algorithms.ground_state_solvers import GroundStateEigensolver
+from qiskit.chemistry.transformations import FermionicTransformation
 
 
 @ddt
@@ -64,9 +64,9 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         solver = VQE(var_form=self.var_form, optimizer=self.optimizer,
                      quantum_instance=QuantumInstance(backend=backend))
 
-        gsc = MinimumEigensolverGroundStateCalculation(self.fermionic_transformation, solver)
+        gsc = GroundStateEigensolver(self.fermionic_transformation, solver)
 
-        result = gsc.compute_groundstate(self.driver)
+        result = gsc.solve(self.driver)
 
         self.assertAlmostEqual(result.energy, self.reference_energy, places=6)
 
@@ -80,9 +80,9 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
                                                       seed_simulator=aqua_globals.random_seed,
                                                       seed_transpiler=aqua_globals.random_seed))
 
-        gsc = MinimumEigensolverGroundStateCalculation(self.fermionic_transformation, solver)
+        gsc = GroundStateEigensolver(self.fermionic_transformation, solver)
 
-        result = gsc.compute_groundstate(self.driver)
+        result = gsc.solve(self.driver)
 
         self.assertAlmostEqual(result.energy, -1.138, places=2)
 
@@ -98,9 +98,9 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         solver = VQE(var_form=self.var_form, optimizer=self.optimizer,
                      quantum_instance=QuantumInstance(backend=backend))
 
-        gsc = MinimumEigensolverGroundStateCalculation(self.fermionic_transformation, solver)
+        gsc = GroundStateEigensolver(self.fermionic_transformation, solver)
 
-        result = gsc.compute_groundstate(self.driver)
+        result = gsc.solve(self.driver)
 
         self.assertAlmostEqual(result.energy, self.reference_energy, places=6)
 
@@ -120,9 +120,9 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
                                                       seed_simulator=aqua_globals.random_seed,
                                                       seed_transpiler=aqua_globals.random_seed))
 
-        gsc = MinimumEigensolverGroundStateCalculation(self.fermionic_transformation, solver)
+        gsc = GroundStateEigensolver(self.fermionic_transformation, solver)
 
-        result = gsc.compute_groundstate(self.driver)
+        result = gsc.solve(self.driver)
 
         self.assertAlmostEqual(result.energy, -1.138, places=2)
 
@@ -140,9 +140,9 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
                      expectation=AerPauliExpectation(),
                      quantum_instance=QuantumInstance(backend=backend))
 
-        gsc = MinimumEigensolverGroundStateCalculation(self.fermionic_transformation, solver)
+        gsc = GroundStateEigensolver(self.fermionic_transformation, solver)
 
-        result = gsc.compute_groundstate(self.driver)
+        result = gsc.solve(self.driver)
         self.assertAlmostEqual(result.energy, self.reference_energy, places=3)
 
     EXCITATION_RESULTS = \

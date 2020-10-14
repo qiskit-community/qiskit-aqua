@@ -19,14 +19,14 @@ from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import MinimumEigensolver, VQE
 from qiskit.aqua.operators import ExpectationBase
 from qiskit.aqua.components.optimizers import Optimizer
-from qiskit.chemistry.components.variational_forms import UCCSD
-from qiskit.chemistry.qubit_transformations import FermionicTransformation
-from qiskit.chemistry.components.initial_states import HartreeFock
+from ....components.variational_forms import UCCSD
+from ....transformations.fermionic_transformation import FermionicTransformation
+from ....components.initial_states import HartreeFock
 
-from .mes_factory import MESFactory
+from .minimum_eigensolver_factory import MinimumEigensolverFactory
 
 
-class VQEUCCSDFactory(MESFactory):
+class VQEUCCSDFactory(MinimumEigensolverFactory):
     """A factory to construct a VQE minimum eigensolver with UCCSD ansatz wavefunction."""
 
     def __init__(self,

@@ -23,9 +23,9 @@ from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.components.initial_states import HartreeFock
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
-from qiskit.chemistry.ground_state_calculation import MinimumEigensolverGroundStateCalculation
+from qiskit.chemistry.algorithms.ground_state_solvers import GroundStateEigensolver
 from qiskit.chemistry.core import TransformationType, QubitMappingType
-from qiskit.chemistry.qubit_transformations import FermionicTransformation
+from qiskit.chemistry.transformations import FermionicTransformation
 
 
 # pylint: disable=invalid-name
@@ -96,9 +96,9 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
                      quantum_instance=QuantumInstance(
                          backend=BasicAer.get_backend('statevector_simulator')))
 
-        gsc = MinimumEigensolverGroundStateCalculation(self.fermionic_transformation, solver)
+        gsc = GroundStateEigensolver(self.fermionic_transformation, solver)
 
-        result = gsc.compute_groundstate(self.driver)
+        result = gsc.solve(self.driver)
 
         self.assertAlmostEqual(result.energy, self.reference_energy_pUCCD, places=6)
 
@@ -129,9 +129,9 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
                      quantum_instance=QuantumInstance(
                          backend=BasicAer.get_backend('statevector_simulator')))
 
-        gsc = MinimumEigensolverGroundStateCalculation(self.fermionic_transformation, solver)
+        gsc = GroundStateEigensolver(self.fermionic_transformation, solver)
 
-        result = gsc.compute_groundstate(self.driver)
+        result = gsc.solve(self.driver)
 
         self.assertAlmostEqual(result.energy, self.reference_energy_UCCD0, places=6)
 
@@ -163,9 +163,9 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
                      quantum_instance=QuantumInstance(
                          backend=BasicAer.get_backend('statevector_simulator')))
 
-        gsc = MinimumEigensolverGroundStateCalculation(self.fermionic_transformation, solver)
+        gsc = GroundStateEigensolver(self.fermionic_transformation, solver)
 
-        result = gsc.compute_groundstate(self.driver)
+        result = gsc.solve(self.driver)
 
         self.assertAlmostEqual(result.energy, self.reference_energy_UCCD0full, places=6)
 

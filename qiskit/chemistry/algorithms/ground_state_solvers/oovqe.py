@@ -19,20 +19,22 @@ import logging
 import copy
 import numpy as np
 from scipy.linalg import expm
-from qiskit.chemistry import QMolecule
 from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms import VQE
 from qiskit.aqua.operators import LegacyBaseOperator
-from qiskit.chemistry.drivers import BaseDriver
-from qiskit.chemistry.qubit_transformations import FermionicTransformation
-from qiskit.chemistry.results import FermionicGroundStateResult
-from qiskit.chemistry.ground_state_calculation import GroundStateCalculation
-from .mes_factories import MESFactory
+from .minimum_eigensolver_factories import MinimumEigensolverFactory
+from ...fermionic_operator import FermionicOperator
+from ...bosonic_operator import BosonicOperator
+from ...drivers.base_driver import BaseDriver
+from ...transformations.fermionic_transformation import FermionicTransformation
+from ...results.electronic_structure_result import ElectronicStructureResult
+from ...qmolecule import QMolecule
+from .ground_state_solver import GroundStateSolver
 
 logger = logging.getLogger(__name__)
 
 
-class OOVQE(GroundStateCalculation):
+class OOVQE(GroundStateSolver):
     r""" A ground state calculation employing the OOVQE algorithm.
     The Variational Quantum Eigensolver (VQE) algorithm enhanced with the Orbital Optimization (OO).
     The core of the approach resides in the optimization of orbitals through the
@@ -53,7 +55,7 @@ class OOVQE(GroundStateCalculation):
 
     def __init__(self,
                  transformation: FermionicTransformation,
-                 solver: MESFactory,
+                 solver: MinimumEigensolverFactory,
                  driver: BaseDriver,
                  initial_point: Optional[np.ndarray] = None,
                  orbital_rotation: Optional['OrbitalRotation'] = None,
@@ -225,15 +227,11 @@ class OOVQE(GroundStateCalculation):
 
         return mean_energy
 
-    def compute_groundstate(self, driver: BaseDriver = None) -> 'OOVQEResult':
-        """ Computes the ground state.
-        Args:
-            driver: a chemistry driver.
-        Raises:
-            AquaError: Wrong setting of operator and backend.
-        Returns:
-            A fermionic ground state result.
-        """
+    def solve(self,
+              driver: BaseDriver,
+              aux_operators: Optional[Union[List[FermionicOperator],
+                                            List[BosonicOperator]]] = None) \
+            -> Union[ElectronicStructureResult, 'VibronicStructureResult']:
 
         # algorithm requires to have driver to initialize correctly the variables,
         # however here one is free to change the driver type
@@ -657,6 +655,3 @@ class OOVQEResult(FermionicGroundStateResult):
     def optimal_point_orbitals(self, value: list) -> None:
         """ Sets the optimal parameters of the orbitals. """
         self.data['optimal_point_orbitals'] = value
-
-    def __getitem__(self, key: object) -> object:
-        return super().__getitem__(key)

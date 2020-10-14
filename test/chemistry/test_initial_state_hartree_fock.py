@@ -22,7 +22,7 @@ from qiskit.aqua.operators import StateFn
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry.core import TransformationType, QubitMappingType
-from qiskit.chemistry.qubit_transformations import FermionicTransformation
+from qiskit.chemistry.transformations import FermionicTransformation
 
 
 @ddt
