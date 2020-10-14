@@ -13,8 +13,9 @@
 """FCIDump Driver."""
 
 from typing import List, Optional
-from qiskit.chemistry.drivers import BaseDriver
-from qiskit.chemistry import QiskitChemistryError, QMolecule
+from ..base_driver import BaseDriver
+from ...qiskit_chemistry_error import QiskitChemistryError
+from ...qmolecule import QMolecule
 from .dumper import dump
 from .parser import parse
 
@@ -70,7 +71,7 @@ class FCIDumpDriver(BaseDriver):
         q_mol.nuclear_repulsion_energy = fcidump_data.get('ecore', None)
         q_mol.num_orbitals = fcidump_data.get('NORB')
         q_mol.multiplicity = fcidump_data.get('MS2', 0) + 1
-        q_mol.charge = 0  # ensures QMolecule.log() works
+        q_mol.molecular_charge = 0  # ensures QMolecule.log() works
         q_mol.num_beta = (fcidump_data.get('NELEC') - (q_mol.multiplicity - 1)) // 2
         q_mol.num_alpha = fcidump_data.get('NELEC') - q_mol.num_beta
         if self.atoms is not None:
