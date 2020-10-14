@@ -16,7 +16,7 @@ from typing import Optional, Union, List, Callable
 import numpy as np
 
 from qiskit.aqua.algorithms import Eigensolver, NumPyEigensolver
-from qiskit.chemistry.qubit_transformations import FermionicTransformation
+from qiskit.chemistry.qubit_transformations import QubitOperatorTransformation
 from qiskit.aqua.utils.validation import validate_min
 
 from .es_factory import ESFactory
@@ -25,9 +25,9 @@ from .es_factory import ESFactory
 class NumPyEigensolverFactory(ESFactory):
     """A factory to construct a NumPyEigensolver."""
 
-    def __init__(self,
-                 filter_criterion: Callable[[Union[List, np.ndarray], float, Optional[List[float]]],
-                                            bool] = None, k:int = 100) -> None:
+    def __init__(self, filter_criterion: Callable[
+        [Union[List, np.ndarray], float, Optional[List[float]]], bool] = None,
+                 use_default_filter_criterion: bool = False, k: int = 100) -> None:
         """
         Args:
             filter_criterion: callable that allows to filter eigenvalues/eigenstates. The minimum
@@ -39,6 +39,7 @@ class NumPyEigensolverFactory(ESFactory):
             k: How many eigenvalues are to be computed, has a min. value of 1.
         """
         self._filter_criterion = filter_criterion
+        self._use_default_filter_criterion = use_default_filter_criterion
         self._k = k
 
     @property
@@ -64,18 +65,28 @@ class NumPyEigensolverFactory(ESFactory):
         validate_min('k', k, 1)
         self._k = k
 
-    def get_solver(self, transformation: FermionicTransformation) -> Eigensolver:
+    @property
+    def use_default_filter_criterion(self) -> bool:
+        """ returns whether to use the default filter criterion """
+        return self._use_default_filter_criterion
+
+    @use_default_filter_criterion.setter
+    def use_default_filter_criterion(self, value: bool) -> None:
+        """ sets whether to use the default filter criterion """
+        self._use_default_filter_criterion = value
+
+    def get_solver(self, transformation: QubitOperatorTransformation) -> Eigensolver:
         """Returns a NumPyEigensolver with the desired filter
 
         Args:
-            transformation: a fermionic qubit operator transformation.
+            transformation: a fermionic/bosonic qubit operator transformation.
 
         Returns:
             A NumPyEigensolver suitable to compute the ground state of the molecule
             transformed by ``transformation``.
         """
         filter_criterion = self._filter_criterion
-        if not filter_criterion:
+        if not filter_criterion and self._use_default_filter_criterion:
             filter_criterion = transformation.get_default_filter_criterion()
 
         npe = NumPyEigensolver(filter_criterion=filter_criterion, k = self.k)
