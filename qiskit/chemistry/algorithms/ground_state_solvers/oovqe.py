@@ -631,7 +631,7 @@ class OOVQEResult(FermionicGroundStateResult):
         """ Returns the optimal parameters. """
         return self.get('optimal_point')
 
-    @num_optimizer_evals.setter
+    @optimal_point.setter
     def optimal_point(self, value: list) -> None:
         """ Sets the optimal parameters. """
         self.data['optimal_point'] = value
