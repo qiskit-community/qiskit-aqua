@@ -183,7 +183,7 @@ class TestGradients(QiskitAquaTestCase):
 
     @data('lin_comb', 'param_shift', 'fin_diff')
     def test_gradient_rzx(self, method):
-        """Test the state gradient for RZX
+        """Test the state gradient for ZX rotation
         """
         ham = Z ^ Z
         a = Parameter('a')
