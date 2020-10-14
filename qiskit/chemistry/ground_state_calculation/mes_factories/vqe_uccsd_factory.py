@@ -104,7 +104,7 @@ class VQEUCCSDFactory(MESFactory):
     @property
     def include_custom(self) -> bool:
         """Getter of the ``include_custom`` setting for the ``expectation`` setting."""
-        return self._optimizer
+        return self._include_custom
 
     @include_custom.setter
     def include_custom(self, include_custom: bool) -> None:

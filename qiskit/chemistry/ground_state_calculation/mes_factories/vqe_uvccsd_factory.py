@@ -27,7 +27,7 @@ from .mes_factory import MESFactory
 
 
 class VQEUVCCSDFactory(MESFactory):
-    """A factory to construct a VQE minimum eigensolver with UCCSD ansatz wavefunction."""
+    """A factory to construct a VQE minimum eigensolver with UVCCSD ansatz wavefunction."""
 
     def __init__(self,
                  quantum_instance: QuantumInstance,
@@ -104,7 +104,7 @@ class VQEUVCCSDFactory(MESFactory):
     @property
     def include_custom(self) -> bool:
         """Getter of the ``include_custom`` setting for the ``expectation`` setting."""
-        return self._optimizer
+        return self._include_custom
 
     @include_custom.setter
     def include_custom(self, include_custom: bool) -> None:
@@ -132,7 +132,7 @@ class VQEUVCCSDFactory(MESFactory):
         num_qubits = sum(basis)
 
         initial_state = VSCF(basis)
-        var_form = UVCC(num_qubits, basis, [0,1], initial_state=initial_state)
+        var_form = UVCC(num_qubits, basis, [0, 1], initial_state=initial_state)
         vqe = VQE(var_form=var_form,
                   quantum_instance=self._quantum_instance,
                   optimizer=self._optimizer,

@@ -14,6 +14,7 @@
 
 from typing import Union, List
 
+
 class WatsonHamiltonian:
     """
     Watson Hamiltonian class containing the results of a driver's anharmonic calculation
@@ -37,4 +38,3 @@ class WatsonHamiltonian:
     def num_modes(self) -> int:
         """Returns the number of modes"""
         return self._num_modes
-

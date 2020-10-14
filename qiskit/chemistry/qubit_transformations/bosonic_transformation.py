@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -49,7 +49,8 @@ class BosonicTransformation(QubitOperatorTransformation):
     """A vibronic Hamiltonian operator representing the energy of the nuclei in the molecule"""
 
     def __init__(self, qubit_mapping: BosonicQubitMappingType = BosonicQubitMappingType.DIRECT,
-                 transformation_type: BosonicTransformationType = BosonicTransformationType.HARMONIC,
+                 transformation_type:
+                     BosonicTransformationType = BosonicTransformationType.HARMONIC,
                  basis_size: Union[int, List[int]] = 2,
                  truncation: int = 3):
         """
@@ -86,7 +87,7 @@ class BosonicTransformation(QubitOperatorTransformation):
     @property
     def basis(self) -> Union[int, List[int]]:
         """ returns the basis (number of modals per mode) """
-        return  self._basis_size
+        return self._basis_size
 
     @property
     def commutation_rule(self) -> int:
@@ -106,7 +107,7 @@ class BosonicTransformation(QubitOperatorTransformation):
 
         Args:
             driver: BaseDriver
-
+            aux_operators: Optional additional aux ops to evaluate
         Returns:
             qubit operator, auxiliary operators
         """
@@ -114,7 +115,6 @@ class BosonicTransformation(QubitOperatorTransformation):
         ops, aux_ops = self._do_transform(watson, aux_operators)
 
         return ops, aux_ops
-
 
     def _do_transform(self, watson: WatsonHamiltonian,
                       aux_operators: Optional[List[Union[BosonicOperator,
@@ -131,7 +131,7 @@ class BosonicTransformation(QubitOperatorTransformation):
             raise QiskitChemistryError('Unknown Transformation type')
 
         bos_op = BosonicOperator(self._h_mat, self._basis_size)
-        qubit_op = bos_op.mapping(qubit_mapping = self._qubit_mapping)
+        qubit_op = bos_op.mapping(qubit_mapping=self._qubit_mapping)
         self._untapered_qubit_op = qubit_op
         qubit_op.name = 'Bosonic Operator'
 
@@ -226,10 +226,10 @@ class BosonicTransformation(QubitOperatorTransformation):
 
         return qubit_op
 
-
     @staticmethod
-    def _build_single_hopping_operator(index: List[List[int]], basis: List[int], qubit_mapping: str) \
-            -> WeightedPauliOperator:
+    def _build_single_hopping_operator(index: List[List[int]],
+                                       basis: List[int],
+                                       qubit_mapping: str) -> WeightedPauliOperator:
         """
         Builds a hopping operator given the list of indices (index) that is a single, a double
         or a higher order excitation.
@@ -263,14 +263,15 @@ class BosonicTransformation(QubitOperatorTransformation):
 
         return qubit_op
 
-
     def build_hopping_operators(self, excitations: Union[str, List[List[int]]] = 'sd'):
         """
+
+        Args:
+            excitations:
 
         Returns:
 
         """
-
         exctn_types = {'s': 0, 'd': 1}
 
         if isinstance(excitations, str):
@@ -292,7 +293,6 @@ class BosonicTransformation(QubitOperatorTransformation):
             for lst in extn_lst:
                 dag_lst.append([lst[0], lst[2], lst[1]])
             return dag_lst
-
 
         hopping_operators = {}
         excitation_indices = {}
@@ -334,4 +334,3 @@ class BosonicTransformation(QubitOperatorTransformation):
             return True
 
         return partial(filter_criterion, self)
-

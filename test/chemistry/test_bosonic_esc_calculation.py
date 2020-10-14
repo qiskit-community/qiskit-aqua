@@ -21,7 +21,6 @@ from qiskit.aqua.components.optimizers import COBYLA
 from qiskit.chemistry import WatsonHamiltonian
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.ground_state_calculation import (MinimumEigensolverGroundStateCalculation,
-                                                       VQEUCCSDFactory,
                                                        NumPyMinimumEigensolverFactory)
 from qiskit.chemistry.excited_states_calculation import (NumericalQEOMExcitedStatesCalculation,
                                                          EigenSolverExcitedStatesCalculation,
@@ -30,6 +29,7 @@ from qiskit.chemistry.qubit_transformations import (BosonicTransformation,
                                                     BosonicTransformationType,
                                                     BosonicQubitMappingType)
 from qiskit.chemistry.ground_state_calculation.mes_factories import VQEUVCCSDFactory
+
 
 class DumBosonicDriver(BaseDriver):
 
@@ -61,7 +61,6 @@ class TestBosonicESCCalculation(QiskitChemistryTestCase):
             basis_size=2,
             truncation=2)
 
-
     def test_numpy_mes(self):
         solver = NumPyMinimumEigensolverFactory(use_default_filter_criterion=True)
         gsc = MinimumEigensolverGroundStateCalculation(self.transformation, solver)
@@ -69,7 +68,8 @@ class TestBosonicESCCalculation(QiskitChemistryTestCase):
         results = esc.compute_excitedstates(self.driver)
 
         for idx in range(len(self.reference_energies)):
-            self.assertAlmostEqual(results.computed_vibronic_energies[idx], self.reference_energies[idx],
+            self.assertAlmostEqual(results.computed_vibronic_energies[idx],
+                                   self.reference_energies[idx],
                                    places=4)
 
     def test_numpy_factory(self):
@@ -78,7 +78,8 @@ class TestBosonicESCCalculation(QiskitChemistryTestCase):
         results = esc.compute_excitedstates(self.driver)
 
         for idx in range(len(self.reference_energies)):
-            self.assertAlmostEqual(results.computed_vibronic_energies[idx], self.reference_energies[idx],
+            self.assertAlmostEqual(results.computed_vibronic_energies[idx],
+                                   self.reference_energies[idx],
                                    places=4)
 
     def test_vqe_uvccsd_factory(self):
@@ -89,9 +90,9 @@ class TestBosonicESCCalculation(QiskitChemistryTestCase):
         esc = NumericalQEOMExcitedStatesCalculation(gsc, 'sd')
         results = esc.compute_excitedstates(self.driver)
         for idx in range(len(self.reference_energies)):
-            self.assertAlmostEqual(results.computed_vibronic_energies[idx], self.reference_energies[idx],
+            self.assertAlmostEqual(results.computed_vibronic_energies[idx],
+                                   self.reference_energies[idx],
                                    places=1)
-
 
 
 if __name__ == '__main__':

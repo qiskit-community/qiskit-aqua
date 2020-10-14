@@ -24,7 +24,6 @@ from .eigenstate_result import EigenstateResult
 logger = logging.getLogger(__name__)
 
 
-
 class VibronicStructureResult(EigenstateResult):
     """The vibronic structure result."""
 
@@ -79,5 +78,3 @@ class VibronicStructureResult(EigenstateResult):
             lines.append('- Mode {}: {}'.format(i, self.num_occupied_modals_per_mode[i]))
 
         return lines
-
-

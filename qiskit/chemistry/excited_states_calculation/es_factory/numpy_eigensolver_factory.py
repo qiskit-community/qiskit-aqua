@@ -89,5 +89,5 @@ class NumPyEigensolverFactory(ESFactory):
         if not filter_criterion and self._use_default_filter_criterion:
             filter_criterion = transformation.get_default_filter_criterion()
 
-        npe = NumPyEigensolver(filter_criterion=filter_criterion, k = self.k)
+        npe = NumPyEigensolver(filter_criterion=filter_criterion, k=self.k)
         return npe

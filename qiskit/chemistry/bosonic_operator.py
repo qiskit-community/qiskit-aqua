@@ -34,7 +34,9 @@ class BosonicOperator:
     - *Ollitrault Pauline J., Chemical science 11 (2020): 6842-6855.*
     """
 
-    def __init__(self, h: List[List[Tuple[List[List[int]], float]]], basis: Union[int,List[int]]) -> None:
+    def __init__(self,
+                 h: List[List[Tuple[List[List[int]], float]]],
+                 basis: Union[int, List[int]]) -> None:
         """
         The Bosonic operator in this class is written in the n-mode second quantization format
         (Eq. 10 in Ref. Ollitrault Pauline J., Chemical science 11 (2020): 6842-6855.)
@@ -48,7 +50,6 @@ class BosonicOperator:
                 where the indices is a n-entry list and each entry is of the
                 shape [mode, modal1, modal2] which define the indices of the corresponding raising
                 (mode, modal1) and lowering (mode, modal2) operators.
-
             basis: Is a list defining the number of modals per mode. E.g. for a 3 modes system
                 with 4 modals per mode basis = [4,4,4].
         """
@@ -127,8 +128,7 @@ class BosonicOperator:
 
         return final_list
 
-    def _combine(self, modes: List[int], paulis: dict,
-                     coeff: float) -> WeightedPauliOperator:
+    def _combine(self, modes: List[int], paulis: dict, coeff: float) -> WeightedPauliOperator:
         """ Combines the paulis of each mode together in one WeightedPauliOperator.
 
         Args:
@@ -195,8 +195,7 @@ class BosonicOperator:
                     for i in range(deg+1):
                         m, bf1, bf2 = element[0][i]
                         modes.append(m)
-                        paulis[m]=(self._one_body_mapping((1, pau[m][bf1],
-                                                               pau[m][bf2]))).paulis
+                        paulis[m] = (self._one_body_mapping((1, pau[m][bf1], pau[m][bf2]))).paulis
 
                     qubit_op += self._combine(modes, paulis, coeff)
 
@@ -208,21 +207,20 @@ class BosonicOperator:
         return qubit_op
 
     def direct_mapping_filtering_criterion(self, state: Union[List, np.ndarray], value: float,
-                                               aux_values: Optional[List[float]] = None) -> bool:
+                                           aux_values: Optional[List[float]] = None) -> bool:
 
         """ Filters out the states of irrelevant symmetries
 
-                Args:
-                    state: the statevector
-                    value: the energy
-                    aux_values: the auxiliary energies
+        Args:
+            state: the statevector
+            value: the energy
+            aux_values: the auxiliary energies
 
-                Returns:
-                    True if the state is has one and only one modal occupied per mode meaning
-                    that the direct mapping symmetries are respected and False otherwise
-
-                """
-
+        Returns:
+            True if the state is has one and only one modal occupied per mode meaning
+            that the direct mapping symmetries are respected and False otherwise
+        """
+        # pylint: disable=unused-argument
         indices = np.nonzero(np.conj(state) * state > 1e-5)[0]
         count = 0
         for i in indices:
@@ -257,6 +255,6 @@ class BosonicOperator:
         """
         h = [[]]
         for modal in range(self._basis[mode]):
-            h[0].append([[[mode, modal, modal]],1])
+            h[0].append([[[mode, modal, modal]], 1])
 
         return BosonicOperator(h, self._basis)

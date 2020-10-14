@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -17,7 +17,7 @@ import logging
 import itertools
 import sys
 
-from typing import List, Union
+from typing import List, Union, Tuple
 
 from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
@@ -51,16 +51,19 @@ class NumericalQEOMExcitedStatesCalculation(QEOMExcitedStatesCalculation):
         Returns: a dictionary of all matrix elements operators
         """
 
-        hopping_operators, type_of_commutativities, excitation_indices = self._gsc.transformation.build_hopping_operators(
-            self._excitations)
+        hopping_operators, type_of_commutativities, excitation_indices = \
+            self._gsc.transformation.build_hopping_operators(self._excitations)
 
         size = int(len(list(excitation_indices.keys()))/2)
 
-        eom_matrix_operators = self._build_all_commutators(hopping_operators, type_of_commutativities, size)
+        eom_matrix_operators = self._build_all_commutators(hopping_operators,
+                                                           type_of_commutativities,
+                                                           size)
 
         return eom_matrix_operators, size
 
-    def _build_all_commutators(self, hopping_operators: dict, type_of_commutativities: dict, size: int) -> dict:
+    def _build_all_commutators(self, hopping_operators: dict,
+                               type_of_commutativities: dict, size: int) -> dict:
         """Building all commutators for Q, W, M, V matrices.
 
         Args:
@@ -110,11 +113,12 @@ class NumericalQEOMExcitedStatesCalculation(QEOMExcitedStatesCalculation):
 
         try:
             z2_symmetries = self._gsc.transformation.molecule_info['z2_symmetries']
-        except:
-            z2_symmetries = Z2Symmetries([],[],[])
+        except Exception:  # pylint: disable=broad-except
+            z2_symmetries = Z2Symmetries([], [], [])
 
         if not z2_symmetries.is_empty():
-            for targeted_tapering_values in itertools.product([1, -1], repeat=len(z2_symmetries.symmetries)):
+            for targeted_tapering_values in itertools.product(
+                    [1, -1], repeat=len(z2_symmetries.symmetries)):
 
                 logger.info("In sector: (%s)", ','.join([str(x) for x in targeted_tapering_values]))
                 # remove the excited operators which are not suitable for the sector
@@ -125,23 +129,24 @@ class NumericalQEOMExcitedStatesCalculation(QEOMExcitedStatesCalculation):
                     value = np.asarray(value)
                     if np.all(value == targeted_sector):
                         available_hopping_ops[key] = hopping_operators[key]
-                _build_one_sector(available_hopping_ops, self._gsc.transformation.untapered_qubit_op,
-                                  z2_symmetries, self._gcs.transormation.commutation_rule)
+                _build_one_sector(available_hopping_ops,
+                                  self._gsc.transformation.untapered_qubit_op,
+                                  z2_symmetries,
+                                  self._gsc.transformation.commutation_rule)
 
         else:
-            _build_one_sector(hopping_operators,self._gsc.transformation.untapered_qubit_op,
-                                  z2_symmetries, self._gsc.transformation.commutation_rule)
-
+            _build_one_sector(hopping_operators,
+                              self._gsc.transformation.untapered_qubit_op,
+                              z2_symmetries,
+                              self._gsc.transformation.commutation_rule)
 
         return all_matrix_operators
 
     @staticmethod
     def _build_commutator_routine(params: List, operator: WeightedPauliOperator,
-                                  z2_symmetries: Z2Symmetries, sign: int) -> [int, int,
-                                                                              WeightedPauliOperator,
-                                                                              WeightedPauliOperator,
-                                                                              WeightedPauliOperator,
-                                                                              WeightedPauliOperator]:
+                                  z2_symmetries: Z2Symmetries, sign: int) \
+            -> Tuple[int, int, WeightedPauliOperator, WeightedPauliOperator,
+                     WeightedPauliOperator, WeightedPauliOperator]:
         """
         numerically computes the commutator / double commutator between operators
         Args:
@@ -170,7 +175,7 @@ class NumericalQEOMExcitedStatesCalculation(QEOMExcitedStatesCalculation):
             else:
                 if right_op_1 is not None:
                     q_mat_op = commutator(left_op, operator, right_op_1, sign=sign)
-                    w_mat_op = commutator(left_op, right_op_1, sign = sign)
+                    w_mat_op = commutator(left_op, right_op_1, sign=sign)
                     q_mat_op = None if q_mat_op.is_empty() else q_mat_op
                     w_mat_op = None if w_mat_op.is_empty() else w_mat_op
                 else:
@@ -178,8 +183,8 @@ class NumericalQEOMExcitedStatesCalculation(QEOMExcitedStatesCalculation):
                     w_mat_op = None
 
                 if right_op_2 is not None:
-                    m_mat_op = commutator(left_op, operator, right_op_2, sign = sign)
-                    v_mat_op = commutator(left_op, right_op_2, sign = sign)
+                    m_mat_op = commutator(left_op, operator, right_op_2, sign=sign)
+                    v_mat_op = commutator(left_op, right_op_2, sign=sign)
                     m_mat_op = None if m_mat_op.is_empty() else m_mat_op
                     v_mat_op = None if v_mat_op.is_empty() else v_mat_op
                 else:

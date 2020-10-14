@@ -17,6 +17,7 @@ from typing import Dict, List, Tuple, cast
 
 from qiskit.chemistry import WatsonHamiltonian
 
+
 class HarmonicBasis:
     """ Basis into which writing the Watson Hamiltonian.
 
@@ -31,7 +32,8 @@ class HarmonicBasis:
         """
         A set of functions to transform a Watson Hamiltonian in the Harmonic basis
         Args:
-            watson_hamiltonian: A WatsonHamiltonian object which contains the hamiltonian information
+            watson_hamiltonian: A WatsonHamiltonian object which contains the hamiltonian
+                information
             basis: Is a list defining the number of modals per mode. E.g. for a 3 modes system
                 with 4 modals per mode basis = [4,4,4].
             truncation_order: where is the Hamiltonian expansion truncation (1 for having only
@@ -247,4 +249,3 @@ class HarmonicBasis:
                                                values[i]))
 
         return harmonics
-

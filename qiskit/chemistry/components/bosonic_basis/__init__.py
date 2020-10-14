@@ -11,23 +11,20 @@
 # that they have been altered from the originals.
 
 """
-Initial States (:mod:`qiskit.chemistry.components.initial_states`)
-==================================================================
-These are chemistry specific Aqua Initial States where they inherit from
-Aqua :class:`~qiskit.aqua.components.initial_states.InitialState`.
-As they rely on chemistry specific knowledge and/or functions they live here rather than in Aqua.
+Bosonic basis (:mod:`qiskit.chemistry.components.bosonic_basis`)
+================================================================
+Basis for bosonic operations.
 
-.. currentmodule:: qiskit.chemistry.components.initial_states
+.. currentmodule:: qiskit.chemistry.components.bosonic_basis
 
-Initial States
-==============
+Bosonic Basis
+=============
 
 .. autosummary::
    :toctree: ../stubs/
    :nosignatures:
 
-   HartreeFock
-   VSCF
+   HarmonicBasis
 
 """
 
