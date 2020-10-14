@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -10,7 +12,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" CVarStateFn Class """
+"""CVaRMeasurement class."""
 
 
 from typing import Union, Optional, Callable
@@ -22,21 +24,18 @@ from qiskit.result import Result
 from qiskit.quantum_info import Statevector
 
 from ..operator_base import OperatorBase
-from ..primitive_ops import MatrixOp, PauliOp
+from ..primitive_ops import PauliOp
 from ..list_ops import ListOp, SummedOp
 from .state_fn import StateFn
 from .operator_state_fn import OperatorStateFn
 
 
-# pylint: disable=invalid-name
-
 class CVaRMeasurement(OperatorStateFn):
-    r"""
-    A class for state functions and measurements which are defined by a density Operator,
-    stored using an ``OperatorBase``.
+    r"""A specialized measurement class to compute CVaR expectation values.
+
+    Used in :class:`~qiskit.aqua.operators.CVaRExpectation`, see there for more details.
     """
 
-    @staticmethod
     def __new__(cls,
                 primitive: Union[str, dict, Result,
                                  list, np.ndarray, Statevector,
@@ -44,7 +43,7 @@ class CVaRMeasurement(OperatorStateFn):
                                  OperatorBase] = None,
                 alpha: float = 1.0,
                 coeff: Union[int, float, complex, ParameterExpression] = 1.0,
-                ) -> 'StateFn':
+                ) -> 'CVaRMeasurement':
         obj = object.__new__(cls)
         obj.__init__(primitive, alpha, coeff)
         return obj
@@ -74,7 +73,8 @@ class CVaRMeasurement(OperatorStateFn):
         self._alpha = alpha
 
         if not _check_is_diagonal(primitive):
-            raise AquaError('Input operator to CVar must be diagonal, but is not:', str(primitive))
+            raise AquaError('Input operator to CVaRMeasurement must be diagonal, but is not:',
+                            str(primitive))
 
         super().__init__(primitive, coeff=coeff, is_measurement=True)
 
@@ -181,7 +181,7 @@ class CVaRMeasurement(OperatorStateFn):
         probabilities = [p_i * np.conj(p_i) for p_i in probabilities]
 
         # Determine j, the index of the measurement outcome
-        # which will be only partially included in the CVar sum
+        # which will be only partially included in the CVaR sum
         j = 0
         running_total = 0
         for i, p_i in enumerate(probabilities):
@@ -199,7 +199,7 @@ class CVaRMeasurement(OperatorStateFn):
         energies = energies[:j]
         probabilities = probabilities[:j]
 
-        # CVar = alpha*Hj + \sum_i P[i]*(H[i] - Hj)
+        # CVaR = alpha*Hj + \sum_i P[i]*(H[i] - Hj)
         for h_i, p_i in zip(energies, probabilities):
             cvar += p_i * (h_i - h_j)
 
@@ -249,26 +249,24 @@ def _check_is_diagonal(operator: OperatorBase) -> bool:
     """
     if isinstance(operator, PauliOp):
         # every X component must be False
-        if not np.any(operator.primitive.x):
+        if not np.any(operator.primitive.x):  # type: ignore
             return True
         return False
 
     if isinstance(operator, SummedOp) and operator.primitive_strings == {'Pauli'}:
         # cover the case of sums of diagonal paulis, but don't raise since there might be summands
         # cancelling the non-diagonal parts
-        if np.all(not np.any(op.primitive.x) for op in operator.oplist):
+
+        # ignoring mypy since we know that all operators are PauliOps
+        if np.all(not np.any(op.primitive.x) for op in operator.oplist):  # type: ignore
             return True
 
     if isinstance(operator, ListOp):
         return np.all(operator.traverse(_check_is_diagonal))
 
     # cannot efficiently check if a operator is diagonal, converting to matrix
-    operator = operator.to_matrix_op()
+    matrix = operator.to_matrix()
 
-    if isinstance(operator, MatrixOp):
-        matrix = operator.primitive.data
-        if np.all(matrix == np.diag(np.diagonal(matrix))):
-            return True
-        return False
-    else:
-        raise AquaError('Could not convert to MatrixOp, something went wrong.', operator)
+    if np.all(matrix == np.diag(np.diagonal(matrix))):
+        return True
+    return False

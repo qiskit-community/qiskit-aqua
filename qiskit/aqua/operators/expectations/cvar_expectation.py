@@ -13,26 +13,51 @@
 """The CVaR (Conditional Value at Risk) expectation class."""
 
 import logging
-from typing import Union
+from typing import Union, Optional
 
 from ..operator_base import OperatorBase
 from ..list_ops import ListOp, ComposedOp
 from ..state_fns import CVaRMeasurement, OperatorStateFn
 from .expectation_base import ExpectationBase
+from .pauli_expectation import PauliExpectation
 from .aer_pauli_expectation import AerPauliExpectation
 
 logger = logging.getLogger(__name__)
 
 
 class CVaRExpectation(ExpectationBase):
-    """ An Expectation converter which converts Operator measurements to be matrix-based so they
-    can be evaluated by matrix multiplication. """
+    """Compute the Conditional Value at Risk (CVaR) expectation value.
 
-    def __init__(self, alpha: float, expectation: ExpectationBase) -> None:
+    The standard approach to calculating the expectation value of a Hamiltonian w.r.t. a
+    state is to take the sample mean of the measurement outcomes. Instead, for a diagonal
+    Hamiltonian, we use CVaR as an aggregation function instead of the mean, as proposed in [1].
+    It is empirically shown, that this can lead to faster convergence for combinatorial
+    optimization problems.
+
+    Examples:
+
+        >>> operator = Z ^ I ^ Z ^ I
+        >>> state = Plus ^ 4
+        >>> op = ~StateFn(operator) @ state
+        >>> cvar_expecation = CVaRExpectation(alpha=0.1).convert(op)
+        >>> exact_value = cvar_expecation.eval()
+        >>> sampler = CircuitSampler(Aer.get_backend('qasm_simulator'))
+        >>> sampled_value = sampler.convert(cvar_expectation).eval()
+
+    References:
+
+        [1]: Barkoutsos, P. K., Nannicini, G., Robert, A., Tavernelli, I., and Woerner, S.,
+             "Improving Variational Quantum Optimization using CVaR"
+             `arXiv:1907.04769 <https://arxiv.org/abs/1907.04769>`_
+
+    """
+
+    def __init__(self, alpha: float, expectation: Optional[ExpectationBase] = None) -> None:
         """
         Args:
             alpha: The alpha value describing the quantile considered in the expectation value.
-            expectation: An expectation object to compute the expectation value.
+            expectation: An expectation object to compute the expectation value. Defaults
+                to the PauliExpectation calculation.
 
         Raises:
             NotImplementedError: If the ``expectation`` is an AerPauliExpecation.
@@ -40,6 +65,8 @@ class CVaRExpectation(ExpectationBase):
         self.alpha = alpha
         if isinstance(expectation, AerPauliExpectation):
             raise NotImplementedError('AerPauliExpecation currently not supported.')
+        if expectation is None:
+            expectation = PauliExpectation()
         self.expectation = expectation
 
     def convert(self, operator: OperatorBase) -> OperatorBase:

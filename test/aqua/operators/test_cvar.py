@@ -131,4 +131,3 @@ class TestCVaRExpectation(QiskitAquaTestCase):
 
         # test if the operators have been transformed in the same manner
         self.assertEqual(cvar.oplist[0].primitive, expected.oplist[0].primitive)
-        
