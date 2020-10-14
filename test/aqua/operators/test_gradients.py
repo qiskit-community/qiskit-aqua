@@ -35,6 +35,7 @@ from qiskit.aqua.components.optimizers import CG
 from qiskit.aqua.operators import I, X, Z, StateFn, CircuitStateFn, ListOp, CircuitSampler
 from qiskit.aqua.operators.gradients import Gradient, NaturalGradient, Hessian
 from qiskit.aqua.operators.gradients.qfi import QFI
+from qiskit.aqua.operators.gradients.circuit_qfis import LinCombFull, OverlapBlockDiag, OverlapDiag
 from qiskit.circuit import Parameter, ParameterExpression
 from qiskit.circuit import ParameterVector
 
@@ -57,12 +58,12 @@ class TestGradients(QiskitAquaTestCase):
         """
         ham = 0.5 * X - 1 * Z
         a = Parameter('a')
-        params = [a]
+        params = a
 
         q = QuantumRegister(1)
         qc = QuantumCircuit(q)
         qc.h(q)
-        qc.p(params[0], q[0])
+        qc.p(a, q[0])
         op = ~StateFn(ham) @ CircuitStateFn(primitive=qc, coeff=1.)
 
         state_grad = Gradient(grad_method=method).convert(operator=op, params=params)
@@ -192,7 +193,7 @@ class TestGradients(QiskitAquaTestCase):
         ham = 0.5 * X - 1 * Z
         a = Parameter('a')
         # b = Parameter('b')
-        params = [a]
+        params = a
         x = Symbol('x')
         expr = cos(x) + 1
         c = ParameterExpression({a: x}, expr)
@@ -221,7 +222,7 @@ class TestGradients(QiskitAquaTestCase):
 
         ham = X ^ Z
         a = Parameter('a')
-        params = [a]
+        params = a
 
         q = QuantumRegister(2)
         qc = QuantumCircuit(q)
@@ -408,7 +409,7 @@ class TestGradients(QiskitAquaTestCase):
                                                  correct_values[i], decimal=1)
 
     @idata(product(['lin_comb', 'param_shift', 'fin_diff'],
-                   [None, 'lasso', 'perturb_diag', 'perturb_diag_elements']))
+                   [None, 'lasso', 'ridge', 'perturb_diag', 'perturb_diag_elements']))
     @unpack
     def test_natural_gradient(self, method, regularization):
         """Test the natural gradient"""
@@ -429,6 +430,49 @@ class TestGradients(QiskitAquaTestCase):
                                                                           params=params)
         values_dict = [{params[0]: np.pi / 4, params[1]: np.pi / 2}]
         correct_values = [[-2.36003979, 2.06503481]] if regularization == 'ridge' else [[-4.2, 0]]
+        for i, value_dict in enumerate(values_dict):
+            np.testing.assert_array_almost_equal(nat_grad.assign_parameters(value_dict).eval(),
+                                                 correct_values[i],
+                                                 decimal=0)
+
+    def test_natural_gradient2(self):
+        """Test the natural gradient 2"""
+        with self.assertRaises(TypeError):
+            _ = NaturalGradient().convert(None)
+
+    @idata(zip(['lin_comb_full', 'overlap_block_diag', 'overlap_diag'],
+               [LinCombFull, OverlapBlockDiag, OverlapDiag]))
+    @unpack
+    def test_natural_gradient3(self, qfi_method, circuit_qfi):
+        """Test the natural gradient 3"""
+        nat_grad = NaturalGradient(qfi_method=qfi_method)
+        self.assertIsInstance(nat_grad.qfi_method, circuit_qfi)
+
+    @idata(product(['lin_comb', 'param_shift', 'fin_diff'],
+                   ['lin_comb_full', 'overlap_block_diag', 'overlap_diag'],
+                   [None, 'ridge', 'perturb_diag', 'perturb_diag_elements']))
+    @unpack
+    def test_natural_gradient4(self, grad_method, qfi_method, regularization):
+        """Test the natural gradient 4"""
+
+        # Avoid regularization = lasso intentionally because it does not converge
+
+        ham = 0.5 * X - 1 * Z
+        a = Parameter('a')
+        params = a
+
+        q = QuantumRegister(1)
+        qc = QuantumCircuit(q)
+        qc.h(q)
+        qc.rz(a, q[0])
+
+        op = ~StateFn(ham) @ CircuitStateFn(primitive=qc, coeff=1.)
+        nat_grad = NaturalGradient(grad_method=grad_method,
+                                   qfi_method=qfi_method,
+                                   regularization=regularization).convert(operator=op,
+                                                                          params=params)
+        values_dict = [{a: np.pi / 4}]
+        correct_values = [[0.]] if regularization == 'ridge' else [[-1.41421342]]
         for i, value_dict in enumerate(values_dict):
             np.testing.assert_array_almost_equal(nat_grad.assign_parameters(value_dict).eval(),
                                                  correct_values[i],
@@ -681,7 +725,7 @@ class TestGradients(QiskitAquaTestCase):
                                      seed_transpiler=2)
         # Define the Hamiltonian
         h2_hamiltonian = -1.05 * (I ^ I) + 0.39 * (I ^ Z) - 0.39 * (Z ^ I) - 0.01 * (Z ^ Z) + 0.18 \
-            * (X ^ X)
+                         * (X ^ X)
         h2_energy = -1.85727503
 
         # Define the Ansatz
