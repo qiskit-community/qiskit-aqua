@@ -53,7 +53,7 @@ class EigenstateResult(AlgorithmResult):
     def groundenergy(self) -> Optional[float]:
         """ returns ground energy """
         energies = self.get('eigenenergies')
-        if energies:
+        if energies is not None:
             return energies[0].real
         return None
 

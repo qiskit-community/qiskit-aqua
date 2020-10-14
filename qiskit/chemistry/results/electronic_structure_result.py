@@ -67,31 +67,31 @@ class ElectronicStructureResult(EigenstateResult):
     # construct the circuit of the GS from here (if the algorithm supports this)
 
     @property
-    def energy(self) -> Optional[float]:
+    def total_energies(self) -> np.ndarray:
         """ Returns ground state energy if nuclear_repulsion_energy is available from driver """
-        # TODO the fact that this property is computed on the fly breaks the `.combine()`
-        # functionality
-        nre = self.nuclear_repulsion_energy
-        return self.electronic_energy + nre if nre is not None else None
+        nre = self.nuclear_repulsion_energy if self.nuclear_repulsion_energy is not None else 0
+        # Adding float to np.ndarray adds it to each entry
+        return self.electronic_energies + nre
 
     @property
-    def electronic_energy(self) -> float:
+    def electronic_energies(self) -> np.ndarray:
         """ Returns electronic part of ground state energy """
         # TODO the fact that this property is computed on the fly breaks the `.combine()`
         # functionality
-        return (self.computed_electronic_energy
+        # Adding float to np.ndarray adds it to each entry
+        return (self.computed_energies
                 + self.ph_extracted_energy
                 + self.frozen_extracted_energy)
 
     @property
-    def computed_electronic_energy(self) -> float:
+    def computed_energies(self) -> np.ndarray:
         """ Returns computed electronic part of ground state energy """
-        return self.get('computed_electronic_energy')
+        return self.get('computed_energies')
 
-    @computed_electronic_energy.setter
-    def computed_electronic_energy(self, value: float) -> None:
+    @computed_energies.setter
+    def computed_energies(self, value: np.ndarray) -> None:
         """ Sets computed electronic part of ground state energy """
-        self.data['computed_electronic_energy'] = value
+        self.data['computed_energies'] = value
 
     @property
     def ph_extracted_energy(self) -> float:
@@ -258,9 +258,9 @@ class ElectronicStructureResult(EigenstateResult):
         lines.append('=== GROUND STATE ENERGY ===')
         lines.append(' ')
         lines.append('* Electronic ground state energy (Hartree): {}'.
-                     format(round(self.electronic_energy, 12)))
+                     format(round(self.electronic_energies[0], 12)))
         lines.append('  - computed part:      {}'.
-                     format(round(self.computed_electronic_energy, 12)))
+                     format(round(self.computed_energies[0], 12)))
         lines.append('  - frozen energy part: {}'.
                      format(round(self.frozen_extracted_energy, 12)))
         lines.append('  - particle hole part: {}'
@@ -269,7 +269,7 @@ class ElectronicStructureResult(EigenstateResult):
             lines.append('~ Nuclear repulsion energy (Hartree): {}'.
                          format(round(self.nuclear_repulsion_energy, 12)))
             lines.append('> Total ground state energy (Hartree): {}'.
-                         format(round(self.energy, 12)))
+                         format(round(self.total_energies[0], 12)))
         if self.has_observables():
             line = '  Measured::'
             if self.num_particles is not None:
@@ -303,6 +303,16 @@ class ElectronicStructureResult(EigenstateResult):
                 lines.append('               (debye): {}  Total: {}'
                              .format(_dipole_to_string(self.dipole_moment_in_debye),
                                      _float_to_string(self.total_dipole_moment_in_debye)))
+
+        if len(self.computed_energies) > 1:
+            lines.append(' ')
+            lines.append('=== EXCITED STATES ===')
+            lines.append(' ')
+            lines.append('# Excited State - Electronic energy (Hartree) - Total energy (Hartree)')
+            for idx in np.arange(1, len(self.computed_energies)):
+                lines.append(' {} \t-\t {} \t-\t {} '.format(idx, self.electronic_energies[idx].real,
+                                                     self.total_energies[idx].real))
+
         return lines
 
 
