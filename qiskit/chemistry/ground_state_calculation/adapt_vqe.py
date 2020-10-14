@@ -218,7 +218,7 @@ class AdaptVQE(MinimumEigensolverGroundStateCalculation):
             aux_values = self.evaluate_operators(raw_vqe_result.eigenstate, aux_operators)
         else:
             aux_values = None
-        raw_vqe_result.aux_operator_eigenvalues = aux_values
+        raw_vqe_result.aux_operator_eigenvalues = [aux_values]
 
         if threshold_satisfied:
             finishing_criterion = 'Threshold converged'
@@ -236,7 +236,7 @@ class AdaptVQE(MinimumEigensolverGroundStateCalculation):
         result.final_max_gradient = max_grad[0]
         result.finishing_criterion = finishing_criterion
 
-        logger.info('The final energy is: %s', str(result.computed_electronic_energy))
+        logger.info('The final energy is: %s', str(result.computed_energies[0]))
         return result
 
 
