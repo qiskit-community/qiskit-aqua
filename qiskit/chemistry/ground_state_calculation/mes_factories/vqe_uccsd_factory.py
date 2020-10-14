@@ -143,3 +143,6 @@ class VQEUCCSDFactory(MESFactory):
                   expectation=self._expectation,
                   include_custom=self._include_custom)
         return vqe
+
+    def supports_aux_operators(self):
+        return VQE.supports_aux_operators()

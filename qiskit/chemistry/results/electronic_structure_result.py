@@ -17,7 +17,6 @@ from typing import List, Optional, Tuple, cast
 import logging
 import numpy as np
 
-from qiskit.aqua.algorithms import AlgorithmResult
 from qiskit.chemistry import QMolecule
 
 from .eigenstate_result import EigenstateResult
@@ -33,16 +32,6 @@ DipoleTuple = Tuple[Optional[float], Optional[float], Optional[float]]
 
 class ElectronicStructureResult(EigenstateResult):
     """The electronic structure result."""
-
-    @property
-    def algorithm_result(self) -> AlgorithmResult:
-        """ Returns raw algorithm result """
-        return self.get('algorithm_result')
-
-    @algorithm_result.setter
-    def algorithm_result(self, value: AlgorithmResult) -> None:
-        """ Sets raw algorithm result """
-        self.data['algorithm_result'] = value
 
     @property
     def hartree_fock_energy(self) -> float:

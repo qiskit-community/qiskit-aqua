@@ -15,8 +15,8 @@
 import unittest
 
 from test.chemistry import QiskitChemistryTestCase
-from qiskit.aqua.operators import WeightedPauliOperator
-from qiskit.chemistry import QiskitChemistryError
+from qiskit.aqua.operators import OperatorBase, I, Z
+from qiskit.chemistry import QiskitChemistryError, FermionicOperator
 from qiskit.chemistry.core import TransformationType, QubitMappingType
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry.qubit_transformations import FermionicTransformation
@@ -53,10 +53,10 @@ class TestFermionicTransformation(QiskitChemistryTestCase):
                           'two_qubit_reduction': actual_two_qubit_reduction})
 
     def _validate_input_object(self, qubit_op, num_qubits=4, num_paulis=15):
-        self.assertTrue(isinstance(qubit_op, WeightedPauliOperator))
+        self.assertTrue(isinstance(qubit_op, OperatorBase))
         self.assertIsNotNone(qubit_op)
         self.assertEqual(qubit_op.num_qubits, num_qubits)
-        self.assertEqual(len(qubit_op.to_dict()['paulis']), num_paulis)
+        self.assertEqual(len(qubit_op.oplist), num_paulis)
 
     def test_output(self):
         """ output test """
@@ -168,10 +168,19 @@ class TestFermionicTransformation(QiskitChemistryTestCase):
             freeze_core=False,
             orbital_reduction=[-1])
 
-        qubit_op, _ = fermionic_transformation.transform(self.driver)
+        # get dummy aux operator
+        qmolecule = self.driver.run()
+        fer_op = FermionicOperator(h1=qmolecule.one_body_integrals, h2=qmolecule.two_body_integrals)
+        dummy = fer_op.total_particle_number()
+        expected = (I ^ I) - 0.5 * (I ^ Z) - 0.5 * (Z ^ I)
+
+        qubit_op, aux_ops = fermionic_transformation.transform(self.driver, [dummy])
         self._validate_vars(fermionic_transformation)
         self._validate_info(fermionic_transformation, num_orbitals=2)
         self._validate_input_object(qubit_op, num_qubits=2, num_paulis=4)
+
+        # the first six aux_ops are added automatically, ours is the 7th one
+        self.assertEqual(aux_ops[6], expected)
 
 
 if __name__ == '__main__':

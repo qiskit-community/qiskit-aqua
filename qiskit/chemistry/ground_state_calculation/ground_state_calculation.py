@@ -13,7 +13,7 @@
 """The ground state calculation interface."""
 
 from abc import ABC, abstractmethod
-from typing import Dict, List, Any, Optional, Union
+from typing import Dict, List, Optional, Union
 
 import numpy as np
 
@@ -22,6 +22,7 @@ from qiskit.circuit import Instruction
 from qiskit.quantum_info import Statevector
 from qiskit.result import Result
 from qiskit.aqua.operators import OperatorBase, WeightedPauliOperator
+from qiskit.chemistry import FermionicOperator, BosonicOperator
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.results import EigenstateResult
 
@@ -50,7 +51,8 @@ class GroundStateCalculation(ABC):
 
     @abstractmethod
     def compute_groundstate(self, driver: BaseDriver,
-                            aux_operators: Optional[List[Any]] = None
+                            aux_operators: Optional[Union[List[FermionicOperator],
+                                                          List[BosonicOperator]]] = None
                             ) -> EigenstateResult:
         """Compute the ground state energy of the molecule that was supplied via the driver.
 

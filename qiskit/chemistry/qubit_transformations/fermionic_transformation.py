@@ -15,12 +15,14 @@
 The problem is described in a driver.
 """
 
-from typing import Optional, List, Union, cast, Tuple, Dict, Any
+from functools import partial
+from typing import Optional, List, Union, cast, Tuple, Dict, Any, Callable
 import logging
 from enum import Enum
 
 import numpy as np
-from qiskit.aqua.operators import Z2Symmetries, WeightedPauliOperator
+from qiskit.aqua.algorithms import EigensolverResult, MinimumEigensolverResult
+from qiskit.aqua.operators import Z2Symmetries, WeightedPauliOperator, OperatorBase
 from qiskit.chemistry import QiskitChemistryError, QMolecule
 from qiskit.chemistry.fermionic_operator import FermionicOperator
 from qiskit.chemistry.drivers import BaseDriver
@@ -126,7 +128,7 @@ class FermionicTransformation(QubitOperatorTransformation):
 
     def transform(self, driver: BaseDriver,
                   aux_operators: Optional[List[FermionicOperator]] = None
-                  ) -> Tuple[WeightedPauliOperator, List[WeightedPauliOperator]]:
+                  ) -> Tuple[OperatorBase, List[OperatorBase]]:
         """Transformation from the ``driver`` to a qubit operator.
 
         Args:
@@ -139,17 +141,20 @@ class FermionicTransformation(QubitOperatorTransformation):
         q_molecule = driver.run()
         ops, aux_ops = self._do_transform(q_molecule, aux_operators)
 
+        # the internal method may still return legacy operators which is why we make sure to convert
+        # all of the operator to the operator flow
+        ops = ops.to_opflow() if isinstance(ops, WeightedPauliOperator) else ops
+        aux_ops = [a.to_opflow() if isinstance(a, WeightedPauliOperator) else a for a in aux_ops]
+
         return ops, aux_ops
 
     def _do_transform(self, qmolecule: QMolecule,
-                      aux_operators: Optional[List[Union[FermionicOperator,
-                                                         WeightedPauliOperator]]] = None
+                      aux_operators: Optional[List[FermionicOperator]] = None
                       ) -> Tuple[WeightedPauliOperator, List[WeightedPauliOperator]]:
         """
         Args:
             qmolecule: qmolecule
             aux_operators: Additional ``FermionicOperator``s to map to a qubit operator.
-                Objects of type ``WeightedPauliOperator`` undergo no transformation.
 
         Returns:
             (qubit operator, auxiliary operators)
@@ -194,9 +199,8 @@ class FermionicTransformation(QubitOperatorTransformation):
         new_num_beta = num_beta
         if orbitals_list:
             orbitals_list = np.array(orbitals_list)
-            orbitals_list = \
-                orbitals_list[(cast(np.ndarray, orbitals_list) >= 0) &
-                              (orbitals_list < qmolecule.num_orbitals)]
+            orbitals_list = orbitals_list[(cast(np.ndarray, orbitals_list) >= 0) &
+                                          (orbitals_list < qmolecule.num_orbitals)]
 
             freeze_list_alpha = [i for i in orbitals_list if i < num_alpha]
             freeze_list_beta = [i for i in orbitals_list if i < num_beta]
@@ -224,15 +228,36 @@ class FermionicTransformation(QubitOperatorTransformation):
 
         new_nel = [new_num_alpha, new_num_beta]
 
+        # construct the fermionic operator
         fer_op = FermionicOperator(h1=qmolecule.one_body_integrals, h2=qmolecule.two_body_integrals)
+
+        # try to reduce it according to the freeze and remove list
         fer_op, self._energy_shift, did_shift = \
             FermionicTransformation._try_reduce_fermionic_operator(fer_op, freeze_list, remove_list)
+        # apply same transformation for the aux operators
+        if aux_operators is not None:
+            aux_operators = [
+                FermionicTransformation._try_reduce_fermionic_operator(
+                    op, freeze_list, remove_list)[0]
+                for op in aux_operators
+                ]
+
         if did_shift:
             logger.info("Frozen orbital energy shift: %s", self._energy_shift)
+
+        # apply particle hole transformation, if specified
         if self._transformation == TransformationType.PARTICLE_HOLE.value:
             fer_op, ph_shift = fer_op.particle_hole_transformation(new_nel)
             self._ph_energy_shift = -ph_shift
             logger.info("Particle hole energy shift: %s", self._ph_energy_shift)
+
+            # apply the same transformation for the aux operators
+            if aux_operators is not None:
+                aux_operators = [
+                    op.particle_hole_transformation(new_nel)[0]
+                    for op in aux_operators
+                    ]
+
         logger.debug('Converting to qubit using %s mapping', self._qubit_mapping)
         qubit_op = FermionicTransformation._map_fermionic_operator_to_qubit(
             fer_op, self._qubit_mapping, new_nel, self._two_qubit_reduction
@@ -242,7 +267,6 @@ class FermionicTransformation(QubitOperatorTransformation):
         logger.debug('  num paulis: %s, num qubits: %s', len(qubit_op.paulis), qubit_op.num_qubits)
 
         aux_ops = []  # list of the aux operators
-        apply_reductions = []  # list of bools specifying whether to apply reductions or not
 
         def _add_aux_op(aux_op: FermionicOperator, name: str) -> None:
             """
@@ -253,18 +277,12 @@ class FermionicTransformation(QubitOperatorTransformation):
                 name: name
 
             """
-            if not isinstance(aux_op, WeightedPauliOperator):
-                aux_qop = FermionicTransformation._map_fermionic_operator_to_qubit(
-                    aux_op, self._qubit_mapping, new_nel, self._two_qubit_reduction
-                    )
-                aux_qop.name = name
-                apply_reduction = True
-            else:
-                aux_qop = aux_op
-                apply_reduction = False
+            aux_qop = FermionicTransformation._map_fermionic_operator_to_qubit(
+                aux_op, self._qubit_mapping, new_nel, self._two_qubit_reduction
+                )
+            aux_qop.name = name
 
             aux_ops.append(aux_qop)
-            apply_reductions.append(apply_reduction)
             logger.debug('  num paulis: %s', aux_qop.paulis)
 
         # the first three operators are hardcoded to number of particles, angular momentum
@@ -320,12 +338,15 @@ class FermionicTransformation(QubitOperatorTransformation):
                 _dipole_op(qmolecule.z_dipole_integrals, 'z')
 
             aux_ops += [op_dipole_x, op_dipole_y, op_dipole_z]
-            apply_reductions += 3 * [True]
 
         # add user specified auxiliary operators
         if aux_operators is not None:
             for aux_op in aux_operators:
-                _add_aux_op(aux_op, aux_op.name)
+                if hasattr(aux_op, 'name'):
+                    name = aux_op.name
+                else:
+                    name = ''
+                _add_aux_op(aux_op, name)
 
         logger.info('Molecule num electrons: %s, remaining for processing: %s',
                     [num_alpha, num_beta], new_nel)
@@ -342,8 +363,7 @@ class FermionicTransformation(QubitOperatorTransformation):
         z2symmetries = Z2Symmetries([], [], [], None)
         if self._z2symmetry_reduction is not None:
             logger.debug('Processing z2 symmetries')
-            qubit_op, aux_ops, z2symmetries = self._process_z2symmetry_reduction(qubit_op, aux_ops,
-                                                                                 apply_reductions)
+            qubit_op, aux_ops, z2symmetries = self._process_z2symmetry_reduction(qubit_op, aux_ops)
         self._molecule_info['z2_symmetries'] = z2symmetries
 
         logger.debug('Processing complete ready to run algorithm')
@@ -351,15 +371,13 @@ class FermionicTransformation(QubitOperatorTransformation):
 
     def _process_z2symmetry_reduction(self,
                                       qubit_op: WeightedPauliOperator,
-                                      aux_ops: List[WeightedPauliOperator],
-                                      apply_reductions: List[bool]) -> Tuple:
+                                      aux_ops: List[WeightedPauliOperator]) -> Tuple:
         """
         Implement z2 symmetries in the qubit operator
 
         Args:
             qubit_op : qubit operator
             aux_ops: auxiliary operators
-            apply_reductions: whether to apply reductions on the aux_ops
 
         Returns:
             (z2_qubit_op, z2_aux_ops, z2_symmetries)
@@ -414,13 +432,11 @@ class FermionicTransformation(QubitOperatorTransformation):
             chop_to = 0.00000001  # Use same threshold as qubit mapping to chop tapered operator
             z2_qubit_op = z2_symmetries.taper(qubit_op).chop(chop_to)
             z2_aux_ops = []
-            for aux_op, apply_reduction in zip(aux_ops, apply_reductions):
+            for aux_op in aux_ops:
                 if aux_op is None:
                     z2_aux_ops += [None]
-                elif apply_reduction:
-                    z2_aux_ops += [z2_symmetries.taper(aux_op).chop(chop_to)]
                 else:
-                    z2_aux_ops += [aux_op]
+                    z2_aux_ops += [z2_symmetries.taper(aux_op).chop(chop_to)]
 
         return z2_qubit_op, z2_aux_ops, z2_symmetries
 
@@ -444,6 +460,24 @@ class FermionicTransformation(QubitOperatorTransformation):
         logger.debug('  \'%s\' commutes: %s, %s', operator.name, does_commute, commutes)
         return does_commute
 
+    def get_default_filter_criterion(self) -> Optional[Callable[[Union[List, np.ndarray], float,
+                                                                 Optional[List[float]]], bool]]:
+        """Returns a default filter criterion method to filter the eigenvalues computed by the
+        eigen solver. For more information see also
+        aqua.algorithms.eigen_solvers.NumPyEigensolver.filter_criterion.
+
+        In the fermionic case the default filter ensures that the number of particles is being
+        preserved.
+        """
+
+        # pylint: disable=unused-argument
+        def filter_criterion(self, eigenstate, eigenvalue, aux_values):
+            # the first aux_value is the evaluated number of particles
+            num_particles_aux = aux_values[0][0]
+            return np.isclose(sum(self.molecule_info['num_particles']), num_particles_aux)
+
+        return partial(filter_criterion, self)
+
     @staticmethod
     def _pick_sector(z2_symmetries: Z2Symmetries, hf_str: np.ndarray) -> Z2Symmetries:
         """
@@ -466,17 +500,34 @@ class FermionicTransformation(QubitOperatorTransformation):
         z2_symmetries.tapering_values = taper_coef
         return z2_symmetries
 
-    def interpret(self, eigenstate_result: EigenstateResult) -> ElectronicStructureResult:
+    def interpret(self, raw_result: Union[EigenstateResult, EigensolverResult,
+                                          MinimumEigensolverResult]) -> ElectronicStructureResult:
         """Interprets an EigenstateResult in the context of this transformation.
 
         Args:
-            eigenstate_result: an eigenstate result object.
+            raw_result: an eigenstate result object.
 
         Returns:
             An electronic structure result.
         """
+        eigenstate_result = None
+        if isinstance(raw_result, EigenstateResult):
+            eigenstate_result = raw_result
+        elif isinstance(raw_result, EigensolverResult):
+            eigenstate_result = EigenstateResult()
+            eigenstate_result.raw_result = raw_result
+            eigenstate_result.eigenenergies = raw_result.eigenvalues
+            eigenstate_result.eigenstates = raw_result.eigenstates
+            eigenstate_result.aux_operator_eigenvalues = raw_result.aux_operator_eigenvalues
+        elif isinstance(raw_result, MinimumEigensolverResult):
+            eigenstate_result = EigenstateResult()
+            eigenstate_result.raw_result = raw_result
+            eigenstate_result.eigenenergies = np.asarray([raw_result.eigenvalue])
+            eigenstate_result.eigenstates = [raw_result.eigenstate]
+            eigenstate_result.aux_operator_eigenvalues = raw_result.aux_operator_eigenvalues
+
         result = ElectronicStructureResult(eigenstate_result.data)
-        result.computed_electronic_energy = eigenstate_result.eigenvalue.real
+        result.computed_electronic_energy = eigenstate_result.groundenergy
         result.hartree_fock_energy = self._hf_energy
         result.nuclear_repulsion_energy = self._nuclear_repulsion_energy
         if self._nuclear_dipole_moment is not None:

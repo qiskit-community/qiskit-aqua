@@ -55,7 +55,8 @@ class MinimumEigensolver(ABC):
             self.aux_operators = aux_operators  # type: ignore
         return MinimumEigensolverResult()
 
-    def supports_aux_operators(self) -> bool:
+    @classmethod
+    def supports_aux_operators(cls) -> bool:
         """Whether computing the expectation value of auxiliary operators is supported.
 
         If the minimum eigensolver computes an eigenstate of the main operator then it
