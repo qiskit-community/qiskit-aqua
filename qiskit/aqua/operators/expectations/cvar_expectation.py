@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 
 class CVaRExpectation(ExpectationBase):
-    """Compute the Conditional Value at Risk (CVaR) expectation value.
+    r"""Compute the Conditional Value at Risk (CVaR) expectation value.
 
     The standard approach to calculating the expectation value of a Hamiltonian w.r.t. a
     state is to take the sample mean of the measurement outcomes. Instead, for a diagonal
