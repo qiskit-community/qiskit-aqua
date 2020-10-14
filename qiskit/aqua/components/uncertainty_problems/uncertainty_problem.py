@@ -14,6 +14,7 @@
 The abstract Uncertainty Problem component.
 """
 
+import warnings
 from abc import ABC
 from qiskit.aqua.utils import CircuitFactory
 from qiskit.aqua.utils.validation import validate_min
@@ -28,8 +29,17 @@ class UncertaintyProblem(CircuitFactory, ABC):
 
     # pylint: disable=useless-super-delegation
     def __init__(self, num_qubits: int) -> None:
+        warnings.warn('The {0} is deprecated as of Aqua 0.8.0 and will be removed no earlier than '
+                      '3 months after the release date. Instead, you can construct the circuits '
+                      'manually using the respective circuit components. See the tutorials for '
+                      'examples: github.com/Qiskit/qiskit-tutorials/tree/master/tutorials/finance',
+                      DeprecationWarning, stacklevel=2)
         validate_min('num_qubits', num_qubits, 1)
+
+        # ignore warning from CircuitFactory initializer
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         super().__init__(num_qubits)
+        warnings.filterwarnings('always', category=DeprecationWarning)
 
     def value_to_estimation(self, value):
         """ value to estimate """

@@ -54,6 +54,10 @@ class MultivariateVariationalDistribution(MultivariateDistribution):
         self._var_form = var_form
         self.params = params
 
+    @staticmethod
+    def _replacement():
+        return 'a parameterized qiskit.QuantumCircuit'
+
     def build(self, qc, q, q_ancillas=None, params=None):
         param_dict = dict(zip(self._var_form_params, self.params))
         circuit_var_form = self._var_form.assign_parameters(param_dict)
