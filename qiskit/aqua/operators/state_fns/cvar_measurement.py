@@ -16,13 +16,12 @@
 from typing import Union, Optional, Callable
 import numpy as np
 
-from qiskit.aqua.aqua_error import AquaError
+from qiskit.aqua import AquaError
 from qiskit.circuit import ParameterExpression, QuantumCircuit, Instruction
 from qiskit.result import Result
 from qiskit.quantum_info import Statevector
 
 from ..operator_base import OperatorBase
-from ..primitive_ops import PauliOp
 from ..list_ops import ListOp, SummedOp
 from .state_fn import StateFn
 from .operator_state_fn import OperatorStateFn
@@ -34,7 +33,6 @@ class CVaRMeasurement(OperatorStateFn):
 
     Used in :class:`~qiskit.aqua.operators.CVaRExpectation`, see there for more details.
     """
-
     def __new__(cls,
                 primitive: Union[str, dict, Result,
                                  list, np.ndarray, Statevector,
@@ -209,7 +207,7 @@ class CVaRMeasurement(OperatorStateFn):
         energies = energies[:j]
         probabilities = probabilities[:j]
         # Let H_i be the energy associated with outcome i
-        # and let the outcomes be sorted by asceending energy.
+        # and let the outcomes be sorted by ascending energy.
         # Let p_i be the probability of observing outcome i.
         # CVaR = alpha*H_j + \sum_i p_i*(H_i - H_j)
         for h_i, p_i in zip(energies, probabilities):
@@ -259,6 +257,8 @@ def _check_is_diagonal(operator: OperatorBase) -> bool:
     Raises:
         AquaError: If the operator is not diagonal.
     """
+    # dont ask
+    from ..primitive_ops import PauliOp
     if isinstance(operator, PauliOp):
         # every X component must be False
         if not np.any(operator.primitive.x):  # type: ignore
@@ -267,7 +267,7 @@ def _check_is_diagonal(operator: OperatorBase) -> bool:
 
     if isinstance(operator, SummedOp) and operator.primitive_strings == {'Pauli'}:
         # cover the case of sums of diagonal paulis, but don't raise since there might be summands
-        # cancelling the non-diagonal parts
+        # canceling the non-diagonal parts
 
         # ignoring mypy since we know that all operators are PauliOps
         if np.all(not np.any(op.primitive.x) for op in operator.oplist):  # type: ignore

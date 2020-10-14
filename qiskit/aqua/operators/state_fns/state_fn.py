@@ -163,7 +163,6 @@ class StateFn(OperatorBase):
         # Will return NotImplementedError if not supported
 
     def mul(self, scalar: Union[int, float, complex, ParameterExpression]) -> OperatorBase:
-
         if not isinstance(scalar, (int, float, complex, ParameterExpression)):
             raise ValueError('Operators can only be scalar multiplied by float or complex, not '
                              '{} of type {}.'.format(scalar, type(scalar)))
@@ -207,6 +206,7 @@ class StateFn(OperatorBase):
     def _expand_shorter_operator_and_permute(self, other: OperatorBase,
                                              permutation: Optional[List[int]] = None) \
             -> Tuple[OperatorBase, OperatorBase]:
+
         from qiskit.aqua.operators import Zero
 
         if self == StateFn({'0': 1}, is_measurement=True):
