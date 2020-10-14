@@ -32,7 +32,7 @@ from qiskit.aqua import QuantumInstance
 from qiskit.aqua import aqua_globals
 from qiskit.aqua.algorithms import VQE
 from qiskit.aqua.components.optimizers import CG
-from qiskit.aqua.operators import I, X, Z, StateFn, CircuitStateFn, ListOp, CircuitSampler
+from qiskit.aqua.operators import I, X, Y, Z, StateFn, CircuitStateFn, ListOp, CircuitSampler
 from qiskit.aqua.operators.gradients import Gradient, NaturalGradient, Hessian
 from qiskit.aqua.operators.gradients.qfi import QFI
 from qiskit.aqua.operators.gradients.circuit_qfis import LinCombFull, OverlapBlockDiag, OverlapDiag
@@ -119,6 +119,88 @@ class TestGradients(QiskitAquaTestCase):
             np.testing.assert_array_almost_equal(state_grad.assign_parameters(value_dict).eval(),
                                                  correct_values[i],
                                                  decimal=1)
+
+    @data('lin_comb', 'param_shift', 'fin_diff')
+    def test_gradient_rxx(self, method):
+        """Test the state gradient for RXX
+        """
+        ham = Z ^ X
+        a = Parameter('a')
+
+        q = QuantumRegister(2)
+        qc = QuantumCircuit(q)
+        qc.h(q[0])
+        qc.rxx(a, q[0], q[1])
+
+        op = ~StateFn(ham) @ CircuitStateFn(primitive=qc, coeff=1.)
+        params = [a]
+        state_grad = Gradient(grad_method=method).convert(operator=op, params=params)
+        values_dict = [{a: np.pi / 4}, {a: np.pi / 2}]
+        correct_values = [[-0.707], [-1.]]
+        for i, value_dict in enumerate(values_dict):
+            np.testing.assert_array_almost_equal(state_grad.assign_parameters(value_dict).eval(),
+                                                 correct_values[i], decimal=1)
+
+    @data('lin_comb', 'param_shift', 'fin_diff')
+    def test_gradient_ryy(self, method):
+        """Test the state gradient for RYY
+        """
+        ham = Y ^ Y
+        a = Parameter('a')
+
+        q = QuantumRegister(2)
+        qc = QuantumCircuit(q)
+        qc.ryy(a, q[0], q[1])
+
+        op = ~StateFn(ham) @ CircuitStateFn(primitive=qc, coeff=1.)
+        state_grad = Gradient(grad_method=method).convert(operator=op, params=a)
+        values_dict = [{a: np.pi / 8}, {a: np.pi}]
+        correct_values = [[0], [0]]
+        for i, value_dict in enumerate(values_dict):
+            np.testing.assert_array_almost_equal(state_grad.assign_parameters(value_dict).eval(),
+                                                 correct_values[i], decimal=1)
+
+    @data('lin_comb', 'param_shift', 'fin_diff')
+    def test_gradient_rzz(self, method):
+        """Test the state gradient for RZZ
+        """
+        ham = Z ^ X
+        a = Parameter('a')
+
+        q = QuantumRegister(2)
+        qc = QuantumCircuit(q)
+        qc.h(q[0])
+        qc.rzz(a, q[0], q[1])
+
+        op = ~StateFn(ham) @ CircuitStateFn(primitive=qc, coeff=1.)
+        params = [a]
+        state_grad = Gradient(grad_method=method).convert(operator=op, params=params)
+        values_dict = [{a: np.pi / 4}, {a: np.pi / 2}]
+        correct_values = [[-0.707], [-1.]]
+        for i, value_dict in enumerate(values_dict):
+            np.testing.assert_array_almost_equal(state_grad.assign_parameters(value_dict).eval(),
+                                                 correct_values[i], decimal=1)
+
+    @data('lin_comb', 'param_shift', 'fin_diff')
+    def test_gradient_rzx(self, method):
+        """Test the state gradient for RZX
+        """
+        ham = Z ^ Z
+        a = Parameter('a')
+
+        q = QuantumRegister(2)
+        qc = QuantumCircuit(q)
+        qc.h(q)
+        qc.rzx(a, q[0], q[1])
+
+        op = ~StateFn(ham) @ CircuitStateFn(primitive=qc, coeff=1.)
+        params = [a]
+        state_grad = Gradient(grad_method=method).convert(operator=op, params=params)
+        values_dict = [{a: np.pi / 8}, {a: np.pi / 2}]
+        correct_values = [[0.], [0.]]
+        for i, value_dict in enumerate(values_dict):
+            np.testing.assert_array_almost_equal(state_grad.assign_parameters(value_dict).eval(),
+                                                 correct_values[i], decimal=1)
 
     @data('lin_comb', 'param_shift', 'fin_diff')
     def test_state_gradient1(self, method):
@@ -380,6 +462,38 @@ class TestGradients(QiskitAquaTestCase):
         for i, value_dict in enumerate(values_dict):
             for j, prob_grad_result in enumerate(prob_grad.assign_parameters(value_dict).eval()):
                 np.testing.assert_array_almost_equal(prob_grad_result,
+                                                     correct_values[i][j], decimal=1)
+
+    def test_prob_hess_lin_comb(self):
+        """Test the probability Hessian using linear combination of unitaries method
+
+        d^2p0/da^2 = - sin(a)sin(b) / 2
+        d^2p1/da^2 =  sin(a)sin(b) / 2
+        d^2p0/dadb = cos(a)cos(b) / 2
+        d^2p1/dadb = - cos(a)cos(b) / 2
+        """
+
+        a = Parameter('a')
+        b = Parameter('b')
+        params = [(a, a), (a, b)]
+
+        q = QuantumRegister(1)
+        qc = QuantumCircuit(q)
+        qc.h(q)
+        qc.rz(a, q[0])
+        qc.rx(b, q[0])
+
+        op = CircuitStateFn(primitive=qc, coeff=1.)
+
+        prob_hess = Hessian(hess_method='lin_comb').convert(operator=op, params=params)
+        values_dict = [{a: np.pi / 4, b: 0}, {a: np.pi / 4, b: np.pi / 4},
+                       {a: np.pi / 2, b: np.pi}]
+        correct_values = [[[0, 0], [1 / (2 * np.sqrt(2)), - 1 / (2 * np.sqrt(2))]],
+                          [[- 1 / 4, 1 / 4], [1 / 4, - 1 / 4]],
+                          [[0, 0], [0, 0]]]
+        for i, value_dict in enumerate(values_dict):
+            for j, prob_hess_result in enumerate(prob_hess.assign_parameters(value_dict).eval()):
+                np.testing.assert_array_almost_equal(prob_hess_result,
                                                      correct_values[i][j], decimal=1)
 
     @data('lin_comb_full', 'overlap_block_diag', 'overlap_diag')

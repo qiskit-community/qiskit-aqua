@@ -540,7 +540,7 @@ class LinComb(CircuitGradient):
                                         meas *= expr_grad
                                     term = meas @ term
                                 else:
-                                    term = ListOp(term, combo_fn=partial(self._hess_combo_fn,
+                                    term = ListOp([term], combo_fn=partial(self._hess_combo_fn,
                                                                          state_op=state_op))
                                     if isinstance(gate_param_a, ParameterExpression):
                                         expr_grad = DerivativeBase.parameter_expression_grad(
@@ -708,8 +708,8 @@ class LinComb(CircuitGradient):
         if isinstance(gate, RZXGate):
             # theta
             czx_circ = QuantumCircuit(3)
-            czx_circ.cx(0, 1)
-            czx_circ.cz(0, 2)
+            czx_circ.cx(0, 2)
+            czx_circ.cz(0, 1)
             czx = czx_circ.to_instruction()
             return [([-0.5j], [czx])]
         if isinstance(gate, ControlledGate):

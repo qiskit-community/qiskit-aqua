@@ -207,12 +207,16 @@ class ParamShift(CircuitGradient):
                     pshift_gate.params[param_index] = (p_param + self._epsilon)
                     mshift_gate.params[param_index] = (m_param - self._epsilon)
 
-                if not isinstance(operator, ComposedOp):
+                if isinstance(operator, ComposedOp):
+                    shifted_op = shift_constant * (pshift_op - mshift_op)
+
+                elif isinstance(operator, StateFn):
                     shifted_op = ListOp(
                         [pshift_op, mshift_op],
                         combo_fn=partial(self._prob_combo_fn, shift_constant=shift_constant))
                 else:
-                    shifted_op = shift_constant * (pshift_op - mshift_op)
+                    raise TypeError('Probability gradients are not supported for the given '
+                                    'operator type')
 
                 if isinstance(p_param, ParameterExpression) and not isinstance(p_param,
                                                                                Parameter):
