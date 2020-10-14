@@ -76,7 +76,7 @@ class TestFixedIncomeExpectedValue(QiskitFinanceTestCase):
         # get fixed income circuit appfactory
         fixed_income = FixedIncomeExpectedValue(num_qubits, a_n, b, c_f, rescaling_factor, bounds)
 
-        # build statepreparation operator
+        # build state preparation operator
         state_preparation = fixed_income.compose(dist, front=True)
 
         # run simulation
@@ -88,7 +88,7 @@ class TestFixedIncomeExpectedValue(QiskitFinanceTestCase):
         result = iae.run(backend)
 
         # compare to precomputed solution
-        self.assertAlmostEqual(result.estimation, 2.3363151843369234)
+        self.assertAlmostEqual(result.estimation, 2.3389012822103044)
 
 
 if __name__ == '__main__':

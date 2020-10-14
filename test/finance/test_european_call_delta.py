@@ -88,7 +88,7 @@ class TestEuropeanCallDelta(QiskitFinanceTestCase):
         backend = QuantumInstance(Aer.get_backend('qasm_simulator'),
                                   seed_simulator=125, seed_transpiler=80)
         result = iae.run(backend)
-        self.assertAlmostEqual(result.estimation, 0.8093850726356968)
+        self.assertAlmostEqual(result.estimation, 0.8079816552117238)
 
 
 if __name__ == '__main__':

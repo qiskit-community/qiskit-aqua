@@ -30,7 +30,7 @@ class FixedIncomeExpectedValue(QuantumCircuit):
     Here :math:`c_t` are the cash flows of the assets and :math:`r_t` are the interest rates.
     The interest rates are subject to uncertainty and can be described by a PCA-decomposition
     into the ``pca_matrix`` :math:`A` and ``initial_interests` :math:`\vec{b}`. For a sample
-    :math:`\vec{x}` of a random variable, the interest rates are modelled as:
+    :math:`\vec{x}` of a random variable, the interest rates are modeled as:
 
     .. math::
 
@@ -60,7 +60,7 @@ class FixedIncomeExpectedValue(QuantumCircuit):
         r"""
         Args:
             num_qubits: A list specifying the number of qubits used to discretize the assets.
-            pca_matrix: The PCA matrix for the changes in the interes rates, :math:`\delta_r`.
+            pca_matrix: The PCA matrix for the changes in the interest rates, :math:`\delta_r`.
             initial_interests: The initial interest rates / offsets for the interest rates.
             cash_flow: The cash flow time series.
             rescaling_factor: The scaling factor used in the Taylor approximation.

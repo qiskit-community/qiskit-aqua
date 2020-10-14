@@ -75,7 +75,7 @@ class TestEuropeanCallExpectedValue(QiskitFinanceTestCase):
 
         dist.compose(ansatz, inplace=True)
 
-        # create the european call expected value
+        # create the European call expected value
         strike_price = 2
         rescaling_factor = 0.25
         european_call = EuropeanCallExpectedValue(num_qubits, strike_price, rescaling_factor,
@@ -91,7 +91,7 @@ class TestEuropeanCallExpectedValue(QiskitFinanceTestCase):
         backend = QuantumInstance(Aer.get_backend('qasm_simulator'),
                                   seed_simulator=125, seed_transpiler=80)
         result = iae.run(backend)
-        self.assertAlmostEqual(result.estimation, 1.022047333092225)
+        self.assertAlmostEqual(result.estimation, 1.0127253837345427)
 
 
 if __name__ == '__main__':
