@@ -2,9 +2,15 @@
 features:
   - |
     Introduces ``transformations`` for the fermionic and bosonic transformation of a problem
-    instance. Transforms the fermionic (or bosonic) operator to qubit operator
-    Introduces ``ground_state_solvers`` for the calculation of ground state properties. The
-    calculation can be done either using an ``MinimumEigensolver`` or using ``AdaptVQE``
+    instance. Transforms the fermionic operator to qubit operator. Respective class for the
+    transformation is ``fermionic_transformation``
+    Introduces in algorithms ``ground_state_solvers`` for the calculation of ground state
+    properties. The calculation can be done either using an ``MinimumEigensolver`` or using
+    ``AdaptVQE``
+    Introduces ``chemistry/results`` where the eigenstate_result and the
+    electronic_structure_result are also used for the algorithms.
+    Introduces Minimum Eigensolver factories ``mes_factories`` where chemistry specific minimum
+    eigensolvers can also be initialised
 deprecations:
   - |
     ``Core Hamiltonian`` class is deprecated in favor of the ``FermionicTransformation``
