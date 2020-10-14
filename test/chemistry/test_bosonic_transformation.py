@@ -32,6 +32,7 @@ class TestBosonicTransformation(QiskitChemistryTestCase):
         super().setUp()
         logfile = self.get_resource_path('CO2_freq_B3LYP_ccpVDZ.log')
         self.driver = GaussianForcesDriver(logfile=logfile)
+        self.reference_energy = 2536.4879763624226
 
     def _validate_input_object(self, qubit_op, num_qubits, num_paulis):
         self.assertTrue(isinstance(qubit_op, WeightedPauliOperator))
@@ -51,11 +52,18 @@ class TestBosonicTransformation(QiskitChemistryTestCase):
         self._validate_input_object(qubit_op, num_qubits=8, num_paulis=59)
         self.assertEqual(len(aux_ops), 4)
 
+    def test_numpy_me(self):
+
+        bosonic_transformation = BosonicTransformation(
+            qubit_mapping=BosonicQubitMappingType.DIRECT,
+            transformation_type=BosonicTransformationType.HARMONIC,
+            basis_size=2,
+            truncation=2)
+
         solver = NumPyMinimumEigensolverFactory(use_default_filter_criterion = True)
         gsc = MinimumEigensolverGroundStateCalculation(bosonic_transformation, solver)
         result = gsc.compute_groundstate(self.driver)
-
-
+        self.assertEqual(result.computed_vibronic_energies[0], self.reference_energy, 4)
 
 
 if __name__ == '__main__':
