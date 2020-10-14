@@ -14,13 +14,11 @@
 
 from .ground_state_solver import GroundStateSolver
 from .adapt_vqe import AdaptVQE
-from .oovqe import OOVQE
 from .ground_state_eigensolver import GroundStateEigensolver
 from .minimum_eigensolver_factories import MinimumEigensolverFactory, VQEUCCSDFactory
 
 __all__ = ['GroundStateSolver',
            'AdaptVQE',
-           'OOVQE',
            'GroundStateEigensolver',
            'MinimumEigensolverFactory',
            'VQEUCCSDFactory'

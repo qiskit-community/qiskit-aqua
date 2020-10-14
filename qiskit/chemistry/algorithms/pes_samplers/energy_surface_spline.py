@@ -21,7 +21,7 @@ Created on Mon Mar 30 10:30:21 2020
 import scipy.interpolate as interp
 from scipy.optimize import minimize_scalar
 
-from .potential_base import EnergySurfaceBase
+from .potentials.potential_base import EnergySurfaceBase
 
 
 class EnergySurface1DSpline(EnergySurfaceBase):

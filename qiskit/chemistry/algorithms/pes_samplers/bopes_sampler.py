@@ -20,11 +20,11 @@ import numpy as np
 from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms import VQAlgorithm
 from qiskit.chemistry.drivers import BaseDriver
-from qiskit.chemistry.ground_state_calculation import GroundStateCalculation
+from qiskit.chemistry.algorithms.ground_state_solvers import GroundStateSolver
 from qiskit.chemistry.results.bopes_sampler_result import BOPESSamplerResult
 from .energy_surface_spline import EnergySurfaceBase
 from .extrapolator import Extrapolator, WindowExtrapolator
-from .results import EigenstateResult
+from qiskit.chemistry.results import EigenstateResult
 
 logger = logging.getLogger(__name__)
 
@@ -33,14 +33,14 @@ class BOPESSampler:
     """Class to evaluate the Born-Oppenheimer Potential Energy Surface (BOPES)."""
 
     def __init__(self,
-                 gsc: GroundStateCalculation,
+                 gsc: GroundStateSolver,
                  tolerance: float = 1e-3,
                  bootstrap: bool = True,
                  num_bootstrap: Optional[int] = None,
                  extrapolator: Optional[Extrapolator] = None) -> None:
         """
         Args:
-            gsc: GroundStateCalculation
+            gsc: GroundStateSolver
             tolerance: Tolerance desired for minimum energy.
             bootstrap: Whether to warm-start the solve of variational minimum eigensolvers.
             num_bootstrap: Number of previous points for extrapolation
@@ -187,7 +187,7 @@ class BOPESSampler:
                     self._gsc.solver.initial_point = param_sets.get(point)
 
         # the output is an instance of EigenstateResult
-        result = self._gsc.compute_groundstate(self._driver)
+        result = self._gsc.solve(self._driver)
 
         # Save optimal point to bootstrap
         if isinstance(self._gsc.solver, VQAlgorithm):
