@@ -252,7 +252,7 @@ class GaussianLogResult:
                 line.extend(indices)
                 modes.append(line)
 
-        num_modes = int(qua[-1][0])
+        num_modes = len(self.a_to_h_numbering.keys())
         watson = WatsonHamiltonian(modes, num_modes)
 
         return watson
