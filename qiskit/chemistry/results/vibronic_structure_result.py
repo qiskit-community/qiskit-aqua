@@ -10,15 +10,15 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Chemistry results module."""
+"""The vibronic structure result."""
 
-from .electronic_structure_result import DipoleTuple, ElectronicStructureResult
-from .vibronic_structure_result import VibronicStructureResult
+import logging
+
 from .eigenstate_result import EigenstateResult
 
+logger = logging.getLogger(__name__)
 
-__all__ = ['DipoleTuple',
-           'EigenstateResult',
-           'ElectronicStructureResult',
-           'VibronicStructureResult'
-           ]
+
+class VibronicStructureResult(EigenstateResult):
+    """The vibronic structure result."""
+    # TODO: just a placeholder to pass lint, needs to be defined
