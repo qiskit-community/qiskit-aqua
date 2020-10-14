@@ -254,7 +254,7 @@ class FermionicTransformation(QubitOperatorTransformation):
             # apply the same transformation for the aux operators
             if aux_operators is not None:
                 aux_operators = [
-                    aux_operators.particle_hole_transformation(new_nel)[0]
+                    op.particle_hole_transformation(new_nel)[0]
                     for op in aux_operators
                     ]
 
