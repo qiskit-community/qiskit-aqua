@@ -17,13 +17,17 @@ energy of the nuclei in a molecule.
 import logging
 from typing import Tuple, List, Union, Any, Optional
 from enum import Enum
+import numpy as np
 
+from qiskit.tools import parallel_map
+from qiskit.aqua import AquaError, aqua_globals
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry import WatsonHamiltonian
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.bosonic_operator import BosonicOperator
 from qiskit.chemistry.results import EigenstateResult, VibronicStructureResult
 from qiskit.chemistry.components.bosonic_basis import HarmonicBasis
+from qiskit.chemistry.components.variational_forms import UVCC
 from qiskit.aqua.operators.legacy import WeightedPauliOperator
 from .qubit_operator_transformation import QubitOperatorTransformation
 
@@ -76,6 +80,11 @@ class BosonicTransformation(QubitOperatorTransformation):
         Returns: the number of modes
         """
         return self._num_modes
+
+    @property
+    def commutation_rule(self) -> int:
+        """Getter of the commutation rule"""
+        return 1
 
     def transform(self, driver: BaseDriver,
                   aux_operators: Optional[List[Any]] = None
@@ -186,4 +195,95 @@ class BosonicTransformation(QubitOperatorTransformation):
 
         return qubit_op
 
+
+    @staticmethod
+    def _build_single_hopping_operator(index: List[List[int]], basis: List[int], qubit_mapping: str) \
+            -> WeightedPauliOperator:
+        """
+        Builds a hopping operator given the list of indices (index) that is a single, a double
+        or a higher order excitation.
+
+        Args:
+            index: the indexes defining the excitation
+            basis: Is a list defining the number of modals per mode. E.g. for a 3 modes system
+                with 4 modals per mode basis = [4,4,4]
+            qubit_mapping: the qubits mapping type. Only 'direct' is supported at the moment.
+
+        Returns:
+            Qubit operator object corresponding to the hopping operator
+
+        """
+
+        degree = len(index)
+        hml = []  # type: List[List]
+        for _ in range(degree):
+            hml.append([])
+
+        tmp = []
+        tmpdag = []
+        for i in range(len(index))[::-1]:
+            tmp.append(index[i])
+            tmpdag.append([index[i][0], index[i][2], index[i][1]])
+
+        hml[-1].append([tmp, 1])
+        hml[-1].append([tmpdag, -1])
+
+        dummpy_op = BosonicOperator(np.asarray(hml, dtype=object), basis)
+        qubit_op = dummpy_op.mapping(qubit_mapping)
+        if len(qubit_op.paulis) == 0:
+            qubit_op = None
+
+        return qubit_op
+
+
+    def build_hopping_operators(self, excitations: Union[str, List[List[int]]] = 'sd'):
+        """
+
+        Returns:
+
+        """
+
+        exctn_types = {'s': 0, 'd': 0}
+
+        if isinstance(excitations, str):
+            degrees = [exctn_types[letter] for letter in excitations]
+            excitations_list = UVCC.compute_excitation_lists(self._basis_size, degrees)
+        else:
+            excitations_list = excitations
+
+        size = len(excitations_list)
+
+        def _dag_list(extn_lst):
+            """
+            Args:
+                extn_lst: excitations indexes
+
+            Returns: the dagger operator excitation indexes
+            """
+            dag_lst = []
+            for lst in extn_lst:
+                dag_lst.append([lst[0], lst[2], lst[1]])
+
+
+        hopping_operators = {}
+        excitation_indices = {}
+        type_of_commutativities = {}
+        to_be_executed_list = []
+        for idx in range(size):
+            to_be_executed_list += [excitations_list[idx], _dag_list(excitations_list[idx])]
+            hopping_operators['E_{}'.format(idx)] = None
+            hopping_operators['Edag_{}'.format(idx)] = None
+            excitation_indices['E_{}'.format(idx)] = excitations_list[idx]
+            excitation_indices['Edag_{}'.format(idx)] = list(reversed(excitations_list[idx]))
+
+        result = parallel_map(self._build_single_hopping_operator,
+                              to_be_executed_list,
+                              task_args=(self._basis_size,
+                                         self._qubit_mapping),
+                              num_processes=aqua_globals.num_processes)
+
+        for key, res in zip(hopping_operators.keys(), result):
+            hopping_operators[key] = res[0]
+
+        return hopping_operators, type_of_commutativities, excitation_indices
 
