@@ -207,7 +207,7 @@ class CVaRMeasurement(OperatorStateFn):
         energies = energies[:j]
         probabilities = probabilities[:j]
         # Let H_i be the energy associated with outcome i
-        # and let the outcomes be sorted by asceending energy.
+        # and let the outcomes be sorted by ascending energy.
         # Let p_i be the probability of observing outcome i.
         # CVaR = alpha*H_j + \sum_i p_i*(H_i - H_j)
         for h_i, p_i in zip(energies, probabilities):
@@ -267,7 +267,7 @@ def _check_is_diagonal(operator: OperatorBase) -> bool:
 
     if isinstance(operator, SummedOp) and operator.primitive_strings == {'Pauli'}:
         # cover the case of sums of diagonal paulis, but don't raise since there might be summands
-        # cancelling the non-diagonal parts
+        # canceling the non-diagonal parts
 
         # ignoring mypy since we know that all operators are PauliOps
         if np.all(not np.any(op.primitive.x) for op in operator.oplist):  # type: ignore
