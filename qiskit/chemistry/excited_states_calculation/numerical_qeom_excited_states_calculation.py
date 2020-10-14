@@ -17,7 +17,7 @@ import logging
 import itertools
 import sys
 
-from typing import Optional, List, Union
+from typing import List, Union
 
 from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar

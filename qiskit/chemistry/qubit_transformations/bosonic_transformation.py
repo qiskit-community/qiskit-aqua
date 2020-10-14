@@ -306,7 +306,7 @@ class BosonicTransformation(QubitOperatorTransformation):
             hopping_operators['E_{}'.format(idx)] = None
             hopping_operators['Edag_{}'.format(idx)] = None
             excitation_indices['E_{}'.format(idx)] = excitations_list[idx]
-            excitation_indices['Edag_{}'.format(idx)] = list(reversed(excitations_list[idx]))
+            excitation_indices['Edag_{}'.format(idx)] = _dag_list(excitations_list[idx])
 
         result = parallel_map(self._build_single_hopping_operator,
                               to_be_executed_list,

@@ -413,7 +413,7 @@ def commutator(op_a, op_b, op_c=None, sign = 1, threshold=1e-12):
     op_ba = op_b * op_a
 
     if op_c is None:
-        res = op_ab + sign * op_ba
+        res = op_ab - op_ba
     else:
         op_ac = op_a * op_c
         op_ca = op_c * op_a
@@ -425,9 +425,9 @@ def commutator(op_a, op_b, op_c=None, sign = 1, threshold=1e-12):
         op_acb = op_ac * op_b
         op_bca = op_b * op_ca
 
-        tmp = (op_bac + op_cab + op_acb + op_bca)
+        tmp = (- op_bac + sign*op_cab - op_acb + sign*op_bca)
         tmp = 0.5 * tmp
-        res = op_abc + op_cba + sign * tmp
+        res = op_abc - sign * op_cba + tmp
 
     res.simplify()
     res.chop(threshold)
