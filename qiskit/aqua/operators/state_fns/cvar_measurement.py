@@ -209,7 +209,7 @@ class CVaRMeasurement(OperatorStateFn):
         energies = energies[:j]
         probabilities = probabilities[:j]
         # Let H_i be the energy associated with outcome i
-        # and let the outcomes be sorted by asceending energy.
+        # and let the outcomes be sorted by ascending energy.
         # Let p_i be the probability of observing outcome i.
         # CVaR = alpha*H_j + \sum_i p_i*(H_i - H_j)
         for h_i, p_i in zip(energies, probabilities):
