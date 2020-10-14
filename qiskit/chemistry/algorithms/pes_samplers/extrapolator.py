@@ -1,19 +1,14 @@
-# -*- coding: utf-8 -*-
-
-# (C) Copyright IBM 2018, 2020.
+# This code is part of Qiskit.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# (C) Copyright IBM 2020.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# =============================================================================
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 
 """An implementation to extrapolate variational parameters."""
 
@@ -148,8 +143,10 @@ class PolynomialExtrapolator(Extrapolator):
 
         ret_param_arr = []
         for params in param_arr:
-            # coefficients, _, _, _, _ = np.polyfit(data_points, params, deg=self._degree, full=True)
-            # todo: generates a warning in the tests: RankWarning: Polyfit may be poorly conditioned
+            # coefficients, _, _, _, _ = np.polyfit(data_points,
+            #                                       params, deg=self._degree, full=True)
+            # todo: generates a warning in the tests: RankWarning:
+            # Polyfit may be poorly conditioned
             coefficients = np.polyfit(data_points, params, deg=self._degree)
             poly = np.poly1d(coefficients)
             ret_param_arr += [poly(points)]

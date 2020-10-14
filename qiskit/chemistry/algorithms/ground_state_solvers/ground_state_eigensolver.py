@@ -27,6 +27,7 @@ from ...bosonic_operator import BosonicOperator
 from ...drivers.base_driver import BaseDriver
 from ...transformations.transformation import Transformation
 from ...results.electronic_structure_result import ElectronicStructureResult
+from ...results.vibronic_structure_result import VibronicStructureResult
 from .ground_state_solver import GroundStateSolver
 
 from .minimum_eigensolver_factories import MinimumEigensolverFactory
@@ -64,7 +65,7 @@ class GroundStateEigensolver(GroundStateSolver):
               driver: BaseDriver,
               aux_operators: Optional[Union[List[FermionicOperator],
                                             List[BosonicOperator]]] = None) \
-            -> Union[ElectronicStructureResult, 'VibronicStructureResult']:
+            -> Union[ElectronicStructureResult, VibronicStructureResult]:
         """Compute Ground State properties.
 
         Args:

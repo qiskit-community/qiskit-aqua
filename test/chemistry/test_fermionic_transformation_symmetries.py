@@ -24,8 +24,8 @@ from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.core import TransformationType, QubitMappingType
-from qiskit.chemistry.qubit_transformations import FermionicTransformation
-from qiskit.chemistry.ground_state_calculation import MinimumEigensolverGroundStateCalculation
+from qiskit.chemistry.transformations import FermionicTransformation
+from qiskit.chemistry.algorithms.ground_state_solvers import GroundStateEigensolver
 
 
 class TestFermionicTransforationSymmetries(QiskitChemistryTestCase):
@@ -65,8 +65,8 @@ class TestFermionicTransforationSymmetries(QiskitChemistryTestCase):
         qubit_op, _ = fermionic_transformation.transform(self.driver)
         self.assertEqual(qubit_op.num_qubits, 12)
         solver = NumPyMinimumEigensolver()
-        gsc = MinimumEigensolverGroundStateCalculation(fermionic_transformation, solver)
-        result = gsc.compute_groundstate(self.driver)
+        gsc = GroundStateEigensolver(fermionic_transformation, solver)
+        result = gsc.solve(self.driver)
         self._validate_result(result, False)
 
     def test_auto_symmetry(self):
@@ -81,8 +81,8 @@ class TestFermionicTransforationSymmetries(QiskitChemistryTestCase):
         qubit_op, _ = fermionic_transformation.transform(self.driver)
         self.assertEqual(qubit_op.num_qubits, 8)
         solver = NumPyMinimumEigensolver()
-        gsc = MinimumEigensolverGroundStateCalculation(fermionic_transformation, solver)
-        result = gsc.compute_groundstate(self.driver)
+        gsc = GroundStateEigensolver(fermionic_transformation, solver)
+        result = gsc.solve(self.driver)
         self._validate_result(result)
         self.assertEqual(qubit_op.z2_symmetries.tapering_values, [1, 1, 1, 1])
 
@@ -98,8 +98,8 @@ class TestFermionicTransforationSymmetries(QiskitChemistryTestCase):
         qubit_op, _ = fermionic_transformation.transform(self.driver)
         self.assertEqual(qubit_op.num_qubits, 8)
         solver = NumPyMinimumEigensolver()
-        gsc = MinimumEigensolverGroundStateCalculation(fermionic_transformation, solver)
-        result = gsc.compute_groundstate(self.driver)
+        gsc = GroundStateEigensolver(fermionic_transformation, solver)
+        result = gsc.solve(self.driver)
         self._validate_result(result)
         self.assertEqual(qubit_op.z2_symmetries.tapering_values, [1, 1, 1, 1])
 
@@ -142,8 +142,8 @@ class TestFermionicTransforationSymmetries(QiskitChemistryTestCase):
         qubit_op, _ = fermionic_transformation.transform(self.driver)
         self.assertEqual(qubit_op.num_qubits, 6)
         solver = NumPyMinimumEigensolver()
-        gsc = MinimumEigensolverGroundStateCalculation(fermionic_transformation, solver)
-        result = gsc.compute_groundstate(self.driver)
+        gsc = GroundStateEigensolver(fermionic_transformation, solver)
+        result = gsc.solve(self.driver)
         self._validate_result(result)
         self.assertEqual(qubit_op.z2_symmetries.tapering_values, [-1, 1, 1, -1])
 
@@ -161,8 +161,8 @@ class TestFermionicTransforationSymmetries(QiskitChemistryTestCase):
         qubit_op, _ = fermionic_transformation.transform(self.driver)
         self.assertEqual(qubit_op.num_qubits, 6)
         solver = NumPyMinimumEigensolver()
-        gsc = MinimumEigensolverGroundStateCalculation(fermionic_transformation, solver)
-        result = gsc.compute_groundstate(self.driver)
+        gsc = GroundStateEigensolver(fermionic_transformation, solver)
+        result = gsc.solve(self.driver)
         self._validate_result(result)
         self.assertEqual(qubit_op.z2_symmetries.tapering_values, [-1, 1, 1, 1])
 
@@ -179,8 +179,8 @@ class TestFermionicTransforationSymmetries(QiskitChemistryTestCase):
         qubit_op, _ = fermionic_transformation.transform(self.driver)
         self.assertEqual(qubit_op.num_qubits, 6)
         solver = NumPyMinimumEigensolver()
-        gsc = MinimumEigensolverGroundStateCalculation(fermionic_transformation, solver)
-        result = gsc.compute_groundstate(self.driver)
+        gsc = GroundStateEigensolver(fermionic_transformation, solver)
+        result = gsc.solve(self.driver)
         self._validate_result(result)
         self.assertEqual(qubit_op.z2_symmetries.tapering_values, [1, 1])
 
@@ -197,8 +197,8 @@ class TestFermionicTransforationSymmetries(QiskitChemistryTestCase):
         qubit_op, _ = fermionic_transformation.transform(self.driver)
         self.assertEqual(qubit_op.num_qubits, 6)
         solver = NumPyMinimumEigensolver()
-        gsc = MinimumEigensolverGroundStateCalculation(fermionic_transformation, solver)
-        result = gsc.compute_groundstate(self.driver)
+        gsc = GroundStateEigensolver(fermionic_transformation, solver)
+        result = gsc.solve(self.driver)
         self._validate_result(result)
         self.assertEqual(qubit_op.z2_symmetries.tapering_values, [1, 1])
 
@@ -230,8 +230,8 @@ class TestFermionicTransforationSymmetries(QiskitChemistryTestCase):
 
         solver = VQE(var_form=var_form, optimizer=SLSQP(maxiter=500),
                      quantum_instance=BasicAer.get_backend('statevector_simulator'))
-        gsc = MinimumEigensolverGroundStateCalculation(fermionic_transformation, solver)
-        result = gsc.compute_groundstate(self.driver)
+        gsc = GroundStateEigensolver(fermionic_transformation, solver)
+        result = gsc.solve(self.driver)
         self._validate_result(result)
         self.assertEqual(qubit_op.z2_symmetries.tapering_values, [-1, 1, 1, -1])
 

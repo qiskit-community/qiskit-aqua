@@ -1,11 +1,22 @@
-import unittest
+# This code is part of Qiskit.
+#
+# (C) Copyright IBM 2020.
+#
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
+#
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
 
+""" Test Thermodynamics """
+
+import unittest
+from functools import partial
 import numpy as np
 
 import chemistry.code.test.test_data as td
-
-from functools import partial
-
 from chemistry.code.partition_function import DiatomicPartitionFunction
 from chemistry.code.molecule import Molecule
 from chemistry.code.morse_potential import MorsePotential
@@ -13,8 +24,11 @@ import chemistry.code.thermodynamics as thermo
 
 # TODO Fix this test
 
+
 class TestThermodynamics(unittest.TestCase):
+    """ Test Thermodynamics """
     def create_test_molecule(self):
+        """ create test molecule"""
         stretch = partial(Molecule.absolute_stretching,
                           kwargs={'atom_pair': (1, 0)})
         m = Molecule(geometry=[['H', [0., 0., 0.]], ['D', [0., 0., 1.]]],
@@ -24,6 +38,7 @@ class TestThermodynamics(unittest.TestCase):
         return m
 
     def performTest(self, thermoFuncName, benchmark):
+        """ perform test """
         pf_callable = self.pf_callable
         td_class = self.td_class
 
@@ -36,6 +51,7 @@ class TestThermodynamics(unittest.TestCase):
         np.testing.assert_array_almost_equal(from_class, benchmark)
 
     def test_thermo(self):
+        """ test thermo"""
         m = self.create_test_molecule()
 
         M = MorsePotential(m)
@@ -69,7 +85,7 @@ class TestThermodynamics(unittest.TestCase):
         self.performTest('enthalpy', benchmark)
 
         benchmark = np.array([22212.34728776, 19494.89448313,
-                              14694.49861883,  3068.02493402])
+                              14694.49861883, 3068.02493402])
         self.performTest('gibbs_free_energy', benchmark)
 
         benchmark = np.array([12.52720256, 21.50674114,
@@ -81,6 +97,7 @@ class TestThermodynamics(unittest.TestCase):
         self.performTest('constant_pressure_heat_capacity', benchmark)
 
     def test_non_differentiable_callable(self):
+        """ test non differentiable callable """
         m = self.create_test_molecule()
 
         M = MorsePotential(m)

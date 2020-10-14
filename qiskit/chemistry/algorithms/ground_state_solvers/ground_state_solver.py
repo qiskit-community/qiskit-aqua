@@ -26,6 +26,7 @@ from ...fermionic_operator import FermionicOperator
 from ...bosonic_operator import BosonicOperator
 from ...drivers.base_driver import BaseDriver
 from ...results.electronic_structure_result import ElectronicStructureResult
+from ...results.vibronic_structure_result import VibronicStructureResult
 from ...transformations.transformation import Transformation
 
 
@@ -54,7 +55,7 @@ class GroundStateSolver(ABC):
               driver: BaseDriver,
               aux_operators: Optional[Union[List[FermionicOperator],
                                             List[BosonicOperator]]] = None) \
-            -> Union[ElectronicStructureResult, 'VibronicStructureResult']:
+            -> Union[ElectronicStructureResult, VibronicStructureResult]:
         """Compute the ground state energy of the molecule that was supplied via the driver.
 
         Args:

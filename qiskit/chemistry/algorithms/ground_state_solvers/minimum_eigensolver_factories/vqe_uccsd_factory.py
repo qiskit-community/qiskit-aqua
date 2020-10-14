@@ -104,14 +104,15 @@ class VQEUCCSDFactory(MinimumEigensolverFactory):
     @property
     def include_custom(self) -> bool:
         """Getter of the ``include_custom`` setting for the ``expectation`` setting."""
-        return self._optimizer
+        return self._include_custom
 
     @include_custom.setter
     def include_custom(self, include_custom: bool) -> None:
         """Setter of the ``include_custom`` setting for the ``expectation`` setting."""
         self._include_custom = include_custom
 
-    def get_solver(self, transformation: FermionicTransformation) -> MinimumEigensolver:
+    def get_solver(self,  # type: ignore
+                   transformation: FermionicTransformation) -> MinimumEigensolver:
         """Returns a VQE with a UCCSD wavefunction ansatz, based on ``transformation``.
         This works only with a ``FermionicTransformation``.
 
