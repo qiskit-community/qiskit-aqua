@@ -131,7 +131,8 @@ class TestOOVQE(QiskitChemistryTestCase):
         calc = OOVQE(self.transformation2, solver, self.driver2, iterative_oo=False)
         calc._vqe.optimizer.set_options(maxiter=2, rhobeg=1)
         algo_result = calc.compute_groundstate(self.driver2)
-        self.assertLessEqual(algo_result.computed_electronic_energy + self.transformation2._energy_shift +
+        self.assertLessEqual(algo_result.computed_electronic_energy +
+                             self.transformation2._energy_shift +
                              self.transformation2._nuclear_repulsion_energy, self.energy2)
 
     def test_oovqe_with_unrestricted_hf(self):
