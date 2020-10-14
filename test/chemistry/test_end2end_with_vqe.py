@@ -35,11 +35,13 @@ class TestEnd2End(QiskitChemistryTestCase):
         driver = HDF5Driver(hdf5_input=self.get_resource_path('test_driver_hdf5.hdf5'))
         self.qmolecule = driver.run()
 
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         self.core = Hamiltonian(transformation=TransformationType.FULL,
                                 qubit_mapping=QubitMappingType.PARITY,
                                 two_qubit_reduction=True,
                                 freeze_core=False,
                                 orbital_reduction=[])
+        warnings.filterwarnings('always', category=DeprecationWarning)
 
         self.qubit_op, self.aux_ops = self.core.run(self.qmolecule)
         self.reference_energy = -1.857275027031588
@@ -65,7 +67,6 @@ class TestEnd2End(QiskitChemistryTestCase):
         quantum_instance = QuantumInstance(backend, shots=shots)
         result = vqe.run(quantum_instance)
         self.assertAlmostEqual(result.eigenvalue.real, self.reference_energy, places=4)
-        # TODO test aux_ops properly
 
     def test_deprecated_algo_result(self):
         """ Test processing a deprecated dictionary result from algorithm """
