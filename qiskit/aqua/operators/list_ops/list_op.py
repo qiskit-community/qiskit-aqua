@@ -346,9 +346,6 @@ class ListOp(OperatorBase):
         """
         # The below code only works for distributive ListOps, e.g. ListOp and SummedOp
 
-        from ..state_fns.dict_state_fn import DictStateFn       # pylint: disable=cyclic-import
-        from ..state_fns.vector_state_fn import VectorStateFn   # pylint: disable=cyclic-import
-
         if not self.distributive:
             raise NotImplementedError(r'ListOp\'s eval function is only defined for distributive '
                                       r'Listops.')
