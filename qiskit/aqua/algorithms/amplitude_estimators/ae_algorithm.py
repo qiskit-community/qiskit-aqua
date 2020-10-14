@@ -287,9 +287,9 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
             return self._q_factory
 
         if self._a_factory is not None:
-            warnings.filterwarnings('ignore', category=DeprecationWarning)
-            q_factory = QFactory(self._a_factory, self.i_objective)
-            warnings.filterwarnings('always', category=DeprecationWarning)
+            with warnings.catch_warnings():
+                warnings.filterwarnings('ignore', category=DeprecationWarning)
+                q_factory = QFactory(self._a_factory, self.i_objective)
             return q_factory
 
         return None

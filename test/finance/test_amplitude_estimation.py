@@ -119,9 +119,9 @@ class TestEuropeanCallOption(QiskitFinanceTestCase):
     def test_expected_value(self, simulator, a_e, expect):
         """ expected value test """
         # set A factory for amplitude estimation
-        warnings.filterwarnings('ignore', category=DeprecationWarning)
-        a_e.a_factory = self.european_call
-        warnings.filterwarnings('always', category=DeprecationWarning)
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            a_e.a_factory = self.european_call
 
         # run simulation
         result = a_e.run(self._qasm if simulator == 'qasm' else self._statevector)
@@ -145,9 +145,9 @@ class TestEuropeanCallOption(QiskitFinanceTestCase):
     def test_delta(self, simulator, a_e, expect):
         """ delta test """
         # set A factory for amplitude estimation
-        warnings.filterwarnings('ignore', category=DeprecationWarning)
-        a_e.a_factory = self.european_call_delta
-        warnings.filterwarnings('always', category=DeprecationWarning)
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            a_e.a_factory = self.european_call_delta
 
         # run simulation
         result = a_e.run(self._qasm if simulator == 'qasm' else self._statevector)
@@ -216,10 +216,10 @@ class TestFixedIncomeAssets(QiskitFinanceTestCase):
         c_approx = 0.125
 
         # get fixed income circuit appfactory
-        warnings.filterwarnings('ignore', category=DeprecationWarning)
-        fixed_income = FixedIncomeExpectedValue(mund, a_n, b, c_f, c_approx)
-        a_e.a_factory = fixed_income
-        warnings.filterwarnings('always', category=DeprecationWarning)
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            fixed_income = FixedIncomeExpectedValue(mund, a_n, b, c_f, c_approx)
+            a_e.a_factory = fixed_income
 
         # run simulation
         result = a_e.run(self._qasm if simulator == 'qasm' else self._statevector)
