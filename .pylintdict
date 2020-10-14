@@ -111,6 +111,7 @@ crx
 csr
 cts
 currentmodule
+cvar
 cvs
 cvxpy
 cx
@@ -130,6 +131,7 @@ deconvoluted
 deriv
 dest
 deutsch
+diagonality
 diagonalization
 diagonalize
 diagonalized
