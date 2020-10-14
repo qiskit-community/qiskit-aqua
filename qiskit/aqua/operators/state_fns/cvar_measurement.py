@@ -16,13 +16,12 @@
 from typing import Union, Optional, Callable
 import numpy as np
 
-from qiskit.aqua.aqua_error import AquaError
+from qiskit.aqua import AquaError
 from qiskit.circuit import ParameterExpression, QuantumCircuit, Instruction
 from qiskit.result import Result
 from qiskit.quantum_info import Statevector
 
 from ..operator_base import OperatorBase
-from ..primitive_ops import PauliOp
 from ..list_ops import ListOp, SummedOp
 from .state_fn import StateFn
 from .operator_state_fn import OperatorStateFn
@@ -34,7 +33,6 @@ class CVaRMeasurement(OperatorStateFn):
 
     Used in :class:`~qiskit.aqua.operators.CVaRExpectation`, see there for more details.
     """
-
     def __new__(cls,
                 primitive: Union[str, dict, Result,
                                  list, np.ndarray, Statevector,
@@ -259,6 +257,8 @@ def _check_is_diagonal(operator: OperatorBase) -> bool:
     Raises:
         AquaError: If the operator is not diagonal.
     """
+    # dont ask
+    from ..primitive_ops import PauliOp
     if isinstance(operator, PauliOp):
         # every X component must be False
         if not np.any(operator.primitive.x):  # type: ignore
