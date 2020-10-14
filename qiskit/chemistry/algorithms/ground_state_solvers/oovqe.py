@@ -22,6 +22,8 @@ from scipy.linalg import expm
 from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms import VQE
 from qiskit.aqua.operators import LegacyBaseOperator
+
+from .ground_state_eigensolver import GroundStateEigensolver
 from .minimum_eigensolver_factories import MinimumEigensolverFactory
 from ...fermionic_operator import FermionicOperator
 from ...bosonic_operator import BosonicOperator
@@ -34,7 +36,7 @@ from .ground_state_solver import GroundStateSolver
 logger = logging.getLogger(__name__)
 
 
-class OOVQE(GroundStateSolver):
+class OOVQE(GroundStateEigensolver):
     r""" A ground state calculation employing the OOVQE algorithm.
     The Variational Quantum Eigensolver (VQE) algorithm enhanced with the Orbital Optimization (OO).
     The core of the approach resides in the optimization of orbitals through the
@@ -91,7 +93,8 @@ class OOVQE(GroundStateSolver):
             AquaError: if the number of orbital optimization iterations is less or equal to zero.
         """
 
-        super().__init__(transformation)
+        super().__init__(transformation, solver)
+        # todo: no need, initializer in the super class
         self._solver = solver
         self._driver = driver
         self._qmolecule = qmolecule
@@ -337,7 +340,7 @@ class OOVQE(GroundStateSolver):
                 self._vqe._ret['opt_params'] = _ret_temp_params
 
         result.cost_function_evals = self._vqe._eval_count
-        self.transformation.add_context(result)
+        self.transformation.interpret(result)
 
         logger.info('Optimization complete in %s seconds.\nFound opt_params %s in %s evals',
                     result.total_time, result.optimal_point, self._vqe._eval_count)
@@ -603,7 +606,7 @@ class OrbitalRotation:
         return self._parameter_bound_value
 
 
-class OOVQEResult(FermionicGroundStateResult):
+class OOVQEResult(ElectronicStructureResult):
     r""" OOVQE Result. """
 
     @property
