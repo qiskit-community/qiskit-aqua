@@ -724,8 +724,8 @@ class TestGradients(QiskitAquaTestCase):
         q_instance = QuantumInstance(BasicAer.get_backend(backend), seed_simulator=79,
                                      seed_transpiler=2)
         # Define the Hamiltonian
-        h2_hamiltonian = -1.05 * (I ^ I) + 0.39 * (I ^ Z) - 0.39 * (Z ^ I) - 0.01 * (Z ^ Z) + 0.18 \
-                         * (X ^ X)
+        h2_hamiltonian = -1.05 * (I ^ I) + 0.39 * (I ^ Z) - 0.39 * (Z ^ I) \
+                         - 0.01 * (Z ^ Z) + 0.18 * (X ^ X)
         h2_energy = -1.85727503
 
         # Define the Ansatz
