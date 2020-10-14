@@ -13,6 +13,7 @@
 """ Test NumericalqEOM excited states calculation """
 
 import unittest
+import numpy as np
 from test.chemistry import QiskitChemistryTestCase
 
 from qiskit import BasicAer
@@ -75,19 +76,20 @@ class TestNumericalQEOMESCCalculation(QiskitChemistryTestCase):
             self.assertAlmostEqual(results.computed_energies[idx], self.reference_energies[idx],
                                    places=4)
 
-    # def test_numpy_factory(self):
-    #
-    #     solver = NumPyEigensolverFactory()
-    #     esc = EigenSolverExcitedStatesCalculation(self.transformation, solver)
-    #     results = esc.compute_excitedstates(self.driver)
-    #
-    #     print(results)
-    #     for idx in range(len(self.reference_energies)):
-    #         self.assertAlmostEqual(results.computed_energies[idx], self.reference_energies[idx],
-    #                                places=4)
+    def test_numpy_factory(self):
+        solver = NumPyEigensolverFactory()
+        esc = EigenSolverExcitedStatesCalculation(self.transformation, solver)
+        results = esc.compute_excitedstates(self.driver)
 
+        # filter duplicates from list
+        computed_energies = [results.computed_energies[0]]
+        for comp_energy in results.computed_energies[1:]:
+            if not np.isclose(comp_energy, computed_energies[-1]):
+                computed_energies.append(comp_energy)
 
-
+        for idx in range(len(self.reference_energies)):
+            self.assertAlmostEqual(computed_energies[idx], self.reference_energies[idx],
+                                   places=4)
 
 
 if __name__ == '__main__':

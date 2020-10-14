@@ -551,7 +551,7 @@ class FermionicTransformation(QubitOperatorTransformation):
             eigenstate_result.aux_operator_eigenvalues = raw_result.aux_operator_eigenvalues
 
         result = ElectronicStructureResult(eigenstate_result.data)
-        result.computed_energies = eigenstate_result.eigenenergies
+        result.computed_energies = np.asarray([e.real for e in eigenstate_result.eigenenergies])
         result.hartree_fock_energy = self._hf_energy
         result.nuclear_repulsion_energy = self._nuclear_repulsion_energy
         if self._nuclear_dipole_moment is not None:
@@ -561,40 +561,46 @@ class FermionicTransformation(QubitOperatorTransformation):
         if result.aux_operator_eigenvalues is not None:
             # the first three values are hardcoded to number of particles, angular momentum
             # and magnetization in this order
-            if result.aux_operator_eigenvalues[0] is not None:
-                result.num_particles = result.aux_operator_eigenvalues[0][0].real
+            result.num_particles = []
+            result.total_angular_momentum = []
+            result.magnetization = []
+            result.computed_dipole_moment = []
+            result.ph_extracted_dipole_moment = []
+            result.frozen_extracted_dipole_moment = []
+            if not isinstance(result.aux_operator_eigenvalues, list):
+                aux_operator_eigenvalues = [result.aux_operator_eigenvalues]
             else:
-                result.num_particles = None
+                aux_operator_eigenvalues = result.aux_operator_eigenvalues
+            for aux_op_eigenvalues in aux_operator_eigenvalues:
+                if aux_op_eigenvalues[0] is not None:
+                    result.num_particles.append(aux_op_eigenvalues[0][0].real)
 
-            if result.aux_operator_eigenvalues[1] is not None:
-                result.total_angular_momentum = result.aux_operator_eigenvalues[1][0].real
-            else:
-                result.total_angular_momentum = None
+                if aux_op_eigenvalues[1] is not None:
+                    result.total_angular_momentum.append(aux_op_eigenvalues[1][0].real)
 
-            if result.aux_operator_eigenvalues[2] is not None:
-                result.magnetization = result.aux_operator_eigenvalues[2][0].real
-            else:
-                result.magnetization = None
+                if aux_op_eigenvalues[2] is not None:
+                    result.magnetization.append(aux_op_eigenvalues[2][0].real)
 
-            # the next three are hardcoded to Dipole moments, if they are set
-            if len(result.aux_operator_eigenvalues) >= 6 and self._has_dipole_moments:
-                # check if the names match
-                # extract dipole moment in each axis
-                dipole_moment = []
-                for moment in result.aux_operator_eigenvalues[3:6]:
-                    if moment is not None:
-                        dipole_moment += [moment[0].real]
-                    else:
-                        dipole_moment += [None]
+                # the next three are hardcoded to Dipole moments, if they are set
+                if len(aux_op_eigenvalues) >= 6 and self._has_dipole_moments:
+                    # check if the names match
+                    # extract dipole moment in each axis
+                    dipole_moment = []
+                    for moment in aux_op_eigenvalues[3:6]:
+                        if moment is not None:
+                            dipole_moment += [moment[0].real]
+                        else:
+                            dipole_moment += [None]
 
-                result.reverse_dipole_sign = self._reverse_dipole_sign
-                result.computed_dipole_moment = cast(DipoleTuple, tuple(dipole_moment))
-                result.ph_extracted_dipole_moment = (self._ph_x_dipole_shift,
-                                                     self._ph_y_dipole_shift,
-                                                     self._ph_z_dipole_shift)
-                result.frozen_extracted_dipole_moment = (self._x_dipole_shift,
-                                                         self._y_dipole_shift,
-                                                         self._z_dipole_shift)
+                    result.reverse_dipole_sign = self._reverse_dipole_sign
+                    result.computed_dipole_moment.append(cast(DipoleTuple,
+                                                              tuple(dipole_moment)))
+                    result.ph_extracted_dipole_moment.append(
+                        (self._ph_x_dipole_shift, self._ph_y_dipole_shift,
+                         self._ph_z_dipole_shift))
+                    result.frozen_extracted_dipole_moment.append(
+                        (self._x_dipole_shift, self._y_dipole_shift,
+                         self._z_dipole_shift))
 
         return result
 
