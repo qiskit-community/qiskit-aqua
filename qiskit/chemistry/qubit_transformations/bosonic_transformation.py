@@ -74,6 +74,7 @@ class BosonicTransformation(QubitOperatorTransformation):
 
         self._num_modes = None
         self._h_mat = None
+        self._untapered_qubit_op = None
 
     @property
     def num_modes(self) -> int:
@@ -91,6 +92,11 @@ class BosonicTransformation(QubitOperatorTransformation):
     def commutation_rule(self) -> int:
         """Getter of the commutation rule"""
         return 1
+
+    @property
+    def untapered_qubit_op(self):
+        """Getter for the untapered qubit operator"""
+        return self._untapered_qubit_op
 
     def transform(self, driver: BaseDriver,
                   aux_operators: Optional[List[Any]] = None
@@ -126,6 +132,7 @@ class BosonicTransformation(QubitOperatorTransformation):
 
         bos_op = BosonicOperator(self._h_mat, self._basis_size)
         qubit_op = bos_op.mapping(qubit_mapping = self._qubit_mapping)
+        self._untapered_qubit_op = qubit_op
         qubit_op.name = 'Bosonic Operator'
 
         aux_ops = []
@@ -267,7 +274,7 @@ class BosonicTransformation(QubitOperatorTransformation):
 
         """
 
-        exctn_types = {'s': 0, 'd': 0}
+        exctn_types = {'s': 0, 'd': 1}
 
         if isinstance(excitations, str):
             degrees = [exctn_types[letter] for letter in excitations]
@@ -287,6 +294,7 @@ class BosonicTransformation(QubitOperatorTransformation):
             dag_lst = []
             for lst in extn_lst:
                 dag_lst.append([lst[0], lst[2], lst[1]])
+            return dag_lst
 
 
         hopping_operators = {}
@@ -307,7 +315,7 @@ class BosonicTransformation(QubitOperatorTransformation):
                               num_processes=aqua_globals.num_processes)
 
         for key, res in zip(hopping_operators.keys(), result):
-            hopping_operators[key] = res[0]
+            hopping_operators[key] = res
 
         return hopping_operators, type_of_commutativities, excitation_indices
 
