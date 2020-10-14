@@ -241,16 +241,17 @@ class Hessian(HessianBase):
             return SummedOp([term1, term2])
 
         elif isinstance(operator, StateFn):
-            if operator.is_measurement:
-                raise TypeError('The computation of Hessians is only supported for Operators which '
-                                'represent expectation values or quantum states.')
-            else:
+            if not operator.is_measurement:
                 from .circuit_gradients import LinComb
                 if isinstance(self.hess_method, LinComb):
                     return self.hess_method.convert(operator, params)
                 else:
                     raise TypeError('Please set the attribute hess_method to ´lin_comb´ to compute '
                                     'probability Hessians.')
+
+            else:
+                raise TypeError('The computation of Hessians is only supported for Operators which '
+                                'represent expectation values or quantum states.')
 
         else:
             raise TypeError('The computation of Hessians is only supported for Operators which '
