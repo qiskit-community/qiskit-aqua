@@ -19,8 +19,9 @@
 
 import unittest
 from sklearn import linear_model
-from qiskit.chemistry.algorithms.pes_samplers.extrapolator import Extrapolator, WindowExtrapolator, \
-    PolynomialExtrapolator, DifferentialExtrapolator, PCAExtrapolator, SieveExtrapolator
+from qiskit.chemistry.algorithms.pes_samplers.extrapolator import Extrapolator, \
+    WindowExtrapolator, PolynomialExtrapolator, DifferentialExtrapolator, PCAExtrapolator, \
+    SieveExtrapolator
 
 from qiskit.aqua import AquaError
 
