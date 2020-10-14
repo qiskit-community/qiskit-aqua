@@ -94,7 +94,8 @@ class TestBosonicOperator(QiskitChemistryTestCase):
     def test_mapping(self):
         """ mapping test """
         qubit_op = self.bos_op.mapping('direct', threshold=1e-5)
-        algo = NumPyMinimumEigensolver(qubit_op, filter_criterion = self.bos_op.direct_mapping_filtering_criterion)
+        algo = NumPyMinimumEigensolver(
+            qubit_op, filter_criterion=self.bos_op.direct_mapping_filtering_criterion)
         result = algo.run()
         gs_energy = np.real(result['eigenvalue'])
 

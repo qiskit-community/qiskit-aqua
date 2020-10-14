@@ -42,7 +42,7 @@ class TestDriverGaussianForces(QiskitChemistryTestCase):
                  ''
                  ])
             result = driver.run()
-            # TODO check result
+            self._check_driver_result(result)
 
         except QiskitChemistryError:
             self.skipTest('GAUSSIAN driver does not appear to be installed')
@@ -58,10 +58,51 @@ class TestDriverGaussianForces(QiskitChemistryTestCase):
                                   charge=0),
                 basis='6-31g')
             result = driver.run()
-            # TODO check result
+            self._check_driver_result(result)
 
         except QiskitChemistryError:
             self.skipTest('GAUSSIAN driver does not appear to be installed')
+
+    def test_driver_logfile(self):
+        """ Test the driver works with logfile (Gaussian does not need to be installed) """
+
+        driver = GaussianForcesDriver(
+            logfile=self.get_resource_path('test_driver_gaussian_log.txt'))
+
+        result = driver.run()
+        self._check_driver_result(result)
+
+    def _check_driver_result(self, watson):
+        expected = [[352.3005875, 2, 2],
+                    [-352.3005875, -2, -2],
+                    [631.6153975, 1, 1],
+                    [-631.6153975, -1, -1],
+                    [115.653915, 4, 4],
+                    [-115.653915, -4, -4],
+                    [115.653915, 3, 3],
+                    [-115.653915, -3, -3],
+                    [-15.341901966295344, 2, 2, 2],
+                    [-88.2017421687633, 1, 1, 2],
+                    [42.40478531359112, 4, 4, 2],
+                    [26.25167512727164, 4, 3, 2],
+                    [2.2874639206341865, 3, 3, 2],
+                    [0.4207357291666667, 2, 2, 2, 2],
+                    [4.9425425, 1, 1, 2, 2],
+                    [1.6122932291666665, 1, 1, 1, 1],
+                    [-4.194299375, 4, 4, 2, 2],
+                    [-4.194299375, 3, 3, 2, 2],
+                    [-10.20589125, 4, 4, 1, 1],
+                    [-10.20589125, 3, 3, 1, 1],
+                    [2.2973803125, 4, 4, 4, 4],
+                    [2.7821204166666664, 4, 4, 4, 3],
+                    [7.329224375, 4, 4, 3, 3],
+                    [-2.7821200000000004, 4, 3, 3, 3],
+                    [2.2973803125, 3, 3, 3, 3]
+                    ]
+        for i, entry in enumerate(watson.data):
+            msg = "mode[{}]={} does not match expected {}".format(i, entry, expected[i])
+            self.assertAlmostEqual(entry[0], expected[i][0], msg=msg)
+            self.assertListEqual(entry[1:], expected[i][1:], msg=msg)
 
 
 if __name__ == '__main__':
