@@ -14,9 +14,11 @@ This module contains the definition of a base class for a chemistry operator.
 Such an operator takes a QMolecule and produces an input for
 a quantum algorithm
 """
+
 from abc import ABC, abstractmethod
+import warnings
 import logging
-from typing import Union, List, Tuple, Optional, cast
+from typing import Dict, Union, List, Tuple, Optional, cast
 import numpy as np
 
 from qiskit.aqua.algorithms import MinimumEigensolverResult, EigensolverResult, AlgorithmResult
@@ -43,6 +45,10 @@ class ChemistryOperator(ABC):
 
     @abstractmethod
     def __init__(self):
+        warnings.warn('The ChemistryOperator is deprecated as of Qiskit Aqua 0.8.0 and will be '
+                      'removed no earlier than 3 months after the release date. Instead, the '
+                      'FermionicTransformation can be used to transform QMolecules and construct '
+                      'ground state result objects.', DeprecationWarning, stacklevel=2)
         self._molecule_info = {}
 
     @abstractmethod
@@ -105,6 +111,13 @@ class MolecularChemistryResult(AlgorithmResult):
     Energies are in Hartree and dipole moments in A.U unless otherwise stated.
     """
 
+    def __init__(self, a_dict: Optional[Dict] = None) -> None:
+        super().__init__(a_dict)
+        warnings.warn('The qiskit.chemistry.chemistry_operator.MolecularChemistryResult object is '
+                      'deprecated as of 0.8.0 and will be removed no sooner than 3 months after the'
+                      ' release. You should use qiskit.chemistry.algorithms.ground_state_solvers.'
+                      'FermionicGroundStateResult instead.', DeprecationWarning, stacklevel=2)
+
     @property
     def algorithm_result(self) -> AlgorithmResult:
         """ Returns raw algorithm result """
@@ -152,6 +165,14 @@ class MolecularGroundStateResult(MolecularChemistryResult):
 
     Energies are in Hartree and dipole moments in A.U unless otherwise stated.
     """
+
+    def __init__(self, a_dict: Optional[Dict] = None) -> None:
+        super().__init__(a_dict)
+        warnings.warn('The qiskit.chemistry.chemistry_operator.MolecularGroundStateResult object '
+                      'is deprecated as of 0.8.0 and will be removed no sooner than 3 months after '
+                      'the release. You should use qiskit.chemistry.algorithms.'
+                      'ground_state_solvers.FermionicGroundStateResult instead.',
+                      DeprecationWarning, stacklevel=2)
 
     @property
     def energy(self) -> Optional[float]:

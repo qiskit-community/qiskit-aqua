@@ -1,0 +1,31 @@
+---
+deprecations:
+  - |
+    Deprecate the ``CircuitFactory`` and derived types. The ``CircuitFactory`` has 
+    been introduced as temporary class when the ``QuantumCircuit`` missed some 
+    features necessary for applications in Aqua. Now that the circuit has all required
+    functionality, the circuit factory can be removed. 
+    The replacements are shown in the following table.
+
+    .. code-block::
+
+        Circuit factory class               | Replacement
+        ------------------------------------+-----------------------------------------------
+        CircuitFactory                      | use QuantumCircuit
+                                            |
+        UncertaintyModel                    | -
+        UnivariateDistribution              | -
+        MultivariateDistribution            | -
+        NormalDistribution                  | qiskit.circuit.library.NormalDistribution
+        MultivariateNormalDistribution      | qiskit.circuit.library.NormalDistribution
+        LogNormalDistribution               | qiskit.circuit.library.LogNormalDistribution
+        MultivariateLogNormalDistribution   | qiskit.circuit.library.LogNormalDistribution
+        UniformDistribution                 | qiskit.circuit.library.UniformDistribution
+        MultivariateUniformDistribution     | qiskit.circuit.library.UniformDistribution
+        UnivariateVariationalDistribution   | use parameterized QuantumCircuit
+        MultivariateVariationalDistribution | use parameterized QuantumCircuit
+                                            |
+        UncertaintyProblem                  | - 
+        UnivariateProblem                   | -
+        MultivariateProblem                 | -
+        UnivariatePiecewiseLinearObjective  | qiskit.circuit.library.LinearAmplitudeFunction

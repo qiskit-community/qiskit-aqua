@@ -18,7 +18,7 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
-from ..algorithms.optimization_algorithm import OptimizationResult
+import qiskit.optimization.algorithms  # pylint: disable=unused-import
 from ..exceptions import QiskitOptimizationError
 from ..problems.quadratic_objective import QuadraticObjective
 from ..problems.quadratic_program import QuadraticProgram
@@ -185,7 +185,8 @@ class IntegerToBinary(QuadraticProgramConverter):
 
         # set linear constraints
         for constraint in self._src.linear_constraints:
-            linear, constant = self._convert_linear_coefficients_dict(constraint.linear.to_dict())
+            linear, constant = self._convert_linear_coefficients_dict(
+                constraint.linear.to_dict(use_name=True))
             self._dst.linear_constraint(
                 linear, constraint.sense, constraint.rhs - constant, constraint.name
             )
@@ -193,10 +194,10 @@ class IntegerToBinary(QuadraticProgramConverter):
         # set quadratic constraints
         for constraint in self._src.quadratic_constraints:
             linear, linear_constant = self._convert_linear_coefficients_dict(
-                constraint.linear.to_dict()
+                constraint.linear.to_dict(use_name=True)
             )
             quadratic, q_linear, q_constant = self._convert_quadratic_coefficients_dict(
-                constraint.quadratic.to_dict()
+                constraint.quadratic.to_dict(use_name=True)
             )
 
             constant = linear_constant + q_constant
@@ -207,16 +208,23 @@ class IntegerToBinary(QuadraticProgramConverter):
                 linear, quadratic, constraint.sense, constraint.rhs - constant, constraint.name
             )
 
-    def interpret(self, result: OptimizationResult) -> OptimizationResult:
+    def interpret(self, result: 'qiskit.optimization.algorithms.OptimizationResult') \
+            -> 'qiskit.optimization.algorithms.OptimizationResult':  # type: ignore
         """Convert back the converted problem (binary variables)
         to the original (integer variables).
 
         Args:
-            result: The result of the converted problem.
+            result: The result of the converted problem or the given result in case of FAILURE.
 
         Returns:
             The result of the original problem.
         """
+        # pylint: disable=cyclic-import
+        from ..algorithms.optimization_algorithm import OptimizationResult
+
+        if result.x is None:
+            return result
+
         new_x = self._interpret_var(result.x)
         return OptimizationResult(x=new_x, fval=result.fval, variables=self._src.variables,
                                   status=result.status, raw_results=result.raw_results)
