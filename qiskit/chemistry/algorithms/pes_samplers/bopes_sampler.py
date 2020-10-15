@@ -152,7 +152,7 @@ class BOPESSampler:
             Results for a single point.
         """
 
-        # update molecule geometry and  thus resulting Hamiltonian based on specified point
+        # update molecule geometry and thus resulting Hamiltonian based on specified point
         self._driver.molecule.perturbations = [point]
 
         # find closest previously run point and take optimal parameters
@@ -180,8 +180,7 @@ class BOPESSampler:
                     opt_params = self._points_optparams
                     param_sets = self._extrapolator.extrapolate(points=[point],
                                                                 param_dict=opt_params)
-                    # update initial point, note param_set is a list
-                    # param set is a dictionary
+                    # update initial point, note param_set is a dictionary
                     self._gss.solver.initial_point = param_sets.get(point)
 
         # the output is an instance of EigenstateResult
