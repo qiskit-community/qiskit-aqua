@@ -677,11 +677,16 @@ class FermionicTransformation(Transformation):
 
         return qubit_op, commutativities
 
-    def build_hopping_operators(self, excitations: Union[str, List[List[int]]] = 'sd'):
-        """
+    def build_hopping_operators(self, excitations: Union[str, List[List[int]]] = 'sd'
+                                ) -> Tuple[Dict[str, WeightedPauliOperator],
+                                           Dict[str, List[bool]],
+                                           Dict[str, List[Any]]]:
+        """Builds the product of raising and lowering operators (basic excitation operators)
 
         Args:
-            excitations:
+            excitations: The excitations to be included in the eom pseudo-eigenvalue problem.
+                If a string ('s', 'd' or 'sd') then all excitations of the given type will be used.
+                Otherwise a list of custom excitations can directly be provided.
 
         Returns:
 

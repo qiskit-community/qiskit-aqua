@@ -12,7 +12,7 @@
 
 """The calculation of excited states via the qEOM algorithm"""
 
-from typing import List, Union, Optional, Tuple
+from typing import List, Union, Optional, Tuple, Dict, cast
 import itertools
 import logging
 import sys
@@ -97,6 +97,7 @@ class QEOM(ExcitedStatesSolver):
         measurement_results = self._gsc.evaluate_operators(
             groundstate_result.raw_result['eigenstate'],
             matrix_operators_dict)
+        measurement_results = cast(Dict[str, List[float]], measurement_results)
 
         # 4. Postprocess ground_state_result to construct eom matrices
         m_mat, v_mat, q_mat, w_mat, m_mat_std, v_mat_std, q_mat_std, w_mat_std = \
@@ -195,7 +196,7 @@ class QEOM(ExcitedStatesSolver):
 
         try:
             z2_symmetries = self._gsc.transformation.molecule_info['z2_symmetries']
-        except:
+        except AttributeError:
             z2_symmetries = Z2Symmetries([],[],[])
 
         if not z2_symmetries.is_empty():
@@ -211,7 +212,7 @@ class QEOM(ExcitedStatesSolver):
                     if np.all(value == targeted_sector):
                         available_hopping_ops[key] = hopping_operators[key]
                 _build_one_sector(available_hopping_ops, self._gsc.transformation.untapered_qubit_op,
-                                  z2_symmetries, self._gcs.transormation.commutation_rule)
+                                  z2_symmetries, self._gsc.transformation.commutation_rule)
 
         else:
             _build_one_sector(hopping_operators,self._gsc.transformation.untapered_qubit_op,
@@ -281,9 +282,9 @@ class QEOM(ExcitedStatesSolver):
 
         return m_u, n_u, q_mat_op, w_mat_op, m_mat_op, v_mat_op
 
-    def _build_eom_matrices(self, gs_results: dict, size: int) -> Tuple[np.ndarray, np.ndarray,
-                                                                        np.ndarray, np.ndarray,
-                                                                        float, float, float, float]:
+    def _build_eom_matrices(self, gs_results: Dict[str, List[float]], size: int
+                            ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray,
+                                       float, float, float, float]:
         """
         Constructs the M, V, Q and W matrices from the results on the ground state
         Args:
@@ -307,6 +308,7 @@ class QEOM(ExcitedStatesSolver):
             m_u = mus[idx]
             n_u = nus[idx]
 
+            print(gs_results['q_{}_{}'.format(m_u, n_u)])
             q_mat[m_u][n_u] = gs_results['q_{}_{}'.format(m_u, n_u)][0] if gs_results.get(
                 'q_{}_{}'.format(m_u, n_u)) is not None else q_mat[m_u][n_u]
             w_mat[m_u][n_u] = gs_results['w_{}_{}'.format(m_u, n_u)][0] if gs_results.get(
