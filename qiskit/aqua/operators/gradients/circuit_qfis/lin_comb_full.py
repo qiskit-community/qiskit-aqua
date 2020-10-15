@@ -12,7 +12,6 @@
 
 """The module for Quantum the Fisher Information."""
 
-import copy
 from copy import deepcopy
 from typing import List, Union, Optional, Tuple
 
@@ -32,12 +31,11 @@ from ..derivative_base import DerivativeBase
 
 
 class LinCombFull(CircuitQFI):
-    r"""Compute the full Quantum Fisher Information (QFI) given a pure, parametrized quantum state
-    with an additional working qubit and the linear combination of unitaries approach.
+    r"""Compute the full Quantum Fisher Information (QFI).
 
-    The QFI is:
-
-        [QFI]kl= Re[〈∂kψ|∂lψ〉−〈∂kψ|ψ〉〈ψ|∂lψ〉] * 4.
+    Given a pure, parametrized quantum state this class uses the linear combination of unitaries
+    approach, requiring one additional working qubit.
+    See also :class:`~qiskit.aqua.operators.QFI`.
     """
 
     def convert(self,
@@ -47,12 +45,13 @@ class LinCombFull(CircuitQFI):
                 ) -> ListOp:
         r"""
         Args:
-            operator: The operator corresponding to the quantum state |ψ(ω)〉for which we compute
-                      the QFI.
-            params: The parameters we are computing the QFI wrt: ω.
+            operator: The operator corresponding to the quantum state :math:`|\psi(\omega)\rangle`
+                for which we compute the QFI.
+            params: The parameters :math:`\omega` with respect to which we are computing the QFI.
 
         Returns:
-            ListOp[ListOp] where the operator at position k,l corresponds to QFI_kl
+            A ``ListOp[ListOp]`` where the operator at position ``[k][l]`` corresponds to the matrix
+            element :math:`k, l` of the QFI.
 
         Raises:
             AquaError: If one of the circuits could not be constructed.
@@ -318,7 +317,6 @@ class LinCombFull(CircuitQFI):
                                 term = term * CircuitStateFn(qfi_circuit)
 
                                 # Chain Rule Parameter Expression
-
                                 gate_param_i = param_occurence_i[0].params[param_occurence_i[1]]
                                 gate_param_j = param_occurence_j[0].params[param_occurence_j[1]]
 

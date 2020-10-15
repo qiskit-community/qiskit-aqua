@@ -44,9 +44,9 @@ class CircuitQFI(ConverterBase):
                 ) -> OperatorBase:
         r"""
         Args:
-            operator: The operator corresponding to the quantum state |ψ(ω)〉for which we compute
-                      the QFI.
-            params: The parameters we are computing the QFI wrt: ω.
+            operator: The operator corresponding to the quantum state :math:`|\psi(\omega)\rangle`
+                for which we compute the QFI.
+            params: The parameters :math:`\omega` with respect to which we are computing the QFI.
 
         Returns:
             An operator whose evaluation yields the QFI metric tensor.
