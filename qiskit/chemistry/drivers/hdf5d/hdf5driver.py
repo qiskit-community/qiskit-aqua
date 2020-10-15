@@ -14,13 +14,13 @@
 
 import os
 import logging
-from ..base_driver import BaseDriver
+from ..fermionic_driver import FermionicDriver
 from ...qmolecule import QMolecule
 
 logger = logging.getLogger(__name__)
 
 
-class HDF5Driver(BaseDriver):
+class HDF5Driver(FermionicDriver):
     """
     Qiskit chemistry driver reading an HDF5 file.
 

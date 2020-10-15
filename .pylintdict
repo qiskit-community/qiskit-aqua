@@ -212,6 +212,7 @@ fcompiler
 fermionic
 fermionicoperator
 fermionictransformation
+fermionicdriver
 fermions
 fi
 fileio
