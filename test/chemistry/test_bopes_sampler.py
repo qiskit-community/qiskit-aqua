@@ -96,7 +96,7 @@ class TestBOPES(unittest.TestCase):
 
         np.testing.assert_array_almost_equal(points_run, [0.7, 1.0, 1.3])
         np.testing.assert_array_almost_equal(energies,
-                                             [-1.13618945, -1.10115033, -1.03518627], decimal=3)
+                                             [-1.13618945, -1.10115033, -1.03518627], decimal=2)
 
     def test_potential_interface(self):
         """Tests potential interface."""

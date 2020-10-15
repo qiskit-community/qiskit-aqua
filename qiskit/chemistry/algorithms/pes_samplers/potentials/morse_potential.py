@@ -49,8 +49,13 @@ class MorsePotential(PotentialBase):
         self.m_shift = 0.0
         self.alpha = 0.0
         self.r_0 = 0.0
-        self._m_a = molecule.masses[0]
-        self._m_b = molecule.masses[1]
+        if molecule.masses is not None:
+            self._m_a = molecule.masses[0]
+            self._m_b = molecule.masses[1]
+        else:
+            raise ValueError(
+                'Molecule massses need to be provided')
+
 
     @staticmethod
     def fit_function(x: float,
@@ -99,6 +104,9 @@ class MorsePotential(PotentialBase):
             updated molecule
         """
         # Check the provided molecule
+        if molecule.masses is None:
+            raise ValueError(
+                'Molecule massses need to be provided')
         if len(molecule.masses) != 2:
             raise ValueError(
                 'Morse potential only works for diatomic molecules!')
