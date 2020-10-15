@@ -1,0 +1,21 @@
+---
+features:
+  - |
+    Introduces ``transformations`` for the fermionic and bosonic transformation of a problem
+    instance. Transforms the fermionic operator to qubit operator. Respective class for the
+    transformation is ``fermionic_transformation``
+    Introduces in algorithms ``ground_state_solvers`` for the calculation of ground state
+    properties. The calculation can be done either using an ``MinimumEigensolver`` or using
+    ``AdaptVQE``
+    Introduces ``chemistry/results`` where the eigenstate_result and the
+    electronic_structure_result are also used for the algorithms.
+    Introduces Minimum Eigensolver factories ``minimum_eigensolver_factories`` where chemistry specific
+    minimum eigensolvers can be initialised
+    Introduces orbital optimization vqe ``oovqe`` as a ground state solver for chemistry applications
+deprecations:
+  - |
+    ``Core Hamiltonian`` class is deprecated in favor of the ``FermionicTransformation``
+    ``Chemistry Operator`` class is deprecated in facor of the ``tranformations``
+    ``minimum_eigen_solvers/vqe_adapt`` is also deprecate and moved as an implementation
+    of the ground_state_solver interface
+    ``applications/molecular_ground_state_energy`` is deprecated in favor of ``ground_state_solver``
