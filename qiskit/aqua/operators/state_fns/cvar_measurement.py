@@ -257,7 +257,8 @@ def _check_is_diagonal(operator: OperatorBase) -> bool:
     Raises:
         AquaError: If the operator is not diagonal.
     """
-    # dont ask
+    # this must be a local import to avoid a cyclic import with components.uncertainty_models
+    # TODO figure out why, it was not really clear to me why
     from ..primitive_ops import PauliOp
     if isinstance(operator, PauliOp):
         # every X component must be False

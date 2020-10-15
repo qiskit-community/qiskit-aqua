@@ -1,7 +1,7 @@
 ---
 features:
   - |
-    CVaR Expectation Values
+    Add the possibility to compute Conditional Value at Risk (CVaR) expectation values.
 
     Given a diagonal observable H, often corresponding to the objective function of an optimization problem, we are
     often not as interested in minimizing the average energy of our observed measurements. In this context, we are
@@ -9,14 +9,14 @@ features:
     for chemistry problems).
 
     To this end, one might consider using the best observed sample as a cost function during variational
-    optimization. The issue here, is that this can result in a non-smooth optimization surface. For this reason,
-    one might consider smoothing the optimization surface by using not just the best observed sample, but instead
-    averaging over some fraction of best observed samples. This is exactly what the CVaR estimator accomplishes [1].
+    optimization. The issue here, is that this can result in a non-smooth optimization surface.
+    To resolve this issue, we can smooth the optimization surface by using not just the best observed sample, but instead
+    average over some fraction of best observed samples. This is exactly what the CVaR estimator accomplishes [1].
 
-    Let alpha be a real number in [0,1] which specifies the fraction of best observed samples which are
-    used to compute the objective function. Observe that if alpha = 1, CVaR is equivalent to a standard expectation
-    value. Similarly, if alpha = 0, then CVaR corresponds to using the best observed sample. Intermediate values of
-    alpha interpolate between these two objective functions.
+    Let :math:`\alpha` be a real number in :math:`[0,1]` which specifies the fraction of best observed samples which are
+    used to compute the objective function. Observe that if :math:`\alpha = 1`, CVaR is equivalent to a standard expectation
+    value. Similarly, if :math:`\alpha = 0`, then CVaR corresponds to using the best observed sample. Intermediate values of
+    :math:`\alpha` interpolate between these two objective functions.
 
     The functionality to use CVaR is included into the operator flow through a new subclass of OperatorStateFn
     called CVaRMeasurement. This new StateFn object is instantied in the same way as an OperatorMeasurement
@@ -42,7 +42,7 @@ features:
             op = ~StateFn(Z) @ CircuitStateFn(primitive=qc, coeff=1.0)
             cvar_expecation = CVaRExpectation(alpha=0.1).convert(op)
             result = cvar_expecation.eval()
-   
+
     See [1] for additional details regarding this technique and it's empircal performance.
 
     References:

@@ -29,22 +29,25 @@ class CVaRExpectation(ExpectationBase):
     r"""Compute the Conditional Value at Risk (CVaR) expectation value.
 
     The standard approach to calculating the expectation value of a Hamiltonian w.r.t. a
-    state is to take the sample mean of the measurement outcomes. Instead, for a diagonal
-    Hamiltonian, we use CVaR as an aggregation function instead of the mean, as proposed in [1].
+    state is to take the sample mean of the measurement outcomes. This corresponds to an estimator
+    of the energy. However in several problem settings with a diagonal Hamiltonian, e.g.
+    in combinatorial optimization where the Hamiltonian encodes a cost function, we are not
+    interested in calculating the energy but in the lowest possible value we can find.
+
+    To this end, we might consider using the best observed sample as a cost function during
+    variational optimization. The issue here, is that this can result in a non-smooth optimization
+    surface. To resolve this issue, we can smooth the optimization surface by using not just the
+    best observed sample, but instead average over some fraction of best observed samples.
+    This is exactly what the CVaR estimator accomplishes [1].
+
     It is empirically shown, that this can lead to faster convergence for combinatorial
     optimization problems.
 
-    Examples:
-
-        from qiskit import Aer
-        from qiskit.aqua.operators import Z, I, Plus, StateFn, CVarExpectation, CircuitSampler
-        operator = Z ^ I ^ Z ^ I
-        state = Plus ^ 4
-        op = ~StateFn(operator) @ state
-        cvar_expecation = CVaRExpectation(alpha=0.1).convert(op)
-        exact_value = cvar_expecation.eval()
-        sampler = CircuitSampler(Aer.get_backend('qasm_simulator'))
-        sampled_value = sampler.convert(cvar_expectation).eval()
+    Let :math:`\alpha` be a real number in :math:`[0,1]` which specifies the fraction of best
+    observed samples which are used to compute the objective function. Observe that if
+    :math:`\alpha = 1`, CVaR is equivalent to a standard expectation value. Similarly,
+    if :math:`\alpha = 0`, then CVaR corresponds to using the best observed sample.
+    Intermediate values of :math:`\alpha` interpolate between these two objective functions.
 
     References:
 
