@@ -11,9 +11,7 @@
 # that they have been altered from the originals.
 
 """
-This module implements a 1D Morse potential. It can be used to compute
-thermodynamic properties of diatomic molecules (e.g. H2, HD, D2) via the
-diatomic partition function and the thermodynamics module.
+This module implements a 1D Morse potential.
 """
 import numpy as np
 from scipy.optimize import curve_fit
@@ -30,7 +28,7 @@ class MorsePotential(PotentialBase):
     """
     # Works in Angstroms and Hartrees
 
-    def __init__(self, molecule):
+    def __init__(self,molecule):
         """
         Constructor.
         Initializes the potential to the zero-function.
@@ -43,7 +41,7 @@ class MorsePotential(PotentialBase):
         Raises:
             ValueError: Only implemented for diatomic molecules
         """
-        super().__init__(molecule)
+        super().__init__()
         # Initialize with zero-potential.
         # Later - fit energy values (fit)
         self.d_e = 0.0

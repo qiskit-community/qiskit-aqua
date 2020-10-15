@@ -11,9 +11,7 @@
 # that they have been altered from the originals.
 
 """
-This module implements a 1D Harmonic potential. It can be used to compute
-thermodynamic properties of diatomic molecules (e.g. H2, HD, D2) via the
-diatomic partition function and the thermodynamics module.
+This module implements a 1D Harmonic potential.
 """
 import numpy as np
 from scipy.optimize import curve_fit
@@ -136,8 +134,6 @@ class HarmonicPotential(PotentialBase):
         Args:
             scaling: Scaling to change units. (Default is 1.0 for Angstroms)
         """
-        # the returned value(s) is defined by the molecule's degrees of
-        # freedom?
 
         # Returns the distance for the minimal energy (scaled by 'scaling')
         # Default units (scaling=1.0) are Angstroms. Scale by 1E-10 to get

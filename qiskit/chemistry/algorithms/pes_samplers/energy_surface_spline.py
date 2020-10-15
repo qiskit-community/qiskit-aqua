@@ -11,9 +11,7 @@
 # that they have been altered from the originals.
 
 """
-Created on Mon Mar 30 10:30:21 2020
-
-@author: dtrenev
+An spline interpolation method for data fitting
 """
 
 import scipy.interpolate as interp
@@ -30,7 +28,6 @@ class EnergySurface1DSpline(EnergySurfaceBase):
     def __init__(self):
         """
         Constructor.
-        Initializes the class with a molecule.
         """
         self._eval = None
         self.eval_d = None
@@ -46,22 +43,11 @@ class EnergySurface1DSpline(EnergySurfaceBase):
         """
         assert self._eval is not None
         result = self._eval(x)
-        '''
-        # Here we could extrapolate if needed ...
-        # E.g:
-        result = np.where(x < 0.0,
-                          self._eval(0.0)+np.exp(4*(0.0-x)), result)
-        result = np.where(x > 5,
-                          self._eval(5) + 0*x, result)
-        '''
+
         return result
 
     def fit(self, xdata, ydata, initial_vals=None, bounds_list=None):
-        # TODO: remove, no need for duplicate checking
-        # newx = np.unique(xdata)
-        # new y is average of all repeated values
-        # newy = [np.average(ydata[np.where(xdata == val)[0]])
-        #         for val in np.unique(xdata)]
+
         newx = xdata
         newy = ydata
 
