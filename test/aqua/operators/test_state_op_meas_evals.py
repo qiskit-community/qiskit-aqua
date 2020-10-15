@@ -80,10 +80,12 @@ class TestStateOpMeasEvals(QiskitAquaTestCase):
             sampler = CircuitSampler(q_instance).convert(~StateFn(op) @ state)
             self.assertAlmostEqual(sampler.eval(), 1+0j)
 
-        with self.subTest('is_measurement correctly propagated in CircuitSampler'):
-            state = ListOp([Plus, Zero])
-            sampler = CircuitSampler(q_instance).convert(~state @ state)
-            self.assertTrue(sampler.oplist[0].oplist[0].oplist[0].is_measurement)
+    def test_is_measurement_correctly_propagated(self):
+        backend = Aer.get_backend('qasm_simulator')
+        q_instance = QuantumInstance(backend)  # no seeds needed since no values are compared
+        state = Plus
+        sampler = CircuitSampler(q_instance).convert(~state @ state)
+        self.assertTrue(sampler.oplist[0].is_measurement)
 
 
 if __name__ == '__main__':
