@@ -81,11 +81,11 @@ class TestPotential(unittest.TestCase):
 
         result = np.array([minimal_energy_distance, minimal_energy, wave_number])
         benchmark = np.array([0.8106703001726382, -1.062422610690636, 3800.7855102410026])
-        np.testing.assert_array_almost_equal(result, benchmark)
+        np.testing.assert_array_almost_equal(result, benchmark, decimal=4)
 
         radia = np.array([0.5, 1, 1.5, 2])
         hartrees = np.array([-0.94045495, -1.04591482, -0.96876003, -0.92400906])
-        np.testing.assert_array_almost_equal(hartrees, morse.eval(radia))
+        np.testing.assert_array_almost_equal(hartrees, morse.eval(radia), decimal=4)
 
         vib_levels = []
         for level in range(2, 8):
@@ -94,7 +94,7 @@ class TestPotential(unittest.TestCase):
         vib_levels_ref = np.array([0.04052116451981064, 0.05517676610999135,
                                    0.06894501671860434, 0.08182591634564956,
                                    0.09381946499112709, 0.10492566265503685])
-        np.testing.assert_array_almost_equal(vib_levels, vib_levels_ref)
+        np.testing.assert_array_almost_equal(vib_levels, vib_levels_ref, decimal=4)
 
     def test_harmonic(self):
         """ test harmonic """
@@ -134,6 +134,7 @@ class TestPotential(unittest.TestCase):
         xdata = np.array(xdata_angstrom)
         ydata = np.array(ydata_hartree)
 
+        xdata, ydata = HarmonicPotential.process_fit_data(xdata, ydata)
         harmonic.fit(xdata, ydata)
 
         minimal_energy_distance = harmonic.get_equilibrium_geometry()

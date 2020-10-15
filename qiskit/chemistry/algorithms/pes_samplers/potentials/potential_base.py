@@ -16,7 +16,7 @@ and vibrational structure of a given molecule.
 """
 
 from abc import ABC, abstractmethod
-from typing import Tuple, List
+from typing import Tuple, List, Optional
 from qiskit.chemistry.drivers import Molecule
 
 
@@ -38,13 +38,21 @@ class EnergySurfaceBase(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def fit(self, xdata: List[float], ydata: List[float], initial_vals=None, bounds_list=None
+    def fit(self, xdata: List[float], ydata: List[float],
+            initial_vals: Optional[List[float]] = None,
+            bounds_list: Optional[Tuple[List[float], List[float]]] = None
             ) -> None:
         """
         Fits surface to data
         Args:
             xdata: x data to be fitted
             ydata: y data to be fitted
+            initial_vals: Initial values for fit parameters. None for default.
+                    Order of parameters is d_e, alpha, r_0 and m_shift
+                    (see fit_function implementation)
+            bounds_list: Bounds for the fit parameters. None for default.
+                    Order of parameters is d_e, alpha, r_0 and m_shift
+                    (see fit_function implementation)
         """
         raise NotImplementedError
 
@@ -127,26 +135,25 @@ class VibronicStructureBase(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def vibrational_energy_level(self, n: int, mode: int = 0) -> float:
+    def vibrational_energy_level(self, n: int) -> float:
         """Returns the n-th vibrational energy level for a given mode.
 
         Args:
             n: number of vibrational mode
-            mode: vibrational mode
 
         Returns:
             n-th vibrational energy level for a given mode
         """
         raise NotImplementedError
 
-    def get_maximum_trusted_level(self, mode: int = 0) -> float:  # pylint: disable=unused-argument
+    def get_maximum_trusted_level(self, n: int = 0) -> float:  # pylint: disable=unused-argument
         """
         Returns the maximum energy level for which the particular
         implementation still provides a good approximation of reality.
         Default value of 100. Redefined where needed (see e.g. Morse).
 
         Args:
-            mode: vibronic mode
+            n: vibronic mode
 
         Returns:
             maximum_trusted_level setted

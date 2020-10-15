@@ -14,7 +14,7 @@
 This module implements a 1D Morse potential.
 """
 
-from typing import List
+from typing import List, Optional, Tuple
 import numpy as np
 from scipy.optimize import curve_fit
 
@@ -31,7 +31,7 @@ class MorsePotential(PotentialBase):
     """
     # Works in Angstroms and Hartrees
 
-    def __init__(self, molecule):
+    def __init__(self, molecule: Molecule):
         """
         Initializes the potential to the zero-function.
         fit() should be used afterwards to fit the potential to
@@ -55,7 +55,6 @@ class MorsePotential(PotentialBase):
         else:
             raise ValueError(
                 'Molecule massses need to be provided')
-
 
     @staticmethod
     def fit_function(x: float,
@@ -102,6 +101,7 @@ class MorsePotential(PotentialBase):
 
         """
         # Check the provided molecule
+        super().update_molecule(molecule)
         if molecule.masses is None:
             raise ValueError(
                 'Molecule massses need to be provided')
@@ -111,7 +111,9 @@ class MorsePotential(PotentialBase):
         self._m_a = molecule.masses[0]
         self._m_b = molecule.masses[1]
 
-    def fit(self, xdata: List[float], ydata: List[float], initial_vals=None, bounds_list=None
+    def fit(self, xdata: List[float], ydata: List[float],
+            initial_vals: Optional[List[float]] = None,
+            bounds_list: Optional[Tuple[List[float], List[float]]] = None
             ) -> None:
         """Fits a potential to computed molecular energies.
 
@@ -232,13 +234,13 @@ class MorsePotential(PotentialBase):
         # energy level
         return e_n * const.J_TO_HARTREE
 
-    def get_maximum_trusted_level(self, mode: int = 0) -> float:
+    def get_maximum_trusted_level(self, n: int = 0) -> float:
         """
         Returns the maximum energy level for which the particular
         implementation still provides a good approximation of reality.
 
         Args:
-            mode: vibronic mode
+            n: vibronic mode
 
         Returns:
             maximum_trusted_level estimated

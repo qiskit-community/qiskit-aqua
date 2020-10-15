@@ -12,7 +12,7 @@
 
 """This module implements a 1D Harmonic potential."""
 
-from typing import Tuple, List
+from typing import Tuple, List, Optional
 import numpy as np
 from scipy.optimize import curve_fit
 
@@ -84,13 +84,15 @@ class HarmonicPotential(PotentialBase):
             ValueError: Only implemented for diatomic molecules
         """
         # Check the provided molecule
+        super().update_molecule(molecule)
         if len(molecule.masses) != 2:
             raise ValueError('Harmonic potential only works for diatomic molecules!')
         self._m_a = molecule.masses[0]
         self._m_b = molecule.masses[1]
 
-    def fit(self, xdata, ydata, initial_vals=None, bounds_list=None,
-            preprocess_data=True) -> None:
+    def fit(self, xdata: List[float], ydata: List[float],
+            initial_vals: Optional[List[float]] = None,
+            bounds_list: Optional[Tuple[List[float], List[float]]] = None) -> None:
         """Fits a potential to computed molecular energies.
 
         Args:
@@ -102,10 +104,6 @@ class HarmonicPotential(PotentialBase):
             bounds_list: Bounds for the fit parameters. None for default.
                     Order of parameters is k, r_0 and m_shift
                     (see fit_function implementation)
-            preprocess_data: Default True. Internally cleans the data so
-                that a fit is done only around the minimum. The wider range of
-                distances and energies provided is still taken into account in
-                estimating a dissociation energy for the molecule.
         """
         # Fits the potential to given x/y data.
         # If preProcessData is True (i.e. by default!) it only tries to fit
@@ -120,9 +118,6 @@ class HarmonicPotential(PotentialBase):
 
         xdata_fit = xdata
         ydata_fit = ydata
-        if preprocess_data:
-            xdata_fit, ydata_fit = HarmonicPotential.process_fit_data(
-                xdata, ydata)
 
         fit, _ = curve_fit(self.fit_function, xdata_fit, ydata_fit,
                            p0=h_p0, maxfev=100000, bounds=h_bounds)

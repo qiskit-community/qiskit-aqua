@@ -51,12 +51,21 @@ class EnergySurface1DSpline(EnergySurfaceBase):
 
         return result
 
-    def fit(self, xdata: List[float], ydata: List[float]) -> None:
+    def fit(self, xdata: List[float], ydata: List[float],
+            initial_vals: Optional[List[float]] = None,
+            bounds_list: Optional[Tuple[List[float], List[float]]] = None
+            ) -> None:
         """Fits surface to data.
 
         Args:
             xdata: x data to be fitted
             ydata: y data to be fitted
+            initial_vals: Initial values for fit parameters. None for default.
+                    Order of parameters is d_e, alpha, r_0 and m_shift
+                    (see fit_function implementation)
+            bounds_list: Bounds for the fit parameters. None for default.
+                    Order of parameters is d_e, alpha, r_0 and m_shift
+                    (see fit_function implementation)
         """
         newx = xdata
         newy = ydata
