@@ -20,9 +20,6 @@ from abc import ABC, abstractmethod
 class EnergySurfaceBase(ABC):
     """ Class to hold a potential energy surface """
 
-    def __init__(self):
-        pass
-
     @abstractmethod
     def eval(self, x):
         """

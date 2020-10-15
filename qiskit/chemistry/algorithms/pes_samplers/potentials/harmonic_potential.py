@@ -40,7 +40,6 @@ class HarmonicPotential(PotentialBase):
         Raises:
             ValueError: Only implemented for diatomic molecules
         """
-        super().__init__()
         # Initialize with zero-potential.
         # Later - fit energy values (fit_to_data)
         self.k = 0.0

@@ -40,7 +40,6 @@ class MorsePotential(PotentialBase):
         Raises:
             ValueError: Only implemented for diatomic molecules
         """
-        super().__init__()
         # Initialize with zero-potential.
         # Later - fit energy values (fit)
         self.d_e = 0.0
