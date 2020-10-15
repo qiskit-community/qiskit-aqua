@@ -27,6 +27,10 @@ class EnergySurface1DSpline(EnergySurfaceBase):
     """
 
     def __init__(self):
+        """
+        An spline interpolation method for data fitting. This allows for fiting
+        bopes sampler results or potential energy surfaces.
+        """
         self._eval = None
         self.eval_d = None
         self.min_x = None
