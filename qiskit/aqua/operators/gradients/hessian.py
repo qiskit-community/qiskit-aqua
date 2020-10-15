@@ -120,8 +120,8 @@ class Hessian(HessianBase):
         if isinstance(params, ParameterExpression):
             return Gradient(grad_method=self._hess_method).get_gradient(operator, params)
 
-        assert isinstance(params, tuple) and len(
-            params) == 2, "Parameters supplied in unsupported format"
+        if (not isinstance(params, tuple)) or (not len(params) == 2):
+            raise TypeError("Parameters supplied in unsupported format.")
 
         # By this point, it's only one parameter tuple
         p_0 = params[0]
