@@ -20,11 +20,11 @@ from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
-from qiskit.chemistry.qubit_transformations import FermionicTransformation
-from qiskit.chemistry.qubit_transformations.fermionic_transformation import QubitMappingType
-from qiskit.chemistry.ground_state_calculation import MinimumEigensolverGroundStateCalculation
-from qiskit.chemistry.ground_state_calculation.mes_factories import (VQEUCCSDFactory,
-                                                                     NumPyMinimumEigensolverFactory)
+from qiskit.chemistry.transformations import FermionicTransformation
+from qiskit.chemistry.transformations.fermionic_transformation import QubitMappingType
+from qiskit.chemistry.algorithms.ground_state_solvers import GroundStateEigensolver
+from qiskit.chemistry.algorithms.ground_state_solvers.minimum_eigensolver_factories import \
+    (VQEUCCSDFactory, NumPyMinimumEigensolverFactory)
 
 
 class TestMESGSCCalculation(QiskitChemistryTestCase):
@@ -48,22 +48,22 @@ class TestMESGSCCalculation(QiskitChemistryTestCase):
     def test_npme(self):
         """ Test NumPyMinimumEigensolver """
         solver = NumPyMinimumEigensolverFactory()
-        calc = MinimumEigensolverGroundStateCalculation(self.transformation, solver)
-        res = calc.compute_groundstate(self.driver)
-        self.assertAlmostEqual(res.total_energies[0], self.reference_energy, places=6)
+        calc = GroundStateEigensolver(self.transformation, solver)
+        res = calc.solve(self.driver)
+        self.assertAlmostEqual(res.energy, self.reference_energy, places=6)
 
     def test_vqe_uccsd(self):
         """ Test VQE UCCSD case """
         solver = VQEUCCSDFactory(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
-        calc = MinimumEigensolverGroundStateCalculation(self.transformation, solver)
-        res = calc.compute_groundstate(self.driver)
-        self.assertAlmostEqual(res.total_energies[0], self.reference_energy, places=6)
+        calc = GroundStateEigensolver(self.transformation, solver)
+        res = calc.solve(self.driver)
+        self.assertAlmostEqual(res.energy, self.reference_energy, places=6)
 
     def _setup_evaluation_operators(self):
         # first we run a ground state calculation
         solver = VQEUCCSDFactory(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
-        calc = MinimumEigensolverGroundStateCalculation(self.transformation, solver)
-        res = calc.compute_groundstate(self.driver)
+        calc = GroundStateEigensolver(self.transformation, solver)
+        res = calc.solve(self.driver)
 
         # now we decide that we want to evaluate another operator
         # for testing simplicity, we just use some pre-constructed auxiliary operators

@@ -162,6 +162,7 @@ durr
 ecc
 eckstein
 ee
+egger
 eigen
 eigenenergies
 eigensolver
@@ -461,7 +462,9 @@ onee
 online
 onodera
 onwards
+OO
 oom
+oovqe
 operatorbase
 oplist
 oplus
@@ -510,6 +513,7 @@ prebuilt
 precomputed
 preoracle
 prepend
+prepending
 preprint
 priori
 probs
@@ -574,6 +578,7 @@ renyi
 representable
 rescaled
 rescaling
+rescalings
 retval
 rhf
 rhobeg
@@ -724,10 +729,12 @@ varform
 variational
 vartype
 vazirani
+vec
 vecs
 Veis
 vertices
 vibrational
+vibronic
 ville
 visualisation
 vqc
