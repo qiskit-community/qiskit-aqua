@@ -94,6 +94,7 @@ class Hessian(HessianBase):
                         AquaError: If the differentiation of a combo_fn requires JAX but the package
                         is not installed.
             TypeError: If the operator does not include a StateFn given by a quantum circuit
+            TypeError: If the parameters were given in an unsupported format.
             Exception: Unintended code is reached
         """
 
