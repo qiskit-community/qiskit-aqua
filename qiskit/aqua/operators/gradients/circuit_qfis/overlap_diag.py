@@ -79,7 +79,9 @@ class OverlapDiag(CircuitQFI):
 
         Raises:
             NotImplementedError: If a circuit is found such that one parameter controls multiple
-                gates, or one gate contains multiple parameters.
+                                 gates, or one gate contains multiple parameters.
+            TypeError: If a circuit is found that includes more than one parameter as they are
+                       currently not supported for the overlap diagonal QFI method.
 
         """
 
@@ -114,8 +116,9 @@ class OverlapDiag(CircuitQFI):
 
             gate = circuit._parameter_table[param][0][0]
 
-            assert len(gate.params) == 1, "OverlapDiag cannot yet support gates with more than " \
-                                          "one parameter."
+            if len(gate.params) != 1:
+                raise TypeError("OverlapDiag cannot yet support gates with more than one "
+                                "parameter.")
 
             param_value = gate.params[0]
             generator = generators[param]
