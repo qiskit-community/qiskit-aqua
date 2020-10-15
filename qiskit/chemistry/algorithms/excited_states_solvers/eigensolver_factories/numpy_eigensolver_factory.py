@@ -16,13 +16,13 @@ from typing import Optional, Union, List, Callable
 import numpy as np
 
 from qiskit.aqua.algorithms import Eigensolver, NumPyEigensolver
-from qiskit.chemistry.qubit_transformations import FermionicTransformation
+from qiskit.chemistry.transformations import FermionicTransformation
 from qiskit.aqua.utils.validation import validate_min
 
-from .es_factory import ESFactory
+from .eigensolver_factory import EigensolverFactory
 
 
-class NumPyEigensolverFactory(ESFactory):
+class NumPyEigensolverFactory(EigensolverFactory):
     """A factory to construct a NumPyEigensolver."""
 
     def __init__(self,

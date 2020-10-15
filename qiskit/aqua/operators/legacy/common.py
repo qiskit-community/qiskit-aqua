@@ -384,7 +384,7 @@ def evolution_instruction(pauli_list, evo_time, num_time_slices,
     return qc.to_instruction()
 
 
-def commutator(op_a, op_b, op_c=None, sign = 1, threshold=1e-12):
+def commutator(op_a, op_b, op_c=None, sign = -1, threshold=1e-12):
     r"""
     Compute commutator of `op_a` and `op_b` or
     the symmetric double commutator of `op_a`, `op_b` and `op_c`.

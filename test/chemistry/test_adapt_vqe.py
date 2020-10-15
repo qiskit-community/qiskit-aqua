@@ -49,7 +49,7 @@ class TestAdaptVQE(QiskitChemistryTestCase):
         solver = VQEUCCSDFactory(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
         calc = AdaptVQE(self.transformation, solver)
         res = calc.solve(self.driver)
-        self.assertAlmostEqual(res.electronic_energy, self.expected, places=6)
+        self.assertAlmostEqual(res.electronic_energies[0], self.expected, places=6)
 
     def test_custom_minimum_eigensolver(self):
         """ Test custom MES """
@@ -80,7 +80,7 @@ class TestAdaptVQE(QiskitChemistryTestCase):
 
         calc = AdaptVQE(self.transformation, solver)
         res = calc.solve(self.driver)
-        self.assertAlmostEqual(res.electronic_energy, self.expected, places=6)
+        self.assertAlmostEqual(res.electronic_energies[0], self.expected, places=6)
 
     def test_custom_excitation_pool(self):
         """ Test custom excitation pool """
@@ -101,7 +101,7 @@ class TestAdaptVQE(QiskitChemistryTestCase):
         solver = CustomFactory(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
         calc = AdaptVQE(self.transformation, solver)
         res = calc.solve(self.driver)
-        self.assertAlmostEqual(res.electronic_energy, self.expected, places=6)
+        self.assertAlmostEqual(res.electronic_energies[0], self.expected, places=6)
 
     def test_vqe_adapt_check_cyclicity(self):
         """ VQEAdapt index cycle detection """

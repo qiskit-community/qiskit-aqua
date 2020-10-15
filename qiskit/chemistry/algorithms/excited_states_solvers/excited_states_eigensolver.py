@@ -20,20 +20,21 @@ from qiskit.aqua.algorithms import Eigensolver
 from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.chemistry import FermionicOperator
 from qiskit.chemistry.drivers import BaseDriver
-from qiskit.chemistry.excited_states_calculation import ExcitedStatesCalculation
 from qiskit.chemistry.results import EigenstateResult
-from qiskit.chemistry.qubit_transformations import QubitOperatorTransformation
+from qiskit.chemistry.transformations import Transformation
+from qiskit.chemistry.results import ElectronicStructureResult, VibronicStructureResult
 
-from .es_factory import ESFactory
+from .excited_states_solver import ExcitedStatesSolver
+from .eigensolver_factories import EigensolverFactory
 
 logger = logging.getLogger(__name__)
 
 
-class EigenSolverExcitedStatesCalculation(ExcitedStatesCalculation):
+class ExcitedStatesEigensolver(ExcitedStatesSolver):
     """The calculation of excited states via an Eigensolver algorithm"""
 
-    def __init__(self, transformation: QubitOperatorTransformation,
-                 solver: Union[Eigensolver, ESFactory]) -> None:
+    def __init__(self, transformation: Transformation,
+                 solver: Union[Eigensolver, EigensolverFactory]) -> None:
         """
 
         Args:
@@ -44,28 +45,28 @@ class EigenSolverExcitedStatesCalculation(ExcitedStatesCalculation):
         self._solver = solver
 
     @property
-    def solver(self) -> Union[Eigensolver, ESFactory]:
+    def solver(self) -> Union[Eigensolver, EigensolverFactory]:
         """Returns the minimum eigensolver or factory."""
         return self._solver
 
     @solver.setter
-    def solver(self, solver: Union[Eigensolver, ESFactory]) -> None:
+    def solver(self, solver: Union[Eigensolver, EigensolverFactory]) -> None:
         """Sets the minimum eigensolver or factory."""
         self._solver = solver
 
     @property
-    def transformation(self) -> QubitOperatorTransformation:
+    def transformation(self) -> Transformation:
         """Returns the transformation used to obtain a qubit operator from the molecule."""
         return self._transformation
 
     @transformation.setter
-    def transformation(self, transformation: QubitOperatorTransformation) -> None:
+    def transformation(self, transformation: Transformation) -> None:
         """Sets the transformation used to obtain a qubit operator from the molecule."""
         self._transformation = transformation
 
-    def compute_excitedstates(self, driver: BaseDriver,
-                              aux_operators: Optional[List[Any]] = None
-                              ) -> EigenstateResult:
+    def solve(self, driver: BaseDriver,
+              aux_operators: Optional[List[Any]] = None
+              ) -> Union[ElectronicStructureResult, VibronicStructureResult]:
         """Compute Ground and Excited States properties.
 
         Args:
@@ -93,7 +94,7 @@ class EigenSolverExcitedStatesCalculation(ExcitedStatesCalculation):
         # by the user but also additional ones from the transformation
         operator, aux_operators = self.transformation.transform(driver, aux_operators)
 
-        if isinstance(self._solver, ESFactory):
+        if isinstance(self._solver, EigensolverFactory):
             # this must be called after transformation.transform
             solver = self._solver.get_solver(self.transformation)
         else:

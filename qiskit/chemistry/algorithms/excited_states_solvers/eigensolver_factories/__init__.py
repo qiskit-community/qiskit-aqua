@@ -13,9 +13,9 @@
 """Factories that create an eigensolver based on a qubit transformation."""
 
 
-from .es_factory import ESFactory
+from .eigensolver_factory import EigensolverFactory
 from .numpy_eigensolver_factory import NumPyEigensolverFactory
 
-__all__ = ['ESFactory',
+__all__ = ['EigensolverFactory',
            'NumPyEigensolverFactory'
            ]

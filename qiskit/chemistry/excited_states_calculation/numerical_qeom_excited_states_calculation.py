@@ -137,11 +137,9 @@ class NumericalQEOMExcitedStatesCalculation(QEOMExcitedStatesCalculation):
 
     @staticmethod
     def _build_commutator_routine(params: List, operator: WeightedPauliOperator,
-                                  z2_symmetries: Z2Symmetries, sign: int) -> [int, int,
-                                                                              WeightedPauliOperator,
-                                                                              WeightedPauliOperator,
-                                                                              WeightedPauliOperator,
-                                                                              WeightedPauliOperator]:
+                                  z2_symmetries: Z2Symmetries, sign: int
+                                  ) -> Tuple[int, int, WeightedPauliOperator, WeightedPauliOperator,
+                                             WeightedPauliOperator, WeightedPauliOperator]:
         """
         numerically computes the commutator / double commutator between operators
         Args:

@@ -22,13 +22,13 @@ from qiskit.aqua import aqua_globals, QuantumInstance
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver, NumPyEigensolver
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
-from qiskit.chemistry.qubit_transformations import FermionicTransformation
-from qiskit.chemistry.qubit_transformations.fermionic_transformation import QubitMappingType
-from qiskit.chemistry.ground_state_calculation import MinimumEigensolverGroundStateCalculation
-from qiskit.chemistry.ground_state_calculation import VQEUCCSDFactory
-from qiskit.chemistry.excited_states_calculation import NumericalQEOMExcitedStatesCalculation
-from qiskit.chemistry.excited_states_calculation import NumPyEigensolverFactory
-from qiskit.chemistry.excited_states_calculation import EigenSolverExcitedStatesCalculation
+from qiskit.chemistry.transformations import FermionicTransformation
+from qiskit.chemistry.transformations.fermionic_transformation import QubitMappingType
+from qiskit.chemistry.algorithms.ground_state_solvers import (GroundStateEigensolver,
+                                                              VQEUCCSDFactory)
+from qiskit.chemistry.algorithms.excited_states_solvers import (
+    NumPyEigensolverFactory, ExcitedStatesEigensolver, QEOM
+)
 
 
 class TestNumericalQEOMESCCalculation(QiskitChemistryTestCase):
@@ -57,9 +57,9 @@ class TestNumericalQEOMESCCalculation(QiskitChemistryTestCase):
     def test_numpy_mes(self):
 
         solver = NumPyMinimumEigensolver()
-        gsc = MinimumEigensolverGroundStateCalculation(self.transformation, solver)
-        esc = NumericalQEOMExcitedStatesCalculation(gsc, 'sd')
-        results = esc.compute_excitedstates(self.driver)
+        gsc = GroundStateEigensolver(self.transformation, solver)
+        esc = QEOM(gsc, 'sd')
+        results = esc.solve(self.driver)
 
         for idx in range(len(self.reference_energies)):
             self.assertAlmostEqual(results.computed_energies[idx], self.reference_energies[idx],
@@ -68,9 +68,9 @@ class TestNumericalQEOMESCCalculation(QiskitChemistryTestCase):
     def test_vqe_mes(self):
 
         solver = VQEUCCSDFactory(self.quantum_instance)
-        gsc = MinimumEigensolverGroundStateCalculation(self.transformation, solver)
-        esc = NumericalQEOMExcitedStatesCalculation(gsc, 'sd')
-        results = esc.compute_excitedstates(self.driver)
+        gsc = GroundStateEigensolver(self.transformation, solver)
+        esc = QEOM(gsc, 'sd')
+        results = esc.solve(self.driver)
 
         for idx in range(len(self.reference_energies)):
             self.assertAlmostEqual(results.computed_energies[idx], self.reference_energies[idx],
@@ -78,8 +78,8 @@ class TestNumericalQEOMESCCalculation(QiskitChemistryTestCase):
 
     def test_numpy_factory(self):
         solver = NumPyEigensolverFactory()
-        esc = EigenSolverExcitedStatesCalculation(self.transformation, solver)
-        results = esc.compute_excitedstates(self.driver)
+        esc = ExcitedStatesEigensolver(self.transformation, solver)
+        results = esc.solve(self.driver)
 
         # filter duplicates from list
         computed_energies = [results.computed_energies[0]]

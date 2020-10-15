@@ -17,15 +17,17 @@ from typing import List, Optional, Union
 
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry import FermionicOperator, BosonicOperator
+from qiskit.chemistry.results import ElectronicStructureResult, VibronicStructureResult
 
 
-class ExcitedStatesCalculation(ABC):
+class ExcitedStatesSolver(ABC):
     """The excited states calculation interface"""
 
     @abstractmethod
-    def compute_excitedstates(self, driver: BaseDriver,
-                              aux_operators: Optional[Union[List[FermionicOperator],
-                                                            List[BosonicOperator]]] = None):
+    def solve(self, driver: BaseDriver,
+              aux_operators: Optional[Union[List[FermionicOperator],
+                                                 List[BosonicOperator]]] = None
+              ) -> Union[ElectronicStructureResult, VibronicStructureResult]:
         """Compute the excited states energies of the molecule that was supplied via the driver.
         Args:
             driver: a chemistry driver object which defines the chemical problem that is to be

@@ -10,13 +10,16 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Factories that create a minimum eigensolver based on a qubit transformation."""
+"""Excited states calculation algorithms."""
 
-from .mes_factory import MESFactory
-from .numpy_minimum_eigensolver_factory import NumPyMinimumEigensolverFactory
-from .vqe_uccsd_factory import VQEUCCSDFactory
+from .excited_states_solver import ExcitedStatesSolver
+from .qeom import QEOM
+from .eigensolver_factories import EigensolverFactory, NumPyEigensolverFactory
+from .excited_states_eigensolver import ExcitedStatesEigensolver
 
-__all__ = ['MESFactory',
-           'NumPyMinimumEigensolverFactory',
-           'VQEUCCSDFactory'
+__all__ = ['ExcitedStatesSolver',
+           'ExcitedStatesEigensolver',
+           'EigensolverFactory',
+           'NumPyEigensolverFactory',
+           'QEOM'
            ]
