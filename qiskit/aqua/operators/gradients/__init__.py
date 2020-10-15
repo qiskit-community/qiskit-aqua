@@ -114,6 +114,8 @@ together with a least square solver instead of exact inversion of the QFI:
 
 **Examples**
 
+.. code-block::
+
    op = ~StateFn(ham) @ CircuitStateFn(primitive=qc, coeff=1.)
    nat_grad = NaturalGradient(grad_method='lin_comb,
                               qfi_method='lin_comb_full',
