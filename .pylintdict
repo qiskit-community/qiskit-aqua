@@ -41,6 +41,7 @@ backend
 backends
 baritompa
 barkoutsos
+basedriver
 bb
 benchmarking
 bergholm
@@ -203,7 +204,7 @@ exponentiated
 exponentiations
 expr
 extrapolator
-Extrapolators
+extrapolators
 factorizers
 factr
 fcidump
@@ -251,6 +252,7 @@ grinko
 groundenergy
 groundstates
 grover
+gsc
 gset
 gsls
 gto
@@ -261,6 +263,7 @@ hamiltonian
 hamiltonians
 hardcoded
 hartree
+hartrees
 hassidim
 hb
 hhl
