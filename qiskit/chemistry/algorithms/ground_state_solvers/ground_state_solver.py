@@ -56,6 +56,7 @@ class GroundStateSolver(ABC):
               aux_operators: Optional[Union[List[FermionicOperator],
                                             List[BosonicOperator]]] = None) \
             -> Union[ElectronicStructureResult, VibronicStructureResult]:
+
         """Compute the ground state energy of the molecule that was supplied via the driver.
 
         Args:
