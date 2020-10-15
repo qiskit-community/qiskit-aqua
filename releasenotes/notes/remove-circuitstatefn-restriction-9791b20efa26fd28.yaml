@@ -1,0 +1,6 @@
+---
+features:
+  - |
+    Removes the restriction to real input vectors in CircuitStateFn.from_vector.
+    The method calls extensions.Initialize. The latter explicitly supports (in API
+    and documentation) complex input vectors. So this restriction seems unnecessary.

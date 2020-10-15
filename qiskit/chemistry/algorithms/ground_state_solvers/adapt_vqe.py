@@ -22,6 +22,7 @@ from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.aqua.algorithms import VQE
 from qiskit.aqua import AquaError
 from ...results.electronic_structure_result import ElectronicStructureResult
+from ...results.vibronic_structure_result import VibronicStructureResult
 from ...transformations.fermionic_transformation import FermionicTransformation
 from ...drivers.base_driver import BaseDriver
 from ...components.variational_forms import UCCSD
@@ -134,7 +135,8 @@ class AdaptVQE(GroundStateEigensolver):
               driver: BaseDriver,
               aux_operators: Optional[Union[List[FermionicOperator],
                                             List[BosonicOperator]]] = None) \
-            -> Union[ElectronicStructureResult, 'VibronicStructureResult']:
+            -> Union[ElectronicStructureResult, VibronicStructureResult]:
+
         """Computes the ground state.
 
         Args:

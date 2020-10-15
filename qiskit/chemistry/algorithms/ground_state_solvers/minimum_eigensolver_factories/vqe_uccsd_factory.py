@@ -73,12 +73,10 @@ class VQEUCCSDFactory(MinimumEigensolverFactory):
         self._initial_point = initial_point
         self._expectation = expectation
         self._include_custom = include_custom
-
         self._method_singles = method_singles
         self._method_doubles = method_doubles
         self._excitation_type = excitation_type
         self._same_spin_doubles = same_spin_doubles
-
         self._vqe = VQE(var_form=None,
                         quantum_instance=self._quantum_instance,
                         optimizer=self._optimizer,
@@ -129,12 +127,13 @@ class VQEUCCSDFactory(MinimumEigensolverFactory):
     @property
     def include_custom(self) -> bool:
         """Getter of the ``include_custom`` setting for the ``expectation`` setting."""
-        return self._optimizer
+        return self._include_custom
 
     @include_custom.setter
     def include_custom(self, include_custom: bool) -> None:
         """Setter of the ``include_custom`` setting for the ``expectation`` setting."""
         self._include_custom = include_custom
+
 
     @property
     def method_singles(self) -> str:

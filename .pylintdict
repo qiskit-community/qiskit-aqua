@@ -112,6 +112,7 @@ crx
 csr
 cts
 currentmodule
+cvar
 cvs
 cvxpy
 cx
@@ -131,6 +132,7 @@ deconvoluted
 deriv
 dest
 deutsch
+diagonality
 diagonalization
 diagonalize
 diagonalized
@@ -162,6 +164,7 @@ durr
 ecc
 eckstein
 ee
+egger
 eigen
 eigenenergies
 eigensolver
@@ -418,6 +421,7 @@ mypy
 nakanishi
 namelist
 nan
+nannicini
 narray
 nasdaq
 natively
@@ -461,6 +465,7 @@ onee
 online
 onodera
 onwards
+OO
 oom
 oovqe
 operatorbase
@@ -511,6 +516,7 @@ prebuilt
 precomputed
 preoracle
 prepend
+prepending
 preprint
 priori
 probs
@@ -575,6 +581,7 @@ renyi
 representable
 rescaled
 rescaling
+rescalings
 retval
 rhf
 rhobeg
@@ -662,6 +669,7 @@ sys
 sysctl
 tapp
 tanaka
+tavernelli
 tbd
 tbp
 temme
@@ -725,10 +733,12 @@ varform
 variational
 vartype
 vazirani
+vec
 vecs
 Veis
 vertices
 vibrational
+vibronic
 ville
 visualisation
 vqc

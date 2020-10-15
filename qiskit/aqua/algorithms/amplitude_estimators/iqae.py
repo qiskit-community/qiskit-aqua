@@ -13,6 +13,7 @@
 
 """The Iterative Quantum Amplitude Estimation Algorithm."""
 
+import warnings
 from typing import Optional, Union, List, Tuple, Callable, Dict, Any, cast
 import logging
 import numpy as np
@@ -235,12 +236,16 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             if k != 0:
                 circuit.compose(self.grover_operator.power(k), inplace=True)
         else:  # deprecated CircuitFactory
-            q = QuantumRegister(self.a_factory.num_target_qubits, 'q')
+            q = QuantumRegister(self._a_factory.num_target_qubits, 'q')
             circuit = QuantumCircuit(q, name='circuit')
 
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            q_factory = self.q_factory
+            warnings.filterwarnings('always', category=DeprecationWarning)
+
             # get number of ancillas and add register if needed
-            num_ancillas = np.maximum(self.a_factory.required_ancillas(),
-                                      self.q_factory.required_ancillas())
+            num_ancillas = np.maximum(self._a_factory.required_ancillas(),
+                                      q_factory.required_ancillas())
 
             q_aux = None
             # pylint: disable=comparison-with-callable
@@ -254,11 +259,11 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
                 circuit.add_register(c)
 
             # add A operator
-            self.a_factory.build(circuit, q, q_aux)
+            self._a_factory.build(circuit, q, q_aux)
 
             # add Q^k
             if k != 0:
-                self.q_factory.build_power(circuit, q, k, q_aux)
+                q_factory.build_power(circuit, q, k, q_aux)
 
             # add optional measurement
         if measurement:
@@ -285,7 +290,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         if self.state_preparation is not None:
             num_qubits = self.state_preparation.num_qubits - self.state_preparation.num_ancillas
         else:
-            num_qubits = self.a_factory.num_target_qubits
+            num_qubits = self._a_factory.num_target_qubits
 
         if isinstance(counts_or_statevector, dict):
             one_counts = counts_or_statevector.get('1' * len(self.objective_qubits), 0)
@@ -353,7 +358,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
     def _run(self) -> 'IterativeAmplitudeEstimationResult':
         # check if A factory or state_preparation has been set
         if self.state_preparation is None:
-            if self.a_factory is None:  # getter emits deprecation warnings, therefore nest
+            if self._a_factory is None:  # getter emits deprecation warnings, therefore nest
                 raise AquaError('Either the state_preparation variable or the a_factory '
                                 '(deprecated) must be set to run the algorithm.')
 
