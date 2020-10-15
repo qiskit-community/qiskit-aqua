@@ -40,7 +40,7 @@ class BOPESSampler:
         Args:
             gsc: GroundStateSolver
             tolerance: Tolerance desired for minimum energy.
-            bootstrap: Whether to warm-start the solve of variational minimum eigensolvers.
+            bootstrap: Whether to warm-start the solution of variational minimum eigensolvers.
             num_bootstrap: Number of previous points for extrapolation
                 and bootstrapping. If None and a list of extrapolators is defined,
                 the first two points will be used for bootstrapping.
