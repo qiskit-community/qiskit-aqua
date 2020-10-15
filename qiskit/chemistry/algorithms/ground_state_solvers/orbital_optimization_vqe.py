@@ -20,11 +20,12 @@ import copy
 import numpy as np
 from scipy.linalg import expm
 from qiskit.aqua import AquaError
-from qiskit.aqua.algorithms import VQE
+from qiskit.aqua.algorithms import VQE, MinimumEigensolver
 from qiskit.aqua.operators import LegacyBaseOperator
 
 from .ground_state_eigensolver import GroundStateEigensolver
 from .minimum_eigensolver_factories import MinimumEigensolverFactory
+from ...components.variational_forms import UCCSD
 from ...fermionic_operator import FermionicOperator
 from ...bosonic_operator import BosonicOperator
 from ...drivers.base_driver import BaseDriver
@@ -56,7 +57,7 @@ class OrbitalOptimizationVQE(GroundStateEigensolver):
 
     def __init__(self,
                  transformation: FermionicTransformation,
-                 solver_factory: MinimumEigensolverFactory,
+                 solver: Union[MinimumEigensolver, MinimumEigensolverFactory],
                  initial_point: Optional[np.ndarray] = None,
                  orbital_rotation: Optional['OrbitalRotation'] = None,
                  bounds: Optional[np.ndarray] = None,
@@ -66,7 +67,9 @@ class OrbitalOptimizationVQE(GroundStateEigensolver):
         """
         Args:
             transformation: a fermionic driver to operator transformation strategy.
-            solver_factory: a factory for the VQE solver employing any custom variational form.
+            solver: a VQE instance or a factory for the VQE solver employing any custom
+                variational form, such as the `VQEUCCSDFactory`. Both need to use the UCCSD
+                variational form.
             initial_point: An optional initial point (i.e. initial parameter values)
                 for the optimizer. If ``None`` then VQE will look to the variational form for a
                 preferred point and if not will simply compute a random one.
@@ -85,9 +88,7 @@ class OrbitalOptimizationVQE(GroundStateEigensolver):
             AquaError: if the number of orbital optimization iterations is less or equal to zero.
         """
 
-        super().__init__(transformation, solver_factory)
-        # todo: no need, initializer in the super class
-        self._solver_factory = solver_factory
+        super().__init__(transformation, solver)
         self.initial_point = initial_point
         self._orbital_rotation = orbital_rotation
         self._bounds = bounds
@@ -121,9 +122,20 @@ class OrbitalOptimizationVQE(GroundStateEigensolver):
             operator, aux_operators = self._transformation._do_transform(self._qmolecule)
         if operator is None:  # type: ignore
             raise AquaError("The operator was never provided.")
-        self._vqe = self._solver_factory.get_solver(self._transformation)
+
+        if isinstance(self._solver, MinimumEigensolverFactory):
+            # this must be called after transformation.transform
+            self._vqe = self._solver.get_solver(self.transformation)
+        else:
+            self._vqe = self._solver
+
         if not isinstance(self._vqe, VQE):
-            raise AquaError("The OOVQE algorithm requires the use of the VQE solver")
+            raise AquaError(
+                "The Orbital Optimization VQE algorithm requires the use of the VQE solver.")
+        elif not isinstance(self._vqe.var_form, UCCSD):
+            raise AquaError(
+                "The Orbital Optimization VQE algorithm requires the use of the UCCSD varform.")
+
         self._vqe.operator = operator
         self._vqe.aux_operators = aux_operators
 
@@ -164,7 +176,7 @@ class OrbitalOptimizationVQE(GroundStateEigensolver):
                                                      transformation=self._transformation,
                                                      qmolecule=self._qmolecule)
         self._num_parameters_oovqe = \
-            self._vqe.var_form._num_parameters + self._orbital_rotation.num_parameters
+            self._vqe.var_form.num_parameters + self._orbital_rotation.num_parameters
 
         if self.initial_point is None:
             self._set_initial_point()
