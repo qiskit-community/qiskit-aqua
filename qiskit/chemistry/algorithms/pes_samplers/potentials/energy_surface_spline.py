@@ -11,7 +11,7 @@
 # that they have been altered from the originals.
 
 """
-An spline interpolation method for data fitting. This allows for fiting
+An spline interpolation method for data fitting. This allows for fitting
 bopes sampler results or potential energy surfaces.
 """
 

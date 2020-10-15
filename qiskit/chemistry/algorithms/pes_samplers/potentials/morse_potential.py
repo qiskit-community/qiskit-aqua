@@ -54,7 +54,7 @@ class MorsePotential(PotentialBase):
             self._m_b = molecule.masses[1]
         else:
             raise ValueError(
-                'Molecule massses need to be provided')
+                'Molecule masses need to be provided')
 
     @staticmethod
     def fit_function(x: float,

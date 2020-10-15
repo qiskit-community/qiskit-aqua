@@ -57,6 +57,7 @@ bohr
 bool
 boolean
 bools
+bopes
 bosonic
 bpa
 brassard
@@ -259,6 +260,7 @@ grover
 gsc
 gset
 gsls
+gss
 gto
 gtol
 hadamard
@@ -769,6 +771,7 @@ workq
 wrt
 wvf
 xatol
+xdata
 xixj
 xopt
 xs
