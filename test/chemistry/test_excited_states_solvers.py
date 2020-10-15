@@ -78,7 +78,12 @@ class TestNumericalQEOMESCCalculation(QiskitChemistryTestCase):
 
     def test_numpy_factory(self):
         """ Test NumPyEigenSolverFactory with ExcitedStatesEigensolver """
-        solver = NumPyEigensolverFactory(use_default_filter_criterion=True)
+
+        # pylint: disable=unused-argument
+        def filter_criterion(eigenstate, eigenvalue, aux_values):
+            return np.isclose(aux_values[0][0], 2.)
+
+        solver = NumPyEigensolverFactory(filter_criterion=filter_criterion)
         esc = ExcitedStatesEigensolver(self.transformation, solver)
         results = esc.solve(self.driver)
 
