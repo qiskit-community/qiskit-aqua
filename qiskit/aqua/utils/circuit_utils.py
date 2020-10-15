@@ -18,7 +18,7 @@ from qiskit.transpiler.passes import Unroller
 
 
 def convert_to_basis_gates(circuit):
-    """ unroll the circuit using the basis u1, u2, u3, cx gates """
+    """ unroll the circuit using the basis ['u', 'cx'] """
     unroller = Unroller(basis=['u', 'cx'])
     return dag_to_circuit(unroller.run(circuit_to_dag(circuit)))
 
