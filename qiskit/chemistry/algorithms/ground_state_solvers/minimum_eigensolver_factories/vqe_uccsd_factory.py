@@ -15,11 +15,12 @@
 from typing import Optional
 import numpy as np
 
-from qiskit.aqua import QuantumInstance
+from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.algorithms import MinimumEigensolver, VQE
 from qiskit.aqua.operators import ExpectationBase
 from qiskit.aqua.components.optimizers import Optimizer
 from ....components.variational_forms import UCCSD
+from ....transformations import Transformation
 from ....transformations.fermionic_transformation import FermionicTransformation
 from ....components.initial_states import HartreeFock
 
@@ -174,7 +175,7 @@ class VQEUCCSDFactory(MinimumEigensolverFactory):
         """Setter of the ``same_spin_doubles`` setting for the ``same_spin_doubles`` setting."""
         self._same_spin_doubles = same_spin_doubles
 
-    def get_solver(self, transformation: FermionicTransformation) -> MinimumEigensolver:
+    def get_solver(self, transformation: Transformation) -> MinimumEigensolver:
         """Returns a VQE with a UCCSD wavefunction ansatz, based on ``transformation``.
         This works only with a ``FermionicTransformation``.
 
@@ -184,7 +185,13 @@ class VQEUCCSDFactory(MinimumEigensolverFactory):
         Returns:
             A VQE suitable to compute the ground state of the molecule transformed
             by ``transformation``.
+
+        Raises:
+            AquaError: in case a wronte Transformation type is given.
         """
+        if not isinstance(transformation, FermionicTransformation):
+            raise AquaError('VQEUCCSDFactory.getsolver() requires a FermionicTransformation')
+
         num_orbitals = transformation.molecule_info['num_orbitals']
         num_particles = transformation.molecule_info['num_particles']
         qubit_mapping = transformation.qubit_mapping

@@ -29,6 +29,7 @@ from ...components.variational_forms import UCCSD
 from ...fermionic_operator import FermionicOperator
 from ...bosonic_operator import BosonicOperator
 from ...drivers.base_driver import BaseDriver
+from ...drivers.fermionic_driver import FermionicDriver
 from ...transformations.fermionic_transformation import FermionicTransformation
 from ...results.electronic_structure_result import ElectronicStructureResult
 from ...qmolecule import QMolecule
@@ -89,6 +90,11 @@ class OrbitalOptimizationVQE(GroundStateEigensolver):
         """
 
         super().__init__(transformation, solver)
+        if not isinstance(self._transformation, FermionicTransformation):
+            raise AquaError('Orbital Optimization VQE requires a FermionicTransformation.')
+        from typing import cast
+        self._transformation = cast(FermionicTransformation, self._transformation)
+
         self.initial_point = initial_point
         self._orbital_rotation = orbital_rotation
         self._bounds = bounds
@@ -96,22 +102,28 @@ class OrbitalOptimizationVQE(GroundStateEigensolver):
         self._iterative_oo_iterations = iterative_oo_iterations
 
         # internal parameters of the algorithm
-        self._driver = None
-        self._qmolecule = None
-        self._qmolecule_rotated = None
+        self._driver = None  # type: Optional[FermionicDriver]
+        self._qmolecule = None  # type: Optional[QMolecule]
+        self._qmolecule_rotated = None  # type: Optional[QMolecule]
+
         self._fixed_wavefunction_params = None
         self._num_parameters_oovqe = None
         self._additional_params_initialized = False
         self.var_form_num_parameters = None
         self.var_form_bounds = None
-        self._vqe = None
-        self._bound_oo = None
+        self._vqe = None  # type: Optional[VQE]
+        self._bound_oo = None  # type: Optional[List]
 
     def returns_groundstate(self) -> bool:
         return True
 
     def _set_operator_and_vqe(self, driver: BaseDriver):
         """ Initializes the operators using provided driver of qmolecule."""
+
+        if not isinstance(self._transformation, FermionicTransformation):
+            raise AquaError('Orbital Optimization VQE requires a FermionicTransformation.')
+        if not isinstance(driver, FermionicDriver):
+            raise AquaError('Orbital Optimization VQE only works with Fermionic Drivers.')
 
         if self._qmolecule is None:
             # in future, self._transformation.transform should return also qmolecule
@@ -132,7 +144,7 @@ class OrbitalOptimizationVQE(GroundStateEigensolver):
         if not isinstance(self._vqe, VQE):
             raise AquaError(
                 "The Orbital Optimization VQE algorithm requires the use of the VQE solver.")
-        elif not isinstance(self._vqe.var_form, UCCSD):
+        if not isinstance(self._vqe.var_form, UCCSD):
             raise AquaError(
                 "The Orbital Optimization VQE algorithm requires the use of the UCCSD varform.")
 
@@ -155,7 +167,7 @@ class OrbitalOptimizationVQE(GroundStateEigensolver):
         self._bounds = []
         bounds_var_form = [bounds_var_form_val for _ in range(self._vqe.var_form.num_parameters)]
         self._bound_oo = \
-            [bounds_oo_val for _ in range(self._orbital_rotation.num_parameters)]  # type: List
+            [bounds_oo_val for _ in range(self._orbital_rotation.num_parameters)]
         self._bounds = bounds_var_form + self._bound_oo
         self._bounds = np.array(self._bounds)
 
@@ -168,6 +180,9 @@ class OrbitalOptimizationVQE(GroundStateEigensolver):
 
     def _initialize_additional_parameters(self, driver: BaseDriver):
         """ Initializes additional parameters of the OOVQE algorithm. """
+
+        if not isinstance(self._transformation, FermionicTransformation):
+            raise AquaError('Orbital Optimization VQE requires a FermionicTransformation.')
 
         self._set_operator_and_vqe(driver)
 
@@ -208,6 +223,9 @@ class OrbitalOptimizationVQE(GroundStateEigensolver):
             AquaError: Instantiate OrbitalRotation class and provide it to the
                        orbital_rotation keyword argument
         """
+
+        if not isinstance(self._transformation, FermionicTransformation):
+            raise AquaError('Orbital Optimization VQE requires a FermionicTransformation.')
 
         # slice parameter lists
         if self._iterative_oo:
@@ -254,6 +272,10 @@ class OrbitalOptimizationVQE(GroundStateEigensolver):
             -> ElectronicStructureResult:
 
         self._initialize_additional_parameters(driver)
+
+        if not isinstance(self._transformation, FermionicTransformation):
+            raise AquaError('Orbital Optimization VQE requires a FermionicTransformation.')
+
         self._vqe._eval_count = 0
 
         # initial orbital rotation starting point is provided
