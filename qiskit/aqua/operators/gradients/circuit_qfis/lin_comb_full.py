@@ -64,11 +64,9 @@ class LinCombFull(CircuitQFI):
         phase_fix_observable = ~StateFn((X + 1j * Y) ^ (I ^ operator.num_qubits))
         # see https://arxiv.org/pdf/quant-ph/0108146.pdf
 
-        if isinstance(operator, CircuitStateFn):
-            pass
-        else:
+        if not isinstance(operator, CircuitStateFn):
             raise TypeError(
-                'The gradient framework is compatible with states that are given as CircuitStateFn')
+                'LinCombFull is only compatible with states that are given as CircuitStateFn')
 
         if not isinstance(params, (list, np.ndarray)):
             params = [params]
