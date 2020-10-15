@@ -111,7 +111,7 @@ class EnergySurface1DSpline(EnergySurfaceBase):
         assert self.min_val is not None
         return self.min_val * scaling
 
-    def get_trust_region(self)->tuple(float, float):
+    def get_trust_region(self)->Tuple[float, float]:
         """
         Returns the bounds of the region (in space) where the energy
         surface implementation can be trusted. When doing spline

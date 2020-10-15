@@ -233,7 +233,7 @@ class HarmonicPotential(PotentialBase):
         return e_n * const.J_TO_HARTREE
 
     @classmethod
-    def process_fit_data(cls, xdata, ydata)->tuple(list,list):
+    def process_fit_data(cls, xdata, ydata)->Tuple[list,list]:
         """
         Mostly for internal use. Preprocesses the data passed to fit_to_data()
             so that only the points around the minimum are fit (which gives

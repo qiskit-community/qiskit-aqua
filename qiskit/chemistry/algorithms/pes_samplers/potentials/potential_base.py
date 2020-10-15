@@ -155,7 +155,7 @@ class PotentialBase(EnergySurfaceBase, VibronicStructureBase):
         """ This (1D) potential represents a single vibrational mode """
         return 1
 
-    def get_trust_region(self)->tuple(float,float):
+    def get_trust_region(self)->Tuple[float,float]:
         """
         The potential will usually be well-defined (even if not useful) for
         arbitrary x so we return a fairly large interval here.
