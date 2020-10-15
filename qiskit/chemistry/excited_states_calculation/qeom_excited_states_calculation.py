@@ -12,7 +12,7 @@
 
 """The calculation of excited states via the qEOM algorithm"""
 
-from typing import List, Union, Optional
+from typing import List, Union, Optional, Tuple
 import logging
 from abc import abstractmethod
 import numpy as np
@@ -128,9 +128,9 @@ class QEOMExcitedStatesCalculation(ExcitedStatesCalculation):
         """construct the excitation operators for each matrix element"""
         raise NotImplementedError
 
-    def _build_eom_matrices(self, gs_results: dict, size: int) -> [np.ndarray, np.ndarray,
-                                                                   np.ndarray, np.ndarray, float,
-                                                                   float, float, float]:
+    def _build_eom_matrices(self, gs_results: dict, size: int) -> Tuple[np.ndarray, np.ndarray,
+                                                                        np.ndarray, np.ndarray,
+                                                                        float, float, float, float]:
         """
         Constructs the M, V, Q and W matrices from the results on the ground state
         Args:
@@ -147,7 +147,7 @@ class QEOMExcitedStatesCalculation(ExcitedStatesCalculation):
         v_mat = np.zeros((size, size), dtype=complex)
         q_mat = np.zeros((size, size), dtype=complex)
         w_mat = np.zeros((size, size), dtype=complex)
-        m_mat_std, v_mat_std, q_mat_std, w_mat_std = 0, 0, 0, 0
+        m_mat_std, v_mat_std, q_mat_std, w_mat_std = 0., 0., 0., 0.
 
         # evaluate results
         for idx, _ in enumerate(mus):
@@ -196,7 +196,7 @@ class QEOMExcitedStatesCalculation(ExcitedStatesCalculation):
 
     @staticmethod
     def _compute_excitation_energies(m_mat: np.ndarray, v_mat: np.ndarray, q_mat: np.ndarray,
-                                     w_mat: np.ndarray) -> [np.ndarray, np.ndarray]:
+                                     w_mat: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """Diagonalizing M, V, Q, W matrices for excitation energies.
 
         Args:

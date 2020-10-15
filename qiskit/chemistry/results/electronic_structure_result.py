@@ -135,7 +135,7 @@ class ElectronicStructureResult(EigenstateResult):
         """ Returns total dipole of moment """
         if self.dipole_moment is None:
             return None  # No dipole at all
-        tdm = []
+        tdm: List[float] = []
         for dip in self.dipole_moment:
             if np.any(np.equal(list(dip), None)):
                 tdm.append(None)  # One or more components in the dipole is None
@@ -232,16 +232,14 @@ class ElectronicStructureResult(EigenstateResult):
         self.data['total_angular_momentum'] = value
 
     @property
-    def spin(self) -> Optional[Union[float, List[float]]]:
+    def spin(self) -> Optional[List[float]]:
         """ Returns computed spin """
         if self.total_angular_momentum is None:
             return None
-        if isinstance(self.total_angular_momentum, list):
-            spin = []
-            for total_angular_momentum in self.total_angular_momentum:
-                spin.append((-1.0 + np.sqrt(1 + 4 * total_angular_momentum)) / 2)
-            return spin
-        return (-1.0 + np.sqrt(1 + 4 * self.total_angular_momentum)) / 2
+        spin = []
+        for total_angular_momentum in self.total_angular_momentum:
+            spin.append((-1.0 + np.sqrt(1 + 4 * total_angular_momentum)) / 2)
+        return spin
 
     @property
     def num_particles(self) -> Optional[List[float]]:

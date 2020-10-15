@@ -17,7 +17,7 @@ import logging
 import itertools
 import sys
 
-from typing import Optional, List, Union
+from typing import Optional, List, Union, Tuple
 
 from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
@@ -46,7 +46,7 @@ class NumericalQEOMExcitedStatesCalculation(QEOMExcitedStatesCalculation):
         super().__init__(ground_state_calculation, excitations)
         self.excitations = excitations
 
-    def _prepare_matrix_operators(self) -> [dict, int]:
+    def _prepare_matrix_operators(self) -> Tuple[dict, int]:
         """construct the excitation operators for each matrix element
         Returns: a dictionary of all matrix elements operators
         """
