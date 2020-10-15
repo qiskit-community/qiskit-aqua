@@ -195,7 +195,9 @@ class QEOM(ExcitedStatesSolver):
                     all_matrix_operators['v_{}_{}'.format(m_u, n_u)] = v_mat_op
 
         try:
-            z2_symmetries = self._gsc.transformation.molecule_info['z2_symmetries']
+            # The next step only works in the case of the FermionicTransformation. Thus, it is done
+            # in a try-except block. However, mypy doesn't detect this and thus we ignore it.
+            z2_symmetries = self._gsc.transformation.molecule_info['z2_symmetries']  # type: ignore
         except AttributeError:
             z2_symmetries = Z2Symmetries([],[],[])
 
@@ -211,12 +213,18 @@ class QEOM(ExcitedStatesSolver):
                     value = np.asarray(value)
                     if np.all(value == targeted_sector):
                         available_hopping_ops[key] = hopping_operators[key]
-                _build_one_sector(available_hopping_ops, self._gsc.transformation.untapered_qubit_op,
-                                  z2_symmetries, self._gsc.transformation.commutation_rule)
+                # untapered_qubit_op is a WeightedPauliOperator and should not be exposed.
+                _build_one_sector(available_hopping_ops,
+                                  self._gsc.transformation.untapered_qubit_op,  # type: ignore
+                                  z2_symmetries,
+                                  self._gsc.transformation.commutation_rule)
 
         else:
-            _build_one_sector(hopping_operators,self._gsc.transformation.untapered_qubit_op,
-                                  z2_symmetries, self._gsc.transformation.commutation_rule)
+            # untapered_qubit_op is a WeightedPauliOperator and should not be exposed.
+            _build_one_sector(hopping_operators,
+                              self._gsc.transformation.untapered_qubit_op,  # type: ignore
+                              z2_symmetries,
+                              self._gsc.transformation.commutation_rule)
 
 
         return all_matrix_operators

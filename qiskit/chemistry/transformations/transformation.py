@@ -67,6 +67,11 @@ class Transformation(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def commutation_rule(self) -> int:
+        """Getter of the commutation rule"""
+        raise NotImplementedError
+
+    @abstractmethod
     def build_hopping_operators(self, excitations: Union[str, List[List[int]]] = 'sd'
                                 ) -> Tuple[Dict[str, WeightedPauliOperator],
                                            Dict[str, List[bool]],
