@@ -10,16 +10,9 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Chemistry results module."""
+"""Potential energy surface samplers"""
 
-from .electronic_structure_result import DipoleTuple, ElectronicStructureResult
-from .vibronic_structure_result import VibronicStructureResult
+from .bopes_sampler import BOPESSampler
 
-from .eigenstate_result import EigenstateResult
-
-
-__all__ = ['DipoleTuple',
-           'EigenstateResult',
-           'ElectronicStructureResult',
-           'VibronicStructureResult'
+__all__ = ['BOPESSampler'
            ]

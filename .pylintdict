@@ -44,6 +44,7 @@ babbush
 backend
 backends
 barkoutsos
+basedriver
 bb
 benchmarking
 bergholm
@@ -59,6 +60,7 @@ boolean
 bools
 boson
 bosonic
+bopes
 bpa
 brassard
 bravyi
@@ -171,6 +173,7 @@ ee
 egger
 eigen
 eigenenergies
+eigensolution
 eigensolver
 eigensolvers
 eigenstate
@@ -207,11 +210,16 @@ exponentials
 exponentiated
 exponentiations
 expr
+extrapolator
+extrapolators
+extrapolator's
 factorizers
 factr
 fcidump
 fcompiler
+fd
 fermionic
+fermionicdriver
 fermionicoperator
 fermionictransformation
 fermions
@@ -253,8 +261,10 @@ grinko
 groundenergy
 groundstates
 grover
+gsc
 gset
 gsls
+gss
 gto
 gtol
 hadamard
@@ -263,6 +273,7 @@ hamiltonian
 hamiltonians
 hardcoded
 hartree
+hartrees
 hassidim
 hb
 hessians
@@ -301,6 +312,7 @@ inreg
 instantiation
 intelvem
 interatomic
+internuclear
 ints
 invertible
 iprint
@@ -370,6 +382,7 @@ logfile
 loglik
 loglikelihood
 logn
+lookback
 lor
 lowerbound
 lp
@@ -413,6 +426,10 @@ mohij
 mohijkl
 mol
 moller
+momentums
+monomial
+monomials
+morse
 mosca
 mprev
 msb
@@ -679,6 +696,7 @@ terra
 terra's
 tgt
 th
+thermo
 tiajb
 tibja
 timelimit
@@ -759,6 +777,7 @@ workq
 wrt
 wvf
 xatol
+xdata
 xixj
 xopt
 xs
@@ -768,6 +787,8 @@ xx
 xyz
 yamamoto
 yao
+ydata
+YFinance
 yfinance
 yu
 yy
