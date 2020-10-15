@@ -21,25 +21,27 @@ from .bosonic_basis import BosonicBasis
 
 
 class HarmonicBasis(BosonicBasis):
-    """ Basis into which writing the Watson Hamiltonian.
+    """Basis in which the Watson Hamiltonian is expressed.
 
     This class uses the Hermite polynomials (eigenstates of the harmonic oscillator) as a modal
     basis for the expression of the Watson Hamiltonian or any bosonic operator.
-    Reference: *Ollitrault Pauline J., Chemical science 11 (2020): 6842-6855.*
+
+    References:
+
+        [1] Ollitrault Pauline J., Chemical science 11 (2020): 6842-6855.
 
     """
 
     def __init__(self, watson_hamiltonian: WatsonHamiltonian, basis: List[int],
-                 truncation_order: int = 3):
+                 truncation_order: int = 3) -> None:
         """
-        A set of functions to transform a Watson Hamiltonian in the Harmonic basis
         Args:
-            watson_hamiltonian: A WatsonHamiltonian object which contains the hamiltonian
-                information
+            watson_hamiltonian: A ``WatsonHamiltonian`` object which contains the hamiltonian
+                information.
             basis: Is a list defining the number of modals per mode. E.g. for a 3 modes system
-                with 4 modals per mode basis = [4,4,4].
+                with 4 modals per mode ``basis = [4, 4, 4]``.
             truncation_order: where is the Hamiltonian expansion truncation (1 for having only
-                              1-body terms, 2 for having on 1- and 2-body terms...)
+                1-body terms, 2 for having on 1- and 2-body terms...)
         """
 
         self._watson = watson_hamiltonian
@@ -49,10 +51,9 @@ class HarmonicBasis(BosonicBasis):
 
     @staticmethod
     def _harmonic_integrals(m: int, n: int, power: int, kinetic_term: bool = False) -> float:
-        r""" Computes the integral of the Hamiltonian with the harmonic basis.
+        r"""Computes the integral of the Hamiltonian with the harmonic basis.
 
-        This computation is as shown in J. Chem. Phys. 135, 134108 (2011);
-        https://doi.org/10.1063/1.3644895 (Table 1)
+        This computation is as shown in [1].
 
         Args:
             m: first modal index
@@ -62,10 +63,16 @@ class HarmonicBasis(BosonicBasis):
                           kinetic part of the hamiltonian d^2/dQ^2
 
         Returns:
-            The value of the integral
+            The value of the integral.
 
         Raises:
-            ValueError: If power is invalid
+            ValueError: If ``power`` is invalid
+
+        References:
+
+            [1] J. Chem. Phys. 135, 134108 (2011)
+                https://doi.org/10.1063/1.3644895 (Table 1)
+
         """
         coeff = 0.0
         if power == 1:
@@ -95,11 +102,11 @@ class HarmonicBasis(BosonicBasis):
             elif m - n == 4:
                 coeff = np.sqrt(m * (m - 1) * (m - 2) * (m - 3)) / 4
         else:
-            raise ValueError('The expansion order of the PES is too high.')
+            raise ValueError('The expansion order of the PES is too large, only up to 4 is '
+                             'currently supported.')
         return coeff * (np.sqrt(2) ** power)
 
     def _is_in_basis(self, indices, order, i):
-
         in_basis = True
         for j in range(order):
             for modal in [1, 2]:
@@ -108,8 +115,8 @@ class HarmonicBasis(BosonicBasis):
 
         return in_basis
 
-    def run(self, threshold: float = 1e-6) \
-            -> List[List[Tuple[List[List[int]], float]]]:
+    def run(self, threshold: float = 1e-6
+            ) -> List[List[Tuple[List[List[int]], float]]]:
         """
         This prepares an array object representing a bosonic hamiltonian expressed
         in the harmonic basis. This object can directly be given to the BosonicOperator
