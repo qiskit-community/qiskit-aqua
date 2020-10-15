@@ -25,8 +25,6 @@ from qiskit.aqua.operators.gradients.gradient_base import GradientBase
 from qiskit.aqua.operators.gradients.qfi import QFI
 from qiskit.circuit import ParameterVector, ParameterExpression
 
-os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
-
 
 class NaturalGradient(GradientBase):
     r"""Convert an operator expression to the first-order gradient.
