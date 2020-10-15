@@ -563,6 +563,8 @@ class FermionicTransformation(Transformation):
             else:
                 aux_operator_eigenvalues = result.aux_operator_eigenvalues
             for aux_op_eigenvalues in aux_operator_eigenvalues:
+                if aux_op_eigenvalues is None:
+                    continue
                 if aux_op_eigenvalues[0] is not None:
                     result.num_particles.append(aux_op_eigenvalues[0][0].real)
 
