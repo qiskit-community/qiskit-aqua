@@ -111,6 +111,7 @@ crs
 csr
 cts
 currentmodule
+cvar
 cvs
 cvxpy
 cx
@@ -131,6 +132,7 @@ deriv
 dest
 deutsch
 df
+diagonality
 diagonalization
 diagonalize
 diagonalized
@@ -420,6 +422,7 @@ mypy
 nakanishi
 namelist
 nan
+nannicini
 narray
 nasdaq
 natively
@@ -661,6 +664,7 @@ sys
 sysctl
 tanaka
 tapp
+tavernelli
 tbd
 tbp
 temme
