@@ -102,7 +102,7 @@ class HarmonicBasis(BosonicBasis):
             elif m - n == 4:
                 coeff = np.sqrt(m * (m - 1) * (m - 2) * (m - 3)) / 4
         else:
-            raise ValueError('The expansion order of the PES is too large, only up to 4 is '
+            raise ValueError('The Q power is to high, only up to 4 is '
                              'currently supported.')
         return coeff * (np.sqrt(2) ** power)
 
