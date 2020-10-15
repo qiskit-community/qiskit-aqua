@@ -17,11 +17,11 @@ from functools import partial
 import numpy as np
 
 import qiskit.chemistry.constants as const
-from qiskit.chemistry.algorithms.pes_samplers.potentials.morse_potential import MorsePotential
+from qiskit.chemistry.algorithms.pes_samplers.potentials.morse_potential import MorsePotential d
 from qiskit.chemistry.algorithms.pes_samplers.potentials.harmonic_potential import HarmonicPotential
-from qiskit.chemistry.drivers.molecule import Molecule
-
+from qiskit.chemistry.algorithms.pes_samplers.potentials.morse_potential import MorsePotential
 from qiskit.chemistry.constants import HARTREE_TO_J_PER_MOL
+from qiskit.chemistry.drivers.molecule import Molecule
 
 
 class TestPotential(unittest.TestCase):
@@ -69,32 +69,30 @@ class TestPotential(unittest.TestCase):
 
         m = self.create_test_molecule()
 
-        M = MorsePotential(m)
+        morse = MorsePotential(m)
 
         xdata = np.array(self.xdata_angstrom)
         ydata = np.array(self.ydata_hartree)
 
-        M.fit_to_data(xdata, ydata)
+        morse.fit_to_data(xdata, ydata)
 
         # self.plot_potential(xdata, ydata, M)
 
-        minimalEnergyDistance = M.get_equilibrium_geometry()
-        minimalEnergy = M.eval(minimalEnergyDistance)
-        waveNumber = M.wave_number()
+        minimal_energy_distance = morse.get_equilibrium_geometry()
+        minimal_energy = morse.eval(minimal_energy_distance)
+        wave_number = morse.wave_number()
 
-        result = np.array([minimalEnergyDistance, minimalEnergy, waveNumber])
-        benchmark = np.array([0.8106703001726382,
-                              -1.062422610690636, 3800.7855102410026])
+        result = np.array([minimal_energy_distance, minimal_energy, wave_number])
+        benchmark = np.array([0.8106703001726382, -1.062422610690636, 3800.7855102410026])
         np.testing.assert_array_almost_equal(result, benchmark)
 
         radia = np.array([0.5, 1, 1.5, 2])
-        hartrees = np.array(
-            [-0.94045495, -1.04591482, -0.96876003, -0.92400906])
-        np.testing.assert_array_almost_equal(hartrees, M.eval(radia))
+        hartrees = np.array([-0.94045495, -1.04591482, -0.96876003, -0.92400906])
+        np.testing.assert_array_almost_equal(hartrees, morse.eval(radia))
 
         vib_levels = []
         for N in range(2, 8):
-            vib_levels.append(M.vibrational_energy_level(N))
+            vib_levels.append(morse.vibrational_energy_level(N))
         vib_levels = np.array(vib_levels)
         vib_levels_ref = np.array([0.04052116451981064, 0.05517676610999135,
                                    0.06894501671860434, 0.08182591634564956,
@@ -135,33 +133,30 @@ class TestPotential(unittest.TestCase):
 
         m = self.create_test_molecule()
 
-        H = HarmonicPotential(m)
+        harmonic = HarmonicPotential(m)
 
         xdata = np.array(self.xdata_angstrom)
         ydata = np.array(self.ydata_hartree)
 
-        H.fit_to_data(xdata, ydata)
+        harmonic.fit_to_data(xdata, ydata)
 
         # self.plot_potential(xdata, ydata, H)
 
-        minimalEnergyDistance = H.get_equilibrium_geometry()
-        minimalEnergy = H.eval(minimalEnergyDistance)
-        waveNumber = H.wave_number()
+        minimal_energy_distance = harmonic.get_equilibrium_geometry()
+        minimal_energy = harmonic.eval(minimal_energy_distance)
+        wave_number = harmonic.wave_number()
 
-        result = np.array([minimalEnergyDistance, minimalEnergy, waveNumber])
-        benchmark = np.array([0.8792058944654566,
-                              -1.0678714520398802, 4670.969897517367])
+        result = np.array([minimal_energy_distance, minimal_energy, wave_number])
+        benchmark = np.array([0.8792058944654566, -1.0678714520398802, 4670.969897517367])
         np.testing.assert_array_almost_equal(result, benchmark)
 
         radia = np.array([0.5, 1, 1.5, 2])
-        hartrees = np.array(
-            [-0.92407434, -1.05328024, -0.68248613, 0.18830797])
-        np.testing.assert_array_almost_equal(hartrees,
-                                             H.eval(radia))
+        hartrees = np.array([-0.92407434, -1.05328024, -0.68248613, 0.18830797])
+        np.testing.assert_array_almost_equal(hartrees, harmonic.eval(radia))
 
         vib_levels = []
         for N in range(2, 8):
-            vib_levels.append(H.vibrational_energy_level(N))
+            vib_levels.append(harmonic.vibrational_energy_level(N))
         vib_levels = np.array(vib_levels)
         vib_levels_ref = np.array([0.053206266711245426, 0.07448877339574358,
                                    0.09577128008024177, 0.11705378676473993,

@@ -15,12 +15,17 @@
 import unittest
 from functools import partial
 import numpy as np
-
+from chemistry.code.vibronic_structure_fd import VibronicStructure1DFD
 import chemistry.code.test.test_data as td
 from chemistry.code.morse_potential import MorsePotential
 from chemistry.code.harmonic_potential import HarmonicPotential
 from chemistry.code.molecule import Molecule
 from chemistry.code.vibronic_structure_fd import VibronicStructure1DFD
+
+import test.chemistry.test_data_potentials as td
+from qiskit.chemistry.algorithms.pes_samplers.potentials.harmonic_potential import HarmonicPotential
+from qiskit.chemistry.algorithms.pes_samplers.potentials.morse_potential import MorsePotential
+from qiskit.chemistry.drivers import Molecule
 
 # TODO Fix this test
 
@@ -41,39 +46,37 @@ class TestFDVibronic(unittest.TestCase):
         """ test with morse """
         m = self.create_test_molecule()
 
-        M = MorsePotential(m)
+        morse = MorsePotential(m)
 
         xdata = np.array(td.xdata_angstrom)
         ydata = np.array(td.ydata_hartree)
 
-        M.fit_to_data(xdata, ydata)
+        morse.fit_to_data(xdata, ydata)
 
-        VS = VibronicStructure1DFD(m, M)
+        vibronic_structure = VibronicStructure1DFD(m, morse)
 
-        N = np.array(range(2, 8))
-        vib_levels = VS.vibrational_energy_level(N)
-        vib_levels_ref = M.vibrational_energy_level(N)
-        np.testing.assert_array_almost_equal(vib_levels, vib_levels_ref,
-                                             decimal=5)
+        levels = np.array(range(2, 8))
+        vib_levels = vibronic_structure.vibrational_energy_level(levels)
+        vib_levels_ref = morse.vibrational_energy_level(levels)
+        np.testing.assert_array_almost_equal(vib_levels, vib_levels_ref, decimal=5)
 
     def test_with_harmonic(self):
         """ test with harmonic """
         m = self.create_test_molecule()
 
-        H = HarmonicPotential(m)
+        harmonic = HarmonicPotential(m)
 
         xdata = np.array(td.xdata_angstrom)
         ydata = np.array(td.ydata_hartree)
 
-        H.fit_to_data(xdata, ydata)
+        harmonic.fit_to_data(xdata, ydata)
 
-        VS = VibronicStructure1DFD(m, H)
+        vibronic_structure = VibronicStructure1DFD(m, harmonic)
 
-        N = np.array(range(2, 8))
-        vib_levels = VS.vibrational_energy_level(N)
-        vib_levels_ref = H.vibrational_energy_level(N)
-        np.testing.assert_array_almost_equal(vib_levels, vib_levels_ref,
-                                             decimal=4)
+        levels = np.array(range(2, 8))
+        vib_levels = vibronic_structure.vibrational_energy_level(levels)
+        vib_levels_ref = harmonic.vibrational_energy_level(levels)
+        np.testing.assert_array_almost_equal(vib_levels, vib_levels_ref, decimal=4)
 
 
 if __name__ == '__main__':
