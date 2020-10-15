@@ -137,7 +137,7 @@ class VQEUCCSDFactory(MinimumEigensolverFactory):
     @property
     def method_singles(self) -> str:
         """Getter of the ``method_singles`` setting for the ``method_singles`` setting."""
-        return self._optimizer
+        return self._method_singles
 
     @method_singles.setter
     def method_singles(self, method_singles: str) -> None:
