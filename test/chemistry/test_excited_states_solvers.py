@@ -16,8 +16,6 @@ import unittest
 from test.chemistry import QiskitChemistryTestCase
 import numpy as np
 
-import numpy as np
-
 from qiskit import BasicAer
 from qiskit.aqua import aqua_globals, QuantumInstance
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver, NumPyEigensolver
