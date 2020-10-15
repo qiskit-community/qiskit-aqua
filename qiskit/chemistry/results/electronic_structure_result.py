@@ -12,7 +12,7 @@
 
 """The electronic structure result."""
 
-from typing import List, Optional, Tuple, cast
+from typing import List, Optional, Tuple, cast, Union
 
 import logging
 import numpy as np
@@ -232,7 +232,7 @@ class ElectronicStructureResult(EigenstateResult):
         self.data['total_angular_momentum'] = value
 
     @property
-    def spin(self) -> Optional[float]:
+    def spin(self) -> Optional[Union[float, List[float]]]:
         """ Returns computed spin """
         if self.total_angular_momentum is None:
             return None
@@ -286,6 +286,19 @@ class ElectronicStructureResult(EigenstateResult):
                          format(round(self.nuclear_repulsion_energy, 12)))
             lines.append('> Total ground state energy (Hartree): {}'.
                          format(round(self.total_energies[0], 12)))
+
+        if len(self.computed_energies) > 1:
+            lines.append(' ')
+            lines.append('=== EXCITED STATE ENERGIES ===')
+            lines.append(' ')
+            for idx, (elec_energy, total_energy) in enumerate(zip(self.electronic_energies[1:],
+                                                                  self.total_energies[1:])):
+                lines.append('{: 3d}: '.format(idx+1))
+                lines.append('* Electronic excited state energy (Hartree): {}'.
+                             format(round(elec_energy, 12)))
+                lines.append('> Total excited state energy (Hartree): {}'.
+                             format(round(total_energy, 12)))
+
         if self.has_observables():
             lines.append(' ')
             lines.append('=== MEASURED OBSERVABLES ===')
@@ -334,14 +347,6 @@ class ElectronicStructureResult(EigenstateResult):
                                  .format(_dipole_to_string(dip_db), _float_to_string(tot_dip_db)))
                 lines.append(' ')
 
-        if len(self.computed_energies) > 1:
-            lines.append(' ')
-            lines.append('=== EXCITED STATES ===')
-            lines.append(' ')
-            lines.append('# Excited State - Electronic energy (Hartree) - Total energy (Hartree)')
-            for idx in np.arange(1, len(self.computed_energies)):
-                lines.append(' {} \t-\t {} \t-\t {} '.format(idx, self.electronic_energies[idx],
-                                                             self.total_energies[idx]))
 
         return lines
 
