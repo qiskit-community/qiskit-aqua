@@ -135,11 +135,11 @@ class OrbitalOptimizationVQE(GroundStateEigensolver):
         if operator is None:  # type: ignore
             raise AquaError("The operator was never provided.")
 
-        if isinstance(self._solver, MinimumEigensolverFactory):
+        if isinstance(self.solver, MinimumEigensolverFactory):
             # this must be called after transformation.transform
-            self._vqe = self._solver.get_solver(self.transformation)
+            self._vqe = self.solver.get_solver(self.transformation)
         else:
-            self._vqe = self._solver
+            self._vqe = self.solver
 
         if not isinstance(self._vqe, VQE):
             raise AquaError(
