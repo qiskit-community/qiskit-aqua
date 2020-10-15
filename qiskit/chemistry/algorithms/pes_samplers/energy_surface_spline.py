@@ -29,10 +29,13 @@ class EnergySurface1DSpline(EnergySurfaceBase):
         """
         Constructor.
         """
+        super().__init__()
         self._eval = None
         self.eval_d = None
         self.min_x = None
         self.min_val = None
+        self.x_left = None
+        self.x_right = None
 
     # Implementing the EnergySurfaceBase interface
 

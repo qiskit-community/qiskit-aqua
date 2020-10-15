@@ -28,7 +28,7 @@ class MorsePotential(PotentialBase):
     """
     # Works in Angstroms and Hartrees
 
-    def __init__(self,molecule):
+    def __init__(self, molecule):
         """
         Constructor.
         Initializes the potential to the zero-function.
