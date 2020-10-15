@@ -153,7 +153,7 @@ class UCCSD(VariationalForm):
                                            excitation_type=self._excitation_type,)
 
         self._hopping_ops, self._num_parameters = self._build_hopping_operators()
-        self._excitation_pool = None
+        self._excitation_pool = None  # type: Optional[List[WeightedPauliOperator]]
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
         self._logging_construct_circuit = True
@@ -226,13 +226,14 @@ class UCCSD(VariationalForm):
         return self._double_excitations
 
     @property
-    def excitation_pool(self):
-        """
-        Getter of full list of available excitations (called the pool)
-        Returns:
-            list[WeightedPauliOperator]: excitation pool
-        """
+    def excitation_pool(self) -> List[WeightedPauliOperator]:
+        """Returns the full list of available excitations (called the pool)."""
         return self._excitation_pool
+
+    @excitation_pool.setter
+    def excitation_pool(self, excitation_pool: List[WeightedPauliOperator]) -> None:
+        """Sets the excitation pool."""
+        self._excitation_pool = excitation_pool.copy()
 
     def _build_hopping_operators(self):
         if logger.isEnabledFor(logging.DEBUG):
@@ -328,8 +329,9 @@ class UCCSD(VariationalForm):
         hopping operators in a so called "excitation pool" and clears the previous list to be empty.
         Furthermore, the depth is asserted to be 1 which is required by the Adaptive VQE algorithm.
         """
-        # store full list of excitations as pool
-        self._excitation_pool = self._hopping_ops.copy()
+        if self._excitation_pool is None:
+            # store full list of excitations as pool
+            self._excitation_pool = self._hopping_ops.copy()
 
         # check depth parameter
         if self._reps != 1:
@@ -339,8 +341,8 @@ class UCCSD(VariationalForm):
 
         # reset internal excitation list to be empty
         self._hopping_ops = []
-        self._num_parameters = len(self._hopping_ops) * self._reps
-        self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
+        self._num_parameters = 0
+        self._bounds = []
 
     def push_hopping_operator(self, excitation):
         """

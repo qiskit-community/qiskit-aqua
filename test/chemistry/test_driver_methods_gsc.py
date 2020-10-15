@@ -12,8 +12,12 @@
 
 """ Test Driver Methods """
 
+import unittest
+
 from test.chemistry import QiskitChemistryTestCase
-from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
+from qiskit.chemistry.core import TransformationType, QubitMappingType
+from qiskit.chemistry.transformations import FermionicTransformation
+from qiskit.chemistry.algorithms.ground_state_solvers import GroundStateEigensolver
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 
 
@@ -37,18 +41,19 @@ class TestDriverMethods(QiskitChemistryTestCase):
     def _run_driver(driver, transformation=TransformationType.FULL,
                     qubit_mapping=QubitMappingType.JORDAN_WIGNER, two_qubit_reduction=False,
                     freeze_core=True):
-        qmolecule = driver.run()
 
-        core = Hamiltonian(transformation=transformation,
-                           qubit_mapping=qubit_mapping,
-                           two_qubit_reduction=two_qubit_reduction,
-                           freeze_core=freeze_core,
-                           orbital_reduction=[])
+        fermionic_transformation = \
+            FermionicTransformation(transformation=transformation,
+                                    qubit_mapping=qubit_mapping,
+                                    two_qubit_reduction=two_qubit_reduction,
+                                    freeze_core=freeze_core,
+                                    orbital_reduction=[])
 
-        qubit_op, aux_ops = core.run(qmolecule)
+        solver = NumPyMinimumEigensolver()
 
-        npme = NumPyMinimumEigensolver(qubit_op, aux_operators=aux_ops)
-        result = core.process_algorithm_result(npme.compute_minimum_eigenvalue())
+        gsc = GroundStateEigensolver(fermionic_transformation, solver)
+
+        result = gsc.solve(driver)
         return result
 
     def _assert_energy(self, result, mol):
@@ -57,3 +62,7 @@ class TestDriverMethods(QiskitChemistryTestCase):
     def _assert_energy_and_dipole(self, result, mol):
         self._assert_energy(result, mol)
         self.assertAlmostEqual(self.ref_dipoles[mol], result.total_dipole_moment, places=3)
+
+
+if __name__ == '__main__':
+    unittest.main()
