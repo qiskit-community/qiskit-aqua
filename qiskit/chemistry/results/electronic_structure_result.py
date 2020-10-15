@@ -347,7 +347,6 @@ class ElectronicStructureResult(EigenstateResult):
                                  .format(_dipole_to_string(dip_db), _float_to_string(tot_dip_db)))
                 lines.append(' ')
 
-
         return lines
 
 

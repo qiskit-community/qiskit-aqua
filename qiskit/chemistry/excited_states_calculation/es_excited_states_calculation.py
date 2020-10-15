@@ -12,13 +12,12 @@
 
 """The calculation of excited states via the qEOM algorithm"""
 
-import numpy as np
 import logging
 
 from typing import List, Union, Optional, Any
 
-from qiskit.aqua.algorithms import AlgorithmResult, Eigensolver
-from qiskit.aqua.operators import OperatorBase, WeightedPauliOperator, StateFn, CircuitSampler
+from qiskit.aqua.algorithms import Eigensolver
+from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.chemistry import FermionicOperator
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.excited_states_calculation import ExcitedStatesCalculation
@@ -64,10 +63,9 @@ class EigenSolverExcitedStatesCalculation(ExcitedStatesCalculation):
         """Sets the transformation used to obtain a qubit operator from the molecule."""
         self._transformation = transformation
 
-
     def compute_excitedstates(self, driver: BaseDriver,
-                            aux_operators: Optional[List[Any]] = None
-                            ) -> EigenstateResult:
+                              aux_operators: Optional[List[Any]] = None
+                              ) -> EigenstateResult:
         """Compute Ground and Excited States properties.
 
         Args:

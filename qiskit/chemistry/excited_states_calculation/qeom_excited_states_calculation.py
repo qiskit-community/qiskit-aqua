@@ -12,12 +12,11 @@
 
 """The calculation of excited states via the qEOM algorithm"""
 
-import numpy as np
-from abc import abstractmethod
-import logging
-from scipy import linalg
-
 from typing import List, Union, Optional
+import logging
+from abc import abstractmethod
+import numpy as np
+from scipy import linalg
 
 from qiskit.aqua.algorithms import AlgorithmResult
 from qiskit.chemistry import FermionicOperator, BosonicOperator
@@ -56,7 +55,8 @@ class QEOMExcitedStatesCalculation(ExcitedStatesCalculation):
         """The excitations to be included in the eom pseudo-eigenvalue problem. If a string then
         all excitations of given type will be used. Otherwise a list of custom excitations can
         directly be provided."""
-        if isinstance(excitations, str) and any([letter not in ['s','d'] for letter in excitations]):
+        if isinstance(excitations, str) and any([letter not in ['s', 'd'] for letter in excitations]
+                                                ):
             raise ValueError(
                 'Excitation type must be s (singles), d (doubles) or sd (singles and doubles)')
         self._excitations = excitations
@@ -86,9 +86,9 @@ class QEOMExcitedStatesCalculation(ExcitedStatesCalculation):
         matrix_operators_dict, size = self._prepare_matrix_operators()
 
         # 3. Evaluate eom operators
-        measurement_results = self._gsc.evaluate_operators(groundstate_result.raw_result['eigenstate'],
-                                                           matrix_operators_dict)
-
+        measurement_results = self._gsc.evaluate_operators(
+            groundstate_result.raw_result['eigenstate'],
+            matrix_operators_dict)
 
         # 4. Postprocess ground_state_result to construct eom matrices
         m_mat, v_mat, q_mat, w_mat, m_mat_std, v_mat_std, q_mat_std, w_mat_std = \
@@ -116,7 +116,8 @@ class QEOMExcitedStatesCalculation(ExcitedStatesCalculation):
         eigenstate_result.raw_result = qeom_result
 
         eigenstate_result.eigenenergies = np.append(groundstate_result.eigenenergies,
-                  np.asarray([groundstate_result.eigenenergies[0] + gap for gap in energy_gaps]))
+                                                    np.asarray([groundstate_result.eigenenergies[0]
+                                                                + gap for gap in energy_gaps]))
 
         result = self._gsc.transformation.interpret(eigenstate_result)
 
@@ -127,8 +128,9 @@ class QEOMExcitedStatesCalculation(ExcitedStatesCalculation):
         """construct the excitation operators for each matrix element"""
         raise NotImplementedError
 
-    def _build_eom_matrices(self, gs_results: dict, size: int) -> [np.ndarray, np.ndarray, np.ndarray,
-                                                                   np.ndarray, float, float, float, float]:
+    def _build_eom_matrices(self, gs_results: dict, size: int) -> [np.ndarray, np.ndarray,
+                                                                   np.ndarray, np.ndarray, float,
+                                                                   float, float, float]:
         """
         Constructs the M, V, Q and W matrices from the results on the ground state
         Args:
@@ -170,7 +172,6 @@ class QEOMExcitedStatesCalculation(ExcitedStatesCalculation):
             v_mat_std += gs_results['v_{}_{}_std'.format(m_u, n_u)][0] if gs_results.get(
                 'v_{}_{}_std'.format(m_u, n_u)) is not None else 0
 
-
         q_mat = q_mat + q_mat.T - np.identity(q_mat.shape[0]) * q_mat
         w_mat = w_mat + w_mat.T - np.identity(w_mat.shape[0]) * w_mat
         m_mat = m_mat + m_mat.T - np.identity(m_mat.shape[0]) * m_mat
@@ -192,7 +193,6 @@ class QEOMExcitedStatesCalculation(ExcitedStatesCalculation):
         logger.debug("\nV:=========================\n%s", v_mat)
 
         return m_mat, v_mat, q_mat, w_mat, m_mat_std, v_mat_std, q_mat_std, w_mat_std
-
 
     @staticmethod
     def _compute_excitation_energies(m_mat: np.ndarray, v_mat: np.ndarray, q_mat: np.ndarray,

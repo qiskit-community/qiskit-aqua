@@ -27,7 +27,7 @@ class NumPyEigensolverFactory(ESFactory):
 
     def __init__(self,
                  filter_criterion: Callable[[Union[List, np.ndarray], float, Optional[List[float]]],
-                                            bool] = None, k:int = 100) -> None:
+                                            bool] = None, k: int = 100) -> None:
         """
         Args:
             filter_criterion: callable that allows to filter eigenvalues/eigenstates. The minimum
@@ -39,7 +39,7 @@ class NumPyEigensolverFactory(ESFactory):
             k: How many eigenvalues are to be computed, has a min. value of 1.
         """
         self._filter_criterion = filter_criterion
-        self._k = k
+        self._k = k  # pylint:disable=invalid-name
 
     @property
     def filter_criterion(self) -> Callable[[Union[List, np.ndarray], float, Optional[List[float]]],
@@ -78,5 +78,5 @@ class NumPyEigensolverFactory(ESFactory):
         if not filter_criterion:
             filter_criterion = transformation.get_default_filter_criterion()
 
-        npe = NumPyEigensolver(filter_criterion=filter_criterion, k = self.k)
+        npe = NumPyEigensolver(filter_criterion=filter_criterion, k=self.k)
         return npe

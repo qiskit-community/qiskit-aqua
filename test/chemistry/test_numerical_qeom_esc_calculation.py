@@ -13,8 +13,8 @@
 """ Test NumericalqEOM excited states calculation """
 
 import unittest
-import numpy as np
 from test.chemistry import QiskitChemistryTestCase
+import numpy as np
 
 from qiskit import BasicAer
 from qiskit.aqua import aqua_globals, QuantumInstance
@@ -29,6 +29,7 @@ from qiskit.chemistry.ground_state_calculation import VQEUCCSDFactory
 from qiskit.chemistry.excited_states_calculation import NumericalQEOMExcitedStatesCalculation
 from qiskit.chemistry.excited_states_calculation import NumPyEigensolverFactory
 from qiskit.chemistry.excited_states_calculation import EigenSolverExcitedStatesCalculation
+
 
 class TestNumericalQEOMESCCalculation(QiskitChemistryTestCase):
     """ Test NumericalqEOM excited states calculation """
@@ -51,8 +52,7 @@ class TestNumericalQEOMESCCalculation(QiskitChemistryTestCase):
         solver = NumPyEigensolver()
         self.ref = solver
         self.quantum_instance = QuantumInstance(BasicAer.get_backend('statevector_simulator'),
-                                     seed_transpiler=90, seed_simulator=12)
-
+                                                seed_transpiler=90, seed_simulator=12)
 
     def test_numpy_mes(self):
 
