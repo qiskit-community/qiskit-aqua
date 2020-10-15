@@ -85,8 +85,8 @@ class LinCombFull(CircuitQFI):
                 coeffs_i, gates_i = LinComb._gate_gradient_dict(param_occurence[0])[
                     param_occurence[1]]
                 for k, gate_to_insert_i in enumerate(gates_i):
-                    grad_state = QuantumCircuit(*state_qc.qregs, qr_work)
-                    grad_state.data = state_qc.data
+                    grad_state = state_qc.copy()
+                    grad_state.add_register(qr_work)
 
                     # apply Hadamard on work_q
                     LinComb.insert_gate(grad_state, param_occurence[0], HGate(),
@@ -174,8 +174,8 @@ class LinCombFull(CircuitQFI):
         work_qubit = qr_work_qubit[0]
         additional_qubits = ([work_qubit], [])
         # create a copy of the original circuit with an additional work_qubit register
-        circuit = QuantumCircuit(*state_qc.qregs, qr_work_qubit)
-        circuit.data = state_qc.data
+        circuit = state_qc.copy()
+        circuit.add_register(qr_work_qubit)
         LinComb.insert_gate(circuit, state_qc._parameter_table[params[0]][0][0], HGate(),
                             qubits=[work_qubit])
 
