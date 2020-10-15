@@ -57,8 +57,8 @@ class OverlapDiag(CircuitQFI):
 
         """
 
-        if not isinstance(operator, (CircuitOp, CircuitStateFn)):
-            raise NotImplementedError('operator must be a CircuitOp or CircuitStateFn')
+        if not isinstance(operator, CircuitStateFn):
+            raise NotImplementedError('operator must be a CircuitStateFn')
 
         return self._diagonal_approx(operator=operator, params=params)
 
