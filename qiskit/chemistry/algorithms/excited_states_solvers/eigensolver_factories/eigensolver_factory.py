@@ -18,7 +18,7 @@ from qiskit.chemistry.transformations import Transformation
 
 
 class EigensolverFactory(ABC):
-    """A factory to construct a minimum eigensolver based on a qubit operator transformation."""
+    """A factory to construct an eigensolver."""
 
     @abstractmethod
     def get_solver(self, transformation: Transformation) -> Eigensolver:
@@ -28,7 +28,7 @@ class EigensolverFactory(ABC):
             transformation: The qubit operator transformation.
 
         Returns:
-            A minimum eigensolver suitable to compute the ground state of the molecule transformed
+            An eigensolver suitable to compute the eigenstates of the molecule transformed
             by ``transformation``.
         """
         raise NotImplementedError

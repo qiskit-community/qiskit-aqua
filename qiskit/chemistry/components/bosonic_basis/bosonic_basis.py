@@ -18,7 +18,7 @@ from typing import List, Tuple
 class BosonicBasis:
     """ Basis to express a second quantization Bosonic Hamiltonian. """
 
-    def run(self, threshold: float = 1e-6) \
+    def convert(self, threshold: float = 1e-6) \
             -> List[List[Tuple[List[List[int]], float]]]:
         """
         This prepares an array object representing a bosonic hamiltonian expressed

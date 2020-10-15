@@ -115,7 +115,7 @@ class HarmonicBasis(BosonicBasis):
 
         return in_basis
 
-    def run(self, threshold: float = 1e-6
+    def convert(self, threshold: float = 1e-6
             ) -> List[List[Tuple[List[List[int]], float]]]:
         """
         This prepares an array object representing a bosonic hamiltonian expressed
@@ -243,7 +243,8 @@ class HarmonicBasis(BosonicBasis):
                                                                  modes[1] - 1, k, j,
                                                                  modes[2] - 1, q, p] += coeff
             else:
-                raise ValueError('Unexpected order value of {}'.format(order))
+                raise ValueError('Expansion of the PES is too large, only '
+                                 'up to 3-body terms are supported')
 
         harmonics = []  # type: List[List[Tuple[List[List[int]], float]]]
         for idx in range(1, self._truncation_order + 1):
