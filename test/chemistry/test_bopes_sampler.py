@@ -82,10 +82,10 @@ class TestBOPES(unittest.TestCase):
                      quantum_instance=quantum_instance,
                      expectation=PauliExpectation())
 
-        me_gsc = GroundStateEigensolver(f_t, solver)
+        me_gss = GroundStateEigensolver(f_t, solver)
 
         # BOPES sampler
-        sampler = BOPESSampler(gsc=me_gsc)
+        sampler = BOPESSampler(gss=me_gss)
 
         # absolute internuclear distance in Angstrom
         points = [0.7, 1.0, 1.3]
@@ -117,10 +117,10 @@ class TestBOPES(unittest.TestCase):
 
         solver = NumPyMinimumEigensolver()
 
-        me_gsc = GroundStateEigensolver(f_t, solver)
+        me_gss = GroundStateEigensolver(f_t, solver)
         # Run BOPESSampler with exact eigensolution
         points = np.arange(0.45, 5.3, 0.3)
-        sampler = BOPESSampler(gsc=me_gsc)
+        sampler = BOPESSampler(gss=me_gss)
 
         res = sampler.sample(driver, points)
 
