@@ -11,10 +11,9 @@
 # that they have been altered from the originals.
 
 """ Test of UCCSD and HartreeFock Aqua extensions """
+
 from test.chemistry import QiskitChemistryTestCase
-
 from ddt import ddt, idata, unpack
-
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms import VQE
@@ -22,8 +21,10 @@ from qiskit.aqua.components.optimizers import SLSQP, SPSA
 from qiskit.aqua.operators import AerPauliExpectation, PauliExpectation
 from qiskit.chemistry.components.initial_states import HartreeFock
 from qiskit.chemistry.components.variational_forms import UCCSD
+from qiskit.chemistry.core import QubitMappingType
 from qiskit.chemistry.drivers import HDF5Driver
-from qiskit.chemistry.core import Hamiltonian, QubitMappingType
+from qiskit.chemistry.algorithms.ground_state_solvers import GroundStateEigensolver
+from qiskit.chemistry.transformations import FermionicTransformation
 
 
 @ddt
@@ -37,41 +38,52 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         self.seed = 700
         aqua_globals.random_seed = self.seed
 
-        driver = HDF5Driver(self.get_resource_path('test_driver_hdf5.hdf5'))
-        qmolecule = driver.run()
-        core = Hamiltonian(qubit_mapping=QubitMappingType.PARITY,
-                           two_qubit_reduction=True)
-        self.qubit_op, _ = core.run(qmolecule)
-        self.core = core
+        self.driver = HDF5Driver(self.get_resource_path('test_driver_hdf5.hdf5'))
+        fermionic_transformation = FermionicTransformation(qubit_mapping=QubitMappingType.PARITY,
+                                                           two_qubit_reduction=False)
+
+        self.qubit_op, _ = fermionic_transformation.transform(self.driver)
+        self.fermionic_transformation = fermionic_transformation
 
         self.optimizer = SLSQP(maxiter=100)
-        initial_state = HartreeFock(core.molecule_info['num_orbitals'],
-                                    core.molecule_info['num_particles'],
-                                    qubit_mapping=core._qubit_mapping,
-                                    two_qubit_reduction=core._two_qubit_reduction)
-        self.var_form = UCCSD(num_orbitals=core.molecule_info['num_orbitals'],
-                              num_particles=core.molecule_info['num_particles'],
-                              initial_state=initial_state,
-                              qubit_mapping=core._qubit_mapping,
-                              two_qubit_reduction=core._two_qubit_reduction)
+        initial_state = HartreeFock(
+            fermionic_transformation.molecule_info['num_orbitals'],
+            fermionic_transformation.molecule_info['num_particles'],
+            qubit_mapping=fermionic_transformation._qubit_mapping,
+            two_qubit_reduction=fermionic_transformation._two_qubit_reduction)
+        self.var_form = UCCSD(
+            num_orbitals=fermionic_transformation.molecule_info['num_orbitals'],
+            num_particles=fermionic_transformation.molecule_info['num_particles'],
+            initial_state=initial_state,
+            qubit_mapping=fermionic_transformation._qubit_mapping,
+            two_qubit_reduction=fermionic_transformation._two_qubit_reduction)
 
     def test_uccsd_hf(self):
         """ uccsd hf test """
         backend = BasicAer.get_backend('statevector_simulator')
-        algo = VQE(self.qubit_op, self.var_form, self.optimizer)
-        result = algo.run(QuantumInstance(backend))
-        result = self.core.process_algorithm_result(result)
+        solver = VQE(var_form=self.var_form, optimizer=self.optimizer,
+                     quantum_instance=QuantumInstance(backend=backend))
+
+        gsc = GroundStateEigensolver(self.fermionic_transformation, solver)
+
+        result = gsc.solve(self.driver)
+
         self.assertAlmostEqual(result.energy, self.reference_energy, places=6)
 
     def test_uccsd_hf_qasm(self):
         """ uccsd hf test with qasm_simulator. """
         backend = BasicAer.get_backend('qasm_simulator')
         optimizer = SPSA(maxiter=200, last_avg=5)
-        algo = VQE(self.qubit_op, self.var_form, optimizer, expectation=PauliExpectation())
-        result = algo.run(QuantumInstance(backend,
-                                          seed_simulator=aqua_globals.random_seed,
-                                          seed_transpiler=aqua_globals.random_seed))
-        result = self.core.process_algorithm_result(result)
+        solver = VQE(var_form=self.var_form, optimizer=optimizer,
+                     expectation=PauliExpectation(),
+                     quantum_instance=QuantumInstance(backend=backend,
+                                                      seed_simulator=aqua_globals.random_seed,
+                                                      seed_transpiler=aqua_globals.random_seed))
+
+        gsc = GroundStateEigensolver(self.fermionic_transformation, solver)
+
+        result = gsc.solve(self.driver)
+
         self.assertAlmostEqual(result.energy, -1.138, places=2)
 
     def test_uccsd_hf_aer_statevector(self):
@@ -83,9 +95,13 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
             self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(ex)))
             return
         backend = Aer.get_backend('statevector_simulator')
-        algo = VQE(self.qubit_op, self.var_form, self.optimizer)
-        result = algo.run(QuantumInstance(backend))
-        result = self.core.process_algorithm_result(result)
+        solver = VQE(var_form=self.var_form, optimizer=self.optimizer,
+                     quantum_instance=QuantumInstance(backend=backend))
+
+        gsc = GroundStateEigensolver(self.fermionic_transformation, solver)
+
+        result = gsc.solve(self.driver)
+
         self.assertAlmostEqual(result.energy, self.reference_energy, places=6)
 
     def test_uccsd_hf_aer_qasm(self):
@@ -98,11 +114,16 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
             return
         backend = Aer.get_backend('qasm_simulator')
         optimizer = SPSA(maxiter=200, last_avg=5)
-        algo = VQE(self.qubit_op, self.var_form, optimizer, expectation=PauliExpectation())
-        result = algo.run(QuantumInstance(backend,
-                                          seed_simulator=aqua_globals.random_seed,
-                                          seed_transpiler=aqua_globals.random_seed))
-        result = self.core.process_algorithm_result(result)
+        solver = VQE(var_form=self.var_form, optimizer=optimizer,
+                     expectation=PauliExpectation(),
+                     quantum_instance=QuantumInstance(backend=backend,
+                                                      seed_simulator=aqua_globals.random_seed,
+                                                      seed_transpiler=aqua_globals.random_seed))
+
+        gsc = GroundStateEigensolver(self.fermionic_transformation, solver)
+
+        result = gsc.solve(self.driver)
+
         self.assertAlmostEqual(result.energy, -1.138, places=2)
 
     def test_uccsd_hf_aer_qasm_snapshot(self):
@@ -114,10 +135,15 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
             self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(ex)))
             return
         backend = Aer.get_backend('qasm_simulator')
-        algo = VQE(self.qubit_op, self.var_form, self.optimizer, expectation=AerPauliExpectation())
-        result = algo.run(QuantumInstance(backend))
-        result = self.core.process_algorithm_result(result)
-        self.assertAlmostEqual(result.energy, self.reference_energy, places=6)
+        optimizer = SPSA(maxiter=200, last_avg=5)
+        solver = VQE(var_form=self.var_form, optimizer=optimizer,
+                     expectation=AerPauliExpectation(),
+                     quantum_instance=QuantumInstance(backend=backend))
+
+        gsc = GroundStateEigensolver(self.fermionic_transformation, solver)
+
+        result = gsc.solve(self.driver)
+        self.assertAlmostEqual(result.energy, self.reference_energy, places=3)
 
     EXCITATION_RESULTS = \
         [[[[0, 1], [0, 2], [3, 4], [3, 5]],
