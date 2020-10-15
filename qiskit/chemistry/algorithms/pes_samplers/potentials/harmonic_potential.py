@@ -82,6 +82,8 @@ class HarmonicPotential(PotentialBase):
         """
         Updates the underlying molecule.
 
+        Args:
+            molecule: chemistry molecule
         Raises:
             ValueError: Only implemented for diatomic molecules
         """
@@ -146,6 +148,9 @@ class HarmonicPotential(PotentialBase):
         Returns the interatomic distance corresponding to minimal energy.
         Args:
             scaling: Scaling to change units. (Default is 1.0 for Angstroms)
+
+        Returns:
+            geometry corresponding to minimal energy
         """
 
         # Returns the distance for the minimal energy (scaled by 'scaling')
@@ -158,6 +163,9 @@ class HarmonicPotential(PotentialBase):
         Returns the smallest molecular energy for the current fit.
         Args:
             scaling: Scaling to change units. (Default is 1.0 for Hartrees)
+
+        Returns:
+            smallest molecular energy for the current fit
         """
         # Returns the distance for the minimal energy (scaled by 'scaling')
         # Default units (scaling=1.0) are Hartrees. Scale appropriately for
