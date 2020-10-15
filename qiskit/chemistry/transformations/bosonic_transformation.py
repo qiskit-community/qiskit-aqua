@@ -92,9 +92,9 @@ class BosonicTransformation(Transformation):
         return self._basis_size
 
     @property
-    def commutation_rule(self) -> int:
+    def commutation_rule(self) -> bool:
         """Getter of the commutation rule"""
-        return 1
+        return True
 
     @property
     def untapered_qubit_op(self):

@@ -121,9 +121,9 @@ class FermionicTransformation(Transformation):
         self._molecule_info: Dict[str, Any] = {}
 
     @property
-    def commutation_rule(self) -> int:
+    def commutation_rule(self) -> bool:
         """Getter of the commutation rule"""
-        return -1
+        return False
 
     @property
     def molecule_info(self) -> Dict[str, Any]:

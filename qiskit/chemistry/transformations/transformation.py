@@ -67,7 +67,7 @@ class Transformation(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def commutation_rule(self) -> int:
+    def commutation_rule(self) -> bool:
         """Getter of the commutation rule"""
         raise NotImplementedError
 
