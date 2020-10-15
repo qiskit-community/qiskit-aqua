@@ -36,7 +36,7 @@ class TransformationType(Enum):
     warnings.warn('The chemistry.core.TransformationType class is deprecated as of Qiskit Aqua '
                   '0.8.0 and will be removed no earlier than 3 months after the release date. '
                   'Instead, the '
-                  'chemistry.qubit_transformatons.fermionic_transformation.TransformationType can '
+                  'chemistry.transformations.fermionic_transformation.TransformationType can '
                   'be used.', DeprecationWarning, stacklevel=2)
     FULL = 'full'
     PARTICLE_HOLE = 'particle_hole'
@@ -47,7 +47,7 @@ class QubitMappingType(Enum):
     warnings.warn('The chemistry.core.QubitMappingType class is deprecated as of Qiskit Aqua '
                   '0.8.0 and will be removed no earlier than 3 months after the release date. '
                   'Instead, the '
-                  'chemistry.qubit_transformatons.fermionic_transformation.QubitMappingType can '
+                  'chemistry.transformations.fermionic_transformation.QubitMappingType can '
                   'be used.', DeprecationWarning, stacklevel=2)
     JORDAN_WIGNER = 'jordan_wigner'
     PARITY = 'parity'
