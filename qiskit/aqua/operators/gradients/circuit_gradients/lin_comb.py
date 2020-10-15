@@ -383,8 +383,8 @@ class LinComb(CircuitGradient):
         qr_add1 = QuantumRegister(1, 'work_qubit1')
         work_q1 = qr_add1[0]
         # create a copy of the original circuit with an additional working qubit register
-        circuit = QuantumCircuit(*state_qc.qregs, qr_add0, qr_add1)
-        circuit.data = state_qc.data
+        circuit = state_qc.copy()
+        circuit.add_register(qr_add0, qr_add1)
         # Get the circuits needed to compute the Hessian
         hessian_ops = None
         for param_a, param_b in tuples_list:
