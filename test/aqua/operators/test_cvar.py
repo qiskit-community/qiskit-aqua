@@ -83,6 +83,26 @@ class TestCVaRMeasurement(QiskitAquaTestCase):
         ref = self.expected_cvar(statefn.to_matrix(), Z, alpha)
         self.assertAlmostEqual(cvar, -1 * ref)
 
+    def test_add(self):
+        """Test addition."""
+        theta = 2.2
+        qc = QuantumCircuit(1)
+        qc.ry(theta, 0)
+        statefn = StateFn(qc)
+
+        alpha = 0.2
+        cvar = -1 * CVaRMeasurement(Z, alpha)
+        ref = self.expected_cvar(statefn.to_matrix(), Z, alpha)
+
+        other = ~StateFn(I)
+
+        # test add in both directions
+        res1 = ((cvar + other) @ statefn).eval()
+        res2 = ((other + other) @ statefn).eval()
+
+        self.assertAlmostEqual(res1, 1 - ref)
+        self.assertAlmostEqual(res2, 1 - ref)
+
     def invalid_input(self):
         """Test invalid input raises an error."""
         op = Z

@@ -95,7 +95,7 @@ class CVaRMeasurement(OperatorStateFn):
         return self._alpha
 
     def add(self, other: OperatorBase) -> OperatorBase:
-        raise NotImplementedError
+        return SummedOp([self, other])
 
     def adjoint(self) -> OperatorBase:
         """The adjoint of a CVaRMeasurement is not defined.
