@@ -13,11 +13,15 @@
 """
 This module implements a 1D Morse potential.
 """
+
+from typing import List
 import numpy as np
 from scipy.optimize import curve_fit
 
 from qiskit.chemistry.algorithms.pes_samplers.potentials.potential_base import PotentialBase
+from qiskit.chemistry.drivers import Molecule
 import qiskit.chemistry.constants as const
+
 
 class MorsePotential(PotentialBase):
     """
@@ -45,17 +49,17 @@ class MorsePotential(PotentialBase):
         self.m_shift = 0.0
         self.alpha = 0.0
         self.r_0 = 0.0
-        self._mA = molecule.masses[0]
-        self._mB = molecule.masses[1]
+        self._m_a = molecule.masses[0]
+        self._m_b = molecule.masses[1]
 
     @staticmethod
-    def fit_function(x:float,
-                     d_e:float,
-                     alpha:float,
-                     r_0:float,
-                     m_shift:float)->float:
-        """
-        Functional form of the potential.
+    def fit_function(x: float,
+                     d_e: float,
+                     alpha: float,
+                     r_0: float,
+                     m_shift: float) -> float:
+        """Functional form of the potential.
+
         Args:
             x: x parameter of morse potential
             d_e: d_e parameter of morse potential
@@ -69,10 +73,9 @@ class MorsePotential(PotentialBase):
         # d_e (Hartree), alpha (1/Angstrom), r_0 (Angstrom)
         return d_e * (1 - np.exp(-alpha * (x - r_0))) ** 2 + m_shift
 
-    def eval(self, x)->float:
-        """
-        After fitting the data to the fit function, predict the energy
-            at a point x.
+    def eval(self, x: float) -> float:
+        """After fitting the data to the fit function, predict the energy at a point x.
+
         Args:
             x: value to evaluate surface in
 
@@ -83,13 +86,15 @@ class MorsePotential(PotentialBase):
         return self.fit_function(x, self.d_e,
                                  self.alpha, self.r_0, self.m_shift)
 
-    def update_molecule(self, molecule)->None:
-        """
-        Updates the underlying molecule.
+    def update_molecule(self, molecule: Molecule) -> None:
+        """Updates the underlying molecule.
+
         Args:
             molecule: chemistry molecule
+
         Raises:
             ValueError: Only implemented for diatomic molecules
+
         Returns:
             updated molecule
         """
@@ -97,12 +102,12 @@ class MorsePotential(PotentialBase):
         if len(molecule.masses) != 2:
             raise ValueError(
                 'Morse potential only works for diatomic molecules!')
-        self._mA = molecule.masses[0]
-        self._mB = molecule.masses[1]
+        self._m_a = molecule.masses[0]
+        self._m_b = molecule.masses[1]
 
-    def fit(self, xdata, ydata, initial_vals=None, bounds_list=None)-> None:
-        """
-        Fits a potential to computed molecular energies.
+    def fit(self, xdata: List[float], ydata: List[float], initial_vals=None, bounds_list=None
+            ) -> None:
+        """Fits a potential to computed molecular energies.
 
         Args:
             xdata: interatomic distance points (Angstroms)
@@ -132,9 +137,9 @@ class MorsePotential(PotentialBase):
         self.r_0 = fit[2]
         self.m_shift = fit[3]
 
-    def get_equilibrium_geometry(self, scaling=1.0)-> float:
-        """
-        Returns the interatomic distance corresponding to minimal energy.
+    def get_equilibrium_geometry(self, scaling: float = 1.0) -> float:
+        """Returns the interatomic distance corresponding to minimal energy.
+
         Args:
             scaling: Scaling to change units. (Default is 1.0 for Angstroms)
 
@@ -147,9 +152,9 @@ class MorsePotential(PotentialBase):
         # meters.
         return self.r_0 * scaling
 
-    def get_minimal_energy(self, scaling=1.0):
-        """
-        Returns the smallest molecular energy for the current fit.
+    def get_minimal_energy(self, scaling: float = 1.0) -> float:
+        """Returns the smallest molecular energy for the current fit.
+
         Args:
             scaling: Scaling to change units. (Default is 1.0 for Hartrees)
 
@@ -161,9 +166,9 @@ class MorsePotential(PotentialBase):
         # Joules (per mol).
         return self.m_shift * scaling
 
-    def dissociation_energy(self, scaling=1.0):
-        """
-        Returns the calculated dissociation energy for the current fit.
+    def dissociation_energy(self, scaling: float = 1.0) -> float:
+        """Returns the calculated dissociation energy for the current fit.
+
         Args:
             scaling: Scaling to change units. (Default is 1.0 for Hartrees)
 
@@ -173,59 +178,59 @@ class MorsePotential(PotentialBase):
         # Returns the dissociation energy (scaled by 'scaling').
         # Default units (scaling=1.0) are Hartrees. Scale appropriately for
         # Joules (per mol).
-        de = self.d_e
-        diss_nrg = de - self.vibrational_energy_level(0)
+        d_e = self.d_e
+        diss_nrg = d_e - self.vibrational_energy_level(0)
 
         return diss_nrg * scaling
 
-    def fundamental_frequency(self)->float:
-        """
-        Returns the fundamental frequency for the current fit (in s^-1).
+    def fundamental_frequency(self) -> float:
+        """Returns the fundamental frequency for the current fit (in s^-1).
+
         Returns:
             fundamental frequency for the current fit
         """
-        de = self.d_e * const.HARTREE_TO_J  # Hartree, need J/molecule
+        d_e = self.d_e * const.HARTREE_TO_J  # Hartree, need J/molecule
         alp = self.alpha * 1E10  # 1/angstrom, need 1/meter
         # r0 = self.r_0*1E-10  # angstrom, need meter
-        mr = (self._mA * self._mB) / (self._mA + self._mB)
+        m_r = (self._m_a * self._m_b) / (self._m_a + self._m_b)
 
         # omega_0 in units rad/s converted to 1/s by dividing by 2Pi
-        omega_0 = (np.sqrt((2 * de * alp ** 2) / mr)) / (2 * np.pi)
+        omega_0 = np.sqrt((2 * d_e * alp ** 2) / m_r) / (2 * np.pi)
 
         # fundamental frequency in s**-1
         return omega_0
 
-    def wave_number(self)->float:
-        """
-        Returns the wave number for the current fit (in cm^-1).
+    def wave_number(self) -> float:
+        """Returns the wave number for the current fit (in cm^-1).
+
         Returns:
             wave number for the current fit
         """
         return self.fundamental_frequency() / const.C_CM_PER_S
 
-    def vibrational_energy_level(self, n:int)->float:
-        """
-        Returns the n-th vibrational energy level for the current fit
-            (in Hartrees).
+    def vibrational_energy_level(self, n: int) -> float:
+        """Returns the n-th vibrational energy level for the current fit (in Hartrees).
+
         Args:
             n: vibrational mode
 
         Returns:
             vibrational energy level for the current fit
         """
-        de = self.d_e * const.HARTREE_TO_J  # Hartree, need J/molecule
+        d_e = self.d_e * const.HARTREE_TO_J  # Hartree, need J/molecule
 
         omega_0 = self.fundamental_frequency()
         e_n = const.H_J_S * omega_0 * (n + 0.5) - \
-            ((const.H_J_S * omega_0 * (n + 0.5)) ** 2) / (4 * de)
+            ((const.H_J_S * omega_0 * (n + 0.5)) ** 2) / (4 * d_e)
 
         # energy level
         return e_n * const.J_TO_HARTREE
 
-    def get_maximum_trusted_level(self, mode=0)->float:
+    def get_maximum_trusted_level(self, mode: int = 0) -> float:
         """
         Returns the maximum energy level for which the particular
         implementation still provides a good approximation of reality.
+
         Args:
             mode: vibronic mode
 

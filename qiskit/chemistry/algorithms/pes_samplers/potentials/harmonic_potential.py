@@ -10,16 +10,16 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""
-This module implements a 1D Harmonic potential.
-"""
+"""This module implements a 1D Harmonic potential."""
+
+from typing import Tuple, List
 import numpy as np
 from scipy.optimize import curve_fit
 
 import qiskit.chemistry.constants as const
 from qiskit.chemistry.algorithms.pes_samplers.potentials.potential_base import PotentialBase
-from typing import Tuple
 from qiskit.chemistry.drivers import Molecule
+
 
 class HarmonicPotential(PotentialBase):
     """
@@ -29,12 +29,8 @@ class HarmonicPotential(PotentialBase):
     """
     # Works in Angstroms (input) and Hartrees (output)
 
-    def __init__(self, molecule)->None:
+    def __init__(self, molecule: Molecule) -> None:
         """
-        Initializes the potential to the zero-function.
-        fit_to_data() should be used afterwards to fit the potential to
-            computed molecular energies.
-
         Args:
             molecule: the underlying molecule.
 
@@ -47,11 +43,11 @@ class HarmonicPotential(PotentialBase):
         self.m_shift = 0.0
         self.r_0 = 0.0
         self.d_e = None
-        self._mA = molecule.masses[0]
-        self._mB = molecule.masses[1]
+        self._m_a = molecule.masses[0]
+        self._m_b = molecule.masses[1]
 
     @staticmethod
-    def fit_function(x, k, r_0, m_shift)->float:
+    def fit_function(x: float, k: float, r_0: float, m_shift: float) -> float:
         """
         Functional form of the potential.
 
@@ -67,10 +63,9 @@ class HarmonicPotential(PotentialBase):
         # K (Hartree/(Ang^2)), r_0 (Angstrom), m_shift (Hartree)
         return k / 2 * (x - r_0) ** 2 + m_shift
 
-    def eval(self, x)->float:
-        """
-        After fitting the data to the fit function, predict the energy
-            at a point x.
+    def eval(self, x: float) -> float:
+        """After fitting the data to the fit function, predict the energy at a point x.
+
         Args:
             x: value to evaluate surface in
 
@@ -79,26 +74,24 @@ class HarmonicPotential(PotentialBase):
         """
         return self.fit_function(x, self.k, self.r_0, self.m_shift)
 
-    def update_molecule(self, molecule)->Molecule:
-        """
-        Updates the underlying molecule.
+    def update_molecule(self, molecule: Molecule) -> Molecule:
+        """Updates the underlying molecule.
 
         Args:
             molecule: chemistry molecule
+
         Raises:
             ValueError: Only implemented for diatomic molecules
         """
         # Check the provided molecule
         if len(molecule.masses) != 2:
-            raise ValueError(
-                'Harmonic potential only works for diatomic molecules!')
-        self._mA = molecule.masses[0]
-        self._mB = molecule.masses[1]
+            raise ValueError('Harmonic potential only works for diatomic molecules!')
+        self._m_a = molecule.masses[0]
+        self._m_b = molecule.masses[1]
 
     def fit(self, xdata, ydata, initial_vals=None, bounds_list=None,
-            preprocess_data=True)->None:
-        """
-        Fits a potential to computed molecular energies.
+            preprocess_data=True) -> None:
+        """Fits a potential to computed molecular energies.
 
         Args:
             xdata: interatomic distance points (Angstroms)
@@ -144,9 +137,9 @@ class HarmonicPotential(PotentialBase):
 
         # return
 
-    def get_equilibrium_geometry(self, scaling=1.0)->float:
-        """
-        Returns the interatomic distance corresponding to minimal energy.
+    def get_equilibrium_geometry(self, scaling: float = 1.0) -> float:
+        """Returns the interatomic distance corresponding to minimal energy.
+
         Args:
             scaling: Scaling to change units. (Default is 1.0 for Angstroms)
 
@@ -159,9 +152,9 @@ class HarmonicPotential(PotentialBase):
         # meters.
         return self.r_0 * scaling
 
-    def get_minimal_energy(self, scaling=1.0)->float:
-        """
-        Returns the smallest molecular energy for the current fit.
+    def get_minimal_energy(self, scaling: float = 1.0) -> float:
+        """Returns the smallest molecular energy for the current fit.
+
         Args:
             scaling: Scaling to change units. (Default is 1.0 for Hartrees)
 
@@ -173,9 +166,9 @@ class HarmonicPotential(PotentialBase):
         # Joules (per molecule or mol).
         return self.m_shift * scaling
 
-    def dissociation_energy(self, scaling=1.0)->float:
-        """
-        Returns the estimated dissociation energy for the current fit.
+    def dissociation_energy(self, scaling: float = 1.0) -> float:
+        """Returns the estimated dissociation energy for the current fit.
+
         Args:
             scaling: Scaling to change units. (Default is 1.0 for Hartrees)
 
@@ -192,32 +185,32 @@ class HarmonicPotential(PotentialBase):
         # in Hartree
         return diss_nrg * scaling
 
-    def fundamental_frequency(self)->float:
-        """
-        Returns the fundamental frequency for the current fit (in s^-1).
+    def fundamental_frequency(self) -> float:
+        """Returns the fundamental frequency for the current fit (in s^-1).
+
         Returns:
             fundamental frequency for the current fit
         """
         # Hartree(J)/(Ang**2), need Joules per molecule!! 1/Ang**2 -> 1/m**2
         k = self.k * const.HARTREE_TO_J * 1E20
         # r0 = self.r_0*1E-10  # angstrom, need meter
-        mr = (self._mA * self._mB) / (self._mA + self._mB)
+        m_r = (self._m_a * self._m_b) / (self._m_a + self._m_b)
 
         # omega_0 in units rad/s converted to 1/s by dividing by 2Pi
-        omega_0 = (np.sqrt(k / mr)) / (2 * np.pi)
+        omega_0 = np.sqrt(k / m_r) / (2 * np.pi)
 
         # fundamental frequency in s**-1
         return omega_0
 
-    def wave_number(self)->int:
-        """
-        Returns the wave number for the current fit (in cm^-1).
+    def wave_number(self) -> int:
+        """Returns the wave number for the current fit (in cm^-1).
+
         Returns:
             wave number for the current fit
         """
         return self.fundamental_frequency() / const.C_CM_PER_S
 
-    def vibrational_energy_level(self, n)->float:
+    def vibrational_energy_level(self, n: int) -> float:
         """
         Returns the n-th vibrational energy level for the current fit
             (in Hartrees).
@@ -234,11 +227,12 @@ class HarmonicPotential(PotentialBase):
         return e_n * const.J_TO_HARTREE
 
     @classmethod
-    def process_fit_data(cls, xdata, ydata)->Tuple[list,list]:
+    def process_fit_data(cls, xdata: List[float], ydata: List[float]) -> Tuple[list, list]:
         """
         Mostly for internal use. Preprocesses the data passed to fit_to_data()
             so that only the points around the minimum are fit (which gives
             more accurate vibrational modes).
+
         Args:
             xdata: xdata to be considered
             ydata: ydata to be considered
