@@ -32,7 +32,7 @@ from qiskit.chemistry.components.bosonic_basis import HarmonicBasis
 from qiskit.chemistry.components.variational_forms import UVCC
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.results import EigenstateResult, VibronicStructureResult
-from .qubit_operator_transformation import QubitOperatorTransformation
+from .transformation import Transformation
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +47,7 @@ class BosonicQubitMappingType(Enum):
     DIRECT = 'direct'
 
 
-class BosonicTransformation(QubitOperatorTransformation):
+class BosonicTransformation(Transformation):
     """A vibronic Hamiltonian operator representing the energy of the nuclei in the molecule"""
 
     def __init__(self, qubit_mapping: BosonicQubitMappingType = BosonicQubitMappingType.DIRECT,

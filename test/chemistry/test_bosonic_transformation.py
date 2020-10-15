@@ -20,13 +20,13 @@ from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.aqua.components.optimizers import COBYLA
-from qiskit.chemistry.qubit_transformations import BosonicTransformation
-from qiskit.chemistry.qubit_transformations import (BosonicTransformationType,
-                                                    BosonicQubitMappingType)
+from qiskit.chemistry.transformations import (BosonicTransformation,
+                                              BosonicTransformationType,
+                                              BosonicQubitMappingType)
 from qiskit.chemistry.drivers import GaussianForcesDriver
-from qiskit.chemistry.ground_state_calculation import NumPyMinimumEigensolverFactory
-from qiskit.chemistry.ground_state_calculation import MinimumEigensolverGroundStateCalculation
-from qiskit.chemistry.ground_state_calculation import VQEUVCCSDFactory
+from qiskit.chemistry.algorithms.ground_state_solvers import (
+    GroundStateEigensolver, NumPyMinimumEigensolverFactory, VQEUVCCSDFactory
+)
 
 
 class TestBosonicTransformation(QiskitChemistryTestCase):
@@ -66,8 +66,8 @@ class TestBosonicTransformation(QiskitChemistryTestCase):
             truncation=2)
 
         solver = NumPyMinimumEigensolverFactory(use_default_filter_criterion=True)
-        gsc = MinimumEigensolverGroundStateCalculation(bosonic_transformation, solver)
-        result = gsc.compute_groundstate(self.driver)
+        gsc = GroundStateEigensolver(bosonic_transformation, solver)
+        result = gsc.solve(self.driver)
         self.assertAlmostEqual(result.computed_vibronic_energies[0],
                                self.reference_energy, places=4)
 
@@ -82,8 +82,8 @@ class TestBosonicTransformation(QiskitChemistryTestCase):
         optimizer = COBYLA(maxiter=5000)
         solver = VQEUVCCSDFactory(QuantumInstance(BasicAer.get_backend('statevector_simulator')),
                                   optimizer=optimizer)
-        gsc = MinimumEigensolverGroundStateCalculation(bosonic_transformation, solver)
-        result = gsc.compute_groundstate(self.driver)
+        gsc = GroundStateEigensolver(bosonic_transformation, solver)
+        result = gsc.solve(self.driver)
         self.assertAlmostEqual(result.computed_vibronic_energies[0], self.reference_energy,
                                places=1)
 

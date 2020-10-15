@@ -316,7 +316,6 @@ class QEOM(ExcitedStatesSolver):
             m_u = mus[idx]
             n_u = nus[idx]
 
-            print(gs_results['q_{}_{}'.format(m_u, n_u)])
             q_mat[m_u][n_u] = gs_results['q_{}_{}'.format(m_u, n_u)][0] if gs_results.get(
                 'q_{}_{}'.format(m_u, n_u)) is not None else q_mat[m_u][n_u]
             w_mat[m_u][n_u] = gs_results['w_{}_{}'.format(m_u, n_u)][0] if gs_results.get(
