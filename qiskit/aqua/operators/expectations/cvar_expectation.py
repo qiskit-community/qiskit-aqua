@@ -36,13 +36,15 @@ class CVaRExpectation(ExpectationBase):
 
     Examples:
 
-        >>> operator = Z ^ I ^ Z ^ I
-        >>> state = Plus ^ 4
-        >>> op = ~StateFn(operator) @ state
-        >>> cvar_expecation = CVaRExpectation(alpha=0.1).convert(op)
-        >>> exact_value = cvar_expecation.eval()
-        >>> sampler = CircuitSampler(Aer.get_backend('qasm_simulator'))
-        >>> sampled_value = sampler.convert(cvar_expectation).eval()
+        from qiskit import Aer
+        from qiskit.aqua.operators import Z, I, Plus, StateFn, CVarExpectation, CircuitSampler
+        operator = Z ^ I ^ Z ^ I
+        state = Plus ^ 4
+        op = ~StateFn(operator) @ state
+        cvar_expecation = CVaRExpectation(alpha=0.1).convert(op)
+        exact_value = cvar_expecation.eval()
+        sampler = CircuitSampler(Aer.get_backend('qasm_simulator'))
+        sampled_value = sampler.convert(cvar_expectation).eval()
 
     References:
 
