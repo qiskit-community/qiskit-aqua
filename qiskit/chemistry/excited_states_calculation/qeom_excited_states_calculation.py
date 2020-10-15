@@ -17,10 +17,10 @@ from abc import abstractmethod
 import logging
 from scipy import linalg
 
-from typing import List, Union
+from typing import List, Union, Optional
 
 from qiskit.aqua.algorithms import AlgorithmResult
-
+from qiskit.chemistry import FermionicOperator, BosonicOperator
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.ground_state_calculation import GroundStateCalculation
 from qiskit.chemistry.excited_states_calculation import ExcitedStatesCalculation
@@ -61,17 +61,26 @@ class QEOMExcitedStatesCalculation(ExcitedStatesCalculation):
                 'Excitation type must be s (singles), d (doubles) or sd (singles and doubles)')
         self._excitations = excitations
 
-    def compute_excitedstates(self, driver: BaseDriver):
+    def compute_excitedstates(self, driver: BaseDriver,
+                              aux_operators: Optional[Union[List[FermionicOperator],
+                                                            List[BosonicOperator]]] = None):
         """
         construct and solves the EOM pseudo-eigenvalue problem to obtain the excitation energies
         and the excitation operators expansion coefficients
         Args:
             driver: a chemistry driver object which defines the chemical problem that is to be
                     solved by this calculation.
+            aux_operators: Additional auxiliary operators to evaluate. Must be of type
+                ``FermionicOperator`` if the qubit transformation is fermionic and of type
+                ``BosonicOperator`` it is bosonic.
         """
 
+        if aux_operators is not None:
+            logger.warning("With qEOM the auxiliary operators can currently only be "
+                           "evaluated on the ground state.")
+
         # 1. Run ground state calculation
-        groundstate_result = self._gsc.compute_groundstate(driver)
+        groundstate_result = self._gsc.compute_groundstate(driver, aux_operators)
 
         # 2. Prepare the excitation operators
         matrix_operators_dict, size = self._prepare_matrix_operators()

@@ -73,9 +73,9 @@ class EigenSolverExcitedStatesCalculation(ExcitedStatesCalculation):
         Args:
             driver: a chemistry driver object which defines the chemical problem that is to be
                     solved by this calculation.
-            aux_operators: Additional auxiliary operators to evaluate at the ground state.
-                Depending on whether a fermionic or bosonic system is solved, the type of the
-                operators must be ``FermionicOperator`` or ``BosonicOperator``, respectively.
+            aux_operators: Additional auxiliary operators to evaluate. Must be of type
+                ``FermionicOperator`` if the qubit transformation is fermionic and of type
+                ``BosonicOperator`` it is bosonic.
 
         Raises:
             NotImplementedError: If an operator in ``aux_operators`` is not of type
