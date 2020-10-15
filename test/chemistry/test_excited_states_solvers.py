@@ -23,7 +23,7 @@ from qiskit.aqua import aqua_globals, QuantumInstance
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver, NumPyEigensolver
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
-from qiskit.chemistry.transformations import (FermionicTransformation
+from qiskit.chemistry.transformations import (FermionicTransformation,
                                               FermionicQubitMappingType)
 from qiskit.chemistry.algorithms.ground_state_solvers import (GroundStateEigensolver,
                                                               VQEUCCSDFactory)

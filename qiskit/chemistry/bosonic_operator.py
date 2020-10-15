@@ -36,7 +36,7 @@ class BosonicOperator:
 
     def __init__(self,
                  h: List[List[Tuple[List[List[int]], float]]],
-                 basis: Union[int, List[int]]) -> None:
+                 basis: List[int]) -> None:
         """
         The Bosonic operator in this class is written in the n-mode second quantization format
         (Eq. 10 in Ref. Ollitrault Pauline J., Chemical science 11 (2020): 6842-6855.)
@@ -58,9 +58,6 @@ class BosonicOperator:
         self._degree = len(h)
         self._num_modes = len(basis)
         self._h_mat = h
-
-        if isinstance(self._basis, int):
-            self._basis = [self._basis] * self._num_modes
 
     def _direct_mapping(self, n: int) -> List[Tuple[Pauli, Pauli]]:
         """ Performs the transformation: a[i] = IIXIII +- iIIYIII.
@@ -250,8 +247,8 @@ class BosonicOperator:
         Returns:
             BosonicOperator: the corresponding bosonic operator
         """
-        h_mat = [[]]
+        h_mat: List[List[Tuple[List[List[int]], float]]] = [[]]
         for modal in range(self._basis[mode]):
-            h_mat[0].append([[[mode, modal, modal]], 1])
+            h_mat[0].append(([[mode, modal, modal]], 1.))
 
         return BosonicOperator(h_mat, self._basis)

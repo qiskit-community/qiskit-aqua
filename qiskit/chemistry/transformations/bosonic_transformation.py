@@ -296,7 +296,7 @@ class BosonicTransformation(Transformation):
                 dag_lst.append([lst[0], lst[2], lst[1]])
             return dag_lst
 
-        hopping_operators = {}
+        hopping_operators: Dict[str, WeightedPauliOperator] = {}
         excitation_indices = {}
         to_be_executed_list = []
         for idx in range(size):
@@ -317,7 +317,7 @@ class BosonicTransformation(Transformation):
 
         # This variable is required for compatibility with the FermionicTransformation
         # at the moment we do not have any type of commutativity in the bosonic case.
-        type_of_commutativities = {}
+        type_of_commutativities: Dict[str, List[bool]] = {}
 
         return hopping_operators, type_of_commutativities, excitation_indices
 

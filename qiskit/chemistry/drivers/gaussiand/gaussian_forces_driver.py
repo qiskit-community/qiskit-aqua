@@ -92,7 +92,7 @@ class GaussianForcesDriver(BosonicDriver):
             if self._molecule is not None:
                 jcf = self._from_molecule_to_str()
             else:
-                jcf = self._jcf
+                jcf = self._jcf  # type: ignore
             glr = GaussianLogDriver(jcf=jcf).run()
 
         return glr.get_watson_hamiltonian(self._normalize)
