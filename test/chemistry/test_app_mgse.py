@@ -12,6 +12,7 @@
 
 """ Test molecular ground state energy application """
 
+import warnings
 import unittest
 
 from test.chemistry import QiskitChemistryTestCase
@@ -53,6 +54,7 @@ class TestAppMGSE(QiskitChemistryTestCase):
 
     def test_mgse_npme(self):
         """ Test Molecular Ground State Energy NumPy classical solver """
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         mgse = MolecularGroundStateEnergy(self.driver, self.npme)
         result = mgse.compute_energy()
         self.assertAlmostEqual(result.energy, self.reference_energy, places=5)
@@ -71,15 +73,19 @@ class TestAppMGSE(QiskitChemistryTestCase):
         self.assertEqual(formatted[14], '  - frozen energy part: [0.0  0.0  0.0]')
         self.assertEqual(formatted[15], '  - particle hole part: [0.0  0.0  0.0]')
         self.assertEqual(formatted[18], '               (debye): [0.0  0.0  0.0]  Total: 0.')
+        warnings.filterwarnings('always', category=DeprecationWarning)
 
     def test_mgse_vqe(self):
         """ Test Molecular Ground State Energy VQE solver """
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         mgse = MolecularGroundStateEnergy(self.driver, self.vqe)
         result = mgse.compute_energy()
         self.assertAlmostEqual(result.energy, self.reference_energy, places=5)
+        warnings.filterwarnings('always', category=DeprecationWarning)
 
     def test_mgse_solver(self):
         """ Test Molecular Ground State Energy setting solver """
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         mgse = MolecularGroundStateEnergy(self.driver)
         with self.assertRaises(QiskitChemistryError):
             _ = mgse.compute_energy()
@@ -91,6 +97,7 @@ class TestAppMGSE(QiskitChemistryTestCase):
         mgse.solver = self.vqe
         result = mgse.compute_energy()
         self.assertAlmostEqual(result.energy, self.reference_energy, places=5)
+        warnings.filterwarnings('always', category=DeprecationWarning)
 
     def test_mgse_callback_ipqe(self):
         """ Callback test setting up Hartree Fock with IQPE """
@@ -106,9 +113,11 @@ class TestAppMGSE(QiskitChemistryTestCase):
                                                     shots=100)
             return iqpe
 
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         mgse = MolecularGroundStateEnergy(self.driver)
         result = mgse.compute_energy(cb_create_solver)
         np.testing.assert_approx_equal(result.energy, self.reference_energy, significant=2)
+        warnings.filterwarnings('always', category=DeprecationWarning)
 
     def test_mgse_callback_vqe_uccsd(self):
         """ Callback test setting up Hartree Fock with UCCSD and VQE """
@@ -127,12 +136,15 @@ class TestAppMGSE(QiskitChemistryTestCase):
             vqe.quantum_instance = BasicAer.get_backend('statevector_simulator')
             return vqe
 
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         mgse = MolecularGroundStateEnergy(self.driver)
         result = mgse.compute_energy(cb_create_solver)
         self.assertAlmostEqual(result.energy, self.reference_energy, places=5)
+        warnings.filterwarnings('always', category=DeprecationWarning)
 
     def test_mgse_callback(self):
         """ Callback testing """
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         mgse = MolecularGroundStateEnergy(self.driver)
 
         result = mgse.compute_energy(lambda *args: NumPyMinimumEigensolver())
@@ -140,9 +152,11 @@ class TestAppMGSE(QiskitChemistryTestCase):
 
         result = mgse.compute_energy(lambda *args: self.vqe)
         self.assertAlmostEqual(result.energy, self.reference_energy, places=5)
+        warnings.filterwarnings('always', category=DeprecationWarning)
 
     def test_mgse_default_solver(self):
         """ Callback testing using default solver """
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         mgse = MolecularGroundStateEnergy(self.driver)
 
         result = mgse.compute_energy(mgse.get_default_solver(
@@ -152,6 +166,7 @@ class TestAppMGSE(QiskitChemistryTestCase):
         q_inst = QuantumInstance(BasicAer.get_backend('statevector_simulator'))
         result = mgse.compute_energy(mgse.get_default_solver(q_inst))
         self.assertAlmostEqual(result.energy, self.reference_energy, places=5)
+        warnings.filterwarnings('always', category=DeprecationWarning)
 
     def test_mgse_callback_vqe_uccsd_z2(self):
         """ Callback test setting up Hartree Fock with UCCSD and VQE, plus z2 symmetries """
@@ -171,11 +186,13 @@ class TestAppMGSE(QiskitChemistryTestCase):
             return vqe
 
         driver = PySCFDriver(atom='Li .0 .0 -0.8; H .0 .0 0.8')
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         mgse = MolecularGroundStateEnergy(driver, qubit_mapping=QubitMappingType.JORDAN_WIGNER,
                                           two_qubit_reduction=False, freeze_core=True,
                                           z2symmetry_reduction='auto')
         result = mgse.compute_energy(cb_create_solver)
         self.assertAlmostEqual(result.energy, -7.882, places=3)
+        warnings.filterwarnings('always', category=DeprecationWarning)
 
     def test_mgse_callback_vqe_uccsd_z2_nosymm(self):
         """ This time we reduce the operator so it has symmetries left. Whether z2 symmetry
@@ -193,6 +210,7 @@ class TestAppMGSE(QiskitChemistryTestCase):
             return NumPyMinimumEigensolver()
 
         driver = PySCFDriver(atom='Li .0 .0 -0.8; H .0 .0 0.8')
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         mgse = MolecularGroundStateEnergy(driver, qubit_mapping=QubitMappingType.PARITY,
                                           two_qubit_reduction=True, freeze_core=True,
                                           orbital_reduction=[-3, -2],
@@ -215,6 +233,7 @@ class TestAppMGSE(QiskitChemistryTestCase):
 
         self.assertEqual(z2_symm.is_empty(), True)
         self.assertEqual(str(result), str(result1))  # Compare string form of results
+        warnings.filterwarnings('always', category=DeprecationWarning)
 
 
 if __name__ == '__main__':
