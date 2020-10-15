@@ -10,7 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Test MinimumEigensovler ground state calculation """
+""" Test GroundStateEigensolver """
 
 import unittest
 
@@ -27,8 +27,8 @@ from qiskit.chemistry.algorithms.ground_state_solvers.minimum_eigensolver_factor
     (VQEUCCSDFactory, NumPyMinimumEigensolverFactory)
 
 
-class TestMESGSCCalculation(QiskitChemistryTestCase):
-    """ Test MinimumEigensovler ground state calculation """
+class TestGroundStateEigensolver(QiskitChemistryTestCase):
+    """ Test GroundStateEigensolver """
 
     def setUp(self):
         super().setUp()
@@ -48,6 +48,13 @@ class TestMESGSCCalculation(QiskitChemistryTestCase):
     def test_npme(self):
         """ Test NumPyMinimumEigensolver """
         solver = NumPyMinimumEigensolverFactory()
+        calc = GroundStateEigensolver(self.transformation, solver)
+        res = calc.solve(self.driver)
+        self.assertAlmostEqual(res.energy, self.reference_energy, places=6)
+
+    def test_npme_with_default_filter(self):
+        """ Test NumPyMinimumEigensolver with default filter """
+        solver = NumPyMinimumEigensolverFactory(use_default_filter_criterion=True)
         calc = GroundStateEigensolver(self.transformation, solver)
         res = calc.solve(self.driver)
         self.assertAlmostEqual(res.energy, self.reference_energy, places=6)
