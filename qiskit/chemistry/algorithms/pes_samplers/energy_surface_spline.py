@@ -57,8 +57,6 @@ class EnergySurface1DSpline(EnergySurfaceBase):
         Args:
             xdata: x data to be fitted
             ydata: y data to be fitted
-            initial_vals: TODO
-            bounds_list: TODO
         """
         newx = xdata
         newy = ydata
