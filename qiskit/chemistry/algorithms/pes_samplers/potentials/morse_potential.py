@@ -100,8 +100,6 @@ class MorsePotential(PotentialBase):
         Raises:
             ValueError: Only implemented for diatomic molecules
 
-        Returns:
-            updated molecule
         """
         # Check the provided molecule
         if molecule.masses is None:
