@@ -47,6 +47,10 @@ class MultivariateUniformDistribution(MultivariateDistribution):
         probabilities = np.ones(num_values)
         super().__init__(num_qubits, probabilities, low, high)
 
+    @staticmethod
+    def _replacement():
+        return 'qiskit.circuit.library.UniformDistribution'
+
     def build(self, qc, q, q_ancillas=None, params=None):
         if params is None or params['i_state'] is None:
             for i in range(sum(self.num_qubits)):

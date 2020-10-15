@@ -58,6 +58,10 @@ class UnivariateDistribution(UncertaintyModel, ABC):
             if self.num_values != len(probabilities):
                 raise AquaError('num qubits and length of probabilities vector do not match!')
 
+    @staticmethod
+    def _replacement():
+        return 'a qiskit.QuantumCircuit'
+
     @property
     def low(self):
         """ returns low """
