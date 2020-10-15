@@ -55,7 +55,7 @@ class TestNumericalQEOMESCCalculation(QiskitChemistryTestCase):
                                                 seed_transpiler=90, seed_simulator=12)
 
     def test_numpy_mes(self):
-
+        """ Test NumPyMinimumEigenSolver with QEOM """
         solver = NumPyMinimumEigensolver()
         gsc = GroundStateEigensolver(self.transformation, solver)
         esc = QEOM(gsc, 'sd')
@@ -66,7 +66,7 @@ class TestNumericalQEOMESCCalculation(QiskitChemistryTestCase):
                                    places=4)
 
     def test_vqe_mes(self):
-
+        """ Test VQEUCCSDFactory with QEOM """
         solver = VQEUCCSDFactory(self.quantum_instance)
         gsc = GroundStateEigensolver(self.transformation, solver)
         esc = QEOM(gsc, 'sd')
@@ -77,6 +77,7 @@ class TestNumericalQEOMESCCalculation(QiskitChemistryTestCase):
                                    places=4)
 
     def test_numpy_factory(self):
+        """ Test NumPyEigenSolverFactory with ExcitedStatesEigensolver """
         solver = NumPyEigensolverFactory(use_default_filter_criterion=True)
         esc = ExcitedStatesEigensolver(self.transformation, solver)
         results = esc.solve(self.driver)

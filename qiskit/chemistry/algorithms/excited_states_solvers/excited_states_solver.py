@@ -26,7 +26,7 @@ class ExcitedStatesSolver(ABC):
     @abstractmethod
     def solve(self, driver: BaseDriver,
               aux_operators: Optional[Union[List[FermionicOperator],
-                                                 List[BosonicOperator]]] = None
+                                            List[BosonicOperator]]] = None
               ) -> Union[ElectronicStructureResult, VibronicStructureResult]:
         """Compute the excited states energies of the molecule that was supplied via the driver.
         Args:
