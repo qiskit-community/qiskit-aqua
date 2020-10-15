@@ -66,6 +66,7 @@ class GroundStateEigensolver(GroundStateSolver):
               aux_operators: Optional[Union[List[FermionicOperator],
                                             List[BosonicOperator]]] = None) \
             -> Union[ElectronicStructureResult, VibronicStructureResult]:
+
         """Compute Ground State properties.
 
         Args:

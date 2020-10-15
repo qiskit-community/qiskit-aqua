@@ -136,6 +136,7 @@ class AdaptVQE(GroundStateEigensolver):
               aux_operators: Optional[Union[List[FermionicOperator],
                                             List[BosonicOperator]]] = None) \
             -> Union[ElectronicStructureResult, VibronicStructureResult]:
+
         """Computes the ground state.
 
         Args:
