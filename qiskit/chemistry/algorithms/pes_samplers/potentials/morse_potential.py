@@ -204,7 +204,7 @@ class MorsePotential(PotentialBase):
         """
         return self.fundamental_frequency() / const.C_CM_PER_S
 
-    def vibrational_energy_level(self, n:int)->float
+    def vibrational_energy_level(self, n:int)->float:
         """
         Returns the n-th vibrational energy level for the current fit
             (in Hartrees).

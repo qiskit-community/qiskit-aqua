@@ -74,7 +74,7 @@ class EnergySurfaceBase(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_trust_region(self)->tuple(float,float):
+    def get_trust_region(self)->Tuple[float,float]:
         """
         Returns the bounds of the region (in space) where the energy
         surface implementation can be trusted. When doing spline
