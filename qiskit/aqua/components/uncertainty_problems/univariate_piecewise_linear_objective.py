@@ -162,6 +162,10 @@ class UnivariatePiecewiseLinearObjective(CircuitFactory):
             # create piecewise linear Y rotation
             self._pwl_ry = None
 
+    @staticmethod
+    def _replacement():
+        return 'qiskit.circuit.library.LinearAmplitudeFunction'
+
     def value_to_estimation(self, value):
         """ value to estimation """
         if self._c_approx < 1:

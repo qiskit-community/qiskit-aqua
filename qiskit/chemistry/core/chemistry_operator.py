@@ -115,7 +115,7 @@ class MolecularChemistryResult(AlgorithmResult):
         super().__init__(a_dict)
         warnings.warn('The qiskit.chemistry.chemistry_operator.MolecularChemistryResult object is '
                       'deprecated as of 0.8.0 and will be removed no sooner than 3 months after the'
-                      ' release. You should use qiskit.chemistry.ground_state_calculation.'
+                      ' release. You should use qiskit.chemistry.algorithms.ground_state_solvers.'
                       'FermionicGroundStateResult instead.', DeprecationWarning, stacklevel=2)
 
     @property
@@ -170,8 +170,9 @@ class MolecularGroundStateResult(MolecularChemistryResult):
         super().__init__(a_dict)
         warnings.warn('The qiskit.chemistry.chemistry_operator.MolecularGroundStateResult object '
                       'is deprecated as of 0.8.0 and will be removed no sooner than 3 months after '
-                      'the release. You should use qiskit.chemistry.ground_state_calculation.'
-                      'FermionicGroundStateResult instead.', DeprecationWarning, stacklevel=2)
+                      'the release. You should use qiskit.chemistry.algorithms.'
+                      'ground_state_solvers.FermionicGroundStateResult instead.',
+                      DeprecationWarning, stacklevel=2)
 
     @property
     def energy(self) -> Optional[float]:
