@@ -95,7 +95,7 @@ Examples::
         qfi.assign_parameters(value_dict).eval()
 
 NaturalGradients:
-The natural gradient is a special gradient method which rescales a gradient w.r.t. a state
+The natural gradient is a special gradient method which re-scales a gradient w.r.t. a state
 parameter with the inverse of the corresponding Quantum Fisher Information (QFI)
 :math:`QFI^-1 d⟨ψ(θ)|O(ω)|ψ(θ)〉/ dθ`.
 Hereby, we can choose a gradient as well as a QFI method and a regularization method which is used
