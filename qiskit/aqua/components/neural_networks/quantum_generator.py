@@ -345,6 +345,7 @@ class QuantumGenerator(GenerativeNetwork):
         Args:
             quantum_instance (QuantumInstance): used to run the generator circuit.
             shots (int): Number of shots for hardware or qasm execution.
+
         Returns:
             dict: generator loss(float) and updated parameters (array).
         """
