@@ -134,7 +134,6 @@ class VQEUCCSDFactory(MinimumEigensolverFactory):
         """Setter of the ``include_custom`` setting for the ``expectation`` setting."""
         self._include_custom = include_custom
 
-
     @property
     def method_singles(self) -> str:
         """Getter of the ``method_singles`` setting for the ``method_singles`` setting."""
