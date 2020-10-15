@@ -61,7 +61,7 @@ class TestDriverMethods(QiskitChemistryTestCase):
 
     def _assert_energy_and_dipole(self, result, mol):
         self._assert_energy(result, mol)
-        self.assertAlmostEqual(self.ref_dipoles[mol], result.total_dipole_moment, places=3)
+        self.assertAlmostEqual(self.ref_dipoles[mol], result.total_dipole_moment[0], places=3)
 
 
 if __name__ == '__main__':
