@@ -59,7 +59,7 @@ Hessians:
 We want to compute one of:
 :math:`d^2⟨ψ(θ)|O(ω)|ψ(θ)〉/ dω^2`
 :math:`d^2⟨ψ(θ)|O(ω)|ψ(θ)〉/ dθ^2`
-:math:`d^2⟨ψ(θ)|O(ω)|ψ(θ)〉/ dθdω`
+:math:`d^2⟨ψ(θ)|O(ω)|ψ(θ)〉/ dθ dω`
 :math:`d^2⟨ψ(θ)|i〉⟨i|ψ(θ)〉/ dθ^2`.
 
 The last case corresponds to the Hessian w.r.t. the sampling probabilities of `|ψ(θ)〉`.
@@ -99,7 +99,7 @@ The natural gradient is a special gradient method which rescales a gradient w.r.
 parameter with the inverse of the corresponding Quantum Fisher Information (QFI)
 :math:`QFI^-1 d⟨ψ(θ)|O(ω)|ψ(θ)〉/ dθ`.
 Hereby, we can choose a gradient as well as a QFI method and a regularization method which is used
-together with a least square solver instead of exact invertion of the QFI:
+together with a least square solver instead of exact inversion of the QFI:
 
 Examples::
         op = ~StateFn(ham) @ CircuitStateFn(primitive=qc, coeff=1.)
