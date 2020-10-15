@@ -28,9 +28,8 @@ class MorsePotential(PotentialBase):
     """
     # Works in Angstroms and Hartrees
 
-    def __init__(self,molecule):
+    def __init__(self, molecule):
         """
-        Constructor.
         Initializes the potential to the zero-function.
         fit() should be used afterwards to fit the potential to
             computed molecular energies.
@@ -41,7 +40,6 @@ class MorsePotential(PotentialBase):
         Raises:
             ValueError: Only implemented for diatomic molecules
         """
-        super().__init__()
         # Initialize with zero-potential.
         # Later - fit energy values (fit)
         self.d_e = 0.0

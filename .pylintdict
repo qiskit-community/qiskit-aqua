@@ -41,6 +41,7 @@ backend
 backends
 baritompa
 barkoutsos
+basedriver
 bb
 benchmarking
 bergholm
@@ -112,6 +113,7 @@ crx
 csr
 cts
 currentmodule
+cvar
 cvs
 cvxpy
 cx
@@ -131,6 +133,7 @@ deconvoluted
 deriv
 dest
 deutsch
+diagonality
 diagonalization
 diagonalize
 diagonalized
@@ -203,7 +206,8 @@ exponentiated
 exponentiations
 expr
 extrapolator
-Extrapolators
+extrapolators
+extrapolator's
 factorizers
 factr
 fcidump
@@ -251,6 +255,7 @@ grinko
 groundenergy
 groundstates
 grover
+gsc
 gset
 gsls
 gto
@@ -261,6 +266,7 @@ hamiltonian
 hamiltonians
 hardcoded
 hartree
+hartrees
 hassidim
 hb
 hhl
@@ -426,6 +432,7 @@ mypy
 nakanishi
 namelist
 nan
+nannicini
 narray
 nasdaq
 natively
@@ -673,6 +680,7 @@ sys
 sysctl
 tapp
 tanaka
+tavernelli
 tbd
 tbp
 temme

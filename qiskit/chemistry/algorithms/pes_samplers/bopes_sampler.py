@@ -31,16 +31,16 @@ class BOPESSampler:
     """Class to evaluate the Born-Oppenheimer Potential Energy Surface (BOPES)."""
 
     def __init__(self,
-                 gsc: GroundStateSolver,
+                 gss: GroundStateSolver,
                  tolerance: float = 1e-3,
                  bootstrap: bool = True,
                  num_bootstrap: Optional[int] = None,
                  extrapolator: Optional[Extrapolator] = None) -> None:
         """
         Args:
-            gsc: GroundStateSolver
+            gss: GroundStateSolver
             tolerance: Tolerance desired for minimum energy.
-            bootstrap: Whether to warm-start the solve of variational minimum eigensolvers.
+            bootstrap: Whether to warm-start the solution of variational minimum eigensolvers.
             num_bootstrap: Number of previous points for extrapolation
                 and bootstrapping. If None and a list of extrapolators is defined,
                 the first two points will be used for bootstrapping.
@@ -55,7 +55,7 @@ class BOPESSampler:
                 ``WindowExtrapolator``.
         """
 
-        self._gsc = gsc
+        self._gss = gss
         self._tolerance = tolerance
         self._bootstrap = bootstrap
         self._driver = None     # type: Optional[BaseDriver]
@@ -81,10 +81,10 @@ class BOPESSampler:
                 raise AquaError(
                     'num_bootstrap must be None or an integer greater than or equal to 2')
 
-        if isinstance(self._gsc.solver, VQAlgorithm):
+        if isinstance(self._gss.solver, VQAlgorithm):
             # Save initial point passed to min_eigensolver;
             # this will be used when NOT bootstrapping
-            self._initial_point = self._gsc.solver.initial_point
+            self._initial_point = self._gss.solver.initial_point
 
     def sample(self, driver: BaseDriver, points: List[float]) -> BOPESSamplerResult:
         """Run the sampler at the given points, potentially with repetitions.
@@ -104,7 +104,7 @@ class BOPESSampler:
         self._driver = driver
 
         if self._driver.molecule is None:
-            raise AquaError('Please provide a molecule')
+            raise AquaError('Driver MUST be configured with a Molecule.')
 
         # full dictionary of points
         self._raw_results = self._run_points(points)
@@ -112,8 +112,8 @@ class BOPESSampler:
         self._points = list(self._raw_results.keys())
         self._energies = []
         for key in self._raw_results:
-            energy = self._raw_results[key]['computed_electronic_energy'] + \
-                     self._raw_results[key]['nuclear_repulsion_energy']
+            energy = self._raw_results[key].computed_electronic_energy + \
+                     self._raw_results[key].nuclear_repulsion_energy
             self._energies.append(energy)
 
         result = BOPESSamplerResult(self._points, self._energies, self._raw_results)
@@ -130,9 +130,9 @@ class BOPESSampler:
             The results for all points.
         """
         raw_results = dict()   # type: Dict[float, EigenstateResult]
-        if isinstance(self._gsc.solver, VQAlgorithm):
+        if isinstance(self._gss.solver, VQAlgorithm):
             self._points_optparams = dict()
-            self._gsc.solver.initial_point = self._initial_point
+            self._gss.solver.initial_point = self._initial_point
 
         # Iterate over the points
         for i, point in enumerate(points):
@@ -156,7 +156,7 @@ class BOPESSampler:
         self._driver.molecule.perturbations = [point]
 
         # find closest previously run point and take optimal parameters
-        if isinstance(self._gsc.solver, VQAlgorithm) and self._bootstrap:
+        if isinstance(self._gss.solver, VQAlgorithm) and self._bootstrap:
             prev_points = list(self._points_optparams.keys())
             prev_params = list(self._points_optparams.values())
             n_pp = len(prev_points)
@@ -175,22 +175,22 @@ class BOPESSampler:
                     # find min 'distance' from point to previous points
                     min_index = np.argmin(np.linalg.norm(distances, axis=1))
                     # update initial point
-                    self._gsc.solver.initial_point = prev_params[min_index]
+                    self._gss.solver.initial_point = prev_params[min_index]
                 else:  # extrapolate using saved parameters
                     opt_params = self._points_optparams
                     param_sets = self._extrapolator.extrapolate(points=[point],
                                                                 param_dict=opt_params)
                     # update initial point, note param_set is a list
                     # param set is a dictionary
-                    self._gsc.solver.initial_point = param_sets.get(point)
+                    self._gss.solver.initial_point = param_sets.get(point)
 
         # the output is an instance of EigenstateResult
-        result = self._gsc.solve(self._driver)
+        result = self._gss.solve(self._driver)
 
         # Save optimal point to bootstrap
-        if isinstance(self._gsc.solver, VQAlgorithm):
+        if isinstance(self._gss.solver, VQAlgorithm):
             # at every point evaluation, the optimal params are updated
-            optimal_params = self._gsc.solver.optimal_params
+            optimal_params = self._gss.solver.optimal_params
             self._points_optparams[point] = optimal_params
 
         return result

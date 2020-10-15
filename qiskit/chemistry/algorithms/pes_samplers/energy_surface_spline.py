@@ -31,6 +31,8 @@ class EnergySurface1DSpline(EnergySurfaceBase):
         self.eval_d = None
         self.min_x = None
         self.min_val = None
+        self.x_left = None
+        self.x_right = None
 
     # Implementing the EnergySurfaceBase interface
 

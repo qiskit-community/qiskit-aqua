@@ -30,7 +30,6 @@ class HarmonicPotential(PotentialBase):
 
     def __init__(self, molecule):
         """
-        Constructor.
         Initializes the potential to the zero-function.
         fit_to_data() should be used afterwards to fit the potential to
             computed molecular energies.
@@ -41,7 +40,6 @@ class HarmonicPotential(PotentialBase):
         Raises:
             ValueError: Only implemented for diatomic molecules
         """
-        super().__init__()
         # Initialize with zero-potential.
         # Later - fit energy values (fit_to_data)
         self.k = 0.0
