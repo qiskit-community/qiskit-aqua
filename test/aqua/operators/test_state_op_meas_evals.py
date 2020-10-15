@@ -19,12 +19,10 @@ import numpy
 
 from qiskit import Aer
 from qiskit.aqua import QuantumInstance
-from qiskit.aqua.operators import StateFn, Zero, One, H, X, I, Z, Plus, Minus, CircuitSampler, \
-    ListOp
+from qiskit.aqua.operators import StateFn, Zero, One, H, X, I, Z, Plus, Minus, CircuitSampler
 
 
 # pylint: disable=invalid-name
-
 class TestStateOpMeasEvals(QiskitAquaTestCase):
     """Tests of evals of Meas-Operator-StateFn combos."""
 
@@ -81,6 +79,7 @@ class TestStateOpMeasEvals(QiskitAquaTestCase):
             self.assertAlmostEqual(sampler.eval(), 1+0j)
 
     def test_is_measurement_correctly_propagated(self):
+        """Test if is_measurement property of StateFn is propagated to converted StateFn."""
         backend = Aer.get_backend('qasm_simulator')
         q_instance = QuantumInstance(backend)  # no seeds needed since no values are compared
         state = Plus
