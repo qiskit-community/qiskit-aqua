@@ -187,7 +187,7 @@ class VQEUCCSDFactory(MinimumEigensolverFactory):
             by ``transformation``.
 
         Raises:
-            AquaError: in case a wronte Transformation type is given.
+            AquaError: in case a Transformation of wrong type is given.
         """
         if not isinstance(transformation, FermionicTransformation):
             raise AquaError('VQEUCCSDFactory.getsolver() requires a FermionicTransformation')
