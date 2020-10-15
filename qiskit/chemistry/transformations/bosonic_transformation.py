@@ -28,7 +28,7 @@ from qiskit.aqua.operators.legacy import WeightedPauliOperator
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry import WatsonHamiltonian
 from qiskit.chemistry.bosonic_operator import BosonicOperator
-from qiskit.chemistry.components.bosonic_basis import HarmonicBasis
+from qiskit.chemistry.components.bosonic_bases import HarmonicBasis
 from qiskit.chemistry.components.variational_forms import UVCC
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.results import EigenstateResult, VibronicStructureResult

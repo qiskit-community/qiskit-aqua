@@ -11,11 +11,11 @@
 # that they have been altered from the originals.
 
 """
-Bosonic basis (:mod:`qiskit.chemistry.components.bosonic_basis`)
+Bosonic basis (:mod:`qiskit.chemistry.components.bosonic_bases`)
 ================================================================
 Basis for bosonic operations.
 
-.. currentmodule:: qiskit.chemistry.components.bosonic_basis
+.. currentmodule:: qiskit.chemistry.components.bosonic_bases
 
 Bosonic Basis
 =============
