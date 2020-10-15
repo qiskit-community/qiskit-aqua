@@ -58,7 +58,6 @@ class OOVQE(GroundStateEigensolver):
     def __init__(self,
                  transformation: FermionicTransformation,
                  solver: MinimumEigensolverFactory,
-                 driver: BaseDriver,
                  initial_point: Optional[np.ndarray] = None,
                  orbital_rotation: Optional['OrbitalRotation'] = None,
                  qmolecule: Optional[QMolecule] = None,
@@ -96,53 +95,32 @@ class OOVQE(GroundStateEigensolver):
         super().__init__(transformation, solver)
         # todo: no need, initializer in the super class
         self._solver = solver
-        self._driver = driver
         self._qmolecule = qmolecule
         self.initial_point = initial_point
-
-        # initialize the operator and vqe to get the right number of orbital rotations
-        self._set_operator_and_vqe()
-
-        self._qmolecule_rotated = None
-        self._fixed_wavefunction_params = None
-        if orbital_rotation is None:
-            self._orbital_rotation = OrbitalRotation(num_qubits=self._vqe.var_form.num_qubits,
-                                                     transformation=self._transformation,
-                                                     qmolecule=self._qmolecule)
-        self._num_parameters_oovqe = \
-            self._vqe.var_form._num_parameters + self._orbital_rotation.num_parameters
-
-        if self.initial_point is None:
-            self._set_initial_point()
-        else:
-            if len(self.initial_point) is not self._num_parameters_oovqe:
-                raise AquaError('Number of parameters of OOVQE ({}) differs to the one given in '
-                                'intitial_point ({})'.format(self._num_parameters_oovqe,
-                                                             len(self.initial_point)))
-
+        self._orbital_rotation = orbital_rotation
         self._bounds = bounds
-        if self._bounds is None:
-            self._set_bounds(self._orbital_rotation.parameter_bound_value)
         self._iterative_oo = iterative_oo
         self._iterative_oo_iterations = iterative_oo_iterations
-        if self._iterative_oo_iterations < 1:
-            raise AquaError('Please set iterative_oo_iterations parameter to a positive number,'
-                            ' got {} instead'.format(self._iterative_oo_iterations))
 
-        # copies to overcome incompatibilities with error checks in VQAlgorithm class
-        self.var_form_num_parameters = self._vqe.var_form.num_parameters
-        self.var_form_bounds = copy.copy(self._vqe.var_form._bounds)
+        # internal parameters of the algorithm
+        self._driver = None
+        self._qmolecule_rotated = None
+        self._fixed_wavefunction_params = None
+        self._num_parameters_oovqe = None
+        self._additional_params_initialized = False
+        self.var_form_num_parameters = None
+        self.var_form_bounds = None
 
     def returns_groundstate(self) -> bool:
         return True
 
-    def _set_operator_and_vqe(self):
+    def _set_operator_and_vqe(self, driver: BaseDriver):
         """ Initializes the operators using provided driver of qmolecule."""
 
         if self._qmolecule is None:
             # in future, self._transformation.transform should return also qmolecule
             # to avoid running the driver twice
-            self._qmolecule = self._driver.run()
+            self._qmolecule = driver.run()
             operator, aux_operators = self._transformation._do_transform(self._qmolecule)
         else:
             operator, aux_operators = self._transformation._do_transform(self._qmolecule)
@@ -180,6 +158,37 @@ class OOVQE(GroundStateEigensolver):
             initial_pt_scalar: value of the initial parameters for wavefunction and orbital rotation
         """
         self.initial_point = [initial_pt_scalar for _ in range(self._num_parameters_oovqe)]
+
+    def initialize_additional_parameters(self, driver: BaseDriver):
+        """ Initializes additional parameters of the OOVQE algorithm. """
+
+        self._set_operator_and_vqe(driver)
+
+        if self._orbital_rotation is None:
+            self._orbital_rotation = OrbitalRotation(num_qubits=self._vqe.var_form.num_qubits,
+                                                     transformation=self._transformation,
+                                                     qmolecule=self._qmolecule)
+        self._num_parameters_oovqe = \
+            self._vqe.var_form._num_parameters + self._orbital_rotation.num_parameters
+
+        if self.initial_point is None:
+            self._set_initial_point()
+        else:
+            if len(self.initial_point) is not self._num_parameters_oovqe:
+                raise AquaError(
+                    'Number of parameters of OOVQE ({}) differs to the one given in '
+                    'intitial_point ({})'.format(self._num_parameters_oovqe,
+                                                 len(self.initial_point)))
+        if self._bounds is None:
+            self._set_bounds(self._orbital_rotation.parameter_bound_value)
+        if self._iterative_oo_iterations < 1:
+            raise AquaError('Please set iterative_oo_iterations parameter to a positive number,'
+                            ' got {} instead'.format(self._iterative_oo_iterations))
+
+        # copies to overcome incompatibilities with error checks in VQAlgorithm class
+        self.var_form_num_parameters = self._vqe.var_form.num_parameters
+        self.var_form_bounds = copy.copy(self._vqe.var_form._bounds)
+        self._additional_params_initialized = True
 
     def _energy_evaluation_oo(self, parameters: np.ndarray) -> Union[float, List[float]]:
         """ Evaluate energy at given parameters for the variational form and parameters for
@@ -236,12 +245,10 @@ class OOVQE(GroundStateEigensolver):
                                             List[BosonicOperator]]] = None) \
             -> Union[ElectronicStructureResult, 'VibronicStructureResult']:
 
-        # algorithm requires to have driver to initialize correctly the variables,
-        # however here one is free to change the driver type
-        if driver is not None:
-            self._driver = driver
-        else:
-            raise AquaError('Please specify a driver as you instantiate OOVQE class.')
+
+        if self._additional_params_initialized is False:
+            self.initialize_additional_parameters(driver)
+
         self._vqe._eval_count = 0
 
         # initial orbital rotation starting point is provided

@@ -32,13 +32,9 @@ class TestOOVQE(QiskitChemistryTestCase):
     def setUp(self):
         super().setUp()
 
-        file1 = 'test_oovqe_h4.hdf5'
-        file2 = 'test_oovqe_lih.hdf5'
-        file3 = 'test_oovqe_h4_uhf.hdf5'
-
-        self.driver1 = HDF5Driver(hdf5_input=self.get_resource_path(file1))
-        self.driver2 = HDF5Driver(hdf5_input=self.get_resource_path(file2))
-        self.driver3 = HDF5Driver(hdf5_input=self.get_resource_path(file3))
+        self.driver1 = HDF5Driver(hdf5_input=self.get_resource_path('test_oovqe_h4.hdf5'))
+        self.driver2 = HDF5Driver(hdf5_input=self.get_resource_path('test_oovqe_lih.hdf5'))
+        self.driver3 = HDF5Driver(hdf5_input=self.get_resource_path('test_oovqe_h4_uhf.hdf5'))
 
         self.energy1_rotation = -3.0104
         self.energy1 = -2.77  # energy of the VQE with pUCCD ansatz and LBFGSB optimizer
@@ -97,8 +93,9 @@ class TestOOVQE(QiskitChemistryTestCase):
         """ Test that orbital rotations are performed correctly. """
 
         solver = self.make_solver()
-        calc = OOVQE(self.transformation1, solver, self.driver1, iterative_oo=False,
+        calc = OOVQE(self.transformation1, solver, iterative_oo=False,
                      initial_point=self.initial_point1)
+        calc.initialize_additional_parameters(self.driver1)
         calc._vqe.optimizer.set_options(maxiter=1)
         algo_result = calc.solve(self.driver1)
         self.assertAlmostEqual(algo_result.computed_electronic_energy, self.energy1_rotation, 4)
@@ -108,8 +105,9 @@ class TestOOVQE(QiskitChemistryTestCase):
         BasicAer's statevector_simulator. """
 
         solver = self.make_solver()
-        calc = OOVQE(self.transformation1, solver, self.driver1, iterative_oo=False,
+        calc = OOVQE(self.transformation1, solver, iterative_oo=False,
                      initial_point=self.initial_point1)
+        calc.initialize_additional_parameters(self.driver1)
         calc._vqe.optimizer.set_options(maxiter=3, rhobeg=0.01)
         algo_result = calc.solve(self.driver1)
         self.assertLessEqual(algo_result.computed_electronic_energy, self.energy1, 4)
@@ -118,8 +116,9 @@ class TestOOVQE(QiskitChemistryTestCase):
         """ Test the iterative OOVQE using BasicAer's statevector_simulator. """
 
         solver = self.make_solver()
-        calc = OOVQE(self.transformation1, solver, self.driver1, iterative_oo=True,
+        calc = OOVQE(self.transformation1, solver, iterative_oo=True,
                      initial_point=self.initial_point1, iterative_oo_iterations=2)
+        calc.initialize_additional_parameters(self.driver1)
         calc._vqe.optimizer.set_options(maxiter=2, rhobeg=0.01)
         algo_result = calc.solve(self.driver1)
         self.assertLessEqual(algo_result.computed_electronic_energy, self.energy1)
@@ -128,7 +127,8 @@ class TestOOVQE(QiskitChemistryTestCase):
         """ Test the OOVQE with frozen core approximation. """
 
         solver = self.make_solver()
-        calc = OOVQE(self.transformation2, solver, self.driver2, iterative_oo=False)
+        calc = OOVQE(self.transformation2, solver, iterative_oo=False)
+        calc.initialize_additional_parameters(self.driver2)
         calc._vqe.optimizer.set_options(maxiter=2, rhobeg=1)
         algo_result = calc.solve(self.driver2)
         self.assertLessEqual(algo_result.computed_electronic_energy +
@@ -139,7 +139,8 @@ class TestOOVQE(QiskitChemistryTestCase):
         """ Test the OOVQE with unrestricted HF method. """
 
         solver = self.make_solver()
-        calc = OOVQE(self.transformation1, solver, self.driver3, iterative_oo=False)
+        calc = OOVQE(self.transformation1, solver, iterative_oo=False)
+        calc.initialize_additional_parameters(self.driver3)
         calc._vqe.optimizer.set_options(maxiter=2, rhobeg=0.01)
         algo_result = calc.solve(self.driver3)
         self.assertLessEqual(algo_result.computed_electronic_energy, self.energy3)
