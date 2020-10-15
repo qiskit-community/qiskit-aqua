@@ -30,7 +30,6 @@ class MorsePotential(PotentialBase):
 
     def __init__(self, molecule):
         """
-        Constructor.
         Initializes the potential to the zero-function.
         fit() should be used afterwards to fit the potential to
             computed molecular energies.
