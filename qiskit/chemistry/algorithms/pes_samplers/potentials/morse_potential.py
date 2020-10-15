@@ -178,8 +178,8 @@ class MorsePotential(PotentialBase):
         # Returns the dissociation energy (scaled by 'scaling').
         # Default units (scaling=1.0) are Hartrees. Scale appropriately for
         # Joules (per mol).
-        de = self.d_e
-        diss_nrg = de - self.vibrational_energy_level(0)
+        d_e = self.d_e
+        diss_nrg = d_e - self.vibrational_energy_level(0)
 
         return diss_nrg * scaling
 
