@@ -80,11 +80,10 @@ class TestStateOpMeasEvals(QiskitAquaTestCase):
             sampler = CircuitSampler(q_instance).convert(~StateFn(op) @ state)
             self.assertAlmostEqual(sampler.eval(), 1+0j)
 
-        with self.subTest('ListOp evaluated to List'):
+        with self.subTest('is_measurement correctly propagated in CircuitSampler'):
             state = ListOp([Plus, Zero])
             sampler = CircuitSampler(q_instance).convert(~state @ state)
-            self.assertListEqual(sampler.eval(),
-                                 [[1.0, 0.6987712429686843], [0.7064159097160821, 1.0]])
+            self.assertTrue(sampler.oplist[0].oplist[0].oplist[0].is_measurement)
 
 
 if __name__ == '__main__':
