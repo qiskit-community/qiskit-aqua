@@ -50,3 +50,7 @@ class LogNormalDistribution(UnivariateDistribution):
                 lambda x: lognorm.pdf(x, s=sigma, scale=np.exp(mu)),
                 low, high, 2 ** num_target_qubits)
         super().__init__(num_target_qubits, probabilities, low, high)
+
+    @staticmethod
+    def _replacement():
+        return 'qiskit.circuit.library.LogNormalDistribution'
