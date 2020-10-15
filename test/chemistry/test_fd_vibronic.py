@@ -14,15 +14,10 @@
 
 import unittest
 from functools import partial
-import numpy as np
-from chemistry.code.vibronic_structure_fd import VibronicStructure1DFD
-import chemistry.code.test.test_data as td
-from chemistry.code.morse_potential import MorsePotential
-from chemistry.code.harmonic_potential import HarmonicPotential
-from chemistry.code.molecule import Molecule
-from chemistry.code.vibronic_structure_fd import VibronicStructure1DFD
-
 import test.chemistry.test_data_potentials as td
+import numpy as np
+
+from chemistry.code.vibronic_structure_fd import VibronicStructure1DFD
 from qiskit.chemistry.algorithms.pes_samplers.potentials.harmonic_potential import HarmonicPotential
 from qiskit.chemistry.algorithms.pes_samplers.potentials.morse_potential import MorsePotential
 from qiskit.chemistry.drivers import Molecule

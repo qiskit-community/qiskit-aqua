@@ -16,8 +16,6 @@ import unittest
 from functools import partial
 import numpy as np
 
-import qiskit.chemistry.constants as const
-from qiskit.chemistry.algorithms.pes_samplers.potentials.morse_potential import MorsePotential d
 from qiskit.chemistry.algorithms.pes_samplers.potentials.harmonic_potential import HarmonicPotential
 from qiskit.chemistry.algorithms.pes_samplers.potentials.morse_potential import MorsePotential
 from qiskit.chemistry.constants import HARTREE_TO_J_PER_MOL

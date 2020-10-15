@@ -13,25 +13,19 @@
 """ Test Core Hamiltonian Symmetry Reduction """
 
 import unittest
-
+from test.chemistry import QiskitChemistryTestCase
 import numpy as np
 
 from qiskit import BasicAer
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver, VQE
 from qiskit.aqua.components.optimizers import SLSQP
 from qiskit.chemistry import QiskitChemistryError
-from qiskit.chemistry.algorithms.ground_state_solvers import GroundStateEigensolver
 from qiskit.chemistry.components.initial_states import HartreeFock
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.core import TransformationType, QubitMappingType
-from qiskit.chemistry.transformations import FermionicTransformation
 from qiskit.chemistry.algorithms.ground_state_solvers import GroundStateEigensolver
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry.transformations import FermionicTransformation
-from test.chemistry import QiskitChemistryTestCase
-
-
-# from qiskit.chemistry.ground_state_calculation import MinimumEigensolverGroundStateCalculation
 
 
 class TestFermionicTransformationSymmetries(QiskitChemistryTestCase):

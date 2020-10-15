@@ -14,16 +14,13 @@
 
 import unittest
 from functools import partial
+import test.chemistry.test_data_potentials as td
 import numpy as np
-
-import chemistry.code.test.test_data as td
 
 from chemistry.code.partition_function import DiatomicPartitionFunction
 from chemistry.code.partition_function import DifferentiableFunction
 from qiskit.chemistry.algorithms.pes_samplers.potentials.morse_potential import MorsePotential
 from qiskit.chemistry.drivers import Molecule
-
-import test.chemistry.test_data_potentials as td
 
 # TODO Fix this test
 
