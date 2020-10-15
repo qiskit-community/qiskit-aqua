@@ -18,7 +18,7 @@ features:
     value. Similarly, if alpha = 0, then CVaR corresponds to using the best observed sample. Intermediate values of
     alpha interpolate between these two objective functions.
 
-    The functionality to use CVaR is included into the oeprator flow through a new subclass of OperatorStateFn
+    The functionality to use CVaR is included into the operator flow through a new subclass of OperatorStateFn
     called CVaRMeasurement. This new StateFn object is instantied in the same way as an OperatorMeasurement
     with the exception that it also accepts an `alpha` parameter and that it automatically enforces the
     `is_measurement` attribute to be True. Observe that it is unclear what a CVaRStateFn would represent were it
