@@ -28,8 +28,8 @@ class HessianBase(DerivativeBase):  # pylint: disable=abstract-method
         r"""
         Args:
             hess_method: The method used to compute the state/probability gradient. Can be either
-                ``'param_shift'`` or ``'lin_comb'`` or ``'fin_diff'``.
-                Deprecated for gradients w.r.t observable parameters.
+                         ``'param_shift'`` or ``'lin_comb'`` or ``'fin_diff'``.
+                         Ignored for gradients w.r.t observable parameters.
             kwargs (dict): Optional parameters for a CircuitGradient
 
         Raises:

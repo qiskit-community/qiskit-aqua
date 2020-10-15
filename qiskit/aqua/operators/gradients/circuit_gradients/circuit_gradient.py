@@ -14,7 +14,7 @@
 
 import logging
 from abc import abstractmethod
-from typing import List, Union
+from typing import List, Union, Optional, Tuple
 
 from qiskit.aqua.operators.converters.converter_base import ConverterBase
 from qiskit.aqua.operators.operator_base import OperatorBase
@@ -41,12 +41,21 @@ class CircuitGradient(ConverterBase):
     @abstractmethod
     def convert(self,
                 operator: OperatorBase,
-                params: Union[ParameterVector, ParameterExpression, List[ParameterExpression]]
+                params: Optional[Union[ParameterExpression, ParameterVector,
+                                       List[ParameterExpression],
+                                       Tuple[ParameterExpression, ParameterExpression],
+                                       List[Tuple[ParameterExpression, ParameterExpression]]]]
+                = None,
                 ) -> OperatorBase:
         r"""
         Args:
             operator: The operator we are taking the gradient of
-            params: The parameters we are taking the gradient with respect to..
+            params: The parameters we are taking the gradient wrt: ω
+                    If a ParameterExpression, ParameterVector or List[ParameterExpression] is given,
+                    then the 1st order derivative of the operator is calculated.
+                    If a Tuple[ParameterExpression, ParameterExpression] or
+                    List[Tuple[ParameterExpression, ParameterExpression]]
+                    is given, then the 2nd order derivative of the operator is calculated.
 
         Returns:
             An operator whose evaluation yields the Gradient.
