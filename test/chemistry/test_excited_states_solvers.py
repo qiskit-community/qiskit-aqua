@@ -77,7 +77,7 @@ class TestNumericalQEOMESCCalculation(QiskitChemistryTestCase):
                                    places=4)
 
     def test_numpy_factory(self):
-        solver = NumPyEigensolverFactory()
+        solver = NumPyEigensolverFactory(use_default_filter_criterion=True)
         esc = ExcitedStatesEigensolver(self.transformation, solver)
         results = esc.solve(self.driver)
 
