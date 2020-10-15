@@ -14,6 +14,7 @@
 
 from .electronic_structure_result import DipoleTuple, ElectronicStructureResult
 from .vibronic_structure_result import VibronicStructureResult
+
 from .eigenstate_result import EigenstateResult
 
 

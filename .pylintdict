@@ -211,6 +211,7 @@ fcidump
 fcompiler
 fermionic
 fermionicoperator
+fermionicdriver
 fermions
 fi
 fileio
