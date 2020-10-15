@@ -688,19 +688,19 @@ class FermionicTransformation(Transformation):
                 Otherwise a list of custom excitations can directly be provided.
 
         Returns:
-
+            A tuple containing the hopping operators, the types of commutativities and the
+            excitation indices.
         """
 
         num_alpha, num_beta = self._molecule_info['num_particles']
         num_orbitals = self._molecule_info['num_orbitals']
 
         if isinstance(excitations, str):
-            se_list, de_list = UCCSD.compute_excitation_lists([num_alpha,num_beta], num_orbitals,
-                                                                excitation_type=excitations)
+            se_list, de_list = UCCSD.compute_excitation_lists([num_alpha, num_beta], num_orbitals,
+                                                              excitation_type=excitations)
             excitations_list = se_list+de_list
         else:
             excitations_list = excitations
-
 
         size = len(excitations_list)
 
@@ -721,12 +721,13 @@ class FermionicTransformation(Transformation):
             excitation_indices['E_{}'.format(idx)] = excitations_list[idx]
             excitation_indices['Edag_{}'.format(idx)] = list(reversed(excitations_list[idx]))
 
-
         result = parallel_map(self._build_single_hopping_operator,
                               to_be_executed_list,
-                              task_args=(num_alpha+num_beta, num_orbitals,
+                              task_args=(num_alpha + num_beta,
+                                         num_orbitals,
                                          self._qubit_mapping,
-                                         self._two_qubit_reduction, self._molecule_info['z2_symmetries']),
+                                         self._two_qubit_reduction,
+                                         self._molecule_info['z2_symmetries']),
                               num_processes=aqua_globals.num_processes)
 
         for key, res in zip(hopping_operators.keys(), result):
