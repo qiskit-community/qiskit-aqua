@@ -128,7 +128,7 @@ class BosonicTransformation(Transformation):
         if self._transformation_type == 'harmonic':
             if isinstance(self._basis_size, int):
                 self._basis_size = [self._basis_size] * self._num_modes
-            self._h_mat = HarmonicBasis(watson, self._basis_size, self._truncation_order).run()
+            self._h_mat = HarmonicBasis(watson, self._basis_size, self._truncation_order).convert()
         else:
             raise QiskitChemistryError('Unknown Transformation type')
 
