@@ -27,7 +27,9 @@ class NumPyEigensolverFactory(EigensolverFactory):
 
     def __init__(self,
                  filter_criterion: Callable[[Union[List, np.ndarray], float, Optional[List[float]]],
-                                            bool] = None, k: int = 100) -> None:
+                                            bool] = None,
+                 k: int = 100,
+                 use_default_filter_criterion: bool = False) -> None:
         """
         Args:
             filter_criterion: callable that allows to filter eigenvalues/eigenstates. The minimum
@@ -37,9 +39,12 @@ class NumPyEigensolverFactory(EigensolverFactory):
                 whether to consider this value or not. If there is no
                 feasible element, the result can even be empty.
             k: How many eigenvalues are to be computed, has a min. value of 1.
+            use_default_filter_criterion: whether to use the transformation's default filter
+                criterion if ``filter_criterion`` is ``None``.
         """
         self._filter_criterion = filter_criterion
         self._k = k  # pylint:disable=invalid-name
+        self._use_default_filter_criterion = use_default_filter_criterion
 
     @property
     def filter_criterion(self) -> Callable[[Union[List, np.ndarray], float, Optional[List[float]]],
@@ -64,6 +69,16 @@ class NumPyEigensolverFactory(EigensolverFactory):
         validate_min('k', k, 1)
         self._k = k
 
+    @property
+    def use_default_filter_criterion(self) -> bool:
+        """ returns whether to use the default filter criterion """
+        return self._use_default_filter_criterion
+
+    @use_default_filter_criterion.setter
+    def use_default_filter_criterion(self, value: bool) -> None:
+        """ sets whether to use the default filter criterion """
+        self._use_default_filter_criterion = value
+
     def get_solver(self, transformation: FermionicTransformation) -> Eigensolver:
         """Returns a NumPyEigensolver with the desired filter
 
@@ -75,7 +90,7 @@ class NumPyEigensolverFactory(EigensolverFactory):
             transformed by ``transformation``.
         """
         filter_criterion = self._filter_criterion
-        if not filter_criterion:
+        if not filter_criterion and self._use_default_filter_criterion:
             filter_criterion = transformation.get_default_filter_criterion()
 
         npe = NumPyEigensolver(filter_criterion=filter_criterion, k=self.k)
