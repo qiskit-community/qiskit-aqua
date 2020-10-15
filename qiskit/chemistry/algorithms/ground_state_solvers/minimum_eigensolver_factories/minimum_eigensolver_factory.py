@@ -14,14 +14,14 @@
 
 from abc import ABC, abstractmethod
 from qiskit.aqua.algorithms import MinimumEigensolver
-from qiskit.chemistry.qubit_transformations import QubitOperatorTransformation
+from ....transformations.transformation import Transformation
 
 
-class MESFactory(ABC):
+class MinimumEigensolverFactory(ABC):
     """A factory to construct a minimum eigensolver based on a qubit operator transformation."""
 
     @abstractmethod
-    def get_solver(self, transformation: QubitOperatorTransformation) -> MinimumEigensolver:
+    def get_solver(self, transformation: Transformation) -> MinimumEigensolver:
         """Returns a minimum eigensolver, based on the qubit operator transformation.
 
         Args:

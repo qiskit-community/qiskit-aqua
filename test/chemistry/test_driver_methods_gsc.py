@@ -16,8 +16,8 @@ import unittest
 
 from test.chemistry import QiskitChemistryTestCase
 from qiskit.chemistry.core import TransformationType, QubitMappingType
-from qiskit.chemistry.qubit_transformations import FermionicTransformation
-from qiskit.chemistry.ground_state_calculation import MinimumEigensolverGroundStateCalculation
+from qiskit.chemistry.transformations import FermionicTransformation
+from qiskit.chemistry.algorithms.ground_state_solvers import GroundStateEigensolver
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 
 
@@ -51,9 +51,9 @@ class TestDriverMethods(QiskitChemistryTestCase):
 
         solver = NumPyMinimumEigensolver()
 
-        gsc = MinimumEigensolverGroundStateCalculation(fermionic_transformation, solver)
+        gsc = GroundStateEigensolver(fermionic_transformation, solver)
 
-        result = gsc.compute_groundstate(driver)
+        result = gsc.solve(driver)
         return result
 
     def _assert_energy(self, result, mol):

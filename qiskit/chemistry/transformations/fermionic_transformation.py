@@ -31,7 +31,7 @@ from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.results import DipoleTuple, EigenstateResult, ElectronicStructureResult
 from qiskit.chemistry.components.variational_forms import UCCSD
 
-from .qubit_operator_transformation import QubitOperatorTransformation
+from .transformation import Transformation
 from ..components.initial_states import HartreeFock
 
 logger = logging.getLogger(__name__)
@@ -50,7 +50,7 @@ class FermionicQubitMappingType(Enum):
     BRAVYI_KITAEV = 'bravyi_kitaev'
 
 
-class FermionicTransformation(QubitOperatorTransformation):
+class FermionicTransformation(Transformation):
     """A transformation from a fermionic problem, represented by a driver, to a qubit operator."""
 
     def __init__(self,
@@ -117,8 +117,6 @@ class FermionicTransformation(QubitOperatorTransformation):
         self._ph_x_dipole_shift = 0.0
         self._ph_y_dipole_shift = 0.0
         self._ph_z_dipole_shift = 0.0
-
-        self._active_dof = None
 
         self._molecule_info: Dict[str, Any] = {}
 
@@ -274,8 +272,6 @@ class FermionicTransformation(QubitOperatorTransformation):
             )
         qubit_op.name = 'Fermionic Operator'
 
-        self._active_dof = [fer_op.modes, new_num_alpha, new_num_beta, fer_op.h1, fer_op.h2]
-
         logger.debug('  num paulis: %s, num qubits: %s', len(qubit_op.paulis), qubit_op.num_qubits)
 
         aux_ops = []  # list of the aux operators
@@ -381,11 +377,6 @@ class FermionicTransformation(QubitOperatorTransformation):
 
         logger.debug('Processing complete ready to run algorithm')
         return qubit_op, aux_ops
-
-    @property
-    def active_dof(self):
-        """ Getter for the active degrees of freedom """
-        return self._active_dof
 
     @property
     def untapered_qubit_op(self):
@@ -547,7 +538,7 @@ class FermionicTransformation(QubitOperatorTransformation):
             eigenstate_result.raw_result = raw_result
             eigenstate_result.eigenenergies = np.asarray([raw_result.eigenvalue])
             eigenstate_result.eigenstates = [raw_result.eigenstate]
-            eigenstate_result.aux_operator_eigenvalues = raw_result.aux_operator_eigenvalues
+            eigenstate_result.aux_operator_eigenvalues = [raw_result.aux_operator_eigenvalues]
 
         result = ElectronicStructureResult(eigenstate_result.data)
         result.computed_energies = np.asarray([e.real for e in eigenstate_result.eigenenergies])
@@ -685,17 +676,23 @@ class FermionicTransformation(QubitOperatorTransformation):
 
         return qubit_op, commutativities
 
-    def build_hopping_operators(self, excitations: Union[str, List[List[int]]] = 'sd'):
-        """
+    def build_hopping_operators(self, excitations: Union[str, List[List[int]]] = 'sd'
+                                ) -> Tuple[Dict[str, WeightedPauliOperator],
+                                           Dict[str, List[bool]],
+                                           Dict[str, List[Any]]]:
+        """Builds the product of raising and lowering operators (basic excitation operators)
 
         Args:
-            excitations:
+            excitations: The excitations to be included in the eom pseudo-eigenvalue problem.
+                If a string ('s', 'd' or 'sd') then all excitations of the given type will be used.
+                Otherwise a list of custom excitations can directly be provided.
 
         Returns:
 
         """
 
-        num_orbitals, num_alpha, num_beta, _ , _ = self._active_dof
+        num_alpha, num_beta = self._molecule_info['num_particles']
+        num_orbitals = self._molecule_info['num_orbitals']
 
         if isinstance(excitations, str):
             se_list, de_list = UCCSD.compute_excitation_lists([num_alpha,num_beta], num_orbitals,
@@ -711,8 +708,8 @@ class FermionicTransformation(QubitOperatorTransformation):
         # mus, nus = np.triu_indices(size)
 
         # build all hopping operators
-        hopping_operators = {}
-        type_of_commutativities = {}
+        hopping_operators: Dict[str, WeightedPauliOperator] = {}
+        type_of_commutativities: Dict[str, List[bool]] = {}
         excitation_indices = {}
         to_be_executed_list = []
         for idx in range(size):

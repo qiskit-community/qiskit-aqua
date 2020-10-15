@@ -147,11 +147,17 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
             The QuantumCircuit object for the constructed circuit.
         """
         if self.state_preparation is None:  # circuit factories
+            # ignore deprecation warnings from getter, user has already been warned when
+            # the a_factory has been passed
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            q_factory = self.q_factory
+            warnings.filterwarnings('always', category=DeprecationWarning)
+
             iqft = QFT(self._m, do_swaps=False, inverse=True) if self._iqft is None else self._iqft
             pec = PhaseEstimationCircuit(
                 iqft=iqft, num_ancillae=self._m,
-                state_in_circuit_factory=self.a_factory,
-                unitary_circuit_factory=self.q_factory
+                state_in_circuit_factory=self._a_factory,
+                unitary_circuit_factory=q_factory
             )
             self._circuit = pec.construct_circuit(measurement=measurement)
         else:
@@ -432,7 +438,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
     def _run(self) -> 'AmplitudeEstimationResult':
         # check if A factory or state_preparation has been set
         if self.state_preparation is None:
-            if self.a_factory is None:  # getter emits deprecation warnings, therefore nest
+            if self._a_factory is None:  # getter emits deprecation warnings, therefore nest
                 raise AquaError('Either the state_preparation variable or the a_factory '
                                 '(deprecated) must be set to run the algorithm.')
 

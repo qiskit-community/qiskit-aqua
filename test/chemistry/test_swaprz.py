@@ -22,8 +22,8 @@ from qiskit.aqua.components.optimizers import SLSQP
 from qiskit.chemistry.components.initial_states import HartreeFock
 from qiskit.chemistry.core import QubitMappingType
 from qiskit.chemistry.drivers import HDF5Driver
-from qiskit.chemistry.ground_state_calculation import MinimumEigensolverGroundStateCalculation
-from qiskit.chemistry.qubit_transformations import FermionicTransformation
+from qiskit.chemistry.algorithms.ground_state_solvers import GroundStateEigensolver
+from qiskit.chemistry.transformations import FermionicTransformation
 from qiskit.circuit.library import ExcitationPreserving
 
 
@@ -64,10 +64,9 @@ class TestExcitationPreserving(QiskitChemistryTestCase):
                                                       seed_simulator=aqua_globals.random_seed,
                                                       seed_transpiler=aqua_globals.random_seed))
 
-        gsc = MinimumEigensolverGroundStateCalculation(fermionic_transformation, solver)
+        gsc = GroundStateEigensolver(fermionic_transformation, solver)
 
-        result = gsc.compute_groundstate(driver)
-
+        result = gsc.solve(driver)
         self.assertAlmostEqual(result.energy, self.reference_energy, places=4)
 
 

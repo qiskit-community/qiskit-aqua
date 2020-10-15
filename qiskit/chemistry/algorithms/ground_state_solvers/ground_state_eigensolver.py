@@ -22,20 +22,22 @@ from qiskit.quantum_info import Statevector
 from qiskit.result import Result
 from qiskit.aqua.algorithms import MinimumEigensolver
 from qiskit.aqua.operators import OperatorBase, WeightedPauliOperator, StateFn, CircuitSampler
-from qiskit.chemistry import FermionicOperator, BosonicOperator
-from qiskit.chemistry.drivers import BaseDriver
-from qiskit.chemistry.ground_state_calculation import GroundStateCalculation
-from qiskit.chemistry.qubit_transformations import QubitOperatorTransformation
-from qiskit.chemistry.results import EigenstateResult
+from ...fermionic_operator import FermionicOperator
+from ...bosonic_operator import BosonicOperator
+from ...drivers.base_driver import BaseDriver
+from ...transformations.transformation import Transformation
+from ...results.electronic_structure_result import ElectronicStructureResult
+from ...results.vibronic_structure_result import VibronicStructureResult
+from .ground_state_solver import GroundStateSolver
 
-from .mes_factories import MESFactory
+from .minimum_eigensolver_factories import MinimumEigensolverFactory
 
 
-class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
+class GroundStateEigensolver(GroundStateSolver):
     """Ground state computation using a minimum eigensolver."""
 
-    def __init__(self, transformation: QubitOperatorTransformation,
-                 solver: Union[MinimumEigensolver, MESFactory]) -> None:
+    def __init__(self, transformation: Transformation,
+                 solver: Union[MinimumEigensolver, MinimumEigensolverFactory]) -> None:
         """
 
         Args:
@@ -46,12 +48,12 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
         self._solver = solver
 
     @property
-    def solver(self) -> Union[MinimumEigensolver, MESFactory]:
+    def solver(self) -> Union[MinimumEigensolver, MinimumEigensolverFactory]:
         """Returns the minimum eigensolver or factory."""
         return self._solver
 
     @solver.setter
-    def solver(self, solver: Union[MinimumEigensolver, MESFactory]) -> None:
+    def solver(self, solver: Union[MinimumEigensolver, MinimumEigensolverFactory]) -> None:
         """Sets the minimum eigensolver or factory."""
         self._solver = solver
 
@@ -59,10 +61,11 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
         """Whether the eigensolver returns the ground state or only ground state energy."""
         return self._solver.supports_aux_operators()
 
-    def compute_groundstate(self, driver: BaseDriver,
-                            aux_operators: Optional[Union[List[FermionicOperator],
-                                                          List[BosonicOperator]]] = None
-                            ) -> EigenstateResult:
+    def solve(self,
+              driver: BaseDriver,
+              aux_operators: Optional[Union[List[FermionicOperator],
+                                            List[BosonicOperator]]] = None) \
+            -> Union[ElectronicStructureResult, VibronicStructureResult]:
         """Compute Ground State properties.
 
         Args:
@@ -91,7 +94,7 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
         # by the user but also additional ones from the transformation
         operator, aux_operators = self.transformation.transform(driver, aux_operators)
 
-        if isinstance(self._solver, MESFactory):
+        if isinstance(self._solver, MinimumEigensolverFactory):
             # this must be called after transformation.transform
             solver = self._solver.get_solver(self.transformation)
         else:
@@ -112,7 +115,7 @@ class MinimumEigensolverGroundStateCalculation(GroundStateCalculation):
                                         QuantumCircuit, Instruction,
                                         OperatorBase],
                            operators: Union[WeightedPauliOperator, OperatorBase, list, dict]
-                           ) -> Union[float, List[float], Dict[str, float]]:
+                           ) -> Union[float, List[float], Dict[str, List[float]]]:
         """Evaluates additional operators at the given state.
 
         Args:

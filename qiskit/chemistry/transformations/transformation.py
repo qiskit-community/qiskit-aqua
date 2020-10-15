@@ -13,18 +13,18 @@
 """Base class for transformation to qubit operators for chemistry problems"""
 
 from abc import ABC, abstractmethod
-from typing import Tuple, List, Optional, Union, Callable
+from typing import Tuple, List, Optional, Union, Callable, Dict, Any
 
 import numpy as np
 
 from qiskit.aqua.algorithms import EigensolverResult, MinimumEigensolverResult
-from qiskit.aqua.operators import OperatorBase
+from qiskit.aqua.operators import OperatorBase, WeightedPauliOperator
 from qiskit.chemistry import FermionicOperator, BosonicOperator
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.results import EigenstateResult
 
 
-class QubitOperatorTransformation(ABC):
+class Transformation(ABC):
     """Base class for transformation to qubit operators for chemistry problems"""
 
     @abstractmethod
@@ -63,5 +63,27 @@ class QubitOperatorTransformation(ABC):
 
         Returns:
             An "interpreted" eigenstate result.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def commutation_rule(self) -> int:
+        """Getter of the commutation rule"""
+        raise NotImplementedError
+
+    @abstractmethod
+    def build_hopping_operators(self, excitations: Union[str, List[List[int]]] = 'sd'
+                                ) -> Tuple[Dict[str, WeightedPauliOperator],
+                                           Dict[str, List[bool]],
+                                           Dict[str, List[Any]]]:
+        """Builds the product of raising and lowering operators (basic excitation operators)
+
+        Args:
+            excitations: The excitations to be included in the eom pseudo-eigenvalue problem.
+                If a string ('s', 'd' or 'sd') then all excitations of the given type will be used.
+                Otherwise a list of custom excitations can directly be provided.
+
+        Returns:
+
         """
         raise NotImplementedError

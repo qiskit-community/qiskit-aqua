@@ -10,15 +10,14 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""The electronic structure result."""
-
-from typing import List, Optional
+"""The vibronic structure result."""
 
 import logging
+from typing import List, Optional
+
 import numpy as np
 
 from qiskit.aqua.algorithms import AlgorithmResult
-
 from .eigenstate_result import EigenstateResult
 
 logger = logging.getLogger(__name__)

@@ -286,6 +286,8 @@ class NumPyEigensolver(ClassicalAlgorithm, Eigensolver):
             self._ret['eigvals'] = np.array(eigvals)
             self._ret['energies'] = np.array(energies)
             self._ret['aux_ops'] = np.array(aux_ops)
+            # conversion to np.array breaks in case of aux_ops
+            self._ret['aux_ops'] = aux_ops
 
             self._k = k_orig
 

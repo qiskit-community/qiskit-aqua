@@ -17,28 +17,30 @@ import logging
 from typing import Optional, List, Tuple, Union
 import numpy as np
 
-from qiskit.chemistry.results import ElectronicStructureResult
-from qiskit.chemistry.qubit_transformations import FermionicTransformation
-from qiskit.chemistry.drivers import BaseDriver
-from qiskit.chemistry.components.variational_forms import UCCSD
-from qiskit.chemistry import FermionicOperator
 from qiskit.aqua.utils.validation import validate_min
 from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.aqua.algorithms import VQE
 from qiskit.aqua import AquaError
+from ...results.electronic_structure_result import ElectronicStructureResult
+from ...results.vibronic_structure_result import VibronicStructureResult
+from ...transformations.fermionic_transformation import FermionicTransformation
+from ...drivers.base_driver import BaseDriver
+from ...components.variational_forms import UCCSD
+from ...fermionic_operator import FermionicOperator
+from ...bosonic_operator import BosonicOperator
 
-from .mes_factories import MESFactory
-from .mes_ground_state_calculation import MinimumEigensolverGroundStateCalculation
+from .minimum_eigensolver_factories import MinimumEigensolverFactory
+from .ground_state_eigensolver import GroundStateEigensolver
 
 logger = logging.getLogger(__name__)
 
 
-class AdaptVQE(MinimumEigensolverGroundStateCalculation):
+class AdaptVQE(GroundStateEigensolver):
     """A ground state calculation employing the AdaptVQE algorithm."""
 
     def __init__(self,
                  transformation: FermionicTransformation,
-                 solver: MESFactory,
+                 solver: MinimumEigensolverFactory,
                  threshold: float = 1e-5,
                  delta: float = 1,
                  max_iterations: Optional[int] = None,
@@ -129,10 +131,11 @@ class AdaptVQE(MinimumEigensolverGroundStateCalculation):
         # nature of the algorithm.
         return match is not None or (len(indices) > 1 and indices[-2] == indices[-1])
 
-    def compute_groundstate(self, driver: BaseDriver,
-                            aux_operators: Optional[List[Union[WeightedPauliOperator,
-                                                               FermionicOperator]]] = None
-                            ) -> 'AdaptVQEResult':
+    def solve(self,
+              driver: BaseDriver,
+              aux_operators: Optional[Union[List[FermionicOperator],
+                                            List[BosonicOperator]]] = None) \
+            -> Union[ElectronicStructureResult, VibronicStructureResult]:
         """Computes the ground state.
 
         Args:
@@ -218,7 +221,7 @@ class AdaptVQE(MinimumEigensolverGroundStateCalculation):
             aux_values = self.evaluate_operators(raw_vqe_result.eigenstate, aux_operators)
         else:
             aux_values = None
-        raw_vqe_result.aux_operator_eigenvalues = [aux_values]
+        raw_vqe_result.aux_operator_eigenvalues = aux_values
 
         if threshold_satisfied:
             finishing_criterion = 'Threshold converged'

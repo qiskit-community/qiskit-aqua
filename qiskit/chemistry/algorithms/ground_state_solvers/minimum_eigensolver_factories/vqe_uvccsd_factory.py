@@ -19,15 +19,15 @@ from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import MinimumEigensolver, VQE
 from qiskit.aqua.operators import ExpectationBase
 from qiskit.aqua.components.optimizers import Optimizer
-from qiskit.chemistry.components.variational_forms import UCCSD
-from qiskit.chemistry.qubit_transformations import FermionicTransformation
-from qiskit.chemistry.components.initial_states import HartreeFock
+from qiskit.chemistry.components.initial_states import VSCF
+from qiskit.chemistry.components.variational_forms import UVCC
+from qiskit.chemistry.transformations import BosonicTransformation
 
-from .mes_factory import MESFactory
+from .minimum_eigensolver_factory import MinimumEigensolverFactory
 
 
-class VQEUCCSDFactory(MESFactory):
-    """A factory to construct a VQE minimum eigensolver with UCCSD ansatz wavefunction."""
+class VQEUVCCSDFactory(MinimumEigensolverFactory):
+    """A factory to construct a VQE minimum eigensolver with UVCCSD ansatz wavefunction."""
 
     def __init__(self,
                  quantum_instance: QuantumInstance,
@@ -111,31 +111,28 @@ class VQEUCCSDFactory(MESFactory):
         """Setter of the ``include_custom`` setting for the ``expectation`` setting."""
         self._include_custom = include_custom
 
-    def get_solver(self, transformation: FermionicTransformation) -> MinimumEigensolver:
-        """Returns a VQE with a UCCSD wavefunction ansatz, based on ``transformation``.
-        This works only with a ``FermionicTransformation``.
+    def get_solver(self, transformation: BosonicTransformation) -> MinimumEigensolver:
+        """Returns a VQE with a UVCCSD wavefunction ansatz, based on ``transformation``.
+        This works only with a ``BosonicTransformation``.
 
         Args:
-            transformation: a fermionic qubit operator transformation.
+            transformation: a bosonic qubit operator transformation.
 
         Returns:
             A VQE suitable to compute the ground state of the molecule transformed
             by ``transformation``.
         """
-        num_orbitals = transformation.molecule_info['num_orbitals']
-        num_particles = transformation.molecule_info['num_particles']
-        qubit_mapping = transformation.qubit_mapping
-        two_qubit_reduction = transformation.molecule_info['two_qubit_reduction']
-        z2_symmetries = transformation.molecule_info['z2_symmetries']
 
-        initial_state = HartreeFock(num_orbitals, num_particles, qubit_mapping,
-                                    two_qubit_reduction, z2_symmetries.sq_list)
-        var_form = UCCSD(num_orbitals=num_orbitals,
-                         num_particles=num_particles,
-                         initial_state=initial_state,
-                         qubit_mapping=qubit_mapping,
-                         two_qubit_reduction=two_qubit_reduction,
-                         z2_symmetries=z2_symmetries)
+        basis = transformation.basis
+        num_modes = transformation.num_modes
+
+        if isinstance(basis, int):
+            basis = [basis] * num_modes
+
+        num_qubits = sum(basis)
+
+        initial_state = VSCF(basis)
+        var_form = UVCC(num_qubits, basis, [0, 1], initial_state=initial_state)
         vqe = VQE(var_form=var_form,
                   quantum_instance=self._quantum_instance,
                   optimizer=self._optimizer,
