@@ -15,7 +15,7 @@ An spline interpolation method for data fitting. This allows for fiting
 bopes sampler results or potential energy surfaces.
 """
 
-from typing import Tuple, List
+from typing import Tuple, List, Optional, Callable, Any
 import scipy.interpolate as interp
 from scipy.optimize import minimize_scalar
 
@@ -30,12 +30,12 @@ class EnergySurface1DSpline(EnergySurfaceBase):
 
         This allows for fitting BOPES sampler results or potential energy surfaces.
         """
-        self._eval = None
-        self.eval_d = None
+        self._eval = None  # type: Optional[Callable[[Any], Any]]
+        self.eval_d = None  # type: Optional[Callable[[Any], Any]]
         self.min_x = None
         self.min_val = None
-        self.x_left = None
-        self.x_right = None
+        self.x_left = None  # type: Optional[float]
+        self.x_right = None  # type: Optional[float]
 
     def eval(self, x: float) -> float:
         """After fitting the data to the fit function, predict the energy at a point x.
