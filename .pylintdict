@@ -1,3 +1,4 @@
+OO
 abelian
 abstractmethod
 acc
@@ -8,8 +9,8 @@ adjoints
 admmstate
 ae
 aer
-aerjob
 aer's
+aerjob
 affine
 aij
 al
@@ -29,7 +30,6 @@ aos
 ap
 api
 appfactory
-äquivalenzverbot
 arcsin
 arg
 args
@@ -54,8 +54,8 @@ bksf
 bmod
 bohr
 bool
-bools
 boolean
+bools
 bosonic
 bpa
 brassard
@@ -76,6 +76,7 @@ chuang
 chuang's
 circuitop
 circuitsampler
+circuitstatefn
 clbits
 clifford
 cliffords
@@ -117,9 +118,9 @@ cx's
 da
 das
 dat
+data's
 dataondemand
 datapoints
-data's
 dataset
 datasets
 dcs
@@ -158,8 +159,8 @@ dp
 dtype
 durr
 dx
-dω
 dθ
+dω
 ecc
 eckstein
 ee
@@ -342,6 +343,7 @@ labelled
 lambdaj
 lambdak
 lambdal
+langle
 ldots
 learnable
 len
@@ -372,6 +374,7 @@ lψ
 majorana
 mapsto
 mathcal
+mathrm
 mathsf
 matmul
 maxcut
@@ -420,6 +423,8 @@ nan
 narray
 nasdaq
 natively
+naturalgradient
+naturalgradients
 ncx
 nd
 ndarray
@@ -457,7 +462,6 @@ ollitrault
 onee
 onodera
 onwards
-OO
 oom
 oovqe
 operatorbase
@@ -485,8 +489,8 @@ params
 parikh
 pascual
 pauli
-pauliop
 pauli's
+pauliop
 paulis
 paulische
 pca
@@ -629,8 +633,8 @@ statevectors
 stdout
 stockmarket
 str
-subclasses
 subclass's
+subclasses
 subgraph
 submodule
 submodules
@@ -693,7 +697,6 @@ typea
 typeb
 typec
 uber
-über
 ucc
 uccd
 uccs
@@ -767,6 +770,8 @@ zoufal
 zv
 zx
 zz
+äquivalenzverbot
+über
 θ
 ψ
 ω
