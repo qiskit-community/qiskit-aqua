@@ -13,7 +13,7 @@
 """ CircuitQFI Class """
 
 from abc import abstractmethod
-from typing import List, Union
+from typing import List, Optional, Union
 
 from qiskit.aqua.operators.converters.converter_base import ConverterBase
 from qiskit.aqua.operators.operator_base import OperatorBase
@@ -39,12 +39,14 @@ class CircuitQFI(ConverterBase):
     @abstractmethod
     def convert(self,
                 operator: OperatorBase,
-                params: Union[ParameterVector, ParameterExpression, List[ParameterExpression]]
+                params: Optional[Union[ParameterExpression, ParameterVector,
+                                       List[ParameterExpression]]] = None,
                 ) -> OperatorBase:
         r"""
         Args:
-            operator: The operator we are getting the QFI of
-            params: The parameters we are computing the QFI with respect to..
+            operator: The operator corresponding to the quantum state |ψ(ω)〉for which we compute
+                      the QFI.
+            params: The parameters we are computing the QFI wrt: ω.
 
         Returns:
             An operator whose evaluation yields the QFI metric tensor.

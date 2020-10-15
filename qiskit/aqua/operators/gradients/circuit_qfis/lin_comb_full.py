@@ -48,8 +48,8 @@ class LinCombFull(CircuitQFI):
         r"""
         Args:
             operator: The operator corresponding to the quantum state |ψ(ω)〉for which we compute
-                the QFI
-            params: The parameters we are computing the QFI wrt: ω
+                      the QFI.
+            params: The parameters we are computing the QFI wrt: ω.
 
         Returns:
             ListOp[ListOp] where the operator at position k,l corresponds to QFI_kl
@@ -70,7 +70,7 @@ class LinCombFull(CircuitQFI):
 
         if not isinstance(params, (list, np.ndarray)):
             params = [params]
-        state_qc = copy.deepcopy(operator.primitive)
+        state_qc = operator.primitive
 
         # First, the operators are computed which can compensate for a potential phase-mismatch
         # between target and trained state, i.e.〈ψ|∂lψ〉
