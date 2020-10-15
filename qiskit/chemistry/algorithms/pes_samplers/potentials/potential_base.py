@@ -46,7 +46,7 @@ class EnergySurfaceBase(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_equilibrium_geometry(self, scaling=1.0):
+    def get_equilibrium_geometry(self, scaling=1.0)->float:
         """
         Returns the geometry for the minimal energy (scaled by 'scaling')
         Default units (scaling=1.0) are Angstroms. Scale by 1E-10 to get
@@ -60,7 +60,7 @@ class EnergySurfaceBase(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_minimal_energy(self, scaling=1.0):
+    def get_minimal_energy(self, scaling=1.0)->float:
         """
         Returns the value of the minimal energy (scaled by 'scaling')
         Default units (scaling=1.0) are J/mol. Scale appropriately for
@@ -74,7 +74,7 @@ class EnergySurfaceBase(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def get_trust_region(self):
+    def get_trust_region(self)->tuple(float,float):
         """
         Returns the bounds of the region (in space) where the energy
         surface implementation can be trusted. When doing spline
@@ -97,7 +97,7 @@ class VibronicStructureBase(ABC):
     def __init__(self, molecule):
         self.update_molecule(molecule)
 
-    def update_molecule(self, molecule):
+    def update_molecule(self, molecule)->Molecule:
         """
         Wipe state if molecule changes, and check validity of molecule
         for potential.
@@ -151,11 +151,11 @@ class PotentialBase(EnergySurfaceBase, VibronicStructureBase):
     over a degree of freedom.
     """
 
-    def get_num_modes(self):
+    def get_num_modes(self)->int:
         """ This (1D) potential represents a single vibrational mode """
         return 1
 
-    def get_trust_region(self):
+    def get_trust_region(self)->tuple(float,float):
         """
         The potential will usually be well-defined (even if not useful) for
         arbitrary x so we return a fairly large interval here.
@@ -164,6 +164,6 @@ class PotentialBase(EnergySurfaceBase, VibronicStructureBase):
         return (-100, 100)
 
     @abstractmethod
-    def dissociation_energy(self, scaling=1.0):
+    def dissociation_energy(self, scaling=1.0)->float:
         """ returns the dissociation energy (scaled by 'scaling')"""
         raise NotImplementedError
