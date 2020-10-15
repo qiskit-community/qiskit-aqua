@@ -174,8 +174,8 @@ class LinCombFull(CircuitQFI):
         work_qubit = qr_work_qubit[0]
         additional_qubits = ([work_qubit], [])
         # create a copy of the original circuit with an additional work_qubit register
-        circuit = QuantumCircuit(*state_qc.qregs, qr_work_qubit)
-        circuit.data = state_qc.data
+        circuit = state_qc.copy()
+        circuit.add_register(qr_work_qubit)
         LinComb.insert_gate(circuit, state_qc._parameter_table[params[0]][0][0], HGate(),
                             qubits=[work_qubit])
 
