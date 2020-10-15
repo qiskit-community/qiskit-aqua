@@ -12,7 +12,9 @@
 
 """ Test Driver Methods Gaussian """
 
-from test.chemistry.test_driver_methods import TestDriverMethods
+import unittest
+
+from test.chemistry.test_driver_methods_gsc import TestDriverMethods
 from qiskit.chemistry.drivers import GaussianDriver
 from qiskit.chemistry import QiskitChemistryError
 
@@ -78,3 +80,7 @@ H   0.0  0.0    0.9697
         driver = GaussianDriver(config=self.g16_oh_config.format('uhf'))
         result = self._run_driver(driver)
         self._assert_energy_and_dipole(result, 'oh')
+
+
+if __name__ == '__main__':
+    unittest.main()

@@ -12,17 +12,20 @@
 
 """ Test of Symmetry UCCSD processing """
 
+import unittest
+
 from test.chemistry import QiskitChemistryTestCase
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
-from qiskit.aqua.operators import Z2Symmetries
 from qiskit.aqua.algorithms import VQE
 from qiskit.aqua.components.optimizers import SLSQP
 from qiskit.chemistry import QiskitChemistryError
-from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.components.initial_states import HartreeFock
+from qiskit.chemistry.algorithms.ground_state_solvers import GroundStateEigensolver
+from qiskit.chemistry.core import TransformationType, QubitMappingType
+from qiskit.chemistry.transformations import FermionicTransformation
 
 
 class TestSymmetries(QiskitChemistryTestCase):
@@ -31,21 +34,25 @@ class TestSymmetries(QiskitChemistryTestCase):
     def setUp(self):
         super().setUp()
         try:
-            driver = PySCFDriver(atom='Li .0 .0 .0; H .0 .0 1.6',
-                                 unit=UnitsType.ANGSTROM,
-                                 charge=0,
-                                 spin=0,
-                                 basis='sto3g')
+            self.driver = PySCFDriver(atom='Li .0 .0 .0; H .0 .0 1.6',
+                                      unit=UnitsType.ANGSTROM,
+                                      charge=0,
+                                      spin=0,
+                                      basis='sto3g')
         except QiskitChemistryError:
             self.skipTest('PYSCF driver does not appear to be installed')
-        self.qmolecule = driver.run()
-        self.core = Hamiltonian(transformation=TransformationType.FULL,
-                                qubit_mapping=QubitMappingType.PARITY,
-                                two_qubit_reduction=True,
-                                freeze_core=True,
-                                orbital_reduction=[])
-        self.qubit_op, _ = self.core.run(self.qmolecule)
-        self.z2_symmetries = Z2Symmetries.find_Z2_symmetries(self.qubit_op)
+
+        self.fermionic_transformation = FermionicTransformation(
+            transformation=TransformationType.FULL,
+            qubit_mapping=QubitMappingType.PARITY,
+            two_qubit_reduction=True,
+            freeze_core=True,
+            orbital_reduction=[],
+            z2symmetry_reduction='auto')
+
+        self.qubit_op, _ = self.fermionic_transformation.transform(self.driver)
+
+        self.z2_symmetries = self.fermionic_transformation.molecule_info.pop('z2_symmetries')
 
         self.reference_energy = -7.882096489442
 
@@ -69,34 +76,36 @@ class TestSymmetries(QiskitChemistryTestCase):
 
     def test_tapered_op(self):
         """ tapered op test """
-        tapered_ops = self.z2_symmetries.taper(self.qubit_op)
-        smallest_idx = 0  # Prior knowledge of which tapered_op has ground state
-        the_tapered_op = tapered_ops[smallest_idx]
 
         optimizer = SLSQP(maxiter=1000)
+        init_state = HartreeFock(
+            num_orbitals=self.fermionic_transformation.molecule_info['num_orbitals'],
+            qubit_mapping=self.fermionic_transformation._qubit_mapping,
+            two_qubit_reduction=self.fermionic_transformation._two_qubit_reduction,
+            num_particles=self.fermionic_transformation.molecule_info['num_particles'],
+            sq_list=self.z2_symmetries.sq_list)
 
-        init_state = HartreeFock(num_orbitals=self.core._molecule_info['num_orbitals'],
-                                 qubit_mapping=self.core._qubit_mapping,
-                                 two_qubit_reduction=self.core._two_qubit_reduction,
-                                 num_particles=self.core._molecule_info['num_particles'],
-                                 sq_list=the_tapered_op.z2_symmetries.sq_list)
+        var_form = UCCSD(
+            num_orbitals=self.fermionic_transformation.molecule_info['num_orbitals'],
+            num_particles=self.fermionic_transformation.molecule_info['num_particles'],
+            active_occupied=None,
+            active_unoccupied=None,
+            initial_state=init_state,
+            qubit_mapping=self.fermionic_transformation._qubit_mapping,
+            two_qubit_reduction=self.fermionic_transformation._two_qubit_reduction,
+            num_time_slices=1,
+            z2_symmetries=self.z2_symmetries)
 
-        var_form = UCCSD(num_orbitals=self.core._molecule_info['num_orbitals'],
-                         num_particles=self.core._molecule_info['num_particles'],
-                         active_occupied=None, active_unoccupied=None,
-                         initial_state=init_state,
-                         qubit_mapping=self.core._qubit_mapping,
-                         two_qubit_reduction=self.core._two_qubit_reduction,
-                         num_time_slices=1,
-                         z2_symmetries=the_tapered_op.z2_symmetries)
+        solver = VQE(var_form=var_form, optimizer=optimizer,
+                     quantum_instance=QuantumInstance(
+                         backend=BasicAer.get_backend('statevector_simulator')))
 
-        algo = VQE(the_tapered_op, var_form, optimizer)
+        gsc = GroundStateEigensolver(self.fermionic_transformation, solver)
 
-        backend = BasicAer.get_backend('statevector_simulator')
-        quantum_instance = QuantumInstance(backend=backend)
-
-        algo_result = algo.run(quantum_instance)
-
-        result = self.core.process_algorithm_result(algo_result)
+        result = gsc.solve(self.driver)
 
         self.assertAlmostEqual(result.energy, self.reference_energy, places=6)
+
+
+if __name__ == '__main__':
+    unittest.main()

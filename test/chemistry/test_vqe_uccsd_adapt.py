@@ -12,6 +12,7 @@
 
 """ Test of the Adaptive VQE implementation with the adaptive UCCSD variational form """
 
+import warnings
 import unittest
 from test.chemistry import QiskitChemistryTestCase
 
@@ -29,6 +30,7 @@ from qiskit.chemistry import QiskitChemistryError
 
 class TestVQEAdaptUCCSD(QiskitChemistryTestCase):
     """ Test Adaptive VQE with UCCSD"""
+
     def setUp(self):
         super().setUp()
         # np.random.seed(50)
@@ -77,14 +79,19 @@ class TestVQEAdaptUCCSD(QiskitChemistryTestCase):
                                    self.num_particles, initial_state=self.init_state)
         backend = Aer.get_backend('statevector_simulator')
         optimizer = L_BFGS_B()
+
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         algorithm = VQEAdapt(self.qubit_op, self.var_form_base, optimizer,
                              threshold=0.00001, delta=0.1, max_iterations=1)
+        warnings.filterwarnings('always', category=DeprecationWarning)
         result = algorithm.run(backend)
         self.assertEqual(result.num_iterations, 1)
         self.assertEqual(result.finishing_criterion, 'Maximum number of iterations reached')
 
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         algorithm = VQEAdapt(self.qubit_op, self.var_form_base, optimizer,
                              threshold=0.00001, delta=0.1)
+        warnings.filterwarnings('always', category=DeprecationWarning)
         result = algorithm.run(backend)
         self.assertAlmostEqual(result.eigenvalue.real, -1.85727503, places=2)
         self.assertEqual(result.num_iterations, 2)

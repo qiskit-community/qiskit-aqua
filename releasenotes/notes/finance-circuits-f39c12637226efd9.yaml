@@ -1,0 +1,6 @@
+---
+features:
+  - |
+    Add circuit-based versions of ``FixedIncomeExpectedValue``, ``EuropeanCallDelta``,
+    ``GaussianConditionalIndependenceModel`` and ``EuropeanCallExpectedValue`` to 
+    ``qiskit.finance.applications``.
