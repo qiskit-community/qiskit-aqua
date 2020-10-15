@@ -40,7 +40,7 @@ class EnergySurfaceBase(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def fit_to_data(self, xdata, ydata, initial_vals=None, bounds_list=None):
+    def fit(self, xdata, ydata, initial_vals=None, bounds_list=None):
         """ Fit the surface to data - x are coordinates, y is energy."""
         raise NotImplementedError
 
@@ -69,7 +69,7 @@ class EnergySurfaceBase(ABC):
         surface implementation can be trusted. When doing spline
         interpolation, for example, that would be the region where data
         is interpolated (vs. extrapolated) from the arguments of
-        fit_to_data().
+        fit().
         """
         raise NotImplementedError
 
@@ -170,9 +170,9 @@ class Potential1D(PotentialBase):
         """
         return self.energy_surface.eval(x)
 
-    def fit_to_data(self, xdata, ydata, initial_vals=None, bounds_list=None):
+    def fit(self, xdata, ydata, initial_vals=None, bounds_list=None):
         """ Fit the surface to data - x are coordinates, y is energy."""
-        return self.energy_surface.fit_to_data(xdata, ydata, initial_vals,
+        return self.energy_surface.fit(xdata, ydata, initial_vals,
                                                bounds_list)
 
     def get_equilibrium_geometry(self, scaling=1.0):

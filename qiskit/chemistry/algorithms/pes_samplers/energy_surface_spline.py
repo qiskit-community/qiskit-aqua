@@ -19,7 +19,7 @@ Created on Mon Mar 30 10:30:21 2020
 import scipy.interpolate as interp
 from scipy.optimize import minimize_scalar
 
-from .potentials.potential_base import EnergySurfaceBase
+from qiskit.chemistry.algorithms.pes_samplers.potentials.potential_base import EnergySurfaceBase
 
 
 class EnergySurface1DSpline(EnergySurfaceBase):
@@ -56,7 +56,7 @@ class EnergySurface1DSpline(EnergySurfaceBase):
         '''
         return result
 
-    def fit_to_data(self, xdata, ydata, initial_vals=None, bounds_list=None):
+    def fit(self, xdata, ydata, initial_vals=None, bounds_list=None):
         # TODO: remove, no need for duplicate checking
         # newx = np.unique(xdata)
         # new y is average of all repeated values
@@ -102,6 +102,6 @@ class EnergySurface1DSpline(EnergySurfaceBase):
         surface implementation can be trusted. When doing spline
         interpolation, for example, that would be the region where data
         is interpolated (vs. extrapolated) from the arguments of
-        fit_to_data().
+        fit().
         """
         return (self.x_left, self.x_right)

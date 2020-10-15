@@ -18,7 +18,7 @@ diatomic partition function and the thermodynamics module.
 import numpy as np
 from scipy.optimize import curve_fit
 
-from .potential_base import PotentialBase
+from qiskit.chemistry.algorithms.pes_samplers.potentials.potential_base import PotentialBase
 import qiskit.chemistry.constants as const
 
 
@@ -34,7 +34,7 @@ class MorsePotential(PotentialBase):
         """
         Constructor.
         Initializes the potential to the zero-function.
-        fit_to_data() should be used afterwards to fit the potential to
+        fit() should be used afterwards to fit the potential to
             computed molecular energies.
 
         Args:
@@ -45,7 +45,7 @@ class MorsePotential(PotentialBase):
         """
         super().__init__(molecule)
         # Initialize with zero-potential.
-        # Later - fit energy values (fit_to_data)
+        # Later - fit energy values (fit)
         self.d_e = 0.0
         self.m_shift = 0.0
         self.alpha = 0.0
@@ -83,7 +83,7 @@ class MorsePotential(PotentialBase):
         self._mA = molecule.masses[0]
         self._mB = molecule.masses[1]
 
-    def fit_to_data(self, xdata, ydata, initial_vals=None, bounds_list=None):
+    def fit(self, xdata, ydata, initial_vals=None, bounds_list=None):
         """
         Fits a potential to computed molecular energies.
 

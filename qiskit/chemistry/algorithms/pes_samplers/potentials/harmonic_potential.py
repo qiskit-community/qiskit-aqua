@@ -19,7 +19,7 @@ import numpy as np
 from scipy.optimize import curve_fit
 
 import qiskit.chemistry.constants as const
-from .potential_base import PotentialBase
+from qiskit.chemistry.algorithms.pes_samplers.potentials.potential_base import PotentialBase
 
 
 class HarmonicPotential(PotentialBase):
@@ -81,8 +81,8 @@ class HarmonicPotential(PotentialBase):
         self._mA = molecule.masses[0]
         self._mB = molecule.masses[1]
 
-    def fit_to_data(self, xdata, ydata, initial_vals=None, bounds_list=None,
-                    preprocess_data=True):
+    def fit(self, xdata, ydata, initial_vals=None, bounds_list=None,
+            preprocess_data=True):
         """
         Fits a potential to computed molecular energies.
 

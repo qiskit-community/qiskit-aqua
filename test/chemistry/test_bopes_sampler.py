@@ -89,7 +89,7 @@ class TestBOPES(unittest.TestCase):
 
         # absolute internuclear distance in Angstrom
         points = [0.7, 1.0, 1.3]
-        results = sampler.sample_surface(driver, points)
+        results = sampler.sample(driver, points)
 
         points_run = results.points
         energies = results.energies
@@ -122,11 +122,11 @@ class TestBOPES(unittest.TestCase):
         points = np.arange(0.45, 5.3, 0.3)
         sampler = BOPESSampler(gsc=me_gsc)
 
-        sampler.sample_surface(driver, points)
+        res = sampler.sample(driver, points)
 
         # Testing Potential interface
         pot = MorsePotential(m)
-        sampler.fit_to_surface(pot)
+        pot.fit(res.points, res.energies)
 
         np.testing.assert_array_almost_equal([pot.alpha, pot.r_0], [2.235, 0.720], decimal=3)
         np.testing.assert_array_almost_equal([pot.d_e, pot.m_shift], [0.2107, -1.1419], decimal=3)

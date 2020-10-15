@@ -21,8 +21,7 @@ from qiskit.aqua.algorithms import VQAlgorithm
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.algorithms.ground_state_solvers import GroundStateSolver
 from qiskit.chemistry.results.bopes_sampler_result import BOPESSamplerResult
-from .energy_surface_spline import EnergySurfaceBase
-from .extrapolator import Extrapolator, WindowExtrapolator
+from qiskit.chemistry.algorithms.pes_samplers.extrapolator import Extrapolator, WindowExtrapolator
 from qiskit.chemistry.results import EigenstateResult
 
 logger = logging.getLogger(__name__)
@@ -87,7 +86,7 @@ class BOPESSampler:
             # this will be used when NOT bootstrapping
             self._initial_point = self._gsc.solver.initial_point
 
-    def sample_surface(self, driver: BaseDriver, points: List[float]) -> BOPESSamplerResult:
+    def sample(self, driver: BaseDriver, points: List[float]) -> BOPESSamplerResult:
         """Run the sampler at the given points, potentially with repetitions.
 
         Args:
@@ -108,7 +107,7 @@ class BOPESSampler:
             raise AquaError('Please provide a molecule')
 
         # full dictionary of points
-        self._raw_results = self.run_points(points)
+        self._raw_results = self._run_points(points)
         # create results dictionary with (point, energy)
         self._points = list(self._raw_results.keys())
         self._energies = []
@@ -121,7 +120,7 @@ class BOPESSampler:
 
         return result
 
-    def run_points(self, points: List[float]) -> Dict[float, EigenstateResult]:
+    def _run_points(self, points: List[float]) -> Dict[float, EigenstateResult]:
         """Run the sampler at the given points.
 
         Args:
@@ -195,12 +194,3 @@ class BOPESSampler:
             self._points_optparams[point] = optimal_params
 
         return result
-
-    def fit_to_surface(self, energy_surface: EnergySurfaceBase, **kwargs) -> None:
-        """Fit the sampled energy points to the energy surface.
-
-        Args:
-            energy_surface: An energy surface object.
-            **kwargs: Arguments to pass through to the potential's ``fit_to_data`` function.
-        """
-        energy_surface.fit_to_data(xdata=self._points, ydata=self._energies, **kwargs)

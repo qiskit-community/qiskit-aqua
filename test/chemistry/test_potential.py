@@ -24,6 +24,7 @@ from qiskit.chemistry.drivers.molecule import Molecule
 
 class TestPotential(unittest.TestCase):
     """ Test Potential """
+
     def create_test_molecule(self):
         """ create test molecule """
         stretch = partial(Molecule.absolute_stretching,
@@ -72,7 +73,7 @@ class TestPotential(unittest.TestCase):
         xdata = np.array(self.xdata_angstrom)
         ydata = np.array(self.ydata_hartree)
 
-        morse.fit_to_data(xdata, ydata)
+        morse.fit(xdata, ydata)
 
         # self.plot_potential(xdata, ydata, M)
 
@@ -136,7 +137,7 @@ class TestPotential(unittest.TestCase):
         xdata = np.array(self.xdata_angstrom)
         ydata = np.array(self.ydata_hartree)
 
-        harmonic.fit_to_data(xdata, ydata)
+        harmonic.fit(xdata, ydata)
 
         # self.plot_potential(xdata, ydata, H)
 
