@@ -27,9 +27,10 @@ class QFI(QFIBase):
 
     Computes the QFI given a pure, parametrized quantum state, where QFI is:
 
-    .. code-block::
+    .. math::
 
-        [QFI]kl= Re[〈∂kψ|∂lψ〉−〈∂kψ|ψ〉〈ψ|∂lψ〉] * 4.
+        \mathrm{QFI}_{kl}= 4 \mathrm{Re}[\langle \partial_k \psi | \partial_l \psi \rangle
+            − \langle\partial_k \psi | \psi \rangle \langle\psi | \partial_l \psi \rangle].
 
     """
 
