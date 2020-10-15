@@ -10,7 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Test MinimumEigensovler ground state calculation """
+""" Test GroundStateEigensolver """
 
 import unittest
 
@@ -27,8 +27,8 @@ from qiskit.chemistry.algorithms.ground_state_solvers.minimum_eigensolver_factor
     (VQEUCCSDFactory, NumPyMinimumEigensolverFactory)
 
 
-class TestMESGSCCalculation(QiskitChemistryTestCase):
-    """ Test MinimumEigensovler ground state calculation """
+class TestGroundStateEigensolver(QiskitChemistryTestCase):
+    """ Test GroundStateEigensolver """
 
     def setUp(self):
         super().setUp()
