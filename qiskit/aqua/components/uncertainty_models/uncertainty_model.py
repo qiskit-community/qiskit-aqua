@@ -25,6 +25,8 @@ class UncertaintyModel(CircuitFactory, ABC):
     The abstract Uncertainty Model
     """
 
+    __REPLACEMENT = 'a qiskit.QuantumCircuit'
+
     # pylint: disable=useless-super-delegation
     def __init__(self, num_target_qubits: int) -> None:
         validate_min('num_target_qubits', num_target_qubits, 1)
