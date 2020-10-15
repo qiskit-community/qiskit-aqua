@@ -202,7 +202,7 @@ class CVaRMeasurement(OperatorStateFn):
         cvar = alpha * h_j
 
         if alpha == 0 or j == 0:
-            return h_j
+            return self.coeff * h_j
 
         energies = energies[:j]
         probabilities = probabilities[:j]
@@ -213,7 +213,7 @@ class CVaRMeasurement(OperatorStateFn):
         for h_i, p_i in zip(energies, probabilities):
             cvar += p_i * (h_i - h_j)
 
-        return cvar/alpha
+        return self.coeff * cvar/alpha
 
     def traverse(self,
                  convert_fn: Callable,

@@ -16,7 +16,7 @@ import logging
 from typing import Union, Optional
 
 from ..operator_base import OperatorBase
-from ..list_ops import ListOp, ComposedOp
+from ..list_ops import ListOp
 from ..state_fns import CVaRMeasurement, OperatorStateFn
 from .expectation_base import ExpectationBase
 from .pauli_expectation import PauliExpectation
@@ -96,27 +96,5 @@ class CVaRExpectation(ExpectationBase):
         return replace_with_cvar(expectation)
 
     def compute_variance(self, exp_op: OperatorBase) -> Union[list, float]:
-        r"""
-        Compute the variance of the expectation estimator. Because this expectation
-        works by matrix multiplication, the estimation is exact and the variance is
-        always 0, but we need to return those values in a way which matches the Operator's
-        structure.
-
-        Args:
-            exp_op: The full expectation value Operator.
-
-        Returns:
-             The variances or lists thereof (if exp_op contains ListOps) of the expectation value
-             estimation, equal to 0.
-        """
-
-        # Need to do this to mimic Op structure
-        def sum_variance(operator):
-            if isinstance(operator, ComposedOp):
-                return 0.0
-            elif isinstance(operator, ListOp):
-                return operator._combo_fn([sum_variance(op) for op in operator.oplist])
-            else:
-                return 0.0
-
-        return sum_variance(exp_op)
+        """Not implemented."""
+        raise NotImplementedError

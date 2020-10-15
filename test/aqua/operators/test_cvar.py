@@ -20,8 +20,8 @@ from ddt import ddt, data
 from qiskit import QuantumCircuit
 from qiskit.aqua import AquaError
 from qiskit.aqua.operators import (
-    CVaRMeasurement, StateFn, Z, I, X, Plus, PauliExpectation, MatrixExpectation, CVaRExpectation,
-    ListOp, CircuitOp
+    CVaRMeasurement, StateFn, Z, I, X, Y, Plus, PauliExpectation, MatrixExpectation,
+    CVaRExpectation, ListOp, CircuitOp, AerPauliExpectation, MatrixOp
 )
 
 
@@ -71,6 +71,18 @@ class TestCVaRMeasurement(QiskitAquaTestCase):
                 ref = self.expected_cvar(statefn.to_matrix(), Z, alpha)
                 self.assertAlmostEqual(cvar, ref)
 
+    def test_cvar_simple_with_coeff(self):
+        """Test a simple case with a non-unity coefficient"""
+        theta = 2.2
+        qc = QuantumCircuit(1)
+        qc.ry(theta, 0)
+        statefn = StateFn(qc)
+
+        alpha = 0.2
+        cvar = ((-1 * CVaRMeasurement(Z, alpha)) @ statefn).eval()
+        ref = self.expected_cvar(statefn.to_matrix(), Z, alpha)
+        self.assertAlmostEqual(cvar, -1 * ref)
+
     def invalid_input(self):
         """Test invalid input raises an error."""
         op = Z
@@ -83,10 +95,39 @@ class TestCVaRMeasurement(QiskitAquaTestCase):
             with self.assertRaises(ValueError):
                 _ = CVaRMeasurement(op, alpha=12.3)
 
-        with self.subTest('operator not diagonal'):
+        with self.subTest('Single pauli operator not diagonal'):
+            op = Y
+            with self.assertRaises(AquaError):
+                _ = CVaRMeasurement(op)
+
+        with self.subTest('Summed pauli operator not diagonal'):
             op = X ^ Z + Z ^ I
             with self.assertRaises(AquaError):
                 _ = CVaRMeasurement(op)
+
+        with self.subTest('List operator not diagonal'):
+            op = ListOp([X ^ Z, Z ^ I])
+            with self.assertRaises(AquaError):
+                _ = CVaRMeasurement(op)
+
+        with self.subTest('Matrix operator not diagonal'):
+            op = MatrixOp([[1, 1], [0, 1]])
+            with self.assertRaises(AquaError):
+                _ = CVaRMeasurement(op)
+
+    def test_unsupported_operations(self):
+        """Assert unsupported operations raise an error."""
+        cvar = CVaRMeasurement(Z)
+
+        attrs = ['to_matrix', 'to_matrix_op', 'to_density_matrix', 'to_circuit_op', 'sample']
+        for attr in attrs:
+            with self.subTest(attr):
+                with self.assertRaises(NotImplementedError):
+                    _ = getattr(cvar, attr)()
+
+        with self.subTest('adjoint'):
+            with self.assertRaises(AquaError):
+                cvar.adjoint()
 
 
 @ddt
@@ -114,6 +155,19 @@ class TestCVaRExpectation(QiskitAquaTestCase):
                 )
             cvar = cvar_expecation.convert(op)
             self.assertEqual(cvar, expected)
+
+    def test_unsupported_expectation(self):
+        """Assert passing an AerPauliExpectation raises an error."""
+        expecation = AerPauliExpectation()
+        with self.assertRaises(NotImplementedError):
+            _ = CVaRExpectation(alpha=1, expectation=expecation)
+
+    def test_unsupported_operations(self):
+        """Assert unsupported operations raise an error."""
+        cvar = CVaRExpectation(0.2)
+
+        with self.assertRaises(NotImplementedError):
+            cvar.compute_variance(Z)
 
     @data(PauliExpectation(), MatrixExpectation())
     def test_underlying_expectation(self, base_expecation):
