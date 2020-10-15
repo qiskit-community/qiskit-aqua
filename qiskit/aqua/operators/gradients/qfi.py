@@ -14,7 +14,7 @@
 
 from typing import List, Union, Optional
 
-from qiskit.aqua.operators import OperatorBase, ListOp
+from qiskit.aqua.operators import ListOp
 from qiskit.aqua.operators.expectations import PauliExpectation
 from qiskit.aqua.operators.state_fns import CircuitStateFn
 from qiskit.circuit import (ParameterExpression, ParameterVector)
