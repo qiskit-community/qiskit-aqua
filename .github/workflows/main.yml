@@ -194,6 +194,7 @@ jobs:
         run: |
           pip install "cvxpy>1.0.0"
           pip install scikit-quant
+          pip install jax jaxlib
         shell: bash
       - name: Install cplex
         run: pip install cplex
