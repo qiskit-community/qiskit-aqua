@@ -15,11 +15,15 @@
 from .ground_state_solver import GroundStateSolver
 from .adapt_vqe import AdaptVQE
 from .ground_state_eigensolver import GroundStateEigensolver
-from .minimum_eigensolver_factories import MinimumEigensolverFactory, VQEUCCSDFactory
+from .minimum_eigensolver_factories import (MinimumEigensolverFactory,
+                                            NumPyMinimumEigensolverFactory,
+                                            VQEUCCSDFactory)
+
 
 __all__ = ['GroundStateSolver',
            'AdaptVQE',
            'GroundStateEigensolver',
            'MinimumEigensolverFactory',
+           'NumPyMinimumEigensolverFactory',
            'VQEUCCSDFactory'
            ]

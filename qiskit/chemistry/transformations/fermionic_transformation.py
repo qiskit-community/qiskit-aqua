@@ -474,7 +474,10 @@ class FermionicTransformation(Transformation):
         def filter_criterion(self, eigenstate, eigenvalue, aux_values):
             # the first aux_value is the evaluated number of particles
             num_particles_aux = aux_values[0][0]
-            return np.isclose(sum(self.molecule_info['num_particles']), num_particles_aux)
+            # the second aux_value is the total angular momentum which (for singlets) should be zero
+            total_angular_momentum_aux = aux_values[1][0]
+            return np.isclose(sum(self.molecule_info['num_particles']), num_particles_aux) and \
+                np.isclose(0., total_angular_momentum_aux)
 
         return partial(filter_criterion, self)
 
