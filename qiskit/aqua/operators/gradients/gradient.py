@@ -152,9 +152,7 @@ class Gradient(GradientBase):
 
             # Do some checks to make sure operator is sensible
             # TODO add compatibility with sum of circuit state fns
-            if isinstance(operator[-1], CircuitStateFn):
-                pass
-            else:
+            if not isinstance(operator[-1], CircuitStateFn):
                 raise TypeError(
                     'The gradient framework is compatible with states that are given as '
                     'CircuitStateFn')
