@@ -16,7 +16,6 @@ and vibrational structure of a given molecule.
 """
 from abc import ABC, abstractmethod
 
-
 class EnergySurfaceBase(ABC):
     """ Class to hold a potential energy surface """
 
@@ -24,16 +23,29 @@ class EnergySurfaceBase(ABC):
         pass
 
     @abstractmethod
-    def eval(self, x):
+    def eval(self, x)-> float:
         """
         After fitting the data to the fit function, predict the energy
             at a point x.
+        Args:
+            x: value to evaluate surface in
+
+        Returns:
+            value of surface in point x
         """
         raise NotImplementedError
 
     @abstractmethod
-    def fit(self, xdata, ydata, initial_vals=None, bounds_list=None):
-        """ Fit the surface to data - x are coordinates, y is energy."""
+    def fit(self, xdata, ydata, initial_vals=None, bounds_list=None)->None:
+        """
+        Fits surface to data
+        Args:
+            xdata: x data to be fitted
+            ydata: y data to be fitted
+
+        Returns:
+            fitted surface
+        """
         raise NotImplementedError
 
     @abstractmethod
@@ -42,6 +54,11 @@ class EnergySurfaceBase(ABC):
         Returns the geometry for the minimal energy (scaled by 'scaling')
         Default units (scaling=1.0) are Angstroms. Scale by 1E-10 to get
         meters.
+        Args:
+            scaling: scaling factor
+
+        Returns:
+            equilibrium geometry
         """
         raise NotImplementedError
 
@@ -51,6 +68,11 @@ class EnergySurfaceBase(ABC):
         Returns the value of the minimal energy (scaled by 'scaling')
         Default units (scaling=1.0) are J/mol. Scale appropriately for
         Hartrees.
+        Args:
+            scaling: scaling factor
+
+        Returns:
+            minimum energy
         """
         raise NotImplementedError
 
@@ -62,6 +84,9 @@ class EnergySurfaceBase(ABC):
         interpolation, for example, that would be the region where data
         is interpolated (vs. extrapolated) from the arguments of
         fit().
+
+        Returns:
+            the trust region between bounds
         """
         raise NotImplementedError
 
@@ -79,24 +104,46 @@ class VibronicStructureBase(ABC):
         """
         Wipe state if molecule changes, and check validity of molecule
         for potential.
+        Args:
+            molecule: chemistry molecule
+
+        Returns:
+            molecule used
         """
         self.molecule = molecule
 
     @abstractmethod
-    def get_num_modes(self):
-        """ returns the number of vibrational modes for the molecule """
+    def get_num_modes(self)-> float:
+        """
+        Returns the number of vibrational modes for the molecule
+        Returns:
+            the number of vibrational modes
+        """
         raise NotImplementedError
 
     @abstractmethod
-    def vibrational_energy_level(self, n, mode=0):
-        """ returns the n-th vibrational energy level for a given mode """
+    def vibrational_energy_level(self, n, mode=0) -> float:
+        """
+        Returns the n-th vibrational energy level for a given mode
+        Args:
+            n: number of vibrational mode
+            mode: vibrational mode
+
+        Returns:
+            n-th vibrational energy level for a given mode
+        """
         raise NotImplementedError
 
-    def get_maximum_trusted_level(self, mode=0):
+    def get_maximum_trusted_level(self, mode=0)->float:
         """
         Returns the maximum energy level for which the particular
         implementation still provides a good approximation of reality.
         Default value of 100. Redefined where needed (see e.g. Morse).
+        Args:
+            mode: vibronic mode
+
+        Returns:
+            maximum_trusted_level setted
         """
         return 100
 
