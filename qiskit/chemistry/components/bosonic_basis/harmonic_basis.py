@@ -19,6 +19,7 @@ import numpy as np
 from qiskit.chemistry import WatsonHamiltonian
 from .bosonic_basis import BosonicBasis
 
+
 class HarmonicBasis(BosonicBasis):
     """ Basis into which writing the Watson Hamiltonian.
 

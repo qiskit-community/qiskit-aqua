@@ -19,6 +19,7 @@ anc
 ancilla
 ancillae
 ancillas
+anharmonic
 annealers
 ansatz
 ansatzes
@@ -56,6 +57,7 @@ bohr
 bool
 bools
 boolean
+boson
 bosonic
 bpa
 brassard
@@ -360,6 +362,7 @@ ljik
 lk
 lmin
 lnot
+logfile
 loglik
 loglikelihood
 logn
@@ -747,6 +750,7 @@ vqe
 vqe's
 vscf
 watrous's
+watson
 wavefunction
 wavefunctions
 weightedpaulioperator
