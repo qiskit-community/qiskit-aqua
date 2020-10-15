@@ -199,7 +199,7 @@ class OrbitalOptimizationVQE(GroundStateEigensolver):
         else:
             if len(self.initial_point) is not self._num_parameters_oovqe:
                 raise AquaError(
-                    'Number of parameters of OOVQE ({}) differs to the one given in '
+                    'Number of parameters of OOVQE ({}) does not match the length of the '
                     'intitial_point ({})'.format(self._num_parameters_oovqe,
                                                  len(self.initial_point)))
         if self._bounds is None:
