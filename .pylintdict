@@ -165,6 +165,7 @@ ee
 egger
 eigen
 eigenenergies
+eigensolution
 eigensolver
 eigensolvers
 eigenstate
@@ -201,10 +202,13 @@ exponentials
 exponentiated
 exponentiations
 expr
+extrapolator
+Extrapolators
 factorizers
 factr
 fcidump
 fcompiler
+fd
 fermionic
 fermionicoperator
 fermions
@@ -299,6 +303,7 @@ instantiation
 integercomparator
 intelvem
 interatomic
+internuclear
 ints
 invertible
 ip
@@ -360,6 +365,7 @@ lnot
 loglik
 loglikelihood
 logn
+lookback
 lor
 lowerbound
 lp
@@ -406,6 +412,7 @@ moller
 momentums
 monomial
 monomials
+morse
 mosca
 motived
 mprev
@@ -676,6 +683,7 @@ terra
 terra's
 tgt
 th
+thermo
 tiajb
 tibja
 timelimit
@@ -764,6 +772,7 @@ xuxv
 xyz
 yamamoto
 yao
+ydata
 YFinance
 yu
 yy

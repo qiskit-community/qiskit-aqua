@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020
+# (C) Copyright IBM 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -11,6 +9,7 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
+
 """
 This module declares interfaces for implementing potential energy surface
 and vibrational structure of a given molecule.
@@ -214,5 +213,6 @@ class Potential1D(PotentialBase):
 
     def dissociation_energy(self, scaling=1.0):
         """ returns the dissociation energy (scaled by 'scaling')"""
-        return (self.eval(5) - self.get_minimal_energy() - self.vibrational_energy_level(0)) * scaling
+        return (self.eval(5) - self.get_minimal_energy() -
+                self.vibrational_energy_level(0)) * scaling
 '''

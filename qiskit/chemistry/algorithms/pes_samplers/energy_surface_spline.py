@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -59,9 +57,9 @@ class EnergySurface1DSpline(EnergySurfaceBase):
         return result
 
     def fit_to_data(self, xdata, ydata, initial_vals=None, bounds_list=None):
-        ## TODO: remove, no need for duplicate checking
+        # TODO: remove, no need for duplicate checking
         # newx = np.unique(xdata)
-        # # new y is average of all repeated values
+        # new y is average of all repeated values
         # newy = [np.average(ydata[np.where(xdata == val)[0]])
         #         for val in np.unique(xdata)]
         newx = xdata
