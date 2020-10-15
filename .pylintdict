@@ -54,6 +54,7 @@ bmod
 bobyqa
 bohr
 bool
+bools
 boolean
 bosonic
 bpa
@@ -243,6 +244,8 @@ gogolin
 goldfarb
 gridpoints
 grinko
+groundenergy
+groundstates
 grover
 gset
 gsls
@@ -459,7 +462,9 @@ onee
 online
 onodera
 onwards
+OO
 oom
+oovqe
 operatorbase
 oplist
 oplus
@@ -729,6 +734,7 @@ vecs
 Veis
 vertices
 vibrational
+vibronic
 ville
 visualisation
 vqc

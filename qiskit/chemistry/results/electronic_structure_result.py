@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020
+# (C) Copyright IBM 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -9,20 +9,17 @@
 # Any modifications or derivative works of this code must retain this
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
-"""
-This module contains the definition of a base class for a chemistry operator.
-Such an operator takes a QMolecule and produces an input for
-a quantum algorithm
-"""
 
-from abc import ABC, abstractmethod
-import warnings
+"""The electronic structure result."""
+
+from typing import List, Optional, Tuple, cast
+
 import logging
-from typing import Dict, Union, List, Tuple, Optional, cast
 import numpy as np
 
-from qiskit.aqua.algorithms import MinimumEigensolverResult, EigensolverResult, AlgorithmResult
 from qiskit.chemistry import QMolecule
+
+from .eigenstate_result import EigenstateResult
 
 logger = logging.getLogger(__name__)
 
@@ -33,100 +30,8 @@ logger = logging.getLogger(__name__)
 DipoleTuple = Tuple[Optional[float], Optional[float], Optional[float]]
 
 
-class ChemistryOperator(ABC):
-    """
-    Base class for ChemistryOperator.
-    """
-
-    INFO_NUM_PARTICLES = 'num_particles'
-    INFO_NUM_ORBITALS = 'num_orbitals'
-    INFO_TWO_QUBIT_REDUCTION = 'two_qubit_reduction'
-    INFO_Z2SYMMETRIES = 'z2symmetries'
-
-    @abstractmethod
-    def __init__(self):
-        warnings.warn('The ChemistryOperator is deprecated as of Qiskit Aqua 0.8.0 and will be '
-                      'removed no earlier than 3 months after the release date. Instead, the '
-                      'FermionicTransformation can be used to transform QMolecules and construct '
-                      'ground state result objects.', DeprecationWarning, stacklevel=2)
-        self._molecule_info = {}
-
-    @abstractmethod
-    def run(self, qmolecule):
-        """
-        Convert the qmolecule, according to the ChemistryOperator, into an Operator
-        that can be given to a QuantumAlgorithm
-
-        Args:
-            qmolecule (QMolecule): from a chemistry driver
-
-        Returns:
-            Tuple: (qubit_op, aux_ops)
-        """
-        raise NotImplementedError
-
-    def process_algorithm_result(
-            self, algo_result: Union[dict,
-                                     MinimumEigensolverResult,
-                                     EigensolverResult]) -> Union[Tuple[List[str], dict],
-                                                                  'MolecularGroundStateResult',
-                                                                  'MolecularExcitedStatesResult']:
-        """
-        Takes the algorithm result and processes it as required, e.g. by
-        combination of any parts that were classically computed, for the
-        final result.
-
-        Args:
-            algo_result: Result from algorithm
-
-        Returns:
-            Final chemistry result computed from the algorithm result
-        """
-        if isinstance(algo_result, MinimumEigensolverResult):
-            return self._process_algorithm_result(algo_result)
-        elif isinstance(algo_result, EigensolverResult):
-            return self._process_algorithm_result(algo_result)
-        else:
-            lines, result = self._process_algorithm_result(algo_result)
-            result['algorithm_retvals'] = algo_result
-            return lines, result
-
-    @abstractmethod
-    def _process_algorithm_result(self, algo_result):
-        raise NotImplementedError
-
-    @property
-    def molecule_info(self):
-        """ returns molecule info """
-        return self._molecule_info
-
-    def _add_molecule_info(self, key, value):
-        self._molecule_info[key] = value
-
-
-class MolecularChemistryResult(AlgorithmResult):
-    """
-    Molecular chemistry Result
-
-    Energies are in Hartree and dipole moments in A.U unless otherwise stated.
-    """
-
-    def __init__(self, a_dict: Optional[Dict] = None) -> None:
-        super().__init__(a_dict)
-        warnings.warn('The qiskit.chemistry.chemistry_operator.MolecularChemistryResult object is '
-                      'deprecated as of 0.8.0 and will be removed no sooner than 3 months after the'
-                      ' release. You should use qiskit.chemistry.algorithms.ground_state_solvers.'
-                      'FermionicGroundStateResult instead.', DeprecationWarning, stacklevel=2)
-
-    @property
-    def algorithm_result(self) -> AlgorithmResult:
-        """ Returns raw algorithm result """
-        return self.get('algorithm_result')
-
-    @algorithm_result.setter
-    def algorithm_result(self, value: AlgorithmResult) -> None:
-        """ Sets raw algorithm result """
-        self.data['algorithm_result'] = value
+class ElectronicStructureResult(EigenstateResult):
+    """The electronic structure result."""
 
     @property
     def hartree_fock_energy(self) -> float:
@@ -158,31 +63,22 @@ class MolecularChemistryResult(AlgorithmResult):
         """ Sets nuclear dipole moment in A.U """
         self.data['nuclear_dipole_moment'] = value
 
-
-class MolecularGroundStateResult(MolecularChemistryResult):
-    """
-    Molecular Ground State Energy Result.
-
-    Energies are in Hartree and dipole moments in A.U unless otherwise stated.
-    """
-
-    def __init__(self, a_dict: Optional[Dict] = None) -> None:
-        super().__init__(a_dict)
-        warnings.warn('The qiskit.chemistry.chemistry_operator.MolecularGroundStateResult object '
-                      'is deprecated as of 0.8.0 and will be removed no sooner than 3 months after '
-                      'the release. You should use qiskit.chemistry.algorithms.'
-                      'ground_state_solvers.FermionicGroundStateResult instead.',
-                      DeprecationWarning, stacklevel=2)
+    # TODO we need to be able to extract the statevector or the optimal parameters that can
+    # construct the circuit of the GS from here (if the algorithm supports this)
 
     @property
     def energy(self) -> Optional[float]:
         """ Returns ground state energy if nuclear_repulsion_energy is available from driver """
+        # TODO the fact that this property is computed on the fly breaks the `.combine()`
+        # functionality
         nre = self.nuclear_repulsion_energy
         return self.electronic_energy + nre if nre is not None else None
 
     @property
     def electronic_energy(self) -> float:
         """ Returns electronic part of ground state energy """
+        # TODO the fact that this property is computed on the fly breaks the `.combine()`
+        # functionality
         return (self.computed_electronic_energy
                 + self.ph_extracted_energy
                 + self.frozen_extracted_energy)
@@ -408,24 +304,6 @@ class MolecularGroundStateResult(MolecularChemistryResult):
                              .format(_dipole_to_string(self.dipole_moment_in_debye),
                                      _float_to_string(self.total_dipole_moment_in_debye)))
         return lines
-
-
-class MolecularExcitedStatesResult(MolecularChemistryResult):
-    """
-    Molecular Excited States Result
-
-    Energies are in Hartree and dipole moments in A.U unless otherwise stated.
-    """
-    # TODO This needs completing once EigenSolver interface/result is final
-    @property
-    def energies(self) -> Tuple:
-        """ Returns ground state energy """
-        return self.get('energies')
-
-    @energies.setter
-    def energies(self, value: Tuple) -> None:
-        """ Sets ground state energy """
-        self.data['energies'] = value
 
 
 def _dipole_tuple_add(x: Optional[DipoleTuple],
