@@ -25,8 +25,8 @@ from .es_factory import ESFactory
 class NumPyEigensolverFactory(ESFactory):
     """A factory to construct a NumPyEigensolver."""
 
-    def __init__(self, filter_criterion: Callable[
-        [Union[List, np.ndarray], float, Optional[List[float]]], bool] = None,
+    def __init__(self, filter_criterion: Callable[[Union[List, np.ndarray], float,
+                                                   Optional[List[float]]], bool] = None,
                  use_default_filter_criterion: bool = False, k: int = 100) -> None:
         """
         Args:
@@ -36,15 +36,16 @@ class NumPyEigensolverFactory(ESFactory):
                 `filter(eigenstate, eigenvalue, aux_values)` and must return a boolean to indicate
                 whether to consider this value or not. If there is no
                 feasible element, the result can even be empty.
+            use_default_filter_criterion: Whether to use default filter criteria or not
             k: How many eigenvalues are to be computed, has a min. value of 1.
         """
         self._filter_criterion = filter_criterion
         self._use_default_filter_criterion = use_default_filter_criterion
-        self._k = k
+        self._k = k  # pylint: disable=invalid-name
 
     @property
-    def filter_criterion(self) -> Callable[[Union[List, np.ndarray], float, Optional[List[float]]],
-                                           bool]:
+    def filter_criterion(self) -> Callable[[Union[List, np.ndarray],
+                                            float, Optional[List[float]]], bool]:
         """ returns filter criterion """
         return self._filter_criterion
 
@@ -72,7 +73,7 @@ class NumPyEigensolverFactory(ESFactory):
 
     @use_default_filter_criterion.setter
     def use_default_filter_criterion(self, value: bool) -> None:
-        """ sets whether to use the default filter criterion """
+        """ Sets whether to use the default filter criterion """
         self._use_default_filter_criterion = value
 
     def get_solver(self, transformation: QubitOperatorTransformation) -> Eigensolver:

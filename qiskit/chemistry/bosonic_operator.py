@@ -237,12 +237,9 @@ class BosonicOperator:
                     break
                 count += 1
                 nqi += self._basis[m]
-        if count == len(self._basis):
-            return True
-        else:
-            return False
+        return bool(count == len(self._basis))
 
-    def number_occupied_modals_per_mode(self, mode):
+    def number_occupied_modals_per_mode(self, mode: int) -> 'BosonicOperator':
         """
         A bosonic operator which can be used to evaluate the number of
         occupied modals in a given mode
@@ -253,8 +250,8 @@ class BosonicOperator:
         Returns:
             BosonicOperator: the corresponding bosonic operator
         """
-        h = [[]]
+        h_mat = [[]]
         for modal in range(self._basis[mode]):
-            h[0].append([[[mode, modal, modal]], 1])
+            h_mat[0].append([[[mode, modal, modal]], 1])
 
-        return BosonicOperator(h, self._basis)
+        return BosonicOperator(h_mat, self._basis)

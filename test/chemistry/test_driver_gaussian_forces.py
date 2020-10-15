@@ -23,9 +23,6 @@ from qiskit.chemistry import QiskitChemistryError
 class TestDriverGaussianForces(QiskitChemistryTestCase):
     """Gaussian Forces Driver tests."""
 
-    def setUp(self):
-        super().setUp()
-
     def test_driver_jcf(self):
         """ Test the driver works with job control file """
         try:

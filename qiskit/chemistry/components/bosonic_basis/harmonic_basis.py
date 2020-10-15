@@ -12,8 +12,9 @@
 
 """ Bosonic Harmonic Basis """
 
-import numpy as np
 from typing import Dict, List, Tuple, cast
+
+import numpy as np
 
 from qiskit.chemistry import WatsonHamiltonian
 

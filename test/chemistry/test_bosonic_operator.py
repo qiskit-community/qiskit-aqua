@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -15,10 +15,10 @@
 import unittest
 from test.chemistry import QiskitChemistryTestCase
 
+import numpy as np
+
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.chemistry import BosonicOperator
-
-import numpy as np
 
 
 class TestBosonicOperator(QiskitChemistryTestCase):

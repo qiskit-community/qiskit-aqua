@@ -12,19 +12,19 @@
 
 """ The calculation of excited states via the numerical qEOM algorithm """
 
-import numpy as np
-import logging
 import itertools
+import logging
 import sys
-
 from typing import List, Union, Tuple
+
+import numpy as np
 
 from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
 from qiskit.aqua import aqua_globals
 from qiskit.aqua.operators import Z2Symmetries, commutator, WeightedPauliOperator
-from qiskit.chemistry.ground_state_calculation import GroundStateCalculation
 from qiskit.chemistry.excited_states_calculation import QEOMExcitedStatesCalculation
+from qiskit.chemistry.ground_state_calculation import GroundStateCalculation
 
 logger = logging.getLogger(__name__)
 
@@ -73,6 +73,8 @@ class NumericalQEOMExcitedStatesCalculation(QEOMExcitedStatesCalculation):
             type_of_commutativities (dict): if tapering is used, it records the commutativities of
                                      hopping operators with the
                                      Z2 symmetries found in the original operator.
+            size: size
+
         Returns:
             a dictionary that contains the operators for each matrix element
         """
@@ -148,7 +150,8 @@ class NumericalQEOMExcitedStatesCalculation(QEOMExcitedStatesCalculation):
             -> Tuple[int, int, WeightedPauliOperator, WeightedPauliOperator,
                      WeightedPauliOperator, WeightedPauliOperator]:
         """
-        numerically computes the commutator / double commutator between operators
+        Numerically computes the commutator / double commutator between operators
+
         Args:
             params: list containing the indices of matrix element and the corresponding
                 excitation operators
@@ -156,7 +159,8 @@ class NumericalQEOMExcitedStatesCalculation(QEOMExcitedStatesCalculation):
             z2_symmetries: z2_symmetries in case of tappering
             sign: commute or anticommute
 
-        Returns: the indices of the matrix element and the corresponding qubit
+        Returns:
+            the indices of the matrix element and the corresponding qubit
             operator for each of the EOM matrices
 
         """

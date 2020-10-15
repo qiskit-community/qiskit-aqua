@@ -12,18 +12,17 @@
 
 """The calculation of excited states via the qEOM algorithm"""
 
-import numpy as np
-from abc import abstractmethod
 import logging
-from scipy import linalg
-
+from abc import abstractmethod
 from typing import List, Union, Tuple
 
-from qiskit.aqua.algorithms import AlgorithmResult
+import numpy as np
+from scipy import linalg
 
+from qiskit.aqua.algorithms import AlgorithmResult
 from qiskit.chemistry.drivers import BaseDriver
-from qiskit.chemistry.ground_state_calculation import GroundStateCalculation
 from qiskit.chemistry.excited_states_calculation import ExcitedStatesCalculation
+from qiskit.chemistry.ground_state_calculation import GroundStateCalculation
 from qiskit.chemistry.results import EigenstateResult
 
 logger = logging.getLogger(__name__)
@@ -62,14 +61,7 @@ class QEOMExcitedStatesCalculation(ExcitedStatesCalculation):
                 'Excitation type must be s (singles), d (doubles) or sd (singles and doubles)')
         self._excitations = excitations
 
-    def compute_excitedstates(self, driver: BaseDriver):
-        """
-        construct and solves the EOM pseudo-eigenvalue problem to obtain the excitation energies
-        and the excitation operators expansion coefficients
-        Args:
-            driver: a chemistry driver object which defines the chemical problem that is to be
-                    solved by this calculation.
-        """
+    def compute_excitedstates(self, driver: BaseDriver) -> EigenstateResult:
 
         # 1. Run ground state calculation
         groundstate_result = self._gsc.compute_groundstate(driver)
@@ -127,8 +119,8 @@ class QEOMExcitedStatesCalculation(ExcitedStatesCalculation):
             size: size of eigenvalue problem
             gs_results: a ground state result object
 
-        Returns: the matrices and their standard deviation
-
+        Returns:
+            the matrices and their standard deviation
         """
 
         mus, nus = np.triu_indices(size)
@@ -225,6 +217,7 @@ class QEOMExcitedStatesCalculation(ExcitedStatesCalculation):
 
 
 class QEOMResult(AlgorithmResult):
+    """ QEOM Result """
 
     @property
     def ground_state_raw_result(self):

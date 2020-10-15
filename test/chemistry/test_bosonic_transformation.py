@@ -45,6 +45,7 @@ class TestBosonicTransformation(QiskitChemistryTestCase):
         self.assertEqual(len(qubit_op.to_dict()['paulis']), num_paulis)
 
     def test_output(self):
+        """ Test output of transformation """
         bosonic_transformation = BosonicTransformation(
             qubit_mapping=BosonicQubitMappingType.DIRECT,
             transformation_type=BosonicTransformationType.HARMONIC,
@@ -57,6 +58,7 @@ class TestBosonicTransformation(QiskitChemistryTestCase):
         self.assertEqual(len(aux_ops), 4)
 
     def test_with_numpy_minimum_eigensolver(self):
+        """ Test with NumPyMinimumEigensolver """
         bosonic_transformation = BosonicTransformation(
             qubit_mapping=BosonicQubitMappingType.DIRECT,
             transformation_type=BosonicTransformationType.HARMONIC,
@@ -70,6 +72,7 @@ class TestBosonicTransformation(QiskitChemistryTestCase):
                                self.reference_energy, places=4)
 
     def test_vqe_uvccsd_factory(self):
+        """ Test with VQE  plus UCCSD """
         bosonic_transformation = BosonicTransformation(
             qubit_mapping=BosonicQubitMappingType.DIRECT,
             transformation_type=BosonicTransformationType.HARMONIC,

@@ -15,7 +15,6 @@
 from abc import ABC, abstractmethod
 
 from qiskit.chemistry.drivers import BaseDriver
-from qiskit.chemistry.ground_state_calculation import GroundStateCalculation
 
 
 class ExcitedStatesCalculation(ABC):

@@ -31,10 +31,10 @@ from qiskit.chemistry.qubit_transformations import (BosonicTransformation,
 from qiskit.chemistry.ground_state_calculation.mes_factories import VQEUVCCSDFactory
 
 
-class DumBosonicDriver(BaseDriver):
+class _DummyBosonicDriver(BaseDriver):
 
     def __init__(self):
-
+        super().__init__()
         modes = [[605.3643675, 1, 1], [-605.3643675, -1, -1], [340.5950575, 2, 2],
                  [-340.5950575, -2, -2], [-89.09086530649508, 2, 1, 1],
                  [-15.590557244410897, 2, 2, 2], [1.6512647916666667, 1, 1, 1, 1],
@@ -42,18 +42,19 @@ class DumBosonicDriver(BaseDriver):
         self._watson = WatsonHamiltonian(modes, 2)
 
     def run(self):
+        """ Run dummy driver to return test watson hamiltonian """
         return self._watson
 
 
 class TestBosonicESCCalculation(QiskitChemistryTestCase):
-    """ Test NumericalqEOM excited states calculation """
+    """ Test Numerical QEOM excited states calculation """
 
     def setUp(self):
         super().setUp()
         aqua_globals.random_seed = 8
         self.reference_energies = [1889.95738428, 3294.21806197, 4287.26821341, 5819.76975784]
 
-        self.driver = DumBosonicDriver()
+        self.driver = _DummyBosonicDriver()
 
         self.transformation = BosonicTransformation(
             qubit_mapping=BosonicQubitMappingType.DIRECT,
@@ -62,6 +63,7 @@ class TestBosonicESCCalculation(QiskitChemistryTestCase):
             truncation=2)
 
     def test_numpy_mes(self):
+        """ Test with NumPyMinimumEigensolver """
         solver = NumPyMinimumEigensolverFactory(use_default_filter_criterion=True)
         gsc = MinimumEigensolverGroundStateCalculation(self.transformation, solver)
         esc = NumericalQEOMExcitedStatesCalculation(gsc, 'sd')
@@ -73,6 +75,7 @@ class TestBosonicESCCalculation(QiskitChemistryTestCase):
                                    places=4)
 
     def test_numpy_factory(self):
+        """ Test with NumPyEigensolver """
         solver = NumPyEigensolverFactory(use_default_filter_criterion=True)
         esc = EigenSolverExcitedStatesCalculation(self.transformation, solver)
         results = esc.compute_excitedstates(self.driver)
@@ -83,6 +86,7 @@ class TestBosonicESCCalculation(QiskitChemistryTestCase):
                                    places=4)
 
     def test_vqe_uvccsd_factory(self):
+        """ Test with VQE plus UVCCSD """
         optimizer = COBYLA(maxiter=5000)
         solver = VQEUVCCSDFactory(QuantumInstance(BasicAer.get_backend('statevector_simulator')),
                                   optimizer=optimizer)

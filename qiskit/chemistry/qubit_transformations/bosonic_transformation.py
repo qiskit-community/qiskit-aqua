@@ -14,22 +14,24 @@ This module implements a vibronic Hamiltonian operator, representing the
 energy of the nuclei in a molecule.
 """
 
-from functools import partial
 import logging
-from typing import Tuple, List, Union, Any, Optional, Callable
 from enum import Enum
+from functools import partial
+from typing import Tuple, List, Union, Any, Optional, Callable, Dict
+
 import numpy as np
-from qiskit.aqua.algorithms import EigensolverResult, MinimumEigensolverResult
+
 from qiskit.tools import parallel_map
-from qiskit.aqua import AquaError, aqua_globals
+from qiskit.aqua import aqua_globals
+from qiskit.aqua.algorithms import EigensolverResult, MinimumEigensolverResult
+from qiskit.aqua.operators.legacy import WeightedPauliOperator
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry import WatsonHamiltonian
-from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.bosonic_operator import BosonicOperator
-from qiskit.chemistry.results import EigenstateResult, VibronicStructureResult
 from qiskit.chemistry.components.bosonic_basis import HarmonicBasis
 from qiskit.chemistry.components.variational_forms import UVCC
-from qiskit.aqua.operators.legacy import WeightedPauliOperator
+from qiskit.chemistry.drivers import BaseDriver
+from qiskit.chemistry.results import EigenstateResult, VibronicStructureResult
 from .qubit_operator_transformation import QubitOperatorTransformation
 
 logger = logging.getLogger(__name__)
@@ -50,7 +52,7 @@ class BosonicTransformation(QubitOperatorTransformation):
 
     def __init__(self, qubit_mapping: BosonicQubitMappingType = BosonicQubitMappingType.DIRECT,
                  transformation_type:
-                     BosonicTransformationType = BosonicTransformationType.HARMONIC,
+                 BosonicTransformationType = BosonicTransformationType.HARMONIC,
                  basis_size: Union[int, List[int]] = 2,
                  truncation: int = 3):
         """
@@ -213,13 +215,12 @@ class BosonicTransformation(QubitOperatorTransformation):
     def _map_bosonic_operator_to_qubit(bos_op: BosonicOperator,
                                        qubit_mapping: str) -> WeightedPauliOperator:
         """
-
         Args:
             bos_op: a BosonicOperator
             qubit_mapping: the type of boson to qubit mapping
 
-        Returns: qubit operator
-
+        Returns:
+            qubit operator
         """
 
         qubit_op = bos_op.mapping(qubit_mapping=qubit_mapping, threshold=0.00001)
@@ -242,9 +243,7 @@ class BosonicTransformation(QubitOperatorTransformation):
 
         Returns:
             Qubit operator object corresponding to the hopping operator
-
         """
-
         degree = len(index)
         hml = []  # type: List[List]
         for _ in range(degree):
@@ -263,14 +262,16 @@ class BosonicTransformation(QubitOperatorTransformation):
 
         return qubit_op
 
-    def build_hopping_operators(self, excitations: Union[str, List[List[int]]] = 'sd'):
+    def build_hopping_operators(self, excitations: Union[str, List[List[int]]] = 'sd') \
+            -> Tuple[Dict[str, WeightedPauliOperator],
+                     Dict,
+                     Dict[str, List[List[int]]]]:
         """
-
         Args:
             excitations:
 
         Returns:
-
+            Dict of hopping operators, dict of commutativity types and dict of excitation indices
         """
         exctn_types = {'s': 0, 'd': 1}
 
@@ -283,12 +284,6 @@ class BosonicTransformation(QubitOperatorTransformation):
         size = len(excitations_list)
 
         def _dag_list(extn_lst):
-            """
-            Args:
-                extn_lst: excitations indexes
-
-            Returns: the dagger operator excitation indexes
-            """
             dag_lst = []
             for lst in extn_lst:
                 dag_lst.append([lst[0], lst[2], lst[1]])
