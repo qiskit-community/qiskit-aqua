@@ -91,7 +91,7 @@ class OrbitalOptimizationVQE(GroundStateEigensolver):
 
         super().__init__(transformation, solver)
         if not isinstance(self._transformation, FermionicTransformation):
-            raise AquaError('Orbital Optimization VQE requires a FermionicTransformation.')
+            raise AquaError('OrbitalOptimizationVQE requires a FermionicTransformation.')
         from typing import cast
         self._transformation = cast(FermionicTransformation, self._transformation)
 
@@ -121,9 +121,9 @@ class OrbitalOptimizationVQE(GroundStateEigensolver):
         """ Initializes the operators using provided driver of qmolecule."""
 
         if not isinstance(self._transformation, FermionicTransformation):
-            raise AquaError('Orbital Optimization VQE requires a FermionicTransformation.')
+            raise AquaError('OrbitalOptimizationVQE requires a FermionicTransformation.')
         if not isinstance(driver, FermionicDriver):
-            raise AquaError('Orbital Optimization VQE only works with Fermionic Drivers.')
+            raise AquaError('OrbitalOptimizationVQE only works with Fermionic Drivers.')
 
         if self._qmolecule is None:
             # in future, self._transformation.transform should return also qmolecule
@@ -143,10 +143,11 @@ class OrbitalOptimizationVQE(GroundStateEigensolver):
 
         if not isinstance(self._vqe, VQE):
             raise AquaError(
-                "The Orbital Optimization VQE algorithm requires the use of the VQE solver.")
+                "The OrbitalOptimizationVQE algorithm requires the use of the VQE " +
+                "MinimumEigensolver.")
         if not isinstance(self._vqe.var_form, UCCSD):
             raise AquaError(
-                "The Orbital Optimization VQE algorithm requires the use of the UCCSD varform.")
+                "The OrbitalOptimizationVQE algorithm requires the use of the UCCSD varform.")
 
         self._vqe.operator = operator
         self._vqe.aux_operators = aux_operators
@@ -182,7 +183,7 @@ class OrbitalOptimizationVQE(GroundStateEigensolver):
         """ Initializes additional parameters of the OOVQE algorithm. """
 
         if not isinstance(self._transformation, FermionicTransformation):
-            raise AquaError('Orbital Optimization VQE requires a FermionicTransformation.')
+            raise AquaError('OrbitalOptimizationVQE requires a FermionicTransformation.')
 
         self._set_operator_and_vqe(driver)
 
@@ -225,7 +226,7 @@ class OrbitalOptimizationVQE(GroundStateEigensolver):
         """
 
         if not isinstance(self._transformation, FermionicTransformation):
-            raise AquaError('Orbital Optimization VQE requires a FermionicTransformation.')
+            raise AquaError('OrbitalOptimizationVQE requires a FermionicTransformation.')
 
         # slice parameter lists
         if self._iterative_oo:
@@ -274,7 +275,7 @@ class OrbitalOptimizationVQE(GroundStateEigensolver):
         self._initialize_additional_parameters(driver)
 
         if not isinstance(self._transformation, FermionicTransformation):
-            raise AquaError('Orbital Optimization VQE requires a FermionicTransformation.')
+            raise AquaError('OrbitalOptimizationVQE requires a FermionicTransformation.')
 
         self._vqe._eval_count = 0
 
@@ -302,7 +303,7 @@ class OrbitalOptimizationVQE(GroundStateEigensolver):
         if self._iterative_oo:
             for _ in range(self._iterative_oo_iterations):
                 # optimize wavefunction ansatz
-                logger.info('OOVQE: Ansatz optimization, orbitals fixed.')
+                logger.info('OrbitalOptimizationVQE: Ansatz optimization, orbitals fixed.')
                 self._vqe.var_form._num_parameters = self.var_form_num_parameters
                 if isinstance(self._vqe.operator, LegacyBaseOperator):  # type: ignore
                     self._vqe.operator = self._vqe.operator.to_opflow()  # type: ignore
@@ -315,7 +316,7 @@ class OrbitalOptimizationVQE(GroundStateEigensolver):
                 self.initial_point[:self.var_form_num_parameters] = vqresult_wavefun.optimal_point
 
                 # optimize orbitals
-                logger.info('OOVQE: Orbital optimization, ansatz fixed.')
+                logger.info('OrbitalOptimizationVQE: Orbital optimization, ansatz fixed.')
                 self._vqe.var_form._bounds = self._bound_oo
                 self._vqe.var_form._num_parameters = self._orbital_rotation.num_parameters
                 self._fixed_wavefunction_params = vqresult_wavefun.optimal_point
