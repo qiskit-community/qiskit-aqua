@@ -215,17 +215,6 @@ class DerivativeBase(ConverterBase):
                             total_coeff *= (prim._coeff * np.conj(prim._coeff))
                         else:
                             total_coeff *= prim._coeff
-                # if isinstance(op, (StateFn, PrimitiveOp)):
-                #     if take_norm_of_coeffs:
-                #         total_coeff *= (op.coeff * np.conj(op.coeff))
-                #     else:
-                #         total_coeff *= op.coeff
-                # else:
-                #     raise ValueError("This operator was not properly decomposed. "
-                #                      "By this point, all operator measurements should "
-                #                      "contain single operators, otherwise the coefficient "
-                #                      "gradients will not be handled properly.")
-
                 if isinstance(op, OperatorStateFn) and op.is_measurement:
                     take_norm_of_coeffs = True
             return cls._erase_operator_coeffs(operator).mul(total_coeff)
