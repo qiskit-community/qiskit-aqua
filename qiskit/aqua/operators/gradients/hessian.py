@@ -172,9 +172,7 @@ class Hessian(HessianBase):
 
             # Do some checks to make sure operator is sensible
             # TODO enable compatibility with sum of CircuitStateFn operators
-            if isinstance(operator[-1], CircuitStateFn):
-                pass
-            else:
+            if not isinstance(operator[-1], CircuitStateFn):
                 raise TypeError(
                     'The gradient framework is compatible with states that are given as '
                     'CircuitStateFn')
