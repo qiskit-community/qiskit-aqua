@@ -13,7 +13,6 @@
 """Quantum Generator."""
 
 from typing import Optional, List, Union, Dict, Any
-import warnings
 from copy import deepcopy
 import warnings
 
