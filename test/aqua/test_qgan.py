@@ -100,7 +100,7 @@ class TestQGAN(QiskitAquaTestCase):
 
     def test_qgan_training_cg(self):
         """Test QGAN training."""
-        optimizer = CG()
+        optimizer = CG(maxiter=1)
         self.qgan.set_generator(generator_circuit=self.generator_circuit,
                                 generator_optimizer=optimizer)
         trained_statevector = self.qgan.run(self.qi_statevector)
@@ -109,7 +109,7 @@ class TestQGAN(QiskitAquaTestCase):
 
     def test_qgan_training_cobyla(self):
         """Test QGAN training."""
-        optimizer = COBYLA()
+        optimizer = COBYLA(maxiter=1)
         self.qgan.set_generator(generator_circuit=self.generator_circuit,
                                 generator_optimizer=optimizer)
         trained_statevector = self.qgan.run(self.qi_statevector)

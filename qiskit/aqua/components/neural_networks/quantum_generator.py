@@ -14,6 +14,8 @@
 
 from typing import Optional, List, Union, Dict, Any
 from copy import deepcopy
+import warnings
+
 import numpy as np
 
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
@@ -345,20 +347,29 @@ class QuantumGenerator(GenerativeNetwork):
             shots (int): Number of shots for hardware or qasm execution.
         Returns:
             dict: generator loss(float) and updated parameters (array).
-        Raise:
-            Warning: If the maxiter argument of the optimizer is not set to 1.
         """
         self._shots = shots
+
+        # TODO Improve access to maxiter, say via options getter, to avoid private member access
+        # and since not all optimizers have that exact naming figure something better as well to
+        # allow the checking below to not have to warn if it has something else and max iterations
+        # is truly 1 anyway.
         try:
             if self._optimizer._maxiter != 1:
-                raise Warning('Please set the the optimizer maxiter argument to 1 '
+                warnings.warn('Please set the the optimizer maxiter argument to 1 '
                               'to ensure that the generator '
                               'and discriminator are updated in an alternating fashion.')
         except AttributeError:
-            if self._optimizer._options('maxiter') != 1:
-                raise Warning('Please set the the optimizer maxiter argument to 1 '
+            maxiter = self._optimizer._options.get('maxiter')
+            if maxiter is not None and maxiter != 1:
+                warnings.warn('Please set the the optimizer maxiter argument to 1 '
                               'to ensure that the generator '
                               'and discriminator are updated in an alternating fashion.')
+            elif maxiter is None:
+                warnings.warn('Please ensure the optimizer max iterations are set to 1 '
+                              'to ensure that the generator '
+                              'and discriminator are updated in an alternating fashion.')
+
         objective = self._get_objective_function(quantum_instance, self._discriminator)
         self.generator_circuit.params, loss, _ = self._optimizer.optimize(
             num_vars=len(self.generator_circuit.params),
