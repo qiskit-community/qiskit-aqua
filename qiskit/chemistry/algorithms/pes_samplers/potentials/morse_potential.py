@@ -19,7 +19,6 @@ from scipy.optimize import curve_fit
 from qiskit.chemistry.algorithms.pes_samplers.potentials.potential_base import PotentialBase
 import qiskit.chemistry.constants as const
 
-
 class MorsePotential(PotentialBase):
     """
     Implements a 1D Morse potential.

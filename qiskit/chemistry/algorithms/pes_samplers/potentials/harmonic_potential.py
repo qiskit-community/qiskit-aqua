@@ -18,7 +18,8 @@ from scipy.optimize import curve_fit
 
 import qiskit.chemistry.constants as const
 from qiskit.chemistry.algorithms.pes_samplers.potentials.potential_base import PotentialBase
-
+from typing import Tuple
+from qiskit.chemistry.drivers import Molecule
 
 class HarmonicPotential(PotentialBase):
     """

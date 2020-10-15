@@ -15,6 +15,8 @@ This module declares interfaces for implementing potential energy surface
 and vibrational structure of a given molecule.
 """
 from abc import ABC, abstractmethod
+from typing import Tuple
+from qiskit.chemistry.drivers import Molecule
 
 class EnergySurfaceBase(ABC):
     """ Class to hold a potential energy surface """

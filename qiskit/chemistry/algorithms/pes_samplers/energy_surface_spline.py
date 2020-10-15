@@ -19,7 +19,7 @@ import scipy.interpolate as interp
 from scipy.optimize import minimize_scalar
 
 from qiskit.chemistry.algorithms.pes_samplers.potentials.potential_base import EnergySurfaceBase
-
+from typing import Tuple
 
 class EnergySurface1DSpline(EnergySurfaceBase):
     """
