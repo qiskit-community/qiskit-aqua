@@ -66,6 +66,7 @@ class Transformation(ABC):
         """
         raise NotImplementedError
 
+    @property
     @abstractmethod
     def commutation_rule(self) -> int:
         """Getter of the commutation rule"""

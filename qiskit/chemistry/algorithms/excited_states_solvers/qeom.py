@@ -39,7 +39,7 @@ class QEOM(ExcitedStatesSolver):
     """The calculation of excited states via the qEOM algorithm"""
 
     def __init__(self, ground_state_solver: GroundStateSolver,
-                 excitations: Union[str, List[List[int]]] = 'sd'):
+                 excitations: Union[str, List[List[int]]] = 'sd') -> None:
         """
         Args:
             ground_state_solver: a GroundStateSolver object. The qEOM algorithm
@@ -48,13 +48,12 @@ class QEOM(ExcitedStatesSolver):
                 If a string ('s', 'd' or 'sd') then all excitations of the given type will be used.
                 Otherwise a list of custom excitations can directly be provided.
         """
-
         self._gsc = ground_state_solver
         self.excitations = excitations
 
     @property
     def excitations(self) -> Union[str, List[List[int]]]:
-        """Returns the excitations to be included in the eom pseudo-eignevalue problem."""
+        """Returns the excitations to be included in the eom pseudo-eigenvalue problem."""
         return self._excitations
 
     @excitations.setter
@@ -62,25 +61,32 @@ class QEOM(ExcitedStatesSolver):
         """The excitations to be included in the eom pseudo-eigenvalue problem. If a string then
         all excitations of given type will be used. Otherwise a list of custom excitations can
         directly be provided."""
-        if isinstance(excitations, str) and any([letter not in ['s', 'd'] for letter in excitations]
-                                                ):
-            raise ValueError(
-                'Excitation type must be s (singles), d (doubles) or sd (singles and doubles)')
+        if isinstance(excitations, str):
+            if excitations not in ['s', 'd', 'sd']:
+                raise ValueError('Excitation type must be s (singles), d (doubles) or sd '
+                                 '(singles and doubles)')
         self._excitations = excitations
 
     def solve(self, driver: BaseDriver,
               aux_operators: Optional[Union[List[FermionicOperator],
                                             List[BosonicOperator]]] = None
               ) -> Union[ElectronicStructureResult, VibronicStructureResult]:
-        """
-        construct and solves the EOM pseudo-eigenvalue problem to obtain the excitation energies
-        and the excitation operators expansion coefficients
+        """Run the excited-states calculation.
+
+        Construct and solves the EOM pseudo-eigenvalue problem to obtain the excitation energies
+        and the excitation operators expansion coefficients.
+
         Args:
             driver: a chemistry driver object which defines the chemical problem that is to be
                     solved by this calculation.
             aux_operators: Additional auxiliary operators to evaluate. Must be of type
                 ``FermionicOperator`` if the qubit transformation is fermionic and of type
                 ``BosonicOperator`` it is bosonic.
+
+        Returns:
+            The excited states result. In case of a fermionic problem a
+            ``ElectronicStructureResult`` is returned and in the bosonic case a
+            ``VibronicStructureResult``.
         """
 
         if aux_operators is not None:
@@ -99,7 +105,7 @@ class QEOM(ExcitedStatesSolver):
             matrix_operators_dict)
         measurement_results = cast(Dict[str, List[float]], measurement_results)
 
-        # 4. Postprocess ground_state_result to construct eom matrices
+        # 4. Post-process ground_state_result to construct eom matrices
         m_mat, v_mat, q_mat, w_mat, m_mat_std, v_mat_std, q_mat_std, w_mat_std = \
             self._build_eom_matrices(measurement_results, size)
 
@@ -133,29 +139,35 @@ class QEOM(ExcitedStatesSolver):
         return result
 
     def _prepare_matrix_operators(self) -> Tuple[dict, int]:
-        """construct the excitation operators for each matrix element
-        Returns: a dictionary of all matrix elements operators
-        """
+        """Construct the excitation operators for each matrix element.
 
-        hopping_operators, type_of_commutativities, excitation_indices = self._gsc.transformation.build_hopping_operators(
-            self._excitations)
+        Returns:
+            a dictionary of all matrix elements operators and the number of excitations
+            (or the size of the qEOM pseudo-eigenvalue problem)
+        """
+        data = self._gsc.transformation.build_hopping_operators(self._excitations)
+        hopping_operators, type_of_commutativities, excitation_indices = data
 
         size = int(len(list(excitation_indices.keys()))/2)
 
-        eom_matrix_operators = self._build_all_commutators(hopping_operators, type_of_commutativities, size)
+        eom_matrix_operators = self._build_all_commutators(
+            hopping_operators, type_of_commutativities, size)
 
         return eom_matrix_operators, size
 
-    def _build_all_commutators(self, hopping_operators: dict, type_of_commutativities: dict, size: int) -> dict:
+    def _build_all_commutators(self, hopping_operators: dict, type_of_commutativities: dict,
+                               size: int) -> dict:
         """Building all commutators for Q, W, M, V matrices.
 
         Args:
-            hopping_operators (dict): all hopping operators based on excitations_list,
-                                      key is the string of single/double excitation;
-                                      value is corresponding operator.
-            type_of_commutativities (dict): if tapering is used, it records the commutativities of
-                                     hopping operators with the
-                                     Z2 symmetries found in the original operator.
+            hopping_operators: all hopping operators based on excitations_list,
+                key is the string of single/double excitation;
+                value is corresponding operator.
+            type_of_commutativities: if tapering is used, it records the commutativities of
+                hopping operators with the
+                Z2 symmetries found in the original operator.
+            size: the number of excitations (size of the qEOM pseudo-eigenvalue problem)
+
         Returns:
             a dictionary that contains the operators for each matrix element
         """
@@ -199,11 +211,11 @@ class QEOM(ExcitedStatesSolver):
             # in a try-except block. However, mypy doesn't detect this and thus we ignore it.
             z2_symmetries = self._gsc.transformation.molecule_info['z2_symmetries']  # type: ignore
         except AttributeError:
-            z2_symmetries = Z2Symmetries([],[],[])
+            z2_symmetries = Z2Symmetries([], [], [])
 
         if not z2_symmetries.is_empty():
-            for targeted_tapering_values in itertools.product([1, -1], repeat=len(z2_symmetries.symmetries)):
-
+            combinations = itertools.product([1, -1], repeat=len(z2_symmetries.symmetries))
+            for targeted_tapering_values in combinations:
                 logger.info("In sector: (%s)", ','.join([str(x) for x in targeted_tapering_values]))
                 # remove the excited operators which are not suitable for the sector
 
@@ -226,7 +238,6 @@ class QEOM(ExcitedStatesSolver):
                               z2_symmetries,
                               self._gsc.transformation.commutation_rule)
 
-
         return all_matrix_operators
 
     @staticmethod
@@ -234,18 +245,18 @@ class QEOM(ExcitedStatesSolver):
                                   z2_symmetries: Z2Symmetries, sign: int
                                   ) -> Tuple[int, int, WeightedPauliOperator, WeightedPauliOperator,
                                              WeightedPauliOperator, WeightedPauliOperator]:
-        """
-        numerically computes the commutator / double commutator between operators
+        """Numerically computes the commutator / double commutator between operators.
+
         Args:
             params: list containing the indices of matrix element and the corresponding
                 excitation operators
             operator: the hamiltonian
-            z2_symmetries: z2_symmetries in case of tappering
+            z2_symmetries: z2_symmetries in case of tapering
             sign: commute or anticommute
 
-        Returns: the indices of the matrix element and the corresponding qubit
+        Returns:
+            The indices of the matrix element and the corresponding qubit
             operator for each of the EOM matrices
-
         """
         m_u, n_u, left_op, right_op_1, right_op_2 = params
         if left_op is None:
@@ -262,7 +273,7 @@ class QEOM(ExcitedStatesSolver):
             else:
                 if right_op_1 is not None:
                     q_mat_op = commutator(left_op, operator, right_op_1, sign=sign)
-                    w_mat_op = commutator(left_op, right_op_1, sign = sign)
+                    w_mat_op = commutator(left_op, right_op_1, sign=sign)
                     q_mat_op = None if q_mat_op.is_empty() else q_mat_op
                     w_mat_op = None if w_mat_op.is_empty() else w_mat_op
                 else:
@@ -270,8 +281,8 @@ class QEOM(ExcitedStatesSolver):
                     w_mat_op = None
 
                 if right_op_2 is not None:
-                    m_mat_op = commutator(left_op, operator, right_op_2, sign = sign)
-                    v_mat_op = commutator(left_op, right_op_2, sign = sign)
+                    m_mat_op = commutator(left_op, operator, right_op_2, sign=sign)
+                    v_mat_op = commutator(left_op, right_op_2, sign=sign)
                     m_mat_op = None if m_mat_op.is_empty() else m_mat_op
                     v_mat_op = None if v_mat_op.is_empty() else v_mat_op
                 else:
@@ -293,14 +304,14 @@ class QEOM(ExcitedStatesSolver):
     def _build_eom_matrices(self, gs_results: Dict[str, List[float]], size: int
                             ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray,
                                        float, float, float, float]:
-        """
-        Constructs the M, V, Q and W matrices from the results on the ground state
+        """Constructs the M, V, Q and W matrices from the results on the ground state
+
         Args:
-            size: size of eigenvalue problem
             gs_results: a ground state result object
+            size: size of eigenvalue problem
 
-        Returns: the matrices and their standard deviation
-
+        Returns:
+            the matrices and their standard deviation
         """
 
         mus, nus = np.triu_indices(size)
@@ -335,6 +346,8 @@ class QEOM(ExcitedStatesSolver):
             v_mat_std += gs_results['v_{}_{}_std'.format(m_u, n_u)][0] if gs_results.get(
                 'v_{}_{}_std'.format(m_u, n_u)) is not None else 0
 
+        # these matrices are numpy arrays and therefore have the ``shape`` attribute
+        # pylint: disable=unsubscriptable-object
         q_mat = q_mat + q_mat.T - np.identity(q_mat.shape[0]) * q_mat
         w_mat = w_mat + w_mat.T - np.identity(w_mat.shape[0]) * w_mat
         m_mat = m_mat + m_mat.T - np.identity(m_mat.shape[0]) * m_mat
@@ -398,6 +411,7 @@ class QEOM(ExcitedStatesSolver):
 
 
 class QEOMResult(AlgorithmResult):
+    """The results class for the QEOM algorithm."""
 
     @property
     def ground_state_raw_result(self):
