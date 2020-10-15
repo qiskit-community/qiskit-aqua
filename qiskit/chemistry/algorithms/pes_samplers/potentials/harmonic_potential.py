@@ -30,7 +30,6 @@ class HarmonicPotential(PotentialBase):
 
     def __init__(self, molecule):
         """
-        Constructor.
         Initializes the potential to the zero-function.
         fit_to_data() should be used afterwards to fit the potential to
             computed molecular energies.
