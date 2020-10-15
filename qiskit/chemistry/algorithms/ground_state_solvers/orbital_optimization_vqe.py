@@ -31,12 +31,11 @@ from ...drivers.base_driver import BaseDriver
 from ...transformations.fermionic_transformation import FermionicTransformation
 from ...results.electronic_structure_result import ElectronicStructureResult
 from ...qmolecule import QMolecule
-from .ground_state_solver import GroundStateSolver
 
 logger = logging.getLogger(__name__)
 
 
-class OOVQE(GroundStateEigensolver):
+class OrbitalOptimizationVQE(GroundStateEigensolver):
     r""" A ground state calculation employing the OOVQE algorithm.
     The Variational Quantum Eigensolver (VQE) algorithm enhanced with the Orbital Optimization (OO).
     The core of the approach resides in the optimization of orbitals through the
@@ -57,20 +56,17 @@ class OOVQE(GroundStateEigensolver):
 
     def __init__(self,
                  transformation: FermionicTransformation,
-                 solver: MinimumEigensolverFactory,
+                 solver_factory: MinimumEigensolverFactory,
                  initial_point: Optional[np.ndarray] = None,
                  orbital_rotation: Optional['OrbitalRotation'] = None,
-                 qmolecule: Optional[QMolecule] = None,
                  bounds: Optional[np.ndarray] = None,
                  iterative_oo: bool = True,
                  iterative_oo_iterations: int = 2,
                  ):
-
         """
         Args:
             transformation: a fermionic driver to operator transformation strategy.
-            solver: a factory for the VQE solver employing any custom variational form.
-            driver: a chemistry driver necessary to initialize the parameters of the algorithm.
+            solver_factory: a factory for the VQE solver employing any custom variational form.
             initial_point: An optional initial point (i.e. initial parameter values)
                 for the optimizer. If ``None`` then VQE will look to the variational form for a
                 preferred point and if not will simply compute a random one.
@@ -78,9 +74,6 @@ class OOVQE(GroundStateEigensolver):
                 :class:`~qiskit.chemistry.ground_state_calculation.OrbitalRotation` class
                 that creates the matrices that rotate the orbitals needed to produce the rotated
                 MO coefficients C as C = C0 * exp(-kappa).
-            qmolecule: instance of the :class:`~qiskit.chemistry.QMolecule` class which has methods
-                needed to recompute one-/two-electron/dipole integrals after orbital rotation
-                (C = C0 * exp(-kappa)).
             bounds: bounds for variational form and orbital rotation
                  parameters given to a classical optimizer.
             iterative_oo: when ``True`` optimize first the variational form and then the
@@ -92,10 +85,9 @@ class OOVQE(GroundStateEigensolver):
             AquaError: if the number of orbital optimization iterations is less or equal to zero.
         """
 
-        super().__init__(transformation, solver)
+        super().__init__(transformation, solver_factory)
         # todo: no need, initializer in the super class
-        self._solver = solver
-        self._qmolecule = qmolecule
+        self._solver_factory = solver_factory
         self.initial_point = initial_point
         self._orbital_rotation = orbital_rotation
         self._bounds = bounds
@@ -104,12 +96,15 @@ class OOVQE(GroundStateEigensolver):
 
         # internal parameters of the algorithm
         self._driver = None
+        self._qmolecule = None
         self._qmolecule_rotated = None
         self._fixed_wavefunction_params = None
         self._num_parameters_oovqe = None
         self._additional_params_initialized = False
         self.var_form_num_parameters = None
         self.var_form_bounds = None
+        self._vqe = None
+        self._bound_oo = None
 
     def returns_groundstate(self) -> bool:
         return True
@@ -126,7 +121,7 @@ class OOVQE(GroundStateEigensolver):
             operator, aux_operators = self._transformation._do_transform(self._qmolecule)
         if operator is None:  # type: ignore
             raise AquaError("The operator was never provided.")
-        self._vqe = self._solver.get_solver(self._transformation)
+        self._vqe = self._solver_factory.get_solver(self._transformation)
         if not isinstance(self._vqe, VQE):
             raise AquaError("The OOVQE algorithm requires the use of the VQE solver")
         self._vqe.operator = operator
@@ -159,7 +154,7 @@ class OOVQE(GroundStateEigensolver):
         """
         self.initial_point = [initial_pt_scalar for _ in range(self._num_parameters_oovqe)]
 
-    def initialize_additional_parameters(self, driver: BaseDriver):
+    def _initialize_additional_parameters(self, driver: BaseDriver):
         """ Initializes additional parameters of the OOVQE algorithm. """
 
         self._set_operator_and_vqe(driver)
@@ -222,7 +217,8 @@ class OOVQE(GroundStateEigensolver):
 
         # preserve original qmolecule and create a new one with rotated orbitals
         self._qmolecule_rotated = copy.copy(self._qmolecule)
-        OOVQE._rotate_orbitals_in_qmolecule(self._qmolecule_rotated, self._orbital_rotation)
+        OrbitalOptimizationVQE._rotate_orbitals_in_qmolecule(
+            self._qmolecule_rotated, self._orbital_rotation)
 
         # construct the qubit operator
         operator, aux_operators = self._transformation._do_transform(self._qmolecule_rotated)
@@ -243,19 +239,17 @@ class OOVQE(GroundStateEigensolver):
               driver: BaseDriver,
               aux_operators: Optional[Union[List[FermionicOperator],
                                             List[BosonicOperator]]] = None) \
-            -> Union[ElectronicStructureResult, 'VibronicStructureResult']:
+            -> ElectronicStructureResult:
 
-
-        if self._additional_params_initialized is False:
-            self.initialize_additional_parameters(driver)
-
+        self._initialize_additional_parameters(driver)
         self._vqe._eval_count = 0
 
         # initial orbital rotation starting point is provided
         if self._orbital_rotation.matrix_a is not None and self._orbital_rotation.matrix_b is not \
                 None:
             self._qmolecule_rotated = copy.copy(self._qmolecule)
-            OOVQE._rotate_orbitals_in_qmolecule(self._qmolecule_rotated, self._orbital_rotation)
+            OrbitalOptimizationVQE._rotate_orbitals_in_qmolecule(
+                self._qmolecule_rotated, self._orbital_rotation)
             operator, aux_operators = self._transformation._do_transform(self._qmolecule_rotated)
             self._vqe.operator = operator
             self._vqe.aux_operators = aux_operators
@@ -270,7 +264,6 @@ class OOVQE(GroundStateEigensolver):
         # save the original number of parameters as we modify their number to bypass the
         # error checks that are not tailored to OOVQE
 
-        total_time = 0
         # iterative method
         if self._iterative_oo:
             for _ in range(self._iterative_oo_iterations):
@@ -298,7 +291,6 @@ class OOVQE(GroundStateEigensolver):
                     cost_fn=self._energy_evaluation_oo,
                     optimizer=self._vqe.optimizer)
                 self.initial_point[self.var_form_num_parameters:] = vqresult.optimal_point
-                total_time += vqresult.optimizer_time
         else:
             # simultaneous method (ansatz and orbitals are optimized at the same time)
             self._vqe.var_form._bounds = self._bounds
@@ -307,7 +299,6 @@ class OOVQE(GroundStateEigensolver):
                                               var_form=self._vqe.var_form,
                                               cost_fn=self._energy_evaluation_oo,
                                               optimizer=self._vqe.optimizer)
-            total_time += vqresult.optimizer_time
 
         # write original number of parameters to avoid errors due to parameter number mismatch
         self._vqe.var_form._num_parameters = self.var_form_num_parameters
@@ -323,8 +314,7 @@ class OOVQE(GroundStateEigensolver):
         else:
             result.optimal_point_ansatz = vqresult.optimal_point[:self.var_form_num_parameters]
             result.optimal_point_orbitals = vqresult.optimal_point[self.var_form_num_parameters:]
-        result.total_time = total_time
-        result.eigenvalue = vqresult.optimal_value + 0j
+        result.eigenenergies = [vqresult.optimal_value + 0j]
 
         #  copy parameters bypass the error checks that are not tailored to OOVQE
         _ret_temp_params = copy.copy(vqresult.optimal_point)
@@ -332,7 +322,7 @@ class OOVQE(GroundStateEigensolver):
         self._vqe._ret['opt_params'] = vqresult.optimal_point[:self.var_form_num_parameters]
         if self._iterative_oo:
             self._vqe._ret['opt_params'] = vqresult_wavefun.optimal_point
-        result.eigenstate_vector = self._vqe.get_optimal_vector()
+        result.eigenstates = [self._vqe.get_optimal_vector()]
         if not self._iterative_oo:
             self._vqe._ret['opt_params'] = _ret_temp_params
 
@@ -348,9 +338,6 @@ class OOVQE(GroundStateEigensolver):
 
         result.cost_function_evals = self._vqe._eval_count
         self.transformation.interpret(result)
-
-        logger.info('Optimization complete in %s seconds.\nFound opt_params %s in %s evals',
-                    result.total_time, result.optimal_point, self._vqe._eval_count)
 
         return result
 
@@ -424,7 +411,6 @@ class OrbitalRotation:
                  parameter_bounds: list = None,
                  parameter_initial_value: float = 0.1,
                  parameter_bound_value: Tuple[float, float] = (-2 * np.pi, 2 * np.pi)) -> None:
-
         """
         Args:
             num_qubits: number of qubits necessary to simulate a particular system.
@@ -625,6 +611,16 @@ class OOVQEResult(ElectronicStructureResult):
     def computed_electronic_energy(self, value: float) -> None:
         """ Sets the ground state energy. """
         self.data['computed_electronic_energy'] = value
+
+    @property
+    def cost_function_evals(self) -> int:
+        """ Returns number of cost function evaluations. """
+        return self.get('cost_function_evals')
+
+    @cost_function_evals.setter
+    def cost_function_evals(self, value: int) -> None:
+        """ Sets the number of cost function evaluations. """
+        self.data['cost_function_evals'] = value
 
     @property
     def num_optimizer_evals(self) -> int:

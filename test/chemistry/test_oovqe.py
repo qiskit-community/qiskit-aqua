@@ -17,13 +17,12 @@ from test.chemistry import QiskitChemistryTestCase
 from qiskit.chemistry.drivers import HDF5Driver
 from qiskit.providers.basicaer import BasicAer
 from qiskit.aqua import QuantumInstance
-from qiskit.aqua.algorithms import VQE
-from qiskit.chemistry.components.variational_forms import UCCSD
-from qiskit.chemistry.components.initial_states import HartreeFock
 from qiskit.aqua.components.optimizers import COBYLA
-from qiskit.chemistry.algorithms.ground_state_solvers import VQEUCCSDFactory, OOVQE
+from qiskit.chemistry.algorithms.ground_state_solvers import OrbitalOptimizationVQE
 from qiskit.chemistry.transformations import FermionicTransformation
 from qiskit.chemistry.transformations.fermionic_transformation import QubitMappingType
+from qiskit.chemistry.algorithms.ground_state_solvers.minimum_eigensolver_factories.\
+            vqe_uccsd_factory import VQEUCCSDFactory
 
 
 class TestOOVQE(QiskitChemistryTestCase):
@@ -52,51 +51,24 @@ class TestOOVQE(QiskitChemistryTestCase):
                                                        two_qubit_reduction=False,
                                                        freeze_core=True)
 
-    def make_solver(self):
-        """ Instantiates a solver for the test of OOVQE. """
-
-        quantum_instance = QuantumInstance(BasicAer.get_backend('statevector_simulator'),
-                                           shots=1,
-                                           seed_simulator=self.seed,
-                                           seed_transpiler=self.seed)
-        solver = VQEUCCSDFactory(quantum_instance)
-
-        def get_custom_solver(self, transformation):
-            """Customize the solver."""
-
-            num_orbitals = transformation._molecule_info['num_orbitals']
-            num_particles = transformation._molecule_info['num_particles']
-            qubit_mapping = transformation._qubit_mapping
-            two_qubit_reduction = transformation._molecule_info['two_qubit_reduction']
-            z2_symmetries = transformation._molecule_info['z2_symmetries']
-            initial_state = HartreeFock(num_orbitals, num_particles, qubit_mapping,
-                                        two_qubit_reduction, z2_symmetries.sq_list)
-            # only paired doubles excitations
-            var_form = UCCSD(num_orbitals=num_orbitals,
-                             num_particles=num_particles,
-                             initial_state=initial_state,
-                             qubit_mapping=qubit_mapping,
-                             two_qubit_reduction=two_qubit_reduction,
-                             z2_symmetries=z2_symmetries,
-                             excitation_type='d',
-                             same_spin_doubles=False,
-                             method_doubles='pucc')
-            vqe = VQE(var_form=var_form, quantum_instance=self._quantum_instance,
-                      optimizer=COBYLA(maxiter=1))
-            return vqe
-
-        # pylint: disable=no-value-for-parameter
-        solver.get_solver = get_custom_solver.__get__(solver, VQEUCCSDFactory)
-        return solver
+        self.quantum_instance = QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                                shots=1,
+                                                seed_simulator=self.seed,
+                                                seed_transpiler=self.seed)
 
     def test_orbital_rotations(self):
         """ Test that orbital rotations are performed correctly. """
 
-        solver = self.make_solver()
-        calc = OOVQE(self.transformation1, solver, iterative_oo=False,
-                     initial_point=self.initial_point1)
-        calc.initialize_additional_parameters(self.driver1)
-        calc._vqe.optimizer.set_options(maxiter=1)
+        optimizer = COBYLA(maxiter=1)
+        solver_factory = VQEUCCSDFactory(quantum_instance=self.quantum_instance,
+                                         optimizer=optimizer,
+                                         excitation_type='d',
+                                         same_spin_doubles=False,
+                                         method_doubles='pucc')
+
+        calc = OrbitalOptimizationVQE(self.transformation1, solver_factory, iterative_oo=False,
+                                      initial_point=self.initial_point1)
+
         algo_result = calc.solve(self.driver1)
         self.assertAlmostEqual(algo_result.computed_electronic_energy, self.energy1_rotation, 4)
 
@@ -104,32 +76,47 @@ class TestOOVQE(QiskitChemistryTestCase):
         """ Test the simultaneous optimization of orbitals and ansatz parameters with OOVQE using
         BasicAer's statevector_simulator. """
 
-        solver = self.make_solver()
-        calc = OOVQE(self.transformation1, solver, iterative_oo=False,
-                     initial_point=self.initial_point1)
-        calc.initialize_additional_parameters(self.driver1)
-        calc._vqe.optimizer.set_options(maxiter=3, rhobeg=0.01)
+        optimizer = COBYLA(maxiter=3, rhobeg=0.01)
+        solver_factory = VQEUCCSDFactory(quantum_instance=self.quantum_instance,
+                                         optimizer=optimizer,
+                                         excitation_type='d',
+                                         same_spin_doubles=False,
+                                         method_doubles='pucc')
+
+        calc = OrbitalOptimizationVQE(self.transformation1, solver_factory, iterative_oo=False,
+                                      initial_point=self.initial_point1)
+
         algo_result = calc.solve(self.driver1)
         self.assertLessEqual(algo_result.computed_electronic_energy, self.energy1, 4)
 
     def test_iterative_oovqe(self):
         """ Test the iterative OOVQE using BasicAer's statevector_simulator. """
 
-        solver = self.make_solver()
-        calc = OOVQE(self.transformation1, solver, iterative_oo=True,
-                     initial_point=self.initial_point1, iterative_oo_iterations=2)
-        calc.initialize_additional_parameters(self.driver1)
-        calc._vqe.optimizer.set_options(maxiter=2, rhobeg=0.01)
+        optimizer = COBYLA(maxiter=2, rhobeg=0.01)
+        solver_factory = VQEUCCSDFactory(quantum_instance=self.quantum_instance,
+                                         optimizer=optimizer,
+                                         excitation_type='d',
+                                         same_spin_doubles=False,
+                                         method_doubles='pucc')
+
+        calc = OrbitalOptimizationVQE(self.transformation1, solver_factory, iterative_oo=True,
+                                      initial_point=self.initial_point1, iterative_oo_iterations=2)
+
         algo_result = calc.solve(self.driver1)
         self.assertLessEqual(algo_result.computed_electronic_energy, self.energy1)
 
     def test_oovqe_with_frozen_core(self):
         """ Test the OOVQE with frozen core approximation. """
 
-        solver = self.make_solver()
-        calc = OOVQE(self.transformation2, solver, iterative_oo=False)
-        calc.initialize_additional_parameters(self.driver2)
-        calc._vqe.optimizer.set_options(maxiter=2, rhobeg=1)
+        optimizer = COBYLA(maxiter=2, rhobeg=1)
+        solver_factory = VQEUCCSDFactory(quantum_instance=self.quantum_instance,
+                                         optimizer=optimizer,
+                                         excitation_type='d',
+                                         same_spin_doubles=False,
+                                         method_doubles='pucc')
+
+        calc = OrbitalOptimizationVQE(self.transformation2, solver_factory, iterative_oo=False)
+
         algo_result = calc.solve(self.driver2)
         self.assertLessEqual(algo_result.computed_electronic_energy +
                              self.transformation2._energy_shift +
@@ -138,10 +125,15 @@ class TestOOVQE(QiskitChemistryTestCase):
     def test_oovqe_with_unrestricted_hf(self):
         """ Test the OOVQE with unrestricted HF method. """
 
-        solver = self.make_solver()
-        calc = OOVQE(self.transformation1, solver, iterative_oo=False)
-        calc.initialize_additional_parameters(self.driver3)
-        calc._vqe.optimizer.set_options(maxiter=2, rhobeg=0.01)
+        optimizer = COBYLA(maxiter=2, rhobeg=0.01)
+        solver_factory = VQEUCCSDFactory(quantum_instance=self.quantum_instance,
+                                         optimizer=optimizer,
+                                         excitation_type='d',
+                                         same_spin_doubles=False,
+                                         method_doubles='pucc')
+
+        calc = OrbitalOptimizationVQE(self.transformation1, solver_factory, iterative_oo=False)
+
         algo_result = calc.solve(self.driver3)
         self.assertLessEqual(algo_result.computed_electronic_energy, self.energy3)
 
