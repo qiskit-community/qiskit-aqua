@@ -15,11 +15,11 @@
 from typing import Dict, List, Tuple, cast
 
 import numpy as np
-
+from .bosonic_basis import BosonicBasis
 from qiskit.chemistry import WatsonHamiltonian
 
 
-class HarmonicBasis:
+class HarmonicBasis(BosonicBasis):
     """ Basis into which writing the Watson Hamiltonian.
 
     This class uses the Hermite polynomials (eigenstates of the harmonic oscillator) as a modal

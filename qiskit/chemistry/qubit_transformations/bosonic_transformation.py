@@ -201,13 +201,20 @@ class BosonicTransformation(QubitOperatorTransformation):
         result = VibronicStructureResult(eigenstate_result.data)
         result.computed_vibronic_energies = eigenstate_result.eigenenergies
         if result.aux_operator_eigenvalues is not None:
-            occ_modals = []
-            for mode in range(self._num_modes):
-                if result.aux_operator_eigenvalues[mode] is not None:
-                    occ_modals.append(result.aux_operator_eigenvalues[mode][0].real)
-                else:
-                    occ_modals.append(None)
-            result.num_occupied_modals_per_mode = occ_modals
+            if not isinstance(result.aux_operator_eigenvalues, list):
+                aux_operator_eigenvalues = [result.aux_operator_eigenvalues]
+            else:
+                aux_operator_eigenvalues = result.aux_operator_eigenvalues
+
+            result.num_occupied_modals_per_mode = []
+            for aux_op_eigenvalues in aux_operator_eigenvalues:
+                occ_modals = []
+                for mode in range(self._num_modes):
+                    if aux_op_eigenvalues[mode] is not None:
+                        occ_modals.append(aux_op_eigenvalues[mode][0].real)
+                    else:
+                        occ_modals.append(None)
+                result.num_occupied_modals_per_mode.append(occ_modals)
 
         return result
 
@@ -291,7 +298,6 @@ class BosonicTransformation(QubitOperatorTransformation):
 
         hopping_operators = {}
         excitation_indices = {}
-        type_of_commutativities = {}
         to_be_executed_list = []
         for idx in range(size):
             to_be_executed_list += [excitations_list[idx], _dag_list(excitations_list[idx])]
@@ -308,6 +314,10 @@ class BosonicTransformation(QubitOperatorTransformation):
 
         for key, res in zip(hopping_operators.keys(), result):
             hopping_operators[key] = res
+
+        # This variable is required for compatibility with the FermionicTransformation
+        # at the moment we do not have any type of commutativity in the bosonic case.
+        type_of_commutativities = {}
 
         return hopping_operators, type_of_commutativities, excitation_indices
 
