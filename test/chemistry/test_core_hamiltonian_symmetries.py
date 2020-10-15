@@ -12,6 +12,7 @@
 
 """ Test Core Hamiltonian Symmetry Reduction """
 
+import warnings
 import unittest
 from test.chemistry import QiskitChemistryTestCase
 import numpy as np
@@ -53,138 +54,172 @@ class TestCoreHamiltonianSymmetries(QiskitChemistryTestCase):
 
     def test_no_symmetry(self):
         """ No symmetry reduction """
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         core = Hamiltonian(transformation=TransformationType.FULL,
                            qubit_mapping=QubitMappingType.JORDAN_WIGNER,
                            two_qubit_reduction=False,
                            freeze_core=False,
                            orbital_reduction=None,
                            z2symmetry_reduction=None)
+        warnings.filterwarnings('always', category=DeprecationWarning)
         qubit_op, aux_ops = core.run(self.qmolecule)
         self.assertEqual(qubit_op.num_qubits, 12)
         npme = NumPyMinimumEigensolver(qubit_op, aux_operators=aux_ops)
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         result = core.process_algorithm_result(npme.compute_minimum_eigenvalue())
+        warnings.filterwarnings('always', category=DeprecationWarning)
         self._validate_result(result, False)
 
     def test_auto_symmetry(self):
         """ Auto symmetry reduction """
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         core = Hamiltonian(transformation=TransformationType.FULL,
                            qubit_mapping=QubitMappingType.JORDAN_WIGNER,
                            two_qubit_reduction=False,
                            freeze_core=False,
                            orbital_reduction=None,
                            z2symmetry_reduction='auto')
+        warnings.filterwarnings('always', category=DeprecationWarning)
         qubit_op, aux_ops = core.run(self.qmolecule)
         self.assertEqual(qubit_op.num_qubits, 8)
         npme = NumPyMinimumEigensolver(qubit_op, aux_operators=aux_ops)
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         result = core.process_algorithm_result(npme.compute_minimum_eigenvalue())
+        warnings.filterwarnings('always', category=DeprecationWarning)
         self._validate_result(result)
         self.assertEqual(core.molecule_info[core.INFO_Z2SYMMETRIES].tapering_values, [1, 1, 1, 1])
 
     def test_given_symmetry(self):
         """ Supplied symmetry reduction """
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         core = Hamiltonian(transformation=TransformationType.FULL,
                            qubit_mapping=QubitMappingType.JORDAN_WIGNER,
                            two_qubit_reduction=False,
                            freeze_core=False,
                            orbital_reduction=None,
                            z2symmetry_reduction=[1, 1, 1, 1])
+        warnings.filterwarnings('always', category=DeprecationWarning)
         qubit_op, aux_ops = core.run(self.qmolecule)
         self.assertEqual(qubit_op.num_qubits, 8)
         npme = NumPyMinimumEigensolver(qubit_op, aux_operators=aux_ops)
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         result = core.process_algorithm_result(npme.compute_minimum_eigenvalue())
+        warnings.filterwarnings('always', category=DeprecationWarning)
         self._validate_result(result)
         self.assertEqual(core.molecule_info[core.INFO_Z2SYMMETRIES].tapering_values, [1, 1, 1, 1])
 
     def test_given_symmetry_fail_len(self):
         """ Supplied symmetry reduction invalid len """
         with self.assertRaises(QiskitChemistryError):
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
             core = Hamiltonian(transformation=TransformationType.FULL,
                                qubit_mapping=QubitMappingType.JORDAN_WIGNER,
                                two_qubit_reduction=False,
                                freeze_core=False,
                                orbital_reduction=None,
                                z2symmetry_reduction=[1, 1, 1])
+            warnings.filterwarnings('always', category=DeprecationWarning)
             _, _ = core.run(self.qmolecule)
 
     def test_given_symmetry_fail_values(self):
         """ Supplied symmetry reduction invalid values """
         with self.assertRaises(QiskitChemistryError):
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
             core = Hamiltonian(transformation=TransformationType.FULL,
                                qubit_mapping=QubitMappingType.JORDAN_WIGNER,
                                two_qubit_reduction=False,
                                freeze_core=False,
                                orbital_reduction=None,
                                z2symmetry_reduction=[1, 0, 1, 1])
+            warnings.filterwarnings('always', category=DeprecationWarning)
             _, _ = core.run(self.qmolecule)
 
     def test_auto_symmetry_freeze_core(self):
         """ Auto symmetry reduction, with freeze core """
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         core = Hamiltonian(transformation=TransformationType.FULL,
                            qubit_mapping=QubitMappingType.JORDAN_WIGNER,
                            two_qubit_reduction=False,
                            freeze_core=True,
                            orbital_reduction=None,
                            z2symmetry_reduction='auto')
+        warnings.filterwarnings('always', category=DeprecationWarning)
         qubit_op, aux_ops = core.run(self.qmolecule)
         self.assertEqual(qubit_op.num_qubits, 6)
         npme = NumPyMinimumEigensolver(qubit_op, aux_operators=aux_ops)
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         result = core.process_algorithm_result(npme.compute_minimum_eigenvalue())
+        warnings.filterwarnings('always', category=DeprecationWarning)
         self._validate_result(result)
         self.assertEqual(core.molecule_info[core.INFO_Z2SYMMETRIES].tapering_values, [-1, 1, 1, -1])
 
     def test_auto_freeze_core_parity(self):
         """ Auto symmetry reduction, with freeze core and parity mapping """
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         core = Hamiltonian(transformation=TransformationType.FULL,
                            qubit_mapping=QubitMappingType.PARITY,
                            two_qubit_reduction=False,
                            freeze_core=True,
                            orbital_reduction=None,
                            z2symmetry_reduction='auto')
+        warnings.filterwarnings('always', category=DeprecationWarning)
         qubit_op, aux_ops = core.run(self.qmolecule)
         self.assertEqual(qubit_op.num_qubits, 6)
         npme = NumPyMinimumEigensolver(qubit_op, aux_operators=aux_ops)
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         result = core.process_algorithm_result(npme.compute_minimum_eigenvalue())
+        warnings.filterwarnings('always', category=DeprecationWarning)
         self._validate_result(result)
         self.assertEqual(core.molecule_info[core.INFO_Z2SYMMETRIES].tapering_values, [-1, 1, 1, 1])
 
     def test_auto_freeze_core_parity_2(self):
         """ Auto symmetry reduction, with freeze core, parity and two q reduction """
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         core = Hamiltonian(transformation=TransformationType.FULL,
                            qubit_mapping=QubitMappingType.PARITY,
                            two_qubit_reduction=True,
                            freeze_core=True,
                            orbital_reduction=None,
                            z2symmetry_reduction='auto')
+        warnings.filterwarnings('always', category=DeprecationWarning)
         qubit_op, aux_ops = core.run(self.qmolecule)
         self.assertEqual(qubit_op.num_qubits, 6)
         npme = NumPyMinimumEigensolver(qubit_op, aux_operators=aux_ops)
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         result = core.process_algorithm_result(npme.compute_minimum_eigenvalue())
+        warnings.filterwarnings('always', category=DeprecationWarning)
         self._validate_result(result)
         self.assertEqual(core.molecule_info[core.INFO_Z2SYMMETRIES].tapering_values, [1, 1])
 
     def test_auto_ph_freeze_core_parity_2(self):
         """ Auto symmetry reduction, with freeze core, parity and two q reduction """
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         core = Hamiltonian(transformation=TransformationType.PARTICLE_HOLE,
                            qubit_mapping=QubitMappingType.PARITY,
                            two_qubit_reduction=True,
                            freeze_core=True,
                            orbital_reduction=None,
                            z2symmetry_reduction='auto')
+        warnings.filterwarnings('always', category=DeprecationWarning)
         qubit_op, aux_ops = core.run(self.qmolecule)
         self.assertEqual(qubit_op.num_qubits, 6)
         npme = NumPyMinimumEigensolver(qubit_op, aux_operators=aux_ops)
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         result = core.process_algorithm_result(npme.compute_minimum_eigenvalue())
+        warnings.filterwarnings('always', category=DeprecationWarning)
         self._validate_result(result)
         self.assertEqual(core.molecule_info[core.INFO_Z2SYMMETRIES].tapering_values, [1, 1])
 
     def test_vqe_auto_symmetry_freeze_core(self):
         """ Auto symmetry reduction, with freeze core using VQE """
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         core = Hamiltonian(transformation=TransformationType.FULL,
                            qubit_mapping=QubitMappingType.JORDAN_WIGNER,
                            two_qubit_reduction=False,
                            freeze_core=True,
                            orbital_reduction=None,
                            z2symmetry_reduction='auto')
+        warnings.filterwarnings('always', category=DeprecationWarning)
         qubit_op, aux_ops = core.run(self.qmolecule)
         self.assertEqual(qubit_op.num_qubits, 6)
         num_orbitals = core.molecule_info[core.INFO_NUM_ORBITALS]
@@ -202,7 +237,9 @@ class TestCoreHamiltonianSymmetries(QiskitChemistryTestCase):
                          z2_symmetries=z2_symmetries)
         vqe = VQE(qubit_op, var_form=var_form, optimizer=SLSQP(maxiter=500), aux_operators=aux_ops)
         vqe.quantum_instance = BasicAer.get_backend('statevector_simulator')
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         result = core.process_algorithm_result(vqe.compute_minimum_eigenvalue())
+        warnings.filterwarnings('always', category=DeprecationWarning)
         self._validate_result(result)
         self.assertEqual(core.molecule_info[core.INFO_Z2SYMMETRIES].tapering_values, [-1, 1, 1, -1])
 
