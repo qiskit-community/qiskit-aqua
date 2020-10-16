@@ -251,7 +251,7 @@ jobs:
             source "$HOME/miniconda/etc/profile.d/conda.sh"
             conda activate
           fi
-          sudo apt-get -y update
+          # sudo apt-get -y update
           sudo apt-get -y install libgfortran5
           pip install https://github.com/rpmuller/pyquante2/archive/master.zip
           pip install pyscf
@@ -461,7 +461,7 @@ jobs:
         shell: bash
       - name: Install Dependencies
         run: |
-          sudo apt-get -y update
+          # sudo apt-get -y update
           sudo apt-get -y install libgfortran5
           pip install https://github.com/rpmuller/pyquante2/archive/master.zip
           pip install pyscf
