@@ -22,10 +22,10 @@ from qiskit.chemistry.drivers import Molecule
 
 
 class HarmonicPotential(PotentialBase):
-    """
-    Implements a 1D Harmonic potential.
-    Input units are Angstroms (distance between the two atoms),
-        and output units are Hartrees (molecular energy).
+    """Implements a 1D Harmonic potential.
+
+    Input units are Angstroms (distance between the two atoms), and output units are
+    Hartrees (molecular energy).
     """
     # Works in Angstroms (input) and Hartrees (output)
 
@@ -42,7 +42,7 @@ class HarmonicPotential(PotentialBase):
         self.k = 0.0
         self.m_shift = 0.0
         self.r_0 = 0.0
-        self.d_e = None
+        self.d_e: Optional[float] = None
         if molecule.masses is not None:
             self._m_a = molecule.masses[0]
             self._m_b = molecule.masses[1]
@@ -103,11 +103,11 @@ class HarmonicPotential(PotentialBase):
             xdata: interatomic distance points (Angstroms)
             ydata: molecular energies (Hartrees)
             initial_vals: Initial values for fit parameters. None for default.
-                    Order of parameters is k, r_0 and m_shift
-                    (see fit_function implementation)
+                Order of parameters is k, r_0 and m_shift
+                (see fit_function implementation)
             bounds_list: Bounds for the fit parameters. None for default.
-                    Order of parameters is k, r_0 and m_shift
-                    (see fit_function implementation)
+                Order of parameters is k, r_0 and m_shift
+                (see fit_function implementation)
         """
         # Fits the potential to given x/y data.
         # If preProcessData is True (i.e. by default!) it only tries to fit
@@ -211,8 +211,8 @@ class HarmonicPotential(PotentialBase):
 
     def vibrational_energy_level(self, n: int) -> float:
         """
-        Returns the n-th vibrational energy level for the current fit
-            (in Hartrees).
+        Returns the n-th vibrational energy level for the current fit (in Hartrees).
+
         Args:
             n: vibrational mode
 

@@ -10,11 +10,18 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Factories that create an eigensolver based on a qubit transformation."""
+"""Potentials"""
 
-from .eigensolver_factory import EigensolverFactory
-from .numpy_eigensolver_factory import NumPyEigensolverFactory
+from .energy_surface_spline import EnergySurface1DSpline
+from .harmonic_potential import HarmonicPotential
+from .morse_potential import MorsePotential
+from .potential_base import EnergySurfaceBase, PotentialBase, VibronicStructureBase
 
-__all__ = ['EigensolverFactory',
-           'NumPyEigensolverFactory'
-           ]
+__all__ = [
+    'EnergySurface1DSpline',
+    'HarmonicPotential',
+    'MorsePotential',
+    'EnergySurfaceBase',
+    'PotentialBase',
+    'VibronicStructureBase',
+]

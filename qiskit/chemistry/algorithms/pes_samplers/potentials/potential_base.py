@@ -26,8 +26,7 @@ class EnergySurfaceBase(ABC):
     @abstractmethod
     def eval(self, x: float) -> float:
         """
-        After fitting the data to the fit function, predict the energy
-            at a point x.
+        After fitting the data to the fit function, predict the energy at a point x.
 
         Args:
             x: value to evaluate surface in
@@ -42,17 +41,17 @@ class EnergySurfaceBase(ABC):
             initial_vals: Optional[List[float]] = None,
             bounds_list: Optional[Tuple[List[float], List[float]]] = None
             ) -> None:
-        """
-        Fits surface to data
+        """Fits surface to data
+
         Args:
             xdata: x data to be fitted
             ydata: y data to be fitted
             initial_vals: Initial values for fit parameters. None for default.
-                    Order of parameters is d_e, alpha, r_0 and m_shift
-                    (see fit_function implementation)
+                Order of parameters is d_e, alpha, r_0 and m_shift
+                (see fit_function implementation)
             bounds_list: Bounds for the fit parameters. None for default.
-                    Order of parameters is d_e, alpha, r_0 and m_shift
-                    (see fit_function implementation)
+                Order of parameters is d_e, alpha, r_0 and m_shift
+                (see fit_function implementation)
         """
         raise NotImplementedError
 
@@ -117,6 +116,7 @@ class VibronicStructureBase(ABC):
         """
         Wipe state if molecule changes, and check validity of molecule
         for potential.
+
         Args:
             molecule: chemistry molecule
 

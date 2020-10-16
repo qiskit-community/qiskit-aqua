@@ -24,6 +24,7 @@ Bosonic Basis
    :toctree: ../stubs/
    :nosignatures:
 
+   BosonicBasis
    HarmonicBasis
 
 """

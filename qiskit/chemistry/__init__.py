@@ -147,11 +147,13 @@ Submodules
 .. autosummary::
    :toctree:
 
-   applications
    algorithms
+   applications
    components
    core
    drivers
+   results
+   transformations
 
 """
 

@@ -24,18 +24,17 @@ import qiskit.chemistry.constants as const
 
 
 class MorsePotential(PotentialBase):
-    """
-    Implements a 1D Morse potential.
-    Input units are Angstroms (distance between the two atoms),
-        and output units are Hartrees (molecular energy).
+    """Implements a 1D Morse potential.
+
+    Input units are Angstroms (distance between the two atoms), and output units are
+    Hartrees (molecular energy).
     """
     # Works in Angstroms and Hartrees
 
     def __init__(self, molecule: Molecule):
         """
         Initializes the potential to the zero-function.
-        fit() should be used afterwards to fit the potential to
-            computed molecular energies.
+        :meth:`fit` should be used afterwards to fit the potential to computed molecular energies.
 
         Args:
             molecule: the underlying molecule.
@@ -121,11 +120,11 @@ class MorsePotential(PotentialBase):
             xdata: interatomic distance points (Angstroms)
             ydata: molecular energies (Hartrees)
             initial_vals: Initial values for fit parameters. None for default.
-                    Order of parameters is d_e, alpha, r_0 and m_shift
-                    (see fit_function implementation)
+                Order of parameters is d_e, alpha, r_0 and m_shift
+                (see fit_function implementation)
             bounds_list: Bounds for the fit parameters. None for default.
-                    Order of parameters is d_e, alpha, r_0 and m_shift
-                    (see fit_function implementation)
+                Order of parameters is d_e, alpha, r_0 and m_shift
+                (see fit_function implementation)
         """
 
         # do the Morse potential fit

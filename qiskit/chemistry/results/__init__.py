@@ -10,16 +10,37 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Chemistry results module."""
+"""
+Chemistry Results (:mod:`qiskit.chemistry.results`)
+===================================================
+.. currentmodule:: qiskit.chemistry.results
 
+Qiskit's chemistry results for ground and excited states, both Fermionic and Bosonic. Algorithms
+may extend these to provide algorithm specific aspects in their result.
+
+Results
+=======
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   EigenstateResult
+   BOPESSamplerResult
+   ElectronicStructureResult
+   VibronicStructureResult
+
+"""
+
+from .bopes_sampler_result import BOPESSamplerResult
+from .eigenstate_result import EigenstateResult
 from .electronic_structure_result import DipoleTuple, ElectronicStructureResult
 from .vibronic_structure_result import VibronicStructureResult
 
-from .eigenstate_result import EigenstateResult
-
-
-__all__ = ['DipoleTuple',
-           'EigenstateResult',
-           'ElectronicStructureResult',
-           'VibronicStructureResult'
-           ]
+__all__ = [
+    'BOPESSamplerResult',
+    'DipoleTuple',
+    'EigenstateResult',
+    'ElectronicStructureResult',
+    'VibronicStructureResult',
+]
