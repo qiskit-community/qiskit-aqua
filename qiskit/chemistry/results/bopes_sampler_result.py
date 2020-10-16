@@ -15,7 +15,7 @@
 import logging
 from typing import List, Dict
 
-from qiskit.chemistry.results import EigenstateResult
+from .eigenstate_result import EigenstateResult
 
 logger = logging.getLogger(__name__)
 

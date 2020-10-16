@@ -28,13 +28,15 @@ class ExcitedStatesSolver(ABC):
               aux_operators: Optional[Union[List[FermionicOperator],
                                             List[BosonicOperator]]] = None
               ) -> Union[ElectronicStructureResult, VibronicStructureResult]:
-        """Compute the excited states energies of the molecule that was supplied via the driver.
+        r"""Compute the excited states energies of the molecule that was supplied via the driver.
+
         Args:
             driver: a chemistry driver object which defines the chemical problem that is to be
-                    solved by this calculation.
+                solved by this calculation.
             aux_operators: Additional auxiliary operators to evaluate. Must be of type
                 ``FermionicOperator`` if the qubit transformation is fermionic and of type
                 ``BosonicOperator`` it is bosonic.
+
         Returns:
             an eigenstate result
         """

@@ -21,6 +21,8 @@ from Aqua.
 Applications
 ============
 
+**DEPRECATED** See Ground state solvers in :mod:`qiskit.chemistry.algorithms` which replace this.
+
 .. autosummary::
    :toctree: ../stubs/
    :nosignatures:

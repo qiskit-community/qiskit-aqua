@@ -51,7 +51,7 @@ class AdaptVQE(GroundStateEigensolver):
             solver: a factory for the VQE solver employing a UCCSD variational form.
             threshold: the energy convergence threshold. It has a minimum value of 1e-15.
             delta: the finite difference step size for the gradient computation. It has a minimum
-                   value of 1e-5.
+                value of 1e-5.
             max_iterations: the maximum number of iterations of the AdaptVQE algorithm.
         """
         validate_min('threshold', threshold, 1e-15)
@@ -141,12 +141,12 @@ class AdaptVQE(GroundStateEigensolver):
 
         Args:
             driver: a chemistry driver.
-            aux_operators: Additional auxiliary ``FermionicOperator``s to evaluate at the
+            aux_operators: Additional auxiliary ``FermionicOperator`` instances to evaluate at the
                 ground state.
 
         Raises:
-            AquaError: if a solver other than VQE or a variational form other than UCCSD is provided
-                       or if the algorithm finishes due to an unforeseen reason.
+            AquaError: if a solver other than VQE or a variational form other than UCCSD is
+                provided or if the algorithm finishes due to an unforeseen reason.
 
         Returns:
             An AdaptVQEResult which is an ElectronicStructureResult but also includes runtime

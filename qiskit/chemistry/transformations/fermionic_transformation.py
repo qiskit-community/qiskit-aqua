@@ -21,6 +21,7 @@ import logging
 from enum import Enum
 
 import numpy as np
+
 from qiskit.tools import parallel_map
 from qiskit.aqua import AquaError, aqua_globals
 from qiskit.aqua.operators import Z2Symmetries, WeightedPauliOperator, OperatorBase
@@ -65,7 +66,7 @@ class FermionicTransformation(Transformation):
             transformation: full or particle_hole
             qubit_mapping: 'jordan_wigner', 'parity' or 'bravyi_kitaev'
             two_qubit_reduction: Whether two qubit reduction should be used,
-                                        when parity mapping only
+                when parity mapping only
             freeze_core: Whether to freeze core orbitals when possible
             orbital_reduction: Orbital list to be frozen or removed
             z2symmetry_reduction: If z2 symmetry reduction should be applied to resulting
@@ -142,7 +143,7 @@ class FermionicTransformation(Transformation):
 
         Args:
             driver: A driver encoding the molecule information.
-            aux_operators: Additional auxiliary ``FermionicOperator``s to evaluate.
+            aux_operators: Additional auxiliary ``FermionicOperator`` instances to evaluate.
 
         Returns:
             A qubit operator and a dictionary of auxiliary operators.

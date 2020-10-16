@@ -12,7 +12,7 @@
 
 """
 Chemistry Drivers (:mod:`qiskit.chemistry.drivers`)
-=========================================================
+===================================================
 .. currentmodule:: qiskit.chemistry.drivers
 
 Qiskit's chemistry module requires a computational chemistry program or library, accessed via a
