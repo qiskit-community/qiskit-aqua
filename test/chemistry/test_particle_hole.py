@@ -12,6 +12,8 @@
 
 """ Test Particle Hole """
 
+import unittest
+
 from test.chemistry import QiskitChemistryTestCase
 from ddt import ddt, idata, unpack
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
@@ -77,3 +79,7 @@ class TestParticleHole(QiskitChemistryTestCase):
 
         self.assertAlmostEqual(result.eigenvalue.real,
                                ph_result.eigenvalue.real - ph_shift, msg=config)
+
+
+if __name__ == '__main__':
+    unittest.main()

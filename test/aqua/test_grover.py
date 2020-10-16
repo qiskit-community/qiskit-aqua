@@ -145,8 +145,16 @@ class TestGroverConstructor(QiskitAquaTestCase):
         init_state = Zero(2)
         oracle = QuantumCircuit(2)
         oracle.cz(0, 1)
-        with self.assertRaises(TypeError):
-            Grover(oracle=oracle, state_preparation=init_state)
+        # filtering the following:
+        # DeprecationWarning: Passing an InitialState component is deprecated as of 0.8.0,
+        # and will be removed no earlier than 3 months after the release date.
+        # You should pass a QuantumCircuit instead.
+        try:
+            warnings.filterwarnings(action="ignore", category=DeprecationWarning)
+            with self.assertRaises(TypeError):
+                Grover(oracle=oracle, state_preparation=init_state)
+        finally:
+            warnings.filterwarnings(action="always", category=DeprecationWarning)
 
     def test_is_good_state_list(self):
         """Test List is_good_state"""
@@ -182,12 +190,16 @@ class TestGroverPublicMethods(QiskitAquaTestCase):
         """Test is_good_state"""
         oracle = QuantumCircuit(2)
         oracle.cz(0, 1)
-        list_good_state = ["11"]
-        grover = Grover(oracle=oracle, good_state=list_good_state)
+        list_str_good_state = ["11"]
+        grover = Grover(oracle=oracle, good_state=list_str_good_state)
         self.assertTrue(grover.is_good_state("11"))
 
         statevector_good_state = Statevector.from_label('11')
         grover = Grover(oracle=oracle, good_state=statevector_good_state)
+        self.assertTrue(grover.is_good_state("11"))
+
+        list_int_good_state = [0, 1]
+        grover = Grover(oracle=oracle, good_state=list_int_good_state)
         self.assertTrue(grover.is_good_state("11"))
 
         def _callable_good_state(bitstr):
@@ -224,13 +236,22 @@ class TestGroverPublicMethods(QiskitAquaTestCase):
         # For the specified post_processing
         oracle = QuantumCircuit(2)
         oracle.cz(0, 1)
-        grover = Grover(oracle,
+        grover = Grover(oracle, good_state=["11"],
                         post_processing=lambda bitstr: [idx for idx, x_i in enumerate(bitstr)
                                                         if x_i == '1'])
         self.assertEqual(grover.post_processing("11"), [0, 1])
         # When Not specified
-        grover = Grover(oracle)
+        grover = Grover(oracle, good_state=["11"])
         self.assertEqual(grover.post_processing("11"), "11")
+
+    def test_grover_operator_getter(self):
+        """Test the getter of grover_operator"""
+        oracle = QuantumCircuit(2)
+        oracle.cz(0, 1)
+        grover = Grover(oracle=oracle, good_state=["11"])
+        constructed = grover.grover_operator
+        expected = GroverOperator(oracle)
+        self.assertTrue(Operator(constructed).equiv(Operator(expected)))
 
 
 class TestGroverFunctionality(QiskitAquaTestCase):
@@ -248,7 +269,16 @@ class TestGroverFunctionality(QiskitAquaTestCase):
 
     def test_num_iteration(self):
         """Test specified num_iterations"""
-        grover = Grover(oracle=self._oracle, good_state=['111'], num_iterations=2)
+        # filtering the following:
+        # DeprecationWarning: The num_iterations argument is deprecated as of 0.8.0,
+        # and will be removed no earlier than 3 months after the release date.
+        # If you want to use the num_iterations argument you should use the iterations
+        # argument instead and pass an integer for the number of iterations.
+        try:
+            warnings.filterwarnings(action="ignore", category=DeprecationWarning)
+            grover = Grover(oracle=self._oracle, good_state=['111'], num_iterations=2)
+        finally:
+            warnings.filterwarnings(action="always", category=DeprecationWarning)
         ret = grover.run(self._sv)
         self.assertTrue(Operator(ret['circuit']).equiv(Operator(self._expected)))
 

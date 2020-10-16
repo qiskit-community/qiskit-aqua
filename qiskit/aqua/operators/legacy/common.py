@@ -384,7 +384,7 @@ def evolution_instruction(pauli_list, evo_time, num_time_slices,
     return qc.to_instruction()
 
 
-def commutator(op_a, op_b, op_c=None, threshold=1e-12):
+def commutator(op_a, op_b, op_c=None, sign=False, threshold=1e-12):
     r"""
     Compute commutator of `op_a` and `op_b` or
     the symmetric double commutator of `op_a`, `op_b` and `op_c`.
@@ -401,6 +401,7 @@ def commutator(op_a, op_b, op_c=None, threshold=1e-12):
         op_a (WeightedPauliOperator): operator a
         op_b (WeightedPauliOperator): operator b
         op_c (Optional(WeightedPauliOperator)): operator c
+        sign (bool): False anti-commutes, True commutes
         threshold (float): the truncation threshold
 
     Returns:
@@ -409,6 +410,8 @@ def commutator(op_a, op_b, op_c=None, threshold=1e-12):
     Note:
         For the final chop, the original codes only contain the paulis with real coefficient.
     """
+    sign = 1 if sign else -1
+
     op_ab = op_a * op_b
     op_ba = op_b * op_a
 
@@ -425,9 +428,9 @@ def commutator(op_a, op_b, op_c=None, threshold=1e-12):
         op_acb = op_ac * op_b
         op_bca = op_b * op_ca
 
-        tmp = (op_bac + op_cab + op_acb + op_bca)
+        tmp = (- op_bac + sign*op_cab - op_acb + sign*op_bca)
         tmp = 0.5 * tmp
-        res = op_abc + op_cba - tmp
+        res = op_abc - sign * op_cba + tmp
 
     res.simplify()
     res.chop(threshold)

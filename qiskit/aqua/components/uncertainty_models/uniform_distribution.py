@@ -42,6 +42,10 @@ class UniformDistribution(UnivariateDistribution):
         probabilities = np.ones(2 ** num_target_qubits) / 2 ** num_target_qubits
         super().__init__(num_target_qubits, probabilities, low, high)
 
+    @staticmethod
+    def _replacement():
+        return 'qiskit.circuit.library.UniformDistribution'
+
     def required_ancillas(self):
         return 0
 

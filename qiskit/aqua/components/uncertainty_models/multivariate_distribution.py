@@ -83,6 +83,10 @@ class MultivariateDistribution(UncertaintyModel, ABC):
             for i in range(self.dimension):
                 self._high[i] = 2**num_qubits[i] - 1
 
+    @staticmethod
+    def _replacement():
+        return 'a qiskit.QuantumCircuit'
+
     @property
     def num_qubits(self):
         """ returns num qubits """

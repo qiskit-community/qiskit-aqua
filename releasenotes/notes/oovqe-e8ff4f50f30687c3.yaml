@@ -1,0 +1,10 @@
+---
+features:
+  - |
+    Introduces a new ``ground_state_solver`` based on the orbital optimization
+    VQE. The new solver is called ``OrbitalOptimizationVQE`` and operates by
+    optimizing orbitals (orbital rotations) and variational parameters throughout
+    the VQE process.
+
+
+

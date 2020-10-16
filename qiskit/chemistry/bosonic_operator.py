@@ -14,12 +14,11 @@
 
 import copy
 import logging
-from typing import List, Tuple
+from typing import List, Tuple, Union, Optional
 
 import numpy as np
 
 from qiskit.quantum_info import Pauli
-
 from qiskit.aqua.operators import WeightedPauliOperator
 
 logger = logging.getLogger(__name__)
@@ -35,7 +34,9 @@ class BosonicOperator:
     - *Ollitrault Pauline J., Chemical science 11 (2020): 6842-6855.*
     """
 
-    def __init__(self, h: List[List[Tuple[List[List[int]], float]]], basis: List[int]) -> None:
+    def __init__(self,
+                 h: List[List[Tuple[List[List[int]], float]]],
+                 basis: List[int]) -> None:
         """
         The Bosonic operator in this class is written in the n-mode second quantization format
         (Eq. 10 in Ref. Ollitrault Pauline J., Chemical science 11 (2020): 6842-6855.)
@@ -49,10 +50,10 @@ class BosonicOperator:
                 where the indices is a n-entry list and each entry is of the
                 shape [mode, modal1, modal2] which define the indices of the corresponding raising
                 (mode, modal1) and lowering (mode, modal2) operators.
-
             basis: Is a list defining the number of modals per mode. E.g. for a 3 modes system
                 with 4 modals per mode basis = [4,4,4].
         """
+
         self._basis = basis
         self._degree = len(h)
         self._num_modes = len(basis)
@@ -124,24 +125,21 @@ class BosonicOperator:
 
         return final_list
 
-    def _combine(self, modes: List[int], paulis: List[List[Tuple[float, Pauli]]],
-                 coeff: float) -> WeightedPauliOperator:
+    def _combine(self, modes: List[int], paulis: dict, coeff: float) -> WeightedPauliOperator:
         """ Combines the paulis of each mode together in one WeightedPauliOperator.
 
         Args:
             modes: list with the indices of the modes to be combined
-            paulis: list containing the list of paulis for each mode
+            paulis: dict containing the list of paulis for each mode
             coeff: coefficient multiplying the term
 
         Returns:
             WeightedPauliOperator acting on the modes given in argument
         """
         m = 0
-        idx = 0
 
         if m in modes:
-            pauli_list = paulis[idx]
-            idx += 1
+            pauli_list = paulis[m]
         else:
             a_z = np.asarray([0] * self._basis[m], dtype=np.bool)
             a_x = np.asarray([0] * self._basis[m], dtype=np.bool)
@@ -149,8 +147,7 @@ class BosonicOperator:
 
         for m in range(1, self._num_modes):
             if m in modes:
-                new_list = paulis[idx]
-                idx += 1
+                new_list = paulis[m]
             else:
                 a_z = np.asarray([0] * self._basis[m], dtype=np.bool)
                 a_x = np.asarray([0] * self._basis[m], dtype=np.bool)
@@ -189,14 +186,13 @@ class BosonicOperator:
             for deg in range(self._degree):
 
                 for element in self._h_mat[deg]:
-                    paulis = []
+                    paulis = {}
                     modes = []
                     coeff = element[1]
                     for i in range(deg+1):
                         m, bf1, bf2 = element[0][i]
                         modes.append(m)
-                        paulis.append((self._one_body_mapping((1, pau[m][bf1],
-                                                               pau[m][bf2]))).paulis)
+                        paulis[m] = (self._one_body_mapping((1, pau[m][bf1], pau[m][bf2]))).paulis
 
                     qubit_op += self._combine(modes, paulis, coeff)
 
@@ -207,78 +203,52 @@ class BosonicOperator:
 
         return qubit_op
 
-    def ground_state_energy(self, vecs: np.ndarray, energies: np.ndarray) -> float:
-        """ Gets the relevant ground state energy
+    def direct_mapping_filtering_criterion(self, state: Union[List, np.ndarray], value: float,
+                                           aux_values: Optional[List[float]] = None) -> bool:
 
-        Returns the relevant ground state energy given the provided list of eigenvectors
-        and eigenenergies.
+        """ Filters out the states of irrelevant symmetries
 
         Args:
-            vecs: contains all the eigenvectors
-            energies: contains all the corresponding eigenenergies
+            state: the statevector
+            value: the energy
+            aux_values: the auxiliary energies
 
         Returns:
-            The relevant ground state energy
-
+            True if the state is has one and only one modal occupied per mode meaning
+            that the direct mapping symmetries are respected and False otherwise
         """
-        gs_energy = 0
-        found_gs_energy = False
-        for v, vec in enumerate(vecs):
-            indices = np.nonzero(np.conj(vec.primitive.data)*vec.primitive.data > 1e-5)[0]
-            for i in indices:
-                bin_i = np.frombuffer(np.binary_repr(i, width=sum(self._basis)).encode('utf-8'),
-                                      dtype='S1').astype(int)
-                count = 0
-                nqi = 0
-                for m in range(self._num_modes):
-                    sub_bin = bin_i[nqi:nqi + self._basis[m]]
-                    occ_i = 0
-                    for idx_i in sub_bin:
-                        occ_i += idx_i
-                    if occ_i != 1:
-                        break
-                    count += 1
-                    nqi += self._basis[m]
-                if count == self._num_modes:
-                    gs_energy = energies[v]
-                    found_gs_energy = True
+        # pylint: disable=unused-argument
+        indices = np.nonzero(np.conj(state) * state > 1e-5)[0]
+        count = 0
+        for i in indices:
+            bin_i = np.frombuffer(np.binary_repr(i, width=sum(self._basis)).encode('utf-8'),
+                                  dtype='S1').astype(int)
+            count = 0
+            nqi = 0
+            for m in range(len(self._basis)):
+                sub_bin = bin_i[nqi:nqi + self._basis[m]]
+                occ_i = 0
+                for idx_i in sub_bin:
+                    occ_i += idx_i
+                if occ_i != 1:
                     break
-            if found_gs_energy:
-                break
-        return np.real(gs_energy)
+                count += 1
+                nqi += self._basis[m]
+        return bool(count == len(self._basis))
 
-    def print_exact_states(self, vecs: np.ndarray, energies: np.ndarray, threshold: float = 1e-3)\
-            -> None:
-        """  Prints the exact states.
-
-        Prints the relevant states (the ones with the correct symmetries) out of a list of states
-        that are usually obtained with an exact eigensolver.
+    def number_occupied_modals_per_mode(self, mode: int) -> 'BosonicOperator':
+        """
+        A bosonic operator which can be used to evaluate the number of
+        occupied modals in a given mode
 
         Args:
-            vecs: contains all the states
-            energies: contains all the corresponding energies
-            threshold: threshold for showing the different configurations of a state
-        """
+            mode: the index of the mode
 
-        for v, vec in enumerate(vecs):
-            indices = np.nonzero(np.conj(vec.primitive.data) * vec.primitive.data > threshold)[0]
-            printmsg = True
-            for i in indices:
-                bin_i = np.frombuffer(np.binary_repr(i, width=sum(self._basis)).encode('utf-8'),
-                                      dtype='S1').astype(int)
-                count = 0
-                nqi = 0
-                for m in range(self._num_modes):
-                    sub_bin = bin_i[nqi:nqi + self._basis[m]]
-                    occ_i = 0
-                    for idx_i in sub_bin:
-                        occ_i += idx_i
-                    if occ_i != 1:
-                        break
-                    count += 1
-                    nqi += self._basis[m]
-                if count == self._num_modes:
-                    if printmsg:
-                        print('\n -', v, energies[v])
-                        printmsg = False
-                    print(vec.primitive.data[i], np.binary_repr(i, width=sum(self._basis)))
+        Returns:
+            BosonicOperator: the corresponding bosonic operator
+        """
+        h_mat: List[List[Tuple[List[List[int]], float]]] = [[]]
+        for modal in range(self._basis[mode]):
+            h_mat[0].append(([[mode, modal, modal]], 1.))
+
+        return BosonicOperator(h_mat, self._basis)
