@@ -240,7 +240,7 @@ class AdaptVQE(GroundStateEigensolver):
         result.final_max_gradient = max_grad[0]
         result.finishing_criterion = finishing_criterion
 
-        logger.info('The final energy is: %s', str(result.computed_electronic_energy))
+        logger.info('The final energy is: %s', str(result.computed_energies[0]))
         return result
 
 

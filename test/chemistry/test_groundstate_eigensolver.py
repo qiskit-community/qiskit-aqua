@@ -50,21 +50,21 @@ class TestGroundStateEigensolver(QiskitChemistryTestCase):
         solver = NumPyMinimumEigensolverFactory()
         calc = GroundStateEigensolver(self.transformation, solver)
         res = calc.solve(self.driver)
-        self.assertAlmostEqual(res.energy, self.reference_energy, places=6)
+        self.assertAlmostEqual(res.total_energies[0], self.reference_energy, places=6)
 
     def test_npme_with_default_filter(self):
         """ Test NumPyMinimumEigensolver with default filter """
         solver = NumPyMinimumEigensolverFactory(use_default_filter_criterion=True)
         calc = GroundStateEigensolver(self.transformation, solver)
         res = calc.solve(self.driver)
-        self.assertAlmostEqual(res.energy, self.reference_energy, places=6)
+        self.assertAlmostEqual(res.total_energies[0], self.reference_energy, places=6)
 
     def test_vqe_uccsd(self):
         """ Test VQE UCCSD case """
         solver = VQEUCCSDFactory(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
         calc = GroundStateEigensolver(self.transformation, solver)
         res = calc.solve(self.driver)
-        self.assertAlmostEqual(res.energy, self.reference_energy, places=6)
+        self.assertAlmostEqual(res.total_energies[0], self.reference_energy, places=6)
 
     def _setup_evaluation_operators(self):
         # first we run a ground state calculation

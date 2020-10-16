@@ -12,7 +12,7 @@
 
 """The electronic structure result."""
 
-from typing import List, Optional, Tuple, cast
+from typing import List, Optional, Tuple, cast, Union
 
 import logging
 import numpy as np
@@ -67,31 +67,31 @@ class ElectronicStructureResult(EigenstateResult):
     # construct the circuit of the GS from here (if the algorithm supports this)
 
     @property
-    def energy(self) -> Optional[float]:
+    def total_energies(self) -> np.ndarray:
         """ Returns ground state energy if nuclear_repulsion_energy is available from driver """
-        # TODO the fact that this property is computed on the fly breaks the `.combine()`
-        # functionality
-        nre = self.nuclear_repulsion_energy
-        return self.electronic_energy + nre if nre is not None else None
+        nre = self.nuclear_repulsion_energy if self.nuclear_repulsion_energy is not None else 0
+        # Adding float to np.ndarray adds it to each entry
+        return self.electronic_energies + nre
 
     @property
-    def electronic_energy(self) -> float:
+    def electronic_energies(self) -> np.ndarray:
         """ Returns electronic part of ground state energy """
         # TODO the fact that this property is computed on the fly breaks the `.combine()`
         # functionality
-        return (self.computed_electronic_energy
+        # Adding float to np.ndarray adds it to each entry
+        return (self.computed_energies
                 + self.ph_extracted_energy
                 + self.frozen_extracted_energy)
 
     @property
-    def computed_electronic_energy(self) -> float:
+    def computed_energies(self) -> np.ndarray:
         """ Returns computed electronic part of ground state energy """
-        return self.get('computed_electronic_energy')
+        return self.get('computed_energies')
 
-    @computed_electronic_energy.setter
-    def computed_electronic_energy(self, value: float) -> None:
+    @computed_energies.setter
+    def computed_energies(self, value: np.ndarray) -> None:
         """ Sets computed electronic part of ground state energy """
-        self.data['computed_electronic_energy'] = value
+        self.data['computed_energies'] = value
 
     @property
     def ph_extracted_energy(self) -> float:
@@ -131,73 +131,84 @@ class ElectronicStructureResult(EigenstateResult):
         self.data['reverse_dipole_sign'] = value
 
     @property
-    def total_dipole_moment(self) -> Optional[float]:
+    def total_dipole_moment(self) -> Optional[List[float]]:
         """ Returns total dipole of moment """
         if self.dipole_moment is None:
             return None  # No dipole at all
-        if np.any(np.equal(list(self.dipole_moment), None)):
-            return None  # One or more components in the dipole is None
-        return np.sqrt(np.sum(np.power(list(self.dipole_moment), 2)))
+        tdm: List[float] = []
+        for dip in self.dipole_moment:
+            if np.any(np.equal(list(dip), None)):
+                tdm.append(None)  # One or more components in the dipole is None
+            else:
+                tdm.append(np.sqrt(np.sum(np.power(list(dip), 2))))
+        return tdm
 
     @property
-    def total_dipole_moment_in_debye(self) -> Optional[float]:
+    def total_dipole_moment_in_debye(self) -> Optional[List[float]]:
         """ Returns total dipole of moment in Debye """
         tdm = self.total_dipole_moment
-        return tdm / QMolecule.DEBYE if tdm is not None else None
+        if tdm is None:
+            return None
+        return [dip / QMolecule.DEBYE for dip in tdm]
 
     @property
-    def dipole_moment(self) -> Optional[DipoleTuple]:
+    def dipole_moment(self) -> Optional[List[DipoleTuple]]:
         """ Returns dipole moment """
         edm = self.electronic_dipole_moment
         if self.reverse_dipole_sign:
-            edm = cast(DipoleTuple, tuple(-1 * x if x is not None else None for x in edm))
-        return _dipole_tuple_add(edm, self.nuclear_dipole_moment)
+            edm = [cast(DipoleTuple, tuple(-1 * x if x is not None else None for x in dip))
+                   for dip in edm]
+        return [_dipole_tuple_add(dip, self.nuclear_dipole_moment) for dip in edm]
 
     @property
-    def dipole_moment_in_debye(self) -> Optional[DipoleTuple]:
+    def dipole_moment_in_debye(self) -> Optional[List[DipoleTuple]]:
         """ Returns dipole moment in Debye """
         dipm = self.dipole_moment
         if dipm is None:
             return None
-        dipmd0 = dipm[0]/QMolecule.DEBYE if dipm[0] is not None else None
-        dipmd1 = dipm[1]/QMolecule.DEBYE if dipm[1] is not None else None
-        dipmd2 = dipm[2]/QMolecule.DEBYE if dipm[2] is not None else None
-        return dipmd0, dipmd1, dipmd2
+        dipmd = []
+        for dip in dipm:
+            dipmd0 = dip[0]/QMolecule.DEBYE if dip[0] is not None else None
+            dipmd1 = dip[1]/QMolecule.DEBYE if dip[1] is not None else None
+            dipmd2 = dip[2]/QMolecule.DEBYE if dip[2] is not None else None
+            dipmd += [(dipmd0, dipmd1, dipmd2)]
+        return dipmd
 
     @property
-    def electronic_dipole_moment(self) -> Optional[DipoleTuple]:
+    def electronic_dipole_moment(self) -> Optional[List[DipoleTuple]]:
         """ Returns electronic dipole moment """
-        return _dipole_tuple_add(self.computed_dipole_moment,
-                                 _dipole_tuple_add(self.ph_extracted_dipole_moment,
-                                                   self.frozen_extracted_dipole_moment))
+        return [_dipole_tuple_add(comp_dip, _dipole_tuple_add(ph_dip, frozen_dip)) for
+                comp_dip, ph_dip, frozen_dip in zip(self.computed_dipole_moment,
+                                                    self.ph_extracted_dipole_moment,
+                                                    self.frozen_extracted_dipole_moment)]
 
     @property
-    def computed_dipole_moment(self) -> Optional[DipoleTuple]:
+    def computed_dipole_moment(self) -> Optional[List[DipoleTuple]]:
         """ Returns computed electronic part of dipole moment """
         return self.get('computed_dipole_moment')
 
     @computed_dipole_moment.setter
-    def computed_dipole_moment(self, value: DipoleTuple) -> None:
+    def computed_dipole_moment(self, value: List[DipoleTuple]) -> None:
         """ Sets computed electronic part of dipole moment """
         self.data['computed_dipole_moment'] = value
 
     @property
-    def ph_extracted_dipole_moment(self) -> Optional[DipoleTuple]:
+    def ph_extracted_dipole_moment(self) -> Optional[List[DipoleTuple]]:
         """ Returns particle hole extracted part of dipole moment """
         return self.get('ph_extracted_dipole_moment')
 
     @ph_extracted_dipole_moment.setter
-    def ph_extracted_dipole_moment(self, value: DipoleTuple) -> None:
+    def ph_extracted_dipole_moment(self, value: List[DipoleTuple]) -> None:
         """ Sets particle hole extracted part of dipole moment """
         self.data['ph_extracted_dipole_moment'] = value
 
     @property
-    def frozen_extracted_dipole_moment(self) -> Optional[DipoleTuple]:
+    def frozen_extracted_dipole_moment(self) -> Optional[List[DipoleTuple]]:
         """ Returns frozen extracted part of dipole moment """
         return self.get('frozen_extracted_dipole_moment')
 
     @frozen_extracted_dipole_moment.setter
-    def frozen_extracted_dipole_moment(self, value: DipoleTuple) -> None:
+    def frozen_extracted_dipole_moment(self, value: List[DipoleTuple]) -> None:
         """ Sets frozen extracted part of dipole moment """
         self.data['frozen_extracted_dipole_moment'] = value
 
@@ -211,39 +222,42 @@ class ElectronicStructureResult(EigenstateResult):
             or self.magnetization is not None
 
     @property
-    def total_angular_momentum(self) -> Optional[float]:
+    def total_angular_momentum(self) -> Optional[List[float]]:
         """ Returns total angular momentum (S^2) """
         return self.get('total_angular_momentum')
 
     @total_angular_momentum.setter
-    def total_angular_momentum(self, value: float) -> None:
+    def total_angular_momentum(self, value: List[float]) -> None:
         """ Sets total angular momentum """
         self.data['total_angular_momentum'] = value
 
     @property
-    def spin(self) -> Optional[float]:
+    def spin(self) -> Optional[List[float]]:
         """ Returns computed spin """
         if self.total_angular_momentum is None:
             return None
-        return (-1.0 + np.sqrt(1 + 4 * self.total_angular_momentum)) / 2
+        spin = []
+        for total_angular_momentum in self.total_angular_momentum:
+            spin.append((-1.0 + np.sqrt(1 + 4 * total_angular_momentum)) / 2)
+        return spin
 
     @property
-    def num_particles(self) -> Optional[float]:
+    def num_particles(self) -> Optional[List[float]]:
         """ Returns measured number of particles """
         return self.get('num_particles')
 
     @num_particles.setter
-    def num_particles(self, value: float) -> None:
+    def num_particles(self, value: List[float]) -> None:
         """ Sets measured number of particles """
         self.data['num_particles'] = value
 
     @property
-    def magnetization(self) -> Optional[float]:
+    def magnetization(self) -> Optional[List[float]]:
         """ Returns measured magnetization """
         return self.get('magnetization')
 
     @magnetization.setter
-    def magnetization(self, value: float) -> None:
+    def magnetization(self, value: List[float]) -> None:
         """ Sets measured magnetization """
         self.data['magnetization'] = value
 
@@ -258,9 +272,9 @@ class ElectronicStructureResult(EigenstateResult):
         lines.append('=== GROUND STATE ENERGY ===')
         lines.append(' ')
         lines.append('* Electronic ground state energy (Hartree): {}'.
-                     format(round(self.electronic_energy, 12)))
+                     format(round(self.electronic_energies[0], 12)))
         lines.append('  - computed part:      {}'.
-                     format(round(self.computed_electronic_energy, 12)))
+                     format(round(self.computed_energies[0], 12)))
         lines.append('  - frozen energy part: {}'.
                      format(round(self.frozen_extracted_energy, 12)))
         lines.append('  - particle hole part: {}'
@@ -269,40 +283,68 @@ class ElectronicStructureResult(EigenstateResult):
             lines.append('~ Nuclear repulsion energy (Hartree): {}'.
                          format(round(self.nuclear_repulsion_energy, 12)))
             lines.append('> Total ground state energy (Hartree): {}'.
-                         format(round(self.energy, 12)))
+                         format(round(self.total_energies[0], 12)))
+
+        if len(self.computed_energies) > 1:
+            lines.append(' ')
+            lines.append('=== EXCITED STATE ENERGIES ===')
+            lines.append(' ')
+            for idx, (elec_energy, total_energy) in enumerate(zip(self.electronic_energies[1:],
+                                                                  self.total_energies[1:])):
+                lines.append('{: 3d}: '.format(idx+1))
+                lines.append('* Electronic excited state energy (Hartree): {}'.
+                             format(round(elec_energy, 12)))
+                lines.append('> Total excited state energy (Hartree): {}'.
+                             format(round(total_energy, 12)))
+
         if self.has_observables():
-            line = '  Measured::'
-            if self.num_particles is not None:
-                line += ' # Particles: {:.3f}'.format(self.num_particles)
-            if self.spin is not None:
-                line += ' S: {:.3f}'.format(self.spin)
-            if self.total_angular_momentum is not None:
-                line += ' S^2: {:.3f}'.format(self.total_angular_momentum)
-            if self.magnetization is not None:
-                line += ' M: {:.5f}'.format(self.magnetization)
-            lines.append(line)
+            lines.append(' ')
+            lines.append('=== MEASURED OBSERVABLES ===')
+            lines.append(' ')
+            for idx, (num_particles, spin, total_angular_momentum, magnetization) in enumerate(zip(
+                    self.num_particles, self.spin, self.total_angular_momentum,
+                    self.magnetization)):
+                line = '{: 3d}: '.format(idx)
+                if num_particles is not None:
+                    line += ' # Particles: {:.3f}'.format(num_particles)
+                if spin is not None:
+                    line += ' S: {:.3f}'.format(spin)
+                if total_angular_momentum is not None:
+                    line += ' S^2: {:.3f}'.format(total_angular_momentum)
+                if magnetization is not None:
+                    line += ' M: {:.3f}'.format(magnetization)
+                lines.append(line)
 
         if self.has_dipole():
             lines.append(' ')
-            lines.append('=== DIPOLE MOMENT ===')
+            lines.append('=== DIPOLE MOMENTS ===')
             lines.append(' ')
-            lines.append('* Electronic dipole moment (a.u.): {}'
-                         .format(_dipole_to_string(self.electronic_dipole_moment)))
-            lines.append('  - computed part:      {}'
-                         .format(_dipole_to_string(self.computed_dipole_moment)))
-            lines.append('  - frozen energy part: {}'
-                         .format(_dipole_to_string(self.frozen_extracted_dipole_moment)))
-            lines.append('  - particle hole part: {}'
-                         .format(_dipole_to_string(self.ph_extracted_dipole_moment)))
             if self.nuclear_dipole_moment is not None:
                 lines.append('~ Nuclear dipole moment (a.u.): {}'
                              .format(_dipole_to_string(self.nuclear_dipole_moment)))
-                lines.append('> Dipole moment (a.u.): {}  Total: {}'
-                             .format(_dipole_to_string(self.dipole_moment),
-                                     _float_to_string(self.total_dipole_moment)))
-                lines.append('               (debye): {}  Total: {}'
-                             .format(_dipole_to_string(self.dipole_moment_in_debye),
-                                     _float_to_string(self.total_dipole_moment_in_debye)))
+                lines.append(' ')
+            for idx, (elec_dip, comp_dip, frozen_dip, ph_dip, dip, tot_dip, dip_db, tot_dip_db) in \
+                    enumerate(zip(
+                            self.electronic_dipole_moment, self.computed_dipole_moment,
+                            self.frozen_extracted_dipole_moment, self.ph_extracted_dipole_moment,
+                            self.dipole_moment, self.total_dipole_moment,
+                            self.dipole_moment_in_debye, self.total_dipole_moment_in_debye)):
+                lines.append('{: 3d}: '.format(idx))
+                lines.append('  * Electronic dipole moment (a.u.): {}'
+                             .format(_dipole_to_string(elec_dip)))
+                lines.append('    - computed part:      {}'
+                             .format(_dipole_to_string(comp_dip)))
+                lines.append('    - frozen energy part: {}'
+                             .format(_dipole_to_string(frozen_dip)))
+                lines.append('    - particle hole part: {}'
+                             .format(_dipole_to_string(ph_dip)))
+                if self.nuclear_dipole_moment is not None:
+                    lines.append('  > Dipole moment (a.u.): {}  Total: {}'
+                                 .format(_dipole_to_string(dip), _float_to_string(tot_dip)))
+                    lines.append('                 (debye): {}  Total: {}'
+                                 .format(_dipole_to_string(dip_db), _float_to_string(tot_dip_db)))
+                lines.append(' ')
+
         return lines
 
 

@@ -88,7 +88,7 @@ class GroundStateSolver(ABC):
                                         QuantumCircuit, Instruction,
                                         OperatorBase],
                            operators: Union[WeightedPauliOperator, OperatorBase, list, dict]
-                           ) -> Union[float, List[float], Dict[str, float]]:
+                           ) -> Union[float, List[float], Dict[str, List[float]]]:
         """Evaluates additional operators at the given state.
 
         Args:

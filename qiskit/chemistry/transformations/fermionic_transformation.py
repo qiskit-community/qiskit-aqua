@@ -21,12 +21,15 @@ import logging
 from enum import Enum
 
 import numpy as np
-from qiskit.aqua.algorithms import EigensolverResult, MinimumEigensolverResult
+from qiskit.tools import parallel_map
+from qiskit.aqua import AquaError, aqua_globals
 from qiskit.aqua.operators import Z2Symmetries, WeightedPauliOperator, OperatorBase
+from qiskit.aqua.algorithms import EigensolverResult, MinimumEigensolverResult
 from qiskit.chemistry import QiskitChemistryError, QMolecule
 from qiskit.chemistry.fermionic_operator import FermionicOperator
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.results import DipoleTuple, EigenstateResult, ElectronicStructureResult
+from qiskit.chemistry.components.variational_forms import UCCSD
 
 from .transformation import Transformation
 from ..components.initial_states import HartreeFock
@@ -96,6 +99,7 @@ class FermionicTransformation(Transformation):
                     raise QiskitChemistryError('Invalid z2symmetry_reduction value')
         self._z2symmetry_reduction = z2symmetry_reduction
         self._has_dipole_moments = False
+        self._untapered_qubit_op = None
 
         # Store values that are computed by the classical logic in order
         # that later they may be combined with the quantum result
@@ -115,6 +119,11 @@ class FermionicTransformation(Transformation):
         self._ph_z_dipole_shift = 0.0
 
         self._molecule_info: Dict[str, Any] = {}
+
+    @property
+    def commutation_rule(self) -> int:
+        """Getter of the commutation rule"""
+        return -1
 
     @property
     def molecule_info(self) -> Dict[str, Any]:
@@ -359,6 +368,7 @@ class FermionicTransformation(Transformation):
         self._molecule_info['num_orbitals'] = new_nspinorbs
         reduction = self._two_qubit_reduction if self._qubit_mapping == 'parity' else False
         self._molecule_info['two_qubit_reduction'] = reduction
+        self._untapered_qubit_op = qubit_op
 
         z2symmetries = Z2Symmetries([], [], [], None)
         if self._z2symmetry_reduction is not None:
@@ -368,6 +378,11 @@ class FermionicTransformation(Transformation):
 
         logger.debug('Processing complete ready to run algorithm')
         return qubit_op, aux_ops
+
+    @property
+    def untapered_qubit_op(self):
+        """Getter for the untapered qubit operator"""
+        return self._untapered_qubit_op
 
     def _process_z2symmetry_reduction(self,
                                       qubit_op: WeightedPauliOperator,
@@ -527,10 +542,10 @@ class FermionicTransformation(Transformation):
             eigenstate_result.raw_result = raw_result
             eigenstate_result.eigenenergies = np.asarray([raw_result.eigenvalue])
             eigenstate_result.eigenstates = [raw_result.eigenstate]
-            eigenstate_result.aux_operator_eigenvalues = raw_result.aux_operator_eigenvalues
+            eigenstate_result.aux_operator_eigenvalues = [raw_result.aux_operator_eigenvalues]
 
         result = ElectronicStructureResult(eigenstate_result.data)
-        result.computed_electronic_energy = eigenstate_result.groundenergy
+        result.computed_energies = np.asarray([e.real for e in eigenstate_result.eigenenergies])
         result.hartree_fock_energy = self._hf_energy
         result.nuclear_repulsion_energy = self._nuclear_repulsion_energy
         if self._nuclear_dipole_moment is not None:
@@ -540,40 +555,48 @@ class FermionicTransformation(Transformation):
         if result.aux_operator_eigenvalues is not None:
             # the first three values are hardcoded to number of particles, angular momentum
             # and magnetization in this order
-            if result.aux_operator_eigenvalues[0] is not None:
-                result.num_particles = result.aux_operator_eigenvalues[0][0].real
+            result.num_particles = []
+            result.total_angular_momentum = []
+            result.magnetization = []
+            result.computed_dipole_moment = []
+            result.ph_extracted_dipole_moment = []
+            result.frozen_extracted_dipole_moment = []
+            if not isinstance(result.aux_operator_eigenvalues, list):
+                aux_operator_eigenvalues = [result.aux_operator_eigenvalues]
             else:
-                result.num_particles = None
+                aux_operator_eigenvalues = result.aux_operator_eigenvalues
+            for aux_op_eigenvalues in aux_operator_eigenvalues:
+                if aux_op_eigenvalues is None:
+                    continue
+                if aux_op_eigenvalues[0] is not None:
+                    result.num_particles.append(aux_op_eigenvalues[0][0].real)
 
-            if result.aux_operator_eigenvalues[1] is not None:
-                result.total_angular_momentum = result.aux_operator_eigenvalues[1][0].real
-            else:
-                result.total_angular_momentum = None
+                if aux_op_eigenvalues[1] is not None:
+                    result.total_angular_momentum.append(aux_op_eigenvalues[1][0].real)
 
-            if result.aux_operator_eigenvalues[2] is not None:
-                result.magnetization = result.aux_operator_eigenvalues[2][0].real
-            else:
-                result.magnetization = None
+                if aux_op_eigenvalues[2] is not None:
+                    result.magnetization.append(aux_op_eigenvalues[2][0].real)
 
-            # the next three are hardcoded to Dipole moments, if they are set
-            if len(result.aux_operator_eigenvalues) >= 6 and self._has_dipole_moments:
-                # check if the names match
-                # extract dipole moment in each axis
-                dipole_moment = []
-                for moment in result.aux_operator_eigenvalues[3:6]:
-                    if moment is not None:
-                        dipole_moment += [moment[0].real]
-                    else:
-                        dipole_moment += [None]
+                # the next three are hardcoded to Dipole moments, if they are set
+                if len(aux_op_eigenvalues) >= 6 and self._has_dipole_moments:
+                    # check if the names match
+                    # extract dipole moment in each axis
+                    dipole_moment = []
+                    for moment in aux_op_eigenvalues[3:6]:
+                        if moment is not None:
+                            dipole_moment += [moment[0].real]
+                        else:
+                            dipole_moment += [None]
 
-                result.reverse_dipole_sign = self._reverse_dipole_sign
-                result.computed_dipole_moment = cast(DipoleTuple, tuple(dipole_moment))
-                result.ph_extracted_dipole_moment = (self._ph_x_dipole_shift,
-                                                     self._ph_y_dipole_shift,
-                                                     self._ph_z_dipole_shift)
-                result.frozen_extracted_dipole_moment = (self._x_dipole_shift,
-                                                         self._y_dipole_shift,
-                                                         self._z_dipole_shift)
+                    result.reverse_dipole_sign = self._reverse_dipole_sign
+                    result.computed_dipole_moment.append(cast(DipoleTuple,
+                                                              tuple(dipole_moment)))
+                    result.ph_extracted_dipole_moment.append(
+                        (self._ph_x_dipole_shift, self._ph_y_dipole_shift,
+                         self._ph_z_dipole_shift))
+                    result.frozen_extracted_dipole_moment.append(
+                        (self._x_dipole_shift, self._y_dipole_shift,
+                         self._z_dipole_shift))
 
         return result
 
@@ -623,3 +646,98 @@ class FermionicTransformation(Transformation):
         if qubit_mapping == 'parity' and two_qubit_reduction:
             qubit_op = Z2Symmetries.two_qubit_reduction(qubit_op, num_particles)
         return qubit_op
+
+    @staticmethod
+    def _build_single_hopping_operator(index, num_particles, num_orbitals, qubit_mapping,
+                                       two_qubit_reduction, z2_symmetries):
+
+        h_1 = np.zeros((num_orbitals, num_orbitals), dtype=complex)
+        h_2 = np.zeros((num_orbitals, num_orbitals, num_orbitals, num_orbitals), dtype=complex)
+        if len(index) == 2:
+            i, j = index
+            h_1[i, j] = 4.0
+        elif len(index) == 4:
+            i, j, k, m = index
+            h_2[i, j, k, m] = 16.0
+        fer_op = FermionicOperator(h_1, h_2)
+        qubit_op = fer_op.mapping(qubit_mapping)
+        if qubit_mapping == 'parity' and two_qubit_reduction:
+            qubit_op = Z2Symmetries.two_qubit_reduction(qubit_op, num_particles)
+
+        commutativities = []
+        if not z2_symmetries.is_empty():
+            for symmetry in z2_symmetries.symmetries:
+                symmetry_op = WeightedPauliOperator(paulis=[[1.0, symmetry]])
+                commuting = qubit_op.commute_with(symmetry_op)
+                anticommuting = qubit_op.anticommute_with(symmetry_op)
+
+                if commuting != anticommuting:  # only one of them is True
+                    if commuting:
+                        commutativities.append(True)
+                    elif anticommuting:
+                        commutativities.append(False)
+                else:
+                    raise AquaError("Symmetry {} is nor commute neither anti-commute "
+                                    "to exciting operator.".format(symmetry.to_label()))
+
+        return qubit_op, commutativities
+
+    def build_hopping_operators(self, excitations: Union[str, List[List[int]]] = 'sd'
+                                ) -> Tuple[Dict[str, WeightedPauliOperator],
+                                           Dict[str, List[bool]],
+                                           Dict[str, List[Any]]]:
+        """Builds the product of raising and lowering operators (basic excitation operators)
+
+        Args:
+            excitations: The excitations to be included in the eom pseudo-eigenvalue problem.
+                If a string ('s', 'd' or 'sd') then all excitations of the given type will be used.
+                Otherwise a list of custom excitations can directly be provided.
+
+        Returns:
+            A tuple containing the hopping operators, the types of commutativities and the
+            excitation indices.
+        """
+
+        num_alpha, num_beta = self._molecule_info['num_particles']
+        num_orbitals = self._molecule_info['num_orbitals']
+
+        if isinstance(excitations, str):
+            se_list, de_list = UCCSD.compute_excitation_lists([num_alpha, num_beta], num_orbitals,
+                                                              excitation_type=excitations)
+            excitations_list = se_list+de_list
+        else:
+            excitations_list = excitations
+
+        size = len(excitations_list)
+
+        # # get all to-be-processed index
+        # mus, nus = np.triu_indices(size)
+
+        # build all hopping operators
+        hopping_operators: Dict[str, WeightedPauliOperator] = {}
+        type_of_commutativities: Dict[str, List[bool]] = {}
+        excitation_indices = {}
+        to_be_executed_list = []
+        for idx in range(size):
+            to_be_executed_list += [excitations_list[idx], list(reversed(excitations_list[idx]))]
+            hopping_operators['E_{}'.format(idx)] = None
+            hopping_operators['Edag_{}'.format(idx)] = None
+            type_of_commutativities['E_{}'.format(idx)] = None
+            type_of_commutativities['Edag_{}'.format(idx)] = None
+            excitation_indices['E_{}'.format(idx)] = excitations_list[idx]
+            excitation_indices['Edag_{}'.format(idx)] = list(reversed(excitations_list[idx]))
+
+        result = parallel_map(self._build_single_hopping_operator,
+                              to_be_executed_list,
+                              task_args=(num_alpha + num_beta,
+                                         num_orbitals,
+                                         self._qubit_mapping,
+                                         self._two_qubit_reduction,
+                                         self._molecule_info['z2_symmetries']),
+                              num_processes=aqua_globals.num_processes)
+
+        for key, res in zip(hopping_operators.keys(), result):
+            hopping_operators[key] = res[0]
+            type_of_commutativities[key] = res[1]
+
+        return hopping_operators, type_of_commutativities, excitation_indices

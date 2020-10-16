@@ -18,6 +18,7 @@ from functools import partial
 import numpy as np
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
+from qiskit.aqua import aqua_globals
 from qiskit.aqua.algorithms import VQE, NumPyMinimumEigensolver
 from qiskit.aqua.components.optimizers import AQGD
 from qiskit.aqua.operators import PauliExpectation
@@ -35,7 +36,8 @@ class TestBOPES(unittest.TestCase):
 
     def test_h2_bopes_sampler(self):
         """Test BOPES Sampler on H2"""
-        np.random.seed(100)
+        seed = 50
+        aqua_globals.random_seed = seed
 
         # Molecule
         dof = partial(Molecule.absolute_distance, atom_pair=(1, 0))
@@ -52,8 +54,8 @@ class TestBOPES(unittest.TestCase):
         shots = 1
         backend = 'statevector_simulator'
         quantum_instance = QuantumInstance(BasicAer.get_backend(backend), shots=shots)
-        quantum_instance.run_config.seed_simulator = 50
-        quantum_instance.compile_config['seed_transpiler'] = 50
+        quantum_instance.run_config.seed_simulator = seed
+        quantum_instance.compile_config['seed_transpiler'] = seed
 
         # Variational form
         i_state = HartreeFock(num_orbitals=f_t._molecule_info['num_orbitals'],
@@ -100,7 +102,8 @@ class TestBOPES(unittest.TestCase):
 
     def test_potential_interface(self):
         """Tests potential interface."""
-        np.random.seed(100)
+        seed = 50
+        aqua_globals.random_seed = seed
 
         stretch = partial(Molecule.absolute_distance, atom_pair=(1, 0))
         # H-H molecule near equilibrium geometry

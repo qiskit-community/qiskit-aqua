@@ -27,7 +27,6 @@ from qiskit.chemistry.algorithms.ground_state_solvers import GroundStateEigensol
 from qiskit.chemistry.core import TransformationType, QubitMappingType
 from qiskit.chemistry.transformations import FermionicTransformation
 
-
 # pylint: disable=invalid-name
 
 
@@ -100,7 +99,7 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
 
         result = gsc.solve(self.driver)
 
-        self.assertAlmostEqual(result.energy, self.reference_energy_pUCCD, places=6)
+        self.assertAlmostEqual(result.total_energies[0], self.reference_energy_pUCCD, places=6)
 
     def test_uccsd_hf_qUCCD0(self):
         """ singlet uccd test """
@@ -133,7 +132,7 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
 
         result = gsc.solve(self.driver)
 
-        self.assertAlmostEqual(result.energy, self.reference_energy_UCCD0, places=6)
+        self.assertAlmostEqual(result.total_energies[0], self.reference_energy_UCCD0, places=6)
 
     def test_uccsd_hf_qUCCD0full(self):
         """ singlet full uccd test """
@@ -166,8 +165,7 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         gsc = GroundStateEigensolver(self.fermionic_transformation, solver)
 
         result = gsc.solve(self.driver)
-
-        self.assertAlmostEqual(result.energy, self.reference_energy_UCCD0full, places=6)
+        self.assertAlmostEqual(result.total_energies[0], self.reference_energy_UCCD0full, places=6)
 
     def test_uccsd_hf_qUCCSD(self):
         """ uccsd tapering test using all double excitations """
@@ -215,7 +213,7 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         raw_result = solver.compute_minimum_eigenvalue(qubit_op, None)
         result = fermionic_transformation.interpret(raw_result)
 
-        self.assertAlmostEqual(result.energy, self.reference_energy_UCCSD, places=6)
+        self.assertAlmostEqual(result.total_energies[0], self.reference_energy_UCCSD, places=6)
 
     def test_uccsd_hf_excitations(self):
         """ uccsd tapering test using all double excitations """

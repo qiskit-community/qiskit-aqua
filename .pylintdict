@@ -218,6 +218,7 @@ fcompiler
 fd
 fermionic
 fermionicoperator
+fermionictransformation
 fermionicdriver
 fermions
 fi
