@@ -10,21 +10,14 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Initial state for vibrational modes. """
+"""Initial state for vibrational modes."""
 
-import logging
 from typing import List
-
 import numpy as np
-
 from qiskit import QuantumRegister, QuantumCircuit
 
-from qiskit.aqua.components.initial_states import InitialState
 
-logger = logging.getLogger(__name__)
-
-
-class VSCF(InitialState):
+class VSCF(QuantumCircuit):
     r""" Initial state for vibrational modes.
 
     Creates an occupation number vector as defined in
@@ -39,64 +32,26 @@ class VSCF(InitialState):
                 with 4 modals per mode basis = [4,4,4]
         """
         super().__init__()
-        self._basis = basis
-        self._num_qubits = sum(basis)
 
-        self._bitstr = self._build_bitstr()
+        # get the bitstring encoding initial state
+        bitstr = _build_bitstr(basis)
 
-    def _build_bitstr(self) -> np.ndarray:
+        # construct the circuit
+        qr = QuantumRegister(len(bitstr), 'q')
+        super().__init__(qr, name='VSCF')
 
-        bitstr = np.zeros(self._num_qubits, np.bool)
-        count = 0
-        for i in range(len(self._basis)):
-            bitstr[self._num_qubits-count-1] = True
-            count += self._basis[i]
+        # add gates in the right positions
+        for i, bit in enumerate(reversed(bitstr)):
+            if bit:
+                self.x(i)
 
-        return bitstr
 
-    def construct_circuit(self, mode: str = 'circuit', register: QuantumRegister = None) \
-            -> QuantumCircuit:
-        """
-        Construct the circuit of desired initial state.
+def _build_bitstr(basis):
+    num_qubits = sum(basis)
+    bitstr = np.zeros(num_qubits, np.bool)
+    count = 0
+    for modal in basis:
+        bitstr[num_qubits - count - 1] = True
+        count += modal
 
-        Args:
-            mode: `vector` or `circuit`. The `vector` mode produces the vector.
-                While the `circuit` constructs the quantum circuit corresponding that vector.
-            register (QuantumRegister): register for circuit construction.
-
-        Returns:
-            QuantumCircuit or numpy.ndarray: statevector.
-
-        Raises:
-            ValueError: when mode is not 'vector' or 'circuit'.
-        """
-        if self._bitstr is None:
-            self._build_bitstr()
-        if mode == 'vector':
-            state = 1.0
-            one = np.asarray([0.0, 1.0])
-            zero = np.asarray([1.0, 0.0])
-            for k in self._bitstr[::-1]:
-                state = np.kron(one if k else zero, state)
-            return state
-        elif mode == 'circuit':
-            if register is None:
-                register = QuantumRegister(self._num_qubits, name='q')
-            quantum_circuit = QuantumCircuit(register)
-            for qubit_idx, bit in enumerate(self._bitstr[::-1]):
-                if bit:
-                    quantum_circuit.x(register[qubit_idx])
-            return quantum_circuit
-        else:
-            raise ValueError('Mode should be either "vector" or "circuit"')
-
-    @property
-    def bitstr(self) -> np.ndarray:
-        """Getter of the bit string represented the statevector.
-
-        Returns:
-             numpy.ndarray containing the bitstring representation
-        """
-        if self._bitstr is None:
-            self._build_bitstr()
-        return self._bitstr
+    return bitstr
