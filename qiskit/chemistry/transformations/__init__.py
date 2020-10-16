@@ -15,7 +15,7 @@ Qubit Transformations (:mod:`qiskit.chemistry.transformations`)
 ===============================================================
 .. currentmodule:: qiskit.chemistry.transformations
 
-Tronsformations for both Fermionic and Bosonic operators to qubit operators. Transformation
+Transformations for both Fermionic and Bosonic operators to qubit operators. Transformation
 includes specification of qubit mapping type for example, as well as other options. As part of
 the transformation of the main operator other, so called auxiliary operators, may be created to
 enable other properties of the result state with the main operator to also be evaluated, such as

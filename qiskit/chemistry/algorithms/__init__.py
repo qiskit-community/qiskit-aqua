@@ -70,7 +70,7 @@ depend
 
 Ground State Solvers
 ++++++++++++++++++++
-Algorithms that can find the miniumum eigenvalue of an operator, i.e. ground state for chemistry.
+Algorithms that can find the minimum eigenvalue of an operator, i.e. ground state for chemistry.
 
 The interface for such solvers,
 

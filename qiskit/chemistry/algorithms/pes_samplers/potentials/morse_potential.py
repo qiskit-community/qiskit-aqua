@@ -122,7 +122,7 @@ class MorsePotential(PotentialBase):
             initial_vals: Initial values for fit parameters. None for default.
                 Order of parameters is d_e, alpha, r_0 and m_shift
                 (see fit_function implementation)
-           bounds_list: Bounds for the fit parameters. None for default.
+            bounds_list: Bounds for the fit parameters. None for default.
                 Order of parameters is d_e, alpha, r_0 and m_shift
                 (see fit_function implementation)
         """

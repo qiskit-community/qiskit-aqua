@@ -42,7 +42,7 @@ class HarmonicPotential(PotentialBase):
         self.k = 0.0
         self.m_shift = 0.0
         self.r_0 = 0.0
-        self.d_e = None
+        self.d_e: Optional[float] = None
         if molecule.masses is not None:
             self._m_a = molecule.masses[0]
             self._m_b = molecule.masses[1]
