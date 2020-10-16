@@ -80,13 +80,11 @@ class QAOAVarForm(VariationalForm):
                 self.num_parameters, len(parameters)
             ))
 
-        circuit = (H ^ self._num_qubits)
         # initialize circuit, possibly based on given register/initial state
         if self._initial_state is not None:
-            init_state = CircuitStateFn(self._initial_state.construct_circuit('circuit'))
+            circuit = CircuitStateFn(self._initial_state.construct_circuit('circuit')).to_circuit_op()
         else:
-            init_state = Zero
-        circuit = circuit.compose(init_state)
+            circuit = (H ^ self._num_qubits)
 
         for idx in range(self._p):
             circuit = (self._cost_operator * parameters[idx]).exp_i().compose(circuit)
