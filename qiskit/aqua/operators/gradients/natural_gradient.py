@@ -12,7 +12,6 @@
 
 """ Natural Gradient. """
 
-import os
 from collections.abc import Iterable
 from typing import List, Tuple, Callable, Optional, Union
 
@@ -359,7 +358,6 @@ class NaturalGradient(GradientBase):
                                 alpha: float = 0.,
                                 tol_norm_x: Tuple[float, float] = (1e-8, 5.),
                                 tol_cond_a: float = 1000.) -> np.ndarray:
-
         """
         Solve a linear system of equations with a regularization method and automatic lambda fitting
         Args:

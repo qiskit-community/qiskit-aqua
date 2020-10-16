@@ -67,8 +67,7 @@ class TestExcitationPreserving(QiskitChemistryTestCase):
         gsc = GroundStateEigensolver(fermionic_transformation, solver)
 
         result = gsc.solve(driver)
-
-        self.assertAlmostEqual(result.energy, self.reference_energy, places=4)
+        self.assertAlmostEqual(result.total_energies[0], self.reference_energy, places=4)
 
 
 if __name__ == '__main__':

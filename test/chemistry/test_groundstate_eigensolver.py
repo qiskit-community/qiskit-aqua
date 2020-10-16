@@ -10,7 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Test MinimumEigensovler ground state calculation """
+""" Test GroundStateEigensolver """
 
 import unittest
 
@@ -20,15 +20,15 @@ from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
-from qiskit.chemistry.transformations import FermionicTransformation
-from qiskit.chemistry.transformations.fermionic_transformation import QubitMappingType
+from qiskit.chemistry.transformations import (FermionicTransformation,
+                                              FermionicQubitMappingType)
 from qiskit.chemistry.algorithms.ground_state_solvers import GroundStateEigensolver
 from qiskit.chemistry.algorithms.ground_state_solvers.minimum_eigensolver_factories import \
     (VQEUCCSDFactory, NumPyMinimumEigensolverFactory)
 
 
-class TestMESGSCCalculation(QiskitChemistryTestCase):
-    """ Test MinimumEigensovler ground state calculation """
+class TestGroundStateEigensolver(QiskitChemistryTestCase):
+    """ Test GroundStateEigensolver """
 
     def setUp(self):
         super().setUp()
@@ -43,21 +43,29 @@ class TestMESGSCCalculation(QiskitChemistryTestCase):
 
         self.reference_energy = -1.137306
 
-        self.transformation = FermionicTransformation(qubit_mapping=QubitMappingType.JORDAN_WIGNER)
+        self.transformation = FermionicTransformation(
+            qubit_mapping=FermionicQubitMappingType.JORDAN_WIGNER)
 
     def test_npme(self):
         """ Test NumPyMinimumEigensolver """
         solver = NumPyMinimumEigensolverFactory()
         calc = GroundStateEigensolver(self.transformation, solver)
         res = calc.solve(self.driver)
-        self.assertAlmostEqual(res.energy, self.reference_energy, places=6)
+        self.assertAlmostEqual(res.total_energies[0], self.reference_energy, places=6)
+
+    def test_npme_with_default_filter(self):
+        """ Test NumPyMinimumEigensolver with default filter """
+        solver = NumPyMinimumEigensolverFactory(use_default_filter_criterion=True)
+        calc = GroundStateEigensolver(self.transformation, solver)
+        res = calc.solve(self.driver)
+        self.assertAlmostEqual(res.total_energies[0], self.reference_energy, places=6)
 
     def test_vqe_uccsd(self):
         """ Test VQE UCCSD case """
         solver = VQEUCCSDFactory(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
         calc = GroundStateEigensolver(self.transformation, solver)
         res = calc.solve(self.driver)
-        self.assertAlmostEqual(res.energy, self.reference_energy, places=6)
+        self.assertAlmostEqual(res.total_energies[0], self.reference_energy, places=6)
 
     def _setup_evaluation_operators(self):
         # first we run a ground state calculation

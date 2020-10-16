@@ -15,11 +15,12 @@
 from typing import Optional
 import numpy as np
 
-from qiskit.aqua import QuantumInstance
+from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.algorithms import MinimumEigensolver, VQE
 from qiskit.aqua.operators import ExpectationBase
 from qiskit.aqua.components.optimizers import Optimizer
 from ....components.variational_forms import UCCSD
+from ....transformations import Transformation
 from ....transformations.fermionic_transformation import FermionicTransformation
 from ....components.initial_states import HartreeFock
 
@@ -34,7 +35,11 @@ class VQEUCCSDFactory(MinimumEigensolverFactory):
                  optimizer: Optional[Optimizer] = None,
                  initial_point: Optional[np.ndarray] = None,
                  expectation: Optional[ExpectationBase] = None,
-                 include_custom: bool = False) -> None:
+                 include_custom: bool = False,
+                 method_singles: str = 'both',
+                 method_doubles: str = 'ucc',
+                 excitation_type: str = 'sd',
+                 same_spin_doubles: bool = True) -> None:
         """
         Args:
             quantum_instance: The quantum instance used in the minimum eigensolver.
@@ -54,12 +59,31 @@ class VQEUCCSDFactory(MinimumEigensolverFactory):
                 parameter here to ``True`` (defaults to ``False``).
             include_custom: When `expectation` parameter here is None setting this to ``True`` will
                 allow the factory to include the custom Aer pauli expectation.
+            method_singles: specify the single excitation considered. 'alpha', 'beta',
+                                'both' only alpha or beta spin-orbital single excitations or
+                                both (all of them).
+            method_doubles: specify the single excitation considered. 'ucc' (conventional
+                                ucc), succ (singlet ucc), succ_full (singlet ucc full),
+                                pucc (pair ucc).
+            excitation_type: specify the excitation type 'sd', 's', 'd' respectively
+                                for single and double, only single, only double excitations.
+            same_spin_doubles: enable double excitations of the same spin.
         """
         self._quantum_instance = quantum_instance
         self._optimizer = optimizer
         self._initial_point = initial_point
         self._expectation = expectation
         self._include_custom = include_custom
+        self._method_singles = method_singles
+        self._method_doubles = method_doubles
+        self._excitation_type = excitation_type
+        self._same_spin_doubles = same_spin_doubles
+        self._vqe = VQE(var_form=None,
+                        quantum_instance=self._quantum_instance,
+                        optimizer=self._optimizer,
+                        initial_point=self._initial_point,
+                        expectation=self._expectation,
+                        include_custom=self._include_custom)
 
     @property
     def quantum_instance(self) -> QuantumInstance:
@@ -111,8 +135,47 @@ class VQEUCCSDFactory(MinimumEigensolverFactory):
         """Setter of the ``include_custom`` setting for the ``expectation`` setting."""
         self._include_custom = include_custom
 
-    def get_solver(self,  # type: ignore
-                   transformation: FermionicTransformation) -> MinimumEigensolver:
+    @property
+    def method_singles(self) -> str:
+        """Getter of the ``method_singles`` setting for the ``method_singles`` setting."""
+        return self._method_singles
+
+    @method_singles.setter
+    def method_singles(self, method_singles: str) -> None:
+        """Setter of the ``method_singles`` setting for the ``method_singles`` setting."""
+        self._method_singles = method_singles
+
+    @property
+    def method_doubles(self) -> str:
+        """Getter of the ``method_doubles`` setting for the ``method_doubles`` setting."""
+        return self._method_doubles
+
+    @method_doubles.setter
+    def method_doubles(self, method_doubles: str) -> None:
+        """Setter of the ``method_doubles`` setting for the ``method_doubles`` setting."""
+        self._method_doubles = method_doubles
+
+    @property
+    def excitation_type(self) -> str:
+        """Getter of the ``excitation_type`` setting for the ``excitation_type`` setting."""
+        return self._excitation_type
+
+    @excitation_type.setter
+    def excitation_type(self, excitation_type: str) -> None:
+        """Setter of the ``excitation_type`` setting for the ``excitation_type`` setting."""
+        self._excitation_type = excitation_type
+
+    @property
+    def same_spin_doubles(self) -> bool:
+        """Getter of the ``same_spin_doubles`` setting for the ``same_spin_doubles`` setting."""
+        return self._same_spin_doubles
+
+    @same_spin_doubles.setter
+    def same_spin_doubles(self, same_spin_doubles: bool) -> None:
+        """Setter of the ``same_spin_doubles`` setting for the ``same_spin_doubles`` setting."""
+        self._same_spin_doubles = same_spin_doubles
+
+    def get_solver(self, transformation: Transformation) -> MinimumEigensolver:
         """Returns a VQE with a UCCSD wavefunction ansatz, based on ``transformation``.
         This works only with a ``FermionicTransformation``.
 
@@ -122,7 +185,13 @@ class VQEUCCSDFactory(MinimumEigensolverFactory):
         Returns:
             A VQE suitable to compute the ground state of the molecule transformed
             by ``transformation``.
+
+        Raises:
+            AquaError: in case a Transformation of wrong type is given.
         """
+        if not isinstance(transformation, FermionicTransformation):
+            raise AquaError('VQEUCCSDFactory.getsolver() requires a FermionicTransformation')
+
         num_orbitals = transformation.molecule_info['num_orbitals']
         num_particles = transformation.molecule_info['num_particles']
         qubit_mapping = transformation.qubit_mapping
@@ -131,19 +200,18 @@ class VQEUCCSDFactory(MinimumEigensolverFactory):
 
         initial_state = HartreeFock(num_orbitals, num_particles, qubit_mapping,
                                     two_qubit_reduction, z2_symmetries.sq_list)
-        var_form = UCCSD(num_orbitals=num_orbitals,
-                         num_particles=num_particles,
-                         initial_state=initial_state,
-                         qubit_mapping=qubit_mapping,
-                         two_qubit_reduction=two_qubit_reduction,
-                         z2_symmetries=z2_symmetries)
-        vqe = VQE(var_form=var_form,
-                  quantum_instance=self._quantum_instance,
-                  optimizer=self._optimizer,
-                  initial_point=self._initial_point,
-                  expectation=self._expectation,
-                  include_custom=self._include_custom)
-        return vqe
+        self._vqe.var_form = UCCSD(num_orbitals=num_orbitals,
+                                   num_particles=num_particles,
+                                   initial_state=initial_state,
+                                   qubit_mapping=qubit_mapping,
+                                   two_qubit_reduction=two_qubit_reduction,
+                                   z2_symmetries=z2_symmetries,
+                                   method_singles=self._method_singles,
+                                   method_doubles=self._method_doubles,
+                                   excitation_type=self._excitation_type,
+                                   same_spin_doubles=self._same_spin_doubles)
+
+        return self._vqe
 
     def supports_aux_operators(self):
         return VQE.supports_aux_operators()

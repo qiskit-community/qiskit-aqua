@@ -103,8 +103,7 @@ class TestSymmetries(QiskitChemistryTestCase):
         gsc = GroundStateEigensolver(self.fermionic_transformation, solver)
 
         result = gsc.solve(self.driver)
-
-        self.assertAlmostEqual(result.energy, self.reference_energy, places=6)
+        self.assertAlmostEqual(result.total_energies[0], self.reference_energy, places=6)
 
 
 if __name__ == '__main__':

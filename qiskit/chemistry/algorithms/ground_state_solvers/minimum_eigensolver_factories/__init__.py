@@ -15,8 +15,10 @@
 from .minimum_eigensolver_factory import MinimumEigensolverFactory
 from .numpy_minimum_eigensolver_factory import NumPyMinimumEigensolverFactory
 from .vqe_uccsd_factory import VQEUCCSDFactory
+from .vqe_uvccsd_factory import VQEUVCCSDFactory
 
 __all__ = ['MinimumEigensolverFactory',
            'NumPyMinimumEigensolverFactory',
-           'VQEUCCSDFactory'
+           'VQEUCCSDFactory',
+           'VQEUVCCSDFactory'
            ]

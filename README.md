@@ -537,3 +537,4 @@ However there is some code that is included under other licensing as follows:
 * The [Gaussian 16 driver](qiskit/chemistry/drivers/gaussiand) in `qiskit.chemistry`
   contains [work](qiskit/chemistry/drivers/gaussiand/gauopen) licensed under the
   [Gaussian Open-Source Public License](qiskit/chemistry/drivers/gaussiand/gauopen/LICENSE.txt).
+

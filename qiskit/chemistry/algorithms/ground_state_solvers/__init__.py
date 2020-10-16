@@ -14,12 +14,19 @@
 
 from .ground_state_solver import GroundStateSolver
 from .adapt_vqe import AdaptVQE
+from .orbital_optimization_vqe import OrbitalOptimizationVQE
 from .ground_state_eigensolver import GroundStateEigensolver
-from .minimum_eigensolver_factories import MinimumEigensolverFactory, VQEUCCSDFactory
+from .minimum_eigensolver_factories import (MinimumEigensolverFactory,
+                                            NumPyMinimumEigensolverFactory,
+                                            VQEUCCSDFactory,
+                                            VQEUVCCSDFactory)
 
 __all__ = ['GroundStateSolver',
            'AdaptVQE',
+           'OrbitalOptimizationVQE',
            'GroundStateEigensolver',
            'MinimumEigensolverFactory',
-           'VQEUCCSDFactory'
+           'NumPyMinimumEigensolverFactory',
+           'VQEUCCSDFactory',
+           'VQEUVCCSDFactory',
            ]

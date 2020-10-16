@@ -21,6 +21,8 @@ anc
 ancilla
 ancillae
 ancillas
+ang
+anharmonic
 annealers
 ansatz
 ansatzes
@@ -43,6 +45,7 @@ babbush
 backend
 backends
 barkoutsos
+basedriver
 bb
 benchmarking
 bergholm
@@ -56,7 +59,9 @@ bohr
 bool
 boolean
 bools
+boson
 bosonic
+bopes
 bpa
 brassard
 bravyi
@@ -169,6 +174,7 @@ ee
 egger
 eigen
 eigenenergies
+eigensolution
 eigensolver
 eigensolvers
 eigenstate
@@ -205,12 +211,18 @@ exponentials
 exponentiated
 exponentiations
 expr
+extrapolator
+extrapolators
+extrapolator's
 factorizers
 factr
 fcidump
 fcompiler
+fd
 fermionic
+fermionicdriver
 fermionicoperator
+fermionictransformation
 fermions
 fi
 fileio
@@ -250,8 +262,10 @@ grinko
 groundenergy
 groundstates
 grover
+gsc
 gset
 gsls
+gss
 gto
 gtol
 hadamard
@@ -260,6 +274,7 @@ hamiltonian
 hamiltonians
 hardcoded
 hartree
+hartrees
 hassidim
 hb
 hessians
@@ -298,6 +313,7 @@ inreg
 instantiation
 intelvem
 interatomic
+internuclear
 ints
 invertible
 iprint
@@ -363,9 +379,11 @@ ljik
 lk
 lmin
 lnot
+logfile
 loglik
 loglikelihood
 logn
+lookback
 lor
 lowerbound
 lp
@@ -409,6 +427,10 @@ mohij
 mohijkl
 mol
 moller
+momentums
+monomial
+monomials
+morse
 mosca
 mprev
 msb
@@ -507,6 +529,7 @@ piecewise
 plesset
 pmatrix
 pooya
+Popovas
 postoracle
 powell
 pre
@@ -517,6 +540,7 @@ preoracle
 prepend
 prepending
 preprint
+Preprocesses
 preprocessing
 priori
 probs
@@ -614,6 +638,7 @@ seealso
 seeley
 sergey
 setia
+setted
 sgn
 shanno
 shor
@@ -675,6 +700,7 @@ terra
 terra's
 tgt
 th
+thermo
 tiajb
 tibja
 timelimit
@@ -741,6 +767,7 @@ vqe
 vqe's
 vscf
 watrous's
+watson
 wavefunction
 wavefunctions
 weightedpaulioperator
@@ -754,6 +781,7 @@ workq
 wrt
 wvf
 xatol
+xdata
 xixj
 xopt
 xs
@@ -763,6 +791,8 @@ xx
 xyz
 yamamoto
 yao
+ydata
+YFinance
 yfinance
 yu
 yy

@@ -66,6 +66,7 @@ class GroundStateEigensolver(GroundStateSolver):
               aux_operators: Optional[Union[List[FermionicOperator],
                                             List[BosonicOperator]]] = None) \
             -> Union[ElectronicStructureResult, VibronicStructureResult]:
+
         """Compute Ground State properties.
 
         Args:
@@ -83,11 +84,6 @@ class GroundStateEigensolver(GroundStateSolver):
             An eigenstate result. Depending on the transformation this can be an electronic
             structure or bosonic result.
         """
-        if aux_operators is not None:
-            if any(not isinstance(op, (WeightedPauliOperator, FermionicOperator))
-                   for op in aux_operators):
-                raise NotImplementedError('Currently only fermionic problems are supported.')
-
         # get the operator and auxiliary operators, and transform the provided auxiliary operators
         # note that ``aux_operators`` contains not only the transformed ``aux_operators`` passed
         # by the user but also additional ones from the transformation
@@ -114,7 +110,7 @@ class GroundStateEigensolver(GroundStateSolver):
                                         QuantumCircuit, Instruction,
                                         OperatorBase],
                            operators: Union[WeightedPauliOperator, OperatorBase, list, dict]
-                           ) -> Union[float, List[float], Dict[str, float]]:
+                           ) -> Union[float, List[float], Dict[str, List[float]]]:
         """Evaluates additional operators at the given state.
 
         Args:
