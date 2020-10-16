@@ -10,7 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""The minimum eigensolver factory for ground state calculation algorithms."""
+"""The eigensolver factory for excited states calculation algorithms."""
 
 from abc import ABC, abstractmethod
 from qiskit.aqua.algorithms import Eigensolver
@@ -18,17 +18,17 @@ from qiskit.chemistry.transformations import Transformation
 
 
 class EigensolverFactory(ABC):
-    """A factory to construct an eigensolver."""
+    """A factory to construct a eigensolver based on a qubit operator transformation."""
 
     @abstractmethod
     def get_solver(self, transformation: Transformation) -> Eigensolver:
-        """Returns a minimum eigensolver, based on the qubit operator transformation.
+        """Returns a eigensolver, based on the qubit operator transformation.
 
         Args:
             transformation: The qubit operator transformation.
 
         Returns:
-            An eigensolver suitable to compute the eigenstates of the molecule transformed
+            An eigensolver suitable to compute the excited states of the molecule transformed
             by ``transformation``.
         """
         raise NotImplementedError

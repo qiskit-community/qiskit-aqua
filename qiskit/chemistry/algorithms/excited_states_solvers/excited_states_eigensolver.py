@@ -24,8 +24,8 @@ from qiskit.chemistry.results import (EigenstateResult,
                                       VibronicStructureResult)
 from qiskit.chemistry.transformations import Transformation
 
-from .eigensolver_factories import EigensolverFactory
 from .excited_states_solver import ExcitedStatesSolver
+from .eigensolver_factories import EigensolverFactory
 
 logger = logging.getLogger(__name__)
 

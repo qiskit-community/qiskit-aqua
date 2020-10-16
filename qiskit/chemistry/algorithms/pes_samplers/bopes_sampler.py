@@ -112,7 +112,7 @@ class BOPESSampler:
         self._points = list(self._raw_results.keys())
         self._energies = []
         for key in self._raw_results:
-            energy = self._raw_results[key].computed_electronic_energy + \
+            energy = self._raw_results[key].computed_energies[0] + \
                      self._raw_results[key].nuclear_repulsion_energy
             self._energies.append(energy)
 

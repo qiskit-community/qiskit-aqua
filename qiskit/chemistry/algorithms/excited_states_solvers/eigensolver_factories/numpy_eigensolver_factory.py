@@ -48,8 +48,8 @@ class NumPyEigensolverFactory(EigensolverFactory):
         self._use_default_filter_criterion = use_default_filter_criterion
 
     @property
-    def filter_criterion(self) -> Callable[[Union[List, np.ndarray],
-                                            float, Optional[List[float]]], bool]:
+    def filter_criterion(self) -> Callable[[Union[List, np.ndarray], float,
+                                            Optional[List[float]]], bool]:
         """ returns filter criterion """
         return self._filter_criterion
 
