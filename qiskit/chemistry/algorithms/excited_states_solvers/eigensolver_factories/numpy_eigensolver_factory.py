@@ -16,7 +16,7 @@ from typing import Optional, Union, List, Callable
 import numpy as np
 
 from qiskit.aqua.algorithms import Eigensolver, NumPyEigensolver
-from qiskit.chemistry.transformations import FermionicTransformation
+from qiskit.chemistry.transformations import Transformation
 from qiskit.aqua.utils.validation import validate_min
 
 from .eigensolver_factory import EigensolverFactory
@@ -38,6 +38,7 @@ class NumPyEigensolverFactory(EigensolverFactory):
                 `filter(eigenstate, eigenvalue, aux_values)` and must return a boolean to indicate
                 whether to consider this value or not. If there is no
                 feasible element, the result can even be empty.
+            use_default_filter_criterion: Whether to use default filter criteria or not
             k: How many eigenvalues are to be computed, has a min. value of 1.
             use_default_filter_criterion: whether to use the transformation's default filter
                 criterion if ``filter_criterion`` is ``None``.
@@ -47,8 +48,8 @@ class NumPyEigensolverFactory(EigensolverFactory):
         self._use_default_filter_criterion = use_default_filter_criterion
 
     @property
-    def filter_criterion(self) -> Callable[[Union[List, np.ndarray], float, Optional[List[float]]],
-                                           bool]:
+    def filter_criterion(self) -> Callable[[Union[List, np.ndarray], float,
+                                            Optional[List[float]]], bool]:
         """ returns filter criterion """
         return self._filter_criterion
 
@@ -79,11 +80,11 @@ class NumPyEigensolverFactory(EigensolverFactory):
         """ sets whether to use the default filter criterion """
         self._use_default_filter_criterion = value
 
-    def get_solver(self, transformation: FermionicTransformation) -> Eigensolver:
+    def get_solver(self, transformation: Transformation) -> Eigensolver:
         """Returns a NumPyEigensolver with the desired filter
 
         Args:
-            transformation: a fermionic qubit operator transformation.
+            transformation: a fermionic/bosonic qubit operator transformation.
 
         Returns:
             A NumPyEigensolver suitable to compute the ground state of the molecule

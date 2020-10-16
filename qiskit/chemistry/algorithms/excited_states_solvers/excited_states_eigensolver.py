@@ -13,16 +13,16 @@
 """The calculation of excited states via an Eigensolver algorithm"""
 
 import logging
-
 from typing import List, Union, Optional, Any
 
 from qiskit.aqua.algorithms import Eigensolver
 from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.chemistry import FermionicOperator
 from qiskit.chemistry.drivers import BaseDriver
-from qiskit.chemistry.results import EigenstateResult
+from qiskit.chemistry.results import (EigenstateResult,
+                                      ElectronicStructureResult,
+                                      VibronicStructureResult)
 from qiskit.chemistry.transformations import Transformation
-from qiskit.chemistry.results import ElectronicStructureResult, VibronicStructureResult
 
 from .excited_states_solver import ExcitedStatesSolver
 from .eigensolver_factories import EigensolverFactory

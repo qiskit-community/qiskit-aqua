@@ -20,8 +20,8 @@ from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
-from qiskit.chemistry.transformations import FermionicTransformation
-from qiskit.chemistry.transformations.fermionic_transformation import QubitMappingType
+from qiskit.chemistry.transformations import (FermionicTransformation,
+                                              FermionicQubitMappingType)
 from qiskit.chemistry.algorithms.ground_state_solvers import GroundStateEigensolver
 from qiskit.chemistry.algorithms.ground_state_solvers.minimum_eigensolver_factories import \
     (VQEUCCSDFactory, NumPyMinimumEigensolverFactory)
@@ -43,7 +43,8 @@ class TestGroundStateEigensolver(QiskitChemistryTestCase):
 
         self.reference_energy = -1.137306
 
-        self.transformation = FermionicTransformation(qubit_mapping=QubitMappingType.JORDAN_WIGNER)
+        self.transformation = FermionicTransformation(
+            qubit_mapping=FermionicQubitMappingType.JORDAN_WIGNER)
 
     def test_npme(self):
         """ Test NumPyMinimumEigensolver """

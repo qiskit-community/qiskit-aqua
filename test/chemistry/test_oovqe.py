@@ -23,7 +23,7 @@ from qiskit.aqua.algorithms import VQE
 from qiskit.aqua.components.optimizers import COBYLA
 from qiskit.chemistry.algorithms.ground_state_solvers import OrbitalOptimizationVQE
 from qiskit.chemistry.transformations import FermionicTransformation
-from qiskit.chemistry.transformations.fermionic_transformation import QubitMappingType
+from qiskit.chemistry.transformations.fermionic_transformation import FermionicQubitMappingType
 from qiskit.chemistry.algorithms.ground_state_solvers.minimum_eigensolver_factories.\
             vqe_uccsd_factory import VQEUCCSDFactory
 
@@ -48,11 +48,13 @@ class TestOOVQE(QiskitChemistryTestCase):
         self.seed = 50
 
         self.optimizer = COBYLA(maxiter=1)
-        self.transformation1 = FermionicTransformation(qubit_mapping=QubitMappingType.JORDAN_WIGNER,
-                                                       two_qubit_reduction=False)
-        self.transformation2 = FermionicTransformation(qubit_mapping=QubitMappingType.JORDAN_WIGNER,
-                                                       two_qubit_reduction=False,
-                                                       freeze_core=True)
+        self.transformation1 = \
+            FermionicTransformation(qubit_mapping=FermionicQubitMappingType.JORDAN_WIGNER,
+                                    two_qubit_reduction=False)
+        self.transformation2 = \
+            FermionicTransformation(qubit_mapping=FermionicQubitMappingType.JORDAN_WIGNER,
+                                    two_qubit_reduction=False,
+                                    freeze_core=True)
 
         self.quantum_instance = QuantumInstance(BasicAer.get_backend('statevector_simulator'),
                                                 shots=1,

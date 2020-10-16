@@ -37,14 +37,14 @@ from ..components.initial_states import HartreeFock
 logger = logging.getLogger(__name__)
 
 
-class TransformationType(Enum):
-    """ Transformation Type enum """
+class FermionicTransformationType(Enum):
+    """ Electronic Transformation Type enum """
     FULL = 'full'
     PARTICLE_HOLE = 'particle_hole'
 
 
-class QubitMappingType(Enum):
-    """ QubitMappingType enum """
+class FermionicQubitMappingType(Enum):
+    """ FermionicQubitMappingType enum """
     JORDAN_WIGNER = 'jordan_wigner'
     PARITY = 'parity'
     BRAVYI_KITAEV = 'bravyi_kitaev'
@@ -54,8 +54,8 @@ class FermionicTransformation(Transformation):
     """A transformation from a fermionic problem, represented by a driver, to a qubit operator."""
 
     def __init__(self,
-                 transformation: TransformationType = TransformationType.FULL,
-                 qubit_mapping: QubitMappingType = QubitMappingType.PARITY,
+                 transformation: FermionicTransformationType = FermionicTransformationType.FULL,
+                 qubit_mapping: FermionicQubitMappingType = FermionicQubitMappingType.PARITY,
                  two_qubit_reduction: bool = True,
                  freeze_core: bool = False,
                  orbital_reduction: Optional[List[int]] = None,
@@ -121,9 +121,9 @@ class FermionicTransformation(Transformation):
         self._molecule_info: Dict[str, Any] = {}
 
     @property
-    def commutation_rule(self) -> int:
+    def commutation_rule(self) -> bool:
         """Getter of the commutation rule"""
-        return -1
+        return False
 
     @property
     def molecule_info(self) -> Dict[str, Any]:
@@ -253,9 +253,8 @@ class FermionicTransformation(Transformation):
 
         if did_shift:
             logger.info("Frozen orbital energy shift: %s", self._energy_shift)
-
         # apply particle hole transformation, if specified
-        if self._transformation == TransformationType.PARTICLE_HOLE.value:
+        if self._transformation == FermionicTransformationType.PARTICLE_HOLE.value:
             fer_op, ph_shift = fer_op.particle_hole_transformation(new_nel)
             self._ph_energy_shift = -ph_shift
             logger.info("Particle hole energy shift: %s", self._ph_energy_shift)
@@ -327,7 +326,7 @@ class FermionicTransformation(Transformation):
                 if did_shift_:
                     logger.info("Frozen orbital %s dipole shift: %s", axis, shift)
                 ph_shift_ = 0.0
-                if self._transformation == TransformationType.PARTICLE_HOLE.value:
+                if self._transformation == FermionicTransformationType.PARTICLE_HOLE.value:
                     fer_op_, ph_shift_ = fer_op_.particle_hole_transformation(new_nel)
                     ph_shift_ = -ph_shift_
                     logger.info("Particle hole %s dipole shift: %s", axis, ph_shift_)

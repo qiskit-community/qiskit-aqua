@@ -11,22 +11,25 @@
 # that they have been altered from the originals.
 
 """
-Chemistry Components (:mod:`qiskit.chemistry.components`)
-=========================================================
-These are chemistry specific Aqua components where they inherit from the
-respective Aqua component type base class. As they rely on chemistry specific
-knowledge and/or functions they live here rather than in Aqua.
+Bosonic basis (:mod:`qiskit.chemistry.components.bosonic_bases`)
+================================================================
+Basis for bosonic operations.
 
-.. currentmodule:: qiskit.chemistry.components
+.. currentmodule:: qiskit.chemistry.components.bosonic_bases
 
-Submodules
-==========
+Bosonic Basis
+=============
 
 .. autosummary::
-   :toctree:
+   :toctree: ../stubs/
+   :nosignatures:
 
-   bosonic_bases
-   initial_states
-   variational_forms
+   HarmonicBasis
 
 """
+
+from .bosonic_basis import BosonicBasis
+from .harmonic_basis import HarmonicBasis
+
+__all__ = ['BosonicBasis',
+           'HarmonicBasis']

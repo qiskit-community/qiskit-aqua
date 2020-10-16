@@ -22,8 +22,8 @@ from qiskit.aqua import aqua_globals, QuantumInstance
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver, NumPyEigensolver
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
-from qiskit.chemistry.transformations import FermionicTransformation
-from qiskit.chemistry.transformations.fermionic_transformation import QubitMappingType
+from qiskit.chemistry.transformations import (FermionicTransformation,
+                                              FermionicQubitMappingType)
 from qiskit.chemistry.algorithms.ground_state_solvers import (GroundStateEigensolver,
                                                               VQEUCCSDFactory)
 from qiskit.chemistry.algorithms.excited_states_solvers import (
@@ -48,7 +48,8 @@ class TestNumericalQEOMESCCalculation(QiskitChemistryTestCase):
 
         self.reference_energies = [-1.8427016, -1.8427016 + 0.5943372, -1.8427016 + 0.95788352,
                                    -1.8427016 + 1.5969296]
-        self.transformation = FermionicTransformation(qubit_mapping=QubitMappingType.JORDAN_WIGNER)
+        self.transformation = \
+            FermionicTransformation(qubit_mapping=FermionicQubitMappingType.JORDAN_WIGNER)
         solver = NumPyEigensolver()
         self.ref = solver
         self.quantum_instance = QuantumInstance(BasicAer.get_backend('statevector_simulator'),

@@ -23,7 +23,7 @@ from qiskit.aqua.components.optimizers import COBYLA
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry.transformations import FermionicTransformation
-from qiskit.chemistry.transformations.fermionic_transformation import QubitMappingType
+from qiskit.chemistry.transformations.fermionic_transformation import FermionicQubitMappingType
 from qiskit.chemistry.algorithms.ground_state_solvers.minimum_eigensolver_factories import \
     VQEUCCSDFactory
 
@@ -44,7 +44,8 @@ class TestVQEUCCSDMESFactory(QiskitChemistryTestCase):
 
         self.reference_energy = -1.137306
 
-        self.transformation = FermionicTransformation(qubit_mapping=QubitMappingType.JORDAN_WIGNER)
+        self.transformation = \
+            FermionicTransformation(qubit_mapping=FermionicQubitMappingType.JORDAN_WIGNER)
 
         self.seed = 50
         self.quantum_instance = QuantumInstance(BasicAer.get_backend('statevector_simulator'),
