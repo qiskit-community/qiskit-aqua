@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -15,7 +15,9 @@
 import unittest
 from test.chemistry import QiskitChemistryTestCase
 
-from qiskit.aqua.algorithms import NumPyEigensolver
+import numpy as np
+
+from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.chemistry import BosonicOperator
 
 
@@ -84,19 +86,19 @@ class TestBosonicOperator(QiskitChemistryTestCase):
     def setUp(self):
         super().setUp()
 
-        self.reference_energy = 2539.259482550559
+        self.reference_energy = 2536.4879763624226
 
-        basis = [2, 2, 2, 2]  # 4 modes and 2 modals per mode
-        self.bos_op = BosonicOperator(self.CO2_B3LYP_ccpVDZ_4MODES_2MODALS, basis)
+        self.basis = [2, 2, 2, 2]  # 4 modes and 2 modals per mode
+        self.bos_op = BosonicOperator(self.CO2_B3LYP_ccpVDZ_4MODES_2MODALS, self.basis)
 
     def test_mapping(self):
         """ mapping test """
         qubit_op = self.bos_op.mapping('direct', threshold=1e-5)
-        algo = NumPyEigensolver(qubit_op, k=100)
+        algo = NumPyMinimumEigensolver(
+            qubit_op, filter_criterion=self.bos_op.direct_mapping_filtering_criterion)
         result = algo.run()
-        vecs = result['eigenstates']
-        energies = result['eigenvalues']
-        gs_energy = self.bos_op.ground_state_energy(vecs, energies)
+        gs_energy = np.real(result['eigenvalue'])
+
         self.assertAlmostEqual(gs_energy, self.reference_energy, places=4)
 
 
