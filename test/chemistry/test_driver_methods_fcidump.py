@@ -12,8 +12,10 @@
 
 """ Test Driver Methods FCIDump """
 
+import unittest
+
 from test.chemistry import QiskitChemistryTestCase
-from test.chemistry.test_driver_methods import TestDriverMethods
+from test.chemistry.test_driver_methods_gsc import TestDriverMethods
 from qiskit.chemistry.drivers import FCIDumpDriver
 
 
@@ -82,3 +84,7 @@ class TestFCIDumpDriverQMolecule(QiskitChemistryTestCase):
                                   atoms=['H', 'H']).run()
         with self.assertLogs('qiskit.chemistry', level='DEBUG') as _:
             qmolecule.log()
+
+
+if __name__ == '__main__':
+    unittest.main()

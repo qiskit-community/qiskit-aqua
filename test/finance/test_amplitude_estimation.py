@@ -35,7 +35,6 @@ class TestEuropeanCallOption(QiskitFinanceTestCase):
 
     def setUp(self):
         super().setUp()
-        warnings.filterwarnings('ignore', category=DeprecationWarning)
 
         # number of qubits to represent the uncertainty
         num_uncertainty_qubits = 3
@@ -59,6 +58,7 @@ class TestEuropeanCallOption(QiskitFinanceTestCase):
         high = mean + 3 * stddev
 
         # construct circuit factory for uncertainty model
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         uncertainty_model = LogNormalDistribution(num_uncertainty_qubits,
                                                   mu=m_u, sigma=sigma, low=low, high=high)
 
@@ -97,16 +97,13 @@ class TestEuropeanCallOption(QiskitFinanceTestCase):
             uncertainty_model,
             strike_price=strike_price,
         )
+        warnings.filterwarnings('always', category=DeprecationWarning)
 
         self._statevector = QuantumInstance(backend=BasicAer.get_backend('statevector_simulator'),
                                             seed_simulator=2,
                                             seed_transpiler=2)
         self._qasm = QuantumInstance(backend=BasicAer.get_backend('qasm_simulator'), shots=100,
                                      seed_simulator=2, seed_transpiler=2)
-
-    def tearDown(self):
-        super().tearDown()
-        warnings.filterwarnings('always', category=DeprecationWarning)
 
     @idata([
         ['statevector', AmplitudeEstimation(3),
@@ -122,7 +119,9 @@ class TestEuropeanCallOption(QiskitFinanceTestCase):
     def test_expected_value(self, simulator, a_e, expect):
         """ expected value test """
         # set A factory for amplitude estimation
-        a_e.a_factory = self.european_call
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            a_e.a_factory = self.european_call
 
         # run simulation
         result = a_e.run(self._qasm if simulator == 'qasm' else self._statevector)
@@ -146,7 +145,9 @@ class TestEuropeanCallOption(QiskitFinanceTestCase):
     def test_delta(self, simulator, a_e, expect):
         """ delta test """
         # set A factory for amplitude estimation
-        a_e.a_factory = self.european_call_delta
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            a_e.a_factory = self.european_call_delta
 
         # run simulation
         result = a_e.run(self._qasm if simulator == 'qasm' else self._statevector)
@@ -215,8 +216,10 @@ class TestFixedIncomeAssets(QiskitFinanceTestCase):
         c_approx = 0.125
 
         # get fixed income circuit appfactory
-        fixed_income = FixedIncomeExpectedValue(mund, a_n, b, c_f, c_approx)
-        a_e.a_factory = fixed_income
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            fixed_income = FixedIncomeExpectedValue(mund, a_n, b, c_f, c_approx)
+            a_e.a_factory = fixed_income
 
         # run simulation
         result = a_e.run(self._qasm if simulator == 'qasm' else self._statevector)

@@ -65,6 +65,10 @@ class MultivariateNormalDistribution(MultivariateDistribution):
         probs = np.asarray(probs) / np.sum(probs)
         super().__init__(num_qubits, probs, low, high)
 
+    @staticmethod
+    def _replacement():
+        return 'qiskit.circuit.library.NormalDistribution'
+
     def _compute_probabilities(self, probs, num_qubits, low, high, x=None):
 
         for y in np.linspace(low[0], high[0], 2**num_qubits[0]):
