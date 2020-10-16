@@ -16,7 +16,7 @@ from typing import Optional
 
 import numpy as np
 
-from qiskit.aqua.operators import (OperatorBase, X, I, H, Zero, CircuitStateFn,
+from qiskit.aqua.operators import (OperatorBase, X, I, H, CircuitStateFn,
                                    EvolutionFactory, LegacyBaseOperator)
 from qiskit.aqua.components.variational_forms import VariationalForm
 from qiskit.aqua.components.initial_states import InitialState
@@ -82,7 +82,8 @@ class QAOAVarForm(VariationalForm):
 
         # initialize circuit, possibly based on given register/initial state
         if self._initial_state is not None:
-            circuit = CircuitStateFn(self._initial_state.construct_circuit('circuit')).to_circuit_op()
+            stateVector = CircuitStateFn(self._initial_state.construct_circuit('circuit'))
+            circuit = stateVector.to_circuit_op()
         else:
             circuit = (H ^ self._num_qubits)
 
