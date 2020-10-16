@@ -52,7 +52,7 @@ class UCCSD(VariationalForm):
                  reps: int = 1,
                  active_occupied: Optional[List[int]] = None,
                  active_unoccupied: Optional[List[int]] = None,
-                 initial_state: Optional[InitialState] = None,
+                 initial_state: Optional[Union[QuantumCircuit, InitialState]] = None,
                  qubit_mapping: str = 'parity',
                  two_qubit_reduction: bool = True,
                  num_time_slices: int = 1,
@@ -380,8 +380,11 @@ class UCCSD(VariationalForm):
 
         if q is None:
             q = QuantumRegister(self._num_qubits, name='q')
-        if self._initial_state is not None:
+        if isinstance(self._initial_state, InitialState):
             circuit = self._initial_state.construct_circuit('circuit', q)
+        elif isinstance(self._initial_state, QuantumCircuit):
+            circuit = QuantumCircuit(q)
+            circuit.compose(self._initial_state, inplace=True)
         else:
             circuit = QuantumCircuit(q)
 
@@ -447,11 +450,7 @@ class UCCSD(VariationalForm):
         if self._initial_state is None:
             return None
         else:
-            bitstr = self._initial_state.bitstr
-            if bitstr is not None:
-                return np.zeros(self._num_parameters, dtype=np.float)
-            else:
-                return None
+            return np.zeros(self._num_parameters, dtype=np.float)
 
     @staticmethod
     def compute_excitation_lists(num_particles, num_orbitals, active_occ_list=None,

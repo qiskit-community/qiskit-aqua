@@ -15,8 +15,9 @@
 import unittest
 from test.chemistry import QiskitChemistryTestCase
 import numpy as np
-
-from qiskit.chemistry.components.initial_states import VSCF
+from qiskit import QuantumCircuit
+from qiskit.chemistry.components.initial_states import VSCF as VSCFI
+from qiskit.chemistry.components.initial_states.vscf_circuit import VSCF
 
 
 class TestInitialStateVSCF(QiskitChemistryTestCase):
@@ -25,7 +26,7 @@ class TestInitialStateVSCF(QiskitChemistryTestCase):
     def test_qubits_4(self):
         """ 2 modes 2 modals - test """
         basis = [2, 2]
-        vscf = VSCF(basis)
+        vscf = VSCFI(basis)
         cct = vscf.construct_circuit('vector')
         np.testing.assert_array_equal(cct, [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
@@ -33,12 +34,34 @@ class TestInitialStateVSCF(QiskitChemistryTestCase):
     def test_qubits_5(self):
         """ 2 modes 2 modals for the first mode and 3 modals for the second - test """
         basis = [2, 3]
-        vscf = VSCF(basis)
+        vscf = VSCFI(basis)
         cct = vscf.construct_circuit('vector')
         np.testing.assert_array_equal(cct, [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+
+
+class TestVSCF(QiskitChemistryTestCase):
+    """ Initial State vscf tests """
+
+    def test_qubits_4(self):
+        """ 2 modes 2 modals - test """
+        basis = [2, 2]
+        vscf = VSCF(basis)
+        ref = QuantumCircuit(4)
+        ref.x([0, 2])
+
+        self.assertEqual(ref, vscf)
+
+    def test_qubits_5(self):
+        """ 2 modes 2 modals for the first mode and 3 modals for the second - test """
+        basis = [2, 3]
+        vscf = VSCF(basis)
+        ref = QuantumCircuit(5)
+        ref.x([0, 2])
+
+        self.assertEqual(ref, vscf)
 
 
 if __name__ == '__main__':
