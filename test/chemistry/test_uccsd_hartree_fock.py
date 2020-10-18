@@ -46,7 +46,7 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
 
         self.optimizer = SLSQP(maxiter=100)
         initial_state = HartreeFock(core.molecule_info['num_orbitals'],
-                                    core.molecule_info['num_particles'],
+                                    tuple(core.molecule_info['num_particles']),
                                     qubit_mapping=core._qubit_mapping,
                                     two_qubit_reduction=core._two_qubit_reduction)
         self.var_form = UCCSD(num_orbitals=core.molecule_info['num_orbitals'],
