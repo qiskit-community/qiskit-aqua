@@ -16,7 +16,7 @@ import logging
 from typing import Union, Optional
 
 from ..operator_base import OperatorBase
-from ..list_ops import ListOp
+from ..list_ops import ListOp, ComposedOp
 from ..state_fns import CVaRMeasurement, OperatorStateFn
 from .expectation_base import ExpectationBase
 from .pauli_expectation import PauliExpectation
@@ -97,11 +97,15 @@ class CVaRExpectation(ExpectationBase):
 
     def compute_variance(self, exp_op: OperatorBase) -> Union[list, float]:
         """Not implemented."""
+        def cvar_variance(operator):
+            if isinstance(operator, ComposedOp):
+                sfdict = operator.oplist[1]
+                measurement = operator.oplist[0]
+                return measurement.eval_variance(sfdict)
+
+            elif isinstance(operator, ListOp):
+                return operator.combo_fn([cvar_variance(op) for op in operator.oplist])
+
+            return 0.0
         cvar_op = self.convert(exp_op)
-        energies, probabilities = cvar_op.get_outcome_energies_probabilities()
-        cvar = cvar_op.compute_variance(energies, probabilities)
-        cvar_2 = cvar_op.compute_variance([energy**2 for energy in energies], probabilities)
-
-        return cvar**2 - cvar_2
-
-        #raise NotImplementedError
+        return cvar_variance(cvar_op)

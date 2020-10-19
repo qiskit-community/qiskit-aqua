@@ -148,10 +148,18 @@ class CVaRMeasurement(OperatorStateFn):
              front: Union[str, dict, np.ndarray,
                           OperatorBase] = None) -> Union[OperatorBase, float, complex]:
 
-        energies, probabilities = self.get_outcome_energies_probabilities()       
-        return self.compute_cvar(self, energies, probabilities, alpha)
+        energies, probabilities = self.get_outcome_energies_probabilities(front)       
+        return self.compute_cvar(energies, probabilities)
 
-    def get_outcome_energies_probabilities(self):
+    def eval_variance(self,
+             front: Union[str, dict, np.ndarray,
+                          OperatorBase] = None) -> Union[OperatorBase, float, complex]:
+
+        energies, probabilities = self.get_outcome_energies_probabilities(front)   
+        energies = [energy**2 for energy in energies]    
+        return self.compute_cvar(energies, probabilities)
+
+    def get_outcome_energies_probabilities(self, front):
         r"""TODO: ADD DOCSTRING"""
         from .dict_state_fn import DictStateFn
         from .vector_state_fn import VectorStateFn
@@ -193,8 +201,11 @@ class CVaRMeasurement(OperatorStateFn):
         probabilities = [p_i * np.conj(p_i) for p_i in root_probabilities]
         return energies, probabilities
 
-    def compute_cvar(self, energies, probabilities, alpha):
+    def compute_cvar(self, energies, probabilities):
         r"""TODO: ADD DOCSTRING"""
+
+
+        alpha = self._alpha
 
         # Determine j, the index of the measurement outcome such
         # that only some samples with this outcome will be used to
