@@ -162,7 +162,19 @@ class OperatorStateFn(StateFn):
         r""" Return ``StateFnCircuit`` corresponding to this StateFn. Ignore for now because this is
         undefined. TODO maybe call to_pauli_op and diagonalize here, but that could be very
         inefficient, e.g. splitting one Stabilizer measurement into hundreds of 1 qubit Paulis."""
-        raise NotImplementedError
+        from qiskit.aqua.operators import CircuitStateFn
+        from qiskit.aqua.operators import PrimitiveOp
+
+        operator = self.primitive
+        if isinstance(operator, StateFn):
+            return operator.to_circuit_op()
+        if isinstance(operator, PrimitiveOp):
+            csfn = CircuitStateFn(operator.to_circuit())
+            return csfn.adjoint() if self.is_measurement else csfn
+        if isinstance(operator, ListOp):
+            return OperatorStateFn(operator.to_circuit_op(),
+                                   is_measurement=self.is_measurement,
+                                   coeff=self.coeff)
 
     def __str__(self) -> str:
         prim_str = str(self.primitive)

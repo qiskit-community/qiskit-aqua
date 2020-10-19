@@ -469,12 +469,10 @@ class ListOp(OperatorBase):
         from ..state_fns.operator_state_fn import OperatorStateFn
         if self.__class__ == ListOp:
             return ListOp([op.to_circuit_op()  # type: ignore
-                           if not isinstance(op, OperatorStateFn) else op
                            for op in self.oplist],
                           combo_fn=self.combo_fn, coeff=self.coeff, abelian=self.abelian
                           ).reduce()
         return self.__class__([op.to_circuit_op()  # type: ignore
-                               if not isinstance(op, OperatorStateFn) else op
                                for op in self.oplist],
                               coeff=self.coeff, abelian=self.abelian).reduce()
 

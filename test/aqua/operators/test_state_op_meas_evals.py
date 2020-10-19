@@ -19,7 +19,8 @@ import numpy
 
 from qiskit import Aer
 from qiskit.aqua import QuantumInstance
-from qiskit.aqua.operators import StateFn, Zero, One, H, X, I, Z, Plus, Minus, CircuitSampler
+from qiskit.aqua.operators import StateFn, Zero, One, H, X, I, Z, Plus, Minus, CircuitSampler, \
+    OperatorStateFn
 
 
 # pylint: disable=invalid-name
@@ -66,7 +67,7 @@ class TestStateOpMeasEvals(QiskitAquaTestCase):
             self.assertEqual((~StateFn(op) @ state).eval(), 0j)
 
         backend = Aer.get_backend('qasm_simulator')
-        q_instance = QuantumInstance(backend, seed_simulator=97, seed_transpiler=97)
+        q_instance = QuantumInstance(backend, seed_simulator=101, seed_transpiler=101)
         op = I
         with self.subTest('zero coeff in summed StateFn and CircuitSampler'):
             state = 0 * (Plus + Minus)
@@ -76,7 +77,7 @@ class TestStateOpMeasEvals(QiskitAquaTestCase):
         with self.subTest('coeff gets squared in CircuitSampler shot-based readout'):
             state = (Plus + Minus) / numpy.sqrt(2)
             sampler = CircuitSampler(q_instance).convert(~StateFn(op) @ state)
-            self.assertAlmostEqual(sampler.eval(), 1+0j)
+            self.assertAlmostEqual(sampler.eval(), 1+0j, places=2)
 
     def test_is_measurement_correctly_propagated(self):
         """Test if is_measurement property of StateFn is propagated to converted StateFn."""
@@ -85,6 +86,13 @@ class TestStateOpMeasEvals(QiskitAquaTestCase):
         state = Plus
         sampler = CircuitSampler(q_instance).convert(~state @ state)
         self.assertTrue(sampler.oplist[0].is_measurement)
+
+    def test_operator_state_fn_conversion(self):
+        backend = Aer.get_backend('qasm_simulator')
+        q_instance = QuantumInstance(backend, seed_simulator=101, seed_transpiler=101)
+        state = (X + Z)
+        sampler = CircuitSampler(q_instance).convert(~OperatorStateFn(I) @ OperatorStateFn(state))
+        self.assertAlmostEqual(sampler.eval(), 1+0j)
 
 
 if __name__ == '__main__':

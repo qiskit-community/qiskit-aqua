@@ -221,6 +221,10 @@ class StateFn(OperatorBase):
     def to_matrix(self, massive: bool = False) -> np.ndarray:
         raise NotImplementedError
 
+    def to_circuit_op(self) -> OperatorBase:
+        """ Return CircuitStateFn representing this StateFn. """
+        raise NotImplementedError
+
     def to_density_matrix(self, massive: bool = False) -> np.ndarray:
         """ Return matrix representing product of StateFn evaluated on pairs of basis states.
         Overridden by child classes.
