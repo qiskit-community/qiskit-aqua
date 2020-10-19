@@ -159,9 +159,10 @@ class OperatorStateFn(StateFn):
         return diag_over_tree(mat)
 
     def to_circuit_op(self) -> OperatorBase:
-        r""" Return ``StateFnCircuit`` corresponding to this StateFn. Ignore for now because this is
-        undefined. TODO maybe call to_pauli_op and diagonalize here, but that could be very
-        inefficient, e.g. splitting one Stabilizer measurement into hundreds of 1 qubit Paulis."""
+        """ Return CircuitStateFn corresponding to underlying primitive operator.
+         If the underlying operator is ListOp, return OperatorStateFn(ListOp.to_circuit_op()).
+         Another option would be to return ListOp with ``oplist`` containing converted
+         CircuitStateFns. """
         from qiskit.aqua.operators import CircuitStateFn
         from qiskit.aqua.operators import PrimitiveOp
 

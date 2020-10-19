@@ -466,7 +466,6 @@ class ListOp(OperatorBase):
         """ Returns an equivalent Operator composed of only QuantumCircuit-based primitives,
         such as ``CircuitOp`` and ``CircuitStateFn``. """
         # pylint: disable=cyclic-import
-        from ..state_fns.operator_state_fn import OperatorStateFn
         if self.__class__ == ListOp:
             return ListOp([op.to_circuit_op()  # type: ignore
                            for op in self.oplist],
