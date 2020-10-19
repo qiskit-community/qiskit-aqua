@@ -1,0 +1,11 @@
+---
+features:
+  - |
+    Support passing ``QuantumCircuit`` objects as generator circuits into 
+    the ``QuantumGenerator``.
+deprecations:
+  - |
+    Deprecate the ``UnivariateVariationalDistribution`` and 
+    ``MultivariateVariationalDistribution`` as input 
+    to the ``QuantumGenerator``. Instead, plain ``QuantumCircuit`` objects can 
+    be used.

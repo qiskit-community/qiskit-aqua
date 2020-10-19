@@ -17,7 +17,7 @@ import copy
 import logging
 import re
 
-import numpy as np
+from qiskit.chemistry import WatsonHamiltonian
 
 
 logger = logging.getLogger(__name__)
@@ -211,7 +211,16 @@ class GaussianLogResult:
         num_indices = len(entry) - 3
         return [a2h_vals + 1 - a2h[cast(str, x)] for x in entry[0:num_indices]]
 
-    def _compute_modes(self, normalize: bool = True) -> List[List[Union[int, float]]]:
+    def get_watson_hamiltonian(self, normalize: bool = True) -> WatsonHamiltonian:
+        """
+        Get the force constants as a WatsonHamiltonian
+
+        Args:
+            normalize: Whether to normalize the factors or not
+
+        Returns:
+            A WatsonHamiltonian
+        """
         # Returns [value, idx0, idx1...] from 2 indices (quadratic) to 4 (quartic)
         qua = self.quadratic_force_constants
         cub = self.cubic_force_constants
@@ -243,202 +252,7 @@ class GaussianLogResult:
                 line.extend(indices)
                 modes.append(line)
 
-        return modes
+        num_modes = len(self.a_to_h_numbering.keys())
+        watson = WatsonHamiltonian(modes, num_modes)
 
-    @staticmethod
-    def _harmonic_integrals(m: int, n: int, power: int, kinetic_term: bool = False) -> float:
-        r""" Computes the integral of the Hamiltonian with the harmonic basis.
-
-        This computation is as shown in J. Chem. Phys. 135, 134108 (2011);
-        https://doi.org/10.1063/1.3644895 (Table 1)
-
-        Args:
-            m: first modal index
-            n: second modal index
-            power: the exponent on the coordinate (Q, Q^2, Q^3 or Q^4)
-            kinetic_term: needs to be set to true to do the integral of the
-                          kinetic part of the hamiltonian d^2/dQ^2
-
-        Returns:
-            The value of the integral
-
-        Raises:
-            ValueError: If power is invalid
-        """
-        coeff = 0.0
-        if power == 1:
-            if m - n == 1:
-                coeff = np.sqrt(m / 2)
-        elif power == 2 and kinetic_term is True:
-            if m - n == 0:
-                coeff = -(m + 1 / 2)
-            elif m - n == 2:
-                coeff = np.sqrt(m * (m - 1)) / 2
-            # coeff = -coeff
-        elif power == 2 and kinetic_term is False:
-            if m - n == 0:
-                coeff = (m + 1 / 2)
-            elif m - n == 2:
-                coeff = np.sqrt(m * (m - 1)) / 2
-        elif power == 3:
-            if m - n == 1:
-                coeff = 3 * np.power(m / 2, 3 / 2)
-            elif m - n == 3:
-                coeff = np.sqrt(m * (m - 1) * (m - 2)) / np.power(2, 3 / 2)
-        elif power == 4:
-            if m - n == 0:
-                coeff = (6 * m * (m + 1) + 3) / 4
-            elif m - n == 2:
-                coeff = (m - 1 / 2) * np.sqrt(m * (m - 1))
-            elif m - n == 4:
-                coeff = np.sqrt(m * (m - 1) * (m - 2) * (m - 3)) / 4
-        else:
-            raise ValueError('The expansion order of the PES is too high.')
-        return coeff * (np.sqrt(2) ** power)
-
-    def compute_harmonic_modes(self, num_modals: int, truncation_order: int = 3,
-                               threshold: float = 1e-6) \
-            -> List[List[Tuple[List[List[int]], float]]]:
-        """
-        This prepares an array object representing a bosonic hamiltonian expressed
-        in the harmonic basis. This object can directly be given to the BosonicOperator
-        class to be mapped to a qubit hamiltonian.
-
-        Args:
-            num_modals: number of modals per mode
-            truncation_order: where is the Hamiltonian expansion truncation (1 for having only
-                              1-body terms, 2 for having on 1- and 2-body terms...)
-            threshold: the matrix elements of value below this threshold are discarded
-
-        Returns:
-            List of modes for input to creation of a bosonic hamiltonian in the harmonic basis
-
-        Raises:
-            ValueError: If problem with order value from computed modes
-        """
-
-        num_modes = len(self.a_to_h_numbering)
-
-        harmonic_dict = {1: np.zeros((num_modes, num_modals, num_modals)),
-                         2: np.zeros((num_modes, num_modals, num_modals,
-                                      num_modes, num_modals, num_modals)),
-                         3: np.zeros((num_modes, num_modals, num_modals,
-                                      num_modes, num_modals, num_modals,
-                                      num_modes, num_modals, num_modals))}
-
-        entries = self._compute_modes()
-        for entry in entries:  # Entry is coeff (float) followed by indices (ints)
-            coeff0 = cast(float, entry[0])
-            indices = cast(List[int], entry[1:])
-
-            kinetic_term = False
-
-            # Note: these negative indices as detected below are explicitly generated in
-            # _compute_modes for other potential uses. They are not wanted by this logic.
-            if any([index < 0 for index in indices]):
-                kinetic_term = True
-                indices = np.absolute(indices)
-            indexes = {}  # type: Dict[int, int]
-            for i in indices:
-                if indexes.get(i) is None:
-                    indexes[i] = 1
-                else:
-                    indexes[i] += 1
-
-            order = len(indexes.keys())
-            modes = list(indexes.keys())
-
-            if order == 1:
-                for m in range(num_modals):
-                    for n in range(m+1):
-
-                        coeff = coeff0 * self._harmonic_integrals(
-                            m, n, indexes[modes[0]], kinetic_term=kinetic_term)
-
-                        if abs(coeff) > threshold:
-                            harmonic_dict[1][modes[0]-1, m, n] += coeff
-                            if m != n:
-                                harmonic_dict[1][modes[0] - 1, n, m] += coeff
-
-            elif order == 2:
-                for m in range(num_modals):
-                    for n in range(m+1):
-                        coeff1 = coeff0 * self._harmonic_integrals(
-                            m, n, indexes[modes[0]], kinetic_term=kinetic_term)
-                        for j in range(num_modals):
-                            for k in range(j+1):
-                                coeff = coeff1 * self._harmonic_integrals(
-                                    j, k, indexes[modes[1]], kinetic_term=kinetic_term)
-                                if abs(coeff) > threshold:
-                                    harmonic_dict[2][modes[0] - 1, m, n,
-                                                     modes[1] - 1, j, k] += coeff
-                                    if m != n:
-                                        harmonic_dict[2][modes[0] - 1, n, m,
-                                                         modes[1] - 1, j, k] += coeff
-                                    if j != k:
-                                        harmonic_dict[2][modes[0] - 1, m, n,
-                                                         modes[1] - 1, k, j] += coeff
-                                    if m != n and j != k:
-                                        harmonic_dict[2][modes[0] - 1, n, m,
-                                                         modes[1] - 1, k, j] += coeff
-            elif order == 3:
-                for m in range(num_modals):
-                    for n in range(m+1):
-                        coeff1 = coeff0 * self._harmonic_integrals(
-                            m, n, indexes[modes[0]], kinetic_term=kinetic_term)
-                        for j in range(num_modals):
-                            for k in range(j+1):
-                                coeff2 = coeff1 * self._harmonic_integrals(
-                                    j, k, indexes[modes[1]], kinetic_term=kinetic_term)
-                                # pylint: disable=locally-disabled, invalid-name
-                                for p in range(num_modals):
-                                    for q in range(p+1):
-                                        coeff = coeff2 * self._harmonic_integrals(
-                                            p, q, indexes[modes[2]], kinetic_term=kinetic_term)
-                                        if abs(coeff) > threshold:
-                                            harmonic_dict[3][modes[0] - 1, m, n,
-                                                             modes[1] - 1, j, k,
-                                                             modes[2] - 1, p, q] += coeff
-                                            if m != n:
-                                                harmonic_dict[3][modes[0] - 1, n, m,
-                                                                 modes[1] - 1, j, k,
-                                                                 modes[2] - 1, p, q] += coeff
-                                            if k != j:
-                                                harmonic_dict[3][modes[0] - 1, m, n,
-                                                                 modes[1] - 1, k, j,
-                                                                 modes[2] - 1, p, q] += coeff
-                                            if p != q:
-                                                harmonic_dict[3][modes[0] - 1, m, n,
-                                                                 modes[1] - 1, j, k,
-                                                                 modes[2] - 1, q, p] += coeff
-                                            if m != n and k != j:
-                                                harmonic_dict[3][modes[0] - 1, n, m,
-                                                                 modes[1] - 1, k, j,
-                                                                 modes[2] - 1, p, q] += coeff
-                                            if m != n and p != q:
-                                                harmonic_dict[3][modes[0] - 1, n, m,
-                                                                 modes[1] - 1, j, k,
-                                                                 modes[2] - 1, q, p] += coeff
-                                            if p != q and k != j:
-                                                harmonic_dict[3][modes[0] - 1, m, n,
-                                                                 modes[1] - 1, k, j,
-                                                                 modes[2] - 1, q, p] += coeff
-                                            if m != n and j != k and p != q:
-                                                harmonic_dict[3][modes[0] - 1, n, m,
-                                                                 modes[1] - 1, k, j,
-                                                                 modes[2] - 1, q, p] += coeff
-            else:
-                raise ValueError('Unexpected order value of {}'.format(order))
-
-        harmonics = []  # type: List[List[Tuple[List[List[int]], float]]]
-        for idx in range(1, truncation_order + 1):
-            all_indices = np.nonzero(harmonic_dict[idx])
-            if len(all_indices[0]) != 0:
-                harmonics.append([])
-                values = harmonic_dict[idx][all_indices]
-                for i in range(len(all_indices[0])):
-                    harmonics[- 1].append(([[all_indices[3 * j][i], all_indices[3 * j + 1][i],
-                                             all_indices[3 * j + 2][i]] for j in range(idx)],
-                                           values[i]))
-
-        return harmonics
+        return watson

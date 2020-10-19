@@ -14,13 +14,15 @@
 
 import unittest
 from test.chemistry import QiskitChemistryTestCase
+
 import numpy as np
 from ddt import ddt, idata, unpack
 from qiskit.chemistry.components.initial_states import HartreeFock
-from qiskit.aqua.operators.legacy import op_converter
+from qiskit.aqua.operators import StateFn
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
-from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
+from qiskit.chemistry.core import TransformationType, QubitMappingType
+from qiskit.chemistry.transformations import FermionicTransformation
 
 
 @ddt
@@ -93,21 +95,25 @@ class TestInitialStateHartreeFock(QiskitChemistryTestCase):
                                  basis='sto3g')
         except QiskitChemistryError:
             self.skipTest('PYSCF driver does not appear to be installed')
-        qmolecule = driver.run()
-        core = Hamiltonian(transformation=TransformationType.FULL,
-                           qubit_mapping=mapping,
-                           two_qubit_reduction=False,
-                           freeze_core=False,
-                           orbital_reduction=[])
 
-        qubit_op, _ = core.run(qmolecule)
-        qubit_op = op_converter.to_matrix_operator(qubit_op)
-        hrfo = HartreeFock(core.molecule_info['num_orbitals'],
-                           core.molecule_info['num_particles'], mapping.value, False)
+        fermionic_transformation = FermionicTransformation(transformation=TransformationType.FULL,
+                                                           qubit_mapping=mapping,
+                                                           two_qubit_reduction=False,
+                                                           freeze_core=False,
+                                                           orbital_reduction=[])
+
+        qubit_op, _ = fermionic_transformation.transform(driver)
+
+        hrfo = HartreeFock(fermionic_transformation.molecule_info['num_orbitals'],
+                           fermionic_transformation.molecule_info['num_particles'],
+                           mapping.value,
+                           two_qubit_reduction=False)
         qc = hrfo.construct_circuit('vector')
-        hf_energy = qubit_op.evaluate_with_statevector(qc)[0].real + core._nuclear_repulsion_energy
+        exp = ~StateFn(qubit_op) @ StateFn(qc)
+        hf_energy = exp.eval().real \
+            + fermionic_transformation._nuclear_repulsion_energy
 
-        self.assertAlmostEqual(qmolecule.hf_energy, hf_energy, places=8)
+        self.assertAlmostEqual(fermionic_transformation._hf_energy, hf_energy, places=6)
 
 
 if __name__ == '__main__':

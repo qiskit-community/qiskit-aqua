@@ -1,0 +1,5 @@
+---
+fixes:
+  - |
+    Fix double calculation of coefficients in
+    :meth`~qiskit.aqua.operators.VectorStateFn.to_circuit_op`.

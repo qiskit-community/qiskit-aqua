@@ -13,14 +13,14 @@
 """FCIDump Driver."""
 
 from typing import List, Optional
-from ..base_driver import BaseDriver
+from ..fermionic_driver import FermionicDriver
 from ...qiskit_chemistry_error import QiskitChemistryError
 from ...qmolecule import QMolecule
 from .dumper import dump
 from .parser import parse
 
 
-class FCIDumpDriver(BaseDriver):
+class FCIDumpDriver(FermionicDriver):
     """
     Qiskit chemistry driver reading an FCIDump file.
 
