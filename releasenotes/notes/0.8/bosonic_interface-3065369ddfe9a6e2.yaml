@@ -1,25 +1,9 @@
 ---
-prelude: >
-    This release introduces an interface for running the available methods for 
-    Bosonic problems. In particular we introduced a full interface for running 
-    vibronic structure calculations. 
 features:
-  - BosonicOperator
-  - BosonicTransformation
-  - GaussianForcesDriver
-  - GaussianLogDriver
-  - GaussianLogResult
-  - VQEUVCCSDFactory
-  - BosonicBasis
-  - HarmonicBasis
-  - VSCF
-  - UVCC
-  - VibronicStructureResult
-  - WatsonHamiltonian
-  - FermionicQubitMappingType
-  - BosonicQubitMappingType
-  - FermionicTransformationType
-  - BosonicTransformationType
+  - |
+    In addition to the workflows for solving Fermionic problems, interfaces for calculating
+    Bosonic ground and excited states have been added. In particular we introduced a full 
+    interface for running vibronic structure calculations.
 deprecations:
   - TransformationType
   - QubitMappingType
