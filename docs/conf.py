@@ -37,14 +37,14 @@ import os
 os.environ['QISKIT_DOCS'] = 'TRUE'
 
 # -- Project information -----------------------------------------------------
-project = 'Qiskit'
+project = 'Qiskit Aqua'
 copyright = '2018, 2020, Qiskit Development Team'  # pylint: disable=redefined-builtin
 author = 'Qiskit Development Team'
 
 # The short X.Y version
 version = ''
 # The full version, including alpha/beta/rc tags
-release = '0.15.0'
+release = '0.9.0'
 
 # -- General configuration ---------------------------------------------------
 
