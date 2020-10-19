@@ -157,7 +157,7 @@ class CVaRMeasurement(OperatorStateFn):
 
         energies, probabilities = self.get_outcome_energies_probabilities(front)   
         energies = [energy**2 for energy in energies]    
-        return self.compute_cvar(energies, probabilities)
+        return self.compute_cvar(energies, probabilities)  - self.eval(front)**2
 
     def get_outcome_energies_probabilities(self, front):
         r"""TODO: ADD DOCSTRING"""
