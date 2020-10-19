@@ -166,8 +166,6 @@ class OperatorStateFn(StateFn):
         from qiskit.aqua.operators import PrimitiveOp
 
         operator = self.primitive
-        if isinstance(operator, StateFn):
-            return operator.to_circuit_op()
         if isinstance(operator, PrimitiveOp):
             csfn = CircuitStateFn(operator.to_circuit())
             return csfn.adjoint() if self.is_measurement else csfn
@@ -175,6 +173,8 @@ class OperatorStateFn(StateFn):
             return OperatorStateFn(operator.to_circuit_op(),
                                    is_measurement=self.is_measurement,
                                    coeff=self.coeff)
+        # case that operator is StateFn
+        return operator.to_circuit_op()
 
     def __str__(self) -> str:
         prim_str = str(self.primitive)
