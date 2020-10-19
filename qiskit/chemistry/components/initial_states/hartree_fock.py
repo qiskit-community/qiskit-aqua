@@ -57,6 +57,13 @@ class HartreeFock(QuantumCircuit, InitialState):
                           'to False.', qubit_mapping)
             two_qubit_reduction = False
 
+        if isinstance(num_particles, list):
+            warnings.warn('The ``num_particles`` argument should either be a single integer or a '
+                          'tuple of two integers, not a list. This behavious is deprecated as of '
+                          'Aqua 0.9 and will be removed no earlier than 3 months after the '
+                          'release.', DeprecationWarning, stacklevel=2)
+            num_particles = tuple(num_particles)
+
         # get the bitstring encoding the Hartree Fock state
         bitstr = _build_bitstr(num_orbitals, num_particles, qubit_mapping,
                                two_qubit_reduction, sq_list)

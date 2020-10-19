@@ -158,10 +158,10 @@ class PhaseEstimationCircuit:
                 qc.add_register(aux)
 
             # initialize state_in
-            if isinstance(self._state_in, InitialState):
-                qc.data += self._state_in.construct_circuit('circuit', q).data
-            elif isinstance(self._state_in, QuantumCircuit):
+            if isinstance(self._state_in, QuantumCircuit):
                 qc.append(self._state_in.to_gate(), q)
+            elif isinstance(self._state_in, InitialState):
+                qc.data += self._state_in.construct_circuit('circuit', q).data
             elif self._state_in_circuit_factory is not None:
                 self._state_in_circuit_factory.build(qc, q, aux)
 

@@ -13,12 +13,13 @@
 """ Test Initial State HartreeFock """
 
 import unittest
+import warnings
 from test.chemistry import QiskitChemistryTestCase
 import numpy as np
 from ddt import ddt, idata, unpack
 from qiskit import QuantumCircuit
 from qiskit.chemistry.components.initial_states import HartreeFock
-from qiskit.chemistry.components.initial_states.hf import HartreeFock as HF
+# from qiskit.chemistry.components.initial_states.hf import HartreeFock as HartreeFock
 from qiskit.aqua.operators.legacy import op_converter
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
@@ -28,6 +29,14 @@ from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingT
 @ddt
 class TestInitialStateHartreeFock(QiskitChemistryTestCase):
     """ Initial State HartreeFock tests """
+
+    def setUp(self):
+        super().setUp()
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
+
+    def tearDown(self):
+        super().tearDown()
+        warnings.filterwarnings('always', category=DeprecationWarning)
 
     def test_qubits_4_jw_h2(self):
         """ qubits 4 jw h2 test """
@@ -118,35 +127,35 @@ class TestHartreeFock(QiskitChemistryTestCase):
 
     def test_qubits_4_jw_h2(self):
         """ qubits 4 jw h2 test """
-        state = HF(4, (1, 1), 'jordan_wigner', False)
+        state = HartreeFock(4, (1, 1), 'jordan_wigner', False)
         ref = QuantumCircuit(4)
         ref.x([0, 2])
         self.assertEqual(state, ref)
 
     def test_qubits_4_py_h2(self):
         """ qubits 4 py h2 test """
-        state = HF(4, (1, 1), 'parity', False)
+        state = HartreeFock(4, (1, 1), 'parity', False)
         ref = QuantumCircuit(4)
         ref.x([0, 1])
         self.assertEqual(state, ref)
 
     def test_qubits_4_bk_h2(self):
         """ qubits 4 bk h2 test """
-        state = HF(4, (1, 1), 'bravyi_kitaev', False)
+        state = HartreeFock(4, (1, 1), 'bravyi_kitaev', False)
         ref = QuantumCircuit(4)
         ref.x([0, 1, 2])
         self.assertEqual(state, ref)
 
     def test_qubits_2_py_h2(self):
         """ qubits 2 py h2 test """
-        state = HF(4, 2, 'parity', True)
+        state = HartreeFock(4, 2, 'parity', True)
         ref = QuantumCircuit(2)
         ref.x(0)
         self.assertEqual(state, ref)
 
     def test_qubits_6_py_lih(self):
         """ qubits 6 py lih test """
-        state = HF(10, (1, 1), 'parity', True, [1, 2])
+        state = HartreeFock(10, (1, 1), 'parity', True, [1, 2])
         ref = QuantumCircuit(6)
         ref.x([0, 1])
         self.assertEqual(state, ref)
