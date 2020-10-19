@@ -97,4 +97,11 @@ class CVaRExpectation(ExpectationBase):
 
     def compute_variance(self, exp_op: OperatorBase) -> Union[list, float]:
         """Not implemented."""
-        raise NotImplementedError
+        cvar_op = self.convert(exp_op)
+        energies, probabilities = cvar_op.get_outcome_energies_probabilities()
+        cvar = cvar_op.compute_variance(energies, probabilities)
+        cvar_2 = cvar_op.compute_variance([energy**2 for energy in energies], probabilities)
+
+        return cvar**2 - cvar_2
+
+        #raise NotImplementedError

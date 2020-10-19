@@ -148,6 +148,11 @@ class CVaRMeasurement(OperatorStateFn):
              front: Union[str, dict, np.ndarray,
                           OperatorBase] = None) -> Union[OperatorBase, float, complex]:
 
+        energies, probabilities = self.get_outcome_energies_probabilities()       
+        return self.compute_cvar(self, energies, probabilities, alpha)
+
+    def get_outcome_energies_probabilities(self):
+        r"""TODO: ADD DOCSTRING"""
         from .dict_state_fn import DictStateFn
         from .vector_state_fn import VectorStateFn
         from .circuit_state_fn import CircuitStateFn
@@ -181,11 +186,15 @@ class CVaRMeasurement(OperatorStateFn):
         # Here probabilities are the (root) probabilities of
         # observing each state. energies are the expectation
         # values of each state with the provided Hamiltonian.
-        _, probabilities, energies = zip(*outcomes)
+        _, root_probabilities, energies = zip(*outcomes)
 
         # Square the dict values
         # (since CircuitSampler takes the root...)
-        probabilities = [p_i * np.conj(p_i) for p_i in probabilities]
+        probabilities = [p_i * np.conj(p_i) for p_i in root_probabilities]
+        return energies, probabilities
+
+    def compute_cvar(self, energies, probabilities, alpha):
+        r"""TODO: ADD DOCSTRING"""
 
         # Determine j, the index of the measurement outcome such
         # that only some samples with this outcome will be used to
