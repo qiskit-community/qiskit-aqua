@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -38,6 +36,18 @@ class TestDriverGaussian(QiskitChemistryTestCase, TestDriver):
                  'H   0.0  0.0    0.735',
                  ''
                  ])
+        except QiskitChemistryError:
+            self.skipTest('GAUSSIAN driver does not appear to be installed')
+        self.qmolecule = driver.run()
+
+
+class TestDriverGaussianMolecule(QiskitChemistryTestCase, TestDriver):
+    """Gaussian Driver tests."""
+
+    def setUp(self):
+        super().setUp()
+        try:
+            driver = GaussianDriver(molecule=TestDriver.MOLECULE)
         except QiskitChemistryError:
             self.skipTest('GAUSSIAN driver does not appear to be installed')
         self.qmolecule = driver.run()

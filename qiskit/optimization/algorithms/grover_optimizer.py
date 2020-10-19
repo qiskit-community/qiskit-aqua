@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -24,12 +22,12 @@ import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms.amplitude_amplifiers.grover import Grover
-from qiskit.aqua.components.initial_states import Custom
-from qiskit.aqua.components.oracles import CustomCircuitOracle
-from qiskit.circuit.library import QuadraticForm
 from qiskit.providers import BaseBackend
-from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
-from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
+from qiskit.providers import Backend
+from qiskit.circuit.library import QuadraticForm
+from .optimization_algorithm import (OptimizationResultStatus, OptimizationAlgorithm,
+                                     OptimizationResult)
+from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo, QuadraticProgramConverter
 from ..problems import Variable
 from ..problems.quadratic_program import QuadraticProgram
 
@@ -40,22 +38,34 @@ class GroverOptimizer(OptimizationAlgorithm):
     """Uses Grover Adaptive Search (GAS) to find the minimum of a QUBO function."""
 
     def __init__(self, num_value_qubits: int, num_iterations: int = 3,
-                 quantum_instance: Optional[Union[BaseBackend, QuantumInstance]] = None) -> None:
+                 quantum_instance: Optional[Union[BaseBackend, Backend, QuantumInstance]] = None,
+                 converters: Optional[Union[QuadraticProgramConverter,
+                                            List[QuadraticProgramConverter]]] = None,
+                 penalty: Optional[float] = None) -> None:
         """
         Args:
             num_value_qubits: The number of value qubits.
             num_iterations: The number of iterations the algorithm will search with
                 no improvement.
             quantum_instance: Instance of selected backend, defaults to Aer's statevector simulator.
+            converters: The converters to use for converting a problem into a different form.
+                By default, when None is specified, an internally created instance of
+                :class:`~qiskit.optimization.converters.QuadraticProgramToQubo` will be used.
+            penalty: The penalty factor used in the default
+                :class:`~qiskit.optimization.converters.QuadraticProgramToQubo` converter
+
+        Raises:
+            TypeError: When there one of converters is an invalid type.
         """
         self._num_value_qubits = num_value_qubits
         self._num_key_qubits = None
         self._n_iterations = num_iterations
         self._quantum_instance = None
-        self._qubo_converter = QuadraticProgramToQubo()
 
         if quantum_instance is not None:
             self.quantum_instance = quantum_instance
+
+        self._converters = self._prepare_converters(converters, penalty)
 
     @property
     def quantum_instance(self) -> QuantumInstance:
@@ -67,13 +77,14 @@ class GroverOptimizer(OptimizationAlgorithm):
         return self._quantum_instance
 
     @quantum_instance.setter
-    def quantum_instance(self, quantum_instance: Union[BaseBackend, QuantumInstance]) -> None:
+    def quantum_instance(self, quantum_instance: Union[Backend,
+                                                       BaseBackend, QuantumInstance]) -> None:
         """Set the quantum instance used to run the circuits.
 
         Args:
             quantum_instance: The quantum instance to be used in the algorithm.
         """
-        if isinstance(quantum_instance, BaseBackend):
+        if isinstance(quantum_instance, (BaseBackend, Backend)):
             self._quantum_instance = QuantumInstance(quantum_instance)
         else:
             self._quantum_instance = quantum_instance
@@ -101,34 +112,26 @@ class GroverOptimizer(OptimizationAlgorithm):
         quadratic_form = QuadraticForm(self._num_value_qubits, quadratic, linear, offset,
                                        little_endian=False)
 
-        a_operator_circuit = QuantumCircuit(qr_key_value)
-        a_operator_circuit.h(list(range(self._num_key_qubits)))
-        a_operator_circuit.compose(quadratic_form, inplace=True)
-
-        a_operator = Custom(a_operator_circuit.width(), circuit=a_operator_circuit)
+        a_operator = QuantumCircuit(qr_key_value)
+        a_operator.h(list(range(self._num_key_qubits)))
+        a_operator.compose(quadratic_form, inplace=True)
         return a_operator
 
     def _get_oracle(self, qr_key_value):
         # Build negative value oracle O.
-        qr_key_value = qr_key_value or QuantumRegister(
-            self._num_key_qubits + self._num_value_qubits)
+        if qr_key_value is None:
+            qr_key_value = QuantumRegister(self._num_key_qubits + self._num_value_qubits)
+
         oracle_bit = QuantumRegister(1, "oracle")
-        oracle_circuit = QuantumCircuit(qr_key_value, oracle_bit)
-        oracle_circuit.z(self._num_key_qubits)  # recognize negative values.
+        oracle = QuantumCircuit(qr_key_value, oracle_bit)
+        oracle.z(self._num_key_qubits)  # recognize negative values.
 
-        def evaluate_classically(self, measurement):
-            """ evaluate classical """
+        def is_good_state(self, measurement):
+            """Check whether ``measurement`` is a good state or not."""
             value = measurement[self._num_key_qubits:self._num_key_qubits + self._num_value_qubits]
-            assignment = [(var + 1) * (int(tf) * 2 - 1) for tf, var in zip(measurement,
-                                                                           range(len(measurement)))]
-            evaluation = value[0] == '1'
-            return evaluation, assignment
+            return value[0] == '1'
 
-        oracle = CustomCircuitOracle(variable_register=qr_key_value,
-                                     output_register=oracle_bit,
-                                     circuit=oracle_circuit,
-                                     evaluate_classically_callback=evaluate_classically)
-        return oracle
+        return oracle, is_good_state
 
     def solve(self, problem: QuadraticProgram) -> OptimizationResult:
         """Tries to solves the given problem using the grover optimizer.
@@ -152,7 +155,7 @@ class GroverOptimizer(OptimizationAlgorithm):
         self._verify_compatibility(problem)
 
         # convert problem to QUBO
-        problem_ = self._qubo_converter.convert(problem)
+        problem_ = self._convert(problem, self._converters)
         problem_init = deepcopy(problem_)
 
         # convert to minimization problem
@@ -164,7 +167,7 @@ class GroverOptimizer(OptimizationAlgorithm):
                 problem_.objective.linear[i] = -val
             for (i, j), val in problem_.objective.quadratic.to_dict().items():
                 problem_.objective.quadratic[i, j] = -val
-        self._num_key_qubits = len(problem_.objective.linear.to_array())
+        self._num_key_qubits = len(problem_.objective.linear.to_array())  # type: ignore
 
         # Variables for tracking the optimum.
         optimum_found = False
@@ -190,7 +193,7 @@ class GroverOptimizer(OptimizationAlgorithm):
         qr_key_value = QuantumRegister(self._num_key_qubits + self._num_value_qubits)
         orig_constant = problem_.objective.constant
         measurement = not self.quantum_instance.is_statevector
-        oracle = self._get_oracle(qr_key_value)
+        oracle, is_good_state = self._get_oracle(qr_key_value)
 
         while not optimum_found:
             m = 1
@@ -207,14 +210,12 @@ class GroverOptimizer(OptimizationAlgorithm):
                 loops_with_no_improvement += 1
                 rotation_count = int(np.ceil(aqua_globals.random.uniform(0, m - 1)))
                 rotations += rotation_count
-
                 # Apply Grover's Algorithm to find values below the threshold.
-                if rotation_count > 0:
-                    # TODO: Utilize Grover's incremental feature - requires changes to Grover.
-                    grover = Grover(oracle, init_state=a_operator, num_iterations=rotation_count)
-                    circuit = grover.construct_circuit(measurement=measurement)
-                else:
-                    circuit = a_operator._circuit
+                # TODO: Utilize Grover's incremental feature - requires changes to Grover.
+                grover = Grover(oracle,
+                                state_preparation=a_operator,
+                                good_state=is_good_state)
+                circuit = grover.construct_circuit(rotation_count, measurement=measurement)
 
                 # Get the next outcome.
                 outcome = self._measure(circuit)
@@ -263,21 +264,22 @@ class GroverOptimizer(OptimizationAlgorithm):
 
         # Compute function value
         fval = problem_init.objective.evaluate(opt_x)
-        result = OptimizationResult(x=opt_x, fval=fval, variables=problem_.variables)
+        result = OptimizationResult(x=opt_x, fval=fval, variables=problem_.variables,
+                                    status=OptimizationResultStatus.SUCCESS)
 
         # cast binaries back to integers
-        result = self._qubo_converter.interpret(result)
+        result = self._interpret(result, self._converters)
 
         return GroverOptimizationResult(x=result.x, fval=result.fval, variables=result.variables,
                                         operation_counts=operation_count, n_input_qubits=n_key,
                                         n_output_qubits=n_value, intermediate_fval=fval,
-                                        threshold=threshold)
+                                        threshold=threshold,
+                                        status=self._get_feasibility_status(problem, result.x))
 
     def _measure(self, circuit: QuantumCircuit) -> str:
         """Get probabilities from the given backend, and picks a random outcome."""
         probs = self._get_probs(circuit)
         freq = sorted(probs.items(), key=lambda x: x[1], reverse=True)
-
         # Pick a random outcome.
         freq[-1] = (freq[-1][0], 1.0 - sum(x[1] for x in freq[0:len(freq) - 1]))
         idx = aqua_globals.random.choice(len(freq), 1, p=[x[1] for x in freq])[0]
@@ -300,9 +302,8 @@ class GroverOptimizer(OptimizationAlgorithm):
             shots = self.quantum_instance.run_config.shots
             hist = {}
             for key in state:
-                hist[key] = state[key] / shots
+                hist[key[::-1]] = state[key] / shots
         hist = dict(filter(lambda p: p[1] > 0, hist.items()))
-
         return hist
 
     @staticmethod
@@ -335,7 +336,8 @@ class GroverOptimizationResult(OptimizationResult):
 
     def __init__(self, x: Union[List[float], np.ndarray], fval: float, variables: List[Variable],
                  operation_counts: Dict[int, Dict[str, int]], n_input_qubits: int,
-                 n_output_qubits: int, intermediate_fval: float, threshold: float) -> None:
+                 n_output_qubits: int, intermediate_fval: float, threshold: float,
+                 status: OptimizationResultStatus) -> None:
         """
         Constructs a result object with the specific Grover properties.
 
@@ -349,8 +351,9 @@ class GroverOptimizationResult(OptimizationResult):
             intermediate_fval: The intermediate value of the objective function of the solution,
                 that is expected to be identical with ``fval``.
             threshold: The threshold of Grover algorithm.
+            status: the termination status of the optimization algorithm.
         """
-        super().__init__(x, fval, variables, None)
+        super().__init__(x, fval, variables, status, None)
         self._operation_counts = operation_counts
         self._n_input_qubits = n_input_qubits
         self._n_output_qubits = n_output_qubits

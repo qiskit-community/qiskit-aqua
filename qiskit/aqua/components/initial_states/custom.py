@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -149,7 +147,7 @@ class Custom(InitialState):
                     svc.construct_circuit(circuit=circuit, register=register)
                 elif self._state == 'uniform':
                     for i in range(self._num_qubits):
-                        circuit.u2(0.0, np.pi, register[i])
+                        circuit.h(register[i])
                 elif self._state == 'zero':
                     pass
                 else:

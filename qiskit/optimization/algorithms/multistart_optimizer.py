@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -25,8 +23,7 @@ import numpy as np
 from scipy.stats import uniform
 
 from qiskit.optimization import QuadraticProgram, INFINITY
-from qiskit.optimization.algorithms.optimization_algorithm import (OptimizationAlgorithm,
-                                                                   OptimizationResult)
+from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
 
 logger = logging.getLogger(__name__)
 
@@ -95,6 +92,7 @@ class MultiStartOptimizer(OptimizationAlgorithm, ABC):
                 rest_sol = rest
 
         return OptimizationResult(x=x_sol, fval=fval_sol, variables=problem.variables,
+                                  status=self._get_feasibility_status(problem, x_sol),
                                   raw_results=rest_sol)
 
     @property

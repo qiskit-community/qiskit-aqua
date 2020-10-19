@@ -59,7 +59,7 @@ spell:
 	pylint -rn --disable=all --enable=spelling --spelling-dict=en_US --spelling-private-dict-file=.pylintdict --ignore=gauopen qiskit/aqua qiskit/chemistry qiskit/finance qiskit/ml qiskit/optimization test tools
 
 copyright:
-	python tools/check_copyright_year.py
+	python tools/check_copyright.py
 
 html:
 	make -C docs html SPHINXOPTS=$(SPHINXOPTS)

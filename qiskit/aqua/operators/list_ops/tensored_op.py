@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -55,6 +53,16 @@ class TensoredOp(ListOp):
     @property
     def distributive(self) -> bool:
         return False
+
+    def _expand_dim(self, num_qubits: int) -> 'TensoredOp':
+        """Appends I ^ num_qubits to ``oplist``. Choice of PauliOp as
+        identity is arbitrary and can be substituted for other PrimitiveOp identity.
+
+        Returns:
+            TensoredOp expanded with identity operator.
+        """
+        from qiskit.aqua.operators import I
+        return TensoredOp(self.oplist + [I ^ num_qubits], coeff=self.coeff)
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
         if isinstance(other, TensoredOp):

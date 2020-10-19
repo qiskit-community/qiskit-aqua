@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -29,9 +27,11 @@ Initial States
    :nosignatures:
 
    HartreeFock
+   VSCF
 
 """
 
 from .hartree_fock import HartreeFock
+from .vscf import VSCF
 
-__all__ = ['HartreeFock']
+__all__ = ['HartreeFock', 'VSCF']

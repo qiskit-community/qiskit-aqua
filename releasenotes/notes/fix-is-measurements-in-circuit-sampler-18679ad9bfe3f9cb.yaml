@@ -1,0 +1,4 @@
+---
+fixes:
+  - |
+    Fix CircuitSampler.convert, so that the ``is_measurement`` property is propagated to converted StateFns.

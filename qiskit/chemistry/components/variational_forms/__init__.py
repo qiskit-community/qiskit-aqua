@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -29,8 +27,12 @@ Variational Forms
    :nosignatures:
 
    UCCSD
+   UVCC
+   CHC
 
 """
 from .uccsd import UCCSD
+from .uvcc import UVCC
+from .chc import CHC
 
-__all__ = ['UCCSD']
+__all__ = ['UCCSD', 'UVCC', 'CHC']

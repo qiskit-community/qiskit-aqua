@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -24,6 +22,7 @@ from qiskit.aqua.operators import WeightedPauliOperator
 
 class TestNumPyEigensolver(QiskitAquaTestCase):
     """ Test NumPy Eigen solver """
+
     def setUp(self):
         super().setUp()
         pauli_dict = {
@@ -58,6 +57,33 @@ class TestNumPyEigensolver(QiskitAquaTestCase):
         algo = NumPyEigensolver()
         with self.assertRaises(AquaError):
             _ = algo.run()
+
+    def test_ce_k4_filtered(self):
+        """ Test for k=4 eigenvalues with filter """
+
+        # define filter criterion
+        # pylint: disable=unused-argument
+        def criterion(x, v, a_v):
+            return v >= -1
+
+        algo = NumPyEigensolver(self.qubit_op, k=4, aux_operators=[], filter_criterion=criterion)
+        result = algo.run()
+        self.assertEqual(len(result.eigenvalues), 2)
+        self.assertEqual(len(result.eigenstates), 2)
+        np.testing.assert_array_almost_equal(result.eigenvalues.real, [-0.88272215, -0.22491125])
+
+    def test_ce_k4_filtered_empty(self):
+        """ Test for k=4 eigenvalues with filter always returning False """
+
+        # define filter criterion
+        # pylint: disable=unused-argument
+        def criterion(x, v, a_v):
+            return False
+
+        algo = NumPyEigensolver(self.qubit_op, k=4, aux_operators=[], filter_criterion=criterion)
+        result = algo.run()
+        self.assertEqual(len(result.eigenvalues), 0)
+        self.assertEqual(len(result.eigenstates), 0)
 
 
 if __name__ == '__main__':

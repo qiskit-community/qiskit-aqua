@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -131,14 +129,16 @@ Chemistry Error
    QiskitChemistryError
 
 Chemistry Classes
-==================
+=================
 
 .. autosummary::
    :toctree: ../stubs/
    :nosignatures:
 
+   BosonicOperator
    FermionicOperator
    QMolecule
+   WatsonHamiltonian
    MP2Info
 
 Submodules
@@ -147,16 +147,20 @@ Submodules
 .. autosummary::
    :toctree:
 
-   applications
    algorithms
+   applications
    components
    core
    drivers
+   results
+   transformations
 
 """
 
 from .qiskit_chemistry_error import QiskitChemistryError
 from .qmolecule import QMolecule
+from .watson_hamiltonian import WatsonHamiltonian
+from .bosonic_operator import BosonicOperator
 from .fermionic_operator import FermionicOperator
 from .mp2info import MP2Info
 from ._logging import (get_qiskit_chemistry_logging,
@@ -164,6 +168,8 @@ from ._logging import (get_qiskit_chemistry_logging,
 
 __all__ = ['QiskitChemistryError',
            'QMolecule',
+           'WatsonHamiltonian',
+           'BosonicOperator',
            'FermionicOperator',
            'MP2Info',
            'get_qiskit_chemistry_logging',

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -14,6 +12,7 @@
 
 """ Test Core Hamiltonian """
 
+import warnings
 import unittest
 
 from test.chemistry import QiskitChemistryTestCase
@@ -60,11 +59,13 @@ class TestCoreHamiltonian(QiskitChemistryTestCase):
 
     def test_output(self):
         """ output test """
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         core = Hamiltonian(transformation=TransformationType.FULL,
                            qubit_mapping=QubitMappingType.PARITY,
                            two_qubit_reduction=True,
                            freeze_core=False,
                            orbital_reduction=[])
+        warnings.filterwarnings('always', category=DeprecationWarning)
         qubit_op, _ = core.run(self.qmolecule)
         self._validate_vars(core)
         self._validate_info(core, actual_two_qubit_reduction=True)
@@ -72,11 +73,13 @@ class TestCoreHamiltonian(QiskitChemistryTestCase):
 
     def test_jordan_wigner(self):
         """ jordan wigner test """
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         core = Hamiltonian(transformation=TransformationType.FULL,
                            qubit_mapping=QubitMappingType.JORDAN_WIGNER,
                            two_qubit_reduction=False,
                            freeze_core=False,
                            orbital_reduction=[])
+        warnings.filterwarnings('always', category=DeprecationWarning)
         qubit_op, _ = core.run(self.qmolecule)
         self._validate_vars(core)
         self._validate_info(core)
@@ -84,11 +87,13 @@ class TestCoreHamiltonian(QiskitChemistryTestCase):
 
     def test_jordan_wigner_2q(self):
         """ jordan wigner 2q test """
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         core = Hamiltonian(transformation=TransformationType.FULL,
                            qubit_mapping=QubitMappingType.JORDAN_WIGNER,
                            two_qubit_reduction=True,
                            freeze_core=False,
                            orbital_reduction=[])
+        warnings.filterwarnings('always', category=DeprecationWarning)
         qubit_op, _ = core.run(self.qmolecule)
         self._validate_vars(core)
         # Reported effective 2 qubit reduction should be false
@@ -97,11 +102,13 @@ class TestCoreHamiltonian(QiskitChemistryTestCase):
 
     def test_parity(self):
         """ parity test """
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         core = Hamiltonian(transformation=TransformationType.FULL,
                            qubit_mapping=QubitMappingType.PARITY,
                            two_qubit_reduction=False,
                            freeze_core=False,
                            orbital_reduction=[])
+        warnings.filterwarnings('always', category=DeprecationWarning)
         qubit_op, _ = core.run(self.qmolecule)
         self._validate_vars(core)
         self._validate_info(core)
@@ -109,11 +116,13 @@ class TestCoreHamiltonian(QiskitChemistryTestCase):
 
     def test_bravyi_kitaev(self):
         """ bravyi kitaev test """
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         core = Hamiltonian(transformation=TransformationType.FULL,
                            qubit_mapping=QubitMappingType.BRAVYI_KITAEV,
                            two_qubit_reduction=False,
                            freeze_core=False,
                            orbital_reduction=[])
+        warnings.filterwarnings('always', category=DeprecationWarning)
         qubit_op, _ = core.run(self.qmolecule)
         self._validate_vars(core)
         self._validate_info(core)
@@ -121,11 +130,13 @@ class TestCoreHamiltonian(QiskitChemistryTestCase):
 
     def test_particle_hole(self):
         """ particle hole test """
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         core = Hamiltonian(transformation=TransformationType.PARTICLE_HOLE,
                            qubit_mapping=QubitMappingType.JORDAN_WIGNER,
                            two_qubit_reduction=False,
                            freeze_core=False,
                            orbital_reduction=[])
+        warnings.filterwarnings('always', category=DeprecationWarning)
         qubit_op, _ = core.run(self.qmolecule)
         self._validate_vars(core, ph_energy_shift=-1.83696799)
         self._validate_info(core)
@@ -133,11 +144,13 @@ class TestCoreHamiltonian(QiskitChemistryTestCase):
 
     def test_freeze_core(self):
         """ freeze core test -- Should be in effect a no-op for H2 """
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         core = Hamiltonian(transformation=TransformationType.FULL,
                            qubit_mapping=QubitMappingType.JORDAN_WIGNER,
                            two_qubit_reduction=False,
                            freeze_core=True,
                            orbital_reduction=[])
+        warnings.filterwarnings('always', category=DeprecationWarning)
         qubit_op, _ = core.run(self.qmolecule)
         self._validate_vars(core)
         self._validate_info(core)
@@ -147,11 +160,13 @@ class TestCoreHamiltonian(QiskitChemistryTestCase):
         """ orbital reduction test --- Remove virtual orbital just
             for test purposes (not sensible!)
         """
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         core = Hamiltonian(transformation=TransformationType.FULL,
                            qubit_mapping=QubitMappingType.JORDAN_WIGNER,
                            two_qubit_reduction=False,
                            freeze_core=False,
                            orbital_reduction=[-1])
+        warnings.filterwarnings('always', category=DeprecationWarning)
         qubit_op, _ = core.run(self.qmolecule)
         self._validate_vars(core)
         self._validate_info(core, num_orbitals=2)

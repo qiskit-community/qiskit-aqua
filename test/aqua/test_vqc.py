@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -312,7 +310,7 @@ class TestVQC(QiskitAquaTestCase):
         result = vqc.run(self.statevector_simulator)
 
         self.log.debug(result['testing_accuracy'])
-        self.assertGreater(result['testing_accuracy'], 0.8)
+        self.assertGreater(result['testing_accuracy'], 0.7)
 
 
 if __name__ == '__main__':

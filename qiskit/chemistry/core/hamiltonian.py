@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -16,7 +14,7 @@ This module implements a molecular Hamiltonian operator, representing the
 energy of the electrons and nuclei in a molecule.
 """
 import warnings
-from typing import Optional, List, Union, cast
+from typing import Optional, List, Union, cast, Tuple
 import logging
 from enum import Enum
 
@@ -84,6 +82,9 @@ class Hamiltonian(ChemistryOperator):
         Raises:
             QiskitChemistryError: Invalid symmetry reduction
         """
+        warnings.warn('The Hamiltonian class is deprecated as of Qiskit Aqua 0.8.0 and will be '
+                      'removed no earlier than 3 months after the release date. Instead, the '
+                      'FermionicTransformation can be used.', DeprecationWarning, stacklevel=2)
         transformation = transformation.value
         qubit_mapping = qubit_mapping.value
         orbital_reduction = orbital_reduction if orbital_reduction is not None else []
@@ -116,7 +117,9 @@ class Hamiltonian(ChemistryOperator):
         self._ph_y_dipole_shift = 0.0
         self._ph_z_dipole_shift = 0.0
 
-    def run(self, qmolecule):
+    def run(self, qmolecule: QMolecule) -> Tuple[WeightedPauliOperator,
+                                                 List[WeightedPauliOperator]]:
+        """ run method"""
         logger.debug('Processing started...')
         # Save these values for later combination with the quantum computation result
         self._hf_energy = qmolecule.hf_energy
@@ -157,7 +160,8 @@ class Hamiltonian(ChemistryOperator):
         if orbitals_list:
             orbitals_list = np.array(orbitals_list)
             orbitals_list = \
-                orbitals_list[(orbitals_list >= 0) & (orbitals_list < qmolecule.num_orbitals)]
+                orbitals_list[(cast(np.ndarray, orbitals_list) >= 0) &
+                              (orbitals_list < qmolecule.num_orbitals)]
 
             freeze_list_alpha = [i for i in orbitals_list if i < num_alpha]
             freeze_list_beta = [i for i in orbitals_list if i < num_beta]

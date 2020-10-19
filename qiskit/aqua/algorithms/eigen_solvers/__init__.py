@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -15,8 +13,9 @@
 """ Eigen Solvers Package """
 
 from .numpy_eigen_solver import NumPyEigensolver, ExactEigensolver
-from .eigen_solver_result import EigensolverResult
+from .eigen_solver import Eigensolver, EigensolverResult
 
 __all__ = ['NumPyEigensolver',
            'ExactEigensolver',
+           'Eigensolver',
            'EigensolverResult']

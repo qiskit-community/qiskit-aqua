@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -174,5 +172,11 @@ The following steps can be used with the Intel Fortran compiler on the Microsoft
 """
 
 from .gaussiandriver import GaussianDriver
+from .gaussian_forces_driver import GaussianForcesDriver
+from .gaussian_log_driver import GaussianLogDriver
+from .gaussian_log_result import GaussianLogResult
 
-__all__ = ['GaussianDriver']
+__all__ = ['GaussianDriver',
+           'GaussianForcesDriver',
+           'GaussianLogDriver',
+           'GaussianLogResult']

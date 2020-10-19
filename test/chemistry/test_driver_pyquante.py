@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -32,6 +30,18 @@ class TestDriverPyQuante(QiskitChemistryTestCase, TestDriver):
                                     charge=0,
                                     multiplicity=1,
                                     basis=BasisType.BSTO3G)
+        except QiskitChemistryError:
+            self.skipTest('PYQUANTE driver does not appear to be installed')
+        self.qmolecule = driver.run()
+
+
+class TestDriverPyQuanteMolecule(QiskitChemistryTestCase, TestDriver):
+    """PYQUANTE Driver molecule tests."""
+
+    def setUp(self):
+        super().setUp()
+        try:
+            driver = PyQuanteDriver(molecule=TestDriver.MOLECULE)
         except QiskitChemistryError:
             self.skipTest('PYQUANTE driver does not appear to be installed')
         self.qmolecule = driver.run()

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -48,6 +46,10 @@ class MultivariateUniformDistribution(MultivariateDistribution):
         num_values = np.prod([2**n for n in num_qubits])
         probabilities = np.ones(num_values)
         super().__init__(num_qubits, probabilities, low, high)
+
+    @staticmethod
+    def _replacement():
+        return 'qiskit.circuit.library.UniformDistribution'
 
     def build(self, qc, q, q_ancillas=None, params=None):
         if params is None or params['i_state'] is None:

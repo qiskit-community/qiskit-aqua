@@ -1,0 +1,7 @@
+---
+fixes:
+  - |
+    Calling PauliTrotterEvolution.convert on an operator including a term that
+    is a scalar multiple of the identity gave an incorrect circuit, one that
+    ignored the scalar coefficient. This fix includes the effect of the
+    coefficient in the global_phase property of the circuit.

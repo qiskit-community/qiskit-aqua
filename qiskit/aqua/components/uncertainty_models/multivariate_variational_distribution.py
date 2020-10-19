@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2019, 2020.
@@ -55,6 +53,10 @@ class MultivariateVariationalDistribution(MultivariateDistribution):
         super().__init__(num_qubits, probabilities, low, high)
         self._var_form = var_form
         self.params = params
+
+    @staticmethod
+    def _replacement():
+        return 'a parameterized qiskit.QuantumCircuit'
 
     def build(self, qc, q, q_ancillas=None, params=None):
         param_dict = dict(zip(self._var_form_params, self.params))

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2019, 2020.
@@ -54,6 +52,10 @@ class UnivariateVariationalDistribution(UnivariateDistribution):
         else:
             probabilities = np.zeros(2 ** sum(num_qubits))
         super().__init__(num_qubits, probabilities, low, high)
+
+    @staticmethod
+    def _replacement():
+        return 'a parameterized qiskit.QuantumCircuit'
 
     def build(self, qc, q, q_ancillas=None, params=None):
         param_dict = dict(zip(self._var_form_params, self.params))
