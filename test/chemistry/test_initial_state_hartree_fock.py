@@ -19,7 +19,6 @@ import numpy as np
 from ddt import ddt, idata, unpack
 from qiskit import QuantumCircuit
 from qiskit.chemistry.components.initial_states import HartreeFock
-# from qiskit.chemistry.components.initial_states.hf import HartreeFock as HartreeFock
 from qiskit.aqua.operators.legacy import op_converter
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType

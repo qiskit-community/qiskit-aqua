@@ -17,8 +17,7 @@ import warnings
 from test.chemistry import QiskitChemistryTestCase
 import numpy as np
 from qiskit import QuantumCircuit
-from qiskit.chemistry.components.initial_states import VSCF as VSCFI
-from qiskit.chemistry.components.initial_states.vscf_circuit import VSCF
+from qiskit.chemistry.components.initial_states import VSCF as VSCF
 
 
 class TestInitialStateVSCF(QiskitChemistryTestCase):
@@ -35,7 +34,7 @@ class TestInitialStateVSCF(QiskitChemistryTestCase):
     def test_qubits_4(self):
         """ 2 modes 2 modals - test """
         basis = [2, 2]
-        vscf = VSCFI(basis)
+        vscf = VSCF(basis)
         cct = vscf.construct_circuit('vector')
         np.testing.assert_array_equal(cct, [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
@@ -43,7 +42,7 @@ class TestInitialStateVSCF(QiskitChemistryTestCase):
     def test_qubits_5(self):
         """ 2 modes 2 modals for the first mode and 3 modals for the second - test """
         basis = [2, 3]
-        vscf = VSCFI(basis)
+        vscf = VSCF(basis)
         cct = vscf.construct_circuit('vector')
         np.testing.assert_array_equal(cct, [0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,

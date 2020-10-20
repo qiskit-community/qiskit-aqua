@@ -24,8 +24,7 @@ from qiskit.aqua.algorithms import QPE, NumPyMinimumEigensolver
 from qiskit.aqua.operators import Z2Symmetries
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry import FermionicOperator, QiskitChemistryError
-# from qiskit.chemistry.components.initial_states import HartreeFock
-from qiskit.chemistry.components.initial_states.hf import HartreeFock
+from qiskit.chemistry.components.initial_states import HartreeFock
 
 
 @ddt

@@ -54,7 +54,7 @@ class HartreeFock(QuantumCircuit, InitialState):
         if qubit_mapping != 'parity' and two_qubit_reduction:
             warnings.warn('two_qubit_reduction only works with parity qubit mapping '
                           'but you have %s. We switch two_qubit_reduction '
-                          'to False.', qubit_mapping)
+                          'to False.' % qubit_mapping)
             two_qubit_reduction = False
 
         if isinstance(num_particles, list):
@@ -62,7 +62,7 @@ class HartreeFock(QuantumCircuit, InitialState):
                           'tuple of two integers, not a list. This behavious is deprecated as of '
                           'Aqua 0.9 and will be removed no earlier than 3 months after the '
                           'release.', DeprecationWarning, stacklevel=2)
-            num_particles = tuple(num_particles)
+            num_particles = tuple(num_particles)  # type: ignore
 
         # get the bitstring encoding the Hartree Fock state
         bitstr = _build_bitstr(num_orbitals, num_particles, qubit_mapping,
