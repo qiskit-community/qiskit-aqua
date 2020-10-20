@@ -17,7 +17,7 @@ import warnings
 from test.chemistry import QiskitChemistryTestCase
 import numpy as np
 from qiskit import QuantumCircuit
-from qiskit.chemistry.components.initial_states import VSCF as VSCF
+from qiskit.chemistry.components.initial_states import VSCF
 
 
 class TestInitialStateVSCF(QiskitChemistryTestCase):

@@ -380,11 +380,11 @@ class UCCSD(VariationalForm):
 
         if q is None:
             q = QuantumRegister(self._num_qubits, name='q')
-        if isinstance(self._initial_state, InitialState):
-            circuit = self._initial_state.construct_circuit('circuit', q)
-        elif isinstance(self._initial_state, QuantumCircuit):
+        if isinstance(self._initial_state, QuantumCircuit):
             circuit = QuantumCircuit(q)
             circuit.compose(self._initial_state, inplace=True)
+        elif isinstance(self._initial_state, InitialState):
+            circuit = self._initial_state.construct_circuit('circuit', q)
         else:
             circuit = QuantumCircuit(q)
 

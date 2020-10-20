@@ -13,10 +13,11 @@
 """ Test IQPE """
 
 import unittest
+import warnings
 from test.aqua import QiskitAquaTestCase
 import numpy as np
 from ddt import ddt, idata, unpack
-from qiskit import BasicAer
+from qiskit import BasicAer, QuantumCircuit
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.utils import decimal_to_binary
 from qiskit.aqua.algorithms import IQPE
@@ -67,12 +68,12 @@ class TestIQPE(QiskitAquaTestCase):
         }
 
     @idata([
-        ['QUBIT_OP_SIMPLE', 'qasm_simulator', 1, 5],
-        ['QUBIT_OP_ZZ', 'statevector_simulator', 1, 1],
-        ['QUBIT_OP_H2_WITH_2_QUBIT_REDUCTION', 'statevector_simulator', 1, 6],
+        ['QUBIT_OP_SIMPLE', 'qasm_simulator', 1, 5, True],
+        ['QUBIT_OP_ZZ', 'statevector_simulator', 1, 1, False],
+        ['QUBIT_OP_H2_WITH_2_QUBIT_REDUCTION', 'statevector_simulator', 1, 6, True],
     ])
     @unpack
-    def test_iqpe(self, qubit_op, simulator, num_time_slices, num_iterations):
+    def test_iqpe(self, qubit_op, simulator, num_time_slices, num_iterations, use_circuits):
         """ iqpe test """
         self.log.debug('Testing IQPE')
         qubit_op = self._dict[qubit_op]
@@ -84,7 +85,13 @@ class TestIQPE(QiskitAquaTestCase):
         self.log.debug('The exact eigenvalue is:       %s', ref_eigenval)
         self.log.debug('The corresponding eigenvector: %s', ref_eigenvec)
 
-        state_in = Custom(qubit_op.num_qubits, state_vector=ref_eigenvec)
+        if use_circuits:
+            state_in = QuantumCircuit(qubit_op.num_qubits)
+            state_in.initialize(ref_eigenvec, state_in.qubits)
+        else:
+            with warnings.catch_warnings():
+                warnings.filterwarnings('ignore', category=DeprecationWarning)
+                state_in = Custom(qubit_op.num_qubits, state_vector=ref_eigenvec)
         iqpe = IQPE(qubit_op, state_in, num_time_slices, num_iterations,
                     expansion_mode='suzuki', expansion_order=2,
                     shallow_circuit_concat=True)
