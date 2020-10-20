@@ -39,7 +39,7 @@ class CHC(VariationalForm):
     def __init__(self, num_qubits: Optional[int] = None, reps: int = 1, ladder: bool = False,
                  excitations: Optional[List[List[int]]] = None,
                  entanglement: Union[str, List[int]] = 'full',
-                 initial_state: Optional[InitialState] = None) -> None:
+                 initial_state: Optional[Union[QuantumCircuit, InitialState]] = None) -> None:
         """
 
         Args:
@@ -48,7 +48,7 @@ class CHC(VariationalForm):
             ladder: use ladder of CNOTs between to indices in the entangling block
             excitations: indices corresponding to the excitations to include in the circuit
             entanglement: physical connections between the qubits
-            initial_state: an initial state object
+            initial_state: an initial state to prepend to the variational form
         """
 
         super().__init__()
@@ -114,7 +114,11 @@ class CHC(VariationalForm):
 
         if q is None:
             q = QuantumRegister(self._num_qubits, name='q')
-        if self._initial_state is not None:
+
+        if isinstance(self._initial_state, QuantumCircuit):
+            circuit = QuantumCircuit(q)
+            circuit.append(self._initial_state.to_gate(), range(self._initial_state.num_qubits))
+        elif self._initial_state is not None:
             circuit = self._initial_state.construct_circuit('circuit', q)
         else:
             circuit = QuantumCircuit(q)
