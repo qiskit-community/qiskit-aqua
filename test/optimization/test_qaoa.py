@@ -51,6 +51,7 @@ S2 = {'1011', '0100'}
 
 CUSTOM_SUPERPOSITION = [1/math.sqrt(15)] * 15 + [0]
 
+
 @ddt
 class TestQAOA(QiskitOptimizationTestCase):
     """Test QAOA with MaxCut."""
@@ -165,18 +166,18 @@ class TestQAOA(QiskitOptimizationTestCase):
             self.assertIn(''.join([str(int(i)) for i in graph_solution]), solutions)
 
     @idata([
-        [W2, S2, None],
-        [W2, S2, [1.0] + 15*[0]],
-        [W2, S2, CUSTOM_SUPERPOSITION]
+        [W2, None],
+        [W2, [1.0] + 15*[0.0]],
+        [W2, CUSTOM_SUPERPOSITION]
     ])
     @unpack
-    def test_qaoa_initial_state(self, w, solution, init_state):
+    def test_qaoa_initial_state(self, w, init_state):
         """ QAOA initial state test """
 
         optimizer = COBYLA()
         qubit_op, _ = max_cut.get_operator(w)
 
-        init_pt = [0.0, 0.0]  #Avoid generating random initial point
+        init_pt = [0.0, 0.0]  # Avoid generating random initial point
 
         if init_state is None:
             initial_state = None
@@ -185,14 +186,15 @@ class TestQAOA(QiskitOptimizationTestCase):
 
         quantum_instance = QuantumInstance(BasicAer.get_backend('statevector_simulator'))
         qaoa_zero_init_state = QAOA(qubit_op, optimizer, initial_point=init_pt,
-                initial_state=Zero(qubit_op.num_qubits), quantum_instance=quantum_instance)
-        qaoa = QAOA(qubit_op, optimizer, initial_point=init_pt, initial_state=initial_state, quantum_instance=quantum_instance)
+                                    initial_state=Zero(qubit_op.num_qubits),
+                                    quantum_instance=quantum_instance)
+        qaoa = QAOA(qubit_op, optimizer, initial_point=init_pt,
+                    initial_state=initial_state, quantum_instance=quantum_instance)
 
         zero_circuits = qaoa_zero_init_state.construct_circuit(init_pt)
         custom_circuits = qaoa.construct_circuit(init_pt)
 
         self.assertEqual(len(zero_circuits), len(custom_circuits))
-
 
         backend = BasicAer.get_backend('statevector_simulator')
         for zero_circ, custom_circ in zip(zero_circuits, custom_circuits):
@@ -201,10 +203,10 @@ class TestQAOA(QiskitOptimizationTestCase):
             c_length = len(custom_circ.data)
 
             self.assertGreaterEqual(c_length, z_length)
-            self.assertTrue(zero_circ.data==custom_circ.data[-z_length:])
+            self.assertTrue(zero_circ.data == custom_circ.data[-z_length:])
 
-            custom_init_qc=custom_circ.copy()
-            custom_init_qc.data=custom_init_qc.data[0:c_length-z_length]
+            custom_init_qc = custom_circ.copy()
+            custom_init_qc.data = custom_init_qc.data[0:c_length-z_length]
 
             if initial_state is None:
                 original_init_qc = QuantumCircuit(qubit_op.num_qubits)
@@ -219,6 +221,7 @@ class TestQAOA(QiskitOptimizationTestCase):
             statevector_custom = job_qaoa_init_state.result().get_statevector(custom_init_qc)
 
             self.assertEqual(statevector_original.tolist(), statevector_custom.tolist())
+
 
 if __name__ == '__main__':
     unittest.main()
