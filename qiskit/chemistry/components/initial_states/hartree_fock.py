@@ -79,8 +79,7 @@ class HartreeFock(QuantumCircuit, InitialState):
                 self.x(i)
 
     def construct_circuit(self, mode='circuit', register=None):
-        """
-        Construct the statevector of desired initial state.
+        """Construct the statevector of desired initial state.
 
         Args:
             mode (string): `vector` or `circuit`. The `vector` mode produces the vector.
