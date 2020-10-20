@@ -87,7 +87,7 @@ class TestIQPE(QiskitAquaTestCase):
 
         if use_circuits:
             state_in = QuantumCircuit(qubit_op.num_qubits)
-            state_in.initialize(ref_eigenvec, state_in.qubits)
+            state_in.initialize(ref_eigenvec.primitive.data, state_in.qubits)
         else:
             with warnings.catch_warnings():
                 warnings.filterwarnings('ignore', category=DeprecationWarning)
