@@ -17,14 +17,86 @@ from test.optimization import QiskitOptimizationTestCase
 
 import numpy as np
 from ddt import ddt, idata, unpack
-from qiskit import BasicAer
+from qiskit import BasicAer, QuantumCircuit, execute
 
 from qiskit.optimization.applications.ising import max_cut
 from qiskit.optimization.applications.ising.common import sample_most_likely
 from qiskit.aqua.components.optimizers import COBYLA
+from qiskit.aqua.components.initial_states import Custom, Zero
 from qiskit.aqua.algorithms import QAOA
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.operators import X, I
+
+class QiskitBaseTestCase(unittest.TestCase, ABC):
+    """Base Helper class that contains common functionality."""
+
+    moduleName = None
+    log = None
+
+    @abstractmethod
+    def setUp(self) -> None:
+        warnings.filterwarnings('default', category=DeprecationWarning)
+        self._started_at = time.time()
+        self._class_location = __file__
+
+    def tearDown(self) -> None:
+        elapsed = time.time() - self._started_at
+        if elapsed > 5.0:
+            print('({:.2f}s)'.format(round(elapsed, 2)), flush=True)
+
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.moduleName = os.path.splitext(inspect.getfile(cls))[0]
+        cls.log = logging.getLogger(cls.__name__)
+
+        # Set logging to file and stdout if the LOG_LEVEL environment variable
+        # is set.
+        if os.getenv('LOG_LEVEL'):
+            # Set up formatter.
+            log_fmt = ('{}.%(funcName)s:%(levelname)s:%(asctime)s:'
+                       ' %(message)s'.format(cls.__name__))
+            formatter = logging.Formatter(log_fmt)
+
+            # Set up the file handler.
+            log_file_name = '%s.log' % cls.moduleName
+            file_handler = logging.FileHandler(log_file_name)
+            file_handler.setFormatter(formatter)
+            cls.log.addHandler(file_handler)
+
+            # Set the logging level from the environment variable, defaulting
+            # to INFO if it is not a valid level.
+            level = logging._nameToLevel.get(os.getenv('LOG_LEVEL'),
+                                             logging.INFO)
+            cls.log.setLevel(level)
+            # set all domains logging
+            set_logging_level(level, list(QiskitLogDomains), log_file_name)
+
+    def get_resource_path(self,
+                          filename: str,
+                          path: Optional[str] = None) -> str:
+        """ Get the absolute path to a resource.
+        Args:
+            filename: filename or relative path to the resource.
+            path: path used as relative to the filename.
+        Returns:
+            str: the absolute path to the resource.
+        """
+        if path is None:
+            path = os.path.dirname(self._class_location)
+
+        return os.path.normpath(os.path.join(path, filename))
+
+class QiskitOptimizationTestCase(QiskitBaseTestCase):
+    """Optimization Test Case"""
+
+    def setUp(self) -> None:
+        super().setUp()
+        self._class_location = __file__
+
+QuantumCircuit
+
+""" Test QAOA """
+
 
 W1 = np.array([
     [0, 1, 0, 1],
@@ -47,6 +119,7 @@ P2 = 1
 M2 = None
 S2 = {'1011', '0100'}
 
+CUSTOM_SUPERPOSITION = [1/math.sqrt(15)] * 15 + [0]
 
 @ddt
 class TestQAOA(QiskitOptimizationTestCase):
@@ -161,6 +234,61 @@ class TestQAOA(QiskitOptimizationTestCase):
         with self.subTest('Solution'):
             self.assertIn(''.join([str(int(i)) for i in graph_solution]), solutions)
 
+    @idata([
+        [W2, S2, None],
+        [W2, S2, [1.0] + 15*[0]],
+        [W2, S2, CUSTOM_SUPERPOSITION]
+    ])
+    @unpack
+    def test_qaoa_initial_state(self, w, solution, init_state):
+        """ QAOA initial state test """
+
+        optimizer = COBYLA()
+        qubit_op, _ = max_cut.get_operator(w)
+
+        init_pt = [0.0, 0.0]  #Avoid generating random initial point
+
+        if init_state is None:
+            initial_state = None
+        else:
+            initial_state = Custom(num_qubits=4, state_vector=init_state)
+
+        quantum_instance = QuantumInstance(BasicAer.get_backend('statevector_simulator'))
+        qaoa_zero_init_state = QAOA(qubit_op, optimizer, initial_point=init_pt,
+                initial_state=Zero(qubit_op.num_qubits), quantum_instance=quantum_instance)
+        qaoa = QAOA(qubit_op, optimizer, initial_point=init_pt, initial_state=initial_state, quantum_instance=quantum_instance)
+
+        zero_circuits = qaoa_zero_init_state.construct_circuit(init_pt)
+        custom_circuits = qaoa.construct_circuit(init_pt)
+
+        self.assertEqual(len(zero_circuits), len(custom_circuits))
+
+
+        backend = BasicAer.get_backend('statevector_simulator')
+        for zero_circ, custom_circ in zip(zero_circuits, custom_circuits):
+
+            z_length = len(zero_circ.data)
+            c_length = len(custom_circ.data)
+
+            self.assertGreaterEqual(c_length, z_length)
+            self.assertTrue(zero_circ.data==custom_circ.data[-z_length:])
+
+            custom_init_qc=custom_circ.copy()
+            custom_init_qc.data=custom_init_qc.data[0:c_length-z_length]
+
+            if initial_state is None:
+                original_init_qc = QuantumCircuit(qubit_op.num_qubits)
+                original_init_qc.h(range(qubit_op.num_qubits))
+            else:
+                original_init_qc = initial_state.construct_circuit()
+
+            job_init_state = execute(original_init_qc, backend)
+            job_qaoa_init_state = execute(custom_init_qc, backend)
+
+            statevector_original = job_init_state.result().get_statevector(original_init_qc)
+            statevector_custom = job_qaoa_init_state.result().get_statevector(custom_init_qc)
+
+            self.assertEqual(statevector_original.tolist(), statevector_custom.tolist())
 
 if __name__ == '__main__':
     unittest.main()
