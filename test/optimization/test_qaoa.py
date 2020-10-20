@@ -15,6 +15,7 @@
 import unittest
 from test.optimization import QiskitOptimizationTestCase
 
+import math
 import numpy as np
 from ddt import ddt, idata, unpack
 from qiskit import BasicAer, QuantumCircuit, execute
