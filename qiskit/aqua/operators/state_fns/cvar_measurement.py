@@ -154,10 +154,16 @@ class CVaRMeasurement(OperatorStateFn):
     def eval_variance(self,
              front: Union[str, dict, np.ndarray,
                           OperatorBase] = None) -> Union[OperatorBase, float, complex]:
+        r"""
+         Var[X] = E[X^2] - E[X]^2
+         X = E[ <bi|H|bi> ]
+         E[X^2] = E[ <bi|H|bi> ^ 2 ]
+        """
 
         energies, probabilities = self.get_outcome_energies_probabilities(front)   
-        energies = [energy**2 for energy in energies]    
-        return self.compute_cvar(energies, probabilities)  - self.eval(front)**2
+        sq_energies = [energy**2 for energy in energies]    
+        return self.compute_cvar(sq_energies, probabilities)  - self.eval(front)**2
+
 
     def get_outcome_energies_probabilities(self, front):
         r"""TODO: ADD DOCSTRING"""
