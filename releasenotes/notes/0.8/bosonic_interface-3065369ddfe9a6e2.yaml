@@ -1,0 +1,9 @@
+---
+features:
+  - |
+    In addition to the workflows for solving Fermionic problems, interfaces for calculating
+    Bosonic ground and excited states have been added. In particular we introduced a full 
+    interface for running vibronic structure calculations.
+deprecations:
+  - TransformationType
+  - QubitMappingType
