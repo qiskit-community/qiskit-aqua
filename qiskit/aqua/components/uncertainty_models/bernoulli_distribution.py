@@ -41,6 +41,10 @@ class BernoulliDistribution(UnivariateDistribution):
         super().__init__(1, probabilities, low, high)
         self._p = p
 
+    @staticmethod
+    def _replacement():
+        return 'a 1-qubit circuit with a RY(np.arcsin(np.sqrt(p))) gate'
+
     @property
     def p(self):
         """ p """
