@@ -163,7 +163,7 @@ def _build_bitstr(num_orbitals, num_particles, qubit_mapping, two_qubit_reductio
         bitstr = new_bitstr.astype(np.bool)
 
     if sq_list is not None:
-        sq_list = (len(bitstr) - 1) - np.asarray(sq_list)
+        sq_list = [len(bitstr) - 1 - position for position in sq_list]
         bitstr = np.delete(bitstr, sq_list)
 
     return bitstr.astype(np.bool)
