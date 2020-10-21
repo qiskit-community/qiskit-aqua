@@ -511,7 +511,8 @@ class ListOp(OperatorBase):
             offset: The index of ``oplist`` desired.
 
         Returns:
-            The ``OperatorBase`` at index ``offset`` of ``oplist``.
+            The ``OperatorBase`` at index ``offset`` of ``oplist``, 
+            or another ListOp with the same properties as this one if offset is an slice.
         """
         if isinstance(offset, slice):
             return ListOp(self._oplist[offset],
