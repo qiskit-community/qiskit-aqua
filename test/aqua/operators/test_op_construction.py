@@ -933,7 +933,8 @@ class TestListOpMethods(QiskitAquaTestCase):
 
     def test_indexing(self):
         """Test indexing and slicing"""
-        states_op = ListOp([X, Y, Z, I], coeff=3 + .2j)
+        coeff = 3 + .2j
+        states_op = ListOp([X, Y, Z, I], coeff=coeff)
 
         single_op = states_op[1]
         self.assertIsInstance(single_op, OperatorBase)
@@ -950,7 +951,10 @@ class TestListOpMethods(QiskitAquaTestCase):
         self.assertEqual(list_two_elements[0], X)
         self.assertEqual(list_two_elements[1], Z)
 
-        self.assertEqual(list_one_element.coeff, list_two_elements.coeff)
+        states_op = ListOp([X, Y, Z, I], coeff=coeff)
+
+        self.assertEqual(list_one_element.coeff, coeff)
+        self.assertEqual(list_two_elements.coeff, coeff)
 
 
 class TestListOpComboFn(QiskitAquaTestCase):
