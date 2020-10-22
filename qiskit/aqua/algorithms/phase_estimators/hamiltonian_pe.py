@@ -18,59 +18,10 @@ from qiskit import QuantumCircuit
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import EvolutionBase, OperatorBase
 from qiskit.providers import BaseBackend
-
-# TODO: Remove temporary code when possible.
-# This temporary code is spread out a bit in order to satisfy
-# the linter. When the global phase changes in Terra have settled down,
-# this can be removed.
-from qiskit.circuit.library.standard_gates import U3Gate
-from qiskit.circuit import QuantumRegister
-from qiskit.quantum_info.synthesis.one_qubit_decompose import OneQubitEulerDecomposer
-
-
 from .phase_estimator import PhaseEstimator
 from . import phase_estimation_scale
 from .hamiltonian_pe_result import HamiltonianPEResult
 from .phase_estimation_scale import PhaseEstimationScale
-
-# TODO: Remove temporary code when possible.
-_DECOMPOSER1Q = OneQubitEulerDecomposer('U3')
-
-
-# TODO: Remove temporary code when possible.
-class TempPauliEvolve():
-    """Evolve a Hamiltonian (for working around a bug in terra.)
-
-    This works for 1Q operators. This is only a stop gap while
-    waiting for a bug fix in Terra. This class does not do Trotterization, etc.
-    It just computes the exact gate.
-    Hopefully, this can be removed soon.
-    """
-
-    def __init__(self) -> None:
-        pass
-
-    def convert(self, evolved_operator: OperatorBase) -> QuantumCircuit:
-        """Return a circuit for EvolvedOp
-
-        Hmm, looks like the sign in the exponent may be wrong.
-        """
-        from qiskit.quantum_info.synthesis.two_qubit_decompose import two_qubit_cnot_decompose
-        matrix = evolved_operator.to_matrix()
-        if evolved_operator.num_qubits == 1:
-            return self._matrix_to_circuit_1q(matrix)
-        elif evolved_operator.num_qubits == 2:
-            return two_qubit_cnot_decompose(matrix)
-        else:
-            raise ValueError("wrong num qubits")
-
-    def _matrix_to_circuit_1q(self, matrix: numpy.ndarray) -> QuantumCircuit:
-        theta, phi, lam, global_phase = _DECOMPOSER1Q.angles_and_phase(matrix)
-        q = QuantumRegister(1, "q")
-        qc = QuantumCircuit(1)
-        qc._append(U3Gate(theta, phi, lam), [q[0]], [])
-        qc.global_phase = global_phase
-        return qc
 
 
 class HamiltonianPE(PhaseEstimator):
@@ -102,7 +53,7 @@ class HamiltonianPE(PhaseEstimator):
     def __init__(self,
                  num_evaluation_qubits: int,
                  hamiltonian: OperatorBase,
-                 evolution: Optional[Union[EvolutionBase, TempPauliEvolve]] = None,
+                 evolution: Optional[EvolutionBase] = None,
                  state_preparation: Optional[QuantumCircuit] = None,
                  bound: Optional[float] = None,
                  quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:

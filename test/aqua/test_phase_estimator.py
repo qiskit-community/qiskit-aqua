@@ -16,7 +16,6 @@ import unittest
 from test.aqua import QiskitAquaTestCase
 import numpy as np
 from qiskit.aqua.algorithms.phase_estimators import PhaseEstimator, HamiltonianPE
-from qiskit.aqua.algorithms.phase_estimators.hamiltonian_pe import TempPauliEvolve
 from qiskit.aqua.operators.evolutions import PauliTrotterEvolution, MatrixEvolution
 import qiskit
 from qiskit.aqua.operators import (H, X, Y, Z, I)
@@ -31,7 +30,7 @@ class TestHamiltonianPE(QiskitAquaTestCase):
 
     def hamiltonian_pe(self, hamiltonian, state_preparation=None, num_evaluation_qubits=6,
                        backend=qiskit.Aer.get_backend('qasm_simulator'),
-                       evolution=TempPauliEvolve()):
+                       evolution=MatrixEvolution()):
         """Run HamiltonianPE and return result with all  phases."""
         quantum_instance = qiskit.aqua.QuantumInstance(backend=backend, shots=100000)
         phase_est = HamiltonianPE(
@@ -53,6 +52,14 @@ class TestHamiltonianPE(QiskitAquaTestCase):
         phases = list(phase_dict.keys())
         self.assertAlmostEqual(phases[0], 1.125, delta=0.001)
         self.assertAlmostEqual(phases[1], -1.125, delta=0.001)
+        with self.subTest('Use PauliTrotterEvolution'):
+            evo = PauliTrotterEvolution(trotter_mode='suzuki', reps=4)
+            result = self.hamiltonian_pe(hamiltonian, state_preparation, evolution=evo)
+            phase_dict = result.filter_phases(0.162, as_float=True)
+            phases = list(phase_dict.keys())
+            phases.sort()
+            self.assertAlmostEqual(phases[0], -1.125, delta=0.001)
+            self.assertAlmostEqual(phases[1], 1.125, delta=0.001)
 
     def test_pauli_sum_2(self):
         """Two eigenvalues from Pauli sum with X, Y, Z"""
@@ -63,6 +70,13 @@ class TestHamiltonianPE(QiskitAquaTestCase):
         phases = list(phase_dict.keys())
         self.assertAlmostEqual(phases[0], 1.484, delta=0.001)
         self.assertAlmostEqual(phases[1], -1.484, delta=0.001)
+        with self.subTest('Use PauliTrotterEvolution'):
+            evo = PauliTrotterEvolution(trotter_mode='suzuki', reps=3)
+            result = self.hamiltonian_pe(hamiltonian, state_preparation, evolution=evo)
+            phase_dict = result.filter_phases(0.1, as_float=True)
+            phases = list(phase_dict.keys())
+            self.assertAlmostEqual(phases[0], 1.484, delta=0.001)
+            self.assertAlmostEqual(phases[1], -1.484, delta=0.001)
 
     def test_matrix_evolution(self):
         """1Q Hamiltonian with MatrixEvolution"""
@@ -91,7 +105,7 @@ class TestHamiltonianPE(QiskitAquaTestCase):
 
     def test_from_bound(self):
         """HamiltonianPE with bound"""
-        result = self._setup_from_bound(TempPauliEvolve())
+        result = self._setup_from_bound(MatrixEvolution())
         phases = result.filter_phases()
         with self.subTest('test phases has the correct length'):
             self.assertEqual(len(phases), 2)
