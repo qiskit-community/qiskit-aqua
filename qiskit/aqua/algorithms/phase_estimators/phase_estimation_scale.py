@@ -126,7 +126,7 @@ def from_pauli_sum(pauli_sum: SummedOp) -> PhaseEstimationScale:
     if pauli_sum.primitive_strings() != {'Pauli'}:
         print(pauli_sum.primitive_strings())
         raise ValueError(
-            '`pauli_sum` must be a sum of Pauli operators. Got primititves {}.'.format(
+            '`pauli_sum` must be a sum of Pauli operators. Got primitives {}.'.format(
                 pauli_sum.primitive_strings()))
 
     bound = sum([abs(pauli_sum.coeff * pauli.coeff) for pauli in pauli_sum])
