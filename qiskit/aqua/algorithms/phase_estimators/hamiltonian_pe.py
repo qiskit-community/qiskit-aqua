@@ -53,7 +53,7 @@ class HamiltonianPE(PhaseEstimator):
     def __init__(self,
                  num_evaluation_qubits: int,
                  hamiltonian: OperatorBase,
-                 evolution: Optional[EvolutionBase] = None,
+                 evolution: EvolutionBase,
                  state_preparation: Optional[QuantumCircuit] = None,
                  bound: Optional[float] = None,
                  quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
