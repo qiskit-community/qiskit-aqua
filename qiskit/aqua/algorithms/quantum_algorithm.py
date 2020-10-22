@@ -60,7 +60,7 @@ class QuantumAlgorithm(ABC):
             AquaError: If a quantum instance or backend has not been provided
         """
         if quantum_instance is None and self.quantum_instance is None:
-            raise AquaError("Quantum device or backend "
+            raise AquaError("QuantumInstance or backend "
                             "is needed since you are running quantum algorithm.")
         if isinstance(quantum_instance, (BaseBackend, Backend)):
             self.set_backend(quantum_instance, **kwargs)
