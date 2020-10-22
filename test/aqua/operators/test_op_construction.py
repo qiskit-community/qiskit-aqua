@@ -33,7 +33,7 @@ from qiskit.circuit.library import CZGate, ZGate
 from qiskit.aqua.operators import (
     X, Y, Z, I, CX, T, H, Minus, PrimitiveOp, PauliOp, CircuitOp, MatrixOp, EvolvedOp, StateFn,
     CircuitStateFn, VectorStateFn, DictStateFn, OperatorStateFn, ListOp, ComposedOp, TensoredOp,
-    SummedOp
+    SummedOp, OperatorBase
 )
 
 
@@ -926,6 +926,31 @@ class TestOpMethods(QiskitAquaTestCase):
 
             with self.assertRaises(ValueError):
                 X @ op  # pylint: disable=pointless-statement
+
+
+class TestListOpMethods(QiskitAquaTestCase):
+    """Test ListOp accessing methods"""
+
+    def test_indexing(self):
+        """Test indexing and slicing"""
+        states_op = ListOp([X, Y, Z, I], coeff=3 + .2j)
+
+        single_op = states_op[1]
+        self.assertIsInstance(single_op, OperatorBase)
+        self.assertNotIsInstance(single_op, ListOp)
+
+        list_one_element = states_op[1:2]
+        self.assertIsInstance(list_one_element, ListOp)
+        self.assertEqual(len(list_one_element), 1)
+        self.assertEqual(list_one_element[0], Y)
+
+        list_two_elements = states_op[::2]
+        self.assertIsInstance(list_two_elements, ListOp)
+        self.assertEqual(len(list_two_elements), 2)
+        self.assertEqual(list_two_elements[0], X)
+        self.assertEqual(list_two_elements[1], Z)
+
+        self.assertEqual(list_one_element.coeff, list_two_elements.coeff)
 
 
 class TestListOpComboFn(QiskitAquaTestCase):
