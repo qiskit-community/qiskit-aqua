@@ -1,0 +1,6 @@
+---
+features:
+  - |
+    Adds support for indexing ListOp with slices(listOp[i:j]).
+    Before, this feature returned an array, now it returns another ListOp with
+    the same properties (combo_fn, coeff, abelian, grad_combo_fn).
