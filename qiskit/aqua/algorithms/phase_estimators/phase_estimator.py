@@ -100,20 +100,17 @@ class PhaseEstimator(QuantumAlgorithm):
                 raise ValueError('Only one of `unitary` and `pe_circuit` may be `None`.')
             if not (num_unitary_qubits is None or num_unitary_qubits == unitary.num_qubits):
                 raise ValueError('`num_unitary_qubits` disagrees with size of `unitary`.')
-            pe_circuit = PhaseEstimation(num_evaluation_qubits, unitary)
             self._num_unitary_qubits = unitary.num_qubits
-            self._pe_circuit = pe_circuit
+            self._pe_circuit = PhaseEstimation(num_evaluation_qubits, unitary)
 
         self._num_evaluation_qubits = num_evaluation_qubits
 
         if state_preparation is not None:
-            self._pe_circuit = pe_circuit.compose(
+            self._pe_circuit = self._pe_circuit.compose(
                 state_preparation,
                 qubits=range(num_evaluation_qubits,
                              num_evaluation_qubits + self._num_unitary_qubits),
                 front=True)
-        else:
-            self._pe_circuit = pe_circuit
 
         self._measurements_added = False
         super().__init__(quantum_instance)
