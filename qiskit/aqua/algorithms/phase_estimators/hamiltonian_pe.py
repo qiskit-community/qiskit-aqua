@@ -13,7 +13,6 @@
 """Phase estimation for the spectrum of a Hamiltonian"""
 
 from typing import Optional, Union
-import numpy
 from qiskit import QuantumCircuit
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import EvolutionBase, OperatorBase
