@@ -188,6 +188,20 @@ and its Python API to be installed. See the following for more information:
    QPE
    VQE
 
+Phase Estimators
+++++++++++++++++++++
+Algorithms that estimate the phases of eigenstates of a unitary.
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   HamiltonianPE
+   HamiltonianPEResult
+   PhaseEstimationScale
+   PhaseEstimator
+   PhaseEstimatorResult
+
 """
 
 from .algorithm_result import AlgorithmResult
@@ -212,6 +226,8 @@ from .linear_solvers import (LinearsolverResult, HHL,
 from .minimum_eigen_solvers import (VQE, VQEResult, QAOA, IQPE, IQPEResult, QPE, QPEResult,
                                     ClassicalCPLEX, CPLEX_Ising, NumPyMinimumEigensolver,
                                     MinimumEigensolver, MinimumEigensolverResult)
+from .phase_estimators import (HamiltonianPE, HamiltonianPEResult, PhaseEstimationScale,
+                               PhaseEstimator, PhaseEstimatorResult)
 from .education import EOH, Simon, DeutschJozsa, BernsteinVazirani
 
 __all__ = [
@@ -255,6 +271,11 @@ __all__ = [
     'IterativeAmplitudeEstimationResult',
     'MaximumLikelihoodAmplitudeEstimation',
     'MaximumLikelihoodAmplitudeEstimationResult',
+    'HamiltonianPE',
+    'HamiltonianPEResult',
+    'PhaseEstimationScale',
+    'PhaseEstimator',
+    'PhaseEstimatorResult',
     'Simon',
     'DeutschJozsa',
     'BernsteinVazirani',
