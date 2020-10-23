@@ -69,9 +69,13 @@ class HamiltonianPE(PhaseEstimator):
                                  will be run and input state will be the all-zero state in the
                                  computational basis.
             bound: An upper bound on the absolute value of the eigenvalues of
-                `hamiltonian`. If omitted, and `hamiltonian` is a Pauli sum, then a bound will be
-                computed.
+                `hamiltonian`. If omitted, then `hamiltonian` must be a Pauli sum, in which case
+                then a bound will be computed.
             quantum_instance: The quantum instance on which the circuit will be run.
+
+        Raises:
+            ValueError: if `bound` is `None` and `hamiltonian` is not a Pauli sum (i.e. a
+            `SummedOp` whose terms are `PauliOp`s.)
         """
 
         self._hamiltonian = hamiltonian
