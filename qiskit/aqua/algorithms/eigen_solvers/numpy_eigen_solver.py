@@ -143,7 +143,8 @@ class NumPyEigensolver(ClassicalAlgorithm, Eigensolver):
         """ set the filter criterion """
         self._filter_criterion = filter_criterion
 
-    def supports_aux_operators(self) -> bool:
+    @classmethod
+    def supports_aux_operators(cls) -> bool:
         return True
 
     def _check_set_k(self) -> None:
@@ -284,6 +285,8 @@ class NumPyEigensolver(ClassicalAlgorithm, Eigensolver):
             self._ret['eigvecs'] = np.array(eigvecs)
             self._ret['eigvals'] = np.array(eigvals)
             self._ret['energies'] = np.array(energies)
+            # conversion to np.array breaks in case of aux_ops
+            self._ret['aux_ops'] = aux_ops
 
             self._k = k_orig
 

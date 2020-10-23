@@ -12,6 +12,7 @@
 
 """ Molecular ground state energy  chemistry application """
 
+import warnings
 from typing import List, Optional, Callable, Union
 
 from qiskit.providers import BaseBackend
@@ -59,6 +60,11 @@ class MolecularGroundStateEnergy:
                 See also :class:`~qiskit.chemistry.core.Hamiltonian` which has the core
                 processing behind this class.
         """
+
+        warnings.warn('The MolecularGroundStateEnergy class is deprecated as of Qiskit Aqua 0.8.0 '
+                      'and will be removed no earlier than 3 months after the release date. '
+                      'Instead, the GroundStateCalculation class can be used.',
+                      DeprecationWarning, stacklevel=2)
         self._driver = driver
         self._solver = solver
         self._transformation = transformation

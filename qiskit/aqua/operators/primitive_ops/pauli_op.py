@@ -39,7 +39,7 @@ class PauliOp(PrimitiveOp):
     """
 
     def __init__(self,
-                 primitive: Union[Pauli] = None,
+                 primitive: Union[Pauli],
                  coeff: Union[int, float, complex, ParameterExpression] = 1.0) -> None:
         """
             Args:
@@ -148,12 +148,7 @@ class PauliOp(PrimitiveOp):
         return super(PauliOp, new_self).compose(other)
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
-        if self.num_qubits > 16 and not massive:
-            raise ValueError(
-                'to_matrix will return an exponentially large matrix, '
-                'in this case {0}x{0} elements.'
-                ' Set massive=True if you want to proceed.'.format(2 ** self.num_qubits))
-
+        OperatorBase._check_massive('to_matrix', True, self.num_qubits, massive)
         return self.primitive.to_matrix() * self.coeff  # type: ignore
 
     def to_spmatrix(self) -> spmatrix:
