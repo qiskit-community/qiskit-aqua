@@ -93,7 +93,7 @@ class NaturalGradient(GradientBase):
             params = [params]
         # Instantiate the gradient
         grad = Gradient(self._grad_method, epsilon=self._epsilon).convert(operator, params)
-        # Instantiate the QFI metric which is used to rescale the gradient
+        # Instantiate the QFI metric which is used to re-scale the gradient
         metric = self._qfi_method.convert(operator[-1], params) * 0.25
 
         # Define the function which compute the natural gradient from the gradient and the QFI.
@@ -101,13 +101,13 @@ class NaturalGradient(GradientBase):
             c = np.real(x[0])
             a = np.real(x[1])
             if self.regularization:
-                # If a regularization method is chosen then use a regularized SLE solver to
+                # If a regularization method is chosen then use a regularized solver to
                 # construct the natural gradient.
                 nat_grad = NaturalGradient._regularized_sle_solver(
                     a, c, regularization=self.regularization)
             else:
                 try:
-                    # Try to solve the SLE Ax = C.
+                    # Try to solve the system of linear equations Ax = C.
                     nat_grad = np.linalg.solve(a, c)
                 except np.LinAlgError:
                     # If this is not possible, e.g., because A is singular use a least square
