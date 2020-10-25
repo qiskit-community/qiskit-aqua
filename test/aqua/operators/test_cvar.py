@@ -182,13 +182,6 @@ class TestCVaRExpectation(QiskitAquaTestCase):
         with self.assertRaises(NotImplementedError):
             _ = CVaRExpectation(alpha=1, expectation=expecation)
 
-    def test_unsupported_operations(self):
-        """Assert unsupported operations raise an error."""
-        cvar = CVaRExpectation(0.2)
-
-        with self.assertRaises(NotImplementedError):
-            cvar.compute_variance(Z)
-
     @data(PauliExpectation(), MatrixExpectation())
     def test_underlying_expectation(self, base_expecation):
         """Test the underlying expectation works correctly."""
