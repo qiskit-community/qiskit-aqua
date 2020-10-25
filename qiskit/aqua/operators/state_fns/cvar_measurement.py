@@ -148,10 +148,10 @@ class CVaRMeasurement(OperatorStateFn):
              front: Union[str, dict, np.ndarray,
                           OperatorBase] = None) -> Union[float, complex]:
         r"""
-        Given the energies of each sampled measuremnt outcome (H_i) as well as the
+        Given the energies of each sampled measurement outcome (H_i) as well as the
         sampling probability of each measurement outcome (p_i, we can compute the
         CVaR as H_j + 1/α*(sum_i<j p_i*(H_i - H_j)). Note that index j corresponds
-        to the measurment outcome such that only some of the samples with
+        to the measurement outcome such that only some of the samples with
         measurement outcome j will be used in computing CVaR. Note also that the
         sampling probabilities serve as an alternative to knowing the counts of each
         observation.
@@ -178,7 +178,7 @@ class CVaRMeasurement(OperatorStateFn):
                       front: Union[str, dict, np.ndarray,
                                    OperatorBase] = None) -> Union[float, complex]:
         r"""
-        Given the energies of each sampled measuremnt outcome (H_i) as well as the
+        Given the energies of each sampled measurement outcome (H_i) as well as the
         sampling probability of each measurement outcome (p_i, we can compute the
         variance of the CVaR estimator as
         H_j^2 + 1/α * (sum_i<j p_i*(H_i^2 - H_j^2)).
@@ -200,13 +200,12 @@ class CVaRMeasurement(OperatorStateFn):
         sq_energies = [energy**2 for energy in energies]
         return self.compute_cvar(sq_energies, probabilities)  - self.eval(front)**2
 
-
     def get_outcome_energies_probabilities(self,
                                            front: Union[str, dict, np.ndarray,
                                                         OperatorBase] = None) -> Tuple[list, list]:
         r"""
         In order to compute the  CVaR of an observable expectation, we require
-        the energies of each sampled measuremnt outcome as well as the sampling
+        the energies of each sampled measurement outcome as well as the sampling
         probability of each measurement outcome. Note that the counts for each
         measurement outcome will also suffice (and this is often how the CVaR
         is presented).
@@ -219,7 +218,7 @@ class CVaRMeasurement(OperatorStateFn):
             Two lists of equal length. `energies` contains the energy of each
                 unique measurement outcome computed against the diagonal observable
                 stored in self.primitive. `probabilities` contains the corresponding
-                sampling probability for each measurment outcome in `energies`.
+                sampling probability for each measurement outcome in `energies`.
 
         Raises:
             ValueError: front isn't a DictStateFn or VectorStateFn
@@ -268,7 +267,7 @@ class CVaRMeasurement(OperatorStateFn):
                      energies: list,
                      probabilities: list) -> Union[float, complex]:
         r"""
-        Given the energies of each sampled measuremnt outcome (H_i) as well as the
+        Given the energies of each sampled measurement outcome (H_i) as well as the
         sampling probability of each measurement outcome (p_i, we can compute the
         CVaR. Note that the sampling probabilities serve as an alternative to knowing
         the counts of each observation and that the input energies are assumed to be
@@ -282,14 +281,14 @@ class CVaRMeasurement(OperatorStateFn):
         the difference (α  - \sum_i<j p_i)
 
         Args:
-            energies: A list containing the eneregies (H_i) of each sample measurement
+            energies: A list containing the energies (H_i) of each sample measurement
                       outcome, sorted in increasing order.
             probabilities: The sampling probabilities (p_i) for each corresponding
-                           measurment outcome.
+                           measurement outcome.
 
         Returns:
             The CVaR of the diagonal observable specified by self.primitive and
-                the sampled quantums state described by the inputs
+                the sampled quantum state described by the inputs
                 (energies, probabilities). For index j (described above), the CVaR
                 is computed as H_j + 1/α * (sum_i<j p_i*(H_i - H_j))
 
