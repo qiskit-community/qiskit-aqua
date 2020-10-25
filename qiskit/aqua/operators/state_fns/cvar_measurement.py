@@ -13,7 +13,7 @@
 """CVaRMeasurement class."""
 
 
-from typing import Union, Optional, Callable
+from typing import Union, Optional, Callable, Tuple
 import numpy as np
 
 from qiskit.aqua import AquaError
@@ -203,7 +203,7 @@ class CVaRMeasurement(OperatorStateFn):
 
     def get_outcome_energies_probabilities(self,
                                            front: Union[str, dict, np.ndarray,
-                                                        OperatorBase] = None) -> tuple[list, list]:
+                                                        OperatorBase] = None) -> Tuple[list, list]:
         r"""
         In order to compute the  CVaR of an observable expectation, we require
         the energies of each sampled measuremnt outcome as well as the sampling
