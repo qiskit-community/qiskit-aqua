@@ -267,7 +267,7 @@ class ParamShift(CircuitGradient):
             return item
 
         is_statefn = False
-        if isinstance(x, Iterable):
+        if isinstance(x, list):
             # Check if all items in x are a StateFn items
             if all(isinstance(item, StateFn) for item in x):
                 is_statefn = True
