@@ -198,7 +198,7 @@ class CVaRMeasurement(OperatorStateFn):
         """
         energies, probabilities = self.get_outcome_energies_probabilities(front)
         sq_energies = [energy**2 for energy in energies]
-        return self.compute_cvar(sq_energies, probabilities)  - self.eval(front)**2
+        return self.compute_cvar(sq_energies, probabilities) - self.eval(front)**2
 
     def get_outcome_energies_probabilities(self,
                                            front: Union[str, dict, np.ndarray,
@@ -293,9 +293,8 @@ class CVaRMeasurement(OperatorStateFn):
                 is computed as H_j + 1/α * (sum_i<j p_i*(H_i - H_j))
 
         Raises:
-            ValueError: front isn't a DictStateFn or VectorStateFn"""
-
-
+            ValueError: front isn't a DictStateFn or VectorStateFn
+        """
         alpha = self._alpha
 
         # Determine j, the index of the measurement outcome such
