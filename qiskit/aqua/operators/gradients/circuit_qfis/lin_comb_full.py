@@ -326,10 +326,10 @@ class LinCombFull(CircuitQFI):
                                     qfi_circuit = self.trim_circuit(
                                         qfi_circuit, param_occurence_j[0]
                                     )
-                                # Aply final Hadamard gate
+                                # Apply final Hadamard gate
                                 qfi_circuit.h(work_qubit)
                                 # Convert the quantum circuit into a CircuitStateFn and add the
-                                # coefficients i, j and the originial operator coefficient
+                                # coefficients i, j and the original operator coefficient
                                 term = np.sqrt(np.abs(coeff_i) * np.abs(coeff_j)) * operator.coeff
                                 term = term * CircuitStateFn(qfi_circuit)
 
