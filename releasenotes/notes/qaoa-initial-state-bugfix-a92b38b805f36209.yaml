@@ -1,0 +1,7 @@
+---
+fixes:
+  - |
+    A bug that mixes custom ``initial_state`` in ``QAOA`` with Hadamard gates has been fixed. This doesn't change functionality of QAOA if no initial_state is provided by the user. Attention should be taken if your implementation uses QAOA with cusom ``initial_state`` parameter as the optimization results might differ.
+critical:
+  - |
+    Be aware that ``initial_state`` parameter in ``QAOA`` has now different implementation as a result of a bug fix. The previous implementation wrongly mixed the user provided ``initial_state`` with Hadamard gates. The issue is fixed now. No attention needed if your code does not make use of the user provided ``initial_state`` parameter.

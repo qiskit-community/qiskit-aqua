@@ -1,0 +1,7 @@
+---
+fixes:
+  - |
+    optimize_svm method of qp_solver would sometimes fail resulting in an error like this
+    `ValueError: cannot reshape array of size 1 into shape (200,1)` This addresses the issue
+    by adding an L2 norm parameter, lambda2, which defaults to 0.001 but can be changed via
+    the QSVM algorithm, as needed, to facilitate convergence.
