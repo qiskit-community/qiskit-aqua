@@ -23,6 +23,7 @@ from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
 from qiskit.circuit import ParameterVector
 from qiskit.providers import BaseBackend
+from qiskit.providers import Backend
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua import AquaError
@@ -79,7 +80,9 @@ class QSVM(QuantumAlgorithm):
                  test_dataset: Optional[Dict[str, np.ndarray]] = None,
                  datapoints: Optional[np.ndarray] = None,
                  multiclass_extension: Optional[MulticlassExtension] = None,
-                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
+                 lambda2: float = 0.001,
+                 quantum_instance: Optional[
+                     Union[QuantumInstance, BaseBackend, Backend]] = None) -> None:
         """
         Args:
             feature_map: Feature map module, used to transform data
@@ -88,6 +91,7 @@ class QSVM(QuantumAlgorithm):
             datapoints: Prediction dataset.
             multiclass_extension: If number of classes is greater than 2 then a multiclass scheme
                 must be supplied, in the form of a multiclass extension.
+            lambda2: L2 norm regularization factor
             quantum_instance: Quantum Instance or Backend
 
         Raises:
@@ -116,6 +120,7 @@ class QSVM(QuantumAlgorithm):
         self.setup_training_data(training_dataset)
         self.setup_test_data(test_dataset)
         self.setup_datapoint(datapoints)
+        self.lambda2 = lambda2
 
         self.feature_map = feature_map
         self.num_qubits = self.feature_map.num_qubits

@@ -23,6 +23,7 @@ from scipy.optimize import bisect
 from qiskit import QuantumCircuit, ClassicalRegister
 from qiskit.circuit.library import QFT
 from qiskit.providers import BaseBackend
+from qiskit.providers import Backend
 from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.utils import CircuitFactory
 from qiskit.aqua.circuits import PhaseEstimationCircuit
@@ -67,7 +68,8 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
                  post_processing: Optional[Callable[[float], float]] = None,
                  phase_estimation_circuit: Optional[QuantumCircuit] = None,
                  iqft: Optional[QuantumCircuit] = None,
-                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None,
+                 quantum_instance: Optional[
+                     Union[QuantumInstance, BaseBackend, Backend]] = None,
                  a_factory: Optional[CircuitFactory] = None,
                  q_factory: Optional[CircuitFactory] = None,
                  i_objective: Optional[int] = None
@@ -145,11 +147,17 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
             The QuantumCircuit object for the constructed circuit.
         """
         if self.state_preparation is None:  # circuit factories
+            # ignore deprecation warnings from getter, user has already been warned when
+            # the a_factory has been passed
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            q_factory = self.q_factory
+            warnings.filterwarnings('always', category=DeprecationWarning)
+
             iqft = QFT(self._m, do_swaps=False, inverse=True) if self._iqft is None else self._iqft
             pec = PhaseEstimationCircuit(
                 iqft=iqft, num_ancillae=self._m,
-                state_in_circuit_factory=self.a_factory,
-                unitary_circuit_factory=self.q_factory
+                state_in_circuit_factory=self._a_factory,
+                unitary_circuit_factory=q_factory
             )
             self._circuit = pec.construct_circuit(measurement=measurement)
         else:
@@ -430,7 +438,7 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
     def _run(self) -> 'AmplitudeEstimationResult':
         # check if A factory or state_preparation has been set
         if self.state_preparation is None:
-            if self.a_factory is None:  # getter emits deprecation warnings, therefore nest
+            if self._a_factory is None:  # getter emits deprecation warnings, therefore nest
                 raise AquaError('Either the state_preparation variable or the a_factory '
                                 '(deprecated) must be set to run the algorithm.')
 

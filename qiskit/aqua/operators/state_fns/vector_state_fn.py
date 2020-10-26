@@ -13,8 +13,9 @@
 """ VectorStateFn Class """
 
 
-from typing import Union, Set, Optional, Dict
+from typing import Union, Set, Optional, Dict, List
 import numpy as np
+from qiskit import QuantumCircuit
 
 from qiskit.quantum_info import Statevector
 from qiskit.circuit import ParameterExpression
@@ -23,6 +24,7 @@ from qiskit.aqua import aqua_globals
 from ..operator_base import OperatorBase
 from .state_fn import StateFn
 from ..list_ops.list_op import ListOp
+from ...utils import arithmetic
 
 
 class VectorStateFn(StateFn):
@@ -76,6 +78,51 @@ class VectorStateFn(StateFn):
                              coeff=np.conj(self.coeff),
                              is_measurement=(not self.is_measurement))
 
+    def permute(self, permutation: List[int]) -> 'VectorStateFn':
+        new_self = self
+        new_num_qubits = max(permutation) + 1
+
+        if self.num_qubits != len(permutation):
+            # raise AquaError("New index must be defined for each qubit of the operator.")
+            pass
+        if self.num_qubits < new_num_qubits:
+            # pad the operator with identities
+            new_self = self._expand_dim(new_num_qubits - self.num_qubits)
+        qc = QuantumCircuit(new_num_qubits)
+
+        # extend the permutation indices to match the size of the new matrix
+        permutation \
+            = list(filter(lambda x: x not in permutation, range(new_num_qubits))) + permutation
+
+        # decompose permutation into sequence of transpositions
+        transpositions = arithmetic.transpositions(permutation)
+        for trans in transpositions:
+            qc.swap(trans[0], trans[1])
+        from .. import CircuitOp
+        matrix = CircuitOp(qc).to_matrix()
+        vector = new_self.primitive.data
+        return VectorStateFn(primitive=matrix.dot(vector),
+                             coeff=self.coeff,
+                             is_measurement=self.is_measurement)
+
+    def to_dict_fn(self) -> StateFn:
+        """Creates the equivalent state function of type DictStateFn.
+
+        Returns:
+            A new DictStateFn equivalent to ``self``.
+        """
+        from .dict_state_fn import DictStateFn
+
+        num_qubits = self.num_qubits
+        new_dict = {format(i, 'b').zfill(num_qubits): v for i, v in enumerate(self.primitive.data)}
+        return DictStateFn(new_dict, coeff=self.coeff, is_measurement=self.is_measurement)
+
+    def _expand_dim(self, num_qubits: int) -> 'VectorStateFn':
+        primitive = np.zeros(2**num_qubits, dtype=complex)
+        return VectorStateFn(self.primitive.tensor(primitive),
+                             coeff=self.coeff,
+                             is_measurement=self.is_measurement)
+
     def tensor(self, other: OperatorBase) -> OperatorBase:
         if isinstance(other, VectorStateFn):
             return StateFn(self.primitive.tensor(other.primitive),
@@ -86,22 +133,12 @@ class VectorStateFn(StateFn):
         return TensoredOp([self, other])
 
     def to_density_matrix(self, massive: bool = False) -> np.ndarray:
-        if self.num_qubits > 16 and not massive:
-            raise ValueError(
-                'to_matrix will return an exponentially large matrix,'
-                ' in this case {0}x{0} elements.'
-                ' Set massive=True if you want to proceed.'.format(2**self.num_qubits))
-
+        OperatorBase._check_massive('to_density_matrix', True, self.num_qubits, massive)
         return self.primitive.to_operator().data * self.coeff
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
-        if self.num_qubits > 16 and not massive:
-            raise ValueError(
-                'to_vector will return an exponentially large vector, in this case {0} elements.'
-                ' Set massive=True if you want to proceed.'.format(2**self.num_qubits))
-
+        OperatorBase._check_massive('to_matrix', False, self.num_qubits, massive)
         vec = self.primitive.data * self.coeff
-
         return vec if not self.is_measurement else vec.reshape(1, -1)
 
     def to_matrix_op(self, massive: bool = False) -> OperatorBase:
@@ -110,7 +147,7 @@ class VectorStateFn(StateFn):
     def to_circuit_op(self) -> OperatorBase:
         """ Return ``StateFnCircuit`` corresponding to this StateFn."""
         from .circuit_state_fn import CircuitStateFn
-        csfn = CircuitStateFn.from_vector(self.to_matrix(massive=True)) * self.coeff  # type: ignore
+        csfn = CircuitStateFn.from_vector(self.primitive.data) * self.coeff  # type: ignore
         return csfn.adjoint() if self.is_measurement else csfn
 
     def __str__(self) -> str:
@@ -145,9 +182,9 @@ class VectorStateFn(StateFn):
 
         # pylint: disable=cyclic-import,import-outside-toplevel
         from ..operator_globals import EVAL_SIG_DIGITS
-        from .dict_state_fn import DictStateFn
         from .operator_state_fn import OperatorStateFn
         from .circuit_state_fn import CircuitStateFn
+        from .dict_state_fn import DictStateFn
         if isinstance(front, DictStateFn):
             return np.round(sum([v * self.primitive.data[int(b, 2)] * front.coeff  # type: ignore
                                  for (b, v) in front.primitive.items()]) * self.coeff,

@@ -108,6 +108,10 @@ class GaussianConditionalIndependenceModel(MultivariateDistribution):
             self._offsets[k] = offset
             self._slopes[k] = slope
 
+    @staticmethod
+    def _replacement():
+        return 'qiskit.finance.applications.GaussianConditionalIndependenceModel'
+
     def build(self, qc, q, q_ancillas=None, params=None):
         self._normal.build(qc, q, q_ancillas)
         for k in range(self.K):

@@ -12,11 +12,12 @@
 
 """ MatrixOp Class """
 
-from typing import Union, Optional, Set, Dict
+from typing import Union, Optional, Set, Dict, List, cast, get_type_hints
 import logging
 import numpy as np
 from scipy.sparse import spmatrix
 
+from qiskit import QuantumCircuit
 from qiskit.quantum_info import Operator
 from qiskit.circuit import ParameterExpression, Instruction
 from qiskit.extensions.hamiltonian_gate import HamiltonianGate
@@ -27,6 +28,8 @@ from ..list_ops.summed_op import SummedOp
 from ..list_ops.tensored_op import TensoredOp
 from .primitive_op import PrimitiveOp
 from ..legacy.matrix_operator import MatrixOperator
+from ...utils import arithmetic
+from ... import AquaError
 
 logger = logging.getLogger(__name__)
 
@@ -37,8 +40,8 @@ class MatrixOp(PrimitiveOp):
     """
 
     def __init__(self,
-                 primitive: Union[list, np.ndarray, spmatrix, Operator] = None,
-                 coeff: Optional[Union[int, float, complex, ParameterExpression]] = 1.0) -> None:
+                 primitive: Union[list, np.ndarray, spmatrix, Operator],
+                 coeff: Union[int, float, complex, ParameterExpression] = 1.0) -> None:
         """
         Args:
             primitive: The matrix-like object which defines the behavior of the underlying function.
@@ -48,6 +51,7 @@ class MatrixOp(PrimitiveOp):
             TypeError: invalid parameters.
             ValueError: invalid parameters.
         """
+        primitive_orig = primitive
         if isinstance(primitive, spmatrix):
             primitive = primitive.toarray()
 
@@ -55,9 +59,10 @@ class MatrixOp(PrimitiveOp):
             primitive = Operator(primitive)
 
         if not isinstance(primitive, Operator):
-            raise TypeError(
-                'MatrixOp can only be instantiated with MatrixOperator, '
-                'not {}'.format(type(primitive)))
+            type_hints = get_type_hints(MatrixOp.__init__).get('primitive')
+            valid_cls = [cls.__name__ for cls in type_hints.__args__]
+            raise TypeError(f"MatrixOp can only be instantiated with {valid_cls}, "
+                            f"not '{primitive_orig.__class__.__name__}'")
 
         if not primitive.input_dims() == primitive.output_dims():
             raise ValueError('Cannot handle non-square matrices yet.')
@@ -105,6 +110,10 @@ class MatrixOp(PrimitiveOp):
             return self.coeff == other.coeff and self.primitive == other.primitive
         return self.coeff * self.primitive == other.coeff * other.primitive  # type: ignore
 
+    def _expand_dim(self, num_qubits: int) -> 'MatrixOp':
+        identity = np.identity(2**num_qubits, dtype=complex)
+        return MatrixOp(self.primitive.tensor(Operator(identity)), coeff=self.coeff)  # type: ignore
+
     def tensor(self, other: OperatorBase) -> OperatorBase:
         if isinstance(other.primitive, Operator):  # type: ignore
             return MatrixOp(self.primitive.tensor(other.primitive),  # type: ignore
@@ -112,14 +121,53 @@ class MatrixOp(PrimitiveOp):
 
         return TensoredOp([self, other])
 
-    def compose(self, other: OperatorBase) -> OperatorBase:
-        other = self._check_zero_for_composition_and_expand(other)
+    def compose(self, other: OperatorBase,
+                permutation: Optional[List[int]] = None, front: bool = False) -> OperatorBase:
 
+        new_self, other = self._expand_shorter_operator_and_permute(other, permutation)
+        new_self = cast(MatrixOp, new_self)
+
+        if front:
+            return other.compose(new_self)
         if isinstance(other, MatrixOp):
-            return MatrixOp(self.primitive.compose(other.primitive, front=True),  # type: ignore
-                            coeff=self.coeff * other.coeff)
+            return MatrixOp(new_self.primitive.compose(other.primitive, front=True),  # type: ignore
+                            coeff=new_self.coeff * other.coeff)
 
-        return super().compose(other)
+        return super(MatrixOp, new_self).compose(other)
+
+    def permute(self, permutation: Optional[List[int]] = None) -> 'MatrixOp':
+        """Creates a new MatrixOp that acts on the permuted qubits.
+
+        Args:
+            permutation: A list defining where each qubit should be permuted. The qubit at index
+                j should be permuted to position permutation[j].
+
+        Returns:
+            A new MatrixOp representing the permuted operator.
+
+        Raises:
+            AquaError: if indices do not define a new index for each qubit.
+        """
+        new_self = self
+        new_matrix_size = max(permutation) + 1
+
+        if self.num_qubits != len(permutation):
+            raise AquaError("New index must be defined for each qubit of the operator.")
+        if self.num_qubits < new_matrix_size:
+            # pad the operator with identities
+            new_self = self._expand_dim(new_matrix_size - self.num_qubits)
+        qc = QuantumCircuit(new_matrix_size)
+
+        # extend the indices to match the size of the new matrix
+        permutation \
+            = list(filter(lambda x: x not in permutation, range(new_matrix_size))) + permutation
+
+        # decompose permutation into sequence of transpositions
+        transpositions = arithmetic.transpositions(permutation)
+        for trans in transpositions:
+            qc.swap(trans[0], trans[1])
+        matrix = CircuitOp(qc).to_matrix()
+        return MatrixOp(matrix.transpose()) @ new_self @ MatrixOp(matrix)  # type: ignore
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
         return self.primitive.data * self.coeff  # type: ignore

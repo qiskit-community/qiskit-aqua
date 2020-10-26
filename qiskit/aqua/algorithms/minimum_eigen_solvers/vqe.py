@@ -25,10 +25,12 @@ from qiskit import ClassicalRegister, QuantumCircuit
 from qiskit.circuit import Parameter
 from qiskit.circuit.library import RealAmplitudes
 from qiskit.providers import BaseBackend
+from qiskit.providers import Backend
 from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.operators import (OperatorBase, ExpectationBase, ExpectationFactory, StateFn,
                                    CircuitStateFn, LegacyBaseOperator, ListOp, I, CircuitSampler)
+from qiskit.aqua.operators.gradients import GradientBase
 from qiskit.aqua.components.optimizers import Optimizer, SLSQP
 from qiskit.aqua.components.variational_forms import VariationalForm
 from qiskit.aqua.utils.validation import validate_min
@@ -90,13 +92,15 @@ class VQE(VQAlgorithm, MinimumEigensolver):
                  var_form: Optional[Union[QuantumCircuit, VariationalForm]] = None,
                  optimizer: Optional[Optimizer] = None,
                  initial_point: Optional[np.ndarray] = None,
+                 gradient: Optional[Union[GradientBase, Callable]] = None,
                  expectation: Optional[ExpectationBase] = None,
                  include_custom: bool = False,
                  max_evals_grouped: int = 1,
                  aux_operators: Optional[List[Optional[Union[OperatorBase,
                                                              LegacyBaseOperator]]]] = None,
                  callback: Optional[Callable[[int, np.ndarray, float, float], None]] = None,
-                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
+                 quantum_instance: Optional[
+                     Union[QuantumInstance, BaseBackend, Backend]] = None) -> None:
         """
 
         Args:
@@ -106,6 +110,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
             initial_point: An optional initial point (i.e. initial parameter values)
                 for the optimizer. If ``None`` then VQE will look to the variational form for a
                 preferred point and if not will simply compute a random one.
+            gradient: An optional gradient function or operator for optimizer.
             expectation: The Expectation converter for taking the average value of the
                 Observable over the var_form state function. When ``None`` (the default) an
                 :class:`~qiskit.aqua.operators.expectations.ExpectationFactory` is used to select
@@ -123,7 +128,8 @@ class VQE(VQAlgorithm, MinimumEigensolver):
                 potentially the expectation values can be computed in parallel. Typically this is
                 possible when a finite difference gradient is used by the optimizer such that
                 multiple points to compute the gradient can be passed and if computed in parallel
-                improve overall execution time.
+                improve overall execution time. Deprecated if a gradient operator or function is
+                given.
             aux_operators: Optional list of auxiliary operators to be evaluated with the
                 eigenstate of the minimum eigenvalue main result and their expectation values
                 returned. For instance in chemistry these can be dipole operators, total particle
@@ -157,6 +163,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         super().__init__(var_form=var_form,
                          optimizer=optimizer,
                          cost_fn=self._energy_evaluation,
+                         gradient=gradient,
                          initial_point=initial_point,
                          quantum_instance=quantum_instance)
         self._ret = None  # type: Dict[str, Any]
@@ -200,7 +207,8 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         self._expect_op = None
 
     @QuantumAlgorithm.quantum_instance.setter
-    def quantum_instance(self, quantum_instance: Union[QuantumInstance, BaseBackend]) -> None:
+    def quantum_instance(self, quantum_instance: Union[QuantumInstance,
+                                                       BaseBackend, Backend]) -> None:
         """ set quantum_instance """
         super(VQE, self.__class__).quantum_instance.__set__(self, quantum_instance)
 
@@ -388,7 +396,8 @@ class VQE(VQAlgorithm, MinimumEigensolver):
 
         return circuits
 
-    def supports_aux_operators(self) -> bool:
+    @classmethod
+    def supports_aux_operators(cls) -> bool:
         return True
 
     def _run(self) -> 'VQEResult':
@@ -408,9 +417,19 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         self._quantum_instance.circuit_summary = True
 
         self._eval_count = 0
+
+        # Convert the gradient operator into a callable function that is compatible with the
+        # optimization routine.
+        if self._gradient:
+            if isinstance(self._gradient, GradientBase):
+                self._gradient = self._gradient.gradient_wrapper(
+                    ~StateFn(self._operator) @ StateFn(self._var_form),
+                    bind_params=self._var_form_params,
+                    backend=self._quantum_instance)
         vqresult = self.find_minimum(initial_point=self.initial_point,
                                      var_form=self.var_form,
                                      cost_fn=self._energy_evaluation,
+                                     gradient_fn=self._gradient,
                                      optimizer=self.optimizer)
 
         # TODO remove all former dictionary logic

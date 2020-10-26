@@ -12,7 +12,7 @@
 
 """
 Chemistry Drivers (:mod:`qiskit.chemistry.drivers`)
-=========================================================
+===================================================
 .. currentmodule:: qiskit.chemistry.drivers
 
 Qiskit's chemistry module requires a computational chemistry program or library, accessed via a
@@ -51,6 +51,8 @@ Driver Base Class
    :nosignatures:
 
    BaseDriver
+   BosonicDriver
+   FermionicDriver
 
 Driver Common
 =============
@@ -59,13 +61,15 @@ Driver Common
    :toctree: ../stubs/
    :nosignatures:
 
-   UnitsType
+   Molecule
    HFMethodType
+   UnitsType
    BasisType
    InitialGuess
 
 Drivers
 =======
+
 The drivers in the chemistry module obtain their information from classical ab-initio programs
 or libraries. Several drivers, interfacing to common programs and libraries, are
 available. To use the driver its dependent program/library must be installed. See
@@ -87,6 +91,9 @@ program/library and needs no special install.
 The :class:`FCIDumpDriver` likewise reads from a pre-existing file in this case a standard
 FCIDump file and again needs no special install.
 
+Fermionic Drivers
+=================
+
 .. autosummary::
    :toctree: ../stubs/
    :nosignatures:
@@ -98,20 +105,55 @@ FCIDump file and again needs no special install.
    HDF5Driver
    FCIDumpDriver
 
+Bosonic Drivers
+===============
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   GaussianForcesDriver
+
+General Driver
+==============
+
+The :class:`GaussianLogDriver` allows an arbitrary Gaussian Job Control File to be run and
+return a :class:`GaussianLogResult` containing the log as well as ready access certain data
+of interest that is parsed from the log.
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   GaussianLogDriver
+   GaussianLogResult
+
+
 """
-from ._basedriver import BaseDriver, UnitsType, HFMethodType
+
+from .base_driver import BaseDriver
+from .molecule import Molecule
+from .bosonic_driver import BosonicDriver
+from .fermionic_driver import FermionicDriver, HFMethodType
+from .units_type import UnitsType
 from .fcidumpd import FCIDumpDriver
-from .gaussiand import GaussianDriver
+from .gaussiand import GaussianDriver, GaussianLogDriver, GaussianLogResult, GaussianForcesDriver
 from .hdf5d import HDF5Driver
 from .psi4d import PSI4Driver
 from .pyquanted import PyQuanteDriver, BasisType
 from .pyscfd import PySCFDriver, InitialGuess
 
-__all__ = ['BaseDriver',
+__all__ = ['HFMethodType',
+           'Molecule',
+           'BaseDriver',
+           'BosonicDriver',
+           'FermionicDriver',
            'UnitsType',
-           'HFMethodType',
            'FCIDumpDriver',
            'GaussianDriver',
+           'GaussianForcesDriver',
+           'GaussianLogDriver',
+           'GaussianLogResult',
            'HDF5Driver',
            'PSI4Driver',
            'BasisType',

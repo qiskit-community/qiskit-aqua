@@ -16,7 +16,7 @@ import unittest
 from test.aqua import QiskitAquaTestCase
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 from qiskit import BasicAer
-from qiskit.aqua import QuantumInstance
+from qiskit.aqua import QuantumInstance, AquaError
 
 
 def _compare_dict(dict1, dict2):
@@ -85,7 +85,7 @@ class TestSkipQobjValidation(QiskitAquaTestCase):
             from qiskit.providers.aer.noise import NoiseModel
             from qiskit import Aer
             self.backend = Aer.get_backend('qasm_simulator')
-        except Exception as ex:  # pylint: disable=broad-except
+        except ImportError as ex:  # pylint: disable=broad-except
             self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(ex)))
             return
 
@@ -102,6 +102,15 @@ class TestSkipQobjValidation(QiskitAquaTestCase):
         quantum_instance.skip_qobj_validation = True
         res_w_noise_skip_validation = quantum_instance.execute(self.qc).get_counts(self.qc)
         self.assertTrue(_compare_dict(res_w_noise, res_w_noise_skip_validation))
+
+        # BasicAer should fail:
+        with self.assertRaises(AquaError):
+            _ = QuantumInstance(BasicAer.get_backend('qasm_simulator'),
+                                noise_model=noise_model)
+
+        with self.assertRaises(AquaError):
+            quantum_instance = QuantumInstance(BasicAer.get_backend('qasm_simulator'))
+            quantum_instance.set_config(noise_model=noise_model)
 
 
 if __name__ == '__main__':
