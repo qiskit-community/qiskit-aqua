@@ -83,9 +83,9 @@ class QAOAVarForm(VariationalForm):
 
         # initialize circuit, possibly based on given register/initial state
         if isinstance(self._initial_state, QuantumCircuit):
-            init_state = CircuitStateFn(self._initial_state)
+            circuit = CircuitStateFn(self._initial_state)
         elif self._initial_state is not None:
-            init_state = CircuitStateFn(self._initial_state.construct_circuit('circuit'))
+            circuit = CircuitStateFn(self._initial_state.construct_circuit('circuit'))
         else:
             circuit = (H ^ self._num_qubits)
 
