@@ -47,10 +47,8 @@ class Hessian(HessianBase):
                     Either give directly the tuples/list of tuples for which the second order
                     derivative is to be computed or give a list of parameters to build the
                     full Hessian for those parameters.
-
         Returns:
             OperatorBase: An operator whose evaluation yields the Hessian
-
         Raises:
             ValueError: If `params` is not set.
         """
@@ -80,14 +78,11 @@ class Hessian(HessianBase):
                     = None
                     ) -> OperatorBase:
         """Get the Hessian for the given operator w.r.t. the given parameters
-
         Args:
             operator: Operator w.r.t. which we take the Hessian.
             params: Parameters w.r.t. which we compute the Hessian.
-
         Returns:
             Operator which represents the gradient w.r.t. the given params.
-
         Raises:
             ValueError: If ``params`` contains a parameter not present in ``operator``.
             AquaError: If the coefficient of the operator could not be reduced to 1.
@@ -241,7 +236,12 @@ class Hessian(HessianBase):
 
         elif isinstance(operator, StateFn):
             if not operator.is_measurement:
-                return self.hess_method.convert(operator, params)
+                from .circuit_gradients import LinComb
+                if isinstance(self.hess_method, LinComb):
+                    return self.hess_method.convert(operator, params)
+                else:
+                    raise TypeError('Please set the attribute hess_method to ´lin_comb´ to compute '
+                                    'probability Hessians.')
 
             else:
                 raise TypeError('The computation of Hessians is only supported for Operators which '

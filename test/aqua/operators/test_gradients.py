@@ -207,7 +207,6 @@ class TestGradients(QiskitAquaTestCase):
     @data('lin_comb', 'param_shift', 'fin_diff')
     def test_state_gradient1(self, method):
         """Test the state gradient
-
         Tr(|psi><psi|Z) = sin(a)sin(b)
         Tr(|psi><psi|X) = cos(a)
         d<H>/da = - 0.5 sin(a) - 1 cos(a)sin(b)
@@ -239,7 +238,6 @@ class TestGradients(QiskitAquaTestCase):
     @data('lin_comb', 'param_shift', 'fin_diff')
     def test_state_gradient2(self, method):
         """Test the state gradient 2
-
         Tr(|psi><psi|Z) = sin(a)sin(a)
         Tr(|psi><psi|X) = cos(a)
         d<H>/da = - 0.5 sin(a) - 2 cos(a)sin(a)
@@ -269,7 +267,6 @@ class TestGradients(QiskitAquaTestCase):
     @data('lin_comb', 'param_shift', 'fin_diff')
     def test_state_gradient3(self, method):
         """Test the state gradient 3
-
         Tr(|psi><psi|Z) = sin(a)sin(c(a)) = sin(a)sin(cos(a)+1)
         Tr(|psi><psi|X) = cos(a)
         d<H>/da = - 0.5 sin(a) - 1 cos(a)sin(cos(a)+1) + 1 sin^2(a)cos(cos(a)+1)
@@ -328,7 +325,6 @@ class TestGradients(QiskitAquaTestCase):
     @data('lin_comb', 'param_shift', 'fin_diff')
     def test_state_gradient5(self, method):
         """Test the state gradient
-
         Tr(|psi><psi|Z) = sin(a0)sin(a1)
         Tr(|psi><psi|X) = cos(a0)
         d<H>/da0 = - 0.5 sin(a0) - 1 cos(a0)sin(a1)
@@ -359,7 +355,6 @@ class TestGradients(QiskitAquaTestCase):
     @data('lin_comb', 'param_shift', 'fin_diff')
     def test_state_hessian(self, method):
         """Test the state Hessian
-
         Tr(|psi><psi|Z) = sin(a)sin(b)
         Tr(|psi><psi|X) = cos(a)
         d^2<H>/da^2 = - 0.5 cos(a) + 1 sin(a)sin(b)
@@ -397,7 +392,6 @@ class TestGradients(QiskitAquaTestCase):
     def test_state_hessian_custom_combo_fn(self, method):
         """Test the state Hessian with on an operator which includes
             a user-defined combo_fn.
-
         Tr(|psi><psi|Z) = sin(a)sin(b)
         Tr(|psi><psi|X) = cos(a)
         d^2<H>/da^2 = - 0.5 cos(a) + 1 sin(a)sin(b)
@@ -436,7 +430,6 @@ class TestGradients(QiskitAquaTestCase):
     @data('lin_comb', 'param_shift', 'fin_diff')
     def test_prob_grad(self, method):
         """Test the probability gradient
-
         dp0/da = cos(a)sin(b) / 2
         dp1/da = - cos(a)sin(b) / 2
         dp0/db = sin(a)cos(b) / 2
@@ -466,10 +459,8 @@ class TestGradients(QiskitAquaTestCase):
                 np.testing.assert_array_almost_equal(prob_grad_result,
                                                      correct_values[i][j], decimal=1)
 
-    @data('lin_comb', 'param_shift', 'fin_diff')
-    def test_prob_hess(self, method):
+    def test_prob_hess_lin_comb(self):
         """Test the probability Hessian using linear combination of unitaries method
-
         d^2p0/da^2 = - sin(a)sin(b) / 2
         d^2p1/da^2 =  sin(a)sin(b) / 2
         d^2p0/dadb = cos(a)cos(b) / 2
@@ -488,7 +479,7 @@ class TestGradients(QiskitAquaTestCase):
 
         op = CircuitStateFn(primitive=qc, coeff=1.)
 
-        prob_hess = Hessian(hess_method=method).convert(operator=op, params=params)
+        prob_hess = Hessian(hess_method='lin_comb').convert(operator=op, params=params)
         values_dict = [{a: np.pi / 4, b: 0}, {a: np.pi / 4, b: np.pi / 4},
                        {a: np.pi / 2, b: np.pi}]
         correct_values = [[[0, 0], [1 / (2 * np.sqrt(2)), - 1 / (2 * np.sqrt(2))]],
@@ -502,7 +493,6 @@ class TestGradients(QiskitAquaTestCase):
     @data('lin_comb_full', 'overlap_block_diag', 'overlap_diag')
     def test_qfi(self, method):
         """Test if the quantum fisher information calculation is correct
-
         QFI = [[1, 0], [0, 1]] - [[0, 0], [0, cos^2(a)]]
         """
 
@@ -600,7 +590,6 @@ class TestGradients(QiskitAquaTestCase):
     @unpack
     def test_jax_chain_rule(self, method: str, autograd: bool):
         """Test the chain rule functionality using Jax
-
         d<H>/d<X> = 2<X>
         d<H>/d<Z> = - sin(<Z>)
         <Z> = Tr(|psi><psi|Z) = sin(a)sin(b)
@@ -642,7 +631,6 @@ class TestGradients(QiskitAquaTestCase):
     @data('lin_comb', 'param_shift', 'fin_diff')
     def test_operator_coefficient_gradient(self, method):
         """Test the operator coefficient gradient
-
         Tr( | psi > < psi | Z) = sin(a)sin(b)
         Tr( | psi > < psi | X) = cos(a)
         """
@@ -671,7 +659,6 @@ class TestGradients(QiskitAquaTestCase):
     @data('lin_comb', 'param_shift', 'fin_diff')
     def test_operator_coefficient_hessian(self, method):
         """Test the operator coefficient hessian
-
         <Z> = Tr( | psi > < psi | Z) = sin(a)sin(b)
         <X> = Tr( | psi > < psi | X) = cos(a)
         d<H>/dc_0 = 2 * c_0 * <X> + c_1 * <Z>
@@ -708,7 +695,6 @@ class TestGradients(QiskitAquaTestCase):
     @data('lin_comb', 'param_shift', 'fin_diff')
     def test_circuit_sampler(self, method):
         """Test the gradient with circuit sampler
-
         Tr(|psi><psi|Z) = sin(a)sin(b)
         Tr(|psi><psi|X) = cos(a)
         d<H>/da = - 0.5 sin(a) - 1 cos(a)sin(b)
@@ -752,7 +738,6 @@ class TestGradients(QiskitAquaTestCase):
     @data('lin_comb', 'param_shift', 'fin_diff')
     def test_circuit_sampler2(self, method):
         """Test the probability gradient with the circuit sampler
-
         dp0/da = cos(a)sin(b) / 2
         dp1/da = - cos(a)sin(b) / 2
         dp0/db = sin(a)cos(b) / 2
