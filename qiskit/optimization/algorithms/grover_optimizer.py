@@ -232,9 +232,8 @@ class GroverOptimizer(OptimizationAlgorithm):
                     optimum_value = int_v
                     logger.info('Current Optimum Key: %s', optimum_key)
                     logger.info('Current Optimum Value: %s', optimum_value)
-                    if v.startswith('1'):
-                        improvement_found = True
-                        threshold = optimum_value
+                    improvement_found = True
+                    threshold = optimum_value
                 else:
                     # Using Durr and Hoyer method, increase m.
                     m = int(np.ceil(min(m * 8 / 7, 2 ** (n_key / 2))))
