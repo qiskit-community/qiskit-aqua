@@ -192,7 +192,7 @@ class IQPE(QuantumAlgorithm, MinimumEigensolver):
         self._ancillary_register = a
         self._state_register = q
         qc = QuantumCircuit(q)
-        qc += self._state_in.construct_circuit('circuit', q)
+        qc.append(self._state_in.construct_circuit('circuit', q), q)
         # hadamard on a[0]
         qc.add_register(a)
         qc.h(a[0])

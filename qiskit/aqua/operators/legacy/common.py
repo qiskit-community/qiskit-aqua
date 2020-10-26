@@ -376,9 +376,9 @@ def evolution_instruction(pauli_list, evo_time, num_time_slices,
         qc_slice.data *= (num_time_slices * power)
         qc = qc_slice
     else:
-        qc = QuantumCircuit(name=inst_name)
+        qc = QuantumCircuit(*qc_slice.qregs, name=inst_name)
         for _ in range(num_time_slices * power):
-            qc += qc_slice
+            qc.append(qc_slice, qc.qubits)
             if barrier:
                 qc.barrier(state_registers)
     return qc.to_instruction()

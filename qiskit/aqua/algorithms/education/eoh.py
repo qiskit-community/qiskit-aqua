@@ -86,13 +86,13 @@ class EOH(QuantumAlgorithm):
         quantum_registers = QuantumRegister(self._operator.num_qubits, name='q')
         qc = self._initial_state.construct_circuit('circuit', quantum_registers)
 
-        qc += self._evo_operator.evolve(
+        qc.append(self._evo_operator.evolve(
             evo_time=self._evo_time,
             num_time_slices=self._num_time_slices,
             quantum_registers=quantum_registers,
             expansion_mode=self._expansion_mode,
             expansion_order=self._expansion_order,
-        )
+        ), qc.qubits)
 
         return qc
 

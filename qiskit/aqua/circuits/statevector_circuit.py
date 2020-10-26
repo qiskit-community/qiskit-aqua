@@ -88,5 +88,5 @@ class StateVectorCircuit:
         temp = convert_to_basis_gates(temp)
         # remove the reset gates terra's unroller added
         temp.data = [g for g in temp.data if not g[0].name == 'reset']
-        circuit += temp
+        circuit.compose(temp, inplace=True)
         return circuit
