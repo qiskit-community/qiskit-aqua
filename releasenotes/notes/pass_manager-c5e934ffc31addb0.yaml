@@ -1,0 +1,5 @@
+---
+fixes:
+  - |
+    Correctly handle PassManager on QuantumInstance ``transpile`` method by
+    calling its ``run`` method if it exists.
