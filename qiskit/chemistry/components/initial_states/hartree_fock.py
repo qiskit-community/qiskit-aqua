@@ -62,7 +62,7 @@ class HartreeFock(InitialState):
 
         # get the bitstring encoding the Hartree Fock state
         if isinstance(num_particles, list):
-            num_particles = tuple(num_particles)
+            num_particles = tuple(num_particles)  # type: ignore
 
         bitstr = _build_bitstr(num_orbitals, num_particles, qubit_mapping,
                                two_qubit_reduction, sq_list)
