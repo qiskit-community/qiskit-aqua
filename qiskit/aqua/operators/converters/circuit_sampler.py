@@ -186,7 +186,7 @@ class CircuitSampler(ConverterBase):
             if not self._circuit_ops_cache:
                 raise AquaError(
                     'Circuits are empty. '
-                    'Check the operator is a instance of CircuitStateFn or its ListOp.'
+                    'Check that the operator is an instance of CircuitStateFn or its ListOp.'
                 )
 
         if params:
