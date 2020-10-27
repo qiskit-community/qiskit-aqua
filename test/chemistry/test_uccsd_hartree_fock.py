@@ -19,7 +19,8 @@ from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms import VQE
 from qiskit.aqua.components.optimizers import SLSQP, SPSA
 from qiskit.aqua.operators import AerPauliExpectation, PauliExpectation
-from qiskit.chemistry.components.initial_states import HartreeFock
+
+from qiskit.chemistry.circuit.library import HartreeFock
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.core import QubitMappingType
 from qiskit.chemistry.drivers import HDF5Driver
@@ -48,7 +49,7 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         self.optimizer = SLSQP(maxiter=100)
         initial_state = HartreeFock(
             fermionic_transformation.molecule_info['num_orbitals'],
-            tuple(fermionic_transformation.molecule_info['num_particles']),
+            fermionic_transformation.molecule_info['num_particles'],
             qubit_mapping=fermionic_transformation._qubit_mapping,
             two_qubit_reduction=fermionic_transformation._two_qubit_reduction)
         self.var_form = UCCSD(

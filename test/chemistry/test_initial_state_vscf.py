@@ -10,13 +10,12 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Test Initial State HartreeFock """
+""" Test Initial State VSCF """
 
 import unittest
 import warnings
 from test.chemistry import QiskitChemistryTestCase
 import numpy as np
-from qiskit import QuantumCircuit
 from qiskit.chemistry.components.initial_states import VSCF
 
 
@@ -48,28 +47,6 @@ class TestInitialStateVSCF(QiskitChemistryTestCase):
                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
                                             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-
-
-class TestVSCF(QiskitChemistryTestCase):
-    """ Initial State vscf tests """
-
-    def test_qubits_4(self):
-        """ 2 modes 2 modals - test """
-        basis = [2, 2]
-        vscf = VSCF(basis)
-        ref = QuantumCircuit(4)
-        ref.x([0, 2])
-
-        self.assertEqual(ref, vscf)
-
-    def test_qubits_5(self):
-        """ 2 modes 2 modals for the first mode and 3 modals for the second - test """
-        basis = [2, 3]
-        vscf = VSCF(basis)
-        ref = QuantumCircuit(5)
-        ref.x([0, 2])
-
-        self.assertEqual(ref, vscf)
 
 
 if __name__ == '__main__':

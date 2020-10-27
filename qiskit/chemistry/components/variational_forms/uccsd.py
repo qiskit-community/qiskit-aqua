@@ -17,7 +17,7 @@ Also, for more information on the tapering see: https://arxiv.org/abs/1701.08213
 And for singlet q-UCCD (full) and pair q-UCCD see: https://arxiv.org/abs/1911.10864
 """
 
-from typing import Optional, Union, List
+from typing import Optional, Union, List, Tuple
 import logging
 import sys
 import collections
@@ -48,7 +48,7 @@ class UCCSD(VariationalForm):
 
     def __init__(self,
                  num_orbitals: int,
-                 num_particles: Union[List[int], int],
+                 num_particles: Union[Tuple[int, int], List[int], int],
                  reps: int = 1,
                  active_occupied: Optional[List[int]] = None,
                  active_unoccupied: Optional[List[int]] = None,
@@ -118,7 +118,7 @@ class UCCSD(VariationalForm):
             else self._num_qubits - len(self._z2_symmetries.sq_list)
         self._reps = reps
         self._num_orbitals = num_orbitals
-        if isinstance(num_particles, list):
+        if isinstance(num_particles, (tuple, list)):
             self._num_alpha = num_particles[0]
             self._num_beta = num_particles[1]
         else:
@@ -490,7 +490,7 @@ class UCCSD(VariationalForm):
             ValueError: invalid setting of number of orbitals
         """
 
-        if isinstance(num_particles, list):
+        if isinstance(num_particles, (tuple, list)):
             num_alpha = num_particles[0]
             num_beta = num_particles[1]
         else:

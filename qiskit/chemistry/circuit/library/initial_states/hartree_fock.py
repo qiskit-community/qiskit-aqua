@@ -13,23 +13,21 @@
 """Hartree-Fock initial state."""
 
 import warnings
-from typing import Optional, Union, List
+from typing import Optional, Union, List, Tuple
 import logging
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.aqua.utils.validation import validate_min, validate_in_set
-from qiskit.aqua.components.initial_states import InitialState
-from qiskit.chemistry.circuit.library.initial_states.hartree_fock import _build_bitstr
 
 logger = logging.getLogger(__name__)
 
 
-class HartreeFock(InitialState):
+class HartreeFock(QuantumCircuit):
     """A Hartree-Fock initial state."""
 
     def __init__(self,
                  num_orbitals: int,
-                 num_particles: Union[List[int], int],
+                 num_particles: Union[Tuple[int, int], int],
                  qubit_mapping: str = 'parity',
                  two_qubit_reduction: bool = True,
                  sq_list: Optional[List[int]] = None) -> None:
@@ -58,50 +56,61 @@ class HartreeFock(InitialState):
                           'to False.' % qubit_mapping)
             two_qubit_reduction = False
 
-        super().__init__()
-
         # get the bitstring encoding the Hartree Fock state
-        if isinstance(num_particles, list):
-            num_particles = tuple(num_particles)
-
         bitstr = _build_bitstr(num_orbitals, num_particles, qubit_mapping,
                                two_qubit_reduction, sq_list)
-        self._bitstr = bitstr
 
-    def construct_circuit(self, mode='circuit', register=None):
-        """Construct the statevector of desired initial state.
+        # construct the circuit
+        qr = QuantumRegister(len(bitstr), 'q')
+        super().__init__(qr, name='HF')
 
-        Args:
-            mode (string): `vector` or `circuit`. The `vector` mode produces the vector.
-                            While the `circuit` constructs the quantum circuit corresponding that
-                            vector.
-            register (QuantumRegister): register for circuit construction.
+        # add gates in the right positions
+        for i, bit in enumerate(reversed(bitstr)):
+            if bit:
+                self.x(i)
 
-        Returns:
-            QuantumCircuit or numpy.ndarray: statevector.
 
-        Raises:
-            ValueError: when mode is not 'vector' or 'circuit'.
-        """
-        if mode == 'vector':
-            state = 1.0
-            one = np.asarray([0.0, 1.0])
-            zero = np.asarray([1.0, 0.0])
-            for k in self._bitstr[::-1]:
-                state = np.kron(one if k else zero, state)
-            return state
-        elif mode == 'circuit':
-            if register is None:
-                register = QuantumRegister(len(self.bitstr), name='q')
-            quantum_circuit = QuantumCircuit(register, name='HF')
-            for i, bit in enumerate(reversed(self.bitstr)):
-                if bit:
-                    quantum_circuit.x(i)
-            return quantum_circuit
-        else:
-            raise ValueError('Mode should be either "vector" or "circuit"')
+def _build_bitstr(num_orbitals, num_particles, qubit_mapping, two_qubit_reduction=True,
+                  sq_list=None):
+    if isinstance(num_particles, tuple):
+        num_alpha, num_beta = num_particles
+    else:
+        logger.info('We assume that the number of alphas and betas are the same.')
+        num_alpha = num_beta = num_particles // 2
 
-    @property
-    def bitstr(self):
-        """Getter of the bit string represented the statevector."""
-        return self._bitstr
+    num_particles = num_alpha + num_beta
+
+    if num_particles > num_orbitals:
+        raise ValueError('# of particles must be less than or equal to # of orbitals.')
+
+    half_orbitals = num_orbitals // 2
+    bitstr = np.zeros(num_orbitals, np.bool)
+    bitstr[-num_alpha:] = True
+    bitstr[-(half_orbitals + num_beta):-half_orbitals] = True
+
+    if qubit_mapping == 'parity':
+        new_bitstr = bitstr.copy()
+
+        t_r = np.triu(np.ones((num_orbitals, num_orbitals)))
+        new_bitstr = t_r.dot(new_bitstr.astype(np.int)) % 2  # pylint: disable=no-member
+
+        bitstr = np.append(new_bitstr[1:half_orbitals], new_bitstr[half_orbitals + 1:]) \
+            if two_qubit_reduction else new_bitstr
+
+    elif qubit_mapping == 'bravyi_kitaev':
+        binary_superset_size = int(np.ceil(np.log2(num_orbitals)))
+        beta = 1
+        basis = np.asarray([[1, 0], [0, 1]])
+        for _ in range(binary_superset_size):
+            beta = np.kron(basis, beta)
+            beta[0, :] = 1
+        start_idx = beta.shape[0] - num_orbitals
+        beta = beta[start_idx:, start_idx:]
+        new_bitstr = beta.dot(bitstr.astype(int)) % 2
+        bitstr = new_bitstr.astype(np.bool)
+
+    if sq_list is not None:
+        sq_list = [len(bitstr) - 1 - position for position in sq_list]
+        bitstr = np.delete(bitstr, sq_list)
+
+    return bitstr.astype(np.bool)

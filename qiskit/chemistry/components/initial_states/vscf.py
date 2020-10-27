@@ -13,7 +13,6 @@
 """ Initial state for vibrational modes. """
 
 import logging
-import warnings
 from typing import List
 
 import numpy as np
@@ -21,10 +20,12 @@ import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.aqua.components.initial_states import InitialState
 
+from qiskit.chemistry.circuit.library.initial_states.vscf import _build_bitstr
+
 logger = logging.getLogger(__name__)
 
 
-class VSCF(QuantumCircuit, InitialState):
+class VSCF(InitialState):
     r"""Initial state for vibrational modes.
 
     Creates an occupation number vector as defined in
@@ -42,14 +43,7 @@ class VSCF(QuantumCircuit, InitialState):
         bitstr = _build_bitstr(basis)
         self._bitstr = bitstr
 
-        # construct the circuit
-        qr = QuantumRegister(len(bitstr), 'q')
-        super().__init__(qr, name='VSCF')
-
-        # add gates in the right positions
-        for i, bit in enumerate(reversed(bitstr)):
-            if bit:
-                self.x(i)
+        super().__init__()
 
     def construct_circuit(self, mode='circuit', register=None):
         """Construct the statevector of desired initial state.
@@ -66,10 +60,6 @@ class VSCF(QuantumCircuit, InitialState):
         Raises:
             ValueError: when mode is not 'vector' or 'circuit'.
         """
-        warnings.warn('The VSCF.construct_circuit method is deprecated as of Aqua 0.9.0 and '
-                      'will be removed no earlier than 3 months after the release. The HarteeFock '
-                      'class is now a QuantumCircuit instance and can directly be used as such.',
-                      DeprecationWarning, stacklevel=2)
         if mode == 'vector':
             state = 1.0
             one = np.asarray([0.0, 1.0])
@@ -79,9 +69,12 @@ class VSCF(QuantumCircuit, InitialState):
             return state
         elif mode == 'circuit':
             if register is None:
-                register = QuantumRegister(self.num_qubits, name='q')
-            quantum_circuit = QuantumCircuit(register)
-            quantum_circuit.compose(self, inplace=True)
+                register = QuantumRegister(len(self.bitstr), name='q')
+            quantum_circuit = QuantumCircuit(register, name='VSCF')
+            for i, bit in enumerate(reversed(self.bitstr)):
+                if bit:
+                    quantum_circuit.x(i)
+
             return quantum_circuit
         else:
             raise ValueError('Mode should be either "vector" or "circuit"')
@@ -89,19 +82,4 @@ class VSCF(QuantumCircuit, InitialState):
     @property
     def bitstr(self):
         """Getter of the bit string represented the statevector."""
-        warnings.warn('The VSCF.bitstr property is deprecated as of Aqua 0.9.0 and will be '
-                      'removed no earlier than 3 months after the release. To get the bitstring '
-                      'you can use the quantum_info.Statevector class and the probabilities_dict '
-                      'method.', DeprecationWarning, stacklevel=2)
         return self._bitstr
-
-
-def _build_bitstr(basis):
-    num_qubits = sum(basis)
-    bitstr = np.zeros(num_qubits, np.bool)
-    count = 0
-    for modal in basis:
-        bitstr[num_qubits - count - 1] = True
-        count += modal
-
-    return bitstr
