@@ -34,7 +34,7 @@ class DictStateFn(StateFn):
 
     # TODO allow normalization somehow?
     def __init__(self,
-                 primitive: Optional[Union[str, dict, Result]] = None,
+                 primitive: Union[str, dict, Result],
                  coeff: Union[int, float, complex, ParameterExpression] = 1.0,
                  is_measurement: bool = False) -> None:
         """

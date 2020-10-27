@@ -34,7 +34,7 @@ class VectorStateFn(StateFn):
 
     # TODO allow normalization somehow?
     def __init__(self,
-                 primitive: Union[list, np.ndarray, Statevector] = None,
+                 primitive: Union[list, np.ndarray, Statevector],
                  coeff: Union[int, float, complex, ParameterExpression] = 1.0,
                  is_measurement: bool = False) -> None:
         """
