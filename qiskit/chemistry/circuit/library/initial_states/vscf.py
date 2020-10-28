@@ -37,7 +37,7 @@ class VSCF(QuantumCircuit):
                 with 4 modals per mode basis = [4,4,4]
         """
         # get the bitstring encoding initial state
-        bitstr = _build_bitstr(basis)
+        bitstr = vscf_bitstring(basis)
 
         # construct the circuit
         qr = QuantumRegister(len(bitstr), 'q')
@@ -49,7 +49,16 @@ class VSCF(QuantumCircuit):
                 self.x(i)
 
 
-def _build_bitstr(basis):
+def vscf_bitstring(basis: List[int]) -> np.ndarray:
+    """Compute the bitstring representing the VSCF initial state based on the modals per mode.
+
+    Args:
+        basis: Is a list defining the number of modals per mode. E.g. for a 3 modes system
+            with 4 modals per mode basis = [4,4,4].
+
+    Returns:
+        The bitstring representing the state of the VSCF state as array of bools.
+    """
     num_qubits = sum(basis)
     bitstr = np.zeros(num_qubits, np.bool)
     count = 0

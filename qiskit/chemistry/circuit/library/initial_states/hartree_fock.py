@@ -33,32 +33,17 @@ class HartreeFock(QuantumCircuit):
                  sq_list: Optional[List[int]] = None) -> None:
         """
         Args:
-            num_orbitals: number of spin orbitals, has a min. value of 1.
-            num_particles: number of particles, if it is a list, the first number
-                            is alpha and the second number if beta.
-            qubit_mapping: mapping type for qubit operator
-            two_qubit_reduction: flag indicating whether or not two qubit is reduced
-            sq_list: position of the single-qubit operators that
-                    anticommute with the cliffords
-
-        Raises:
-            ValueError: wrong setting in num_particles and num_orbitals.
-            ValueError: wrong setting for computed num_qubits and supplied num_qubits.
+            num_orbitals: The number of spin orbitals, has a min. value of 1.
+            num_particles: The number of particles. If this is an integer, it is the total (even)
+                number of particles. If a tuple, the first number is alpha and the second number is
+                beta.
+            qubit_mapping: The mapping type for qubit operator.
+            two_qubit_reduction: A flag indicating whether or not two qubit is reduced.
+            sq_list: The position of the single-qubit operators that anticommute with the cliffords.
         """
-        # validate the input
-        validate_min('num_orbitals', num_orbitals, 1)
-        validate_in_set('qubit_mapping', qubit_mapping,
-                        {'jordan_wigner', 'parity', 'bravyi_kitaev'})
-
-        if qubit_mapping != 'parity' and two_qubit_reduction:
-            warnings.warn('two_qubit_reduction only works with parity qubit mapping '
-                          'but you have %s. We switch two_qubit_reduction '
-                          'to False.' % qubit_mapping)
-            two_qubit_reduction = False
-
         # get the bitstring encoding the Hartree Fock state
-        bitstr = _build_bitstr(num_orbitals, num_particles, qubit_mapping,
-                               two_qubit_reduction, sq_list)
+        bitstr = hartree_fock_bitstring(num_orbitals, num_particles, qubit_mapping,
+                                        two_qubit_reduction, sq_list)
 
         # construct the circuit
         qr = QuantumRegister(len(bitstr), 'q')
@@ -70,8 +55,38 @@ class HartreeFock(QuantumCircuit):
                 self.x(i)
 
 
-def _build_bitstr(num_orbitals, num_particles, qubit_mapping, two_qubit_reduction=True,
-                  sq_list=None):
+def hartree_fock_bitstring(num_orbitals: int,
+                           num_particles: Union[Tuple[int, int], int],
+                           qubit_mapping: str = 'parity',
+                           two_qubit_reduction: bool = True,
+                           sq_list: Optional[List[int]] = None) -> np.ndarray:
+    """Compute the bitstring representing the Hartree-Fock state for the specified system.
+
+    Args:
+        num_orbitals: The number of spin orbitals, has a min. value of 1.
+        num_particles: The number of particles. If this is an integer, it is the total (even) number
+            of particles. If a tuple, the first number is alpha and the second number is beta.
+        qubit_mapping: The mapping type for qubit operator.
+        two_qubit_reduction: A flag indicating whether or not two qubit is reduced.
+        sq_list: The position of the single-qubit operators that anticommute with the cliffords.
+
+    Returns:
+        The bitstring representing the state of the Hartee-Fock state as array of bools.
+
+    Raises:
+        ValueError: If the total number of particles is larger than the number of orbitals.
+    """
+    # validate the input
+    validate_min('num_orbitals', num_orbitals, 1)
+    validate_in_set('qubit_mapping', qubit_mapping,
+                    {'jordan_wigner', 'parity', 'bravyi_kitaev'})
+
+    if qubit_mapping != 'parity' and two_qubit_reduction:
+        warnings.warn('two_qubit_reduction only works with parity qubit mapping '
+                      'but you have %s. We switch two_qubit_reduction '
+                      'to False.' % qubit_mapping)
+        two_qubit_reduction = False
+
     if isinstance(num_particles, tuple):
         num_alpha, num_beta = num_particles
     else:

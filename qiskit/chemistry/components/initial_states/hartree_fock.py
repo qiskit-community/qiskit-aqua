@@ -19,7 +19,7 @@ import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.aqua.utils.validation import validate_min, validate_in_set
 from qiskit.aqua.components.initial_states import InitialState
-from qiskit.chemistry.circuit.library.initial_states.hartree_fock import _build_bitstr
+from qiskit.chemistry.circuit.library.initial_states.hartree_fock import hartree_fock_bitstringtr
 
 logger = logging.getLogger(__name__)
 
@@ -64,8 +64,8 @@ class HartreeFock(InitialState):
         if isinstance(num_particles, list):
             num_particles = tuple(num_particles)  # type: ignore
 
-        bitstr = _build_bitstr(num_orbitals, num_particles, qubit_mapping,
-                               two_qubit_reduction, sq_list)
+        bitstr = hartree_fock_bitstringtr(num_orbitals, num_particles, qubit_mapping,
+                                          two_qubit_reduction, sq_list)
         self._bitstr = bitstr
 
     def construct_circuit(self, mode='circuit', register=None):

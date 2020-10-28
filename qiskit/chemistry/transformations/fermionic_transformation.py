@@ -424,11 +424,11 @@ class FermionicTransformation(Transformation):
                     aux_ops[i] = None  # Discard since no meaningful measurement can be done
 
             if self._z2symmetry_reduction == 'auto':
-                from ..circuit.library.initial_states.hartree_fock import _build_bitstr
-                hf_bitstr = _build_bitstr(num_orbitals=self._molecule_info['num_orbitals'],
-                                          qubit_mapping=self._qubit_mapping,
-                                          two_qubit_reduction=self._two_qubit_reduction,
-                                          num_particles=self._molecule_info['num_particles'])
+                from ..circuit.library.initial_states.hartree_fock import hartree_fock_bitstringtr
+                hf_bitstr = hartree_fock_bitstringtr(num_orbitals=self._molecule_info['num_orbitals'],
+                                                     qubit_mapping=self._qubit_mapping,
+                                                     two_qubit_reduction=self._two_qubit_reduction,
+                                                     num_particles=self._molecule_info['num_particles'])
                 z2_symmetries = FermionicTransformation._pick_sector(z2_symmetries, hf_bitstr)
             else:
                 if len(self._z2symmetry_reduction) != len(z2_symmetries.symmetries):

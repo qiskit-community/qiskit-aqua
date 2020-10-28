@@ -20,7 +20,7 @@ import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.aqua.components.initial_states import InitialState
 
-from qiskit.chemistry.circuit.library.initial_states.vscf import _build_bitstr
+from qiskit.chemistry.circuit.library.initial_states.vscf import vscf_bitstring
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +40,7 @@ class VSCF(InitialState):
                 with 4 modals per mode basis = [4,4,4]
         """
         # get the bitstring encoding initial state
-        bitstr = _build_bitstr(basis)
+        bitstr = vscf_bitstring(basis)
         self._bitstr = bitstr
 
         super().__init__()

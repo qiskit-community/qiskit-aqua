@@ -14,12 +14,20 @@
 
 import unittest
 from test.chemistry import QiskitChemistryTestCase
+import numpy as np
+
 from qiskit import QuantumCircuit
 from qiskit.chemistry.circuit.library import VSCF
+from qiskit.chemistry.circuit.library.initial_states.vscf import vscf_bitstring
 
 
 class TestVSCF(QiskitChemistryTestCase):
     """ Initial State vscf tests """
+
+    def test_bitstring(self):
+        """Test the vscf_bitstring method."""
+        bitstr = vscf_bitstring([2, 2])
+        self.assertTrue(all(bitstr[::-1] == np.array([True, False, True, False])))  # big endian
 
     def test_qubits_4(self):
         """Test 2 modes 2 modals."""
