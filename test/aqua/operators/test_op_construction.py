@@ -960,27 +960,28 @@ class TestListOpMethods(QiskitAquaTestCase):
     def test_indexing(self):
         """Test indexing and slicing"""
         coeff = 3 + .2j
-        states_op = ListOp([X, Y, Z, I], coeff=coeff)
+        classes = [ListOp, SummedOp, ComposedOp, TensoredOp]
 
-        single_op = states_op[1]
-        self.assertIsInstance(single_op, OperatorBase)
-        self.assertNotIsInstance(single_op, ListOp)
+        for idx, constructor in enumerate(classes):
+            states_op = constructor([X, Y, Z, I], coeff=coeff)
 
-        list_one_element = states_op[1:2]
-        self.assertIsInstance(list_one_element, ListOp)
-        self.assertEqual(len(list_one_element), 1)
-        self.assertEqual(list_one_element[0], Y)
+            single_op = states_op[1]
+            self.assertIsInstance(single_op, OperatorBase)
+            self.assertNotIsInstance(single_op, ListOp)
 
-        list_two_elements = states_op[::2]
-        self.assertIsInstance(list_two_elements, ListOp)
-        self.assertEqual(len(list_two_elements), 2)
-        self.assertEqual(list_two_elements[0], X)
-        self.assertEqual(list_two_elements[1], Z)
+            list_one_element = states_op[1:2]
+            self.assertIsInstance(list_one_element, classes[idx])
+            self.assertEqual(len(list_one_element), 1)
+            self.assertEqual(list_one_element[0], Y)
 
-        states_op = ListOp([X, Y, Z, I], coeff=coeff)
+            list_two_elements = states_op[::2]
+            self.assertIsInstance(list_two_elements, classes[idx])
+            self.assertEqual(len(list_two_elements), 2)
+            self.assertEqual(list_two_elements[0], X)
+            self.assertEqual(list_two_elements[1], Z)
 
-        self.assertEqual(list_one_element.coeff, coeff)
-        self.assertEqual(list_two_elements.coeff, coeff)
+            self.assertEqual(list_one_element.coeff, coeff)
+            self.assertEqual(list_two_elements.coeff, coeff)
 
 
 class TestListOpComboFn(QiskitAquaTestCase):
