@@ -37,7 +37,7 @@ class CVaRMeasurement(OperatorStateFn):
                 primitive: Union[str, dict, Result,
                                  list, np.ndarray, Statevector,
                                  QuantumCircuit, Instruction,
-                                 OperatorBase],
+                                 OperatorBase] = None,
                 alpha: float = 1.0,
                 coeff: Union[int, float, complex, ParameterExpression] = 1.0,
                 ) -> 'CVaRMeasurement':

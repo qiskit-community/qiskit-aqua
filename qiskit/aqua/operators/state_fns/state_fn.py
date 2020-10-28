@@ -51,7 +51,7 @@ class StateFn(OperatorBase):
                 primitive: Union[str, dict, Result,
                                  list, np.ndarray, Statevector,
                                  QuantumCircuit, Instruction,
-                                 OperatorBase],
+                                 OperatorBase] = None,
                 coeff: Union[int, float, complex, ParameterExpression] = 1.0,
                 is_measurement: bool = False) -> 'StateFn':
         """ A factory method to produce the correct type of StateFn subclass
@@ -77,19 +77,19 @@ class StateFn(OperatorBase):
         # pylint: disable=cyclic-import,import-outside-toplevel
         if isinstance(primitive, (str, dict, Result)):
             from .dict_state_fn import DictStateFn
-            return DictStateFn.__new__(DictStateFn, primitive)
+            return DictStateFn.__new__(DictStateFn)
 
         if isinstance(primitive, (list, np.ndarray, Statevector)):
             from .vector_state_fn import VectorStateFn
-            return VectorStateFn.__new__(VectorStateFn, primitive)
+            return VectorStateFn.__new__(VectorStateFn)
 
         if isinstance(primitive, (QuantumCircuit, Instruction)):
             from .circuit_state_fn import CircuitStateFn
-            return CircuitStateFn.__new__(CircuitStateFn, primitive)
+            return CircuitStateFn.__new__(CircuitStateFn)
 
         if isinstance(primitive, OperatorBase):
             from .operator_state_fn import OperatorStateFn
-            return OperatorStateFn.__new__(OperatorStateFn, primitive)
+            return OperatorStateFn.__new__(OperatorStateFn)
 
         raise TypeError('Unsupported primitive type {} passed into StateFn '
                         'factory constructor'.format(type(primitive)))
