@@ -1,4 +1,4 @@
- ---
+---
 fixes:
   - |
     Indexing any `ListOp` by slices will now return an object of the same class
