@@ -22,6 +22,7 @@ from qiskit.transpiler import CouplingMap, PassManager
 from qiskit.transpiler.layout import Layout
 from qiskit.assembler.run_config import RunConfig
 from qiskit.circuit import QuantumCircuit
+from qiskit.result import Result
 from qiskit.qobj import Qobj
 from qiskit import compiler
 
@@ -220,6 +221,7 @@ class QuantumInstance:
         self._skip_qobj_validation = skip_qobj_validation
         self._circuit_summary = False
         self._job_callback = job_callback
+        self._time_taken = 0.
         logger.info(self)
 
     def __str__(self) -> str:
@@ -274,7 +276,7 @@ class QuantumInstance:
 
     def execute(self,
                 circuits: Union[QuantumCircuit, List[QuantumCircuit]],
-                had_transpiled: bool = False) -> Qobj:
+                had_transpiled: bool = False) -> Result:
         """
         A wrapper to interface with quantum backend.
 
@@ -350,15 +352,18 @@ class QuantumInstance:
                                            self._backend_options,
                                            self._noise_config,
                                            self._skip_qobj_validation, self._job_callback)
+                    self._time_taken += cals_result.time_taken
                     result = run_qobj(qobj, self._backend, self._qjob_config,
                                       self._backend_options, self._noise_config,
                                       self._skip_qobj_validation, self._job_callback)
+                    self._time_taken += result.time_taken
                 else:
                     # insert the calibration circuit into main qobj if the shots are the same
                     qobj.experiments[0:0] = cals_qobj.experiments
                     result = run_qobj(qobj, self._backend, self._qjob_config,
                                       self._backend_options, self._noise_config,
                                       self._skip_qobj_validation, self._job_callback)
+                    self._time_taken += result.time_taken
                     cals_result = result
 
                 logger.info("Building calibration matrix for measurement error mitigation.")
@@ -373,6 +378,7 @@ class QuantumInstance:
                 result = run_qobj(qobj, self._backend, self._qjob_config,
                                   self._backend_options, self._noise_config,
                                   self._skip_qobj_validation, self._job_callback)
+                self._time_taken += result.time_taken
 
             if meas_error_mitigation_fitter is not None:
                 logger.info("Performing measurement error mitigation.")
@@ -398,6 +404,7 @@ class QuantumInstance:
             result = run_qobj(qobj, self._backend, self._qjob_config,
                               self._backend_options, self._noise_config,
                               self._skip_qobj_validation, self._job_callback)
+            self._time_taken += result.time_taken
 
         if self._circuit_summary:
             self._circuit_summary = False
@@ -438,6 +445,15 @@ class QuantumInstance:
 
             else:
                 raise ValueError("unknown setting for the key ({}).".format(k))
+
+    @property
+    def time_taken(self) -> float:
+        """Accumulated time taken for execution."""
+        return self._time_taken
+
+    def reset_execution_results(self) -> None:
+        """ Reset execution results """
+        self._time_taken = 0.
 
     @property
     def qjob_config(self):
