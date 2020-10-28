@@ -103,7 +103,7 @@ class WeightedPauliOperator(LegacyBaseOperator):
             pauli = Pauli.from_label(str(p)[::-1]) if reverse_endianness else p
             # Adding the imaginary is necessary to handle the imaginary coefficients in UCCSD.
             # TODO fix these or add support for them in Terra.
-            coeff = np.real(w) if not np.iscomplex(w) else w
+            coeff = np.real(w) if np.isreal(w) else w
             pauli_ops += [PrimitiveOp(pauli, coeff=coeff)]
         return sum(pauli_ops)
 
