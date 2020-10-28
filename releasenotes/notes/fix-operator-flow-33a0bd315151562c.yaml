@@ -1,12 +1,17 @@
 ---
 fixes:
   - |
-    :meth`~qiskit.aqua.operators.state_fns.DictStateFn.sample()` could only handle real amplitudes,
-    but it is fixed to handle complex amplitudes.
+    :meth`~qiskit.aqua.operators.state_fns.DictStateFn.sample()` could only handle
+    real amplitudes, but it is fixed to handle complex amplitudes.
     `#1311 <https://github.com/Qiskit/qiskit-aqua/issues/1311>` for more details.
   - |
     Trotter class did not use the reps argument in constructor.
     `#1317 <https://github.com/Qiskit/qiskit-aqua/issues/1317>` for more details.
   - |
-    Raise an `AquaError` if :class`qiskit.aqua.operators.converters.CircuitSampler` samples an empty operator.
+    Raise an `AquaError` if :class`qiskit.aqua.operators.converters.CircuitSampler`
+    samples an empty operator.
     `#1321 <https://github.com/Qiskit/qiskit-aqua/issues/1321>` for more details.
+  - |
+    :meth:`~qiskit.aqua.operators.legacy.WeightedPauliOperator.to_opflow()`
+    returns a correct operator when coefficients are complex numbers.
+    `#1381 <https://github.com/Qiskit/qiskit-aqua/issues/1381>` for more details.
