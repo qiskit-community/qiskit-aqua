@@ -250,8 +250,9 @@ jobs:
           if [ -f "$HOME/miniconda/etc/profile.d/conda.sh" ]; then
             source "$HOME/miniconda/etc/profile.d/conda.sh"
             conda activate
+            # PSI4 has problems with dataclasses
+            pip uninstall -y dataclasses
           fi
-          # sudo apt-get -y update
           sudo apt-get -y install libgfortran5
           pip install https://github.com/rpmuller/pyquante2/archive/master.zip
           pip install pyscf
@@ -461,7 +462,6 @@ jobs:
         shell: bash
       - name: Install Dependencies
         run: |
-          # sudo apt-get -y update
           sudo apt-get -y install libgfortran5
           pip install https://github.com/rpmuller/pyquante2/archive/master.zip
           pip install pyscf
