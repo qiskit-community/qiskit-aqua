@@ -1,0 +1,6 @@
+---
+fixes:
+  - |
+    Indexing any `ListOp` by slices will now return an object of the same class
+    (`ListOp`, `SummedOp`, `ComposedOp`, or `TensoredOp`) instead of just
+    `ListOp`.
