@@ -106,7 +106,7 @@ class WeightedPauliOperator(LegacyBaseOperator):
             # For many operators the coeff will be real. Hence below the coeff is made real,
             # when creating the PrimitiveOp, since it can be stored then as a float, if its
             # value is real, i.e. has no imaginary part. This avoids any potential issues around
-            # complex - but if there are complex coeffs then maybe that using the opflow 
+            # complex - but if there are complex coeffs then maybe that using the opflow
             # later will fail if it happens to be used where complex is not supported.
             # Now there are imaginary coefficients in UCCSD that would need to be handled
             # when this is converted to opflow (evolution of hopping operators) where currently
