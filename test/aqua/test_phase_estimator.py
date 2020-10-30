@@ -52,13 +52,14 @@ class TestHamiltonianPE(QiskitAquaTestCase):
         phases = list(phase_dict.keys())
         self.assertAlmostEqual(phases[0], 1.125, delta=0.001)
         self.assertAlmostEqual(phases[1], -1.125, delta=0.001)
-        with self.subTest('Use PauliTrotterEvolution'):
-            evo = PauliTrotterEvolution(trotter_mode='suzuki', reps=4)
-            result = self.hamiltonian_pe(hamiltonian, state_preparation, evolution=evo)
-            phase_dict = result.filter_phases(0.162, as_float=True)
-            phases = list(phase_dict.keys())
-            phases.sort()
+        evo = PauliTrotterEvolution(trotter_mode='suzuki', reps=4)
+        result = self.hamiltonian_pe(hamiltonian, state_preparation, evolution=evo)
+        phase_dict = result.filter_phases(0.162, as_float=True)
+        phases = list(phase_dict.keys())
+        phases.sort()
+        with self.subTest('Use PauliTrotterEvolution, first phase'):
             self.assertAlmostEqual(phases[0], -1.125, delta=0.001)
+        with self.subTest('Use PauliTrotterEvolution, second phase'):
             self.assertAlmostEqual(phases[1], 1.125, delta=0.001)
 
     def test_pauli_sum_2(self):
@@ -70,12 +71,13 @@ class TestHamiltonianPE(QiskitAquaTestCase):
         phases = list(phase_dict.keys())
         self.assertAlmostEqual(phases[0], 1.484, delta=0.001)
         self.assertAlmostEqual(phases[1], -1.484, delta=0.001)
-        with self.subTest('Use PauliTrotterEvolution'):
-            evo = PauliTrotterEvolution(trotter_mode='suzuki', reps=3)
-            result = self.hamiltonian_pe(hamiltonian, state_preparation, evolution=evo)
-            phase_dict = result.filter_phases(0.1, as_float=True)
-            phases = list(phase_dict.keys())
+        evo = PauliTrotterEvolution(trotter_mode='suzuki', reps=3)
+        result = self.hamiltonian_pe(hamiltonian, state_preparation, evolution=evo)
+        phase_dict = result.filter_phases(0.1, as_float=True)
+        phases = list(phase_dict.keys())
+        with self.subTest('Use PauliTrotterEvolution, first phase'):
             self.assertAlmostEqual(phases[0], 1.484, delta=0.001)
+        with self.subTest('Use PauliTrotterEvolution, second phase'):
             self.assertAlmostEqual(phases[1], -1.484, delta=0.001)
 
     def test_matrix_evolution(self):
