@@ -16,7 +16,7 @@ from typing import Optional, Union
 from qiskit import QuantumCircuit
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import EvolutionBase, OperatorBase
-from qiskit.providers import BaseBackend
+from qiskit.providers import BaseBackend, Backend
 from .phase_estimator import PhaseEstimator
 from . import phase_estimation_scale
 from .hamiltonian_pe_result import HamiltonianPEResult
@@ -55,7 +55,7 @@ class HamiltonianPE(PhaseEstimator):
                  evolution: EvolutionBase,
                  state_preparation: Optional[QuantumCircuit] = None,
                  bound: Optional[float] = None,
-                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
+                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend, Backend]] = None) -> None:
         """
         Args:
             num_evaluation_qubits: The number of qubits used in estimating the phase. The
