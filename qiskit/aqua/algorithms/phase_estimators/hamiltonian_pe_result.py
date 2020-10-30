@@ -73,10 +73,10 @@ class HamiltonianPEResult(PhaseEstimatorResult):
         else:
             return cast(Dict, phases)
 
-    def single_phase(self, scaled: bool = True) -> float:
+    def most_likely_phase(self, scaled: bool = True) -> float:
         """Return the estimated phase as a number between 0.0 and 1.0, with 1.0.
 
-        This method is similar to `PhaseEstimatorResult.single_phase`.
+        This method is similar to `PhaseEstimatorResult.most_likely_phase`.
 
         Args:
             scaled: If `False` return `phi` in :math:`[0, 1)` rather than the most
@@ -85,7 +85,7 @@ class HamiltonianPEResult(PhaseEstimatorResult):
         Returns:
             The estimated phase as a number between 0.0 and 1.0, with 1.0.
         """
-        phase = super().single_phase()
+        phase = super().most_likely_phase()
         if scaled:
             return self._phase_estimation_scale.scale_phase(phase)
         else:

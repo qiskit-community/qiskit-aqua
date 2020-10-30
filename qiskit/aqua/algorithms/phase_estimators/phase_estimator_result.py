@@ -64,7 +64,7 @@ class PhaseEstimatorResult(AlgorithmResult):
         """
         return self._circuit_result
 
-    def single_phase(self) -> float:
+    def most_likely_phase(self) -> float:
         r"""Return the estimated phase as a number in :math:`[0.0, 1.0)`.
 
         1.0 corresponds to a phase of :math:`2\pi`. It is assumed that the input vector is an
