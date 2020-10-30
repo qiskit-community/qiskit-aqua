@@ -13,6 +13,7 @@
 """ Test Initial State Zero """
 
 import unittest
+import warnings
 from test.aqua import QiskitAquaTestCase
 import numpy as np
 from qiskit.aqua.components.initial_states import Zero
@@ -20,6 +21,15 @@ from qiskit.aqua.components.initial_states import Zero
 
 class TestInitialStateZero(QiskitAquaTestCase):
     """ Test Initial State Zero """
+
+    def setUp(self):
+        super().setUp()
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
+
+    def tearDown(self):
+        super().tearDown()
+        warnings.filterwarnings('always', category=DeprecationWarning)
+
     def test_qubits_2_vector(self):
         """ Qubits 2 vector test """
         zero = Zero(2)

@@ -43,7 +43,7 @@ class TestFermionicTransformationOrbReduce(QiskitChemistryTestCase):
 
     def _validate_info(self, fermionic_transformation, num_particles=None,
                        num_orbitals=12, actual_two_qubit_reduction=False):
-        num_particles = num_particles if num_particles is not None else [2, 2]
+        num_particles = num_particles if num_particles is not None else (2, 2)
         z2symmetries = fermionic_transformation.molecule_info.pop('z2_symmetries')
         self.assertEqual(z2symmetries.is_empty(), True)
         self.assertEqual(fermionic_transformation.molecule_info,
@@ -96,7 +96,7 @@ class TestFermionicTransformationOrbReduce(QiskitChemistryTestCase):
 
         qubit_op, _ = fermionic_transformation.transform(self.driver)
         self._validate_vars(fermionic_transformation, energy_shift=-7.7962196)
-        self._validate_info(fermionic_transformation, num_particles=[1, 1], num_orbitals=10)
+        self._validate_info(fermionic_transformation, num_particles=(1, 1), num_orbitals=10)
         self._validate_input_object(qubit_op, num_qubits=10, num_paulis=276)
 
     def test_freeze_core_orb_reduction(self):
@@ -110,7 +110,7 @@ class TestFermionicTransformationOrbReduce(QiskitChemistryTestCase):
 
         qubit_op, _ = fermionic_transformation.transform(self.driver)
         self._validate_vars(fermionic_transformation, energy_shift=-7.7962196)
-        self._validate_info(fermionic_transformation, num_particles=[1, 1], num_orbitals=6)
+        self._validate_info(fermionic_transformation, num_particles=(1, 1), num_orbitals=6)
         self._validate_input_object(qubit_op, num_qubits=6, num_paulis=118)
 
     def test_freeze_core_all_reduction(self):
@@ -124,7 +124,7 @@ class TestFermionicTransformationOrbReduce(QiskitChemistryTestCase):
 
         qubit_op, _ = fermionic_transformation.transform(self.driver)
         self._validate_vars(fermionic_transformation, energy_shift=-7.7962196)
-        self._validate_info(fermionic_transformation, num_particles=[1, 1], num_orbitals=6,
+        self._validate_info(fermionic_transformation, num_particles=(1, 1), num_orbitals=6,
                             actual_two_qubit_reduction=True)
         self._validate_input_object(qubit_op, num_qubits=4, num_paulis=100)
 
@@ -140,7 +140,7 @@ class TestFermionicTransformationOrbReduce(QiskitChemistryTestCase):
         qubit_op, _ = fermionic_transformation.transform(self.driver)
         self._validate_vars(fermionic_transformation, energy_shift=-7.7962196,
                             ph_energy_shift=-1.05785247)
-        self._validate_info(fermionic_transformation, num_particles=[1, 1], num_orbitals=6,
+        self._validate_info(fermionic_transformation, num_particles=(1, 1), num_orbitals=6,
                             actual_two_qubit_reduction=True)
         self._validate_input_object(qubit_op, num_qubits=4, num_paulis=52)
 
