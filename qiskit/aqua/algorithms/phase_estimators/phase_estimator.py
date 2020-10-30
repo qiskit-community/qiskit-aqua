@@ -40,7 +40,7 @@ class PhaseEstimator(QuantumAlgorithm):
     unitary will be constructed. After construction, the QPE circuit is run on a backend via the
     `run` method, and the frequencies or counts of the phases represented by bitstrings are
     recorded. The results are returned as an instance of
-    qiskit.algorithms.phase_estimator_result.PhaseEstimatorResult.
+    :class:`~qiskit.algorithms.phase_estimator_result.PhaseEstimatorResult`.
 
     If the input state is an eigenstate of the unitary, then in the ideal case, all probability is
     concentrated on the bitstring corresponding to the eigenvalue of the input state. If the input
