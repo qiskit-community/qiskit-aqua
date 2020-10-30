@@ -21,7 +21,7 @@ from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import MinimumEigensolver, VQE
 from qiskit.aqua.operators import Z2Symmetries
 from qiskit.chemistry import QiskitChemistryError
-from qiskit.chemistry.components.initial_states import HartreeFock
+from qiskit.chemistry.circuit.library import HartreeFock
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.core import (Hamiltonian, TransformationType, QubitMappingType,
                                    ChemistryOperator, MolecularGroundStateResult)

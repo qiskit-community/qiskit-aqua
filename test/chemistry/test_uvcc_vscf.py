@@ -12,6 +12,7 @@
 
 """ Test of UVCC and VSCF Aqua extensions """
 
+import warnings
 from test.chemistry import QiskitChemistryTestCase
 
 from qiskit import BasicAer
@@ -61,7 +62,9 @@ class TestUVCCVSCF(QiskitChemistryTestCase):
         bosonic_op = BosonicOperator(co2_2modes_2modals_2body, basis)
         qubit_op = bosonic_op.mapping('direct', threshold=1e-5)
 
-        init_state = VSCF(basis)
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            init_state = VSCF(basis)
 
         num_qubits = sum(basis)
         uvcc_varform = UVCC(num_qubits, basis, [0, 1], initial_state=init_state)

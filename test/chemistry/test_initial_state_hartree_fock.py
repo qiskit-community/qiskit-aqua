@@ -13,6 +13,7 @@
 """ Test Initial State HartreeFock """
 
 import unittest
+import warnings
 from test.chemistry import QiskitChemistryTestCase
 
 import numpy as np
@@ -28,6 +29,14 @@ from qiskit.chemistry.transformations import FermionicTransformation
 @ddt
 class TestInitialStateHartreeFock(QiskitChemistryTestCase):
     """ Initial State HartreeFock tests """
+
+    def setUp(self):
+        super().setUp()
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
+
+    def tearDown(self):
+        super().tearDown()
+        warnings.filterwarnings('always', category=DeprecationWarning)
 
     def test_qubits_4_jw_h2(self):
         """ qubits 4 jw h2 test """

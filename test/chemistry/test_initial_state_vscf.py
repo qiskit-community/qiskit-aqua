@@ -10,17 +10,25 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Test Initial State HartreeFock """
+""" Test Initial State VSCF """
 
 import unittest
+import warnings
 from test.chemistry import QiskitChemistryTestCase
 import numpy as np
-
 from qiskit.chemistry.components.initial_states import VSCF
 
 
 class TestInitialStateVSCF(QiskitChemistryTestCase):
     """ Initial State vscf tests """
+
+    def setUp(self):
+        super().setUp()
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
+
+    def tearDown(self):
+        super().tearDown()
+        warnings.filterwarnings('always', category=DeprecationWarning)
 
     def test_qubits_4(self):
         """ 2 modes 2 modals - test """

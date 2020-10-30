@@ -22,7 +22,7 @@ from qiskit.aqua.components.optimizers import Optimizer
 from ....components.variational_forms import UCCSD
 from ....transformations import Transformation
 from ....transformations.fermionic_transformation import FermionicTransformation
-from ....components.initial_states import HartreeFock
+from ....circuit.library import HartreeFock
 
 from .minimum_eigensolver_factory import MinimumEigensolverFactory
 

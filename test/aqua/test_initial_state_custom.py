@@ -12,6 +12,7 @@
 
 """ Test Initial State Custom """
 
+import warnings
 import unittest
 from test.aqua import QiskitAquaTestCase
 
@@ -23,6 +24,15 @@ from qiskit.aqua.components.initial_states import Custom
 
 class TestInitialStateCustom(QiskitAquaTestCase):
     """ Test Initial State Custom """
+
+    def setUp(self):
+        super().setUp()
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
+
+    def tearDown(self):
+        super().tearDown()
+        warnings.filterwarnings('always', category=DeprecationWarning)
+
     def test_qubits_2_zero_vector(self):
         """ qubits 2 zero vector test """
         custom = Custom(2, state='zero')
