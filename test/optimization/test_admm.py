@@ -345,3 +345,26 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
         params = ADMMParameters(maxiter=12)
         optimizer.parameters = params
         self.assertEqual(optimizer.parameters.maxiter, 12)
+
+    def test_integer_variables(self):
+        """Tests ADMM with integer variables."""
+        mdl = Model('integer-variables')
+
+        v = mdl.integer_var(lb=5, ub=20, name='v')
+        w = mdl.continuous_var(name='w', lb=0.)
+
+        mdl.minimize(v + w)
+        op = QuadraticProgram()
+        op.from_docplex(mdl)
+
+        solver = ADMMOptimizer()
+        solution = solver.solve(op)
+
+        self.assertIsNotNone(solution)
+        self.assertIsInstance(solution, ADMMOptimizationResult)
+        self.assertIsNotNone(solution.x)
+        np.testing.assert_almost_equal([5., 0.], solution.x, 3)
+        self.assertIsNotNone(solution.fval)
+        np.testing.assert_almost_equal(5., solution.fval, 3)
+        self.assertIsNotNone(solution.state)
+        self.assertIsInstance(solution.state, ADMMState)

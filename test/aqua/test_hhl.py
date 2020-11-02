@@ -18,7 +18,7 @@ from test.aqua import QiskitAquaTestCase
 
 import numpy as np
 from ddt import ddt, idata, data, unpack
-from qiskit import BasicAer
+from qiskit import BasicAer, QuantumCircuit
 from qiskit.quantum_info import state_fidelity
 
 from qiskit.circuit.library import QFT
@@ -83,7 +83,9 @@ class TestHHL(QiskitAquaTestCase):
         num_q, num_a = eigs.get_register_sizes()
 
         # Initialize initial state module
-        init_state = Custom(num_q, state_vector=vector)
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            init_state = Custom(num_q, state_vector=vector)
 
         # Initialize reciprocal rotation module
         reci = LookupRotation(negative_evals=eigs._negative_evals, evo_time=eigs._evo_time)
@@ -127,7 +129,8 @@ class TestHHL(QiskitAquaTestCase):
         num_q, num_a = eigs.get_register_sizes()
 
         # Initialize initial state module
-        init_state = Custom(num_q, state_vector=vector)
+        init_state = QuantumCircuit(num_q)
+        init_state.initialize(vector / np.linalg.norm(vector), range(num_q))
 
         # Initialize reciprocal rotation module
         reci = LookupRotation(negative_evals=eigs._negative_evals, evo_time=eigs._evo_time)
@@ -172,7 +175,9 @@ class TestHHL(QiskitAquaTestCase):
         num_q, num_a = eigs.get_register_sizes()
 
         # Initialize initial state module
-        init_state = Custom(num_q, state_vector=vector)
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            init_state = Custom(num_q, state_vector=vector)
 
         # Initialize reciprocal
         reci = LongDivision(scale=1.0, negative_evals=eigs._negative_evals, evo_time=eigs._evo_time)
@@ -217,7 +222,8 @@ class TestHHL(QiskitAquaTestCase):
         num_q, num_a = eigs.get_register_sizes()
 
         # Initialize initial state module
-        init_state = Custom(num_q, state_vector=vector)
+        init_state = QuantumCircuit(num_q)
+        init_state.initialize(vector / np.linalg.norm(vector), range(num_q))
 
         # Initialize reciprocal rotation module
         reci = LookupRotation(negative_evals=eigs._negative_evals,
@@ -263,7 +269,9 @@ class TestHHL(QiskitAquaTestCase):
         num_q, num_a = eigs.get_register_sizes()
 
         # Initialize initial state module
-        init_state = Custom(num_q, state_vector=vector)
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            init_state = Custom(num_q, state_vector=vector)
 
         # Initialize reciprocal rotation module
         reci = LookupRotation(negative_evals=eigs._negative_evals, evo_time=eigs._evo_time)
@@ -312,7 +320,8 @@ class TestHHL(QiskitAquaTestCase):
         num_q, num_a = eigs.get_register_sizes()
 
         # Initialize initial state module
-        init_state = Custom(num_q, state_vector=vector)
+        init_state = QuantumCircuit(num_q)
+        init_state.initialize(vector / np.linalg.norm(vector), range(num_q))
 
         # Initialize reciprocal rotation module
         reci = LookupRotation(negative_evals=eigs._negative_evals, evo_time=eigs._evo_time)
@@ -357,7 +366,9 @@ class TestHHL(QiskitAquaTestCase):
         num_q, num_a = eigs.get_register_sizes()
 
         # Initialize initial state module
-        init_state = Custom(num_q, state_vector=vector)
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            init_state = Custom(num_q, state_vector=vector)
 
         # Initialize reciprocal rotation module
         reci = LookupRotation(negative_evals=eigs._negative_evals, evo_time=eigs._evo_time)
@@ -398,7 +409,8 @@ class TestHHL(QiskitAquaTestCase):
         num_q, num_a = eigs.get_register_sizes()
 
         # Initialize initial state module
-        init_state = Custom(num_q, state_vector=vector)
+        init_state = QuantumCircuit(num_q)
+        init_state.initialize(vector / np.linalg.norm(vector), range(num_q))
 
         # Initialize reciprocal rotation module
         reci = LookupRotation(negative_evals=eigs._negative_evals, evo_time=eigs._evo_time)
