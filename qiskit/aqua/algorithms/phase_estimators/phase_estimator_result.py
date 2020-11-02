@@ -41,12 +41,7 @@ class PhaseEstimatorResult(AlgorithmResult):
         # int: number of qubits in phase-readout register
         self._num_evaluation_qubits = num_evaluation_qubits
 
-        self._phases = phases
-
-        # result of running the circuit (on hardware or simulator)
-        self._circuit_result = circuit_result
-
-        super().__init__()
+        super().__init__({'phases' : phases, 'circuit_result' : circuit_result})
 
     @property
     def phases(self) -> Union[numpy.ndarray, dict]:
@@ -54,7 +49,7 @@ class PhaseEstimatorResult(AlgorithmResult):
 
         This is an array or dict whose values correspond to weights on bit strings.
         """
-        return self._phases
+        return self.get('phases')
 
     @property
     def circuit_result(self) -> Result:
@@ -62,8 +57,9 @@ class PhaseEstimatorResult(AlgorithmResult):
 
         This is useful for inspecting and troubleshooting the QPE algorithm.
         """
-        return self._circuit_result
+        return self.get('circuit_result')
 
+    @property
     def most_likely_phase(self) -> float:
         r"""Return the estimated phase as a number in :math:`[0.0, 1.0)`.
 
@@ -71,11 +67,11 @@ class PhaseEstimatorResult(AlgorithmResult):
         eigenvector of the unitary so that the peak of the probability density occurs at the bit
         string that most closely approximates the true phase.
         """
-        if isinstance(self._phases, dict):
-            binary_phase_string = max(self._phases, key=self._phases.get)
+        if isinstance(self.phases, dict):
+            binary_phase_string = max(self.phases, key=self.phases.get)
         else:
             # numpy.argmax ignores complex part of number. But, we take abs anyway
-            idx = numpy.argmax(abs(self._phases))
+            idx = numpy.argmax(abs(self.phases))
             binary_phase_string = numpy.binary_repr(idx, self._num_evaluation_qubits)[::-1]
         phase = _bit_string_to_phase(binary_phase_string)
         return phase
@@ -101,8 +97,8 @@ class PhaseEstimatorResult(AlgorithmResult):
         Returns:
             A filtered dict of phases (keys) and frequencies (values).
         """
-        if isinstance(self._phases, dict):
-            counts = self._phases
+        if isinstance(self.phases, dict):
+            counts = self.phases
             if as_float:
                 phases = {_bit_string_to_phase(k): counts[k]
                           for k in counts.keys() if counts[k] > cutoff}
@@ -111,7 +107,7 @@ class PhaseEstimatorResult(AlgorithmResult):
 
         else:
             phases = {}
-            for idx, amplitude in enumerate(self._phases):
+            for idx, amplitude in enumerate(self.phases):
                 if amplitude > cutoff:
                     # Each index corresponds to a computational basis state with the LSB rightmost.
                     # But, we chose to apply the unitaries such that the phase is recorded

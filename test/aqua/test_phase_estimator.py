@@ -117,8 +117,8 @@ class TestHamiltonianPE(QiskitAquaTestCase):
         with self.subTest('test unscaled phases are correct'):
             self.assertEqual(list(phases.keys()), [0.25, 0.75])
         with self.subTest('test most_likely_phase method'):
-            self.assertEqual(result.most_likely_phase(), -1.5)
-            self.assertEqual(result.most_likely_phase(scaled=False), 0.75)
+            self.assertEqual(result.most_likely_eigenvalue, -1.5)
+            self.assertEqual(result.most_likely_phase, 0.75)
 
     def test_trotter_from_bound(self):
         """HamiltonianPE with bound and Trotterization"""
@@ -147,7 +147,7 @@ class TestPhaseEstimator(QiskitAquaTestCase):
                                quantum_instance=qi,
                                state_preparation=state_preparation)
         result = p_est.run()
-        phase = result.most_likely_phase()
+        phase = result.most_likely_phase
         return phase
 
     def test_qpe_Z0(self):

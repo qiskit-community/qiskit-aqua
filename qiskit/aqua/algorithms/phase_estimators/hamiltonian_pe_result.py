@@ -73,20 +73,15 @@ class HamiltonianPEResult(PhaseEstimatorResult):
         else:
             return cast(Dict, phases)
 
-    def most_likely_phase(self, scaled: bool = True) -> float:
-        """Return the estimated phase as a number between 0.0 and 1.0, with 1.0.
+    @property
+    def most_likely_eigenvalue(self) -> float:
+        """The most likely eigenvalue of the Hamiltonian.
 
-        This method is similar to `PhaseEstimatorResult.most_likely_phase`.
-
-        Args:
-            scaled: If `False` return `phi` in :math:`[0, 1)` rather than the most
-                         frequent eigenvalue of the Hamiltonian.
+        This method calls `most_likely_phase` and scales the result to
+        obtain an eigenvalue.
 
         Returns:
-            The estimated phase as a number between 0.0 and 1.0, with 1.0.
+            The most likely eigenvalue of the Hamiltonian.
         """
-        phase = super().most_likely_phase()
-        if scaled:
-            return self._phase_estimation_scale.scale_phase(phase)
-        else:
-            return phase
+        phase = super().most_likely_phase
+        return self._phase_estimation_scale.scale_phase(phase)
