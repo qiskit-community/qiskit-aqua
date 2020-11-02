@@ -41,7 +41,7 @@ class PhaseEstimatorResult(AlgorithmResult):
         # int: number of qubits in phase-readout register
         self._num_evaluation_qubits = num_evaluation_qubits
 
-        super().__init__({'phases' : phases, 'circuit_result' : circuit_result})
+        super().__init__({'phases': phases, 'circuit_result': circuit_result})
 
     @property
     def phases(self) -> Union[numpy.ndarray, dict]:
