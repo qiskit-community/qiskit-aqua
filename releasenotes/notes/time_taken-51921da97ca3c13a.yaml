@@ -1,0 +1,5 @@
+---
+features:
+  - |
+    Add `time_taken` property to `QuantumInstance` with the accumulated
+    execution time and method `reset_execution_results` to reset it.
