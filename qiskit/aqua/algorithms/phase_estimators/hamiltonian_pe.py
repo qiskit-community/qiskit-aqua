@@ -55,7 +55,8 @@ class HamiltonianPE(PhaseEstimator):
                  evolution: EvolutionBase,
                  state_preparation: Optional[QuantumCircuit] = None,
                  bound: Optional[float] = None,
-                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend, Backend]] = None) -> None:
+                 quantum_instance: Optional[Union[QuantumInstance,
+                                                  BaseBackend, Backend]] = None) -> None:
         """
         Args:
             num_evaluation_qubits: The number of qubits used in estimating the phase. The
