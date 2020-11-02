@@ -22,8 +22,7 @@ import uuid
 
 import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
-from qiskit.providers import BaseBackend, JobStatus, JobError, BaseJob
-from qiskit.providers import Backend
+from qiskit.providers import Backend, BaseBackend, JobStatus, JobError, BaseJob
 from qiskit.providers.jobstatus import JOB_FINAL_STATES
 from qiskit.providers.basicaer import BasicAerJob
 from qiskit.result import Result
@@ -140,7 +139,7 @@ def _maybe_split_qobj_by_gates(qobjs: List[QasmQobj], qobj: QasmQobj) -> List[Qa
 
 
 def _safe_submit_qobj(qobj: QasmQobj,
-                      backend: BaseBackend,
+                      backend: Union[Backend, BaseBackend],
                       backend_options: Dict,
                       noise_config: Dict,
                       skip_qobj_validation: bool) -> Tuple[BaseJob, str]:
@@ -206,7 +205,7 @@ def _safe_get_job_status(job: BaseJob, job_id: str) -> JobStatus:
 
 
 def run_qobj(qobj: QasmQobj,
-             backend: BaseBackend,
+             backend: Union[Backend, BaseBackend],
              qjob_config: Optional[Dict] = None,
              backend_options: Optional[Dict] = None,
              noise_config: Optional[Dict] = None,
@@ -356,7 +355,7 @@ def run_qobj(qobj: QasmQobj,
 
 # skip_qobj_validation = True does what backend.run
 # and aerjob.submit do, but without qobj validation.
-def run_on_backend(backend: BaseBackend,
+def run_on_backend(backend: Union[Backend, BaseBackend],
                    qobj: QasmQobj,
                    backend_options: Optional[Dict] = None,
                    noise_config: Optional[Dict] = None,

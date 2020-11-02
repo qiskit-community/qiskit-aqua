@@ -12,12 +12,13 @@
 
 """ Quantum Instance module """
 
-from typing import Optional, List, Union, Dict, Callable
+from typing import Optional, List, Union, Dict, Callable, Tuple
 import copy
 import logging
 import time
+import numpy as np
 
-from qiskit.providers import BaseBackend
+from qiskit.providers import Backend, BaseBackend
 from qiskit.transpiler import CouplingMap, PassManager
 from qiskit.transpiler.layout import Layout
 from qiskit.assembler.run_config import RunConfig
@@ -60,7 +61,7 @@ class QuantumInstance:
                         "statevector_hpc_gate_opt"] + _BACKEND_OPTIONS_QASM_ONLY
 
     def __init__(self,
-                 backend: BaseBackend,
+                 backend: Union[Backend, BaseBackend],
                  # run config
                  shots: int = 1024,
                  seed_simulator: Optional[int] = None,
@@ -196,7 +197,7 @@ class QuantumInstance:
                                 "with the statevector simulation.")
         else:
             self._meas_error_mitigation_cls = measurement_error_mitigation_cls
-        self._meas_error_mitigation_fitters: Dict = {}
+        self._meas_error_mitigation_fitters: Dict[str, Tuple[np.ndarray, float]] = {}
         # TODO: support different fitting method in error mitigation?
         self._meas_error_mitigation_method = 'least_squares'
         self._cals_matrix_refresh_period = cals_matrix_refresh_period
@@ -307,7 +308,7 @@ class QuantumInstance:
             qubit_index_str = '_'.join([str(x) for x in qubit_index]) + \
                 "_{}".format(self._meas_error_mitigation_shots or self._run_config.shots)
             meas_error_mitigation_fitter, timestamp = \
-                self._meas_error_mitigation_fitters.get(qubit_index_str, (None, 0))
+                self._meas_error_mitigation_fitters.get(qubit_index_str, (None, 0.))
 
             if meas_error_mitigation_fitter is None:
                 # check the asked qubit_index are the subset of build matrices
@@ -320,7 +321,7 @@ class QuantumInstance:
                                 self._run_config.shots == stored_shots:
                             # the qubit used in current job is the subset and shots are the same
                             meas_error_mitigation_fitter, timestamp = \
-                                self._meas_error_mitigation_fitters.get(key, (None, 0))
+                                self._meas_error_mitigation_fitters.get(key, (None, 0.))
                             meas_error_mitigation_fitter = \
                                 meas_error_mitigation_fitter.subset_fitter(
                                     qubit_sublist=qubit_index)
@@ -560,14 +561,18 @@ class QuantumInstance:
         """ sets skip qobj validation flag """
         self._skip_qobj_validation = new_value
 
-    def maybe_refresh_cals_matrix(self, timestamp=None):
+    def maybe_refresh_cals_matrix(self,
+                                  timestamp: Optional[float] = None) -> bool:
         """
         Calculate the time difference from the query of last time.
 
+        Args:
+            timestamp: timestamp
+
         Returns:
-            bool: whether or not refresh the cals_matrix
+            Whether or not refresh the cals_matrix
         """
-        timestamp = timestamp or 0
+        timestamp = timestamp or 0.
         ret = False
         curr_timestamp = time.time()
         difference = int(curr_timestamp - timestamp) / 60.0
@@ -576,27 +581,28 @@ class QuantumInstance:
 
         return ret
 
-    def cals_matrix(self, qubit_index=None):
+    def cals_matrix(self,
+                    qubit_index: Optional[List[int]] = None) -> \
+            Optional[Union[Tuple[np.ndarray, float], Dict[str, Tuple[np.ndarray, float]]]]:
         """
         Get the stored calibration matrices and its timestamp.
 
         Args:
-            qubit_index (list[int]): the qubit index of corresponding calibration matrix.
-            If None, return all stored calibration matrices.
+            qubit_index: the qubit index of corresponding calibration matrix.
+                         If None, return all stored calibration matrices.
 
         Returns:
-            tuple(np.ndarray, int): the calibration matrix and the creation timestamp if qubit_index
-                                    is not None otherwise, return all matrices and their timestamp
-                                    in a dictionary.
+            The calibration matrix and the creation timestamp if qubit_index
+            is not None otherwise, return all matrices and their timestamp
+            in a dictionary.
         """
-        ret = None
         shots = self._meas_error_mitigation_shots or self._run_config.shots
         if qubit_index:
             qubit_index_str = '_'.join([str(x) for x in qubit_index]) + "_{}".format(shots)
             fitter, timestamp = self._meas_error_mitigation_fitters.get(qubit_index_str, None)
             if fitter is not None:
-                ret = (fitter.cal_matrix, timestamp)
+                return fitter.cal_matrix, timestamp
         else:
-            ret = {k: (v.cal_matrix, t) for k, (v, t)
-                   in self._meas_error_mitigation_fitters.items()}
-        return ret
+            return {k: (v.cal_matrix, t) for k, (v, t)
+                    in self._meas_error_mitigation_fitters.items()}
+        return None
