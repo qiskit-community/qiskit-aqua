@@ -15,8 +15,6 @@
 from typing import Dict, Union
 import numpy
 from qiskit.result import Result
-
-# Maybe we want to use this abstract class
 from qiskit.aqua.algorithms import AlgorithmResult
 
 
