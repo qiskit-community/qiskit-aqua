@@ -29,7 +29,7 @@ from qiskit.aqua.utils import map_label_to_class_name
 from qiskit.aqua.utils import split_dataset_to_data_and_labels
 from qiskit.aqua.algorithms import VQAlgorithm
 from qiskit.aqua.components.optimizers import Optimizer
-from qiskit.aqua.components.feature_maps import FeatureMap, RawFeatureVector
+from qiskit.aqua.components.feature_maps import FeatureMap
 from qiskit.aqua.components.variational_forms import VariationalForm
 
 logger = logging.getLogger(__name__)
@@ -200,6 +200,7 @@ class VQC(VQAlgorithm):
             Union(numpy.ndarray or [numpy.ndarray], numpy.ndarray or [numpy.ndarray]):
                 list of NxK array, list of Nx1 array
         """
+        from qiskit.ml.circuit.library.raw_feature_vector import RawFeatureVector
         circuits = []
 
         num_theta_sets = len(theta) // self._var_form.num_parameters
@@ -210,6 +211,8 @@ class VQC(VQAlgorithm):
                 or self._var_form.support_parameterized_circuit
             feat_map_support = isinstance(self._feature_map, QuantumCircuit) \
                 or self._feature_map.support_parameterized_circuit
+            if isinstance(self._feature_map, RawFeatureVector):
+                feat_map_support = False
 
             if var_form_support and feat_map_support and self._parameterized_circuits is None:
                 parameterized_circuits = self.construct_circuit(

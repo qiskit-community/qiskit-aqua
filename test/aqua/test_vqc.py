@@ -22,7 +22,7 @@ from qiskit.circuit.library import TwoLocal, ZZFeatureMap
 from qiskit.aqua import QuantumInstance, aqua_globals, AquaError
 from qiskit.aqua.algorithms import VQC
 from qiskit.aqua.components.optimizers import SPSA, COBYLA
-from qiskit.aqua.components.feature_maps import RawFeatureVector
+from qiskit.ml.circuit.library import RawFeatureVector
 from qiskit.aqua.components.optimizers import L_BFGS_B
 from qiskit.ml.datasets import wine, ad_hoc_data
 
