@@ -544,14 +544,11 @@ class VQC(VQAlgorithm):
             self._feature_map_params = sorted(feature_map.parameters, key=lambda p: p.name)
             self._feature_map = feature_map
         elif isinstance(feature_map, FeatureMap):
-            # raw feature vector is not yet replaced
-            if not isinstance(feature_map, RawFeatureVector):
-                warnings.warn('The qiskit.aqua.components.feature_maps.FeatureMap object is '
-                              'deprecated as of 0.7.0 and will be removed no earlier than 3 months '
-                              'after the release. You should pass a QuantumCircuit object instead. '
-                              'See also qiskit.circuit.library.data_preparation for a collection '
-                              'of suitable circuits.',
-                              DeprecationWarning, stacklevel=2)
+            warnings.warn('The qiskit.aqua.components.feature_maps.RawFeatureVector object is '
+                          'deprecated as of 0.9.0 and will be removed no earlier than 3 months '
+                          'after the release. You can use the RawFeatureVector from '
+                          'qiskit.ml.circuit.library instead.',
+                          DeprecationWarning, stacklevel=2)
 
             self._num_qubits = feature_map.num_qubits
             self._feature_map_params = ParameterVector('x', length=feature_map.feature_dimension)

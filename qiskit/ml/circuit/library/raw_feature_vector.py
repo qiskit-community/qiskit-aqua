@@ -12,35 +12,98 @@
 
 """The raw feature vector circuit."""
 
-from typing import Set, List
+from typing import Set, List, Optional
 import numpy as np
-from qiskit import QuantumCircuit, QuantumRegister
-from qiskit.circuit import ParameterVector, ParameterExpression, Gate
+from qiskit.circuit import QuantumRegister, ParameterVector, ParameterExpression, Gate
+from qiskit.circuit.library import BlueprintCircuit
 
 
-class RawFeatureVector(QuantumCircuit):
+class RawFeatureVector(BlueprintCircuit):
     """The raw feature vector circuit."""
 
-    def __init__(self, feature_dimension: int) -> None:
+    def __init__(self, feature_dimension: Optional[int]) -> None:
         """
         Args:
             feature_dimension: The feature dimension and number of qubits.
 
+        """
+        super().__init__()
+
+        self._num_qubits = None
+        self._parameters = None
+
+        if feature_dimension:
+            self.feature_dimension = feature_dimension
+
+    def _build(self):
+        super()._build()
+        self.add_register(QuantumRegister(self.num_qubits, 'q'))
+
+        # if the parameters are fully specified, use the initialize instruction
+        if len(self.parameters) == 0:
+            self.initialize(self._parameters, self.qubits)  # pylint: disable=no-member
+
+        # otherwise get a gate that acts as placeholder
+        else:
+            placeholder = Gate('Raw', self.num_qubits, self._parameters[:], label='Raw')
+            self.append(placeholder, self.qubits)
+
+    def _check_configuration(self, raise_on_failure=True):
+        pass
+
+    @property
+    def num_qubits(self) -> int:
+        """Returns the number of qubits in this circuit.
+
+        Returns:
+            The number of qubits.
+        """
+        return self._num_qubits if self._num_qubits is not None else 0
+
+    @num_qubits.setter
+    def num_qubits(self, num_qubits: int) -> None:
+        """Set the number of qubits for the n-local circuit.
+
+        Args:
+            The new number of qubits.
+        """
+        if self._num_qubits != num_qubits:
+            # invalidate the circuit
+            self._invalidate()
+            self._num_qubits = num_qubits
+            self._parameters = list(ParameterVector('p', length=self.feature_dimension))
+
+    @property
+    def feature_dimension(self) -> int:
+        """Return the feature dimension.
+
+        Returns:
+            The feature dimension, which is ``2 ** num_qubits``.
+        """
+        return 2 ** self.num_qubits
+
+    @feature_dimension.setter
+    def feature_dimension(self, feature_dimension: int) -> None:
+        """Set the feature dimension.
+
+        Args:
+            feature_dimension: The new feature dimension. Must be a power of 2.
+
         Raises:
-            ValueError: -
+            ValueError: If ``feature_dimension`` is not a power of 2.
         """
         num_qubits = np.log2(feature_dimension)
-        if int(num_qubits) != num_qubits:
-            raise ValueError('feature_dimension must be a power of 2!')
+        if self._num_qubits is None or num_qubits != self._num_qubits:
+            if int(num_qubits) != num_qubits:
+                raise ValueError('feature_dimension must be a power of 2!')
 
-        qr = QuantumRegister(int(num_qubits), 'q')
-        super().__init__(qr, name='Raw')
+            self._invalidate()
+            self.num_qubits = int(num_qubits)
 
-        self._parameters = list(ParameterVector('p', length=feature_dimension))
-
-        # get a gate that acts as placeholder
-        placeholder = Gate('Raw', self.num_qubits, self._parameters[:], label='Raw')
-        self.append(placeholder, self.qubits)
+    def _invalidate(self):
+        super()._invalidate()
+        self._parameters = None
+        self._num_qubits = None
 
     @property
     def parameters(self) -> Set[ParameterExpression]:
@@ -69,6 +132,7 @@ class RawFeatureVector(QuantumCircuit):
             dest = self
         else:
             dest = RawFeatureVector(2 ** self.num_qubits)
+            dest._build()
             dest._parameters = self._parameters.copy()
 
         # update the parameter list
@@ -80,7 +144,7 @@ class RawFeatureVector(QuantumCircuit):
         if len(dest.parameters) == 0:
             dest._data = []  # wipe the current data
             parameters = dest._parameters / np.linalg.norm(dest._parameters)
-            dest.initialize(parameters, dest.qubits)  # pylint: ignore=no-member
+            dest.initialize(parameters, dest.qubits)  # pylint: disable=no-member
 
         # else update the placeholder
         else:
