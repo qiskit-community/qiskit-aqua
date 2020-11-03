@@ -37,7 +37,6 @@ class RawFeatureVector(BlueprintCircuit):
 
     def _build(self):
         super()._build()
-        self.add_register(QuantumRegister(self.num_qubits, 'q'))
 
         # if the parameters are fully specified, use the initialize instruction
         if len(self.parameters) == 0:
@@ -72,6 +71,7 @@ class RawFeatureVector(BlueprintCircuit):
             self._invalidate()
             self._num_qubits = num_qubits
             self._parameters = list(ParameterVector('p', length=self.feature_dimension))
+            self.add_register(QuantumRegister(self.num_qubits, 'q'))
 
     @property
     def feature_dimension(self) -> int:
@@ -123,6 +123,12 @@ class RawFeatureVector(BlueprintCircuit):
         """
         return list(param for param in self._parameters if isinstance(param, ParameterExpression))
 
+    def bind_parameters(self, value_dict):
+        """Bind parameters."""
+        if not isinstance(value_dict, dict):
+            value_dict = dict(zip(self.ordered_parameters, value_dict))
+        return super().bind_parameters(value_dict)
+
     def assign_parameters(self, param_dict, inplace=False):
         """Call the initialize instruction."""
         if not isinstance(param_dict, dict):
@@ -148,7 +154,7 @@ class RawFeatureVector(BlueprintCircuit):
 
         # else update the placeholder
         else:
-            dest._data[0][0].params = dest._parameters
+            dest.data[0][0].params = dest._parameters
 
         if not inplace:
             return dest
