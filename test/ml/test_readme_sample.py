@@ -38,9 +38,9 @@ class TestReadmeSample(QiskitMLTestCase):
         from qiskit.aqua import QuantumInstance, aqua_globals
         from qiskit.aqua.algorithms import VQC
         from qiskit.aqua.components.optimizers import COBYLA
-        from qiskit.aqua.components.feature_maps import RawFeatureVector
         from qiskit.ml.datasets import wine
         from qiskit.circuit.library import TwoLocal
+        from qiskit.ml.circuit.library import RawFeatureVector
 
         seed = 1376
         aqua_globals.random_seed = seed

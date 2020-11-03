@@ -359,8 +359,8 @@ from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms import VQC
 from qiskit.aqua.components.optimizers import COBYLA
-from qiskit.aqua.components.feature_maps import RawFeatureVector
 from qiskit.ml.datasets import wine
+from qiskit.ml.circuit.library import RawFeatureVector
 from qiskit.circuit.library import TwoLocal
 
 seed = 1376

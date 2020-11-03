@@ -200,7 +200,7 @@ class VQC(VQAlgorithm):
             Union(numpy.ndarray or [numpy.ndarray], numpy.ndarray or [numpy.ndarray]):
                 list of NxK array, list of Nx1 array
         """
-        from qiskit.ml.circuit.library.raw_feature_vector import RawFeatureVector
+        from qiskit.ml.circuit.library import RawFeatureVector
         circuits = []
 
         num_theta_sets = len(theta) // self._var_form.num_parameters
@@ -211,6 +211,8 @@ class VQC(VQAlgorithm):
                 or self._var_form.support_parameterized_circuit
             feat_map_support = isinstance(self._feature_map, QuantumCircuit) \
                 or self._feature_map.support_parameterized_circuit
+
+            # cannot transpile the RawFeatureVector
             if isinstance(self._feature_map, RawFeatureVector):
                 feat_map_support = False
 
