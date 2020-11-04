@@ -1,0 +1,4 @@
+---
+fixes:
+  - |
+    Fix the propagation of `grad_combo_fn` in the `ListOp` class.
