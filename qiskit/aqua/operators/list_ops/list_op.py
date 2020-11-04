@@ -159,7 +159,7 @@ class ListOp(OperatorBase):
         if self.__class__ == ListOp:
             return ListOp([op.adjoint() for op in self.oplist],  # type: ignore
                           combo_fn=self.combo_fn, coeff=np.conj(self.coeff), abelian=self.abelian,
-                          grad_combo_fn = self._grad_combo_fn )
+                          grad_combo_fn=self._grad_combo_fn)
         return self.__class__([op.adjoint() for op in self.oplist],  # type: ignore
                               coeff=np.conj(self.coeff), abelian=self.abelian)
 
