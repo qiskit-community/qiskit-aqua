@@ -182,7 +182,8 @@ class ListOp(OperatorBase):
 
         if self.__class__ == ListOp:
             return ListOp([convert_fn(op) for op in self.oplist],  # type: ignore
-                          combo_fn=self.combo_fn, coeff=coeff, abelian=self.abelian)
+                          combo_fn=self.combo_fn, coeff=coeff, abelian=self.abelian,
+                          grad_combo_fn=self._grad_combo_fn)
         return self.__class__([convert_fn(op) for op in self.oplist],  # type: ignore
                               coeff=coeff, abelian=self.abelian)
 
@@ -203,7 +204,7 @@ class ListOp(OperatorBase):
                              '{} of type {}.'.format(scalar, type(scalar)))
         if self.__class__ == ListOp:
             return ListOp(self.oplist, combo_fn=self.combo_fn, coeff=scalar * self.coeff,
-                          abelian=self.abelian)
+                          abelian=self.abelian, grad_combo_fn=self._grad_combo_fn)
         return self.__class__(self.oplist, coeff=scalar * self.coeff, abelian=self.abelian)
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
@@ -226,7 +227,8 @@ class ListOp(OperatorBase):
 
     def _expand_dim(self, num_qubits: int) -> 'ListOp':
         return ListOp([op._expand_dim(num_qubits + self.num_qubits - op.num_qubits)
-                       for op in self.oplist], combo_fn=self.combo_fn, coeff=self.coeff)
+                       for op in self.oplist], combo_fn=self.combo_fn, coeff=self.coeff,
+                       grad_combo_fn=self._grad_combo_fn)
 
     def permute(self, permutation: List[int]) -> 'ListOp':
         """Permute the qubits of the operator.
@@ -386,7 +388,8 @@ class ListOp(OperatorBase):
         if type(self) == ListOp:
             return ListOp([op.exp_i() for op in self.oplist],  # type: ignore
                           combo_fn=self.combo_fn,
-                          coeff=self.coeff)
+                          coeff=self.coeff,
+                          grad_combo_fn=self._grad_combo_fn)
 
         # pylint: disable=import-outside-toplevel
         from qiskit.aqua.operators import EvolvedOp
@@ -402,7 +405,8 @@ class ListOp(OperatorBase):
             return ListOp([op.log_i(massive=massive) for op in self.oplist],  # type: ignore
                           combo_fn=self.combo_fn,
                           coeff=self.coeff,
-                          abelian=False)
+                          abelian=False,
+                          grad_combo_fn=self._grad_combo_fn)
 
         return self.to_matrix_op(massive=massive).log_i(massive=massive)  # type: ignore
 
@@ -447,7 +451,7 @@ class ListOp(OperatorBase):
         reduced_ops = [op.reduce() for op in self.oplist]
         if self.__class__ == ListOp:
             return ListOp(reduced_ops, combo_fn=self.combo_fn, coeff=self.coeff,
-                          abelian=self.abelian)
+                          abelian=self.abelian, grad_combo_fn=self._grad_combo_fn)
         return self.__class__(reduced_ops, coeff=self.coeff, abelian=self.abelian)
 
     def to_matrix_op(self, massive: bool = False) -> OperatorBase:
@@ -456,11 +460,12 @@ class ListOp(OperatorBase):
         if self.__class__ == ListOp:
             return ListOp(
                 [op.to_matrix_op(massive=massive) for op in self.oplist],  # type: ignore
-                combo_fn=self.combo_fn, coeff=self.coeff, abelian=self.abelian
+                combo_fn=self.combo_fn, coeff=self.coeff, abelian=self.abelian,
+                grad_combo_fn=self._grad_combo_fn)
                 ).reduce()
         return self.__class__(
             [op.to_matrix_op(massive=massive) for op in self.oplist],  # type: ignore
-            coeff=self.coeff, abelian=self.abelian
+            coeff = self.coeff, abelian = self.abelian
             ).reduce()
 
     def to_circuit_op(self) -> OperatorBase:
@@ -472,12 +477,13 @@ class ListOp(OperatorBase):
             return ListOp([op.to_circuit_op()  # type: ignore
                            if not isinstance(op, OperatorStateFn) else op
                            for op in self.oplist],
-                          combo_fn=self.combo_fn, coeff=self.coeff, abelian=self.abelian
+                          combo_fn = self.combo_fn, coeff = self.coeff, abelian = self.abelian,
+                          grad_combo_fn = self._grad_combo_fn)
                           ).reduce()
         return self.__class__([op.to_circuit_op()  # type: ignore
                                if not isinstance(op, OperatorStateFn) else op
                                for op in self.oplist],
-                              coeff=self.coeff, abelian=self.abelian).reduce()
+                              coeff = self.coeff, abelian = self.abelian).reduce()
 
     def to_pauli_op(self, massive: bool = False) -> OperatorBase:
         """ Returns an equivalent Operator composed of only Pauli-based primitives,
@@ -488,7 +494,8 @@ class ListOp(OperatorBase):
             return ListOp([op.to_pauli_op(massive=massive)  # type: ignore
                            if not isinstance(op, StateFn) else op
                            for op in self.oplist],
-                          combo_fn=self.combo_fn, coeff=self.coeff, abelian=self.abelian
+                          combo_fn=self.combo_fn, coeff=self.coeff, abelian=self.abelian,
+                          grad_combo_fn=self._grad_combo_fn
                           ).reduce()
         return self.__class__([op.to_pauli_op(massive=massive)  # type: ignore
                                if not isinstance(op, StateFn) else op
