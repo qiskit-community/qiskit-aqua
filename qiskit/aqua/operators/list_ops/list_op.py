@@ -226,9 +226,12 @@ class ListOp(OperatorBase):
         return TensoredOp([self] * other)
 
     def _expand_dim(self, num_qubits: int) -> 'ListOp':
-        return ListOp([op._expand_dim(num_qubits + self.num_qubits - op.num_qubits)
-                       for op in self.oplist], combo_fn=self.combo_fn, coeff=self.coeff,
-                       grad_combo_fn=self._grad_combo_fn)
+        oplist = [op._expand_dim(num_qubits + self.num_qubits - op.num_qubits)
+                  for op in self.oplist]
+        return ListOp(oplist,
+                      combo_fn=self.combo_fn,
+                      coeff=self.coeff,
+                      grad_combo_fn=self._grad_combo_fn)
 
     def permute(self, permutation: List[int]) -> 'ListOp':
         """Permute the qubits of the operator.
@@ -461,11 +464,11 @@ class ListOp(OperatorBase):
             return ListOp(
                 [op.to_matrix_op(massive=massive) for op in self.oplist],  # type: ignore
                 combo_fn=self.combo_fn, coeff=self.coeff, abelian=self.abelian,
-                grad_combo_fn=self._grad_combo_fn)
+                grad_combo_fn=self._grad_combo_fn
                 ).reduce()
         return self.__class__(
             [op.to_matrix_op(massive=massive) for op in self.oplist],  # type: ignore
-            coeff = self.coeff, abelian = self.abelian
+            coeff=self.coeff, abelian=self.abelian
             ).reduce()
 
     def to_circuit_op(self) -> OperatorBase:
@@ -477,13 +480,13 @@ class ListOp(OperatorBase):
             return ListOp([op.to_circuit_op()  # type: ignore
                            if not isinstance(op, OperatorStateFn) else op
                            for op in self.oplist],
-                          combo_fn = self.combo_fn, coeff = self.coeff, abelian = self.abelian,
-                          grad_combo_fn = self._grad_combo_fn)
+                          combo_fn=self.combo_fn, coeff=self.coeff, abelian=self.abelian,
+                          grad_combo_fn=self._grad_combo_fn
                           ).reduce()
         return self.__class__([op.to_circuit_op()  # type: ignore
                                if not isinstance(op, OperatorStateFn) else op
                                for op in self.oplist],
-                              coeff = self.coeff, abelian = self.abelian).reduce()
+                              coeff=self.coeff, abelian=self.abelian).reduce()
 
     def to_pauli_op(self, massive: bool = False) -> OperatorBase:
         """ Returns an equivalent Operator composed of only Pauli-based primitives,
