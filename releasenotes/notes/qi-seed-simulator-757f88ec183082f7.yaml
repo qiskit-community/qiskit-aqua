@@ -1,0 +1,5 @@
+---
+fixes:
+  - |
+    Previously, setting `seed_simulator=0` in the `QuantumInstance` did not set 
+    any seed. This was only affecting the value 0. This has been fixed.
