@@ -203,7 +203,7 @@ class PrimitiveOp(OperatorBase):
         raise NotImplementedError
 
     def __hash__(self) -> int:
-        return hash(repr(self))
+        raise NotImplementedError
 
     def __repr__(self) -> str:
         return "{}({}, coeff={})".format(type(self).__name__, repr(self.primitive), self.coeff)
