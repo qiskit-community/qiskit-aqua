@@ -1,0 +1,24 @@
+---
+features:
+  - |
+    The ``HartreeFock`` and ``VSCF`` initial state components are now circuits, 
+    so they provide all methods and flexibility of the ``QuantumCircuit`` object.
+deprecations:
+  - |
+    The ``InitialState`` object and derived classes, as well as the ``VarFormBased``
+    class, have been deprecated. Instead, the ``QuantumCircuit`` can be used.
+    The individual classes emit deprecation warnings on how they can be replaced, 
+    but here is a short overview.
+
+    .. code-block::
+
+        InitialState component | How to replace
+        -----------------------+----------------------------------------------------------------
+        Zero                   | an empty QuantumCircuit
+        Custom(circuit)        | use the circuit directly as input 
+        Custom(state_vector)   | qc = QuantumCircuit(n) 
+                               | qc.initialize(state_vector, qc.qubits)  # normalize vector! 
+        Custom('random')       | use the initialize instruction with random amplitudes 
+        VarFormBased           | use the circuit of the variational form directly 
+        HartreeFock            | has been replaced in-place, can still use this class
+        VSCF                   | has been replaced in-place, can still use this class

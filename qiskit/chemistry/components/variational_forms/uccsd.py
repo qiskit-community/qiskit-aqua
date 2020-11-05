@@ -17,7 +17,7 @@ Also, for more information on the tapering see: https://arxiv.org/abs/1701.08213
 And for singlet q-UCCD (full) and pair q-UCCD see: https://arxiv.org/abs/1911.10864
 """
 
-from typing import Optional, Union, List
+from typing import Optional, Union, List, Tuple
 import logging
 import sys
 import collections
@@ -48,11 +48,11 @@ class UCCSD(VariationalForm):
 
     def __init__(self,
                  num_orbitals: int,
-                 num_particles: Union[List[int], int],
+                 num_particles: Union[Tuple[int, int], List[int], int],
                  reps: int = 1,
                  active_occupied: Optional[List[int]] = None,
                  active_unoccupied: Optional[List[int]] = None,
-                 initial_state: Optional[InitialState] = None,
+                 initial_state: Optional[Union[QuantumCircuit, InitialState]] = None,
                  qubit_mapping: str = 'parity',
                  two_qubit_reduction: bool = True,
                  num_time_slices: int = 1,
@@ -118,7 +118,7 @@ class UCCSD(VariationalForm):
             else self._num_qubits - len(self._z2_symmetries.sq_list)
         self._reps = reps
         self._num_orbitals = num_orbitals
-        if isinstance(num_particles, list):
+        if isinstance(num_particles, (tuple, list)):
             self._num_alpha = num_particles[0]
             self._num_beta = num_particles[1]
         else:
@@ -382,7 +382,10 @@ class UCCSD(VariationalForm):
 
         if q is None:
             q = QuantumRegister(self._num_qubits, name='q')
-        if self._initial_state is not None:
+        if isinstance(self._initial_state, QuantumCircuit):
+            circuit = QuantumCircuit(q)
+            circuit.compose(self._initial_state, inplace=True)
+        elif isinstance(self._initial_state, InitialState):
             circuit = self._initial_state.construct_circuit('circuit', q)
         else:
             circuit = QuantumCircuit(q)
@@ -449,11 +452,7 @@ class UCCSD(VariationalForm):
         if self._initial_state is None:
             return None
         else:
-            bitstr = self._initial_state.bitstr
-            if bitstr is not None:
-                return np.zeros(self._num_parameters, dtype=np.float)
-            else:
-                return None
+            return np.zeros(self._num_parameters, dtype=np.float)
 
     @staticmethod
     def compute_excitation_lists(num_particles, num_orbitals, active_occ_list=None,
@@ -491,7 +490,7 @@ class UCCSD(VariationalForm):
             ValueError: invalid setting of number of orbitals
         """
 
-        if isinstance(num_particles, list):
+        if isinstance(num_particles, (tuple, list)):
             num_alpha = num_particles[0]
             num_beta = num_particles[1]
         else:

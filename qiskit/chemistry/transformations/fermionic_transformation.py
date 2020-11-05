@@ -33,7 +33,6 @@ from qiskit.chemistry.results import DipoleTuple, EigenstateResult, ElectronicSt
 from qiskit.chemistry.components.variational_forms import UCCSD
 
 from .transformation import Transformation
-from ..components.initial_states import HartreeFock
 
 logger = logging.getLogger(__name__)
 
@@ -364,7 +363,7 @@ class FermionicTransformation(Transformation):
         logger.info('Molecule num spin orbitals: %s, remaining for processing: %s',
                     nspinorbs, new_nspinorbs)
 
-        self._molecule_info['num_particles'] = [new_num_alpha, new_num_beta]
+        self._molecule_info['num_particles'] = (new_num_alpha, new_num_beta)
         self._molecule_info['num_orbitals'] = new_nspinorbs
         reduction = self._two_qubit_reduction if self._qubit_mapping == 'parity' else False
         self._molecule_info['two_qubit_reduction'] = reduction
@@ -425,11 +424,14 @@ class FermionicTransformation(Transformation):
                     aux_ops[i] = None  # Discard since no meaningful measurement can be done
 
             if self._z2symmetry_reduction == 'auto':
-                hf_state = HartreeFock(num_orbitals=self._molecule_info['num_orbitals'],
-                                       qubit_mapping=self._qubit_mapping,
-                                       two_qubit_reduction=self._two_qubit_reduction,
-                                       num_particles=self._molecule_info['num_particles'])
-                z2_symmetries = FermionicTransformation._pick_sector(z2_symmetries, hf_state.bitstr)
+                from ..circuit.library.initial_states.hartree_fock import hartree_fock_bitstring
+                hf_bitstr = hartree_fock_bitstring(
+                    num_orbitals=self._molecule_info['num_orbitals'],
+                    qubit_mapping=self._qubit_mapping,
+                    two_qubit_reduction=self._two_qubit_reduction,
+                    num_particles=self._molecule_info['num_particles']
+                    )
+                z2_symmetries = FermionicTransformation._pick_sector(z2_symmetries, hf_bitstr)
             else:
                 if len(self._z2symmetry_reduction) != len(z2_symmetries.symmetries):
                     raise QiskitChemistryError('z2symmetry_reduction tapering values list has '

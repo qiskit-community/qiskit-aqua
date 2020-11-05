@@ -19,7 +19,8 @@ from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms import VQE
 from qiskit.aqua.components.optimizers import SLSQP, SPSA
 from qiskit.aqua.operators import AerPauliExpectation, PauliExpectation
-from qiskit.chemistry.components.initial_states import HartreeFock
+
+from qiskit.chemistry.circuit.library import HartreeFock
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.core import QubitMappingType
 from qiskit.chemistry.drivers import HDF5Driver
