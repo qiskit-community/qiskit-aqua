@@ -314,6 +314,3 @@ class PauliOp(PrimitiveOp):
         else:
             coeff = cast(float, self.coeff)
         return WeightedPauliOperator(paulis=[(coeff, self.primitive)])  # type: ignore
-
-    def __hash__(self):
-        return hash(self.primitive) ^ hash(self.coeff)
