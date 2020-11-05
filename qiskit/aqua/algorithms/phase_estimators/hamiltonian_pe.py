@@ -17,13 +17,13 @@ from qiskit import QuantumCircuit
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import EvolutionBase, OperatorBase
 from qiskit.providers import BaseBackend, Backend
-from .phase_estimator import PhaseEstimator
+from .phase_estimation import PhaseEstimation
 from . import phase_estimation_scale
 from .hamiltonian_pe_result import HamiltonianPEResult
 from .phase_estimation_scale import PhaseEstimationScale
 
 
-class HamiltonianPE(PhaseEstimator):
+class HamiltonianPE(PhaseEstimation):
     r"""Run the Quantum Phase Estimation algorithm to find the eigenvalues of a Hermitian operator.
 
     This class is nearly the same as :class:`~qiskit.aqua.algorithms.PhaseEstimator`, differing only

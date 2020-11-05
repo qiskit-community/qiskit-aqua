@@ -18,7 +18,8 @@ from typing import Optional, Union
 import numpy
 from qiskit.circuit import QuantumCircuit
 import qiskit
-from qiskit.circuit.library import PhaseEstimation
+import qiskit.circuit as circuit
+#from qiskit.circuit.library import PhaseEstimation
 from qiskit.circuit.classicalregister import ClassicalRegister
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance
@@ -28,7 +29,7 @@ from qiskit.result import Result
 from .phase_estimator_result import PhaseEstimatorResult, _sort_phases
 
 
-class PhaseEstimator(QuantumAlgorithm):
+class PhaseEstimation(QuantumAlgorithm):
     """Run the Quantum Phase Estimation (QPE) algorithm.
 
     This runs a version of QPE with a multi-qubit register for reading the phase [1]. The main
@@ -101,7 +102,7 @@ class PhaseEstimator(QuantumAlgorithm):
             if not (num_unitary_qubits is None or num_unitary_qubits == unitary.num_qubits):
                 raise ValueError('`num_unitary_qubits` disagrees with size of `unitary`.')
             self._num_unitary_qubits = unitary.num_qubits
-            self._pe_circuit = PhaseEstimation(num_evaluation_qubits, unitary)
+            self._pe_circuit = circuit.library.PhaseEstimation(num_evaluation_qubits, unitary)
 
         self._num_evaluation_qubits = num_evaluation_qubits
 

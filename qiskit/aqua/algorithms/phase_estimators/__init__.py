@@ -12,14 +12,14 @@
 
 """Phase Estimators."""
 
-from .phase_estimator import PhaseEstimator
+from .phase_estimation import PhaseEstimation
 from .phase_estimator_result import PhaseEstimatorResult
 from .phase_estimation_scale import PhaseEstimationScale
 from .hamiltonian_pe import HamiltonianPE
 from .hamiltonian_pe_result import HamiltonianPEResult
 
 __all__ = [
-    'PhaseEstimator',
+    'PhaseEstimation',
     'PhaseEstimatorResult',
     'PhaseEstimationScale',
     'HamiltonianPE',

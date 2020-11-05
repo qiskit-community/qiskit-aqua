@@ -15,7 +15,7 @@
 import unittest
 from test.aqua import QiskitAquaTestCase
 import numpy as np
-from qiskit.aqua.algorithms.phase_estimators import PhaseEstimator, HamiltonianPE
+from qiskit.aqua.algorithms.phase_estimators import PhaseEstimation, HamiltonianPE
 from qiskit.aqua.operators.evolutions import PauliTrotterEvolution, MatrixEvolution
 import qiskit
 from qiskit.aqua.operators import (H, X, Y, Z, I)
@@ -132,7 +132,7 @@ class TestHamiltonianPE(QiskitAquaTestCase):
             self.assertAlmostEqual(phases[1], -1.5, delta=0.001)
 
 
-class TestPhaseEstimator(QiskitAquaTestCase):
+class TestPhaseEstimation(QiskitAquaTestCase):
     """Evolution tests."""
 
     # pylint: disable=invalid-name
@@ -142,7 +142,7 @@ class TestPhaseEstimator(QiskitAquaTestCase):
         `state_preparation`. Return the bit string with the largest amplitude.
         """
         qi = qiskit.aqua.QuantumInstance(backend=backend, shots=10000)
-        p_est = PhaseEstimator(num_evaluation_qubits=n_eval_qubits,
+        p_est = PhaseEstimation(num_evaluation_qubits=n_eval_qubits,
                                unitary=unitary_circuit,
                                quantum_instance=qi,
                                state_preparation=state_preparation)
@@ -195,7 +195,7 @@ class TestPhaseEstimator(QiskitAquaTestCase):
         `state_preparation`. Return all results
         """
         qi = qiskit.aqua.QuantumInstance(backend=backend, shots=10000)
-        phase_est = PhaseEstimator(num_evaluation_qubits=num_evaluation_qubits,
+        phase_est = PhaseEstimation(num_evaluation_qubits=num_evaluation_qubits,
                                    unitary=unitary_circuit,
                                    quantum_instance=qi,
                                    state_preparation=state_preparation)

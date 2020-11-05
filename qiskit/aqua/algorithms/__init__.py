@@ -199,7 +199,7 @@ Algorithms that estimate the phases of eigenstates of a unitary.
    HamiltonianPE
    HamiltonianPEResult
    PhaseEstimationScale
-   PhaseEstimator
+   PhaseEstimation
    PhaseEstimatorResult
 
 """
@@ -227,7 +227,7 @@ from .minimum_eigen_solvers import (VQE, VQEResult, QAOA, IQPE, IQPEResult, QPE,
                                     ClassicalCPLEX, CPLEX_Ising, NumPyMinimumEigensolver,
                                     MinimumEigensolver, MinimumEigensolverResult)
 from .phase_estimators import (HamiltonianPE, HamiltonianPEResult, PhaseEstimationScale,
-                               PhaseEstimator, PhaseEstimatorResult)
+                               PhaseEstimation, PhaseEstimatorResult)
 from .education import EOH, Simon, DeutschJozsa, BernsteinVazirani
 
 __all__ = [
@@ -274,7 +274,7 @@ __all__ = [
     'HamiltonianPE',
     'HamiltonianPEResult',
     'PhaseEstimationScale',
-    'PhaseEstimator',
+    'PhaseEstimation',
     'PhaseEstimatorResult',
     'Simon',
     'DeutschJozsa',
