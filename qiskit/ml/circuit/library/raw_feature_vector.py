@@ -37,22 +37,22 @@ class RawFeatureVector(BlueprintCircuit):
         >>> circuit.num_qubits
         2
         >>> circuit.draw()
-            ┌──────┐
+             ┌──────┐
         q_0: ┤0     ├
-            │  Raw │
+             │  Raw │
         q_1: ┤1     ├
-            └──────┘
+             └──────┘
         >>> circuit.ordered_parameters
         [Parameter(p[0]), Parameter(p[1]), Parameter(p[2]), Parameter(p[3])]
         >>> import numpy as np
         >>> state = np.array([1, 0, 0, 1]) / np.sqrt(2)
         >>> bound = circuit.assign_parameters(state)
         >>> bound.draw()
-            ┌──────────────────────────────────┐
+             ┌──────────────────────────────────┐
         q_0: ┤0                                 ├
-            │  initialize(0.70711,0,0,0.70711) │
+             │  initialize(0.70711,0,0,0.70711) │
         q_1: ┤1                                 ├
-            └──────────────────────────────────┘
+             └──────────────────────────────────┘
 
         """
 
