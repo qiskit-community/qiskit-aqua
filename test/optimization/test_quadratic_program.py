@@ -95,23 +95,33 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
             self.assertEqual(x.upperbound, y.upperbound)
             self.assertEqual(x.vartype, y.vartype)
 
-        d_0 = q_p.var_dict(name='a', formatter='_{}', var_count=3)
+        d_0 = q_p.var_dict(name='a', formatter='_{}', keys=3)
         c_count += 3
         check_dict(d_0, 0)
 
-        d_1 = q_p.var_dict(name='b', var_count=5, lowerbound=0, upperbound=1,
+        d_1 = q_p.var_dict(name='b', keys=5, lowerbound=0, upperbound=1,
                            vartype=VarType.BINARY)
         b_count += 5
         check_dict(d_1, len(d_0))
 
-        d_2 = q_p.var_dict(formatter='_{}', var_count=7, lowerbound=-4, upperbound=10,
+        d_2 = q_p.var_dict(formatter='_{}', keys=7, lowerbound=-4, upperbound=10,
                            vartype=VarType.INTEGER)
         i_count += 7
         check_dict(d_2, len(d_0) + len(d_1))
 
-        d_3 = q_p.var_dict(name='a', formatter='_{}', var_count=3)
+        d_3 = q_p.var_dict(name='a', formatter='_{}', keys=3)
         c_count += 3
         check_dict(d_3, len(d_0) + len(d_1) + len(d_2))
+
+        d_4 = q_p.var_dict(name='c', keys=range(3))
+        c_count += 3
+        check_dict(d_4, len(d_0) + len(d_1) + len(d_2) + len(d_3))
+
+        with self.assertRaises(QiskitOptimizationError):
+            q_p.var_dict(name='c0')
+
+        with self.assertRaises(QiskitOptimizationError):
+            q_p.var_dict(name='c', keys=range(3))
 
         with self.assertRaises(QiskitOptimizationError):
             q_p = QuadraticProgram()
@@ -119,7 +129,7 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
 
         with self.assertRaises(QiskitOptimizationError):
             q_p = QuadraticProgram()
-            q_p.var_dict(var_count=0)
+            q_p.var_dict(keys=0)
 
         with self.assertRaises(QiskitOptimizationError):
             q_p = QuadraticProgram()
