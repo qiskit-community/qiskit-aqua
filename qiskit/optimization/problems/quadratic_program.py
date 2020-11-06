@@ -176,6 +176,13 @@ class QuadraticProgram:
         if not name and not formatter:
             name = 'x'
             formatter = '{}'
+        if '{{}}' in formatter:
+            raise QiskitOptimizationError(
+                "Formatter cannot contain nested substitutions: {}".format(formatter))
+        substitution_count = formatter.count('{}')
+        if substitution_count > 1:
+            raise QiskitOptimizationError(
+                "Formatter cannot contain more than one substitution: {}".format(formatter))
         return self._create_var_dict_update_maps(lowerbound, upperbound, vartype, name, formatter, keys)
 
     def _create_var_dict_update_maps(self,
@@ -185,13 +192,6 @@ class QuadraticProgram:
                                      name: str,
                                      formatter: str,
                                      keys: Union[int, Sequence]) -> Dict[str, Variable]:
-        if '{{}}' in formatter:
-            raise QiskitOptimizationError(
-                "Formatter cannot contain nested substitutions: {}".format(formatter))
-        substitution_count = formatter.count('{}')
-        if substitution_count > 1:
-            raise QiskitOptimizationError(
-                "Formatter cannot contain more than one substitution: {}".format(formatter))
         new_var_dict = {}
         if isinstance(keys, Sequence):
             for key in keys:
