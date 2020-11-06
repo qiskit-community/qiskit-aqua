@@ -111,7 +111,8 @@ class TestBernoulli(QiskitAquaTestCase):
         qae.grover_operator = BernoulliGrover(prob)
 
         result = qae.run(self._statevector)
-
+        self.assertGreater(self._statevector.time_taken, 0.)
+        self._statevector.reset_execution_results()
         for key, value in expect.items():
             self.assertAlmostEqual(value, getattr(result, key), places=3,
                                    msg="estimate `{}` failed".format(key))
@@ -130,7 +131,6 @@ class TestBernoulli(QiskitAquaTestCase):
         qae.grover_operator = BernoulliGrover(prob)
 
         result = qae.run(self._qasm(shots))
-
         for key, value in expect.items():
             self.assertAlmostEqual(value, getattr(result, key), places=3,
                                    msg="estimate `{}` failed".format(key))
@@ -362,7 +362,8 @@ class TestSineIntegral(QiskitAquaTestCase):
         qae.state_preparation = SineIntegral(n)
 
         result = qae.run(self._statevector)
-
+        self.assertGreater(self._statevector.time_taken, 0.)
+        self._statevector.reset_execution_results()
         for key, value in expect.items():
             self.assertAlmostEqual(value, getattr(result, key), places=3,
                                    msg="estimate `{}` failed".format(key))
@@ -379,7 +380,6 @@ class TestSineIntegral(QiskitAquaTestCase):
         qae.state_preparation = SineIntegral(n)
 
         result = qae.run(self._qasm(shots))
-
         for key, value in expect.items():
             self.assertAlmostEqual(value, getattr(result, key), places=3,
                                    msg="estimate `{}` failed".format(key))
@@ -403,6 +403,8 @@ class TestSineIntegral(QiskitAquaTestCase):
 
         # statevector simulator
         result = qae.run(self._statevector)
+        self.assertGreater(self._statevector.time_taken, 0.)
+        self._statevector.reset_execution_results()
         methods = ['lr', 'fi', 'oi']  # short for likelihood_ratio, fisher, observed_fisher
         alphas = [0.1, 0.00001, 0.9]  # alpha shouldn't matter in statevector
         for alpha, method in zip(alphas, methods):
@@ -428,6 +430,8 @@ class TestSineIntegral(QiskitAquaTestCase):
 
         # statevector simulator
         result = qae.run(self._statevector)
+        self.assertGreater(self._statevector.time_taken, 0.)
+        self._statevector.reset_execution_results()
         confint = result.confidence_interval
         # confidence interval based on statevector should be empty, as we are sure of the result
         self.assertAlmostEqual(confint[1] - confint[0], 0.0)
