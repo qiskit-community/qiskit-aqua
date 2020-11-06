@@ -10,7 +10,25 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""The circuit library for Machine Learning applications."""
+"""
+Circuit library for Machine Learning applications (:mod:`qiskit.ml.circuit.library`)
+====================================================================================
+
+A library of quantum circuits used for machine learning applications and as
+building blocks for machine learning algorithms.
+
+.. currentmodule:: qiskit.ml.circuit.library
+
+Feature Maps
+============
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   RawFeatureVector
+
+"""
 
 from .raw_feature_vector import RawFeatureVector
 
