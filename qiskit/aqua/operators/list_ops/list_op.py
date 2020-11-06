@@ -157,10 +157,14 @@ class ListOp(OperatorBase):
         # TODO do this lazily? Basically rebuilds the entire tree, and ops and adjoints almost
         #  always come in pairs, so an AdjointOp holding a reference could save copying.
         if self.__class__ == ListOp:
-            return ListOp([op.adjoint() for op in self.oplist],  # type: ignore
-                          combo_fn=self.combo_fn, coeff=np.conj(self.coeff), abelian=self.abelian)
+            return ListOp(
+                [op.adjoint() for op in self.oplist],  # type: ignore
+                combo_fn=self.combo_fn,
+                coeff=self.coeff.conjugate(),
+                abelian=self.abelian,
+            )
         return self.__class__([op.adjoint() for op in self.oplist],  # type: ignore
-                              coeff=np.conj(self.coeff), abelian=self.abelian)
+                              coeff=self.coeff.conjugate(), abelian=self.abelian)
 
     def traverse(self,
                  convert_fn: Callable,

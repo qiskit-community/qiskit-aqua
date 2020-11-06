@@ -44,11 +44,11 @@ class EvolutionFactory:
                 method.
 
         """
-        primitives = operator.primitive_strings()
-        if 'Matrix' in primitives:
+        primitive_string = operator.primitive_strings()
+        if 'Matrix' in primitive_string:
             return MatrixEvolution()
 
-        elif 'Pauli' in primitives:
+        elif 'Pauli' in primitive_string or 'SparsePauliOp' in primitive_string:
             # TODO figure out what to do based on qubits and hamming weight.
             return PauliTrotterEvolution()
 
