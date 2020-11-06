@@ -19,7 +19,42 @@ from qiskit.circuit.library import BlueprintCircuit
 
 
 class RawFeatureVector(BlueprintCircuit):
-    """The raw feature vector circuit."""
+    """The raw feature vector circuit.
+
+    This circuit acts as parameterized initialization for statevectors with ``feature_dimension``
+    dimensions, thus with ``log2(feature_dimension)`` qubits. As long as there are free parameters,
+    this circuit holds a placeholder instruction and can not be decomposed.
+    Once all parameters are bound, the placeholder is replaced by a state initialization and can
+    be unrolled.
+
+    In ML, this circuit can be used to load the training data into qubit amplitudes. It does not
+    apply an kernel transformation. (Therefore, it is a "raw" feature vector.)
+
+    Examples:
+
+        >>> from qiskit.ml.circuit.library import RawFeatureVector
+        >>> circuit = RawFeatureVector(4)
+        >>> circuit.num_qubits
+        2
+        >>> circuit.draw()
+            ┌──────┐
+        q_0: ┤0     ├
+            │  Raw │
+        q_1: ┤1     ├
+            └──────┘
+        >>> circuit.ordered_parameters
+        [Parameter(p[0]), Parameter(p[1]), Parameter(p[2]), Parameter(p[3])]
+        >>> import numpy as np
+        >>> state = np.array([1, 0, 0, 1]) / np.sqrt(2)
+        >>> bound = circuit.assign_parameters(state)
+        >>> bound.draw()
+            ┌──────────────────────────────────┐
+        q_0: ┤0                                 ├
+            │  initialize(0.70711,0,0,0.70711) │
+        q_1: ┤1                                 ├
+            └──────────────────────────────────┘
+
+        """
 
     def __init__(self, feature_dimension: Optional[int]) -> None:
         """
