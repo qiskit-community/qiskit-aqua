@@ -1,22 +1,13 @@
 issues:
   - |
-    Although PrimitiveOp has `__hash__`, but the current implementation
-    does not follow the rule of hashable for some primitives,
-    i.e., two equivalent objects may have different hash values.
-    If `PrimitiveOp.coeff` has different types, e.g., int v.s. float,
-    `__hash__` generates different values. If `PrimitiveOp.primitive`
-    is QuantumCircuit, it may happen too.
-    We notice that some undelying primitives are not hashable and it is
-    not easy to change all primitives hashable.
+    PrimitiveOp had a `__hash__`, implementation but failed to always
+    follow the Python hashable rule such that two equivalent objects
+    had different hash values.
     See #1399 for details.
-deprecations:
-  - |
-    We remove `PrimitiveOp.__hash__` because it does not work properly for
-    some types of primitives, e.g., QuantumCircuit.
 fixes:
   - |
-    `PrimitiveOp.__hash__` is currently used in `SummedOp.equals`.
-    We remove `PrimitiveOp.__hash__` and change `SummedOp.equals` so that
-    it works without `__hash__`. It was used for set comparison. We change
-    it with naive all-pair comparison. We add a unit test to check whether
-    `SummedOp.equals` works with different types of `OperatorBase`.
+    Since the underlying primitives are not hashable it is problematic to achieve
+    and maintain the correct hashable behavior for the PrimitiveOps so
+    `PrimitiveOp.__hash__` has been removed.
+    `SummedOp.equals` was changed since it used the hash, via the set
+    comparison mechanism, to now do a naive all-pair comparison.
