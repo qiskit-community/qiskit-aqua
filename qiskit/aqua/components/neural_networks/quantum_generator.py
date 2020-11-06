@@ -23,7 +23,6 @@ from qiskit.circuit.library import TwoLocal
 from qiskit.aqua import aqua_globals
 from qiskit.aqua.components.optimizers import ADAM
 from qiskit.aqua.components.optimizers import Optimizer
-
 from qiskit.aqua.components.uncertainty_models import UnivariateVariationalDistribution, \
     MultivariateVariationalDistribution
 from qiskit.aqua.components.neural_networks.generative_network import GenerativeNetwork
@@ -316,6 +315,7 @@ class QuantumGenerator(GenerativeNetwork):
         Args:
             quantum_instance (QuantumInstance): used to run the generator circuit.
             shots (int): Number of shots for hardware or qasm execution.
+
         Returns:
             dict: generator loss(float) and updated parameters (array).
         """
