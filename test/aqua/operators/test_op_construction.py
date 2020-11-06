@@ -932,6 +932,15 @@ class TestOpConstruction(QiskitAquaTestCase):
         sum_op = sum(ops + [ListOp(ops)])
         self.assertEqual(sum_op, sum_op)
         self.assertEqual(sum_op + sum_op, 2 * sum_op)
+        self.assertEqual(sum_op + sum_op + sum_op, 3 * sum_op)
+        ops2 = [Z, CircuitOp(ZGate()), MatrixOp([[1, 0], [0, 1]]), Zero, Minus]
+        sum_op2 = sum(ops2 + [ListOp(ops)])
+        self.assertNotEqual(sum_op, sum_op2)
+        self.assertEqual(sum_op2, sum_op2)
+        sum_op3 = sum(ops)
+        self.assertNotEqual(sum_op, sum_op3)
+        self.assertNotEqual(sum_op2, sum_op3)
+        self.assertEqual(sum_op3, sum_op3)
 
 
 class TestOpMethods(QiskitAquaTestCase):
