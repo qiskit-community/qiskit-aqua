@@ -388,6 +388,6 @@ class LookupRotation(Reciprocal):
 
         # rotate by pi to fix sign for negative evals
         if self._negative_evals:
-            qc.cu3(2 * np.pi, 0, 0, self._ev[0], self._anc[0])
+            qc.cry(2 * np.pi, self._ev[0], self._anc[0])
         self._circuit = qc
         return self._circuit

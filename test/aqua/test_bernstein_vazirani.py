@@ -18,6 +18,8 @@ import math
 from test.aqua import QiskitAquaTestCase
 from ddt import ddt, idata, unpack
 from qiskit import BasicAer
+from qiskit.transpiler import PassManagerConfig
+from qiskit.transpiler.preset_passmanagers import level_0_pass_manager
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.components.oracles import TruthTableOracle
 from qiskit.aqua.algorithms import BernsteinVazirani
@@ -34,7 +36,7 @@ class TestBernsteinVazirani(QiskitAquaTestCase):
     @idata(itertools.product(BITMAPS, MCT_MODES, OPTIMIZATIONS, SIMULATORS))
     @unpack
     def test_bernstein_vazirani(self, bv_input, mct_mode, optimization, simulator):
-        """ Bernstein Vazirani test """
+        """ Test Bernstein Vazirani """
         nbits = int(math.log(len(bv_input), 2))
         # compute the ground-truth classically
         parameter = ""
@@ -49,6 +51,17 @@ class TestBernsteinVazirani(QiskitAquaTestCase):
         result = algorithm.run(quantum_instance=quantum_instance)
         # print(result['circuit'].draw(line_length=10000))
         self.assertEqual(result['result'], parameter)
+
+    def test_with_pass_manager(self):
+        """ Test Bernstein Vazirani using PassManager """
+        quantum_instance = QuantumInstance(
+            BasicAer.get_backend('qasm_simulator'),
+            pass_manager=level_0_pass_manager(
+                PassManagerConfig(basis_gates=['cx', 'u1', 'u2', 'u3'])))
+        alg = BernsteinVazirani(oracle=TruthTableOracle(bitmaps="01100110"),
+                                quantum_instance=quantum_instance)
+        result = alg.run()
+        self.assertEqual(result['result'], '011')
 
 
 if __name__ == '__main__':

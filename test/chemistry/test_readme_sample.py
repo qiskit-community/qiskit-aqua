@@ -79,12 +79,15 @@ class TestReadmeSample(QiskitChemistryTestCase):
         optimizer = L_BFGS_B()
 
         # setup the initial state for the variational form
-        from qiskit.chemistry.components.initial_states import HartreeFock
+        from qiskit.chemistry.circuit.library import HartreeFock
         init_state = HartreeFock(num_spin_orbitals, num_particles)
 
         # setup the variational form for VQE
         from qiskit.circuit.library import TwoLocal
-        var_form = TwoLocal(num_qubits, ['ry', 'rz'], 'cz', initial_state=init_state)
+        var_form = TwoLocal(num_qubits, ['ry', 'rz'], 'cz')
+
+        # add the initial state
+        var_form.compose(init_state, front=True)
 
         # setup and run VQE
         from qiskit.aqua.algorithms import VQE

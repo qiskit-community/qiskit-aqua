@@ -12,6 +12,7 @@
 
 """ Test of Eom EE."""
 
+import warnings
 import unittest
 
 from test.aqua import QiskitAquaTestCase
@@ -35,11 +36,13 @@ class TestEomEE(QiskitAquaTestCase):
             pyscf_driver = PySCFDriver(atom=atom,
                                        unit=UnitsType.ANGSTROM, charge=0, spin=0, basis='sto3g')
             self.molecule = pyscf_driver.run()
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
             core = Hamiltonian(transformation=TransformationType.FULL,
                                qubit_mapping=QubitMappingType.PARITY,
                                two_qubit_reduction=True,
                                freeze_core=False,
                                orbital_reduction=[])
+            warnings.filterwarnings('always', category=DeprecationWarning)
             qubit_op, _ = core.run(self.molecule)
             exact_eigensolver = NumPyEigensolver(qubit_op, k=2 ** qubit_op.num_qubits)
             result = exact_eigensolver.run()
@@ -51,11 +54,13 @@ class TestEomEE(QiskitAquaTestCase):
         """Test H2 with jordan wigner."""
         two_qubit_reduction = False
         qubit_mapping = 'jordan_wigner'
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         core = Hamiltonian(transformation=TransformationType.FULL,
                            qubit_mapping=QubitMappingType.JORDAN_WIGNER,
                            two_qubit_reduction=two_qubit_reduction,
                            freeze_core=False,
                            orbital_reduction=[])
+        warnings.filterwarnings('always', category=DeprecationWarning)
         qubit_op, _ = core.run(self.molecule)
 
         num_orbitals = core.molecule_info['num_orbitals']
@@ -71,11 +76,13 @@ class TestEomEE(QiskitAquaTestCase):
 
         two_qubit_reduction = True
         qubit_mapping = 'parity'
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         core = Hamiltonian(transformation=TransformationType.FULL,
                            qubit_mapping=QubitMappingType.PARITY,
                            two_qubit_reduction=two_qubit_reduction,
                            freeze_core=False,
                            orbital_reduction=[])
+        warnings.filterwarnings('always', category=DeprecationWarning)
         qubit_op, _ = core.run(self.molecule)
 
         num_orbitals = core.molecule_info['num_orbitals']
@@ -91,11 +98,13 @@ class TestEomEE(QiskitAquaTestCase):
         """Test H2 with tapering."""
         two_qubit_reduction = False
         qubit_mapping = 'jordan_wigner'
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         core = Hamiltonian(transformation=TransformationType.FULL,
                            qubit_mapping=QubitMappingType.JORDAN_WIGNER,
                            two_qubit_reduction=two_qubit_reduction,
                            freeze_core=False,
                            orbital_reduction=[])
+        warnings.filterwarnings('always', category=DeprecationWarning)
         qubit_op, _ = core.run(self.molecule)
 
         num_orbitals = core.molecule_info['num_orbitals']

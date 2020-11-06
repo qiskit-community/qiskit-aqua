@@ -22,6 +22,7 @@ from qiskit.aqua.operators import WeightedPauliOperator
 
 class TestNumPyMinimumEigensolver(QiskitAquaTestCase):
     """ Test NumPy Minimum Eigensolver """
+
     def setUp(self):
         super().setUp()
         pauli_dict = {
@@ -106,6 +107,38 @@ class TestNumPyMinimumEigensolver(QiskitAquaTestCase):
         result = algo.compute_minimum_eigenvalue(self.aux_ops[0], [])
         self.assertAlmostEqual(result.eigenvalue, 2 + 0j)
         self.assertIsNone(result.aux_operator_eigenvalues)
+
+    def test_cme_filter(self):
+        """ Basic test """
+
+        # define filter criterion
+        # pylint: disable=unused-argument
+        def criterion(x, v, a_v):
+            return v >= -0.5
+
+        algo = NumPyMinimumEigensolver(
+            self.qubit_op, aux_operators=self.aux_ops, filter_criterion=criterion)
+
+        result = algo.run()
+        self.assertAlmostEqual(result.eigenvalue, -0.22491125 + 0j)
+        self.assertEqual(len(result.aux_operator_eigenvalues), 2)
+        np.testing.assert_array_almost_equal(result.aux_operator_eigenvalues[0], [2, 0])
+        np.testing.assert_array_almost_equal(result.aux_operator_eigenvalues[1], [0, 0])
+
+    def test_cme_filter_empty(self):
+        """ Test with filter always returning False """
+
+        # define filter criterion
+        # pylint: disable=unused-argument
+        def criterion(x, v, a_v):
+            return False
+
+        algo = NumPyMinimumEigensolver(
+            self.qubit_op, aux_operators=self.aux_ops, filter_criterion=criterion)
+        result = algo.run()
+        self.assertEqual(result.eigenvalue, None)
+        self.assertEqual(result.eigenstate, None)
+        self.assertEqual(result.aux_operator_eigenvalues, None)
 
 
 if __name__ == '__main__':

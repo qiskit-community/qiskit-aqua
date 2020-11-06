@@ -20,6 +20,7 @@ from abc import abstractmethod
 from qiskit.circuit import QuantumCircuit
 from qiskit.circuit.library import GroverOperator
 from qiskit.providers import BaseBackend
+from qiskit.providers import Backend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import QuantumAlgorithm, AlgorithmResult
 from qiskit.aqua.utils import CircuitFactory
@@ -64,7 +65,7 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
                  grover_operator: Optional[Union[QuantumCircuit, CircuitFactory]] = None,
                  objective_qubits: Optional[List[int]] = None,
                  post_processing: Optional[Callable[[float], float]] = None,
-                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None,
+                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend, Backend]] = None,
                  a_factory: Optional[CircuitFactory] = None,
                  q_factory: Optional[CircuitFactory] = None,
                  i_objective: Optional[int] = None) -> None:
@@ -86,36 +87,33 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
             i_objective: Deprecated use ``objective_qubits``.
                 Index of the objective qubit, that marks the 'good/bad' states
         """
-        self._a_factory = a_factory
-        self._q_factory = q_factory
-        self._i_objective = None
+        if isinstance(state_preparation, CircuitFactory) or a_factory is not None:
+            warnings.warn('Passing a CircuitFactory as A operator is deprecated as of 0.8.0, '
+                          'this feature will be removed no earlier than 3 months after the '
+                          'release. You should pass a QuantumCircuit instead.',
+                          DeprecationWarning, stacklevel=2)
+            if isinstance(state_preparation, CircuitFactory):
+                a_factory = state_preparation
+                state_preparation = None
 
-        # Uncomment this to deprecate the CircuitFactory, once all circuit factories
-        # functionalities are available as via circuits.
-        # if isinstance(state_preparation, CircuitFactory) or a_factory is not None:
-        #     warnings.warn('Passing a CircuitFactory as A operator is deprecated as of 0.8.0, '
-        #                   'this feature will be removed no earlier than 3 months after the '
-        #                   'release. You should pass a QuantumCircuit instead.',
-        #                   DeprecationWarning, stacklevel=2)
-        #     if a_factory is not None:
-        #         self._a_factory = a_factory
-
-        # if isinstance(grover_operator, CircuitFactory) or q_factory is not None:
-        #     warnings.warn('Passing a CircuitFactory as Q operator is deprecated as of 0.8.0, '
-        #                   'this feature will be removed no earlier than 3 months after the '
-        #                   'release. You should pass a QuantumCircuit instead.',
-        #                   DeprecationWarning, stacklevel=2)
-        #     if q_factory is not None:
-        #         self._q_factory = q_factory
+        if isinstance(grover_operator, CircuitFactory) or q_factory is not None:
+            warnings.warn('Passing a CircuitFactory as Q operator is deprecated as of 0.8.0, '
+                          'this feature will be removed no earlier than 3 months after the '
+                          'release. You should pass a QuantumCircuit instead.',
+                          DeprecationWarning, stacklevel=2)
+            if isinstance(grover_operator, CircuitFactory):
+                q_factory = grover_operator
+                grover_operator = None
 
         if i_objective is not None:
             warnings.warn('The i_objective argument is deprecated as of 0.8.0 and will be removed '
                           'no earlier than 3 months after the release. You should use the '
                           'objective_qubits argument instead.', DeprecationWarning, stacklevel=2)
-            self._i_objective = i_objective
-        else:
-            self._objective_qubits = objective_qubits
 
+        self._a_factory = a_factory
+        self._q_factory = q_factory
+        self._i_objective = i_objective
+        self._objective_qubits = objective_qubits
         self._state_preparation = state_preparation
         self._grover_operator = grover_operator
         self._post_processing = (lambda x: x) if post_processing is None else post_processing
@@ -289,7 +287,10 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
             return self._q_factory
 
         if self._a_factory is not None:
-            return QFactory(self._a_factory, self.i_objective)
+            with warnings.catch_warnings():
+                warnings.filterwarnings('ignore', category=DeprecationWarning)
+                q_factory = QFactory(self._a_factory, self.i_objective)
+            return q_factory
 
         return None
 
@@ -371,7 +372,7 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
             to the target interval.
         """
         if self._a_factory is not None:
-            return self.a_factory.value_to_estimation(value)
+            return self._a_factory.value_to_estimation(value)
         return self._post_processing(value)
 
 

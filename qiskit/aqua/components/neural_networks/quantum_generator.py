@@ -14,6 +14,8 @@
 
 from typing import Optional, List, Union, Dict, Any
 from copy import deepcopy
+import warnings
+
 import numpy as np
 
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
@@ -21,13 +23,10 @@ from qiskit.circuit.library import TwoLocal
 from qiskit.aqua import aqua_globals
 from qiskit.aqua.components.optimizers import ADAM
 from qiskit.aqua.components.optimizers import Optimizer
-from qiskit.aqua.components.uncertainty_models import \
-    UniformDistribution, MultivariateUniformDistribution
+
 from qiskit.aqua.components.uncertainty_models import UnivariateVariationalDistribution, \
     MultivariateVariationalDistribution
-from qiskit.aqua import AquaError
 from qiskit.aqua.components.neural_networks.generative_network import GenerativeNetwork
-from qiskit.aqua.components.initial_states import Custom
 
 # pylint: disable=invalid-name
 
@@ -75,61 +74,32 @@ class QuantumGenerator(GenerativeNetwork):
         self._bounds = bounds
         self._num_qubits = num_qubits
         self.generator_circuit = generator_circuit
-        if self.generator_circuit is None:
-            entangler_map = []
-            if np.sum(num_qubits) > 2:
-                for i in range(int(np.sum(num_qubits))):
-                    entangler_map.append([i, int(np.mod(i + 1, np.sum(num_qubits)))])
-            else:
-                if np.sum(num_qubits) > 1:
-                    entangler_map.append([0, 1])
+        if generator_circuit is None:
+            circuit = QuantumCircuit(sum(num_qubits))
+            circuit.h(circuit.qubits)
+            var_form = TwoLocal(sum(num_qubits), 'ry', 'cz', reps=1, entanglement='circular')
+            circuit.compose(var_form, inplace=True)
 
-            if len(num_qubits) > 1:
-                num_qubits = list(map(int, num_qubits))
-                low = bounds[:, 0].tolist()
-                high = bounds[:, 1].tolist()
-                init_dist = MultivariateUniformDistribution(num_qubits, low=low, high=high)
-                q = QuantumRegister(sum(num_qubits))
-                qc = QuantumCircuit(q)
-                init_dist.build(qc, q)
-                init_distribution = Custom(num_qubits=sum(num_qubits), circuit=qc)
-                # Set variational form
-                var_form = TwoLocal(sum(num_qubits), 'ry', 'cz', reps=1,
-                                    initial_state=init_distribution,
-                                    entanglement=entangler_map)
-                if init_params is None:
-                    init_params = aqua_globals.random.random(var_form.num_parameters) * 2 * 1e-2
-                # Set generator circuit
-                self.generator_circuit = MultivariateVariationalDistribution(num_qubits, var_form,
-                                                                             init_params,
-                                                                             low=low, high=high)
-            else:
-                init_dist = UniformDistribution(sum(num_qubits), low=bounds[0], high=bounds[1])
-                q = QuantumRegister(sum(num_qubits), name='q')
-                qc = QuantumCircuit(q)
-                init_dist.build(qc, q)
-                init_distribution = Custom(num_qubits=sum(num_qubits), circuit=qc)
-                var_form = TwoLocal(sum(num_qubits), 'ry', 'cz', reps=1,
-                                    initial_state=init_distribution,
-                                    entanglement=entangler_map)
-                if init_params is None:
-                    init_params = aqua_globals.random.random(var_form.num_parameters) * 2 * 1e-2
-                # Set generator circuit
-                self.generator_circuit = UnivariateVariationalDistribution(
-                    int(np.sum(num_qubits)), var_form, init_params, low=bounds[0], high=bounds[1])
+            # Set generator circuit
+            self.generator_circuit = circuit
 
-        if len(num_qubits) > 1:
-            if isinstance(self.generator_circuit, MultivariateVariationalDistribution):
-                pass
-            else:
-                raise AquaError('Set multivariate variational distribution '
-                                'to represent multivariate data')
+        if isinstance(generator_circuit, (UnivariateVariationalDistribution,
+                                          MultivariateVariationalDistribution)):
+            warnings.warn('Passing a UnivariateVariationalDistribution or MultivariateVariational'
+                          'Distribution is as ``generator_circuit`` is deprecated as of Aqua 0.8.0 '
+                          'and the support will be removed no earlier than 3 months after the '
+                          'release data. You should pass as QuantumCircuit instead.',
+                          DeprecationWarning, stacklevel=2)
+            self._free_parameters = generator_circuit._var_form_params
+            self.generator_circuit = generator_circuit._var_form
         else:
-            if isinstance(self.generator_circuit, UnivariateVariationalDistribution):
-                pass
-            else:
-                raise AquaError('Set univariate variational distribution '
-                                'to represent univariate data')
+            self._free_parameters = list(self.generator_circuit.parameters)
+
+        if init_params is None:
+            init_params = aqua_globals.random.random(self.generator_circuit.num_parameters) * 2e-2
+
+        self._bound_parameters = init_params
+
         # Set optimizer for updating the generator network
         if optimizer:
             self._optimizer = optimizer
@@ -198,26 +168,28 @@ class QuantumGenerator(GenerativeNetwork):
         Construct generator circuit.
 
         Args:
-            params (numpy.ndarray): parameters which should be used to run the generator,
-                    if None use self._params
+            params (list | dict): parameters which should be used to run the generator.
 
         Returns:
             Instruction: construct the quantum circuit and return as gate
         """
-
-        q = QuantumRegister(sum(self._num_qubits), name='q')
-        qc = QuantumCircuit(q)
         if params is None:
-            self.generator_circuit.build(qc=qc, q=q)
-        else:
-            generator_circuit_copy = deepcopy(self.generator_circuit)
-            generator_circuit_copy.params = params
-            generator_circuit_copy.build(qc=qc, q=q)
+            return self.generator_circuit
 
-        # return qc.copy(name='qc')
-        return qc.to_instruction()
+        if isinstance(params, (list, np.ndarray)):
+            params = dict(zip(self._free_parameters, params))
 
-    def get_output(self, quantum_instance, qc_state_in=None, params=None, shots=None):
+        return self.generator_circuit.assign_parameters(params)
+        #     self.generator_circuit.build(qc=qc, q=q)
+        # else:
+        #     generator_circuit_copy = deepcopy(self.generator_circuit)
+        #     generator_circuit_copy.params = params
+        #     generator_circuit_copy.build(qc=qc, q=q)
+
+        # # return qc.copy(name='qc')
+        # return qc.to_instruction()
+
+    def get_output(self, quantum_instance, params=None, shots=None):
         """
         Get classical data samples from the generator.
         Running the quantum generator circuit results in a quantum state.
@@ -228,7 +200,6 @@ class QuantumGenerator(GenerativeNetwork):
         Args:
             quantum_instance (QuantumInstance): Quantum Instance, used to run the generator
                 circuit.
-            qc_state_in (QuantumCircuit): deprecated
             params (numpy.ndarray): array or None, parameters which should
                 be used to run the generator, if None use self._params
             shots (int): if not None use a number of shots that is different from the
@@ -240,6 +211,8 @@ class QuantumGenerator(GenerativeNetwork):
         instance_shots = quantum_instance.run_config.shots
         q = QuantumRegister(sum(self._num_qubits), name='q')
         qc = QuantumCircuit(q)
+        if params is None:
+            params = self._bound_parameters
         qc.append(self.construct_circuit(params), q)
         if quantum_instance.is_statevector:
             pass
@@ -283,7 +256,7 @@ class QuantumGenerator(GenerativeNetwork):
                     temp.append(self._data_grid[int(bin_rep)])
             generated_samples.append(temp)
 
-        self.generator_circuit._probabilities = generated_samples_weights
+        # self.generator_circuit._probabilities = generated_samples_weights
         if shots is not None:
             # Restore the initial quantum_instance configuration
             quantum_instance.set_config(shots=instance_shots)
@@ -346,20 +319,36 @@ class QuantumGenerator(GenerativeNetwork):
         Returns:
             dict: generator loss(float) and updated parameters (array).
         """
-
         self._shots = shots
-        if self._optimizer._maxiter != 1:
-            raise Warning('Please set the the optimizer maxiter argument to 1 '
-                          'to ensure that the generator '
-                          'and discriminator are updated in an alternating fashion.')
+
+        # TODO Improve access to maxiter, say via options getter, to avoid private member access
+        # and since not all optimizers have that exact naming figure something better as well to
+        # allow the checking below to not have to warn if it has something else and max iterations
+        # is truly 1 anyway.
+        try:
+            if self._optimizer._maxiter != 1:
+                warnings.warn('Please set the the optimizer maxiter argument to 1 '
+                              'to ensure that the generator '
+                              'and discriminator are updated in an alternating fashion.')
+        except AttributeError:
+            maxiter = self._optimizer._options.get('maxiter')
+            if maxiter is not None and maxiter != 1:
+                warnings.warn('Please set the the optimizer maxiter argument to 1 '
+                              'to ensure that the generator '
+                              'and discriminator are updated in an alternating fashion.')
+            elif maxiter is None:
+                warnings.warn('Please ensure the optimizer max iterations are set to 1 '
+                              'to ensure that the generator '
+                              'and discriminator are updated in an alternating fashion.')
+
         objective = self._get_objective_function(quantum_instance, self._discriminator)
-        self.generator_circuit.params, loss, _ = self._optimizer.optimize(
-            num_vars=len(self.generator_circuit.params),
+        self._bound_parameters, loss, _ = self._optimizer.optimize(
+            num_vars=len(self._bound_parameters),
             objective_function=objective,
-            initial_point=self.generator_circuit.params
+            initial_point=self._bound_parameters
             )
 
         self._ret['loss'] = loss
-        self._ret['params'] = self.generator_circuit.params
+        self._ret['params'] = self._bound_parameters
 
         return self._ret

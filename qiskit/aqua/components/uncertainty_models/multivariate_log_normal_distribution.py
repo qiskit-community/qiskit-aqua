@@ -58,6 +58,10 @@ class MultivariateLogNormalDistribution(MultivariateDistribution):
         super().__init__(num_qubits, probs, low, high)
         self._values = values
 
+    @staticmethod
+    def _replacement():
+        return 'qiskit.circuit.library.LogNormalDistribution'
+
     def _compute_probabilities(self, probs, values, num_qubits, low, high, x=None):
 
         for y in np.linspace(low[0], high[0], 2 ** num_qubits[0]):

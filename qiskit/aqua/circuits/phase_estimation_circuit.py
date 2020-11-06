@@ -12,7 +12,7 @@
 
 """Quantum Phase Estimation Circuit."""
 
-from typing import Optional, List
+from typing import Optional, List, Union
 import numpy as np
 
 from qiskit import QuantumRegister, QuantumCircuit, ClassicalRegister
@@ -33,7 +33,7 @@ class PhaseEstimationCircuit:
     def __init__(
             self,
             operator: Optional[WeightedPauliOperator] = None,
-            state_in: Optional[InitialState] = None,
+            state_in: Optional[Union[QuantumCircuit, InitialState]] = None,
             iqft: Optional[QuantumCircuit] = None,
             num_time_slices: int = 1,
             num_ancillae: int = 1,
@@ -48,7 +48,7 @@ class PhaseEstimationCircuit:
         """
         Args:
             operator: the hamiltonian Operator object
-            state_in: the InitialState component
+            state_in: the InitialState component or a quantum circuit
             representing the initial quantum state
             iqft: the Inverse Quantum Fourier Transform as circuit or
                 Aqua component
@@ -158,13 +158,15 @@ class PhaseEstimationCircuit:
                 qc.add_register(aux)
 
             # initialize state_in
-            if self._state_in is not None:
+            if isinstance(self._state_in, QuantumCircuit):
+                qc.append(self._state_in.to_gate(), q)
+            elif isinstance(self._state_in, InitialState):
                 qc.data += self._state_in.construct_circuit('circuit', q).data
             elif self._state_in_circuit_factory is not None:
                 self._state_in_circuit_factory.build(qc, q, aux)
 
             # Put all ancillae in uniform superposition
-            qc.u2(0, np.pi, a)
+            qc.h(a)
 
             # phase kickbacks via dynamics
             if self._operator is not None:
@@ -205,7 +207,7 @@ class PhaseEstimationCircuit:
                     else:
                         qc.append(qc_evolutions_inst, qargs=list(q) + [a[i]])
                     # global phase shift for the ancilla due to the identity pauli term
-                    qc.u1(self._evo_time * self._ancilla_phase_coef * (2 ** i), a[i])
+                    qc.p(self._evo_time * self._ancilla_phase_coef * (2 ** i), a[i])
 
             elif self._unitary_circuit_factory is not None:
                 for i in range(self._num_ancillae):

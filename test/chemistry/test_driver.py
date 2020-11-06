@@ -15,9 +15,15 @@
 from abc import ABC, abstractmethod
 import numpy as np
 
+from qiskit.chemistry.drivers import Molecule
+
 
 class TestDriver(ABC):
     """Common driver tests. For H2 @ 0.735, sto3g"""
+
+    MOLECULE = Molecule(geometry=[('H', [.0, .0, .0]), ('H', [.0, .0, 0.735])],
+                        multiplicity=1,
+                        charge=0)
 
     def __init__(self):
         self.log = None

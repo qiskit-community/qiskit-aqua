@@ -1,0 +1,5 @@
+---
+deprecations:
+  - |
+    Deprecate the ``WeightedSumOperator`` which has been ported to the circuit library as 
+    ``WeightedAdder`` in ``qiskit.circuit.library``.

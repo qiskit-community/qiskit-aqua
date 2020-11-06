@@ -14,13 +14,13 @@
 
 import os
 import logging
-from qiskit.chemistry.drivers import BaseDriver
-from qiskit.chemistry import QMolecule
+from ..fermionic_driver import FermionicDriver
+from ...qmolecule import QMolecule
 
 logger = logging.getLogger(__name__)
 
 
-class HDF5Driver(BaseDriver):
+class HDF5Driver(FermionicDriver):
     """
     Qiskit chemistry driver reading an HDF5 file.
 
@@ -48,6 +48,15 @@ class HDF5Driver(BaseDriver):
         self._work_path = new_work_path
 
     def run(self) -> QMolecule:
+        """
+        Runs driver to produce a QMolecule output.
+
+        Returns:
+            A QMolecule containing the molecular data.
+
+        Raises:
+            LookupError: file not found.
+        """
         hdf5_file = self._hdf5_input
         if self.work_path is not None and not os.path.isabs(hdf5_file):
             hdf5_file = os.path.abspath(os.path.join(self.work_path, hdf5_file))

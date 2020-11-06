@@ -16,8 +16,9 @@ The Quantum Dynamics algorithm.
 import logging
 
 from typing import Optional, Union, Dict, Any
-from qiskit import QuantumRegister
+from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.providers import BaseBackend
+from qiskit.providers import Backend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.operators.legacy import op_converter
@@ -41,13 +42,14 @@ class EOH(QuantumAlgorithm):
     """
 
     def __init__(self, operator: LegacyBaseOperator,
-                 initial_state: InitialState,
+                 initial_state: Union[InitialState, QuantumCircuit],
                  evo_operator: LegacyBaseOperator,
                  evo_time: float = 1,
                  num_time_slices: int = 1,
                  expansion_mode: str = 'trotter',
                  expansion_order: int = 1,
-                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
+                 quantum_instance: Optional[
+                     Union[QuantumInstance, BaseBackend, Backend]] = None) -> None:
         """
         Args:
             operator: Operator to evaluate
@@ -82,7 +84,11 @@ class EOH(QuantumAlgorithm):
             QuantumCircuit: the circuit.
         """
         quantum_registers = QuantumRegister(self._operator.num_qubits, name='q')
-        qc = self._initial_state.construct_circuit('circuit', quantum_registers)
+        if isinstance(self._initial_state, QuantumCircuit):
+            qc = QuantumCircuit(quantum_registers)
+            qc.compose(self._initial_state, inplace=True)
+        else:
+            qc = self._initial_state.construct_circuit('circuit', quantum_registers)
 
         qc += self._evo_operator.evolve(
             evo_time=self._evo_time,

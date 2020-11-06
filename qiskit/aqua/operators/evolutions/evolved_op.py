@@ -86,13 +86,23 @@ class EvolvedOp(PrimitiveOp):
 
         return TensoredOp([self, other])
 
-    def compose(self, other: OperatorBase) -> OperatorBase:
-        other = self._check_zero_for_composition_and_expand(other)
+    def _expand_dim(self, num_qubits: int) -> OperatorBase:
+        from qiskit.aqua.operators import I
+        return self.tensor(I ^ num_qubits)
 
+    def permute(self, permutation: List[int]) -> OperatorBase:
+        return EvolvedOp(self.primitive.permute(permutation), coeff=self.coeff)  # type: ignore
+
+    def compose(self, other: OperatorBase,
+                permutation: Optional[List[int]] = None, front: bool = False) -> OperatorBase:
+
+        new_self, other = self._expand_shorter_operator_and_permute(other, permutation)
+        if front:
+            return other.compose(new_self)
         if isinstance(other, ComposedOp):
-            return ComposedOp([self] + other.oplist)  # type: ignore
+            return ComposedOp([new_self] + other.oplist)
 
-        return ComposedOp([self, other])
+        return ComposedOp([new_self, other])
 
     def __str__(self) -> str:
         prim_str = str(self.primitive)
@@ -126,8 +136,10 @@ class EvolvedOp(PrimitiveOp):
 
     def to_matrix(self, massive: bool = False) -> Union[np.ndarray, List[np.ndarray]]:
         if self.primitive.__class__.__name__ == ListOp.__name__:
-            return [op.exp_i().to_matrix() * self.primitive.coeff * self.coeff  # type: ignore
-                    for op in self.primitive.oplist]  # type: ignore
+            return \
+                [op.exp_i().to_matrix(massive=massive) *
+                 self.primitive.coeff * self.coeff  # type: ignore
+                 for op in self.primitive.oplist]  # type: ignore
 
         prim_mat = -1.j * self.primitive.to_matrix()  # type: ignore
         # pylint: disable=no-member
