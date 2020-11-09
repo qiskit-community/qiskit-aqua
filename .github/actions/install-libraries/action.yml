@@ -26,5 +26,4 @@ runs:
           pip install -U pip
           pip install -U setuptools wheel
         fi
-        # sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
       shell: bash
