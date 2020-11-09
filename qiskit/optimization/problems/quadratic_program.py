@@ -19,6 +19,7 @@ from enum import Enum
 from math import fsum, isclose
 import warnings
 import numpy as np
+from docplex.mp.vartype import ContinuousVarType, BinaryVarType, IntegerVarType
 from numpy import (ndarray, zeros, bool as nbool)
 from scipy.sparse import spmatrix
 
@@ -560,11 +561,11 @@ class QuadraticProgram:
         # keep track of names separately, since docplex allows to have None names.
         var_names = {}
         for x in model.iter_variables():
-            if x.get_vartype().cplex_typecode == 'C':
+            if isinstance(x.get_vartype(), ContinuousVarType):
                 x_new = self.continuous_var(x.lb, x.ub, x.name)
-            elif x.get_vartype().cplex_typecode == 'B':
+            elif isinstance(x.get_vartype(), BinaryVarType):
                 x_new = self.binary_var(x.name)
-            elif x.get_vartype().cplex_typecode == 'I':
+            elif isinstance(x.get_vartype(), IntegerVarType):
                 x_new = self.integer_var(x.lb, x.ub, x.name)
             else:
                 raise QiskitOptimizationError(
