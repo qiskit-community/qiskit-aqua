@@ -90,7 +90,7 @@ class PauliOp(PrimitiveOp):
             # Copying here because Terra's Pauli kron is in-place.
             op_copy = Pauli(x=other.primitive.x, z=other.primitive.z)  # type: ignore
             # NOTE!!! REVERSING QISKIT ENDIANNESS HERE
-            return PauliOp(op_copy.kron(self.primitive), coeff=self.coeff * other.coeff)
+            return PauliOp(op_copy.expand(self.primitive), coeff=self.coeff * other.coeff)
 
         # pylint: disable=cyclic-import,import-outside-toplevel
         from .circuit_op import CircuitOp

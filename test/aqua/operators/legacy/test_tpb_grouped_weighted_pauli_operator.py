@@ -34,7 +34,7 @@ class TestTPBGroupedWeightedPauliOperator(QiskitAquaTestCase):
         aqua_globals.random_seed = seed
 
         self.num_qubits = 3
-        paulis = [Pauli.from_label(pauli_label)
+        paulis = [Pauli(pauli_label)
                   for pauli_label in itertools.product('IXYZ', repeat=self.num_qubits)]
         weights = aqua_globals.random.random(len(paulis))
         self.qubit_op = WeightedPauliOperator.from_list(paulis, weights)
@@ -52,7 +52,7 @@ class TestTPBGroupedWeightedPauliOperator(QiskitAquaTestCase):
     def test_sorted_grouping(self):
         """Test with color grouping approach."""
         num_qubits = 2
-        paulis = [Pauli.from_label(pauli_label)
+        paulis = [Pauli(pauli_label)
                   for pauli_label in itertools.product('IXYZ', repeat=num_qubits)]
         weights = aqua_globals.random.random(len(paulis))
         op = WeightedPauliOperator.from_list(paulis, weights)
@@ -77,7 +77,7 @@ class TestTPBGroupedWeightedPauliOperator(QiskitAquaTestCase):
         """Test with normal grouping approach."""
 
         num_qubits = 4
-        paulis = [Pauli.from_label(pauli_label)
+        paulis = [Pauli(pauli_label)
                   for pauli_label in itertools.product('IXYZ', repeat=num_qubits)]
         weights = aqua_globals.random.random(len(paulis))
         op = WeightedPauliOperator.from_list(paulis, weights)
@@ -97,7 +97,7 @@ class TestTPBGroupedWeightedPauliOperator(QiskitAquaTestCase):
 
     def test_chop(self):
         """ chop test """
-        paulis = [Pauli.from_label(x) for x in ['IIXX', 'ZZXX', 'ZZZZ', 'XXZZ', 'XXXX', 'IXXX']]
+        paulis = [Pauli(x) for x in ['IIXX', 'ZZXX', 'ZZZZ', 'XXZZ', 'XXXX', 'IXXX']]
         coeffs = [0.2, 0.3, 0.4, 0.5, 0.6, 0.7]
         op = WeightedPauliOperator.from_list(paulis, coeffs)
         grouped_op = op_converter.to_tpb_grouped_weighted_pauli_operator(
