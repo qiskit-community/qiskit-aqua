@@ -202,10 +202,10 @@ class TestCVaRExpectation(QiskitAquaTestCase):
     def test_compute_variance(self):
         """Test if the compute_variance method works"""
         alphas = [0, .3, 0.5, 0.7, 1]
-        correct_vars = [0, 0, 0, 0.8163 , 1]
+        correct_vars = [0, 0, 0, 0.8163, 1]
         for i, alpha in enumerate(alphas):
             base_expecation = PauliExpectation()
             cvar_expecation = CVaRExpectation(alpha=alpha, expectation=base_expecation)
-            op = ~StateFn(Z^Z) @ (Plus ^ Plus)
+            op = ~StateFn(Z ^ Z) @ (Plus ^ Plus)
             cvar_var = cvar_expecation.compute_variance(op)
             np.testing.assert_almost_equal(cvar_var, correct_vars[i], decimal=3)
