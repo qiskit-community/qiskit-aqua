@@ -12,14 +12,14 @@
 
 """The Phase Estimator interface"""
 
-from typing import Dict, Union
-import numpy
+from typing import Union, Optional
 from abc import ABC, abstractmethod
-from typing import Optional
+import numpy
 import qiskit.circuit as circuit
 from qiskit.circuit import QuantumCircuit
 from qiskit.aqua.algorithms import AlgorithmResult
 
+# pylint: disable=attribute-defined-outside-init
 
 class PhaseEstimator(ABC):
     """The Phase Estimator interface
@@ -28,14 +28,17 @@ class PhaseEstimator(ABC):
     initial state may implement this interface to allow different
     algorithms to be used interchangeably.
     """
+
     @abstractmethod
     def estimate(self,
                  num_evaluation_qubits: Optional[int],
                  unitary: Optional[QuantumCircuit] = None,
                  state_preparation: Optional[QuantumCircuit] = None,
                  pe_circuit: Optional[QuantumCircuit] = None,
-                 num_unitary_qubits: Optional[int] = None
-            ) -> 'PhaseEstimatorResult':
+                 num_unitary_qubits: Optional[int] = None) -> 'PhaseEstimatorResult':
+        """
+        Estimate the phase.
+        """
         if num_evaluation_qubits is not None:
             self._num_evaluation_qubits = num_evaluation_qubits
 

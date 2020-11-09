@@ -191,8 +191,7 @@ class PhaseEstimation(QuantumAlgorithm, PhaseEstimator):
                  unitary: Optional[QuantumCircuit] = None,
                  state_preparation: Optional[QuantumCircuit] = None,
                  pe_circuit: Optional[QuantumCircuit] = None,
-                 num_unitary_qubits: Optional[int] = None
-    ) -> PhaseEstimationResult:
+                 num_unitary_qubits: Optional[int] = None) -> PhaseEstimationResult:
 
         super().estimate(num_evaluation_qubits, unitary, state_preparation,
                          pe_circuit, num_unitary_qubits)
@@ -209,4 +208,4 @@ class PhaseEstimation(QuantumAlgorithm, PhaseEstimator):
         circuit_result = self._quantum_instance.execute(self.construct_circuit())
         phases = self._compute_phases(circuit_result)
         return PhaseEstimationResult(self._num_evaluation_qubits, circuit_result=circuit_result,
-                                    phases=phases)
+                                     phases=phases)

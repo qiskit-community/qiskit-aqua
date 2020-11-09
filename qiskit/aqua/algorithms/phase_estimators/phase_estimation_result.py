@@ -15,7 +15,6 @@
 from typing import Dict, Union
 import numpy
 from qiskit.result import Result
-from qiskit.aqua.algorithms import AlgorithmResult
 from .phase_estimator import PhaseEstimatorResult
 
 
@@ -23,9 +22,9 @@ class PhaseEstimationResult(PhaseEstimatorResult):
     """Store and manipulate results from running `PhaseEstimation`.
 
     This class is instantiated by the `PhaseEstimation` class, not via user code.
-    The `PhaseEstimation` class generates a list of phases and corresponding weights. Upon completion
-    it returns the results as an instance of this class. The main method for accessing the results
-    is `filter_phases`.
+    The `PhaseEstimation` class generates a list of phases and corresponding weights. Upon
+    completion it returns the results as an instance of this class. The main method for
+    accessing the results is `filter_phases`.
     """
 
     def __init__(self, num_evaluation_qubits: int,
