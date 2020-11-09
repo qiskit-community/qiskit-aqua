@@ -19,7 +19,6 @@ from enum import Enum
 from math import fsum, isclose
 import warnings
 import numpy as np
-from docplex.mp.vartype import ContinuousVarType, BinaryVarType, IntegerVarType
 from numpy import (ndarray, zeros, bool as nbool)
 from scipy.sparse import spmatrix
 
@@ -30,6 +29,7 @@ from docplex.mp.linear import Var
 from docplex.mp.model import Model
 from docplex.mp.model_reader import ModelReader
 from docplex.mp.quad import QuadExpr
+from docplex.mp.vartype import ContinuousVarType, BinaryVarType, IntegerVarType
 
 from qiskit.aqua import MissingOptionalLibraryError
 from qiskit.aqua.operators import I, OperatorBase, PauliOp, WeightedPauliOperator, SummedOp, ListOp
