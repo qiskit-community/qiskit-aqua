@@ -21,7 +21,7 @@ runs:
           source "$HOME/miniconda/etc/profile.d/conda.sh"
           conda activate
         fi
-        pip install https://github.com/Qiskit/qiskit-terra/archive/master.zip
+        pip install git+https://github.com/qiskit/qiskit-terra.git@refs/pull/5261/head
         pip install https://github.com/Qiskit/qiskit-ignis/archive/master.zip
         pip install https://github.com/Qiskit/qiskit-ibmq-provider/archive/master.zip
         sudo apt-get -y install g++-7
