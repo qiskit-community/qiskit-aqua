@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 
 def _conversion(basis, matrix):
-    pauli = Pauli(''.join(basis))
+    pauli = Pauli(label=''.join(basis))
     trace_value = np.sum(matrix.dot(pauli.to_spmatrix()).diagonal())
     return trace_value, pauli
 
