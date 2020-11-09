@@ -19,17 +19,17 @@ import numpy
 from qiskit.circuit import QuantumCircuit
 import qiskit
 import qiskit.circuit as circuit
-#from qiskit.circuit.library import PhaseEstimation
 from qiskit.circuit.classicalregister import ClassicalRegister
 from qiskit.providers import BaseBackend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.utils import get_subsystem_density_matrix
 from qiskit.result import Result
-from .phase_estimator_result import PhaseEstimatorResult, _sort_phases
+from .phase_estimation_result import PhaseEstimationResult, _sort_phases
+from .phase_estimator import PhaseEstimator
 
 
-class PhaseEstimation(QuantumAlgorithm):
+class PhaseEstimation(QuantumAlgorithm, PhaseEstimator):
     """Run the Quantum Phase Estimation (QPE) algorithm.
 
     This runs a version of QPE with a multi-qubit register for reading the phase [1]. The main
@@ -41,7 +41,7 @@ class PhaseEstimation(QuantumAlgorithm):
     unitary will be constructed. After construction, the QPE circuit is run on a backend via the
     `run` method, and the frequencies or counts of the phases represented by bitstrings are
     recorded. The results are returned as an instance of
-    :class:`~qiskit.algorithms.phase_estimator_result.PhaseEstimatorResult`.
+    :class:`~qiskit.algorithms.phase_estimator_result.PhaseEstimationResult`.
 
     If the input state is an eigenstate of the unitary, then in the ideal case, all probability is
     concentrated on the bitstring corresponding to the eigenvalue of the input state. If the input
@@ -88,32 +88,33 @@ class PhaseEstimation(QuantumAlgorithm):
 
         # Determine if user passed a unitary, or the entire QPE circuit with the unitary
         # already embedded, and set properties.
-        if unitary is None:
-            if pe_circuit is None:
-                raise ValueError('Only one of `unitary` and `pe_circuit` may be `None`.')
 
-            if num_unitary_qubits is None:
-                raise ValueError('`num_unitary_qubits` is required when passing `pe_circuit`.')
-            self._pe_circuit = pe_circuit
-            self._num_unitary_qubits = num_unitary_qubits
-        else:
+        if num_evaluation_qubits is not None:
+            self._num_evaluation_qubits = num_evaluation_qubits
+
+        if unitary is not None:
             if pe_circuit is not None:
-                raise ValueError('Only one of `unitary` and `pe_circuit` may be `None`.')
-            if not (num_unitary_qubits is None or num_unitary_qubits == unitary.num_qubits):
-                raise ValueError('`num_unitary_qubits` disagrees with size of `unitary`.')
+                raise ValueError('Only one of `pe_circuit` and `unitary` may be passed.')
             self._num_unitary_qubits = unitary.num_qubits
             self._pe_circuit = circuit.library.PhaseEstimation(num_evaluation_qubits, unitary)
+            self._measurements_added = False
 
-        self._num_evaluation_qubits = num_evaluation_qubits
+        if pe_circuit is not None:
+            if unitary is not None:
+                raise ValueError('Only one of `pe_circuit` and `unitary` may be passed.')
+            self._pe_circuit = pe_circuit
+            self._measurements_added = False
+
+        if num_unitary_qubits is not None:
+            self._num_unitary_qubits = num_unitary_qubits
 
         if state_preparation is not None:
             self._pe_circuit = self._pe_circuit.compose(
                 state_preparation,
-                qubits=range(num_evaluation_qubits,
-                             num_evaluation_qubits + self._num_unitary_qubits),
+                qubits=range(self._num_evaluation_qubits,
+                             self._num_evaluation_qubits + self._num_unitary_qubits),
                 front=True)
 
-        self._measurements_added = False
         super().__init__(quantum_instance)
 
     def _add_classical_register(self) -> None:
@@ -151,7 +152,7 @@ class PhaseEstimation(QuantumAlgorithm):
         gives the state of the phase-reading register with the LSB leftmost when interpreted as a
         phase. In order to maintain the compact representation, the phases are maintained as decimal
         integers.  They may be converted to other forms via the results object,
-        `PhaseEstimatorResult` or `HamiltonianPEResult`.
+        `PhaseEstimationResult` or `HamiltonianPEResult`.
 
          2) If the backend samples bitstrings, then the counts are first retrieved as a dict.  The
         binary strings (the keys) are then reversed so that the LSB is rightmost and the counts are
@@ -185,15 +186,27 @@ class PhaseEstimation(QuantumAlgorithm):
 
         return phases
 
-    def _run(self) -> PhaseEstimatorResult:
-        """Run the circuit and return and return `PhaseEstimatorResult`.
+    def estimate(self,
+                 num_evaluation_qubits: Optional[int] = None,
+                 unitary: Optional[QuantumCircuit] = None,
+                 state_preparation: Optional[QuantumCircuit] = None,
+                 pe_circuit: Optional[QuantumCircuit] = None,
+                 num_unitary_qubits: Optional[int] = None
+    ) -> PhaseEstimationResult:
+
+        super().estimate(num_evaluation_qubits, unitary, state_preparation,
+                         pe_circuit, num_unitary_qubits)
+        return self._run()
+
+    def _run(self) -> PhaseEstimationResult:
+        """Run the circuit and return and return `PhaseEstimationResult`.
 
 
         Returns:
-               An instance of qiskit.algorithms.phase_estimator_result.PhaseEstimatorResult.
+               An instance of qiskit.algorithms.phase_estimator_result.PhaseEstimationResult.
         """
 
         circuit_result = self._quantum_instance.execute(self.construct_circuit())
         phases = self._compute_phases(circuit_result)
-        return PhaseEstimatorResult(self._num_evaluation_qubits, circuit_result=circuit_result,
+        return PhaseEstimationResult(self._num_evaluation_qubits, circuit_result=circuit_result,
                                     phases=phases)

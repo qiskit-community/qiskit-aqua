@@ -10,19 +10,20 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Result of running PhaseEstimator"""
+"""Result of running PhaseEstimation"""
 
 from typing import Dict, Union
 import numpy
 from qiskit.result import Result
 from qiskit.aqua.algorithms import AlgorithmResult
+from .phase_estimator import PhaseEstimatorResult
 
 
-class PhaseEstimatorResult(AlgorithmResult):
-    """Store and manipulate results from running `PhaseEstimator`.
+class PhaseEstimationResult(PhaseEstimatorResult):
+    """Store and manipulate results from running `PhaseEstimation`.
 
-    This class is instantiated by the `PhaseEstimator` class, not via user code.
-    The `PhaseEstimator` class generates a list of phases and corresponding weights. Upon completion
+    This class is instantiated by the `PhaseEstimation` class, not via user code.
+    The `PhaseEstimation` class generates a list of phases and corresponding weights. Upon completion
     it returns the results as an instance of this class. The main method for accessing the results
     is `filter_phases`.
     """
@@ -40,14 +41,6 @@ class PhaseEstimatorResult(AlgorithmResult):
         self._num_evaluation_qubits = num_evaluation_qubits
 
         super().__init__({'phases': phases, 'circuit_result': circuit_result})
-
-    @property
-    def phases(self) -> Union[numpy.ndarray, dict]:
-        """Return all phases and their frequencies computed by QPE.
-
-        This is an array or dict whose values correspond to weights on bit strings.
-        """
-        return self.get('phases')
 
     @property
     def circuit_result(self) -> Result:

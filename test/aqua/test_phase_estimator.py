@@ -174,6 +174,17 @@ class TestPhaseEstimation(QiskitAquaTestCase):
         phase = self.one_phase(unitary_circuit, state_preparation)
         self.assertEqual(phase, 0.5)
 
+    def test_qpe_Z1_estimate(self):
+        """eigenproblem Z, |1>, estimate interface"""
+        unitary_circuit = Z.to_circuit()
+        state_preparation = X.to_circuit()  # prepare |1>
+        backend=qiskit.BasicAer.get_backend('statevector_simulator')
+        num_evaluation_qubits = 6
+        pe = PhaseEstimation(num_evaluation_qubits, quantum_instance=backend)
+        result = pe.estimate(unitary=unitary_circuit, state_preparation=state_preparation)
+        phase = result.most_likely_phase
+        self.assertEqual(phase, 0.5)
+
     def test_qpe_Xplus(self):
         """eigenproblem X, |+>"""
         unitary_circuit = X.to_circuit()

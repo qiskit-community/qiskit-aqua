@@ -16,11 +16,11 @@
 from typing import Dict, Union, cast
 import numpy
 from qiskit.result import Result
-from .phase_estimator_result import PhaseEstimatorResult
+from .phase_estimation_result import PhaseEstimationResult
 from .phase_estimation_scale import PhaseEstimationScale
 
 
-class HamiltonianPEResult(PhaseEstimatorResult):
+class HamiltonianPEResult(PhaseEstimationResult):
     """Store and manipulate results from running `HamiltonianPE`.
 
     This API of this class is nearly the same as `PhaseEstimatorResult`, differing only in
