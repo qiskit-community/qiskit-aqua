@@ -560,11 +560,11 @@ class QuadraticProgram:
         # keep track of names separately, since docplex allows to have None names.
         var_names = {}
         for x in model.iter_variables():
-            if x.get_vartype().one_letter_symbol() == 'C':
+            if x.get_vartype().cplex_typecode == 'C':
                 x_new = self.continuous_var(x.lb, x.ub, x.name)
-            elif x.get_vartype().one_letter_symbol() == 'B':
+            elif x.get_vartype().cplex_typecode == 'B':
                 x_new = self.binary_var(x.name)
-            elif x.get_vartype().one_letter_symbol() == 'I':
+            elif x.get_vartype().cplex_typecode == 'I':
                 x_new = self.integer_var(x.lb, x.ub, x.name)
             else:
                 raise QiskitOptimizationError(
