@@ -25,7 +25,7 @@ from qiskit.aqua.algorithms import NumPyMinimumEigensolver, VQE, IQPE
 from qiskit.aqua.components.optimizers import SLSQP
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.applications import MolecularGroundStateEnergy
-from qiskit.chemistry.components.initial_states import HartreeFock
+from qiskit.chemistry.circuit.library import HartreeFock
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.core import QubitMappingType
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType

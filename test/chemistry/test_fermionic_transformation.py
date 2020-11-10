@@ -44,7 +44,7 @@ class TestFermionicTransformation(QiskitChemistryTestCase):
 
     def _validate_info(self, fermionic_transformation, num_particles=None,
                        num_orbitals=4, actual_two_qubit_reduction=False):
-        num_particles = num_particles if num_particles is not None else [1, 1]
+        num_particles = num_particles if num_particles is not None else (1, 1)
         z2symmetries = fermionic_transformation.molecule_info.pop('z2_symmetries')
         self.assertEqual(z2symmetries.is_empty(), True)
         self.assertEqual(fermionic_transformation.molecule_info,

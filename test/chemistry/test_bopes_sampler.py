@@ -23,7 +23,7 @@ from qiskit.aqua.algorithms import VQE, NumPyMinimumEigensolver
 from qiskit.aqua.components.optimizers import AQGD
 from qiskit.aqua.operators import PauliExpectation
 from qiskit.chemistry.algorithms.pes_samplers.bopes_sampler import BOPESSampler
-from qiskit.chemistry.components.initial_states import HartreeFock
+from qiskit.chemistry.circuit.library import HartreeFock
 from qiskit.chemistry.drivers import Molecule, PySCFDriver
 from qiskit.chemistry.algorithms.ground_state_solvers import GroundStateEigensolver
 from qiskit.chemistry.algorithms.pes_samplers.potentials.morse_potential import MorsePotential
@@ -65,7 +65,8 @@ class TestBOPES(unittest.TestCase):
                               sq_list=f_t._molecule_info['z2_symmetries'].sq_list
                               )
         var_form = RealAmplitudes(qubitop.num_qubits, reps=1, entanglement='full',
-                                  initial_state=i_state, skip_unentangled_qubits=False)
+                                  skip_unentangled_qubits=False)
+        var_form.compose(i_state, front=True)
 
         # Classical optimizer:
         # Analytic Quantum Gradient Descent (AQGD) (with Epochs)
