@@ -143,9 +143,9 @@ class TestPhaseEstimation(QiskitAquaTestCase):
         """
         qi = qiskit.aqua.QuantumInstance(backend=backend, shots=10000)
         p_est = PhaseEstimation(num_evaluation_qubits=n_eval_qubits,
-                               unitary=unitary_circuit,
-                               quantum_instance=qi,
-                               state_preparation=state_preparation)
+                                unitary=unitary_circuit,
+                                quantum_instance=qi,
+                                state_preparation=state_preparation)
         result = p_est.run()
         phase = result.most_likely_phase
         return phase
@@ -178,7 +178,7 @@ class TestPhaseEstimation(QiskitAquaTestCase):
         """eigenproblem Z, |1>, estimate interface"""
         unitary_circuit = Z.to_circuit()
         state_preparation = X.to_circuit()  # prepare |1>
-        backend=qiskit.BasicAer.get_backend('statevector_simulator')
+        backend = qiskit.BasicAer.get_backend('statevector_simulator')
         num_evaluation_qubits = 6
         pe = PhaseEstimation(num_evaluation_qubits, quantum_instance=backend)
         result = pe.estimate(unitary=unitary_circuit, state_preparation=state_preparation)
@@ -207,9 +207,9 @@ class TestPhaseEstimation(QiskitAquaTestCase):
         """
         qi = qiskit.aqua.QuantumInstance(backend=backend, shots=10000)
         phase_est = PhaseEstimation(num_evaluation_qubits=num_evaluation_qubits,
-                                   unitary=unitary_circuit,
-                                   quantum_instance=qi,
-                                   state_preparation=state_preparation)
+                                    unitary=unitary_circuit,
+                                    quantum_instance=qi,
+                                    state_preparation=state_preparation)
         result = phase_est.run()
         return result
 
