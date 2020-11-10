@@ -200,7 +200,7 @@ Algorithms that estimate the phases of eigenstates of a unitary.
    HamiltonianPEResult
    PhaseEstimationScale
    PhaseEstimation
-   PhaseEstimatorResult
+   PhaseEstimationResult
 
 """
 
