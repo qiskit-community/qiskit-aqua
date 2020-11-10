@@ -95,16 +95,17 @@ class CVaRExpectation(ExpectationBase):
         return replace_with_cvar(expectation)
 
     def compute_variance(self, exp_op: OperatorBase) -> Union[list, float]:
-        """Returns the variance of teh CVaR calculation
+        """Returns the variance of the CVaR calculation
+
         Args:
-            exp_op: The operator whose evaluation yeilds an expectation
+            exp_op: The operator whose evaluation yields an expectation
                 of some StateFn against a diagonal observable.
 
         Returns:
             The variance of the CVaR estimate corresponding to the converted
                 exp_op.
         Raises:
-            ValueError: If the exp_op does not correspond to an expectation value
+            ValueError: If the exp_op does not correspond to an expectation value.
         """
         def cvar_variance(operator):
             if isinstance(operator, ComposedOp):
