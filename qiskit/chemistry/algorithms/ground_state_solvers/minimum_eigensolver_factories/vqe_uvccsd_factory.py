@@ -141,7 +141,7 @@ class VQEUVCCSDFactory(MinimumEigensolverFactory):
                   quantum_instance=self._quantum_instance,
                   optimizer=self._optimizer,
                   initial_point=self._initial_point,
-                  self=self._gradient,
+                  gradient=self._gradient,
                   expectation=self._expectation,
                   include_custom=self._include_custom)
         return vqe
