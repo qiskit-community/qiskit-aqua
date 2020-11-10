@@ -76,7 +76,6 @@ class CVaRExpectation(ExpectationBase):
 
     def convert(self, operator: OperatorBase) -> OperatorBase:
         """Return an expression that computes the CVaR expectation upon calling ``eval``.
-
         Args:
             operator: The operator to convert.
 
@@ -97,7 +96,6 @@ class CVaRExpectation(ExpectationBase):
 
     def compute_variance(self, exp_op: OperatorBase) -> Union[list, float]:
         """Returns the variance of teh CVaR calculation
-
         Args:
             exp_op: The operator whose evaluation yeilds an expectation
                 of some StateFn against a diagonal observable.
