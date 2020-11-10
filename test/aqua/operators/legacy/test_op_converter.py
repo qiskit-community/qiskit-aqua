@@ -36,7 +36,7 @@ class TestOpConverter(QiskitAquaTestCase):
         m_size = np.power(2, self.num_qubits)
         matrix = aqua_globals.random.random((m_size, m_size))
         self.mat_op = MatrixOperator(matrix=matrix)
-        paulis = [Pauli(label=''.join(pauli_label))
+        paulis = [Pauli(''.join(pauli_label))
                   for pauli_label in itertools.product('IXYZ', repeat=self.num_qubits)]
         weights = aqua_globals.random.random(len(paulis))
         self.pauli_op = WeightedPauliOperator.from_list(paulis, weights)
