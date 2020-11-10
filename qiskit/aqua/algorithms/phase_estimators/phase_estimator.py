@@ -21,6 +21,7 @@ from qiskit.aqua.algorithms import AlgorithmResult
 
 # pylint: disable=attribute-defined-outside-init
 
+
 class PhaseEstimator(ABC):
     """The Phase Estimator interface
 
