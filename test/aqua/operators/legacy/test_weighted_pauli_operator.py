@@ -38,7 +38,7 @@ class TestWeightedPauliOperator(QiskitAquaTestCase):
         aqua_globals.random_seed = seed
 
         self.num_qubits = 3
-        paulis = [Pauli(list(reversed(''.join(pauli_label))))
+        paulis = [Pauli(''.join(reversed(pauli_label)))
                   for pauli_label in itertools.product('IXYZ', repeat=self.num_qubits)]
         weights = aqua_globals.random.random(len(paulis))
         self.qubit_op = WeightedPauliOperator.from_list(paulis, weights)
