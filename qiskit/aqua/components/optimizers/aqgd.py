@@ -77,8 +77,11 @@ class AQGD(Optimizer):
         super().__init__()
         if isinstance(maxiter, int):
             maxiter = [maxiter]
+        # keep this until this is solved: https://github.com/PyCQA/pylint/issues/3507
+        # pylint: disable=isinstance-second-argument-not-valid-type
         if not isinstance(eta, Sequence):
             eta = [eta]
+        # pylint: disable=isinstance-second-argument-not-valid-type
         if not isinstance(momentum, Sequence):
             momentum = [momentum]
         if len(maxiter) != len(eta) or len(maxiter) != len(momentum):
