@@ -82,7 +82,7 @@ class PauliOp(PrimitiveOp):
         return self.primitive == other.primitive
 
     def _expand_dim(self, num_qubits: int) -> 'PauliOp':
-        return PauliOp(Pauli(label='I'*num_qubits).kron(self.primitive), coeff=self.coeff)
+        return PauliOp(Pauli('I'*num_qubits).expand(self.primitive), coeff=self.coeff)
 
     def tensor(self, other: OperatorBase) -> OperatorBase:
         # Both Paulis
@@ -120,7 +120,7 @@ class PauliOp(PrimitiveOp):
             raise AquaError("List of indices to permute must have the same size as Pauli Operator")
         for i, index in enumerate(permutation):
             new_pauli_list[-index - 1] = pauli_string[-i - 1]
-        return PauliOp(Pauli(label=''.join(new_pauli_list)), self.coeff)
+        return PauliOp(Pauli(''.join(new_pauli_list)), self.coeff)
 
     def compose(self, other: OperatorBase,
                 permutation: Optional[List[int]] = None, front: bool = False) -> OperatorBase:
