@@ -14,7 +14,7 @@
 
 import logging
 import warnings
-from typing import Callable, Tuple, List, Dict, Union
+from typing import Callable, Tuple, List, Dict, Union, Sequence
 
 import numpy as np
 from qiskit.aqua import AquaError
@@ -77,9 +77,9 @@ class AQGD(Optimizer):
         super().__init__()
         if isinstance(maxiter, int):
             maxiter = [maxiter]
-        if isinstance(eta, float):
+        if not isinstance(eta, Sequence):
             eta = [eta]
-        if isinstance(momentum, float):
+        if not isinstance(momentum, Sequence):
             momentum = [momentum]
         if len(maxiter) != len(eta) or len(maxiter) != len(momentum):
             raise AquaError("AQGD input parameter length mismatch. Parameters `maxiter`, `eta`, "
