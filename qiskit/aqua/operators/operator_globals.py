@@ -45,10 +45,10 @@ def make_immutable(obj):
 
 
 # 1-Qubit Paulis
-X = make_immutable(PrimitiveOp(Pauli.from_label('X')))
-Y = make_immutable(PrimitiveOp(Pauli.from_label('Y')))
-Z = make_immutable(PrimitiveOp(Pauli.from_label('Z')))
-I = make_immutable(PrimitiveOp(Pauli.from_label('I')))
+X = make_immutable(PrimitiveOp(Pauli('X')))
+Y = make_immutable(PrimitiveOp(Pauli('Y')))
+Z = make_immutable(PrimitiveOp(Pauli('Z')))
+I = make_immutable(PrimitiveOp(Pauli('I')))
 
 # Clifford+T, and some other common non-parameterized gates
 CX = make_immutable(PrimitiveOp(CXGate()))
