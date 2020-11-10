@@ -139,6 +139,7 @@ class TestQAOA(QiskitOptimizationTestCase):
     @unpack
     def test_qaoa_initial_point(self, w, solutions, init_pt):
         """ Check first parameter value used is initial point as expected """
+        aqua_globals.random_seed = 10598
         optimizer = COBYLA()
         qubit_op, _ = max_cut.get_operator(w)
 
@@ -149,7 +150,9 @@ class TestQAOA(QiskitOptimizationTestCase):
             if eval_count == 1:
                 first_pt = list(parameters)
 
-        quantum_instance = QuantumInstance(BasicAer.get_backend('statevector_simulator'))
+        quantum_instance = QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                           seed_simulator=aqua_globals.random_seed,
+                                           seed_transpiler=aqua_globals.random_seed)
         qaoa = QAOA(qubit_op, optimizer, initial_point=init_pt, callback=cb_callback,
                     quantum_instance=quantum_instance)
 
@@ -157,11 +160,12 @@ class TestQAOA(QiskitOptimizationTestCase):
         x = sample_most_likely(result.eigenstate)
         graph_solution = max_cut.get_graph_solution(x)
 
-        if init_pt is None:  # If None the preferred initial point of QAOA variational form
-            init_pt = first_pt
-
         with self.subTest('Initial Point'):
-            self.assertListEqual(init_pt, first_pt)
+            # If None the preferred random initial point of QAOA variational form
+            if init_pt is None:
+                np.testing.assert_almost_equal([1.5108, 0.3378], first_pt, decimal=4)
+            else:
+                self.assertListEqual(init_pt, first_pt)
 
         with self.subTest('Solution'):
             self.assertIn(''.join([str(int(i)) for i in graph_solution]), solutions)
@@ -225,18 +229,19 @@ class TestQAOA(QiskitOptimizationTestCase):
 
     def test_qaoa_random_initial_point(self):
         """ QAOA random initial point """
-
-        w = nx.adjacency_matrix(nx.fast_gnp_random_graph(5, 0.5, seed=123)).toarray()
+        aqua_globals.random_seed = 10598
+        w = nx.adjacency_matrix(
+            nx.fast_gnp_random_graph(5, 0.5, seed=aqua_globals.random_seed)).toarray()
         qubit_op, _ = max_cut.get_operator(w)
         qaoa = QAOA(qubit_op, NELDER_MEAD(disp=True), 1)
 
         quantum_instance = QuantumInstance(BasicAer.get_backend('qasm_simulator'),
-                                           seed_simulator=10598,
-                                           seed_transpiler=10598,
+                                           seed_simulator=aqua_globals.random_seed,
+                                           seed_transpiler=aqua_globals.random_seed,
                                            shots=4096)
         _ = qaoa.run(quantum_instance)
 
-        self.assertTrue(np.any(np.array(qaoa.optimal_params) != 0))
+        np.testing.assert_almost_equal([2.5179, 0.3528], qaoa.optimal_params, decimal=4)
 
 
 if __name__ == '__main__':
