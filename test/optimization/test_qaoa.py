@@ -16,13 +16,14 @@ import unittest
 from test.optimization import QiskitOptimizationTestCase
 
 import math
+import networkx as nx
 import numpy as np
 from ddt import ddt, idata, unpack
 from qiskit import BasicAer, QuantumCircuit, execute
 
 from qiskit.optimization.applications.ising import max_cut
 from qiskit.optimization.applications.ising.common import sample_most_likely
-from qiskit.aqua.components.optimizers import COBYLA
+from qiskit.aqua.components.optimizers import COBYLA, NELDER_MEAD
 from qiskit.aqua.components.initial_states import Custom, Zero
 from qiskit.aqua.algorithms import QAOA
 from qiskit.aqua import QuantumInstance, aqua_globals
@@ -156,8 +157,8 @@ class TestQAOA(QiskitOptimizationTestCase):
         x = sample_most_likely(result.eigenstate)
         graph_solution = max_cut.get_graph_solution(x)
 
-        if init_pt is None:       # If None the preferred initial point of QAOA variational form
-            init_pt = [0.0, 0.0]  # i.e. 0,0 should come through as the first point
+        if init_pt is None:  # If None the preferred initial point of QAOA variational form
+            init_pt = first_pt
 
         with self.subTest('Initial Point'):
             self.assertListEqual(init_pt, first_pt)
@@ -221,6 +222,21 @@ class TestQAOA(QiskitOptimizationTestCase):
             statevector_custom = job_qaoa_init_state.result().get_statevector(custom_init_qc)
 
             self.assertEqual(statevector_original.tolist(), statevector_custom.tolist())
+
+    def test_qaoa_random_initial_point(self):
+        """ QAOA random initial point """
+
+        w = nx.adjacency_matrix(nx.fast_gnp_random_graph(5, 0.5, seed=123)).toarray()
+        qubit_op, _ = max_cut.get_operator(w)
+        qaoa = QAOA(qubit_op, NELDER_MEAD(disp=True), 1)
+
+        quantum_instance = QuantumInstance(BasicAer.get_backend('qasm_simulator'),
+                                           seed_simulator=10598,
+                                           seed_transpiler=10598,
+                                           shots=4096)
+        _ = qaoa.run(quantum_instance)
+
+        self.assertTrue(np.any(np.array(qaoa.optimal_params) != 0))
 
 
 if __name__ == '__main__':
