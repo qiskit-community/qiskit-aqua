@@ -78,7 +78,8 @@ class AQGD(Optimizer):
         if isinstance(maxiter, int):
             maxiter = [maxiter]
         # keep disabled until this is solved: https://github.com/PyCQA/pylint/issues/3507
-        if not isinstance(eta, Sequence):   # pylint: disable=W1116
+        # pylint: disable=isinstance-second-argument-not-valid-type
+        if not isinstance(eta, Sequence):
             eta = [eta]
         if not isinstance(momentum, Sequence):  # pylint: disable=W1116
             momentum = [momentum]
