@@ -96,12 +96,12 @@ class VQEUVCCSDFactory(MinimumEigensolverFactory):
         self._initial_point = initial_point
 
     @property
-    def gradient(self):
+    def gradient(self) -> Optional[Union[GradientBase, Callable]]:
         """Getter of the gradient function"""
         return self._gradient
 
     @gradient.setter
-    def gradient(self, gradient: Optional[Union[GradientBase, Callable]]):
+    def gradient(self, gradient: Optional[Union[GradientBase, Callable]]) -> None:
         """Setter of the gradient function"""
         self._gradient = gradient
 
