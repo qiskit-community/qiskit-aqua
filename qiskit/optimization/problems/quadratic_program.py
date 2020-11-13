@@ -29,6 +29,7 @@ from docplex.mp.linear import Var
 from docplex.mp.model import Model
 from docplex.mp.model_reader import ModelReader
 from docplex.mp.quad import QuadExpr
+from docplex.mp.vartype import ContinuousVarType, BinaryVarType, IntegerVarType
 
 from qiskit.aqua import MissingOptionalLibraryError
 from qiskit.aqua.operators import I, OperatorBase, PauliOp, WeightedPauliOperator, SummedOp, ListOp
@@ -560,11 +561,11 @@ class QuadraticProgram:
         # keep track of names separately, since docplex allows to have None names.
         var_names = {}
         for x in model.iter_variables():
-            if x.get_vartype().one_letter_symbol() == 'C':
+            if isinstance(x.get_vartype(), ContinuousVarType):
                 x_new = self.continuous_var(x.lb, x.ub, x.name)
-            elif x.get_vartype().one_letter_symbol() == 'B':
+            elif isinstance(x.get_vartype(), BinaryVarType):
                 x_new = self.binary_var(x.name)
-            elif x.get_vartype().one_letter_symbol() == 'I':
+            elif isinstance(x.get_vartype(), IntegerVarType):
                 x_new = self.integer_var(x.lb, x.ub, x.name)
             else:
                 raise QiskitOptimizationError(
