@@ -91,7 +91,7 @@ class HHL(QuantumAlgorithm):
             truncate_powerdim: bool = False,
             truncate_hermitian: bool = False,
             eigs: Optional[Eigenvalues] = None,
-            init_state: Optional[InitialState] = None,
+            init_state: Optional[Union[QuantumCircuit, InitialState]] = None,
             reciprocal: Optional[Reciprocal] = None,
             num_q: int = 0,
             num_a: int = 0,
@@ -206,7 +206,10 @@ class HHL(QuantumAlgorithm):
         qc = QuantumCircuit(q)
 
         # InitialState
-        qc += self._init_state.construct_circuit("circuit", q)
+        if isinstance(self._init_state, QuantumCircuit):
+            qc.compose(self._init_state, inplace=True)
+        elif self._init_state is not None:
+            qc += self._init_state.construct_circuit("circuit", q)
 
         # EigenvalueEstimation (QPE)
         qc += self._eigs.construct_circuit("circuit", q)

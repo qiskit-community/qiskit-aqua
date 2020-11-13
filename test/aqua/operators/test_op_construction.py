@@ -33,7 +33,7 @@ from qiskit.circuit.library import CZGate, ZGate
 from qiskit.aqua.operators import (
     X, Y, Z, I, CX, T, H, Minus, PrimitiveOp, PauliOp, CircuitOp, MatrixOp, EvolvedOp, StateFn,
     CircuitStateFn, VectorStateFn, DictStateFn, OperatorStateFn, ListOp, ComposedOp, TensoredOp,
-    SummedOp, OperatorBase
+    SummedOp, OperatorBase, Zero
 )
 from qiskit.aqua.operators import MatrixOperator
 
@@ -808,15 +808,6 @@ class TestOpConstruction(QiskitAquaTestCase):
         self.assertRaises(AquaError, list_op.permute, [0, 1])
 
     @data(Z, CircuitOp(ZGate()), MatrixOp([[1, 0], [0, -1]]))
-    def test_op_hashing(self, op):
-        """Regression test against faulty set comparison.
-
-        Set comparisons rely on a hash table which requires identical objects to have identical
-        hashes. Thus, the PrimitiveOp.__hash__ should support this requirement.
-        """
-        self.assertEqual(set([2 * op]), set([2 * op]))
-
-    @data(Z, CircuitOp(ZGate()), MatrixOp([[1, 0], [0, -1]]))
     def test_op_indent(self, op):
         """Test that indentation correctly adds INDENTATION at the beginning of each line"""
         initial_str = str(op)
@@ -935,6 +926,22 @@ class TestOpConstruction(QiskitAquaTestCase):
 
         self.assertEqual(str(cm.exception), msg + "'float'")
 
+    def test_summedop_equals(self):
+        """Test SummedOp.equals """
+        ops = [Z, CircuitOp(ZGate()), MatrixOp([[1, 0], [0, -1]]), Zero, Minus]
+        sum_op = sum(ops + [ListOp(ops)])
+        self.assertEqual(sum_op, sum_op)
+        self.assertEqual(sum_op + sum_op, 2 * sum_op)
+        self.assertEqual(sum_op + sum_op + sum_op, 3 * sum_op)
+        ops2 = [Z, CircuitOp(ZGate()), MatrixOp([[1, 0], [0, 1]]), Zero, Minus]
+        sum_op2 = sum(ops2 + [ListOp(ops)])
+        self.assertNotEqual(sum_op, sum_op2)
+        self.assertEqual(sum_op2, sum_op2)
+        sum_op3 = sum(ops)
+        self.assertNotEqual(sum_op, sum_op3)
+        self.assertNotEqual(sum_op2, sum_op3)
+        self.assertEqual(sum_op3, sum_op3)
+
 
 class TestOpMethods(QiskitAquaTestCase):
     """Basic method tests."""
@@ -954,30 +961,30 @@ class TestOpMethods(QiskitAquaTestCase):
                 X @ op  # pylint: disable=pointless-statement
 
 
+@ddt
 class TestListOpMethods(QiskitAquaTestCase):
     """Test ListOp accessing methods"""
 
-    def test_indexing(self):
+    @data(ListOp, SummedOp, ComposedOp, TensoredOp)
+    def test_indexing(self, list_op_type):
         """Test indexing and slicing"""
         coeff = 3 + .2j
-        states_op = ListOp([X, Y, Z, I], coeff=coeff)
+        states_op = list_op_type([X, Y, Z, I], coeff=coeff)
 
         single_op = states_op[1]
         self.assertIsInstance(single_op, OperatorBase)
         self.assertNotIsInstance(single_op, ListOp)
 
         list_one_element = states_op[1:2]
-        self.assertIsInstance(list_one_element, ListOp)
+        self.assertIsInstance(list_one_element, list_op_type)
         self.assertEqual(len(list_one_element), 1)
         self.assertEqual(list_one_element[0], Y)
 
         list_two_elements = states_op[::2]
-        self.assertIsInstance(list_two_elements, ListOp)
+        self.assertIsInstance(list_two_elements, list_op_type)
         self.assertEqual(len(list_two_elements), 2)
         self.assertEqual(list_two_elements[0], X)
         self.assertEqual(list_two_elements[1], Z)
-
-        states_op = ListOp([X, Y, Z, I], coeff=coeff)
 
         self.assertEqual(list_one_element.coeff, coeff)
         self.assertEqual(list_two_elements.coeff, coeff)

@@ -44,7 +44,7 @@ class UVCC(VariationalForm):
                  degrees: List[int],
                  reps: int = 1,
                  excitations: Optional[List[List[List[int]]]] = None,
-                 initial_state: Optional[InitialState] = None,
+                 initial_state: Optional[Union[QuantumCircuit, InitialState]] = None,
                  qubit_mapping: str = 'direct',
                  num_time_slices: int = 1,
                  shallow_circuit_concat: bool = True) -> None:
@@ -181,7 +181,11 @@ class UVCC(VariationalForm):
 
         if q is None:
             q = QuantumRegister(self._num_qubits, name='q')
-        if self._initial_state is not None:
+
+        if isinstance(self._initial_state, QuantumCircuit):
+            circuit = QuantumCircuit(q)
+            circuit.append(self._initial_state.to_gate(), range(self._initial_state.num_qubits))
+        elif self._initial_state is not None:
             circuit = self._initial_state.construct_circuit('circuit', q)
         else:
             circuit = QuantumCircuit(q)

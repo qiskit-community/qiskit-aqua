@@ -22,7 +22,7 @@ from qiskit.aqua.operators.legacy.op_converter import to_weighted_pauli_operator
 from qiskit.aqua.operators.legacy.weighted_pauli_operator import Z2Symmetries
 from qiskit.chemistry import FermionicOperator
 from qiskit.chemistry.algorithms import VQEAdapt
-from qiskit.chemistry.components.initial_states import HartreeFock
+from qiskit.chemistry.circuit.library import HartreeFock
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry import QiskitChemistryError

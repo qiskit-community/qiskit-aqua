@@ -20,7 +20,7 @@ from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import VQE
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.components.variational_forms import UCCSD
-from qiskit.chemistry.components.initial_states import HartreeFock
+from qiskit.chemistry.circuit.library import HartreeFock
 from qiskit.aqua.components.optimizers import L_BFGS_B
 from qiskit.chemistry.algorithms.ground_state_solvers import AdaptVQE, VQEUCCSDFactory
 from qiskit.chemistry.transformations import FermionicTransformation
