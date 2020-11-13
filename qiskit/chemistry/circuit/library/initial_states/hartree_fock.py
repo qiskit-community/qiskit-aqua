@@ -71,7 +71,7 @@ def hartree_fock_bitstring(num_orbitals: int,
         sq_list: The position of the single-qubit operators that anticommute with the cliffords.
 
     Returns:
-        The bitstring representing the state of the Hartee-Fock state as array of bools.
+        The bitstring representing the state of the Hartree-Fock state as array of bools.
 
     Raises:
         ValueError: If the total number of particles is larger than the number of orbitals.

@@ -36,7 +36,9 @@ class RawFeatureVector(BlueprintCircuit):
         >>> circuit = RawFeatureVector(4)
         >>> circuit.num_qubits
         2
-        >>> circuit.draw()
+        >>> text_drawing = circuit.draw(output='text')
+        >>> text_drawing.encoding = 'utf-8'
+        >>> text_drawing
              ┌──────┐
         q_0: ┤0     ├
              │  Raw │
@@ -47,7 +49,9 @@ class RawFeatureVector(BlueprintCircuit):
         >>> import numpy as np
         >>> state = np.array([1, 0, 0, 1]) / np.sqrt(2)
         >>> bound = circuit.assign_parameters(state)
-        >>> bound.draw()
+        >>> text_drawing = bound.draw()
+        >>> text_drawing.encoding = 'utf-8'
+        >>> text_drawing
              ┌──────────────────────────────────┐
         q_0: ┤0                                 ├
              │  initialize(0.70711,0,0,0.70711) │

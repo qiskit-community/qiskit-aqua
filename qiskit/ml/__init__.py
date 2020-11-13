@@ -28,7 +28,7 @@ Submodules
 .. autosummary::
    :toctree:
 
-   circuit/library
+   circuit.library
    datasets
 
 """
