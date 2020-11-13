@@ -12,12 +12,13 @@
 
 """The minimum eigensolver factory for ground state calculation algorithms."""
 
-from typing import Optional
+from typing import Optional, Union, Callable
 import numpy as np
 
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import MinimumEigensolver, VQE
 from qiskit.aqua.operators import ExpectationBase
+from qiskit.aqua.operators.gradients import GradientBase
 from qiskit.aqua.components.optimizers import Optimizer
 from qiskit.chemistry.components.initial_states import VSCF
 from qiskit.chemistry.components.variational_forms import UVCC
@@ -33,6 +34,7 @@ class VQEUVCCSDFactory(MinimumEigensolverFactory):
                  quantum_instance: QuantumInstance,
                  optimizer: Optional[Optimizer] = None,
                  initial_point: Optional[np.ndarray] = None,
+                 gradient: Optional[Union[GradientBase, Callable]] = None,
                  expectation: Optional[ExpectationBase] = None,
                  include_custom: bool = False) -> None:
         """
@@ -42,6 +44,7 @@ class VQEUVCCSDFactory(MinimumEigensolverFactory):
             initial_point: An optional initial point (i.e. initial parameter values)
                 for the optimizer. If ``None`` then VQE will look to the variational form for a
                 preferred point and if not will simply compute a random one.
+            gradient: An optional gradient function or operator for optimizer.
             expectation: The Expectation converter for taking the average value of the
                 Observable over the var_form state function. When ``None`` (the default) an
                 :class:`~qiskit.aqua.operators.expectations.ExpectationFactory` is used to select
@@ -58,6 +61,7 @@ class VQEUVCCSDFactory(MinimumEigensolverFactory):
         self._quantum_instance = quantum_instance
         self._optimizer = optimizer
         self._initial_point = initial_point
+        self._gradient = gradient
         self._expectation = expectation
         self._include_custom = include_custom
 
@@ -90,6 +94,16 @@ class VQEUVCCSDFactory(MinimumEigensolverFactory):
     def initial_point(self, initial_point: np.ndarray) -> None:
         """Setter of the initial point."""
         self._initial_point = initial_point
+
+    @property
+    def gradient(self) -> Optional[Union[GradientBase, Callable]]:
+        """Getter of the gradient function"""
+        return self._gradient
+
+    @gradient.setter
+    def gradient(self, gradient: Optional[Union[GradientBase, Callable]]) -> None:
+        """Setter of the gradient function"""
+        self._gradient = gradient
 
     @property
     def expectation(self) -> ExpectationBase:
@@ -137,6 +151,7 @@ class VQEUVCCSDFactory(MinimumEigensolverFactory):
                   quantum_instance=self._quantum_instance,
                   optimizer=self._optimizer,
                   initial_point=self._initial_point,
+                  gradient=self._gradient,
                   expectation=self._expectation,
                   include_custom=self._include_custom)
         return vqe
