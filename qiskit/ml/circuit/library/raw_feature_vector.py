@@ -128,10 +128,10 @@ class RawFeatureVector(BlueprintCircuit):
             ValueError: If ``feature_dimension`` is not a power of 2.
         """
         num_qubits = np.log2(feature_dimension)
-        if self._num_qubits is None or num_qubits != self._num_qubits:
-            if int(num_qubits) != num_qubits:
-                raise ValueError('feature_dimension must be a power of 2!')
+        if int(num_qubits) != num_qubits:
+            raise ValueError('feature_dimension must be a power of 2!')
 
+        if self._num_qubits is None or num_qubits != self._num_qubits:
             self._invalidate()
             self.num_qubits = int(num_qubits)
 
