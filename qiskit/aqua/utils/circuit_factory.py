@@ -79,7 +79,7 @@ class CircuitFactory(ABC):
         qc_ = QuantumCircuit(*qc.qregs)
 
         self.build(qc_, q, q_ancillas)
-        qc.extend(qc_.inverse())
+        qc.compose(qc_.inverse(), inplace=True)
 
     def build_controlled(self, qc, q, q_control, q_ancillas=None, use_basis_gates=True):
         """ Adds corresponding controlled sub-circuit to given circuit
@@ -96,7 +96,7 @@ class CircuitFactory(ABC):
 
         controlled_circuit = get_controlled_circuit(uncontrolled_circuit,
                                                     q_control, use_basis_gates=use_basis_gates)
-        qc.extend(controlled_circuit)
+        qc.compose(controlled_circuit, inplace=True)
 
     def build_controlled_inverse(self, qc, q, q_control, q_ancillas=None, use_basis_gates=True):
         """ Adds controlled inverse of corresponding sub-circuit to given circuit
@@ -111,7 +111,7 @@ class CircuitFactory(ABC):
         qc_ = QuantumCircuit(*qc.qregs)
 
         self.build_controlled(qc_, q, q_control, q_ancillas, use_basis_gates)
-        qc.extend(qc_.inverse())
+        qc.compose(qc_.inverse(), inplace=True)
 
     def build_power(self, qc, q, power, q_ancillas=None):
         """ Adds power of corresponding circuit.

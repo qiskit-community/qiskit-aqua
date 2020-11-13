@@ -203,24 +203,27 @@ class HHL(QuantumAlgorithm):
         """
 
         q = QuantumRegister(self._num_q, name="io")
+
         qc = QuantumCircuit(q)
 
         # InitialState
         if isinstance(self._init_state, QuantumCircuit):
             qc.compose(self._init_state, inplace=True)
         elif self._init_state is not None:
-            qc += self._init_state.construct_circuit("circuit", q)
+            qc.compose(self._init_state.construct_circuit("circuit", q), inplace=True)
 
         # EigenvalueEstimation (QPE)
-        qc += self._eigs.construct_circuit("circuit", q)
+        eigs = self._eigs.construct_circuit("circuit", q)
         a = self._eigs._output_register
+        _append_by_qreg(qc, eigs)
 
         # Reciprocal calculation with rotation
-        qc += self._reciprocal.construct_circuit("circuit", a)
+        rec = self._reciprocal.construct_circuit("circuit", a)
         s = self._reciprocal._anc
+        _append_by_qreg(qc, rec)
 
         # Inverse EigenvalueEstimation
-        qc += self._eigs.construct_inverse("circuit", self._eigs._circuit)
+        _append_by_qreg(qc, self._eigs.construct_inverse("circuit", self._eigs._circuit))
 
         # Measurement of the ancilla qubit
         if measurement:
@@ -485,3 +488,17 @@ class HHLResult(LinearsolverResult):
     def from_dict(a_dict: Dict) -> 'HHLResult':
         """ create new object from a dictionary """
         return HHLResult(a_dict)
+
+
+def _append_by_qreg(target, other):
+    """Workaround to use deprecated ``extend`` method until HHL is refactored."""
+    # Add new registers
+    for element in other.qregs:
+        if element not in target.qregs:
+            target.qregs.append(element)
+            target._qubits += element[:]
+
+    # Add new gates
+    for instruction_context in other.data:
+        target._append(*instruction_context)
+    target.global_phase += other.global_phase
