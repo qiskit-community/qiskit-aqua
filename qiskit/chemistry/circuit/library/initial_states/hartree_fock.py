@@ -114,7 +114,7 @@ def hartree_fock_bitstring(num_orbitals: int,
 
     elif qubit_mapping == 'bravyi_kitaev':
         binary_superset_size = int(np.ceil(np.log2(num_orbitals)))
-        beta = 1
+        beta = np.array([1])
         basis = np.asarray([[1, 0], [0, 1]])
         for _ in range(binary_superset_size):
             beta = np.kron(basis, beta)

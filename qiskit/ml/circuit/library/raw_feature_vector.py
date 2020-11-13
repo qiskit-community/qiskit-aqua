@@ -64,8 +64,8 @@ class RawFeatureVector(BlueprintCircuit):
         """
         super().__init__()
 
-        self._num_qubits = None
-        self._parameters = None
+        self._num_qubits = None  # type: int
+        self._parameters = None  # type: List[ParameterExpression]
 
         if feature_dimension:
             self.feature_dimension = feature_dimension
@@ -191,5 +191,4 @@ class RawFeatureVector(BlueprintCircuit):
         else:
             dest.data[0][0].params = dest._parameters
 
-        if not inplace:
-            return dest
+        return None if inplace else dest
