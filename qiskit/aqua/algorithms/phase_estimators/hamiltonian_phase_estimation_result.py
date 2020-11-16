@@ -23,7 +23,7 @@ from .phase_estimation_scale import PhaseEstimationScale
 class HamiltonianPhaseEstimationResult(PhaseEstimationResult):
     """Store and manipulate results from running `HamiltonianPhaseEstimation`.
 
-    This API of this class is nearly the same as `PhaseEstimatorResult`, differing only in
+    This API of this class is nearly the same as `PhaseEstimationResult`, differing only in
     the presence of an additional keyword argument in the methods. If `scaled`
     is `False`, then the phases are not translated and scaled to recover the
     eigenvalues of the Hamiltonian. Instead `phi` in :math:`[0, 1)` is returned,
@@ -46,7 +46,7 @@ class HamiltonianPhaseEstimationResult(PhaseEstimationResult):
     # pylint: disable=arguments-differ
     def filter_phases(self, cutoff: float = 0.0, scaled: bool = True,  # type: ignore
                       as_float: bool = True) -> Dict[Union[str, float], float]:
-        """Filter phases as does `PhaseEstimatorResult.filter_phases`, with
+        """Filter phases as does `PhaseEstimationResult.filter_phases`, with
         the addition that `phi` is shifted and translated to return eigenvalues
         of the Hamiltonian.
 
