@@ -618,16 +618,22 @@ class QuadraticProgram:
             name = constraint.name
             sense = constraint.sense
 
-            rhs = 0
-            if not isinstance(constraint.lhs, Var):
-                rhs -= constraint.lhs.constant
-            if not isinstance(constraint.rhs, Var):
-                rhs += constraint.rhs.constant
+            left_expr = constraint.get_left_expr()
+            right_expr = constraint.get_right_expr()
+            # for linear constraints we may get an instance of Var instead of expression,
+            # e.g. x + y = z
+            if isinstance(left_expr, Var):
+                left_expr = left_expr + 0
+            if isinstance(right_expr, Var):
+                right_expr = right_expr + 0
+
+            rhs = right_expr.constant - left_expr.constant
 
             lhs = {}
-            # iter_net_linear_coefs sort of internal
-            for x in constraint.iter_net_linear_coefs():
-                lhs[var_names[x[0]]] = x[1]
+            for x in left_expr.iter_variables():
+                lhs[var_names[x]] = left_expr.get_coef(x)
+            for x in right_expr.iter_variables():
+                lhs[var_names[x]] = lhs.get(var_names[x], 0.0) - right_expr.get_coef(x)
 
             if sense == sense.EQ:
                 self.linear_constraint(lhs, '==', rhs, name)
@@ -685,37 +691,6 @@ class QuadraticProgram:
             else:
                 raise QiskitOptimizationError(
                     "Unsupported constraint sense: {}".format(constraint))
-
-    def _iter_net_linear_coefs(self, constraint: DocplexLinearConstraint):
-        left_expr = constraint.left_expr        # left_expr: documented
-        right_expr = constraint.right_expr      # right_expr: documented
-        if right_expr.is_constant():            # is_constant(): documented
-            return left_expr.iter_sorted_terms()    # iter_sorted_terms() partially documented
-        elif left_expr.is_constant():
-            return self._generate_expr_opposite_linear_coefs(right_expr)
-        else:
-            return self._generate_net_linear_coefs2_sorted(left_expr, right_expr)
-
-    @staticmethod
-    def _generate_expr_opposite_linear_coefs(expr):
-        for v, k in expr.iter_sorted_terms():   # iter_sorted_terms() partially documented
-            yield v, -k
-
-    @staticmethod
-    def _generate_net_linear_coefs2_sorted(left_expr, right_expr):
-        # INTERNAL
-        for lv, lk in left_expr.iter_sorted_terms():        # iter_sorted_terms - partially documented
-            net_k = lk - right_expr.unchecked_get_coef(lv)
-            if net_k:
-                yield lv, net_k
-        for rv, rk in right_expr.iter_sorted_terms():
-            if not left_expr.contains_var(rv) and rk:       # contains_var - documented
-                yield rv, -rk
-
-    def _copy_unchecked_get_coef(self, dvar):
-        # INTERNAL
-        return self.__terms.get(dvar, 0)
-
 
     def to_docplex(self) -> Model:
         """Returns a docplex model corresponding to this quadratic program.
