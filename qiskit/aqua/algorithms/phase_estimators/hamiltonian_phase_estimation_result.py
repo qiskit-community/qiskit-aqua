@@ -10,7 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Result from running HamiltonianPE"""
+"""Result from running HamiltonianPhaseEstimation"""
 
 
 from typing import Dict, Union, cast
@@ -20,8 +20,8 @@ from .phase_estimation_result import PhaseEstimationResult
 from .phase_estimation_scale import PhaseEstimationScale
 
 
-class HamiltonianPEResult(PhaseEstimationResult):
-    """Store and manipulate results from running `HamiltonianPE`.
+class HamiltonianPhaseEstimationResult(PhaseEstimationResult):
+    """Store and manipulate results from running `HamiltonianPhaseEstimation`.
 
     This API of this class is nearly the same as `PhaseEstimatorResult`, differing only in
     the presence of an additional keyword argument in the methods. If `scaled`

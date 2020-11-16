@@ -196,8 +196,8 @@ Algorithms that estimate the phases of eigenstates of a unitary.
    :toctree: ../stubs/
    :nosignatures:
 
-   HamiltonianPE
-   HamiltonianPEResult
+   HamiltonianPhaseEstimation
+   HamiltonianPhaseEstimationResult
    PhaseEstimationScale
    PhaseEstimation
    PhaseEstimationResult
@@ -226,7 +226,7 @@ from .linear_solvers import (LinearsolverResult, HHL,
 from .minimum_eigen_solvers import (VQE, VQEResult, QAOA, IQPE, IQPEResult, QPE, QPEResult,
                                     ClassicalCPLEX, CPLEX_Ising, NumPyMinimumEigensolver,
                                     MinimumEigensolver, MinimumEigensolverResult)
-from .phase_estimators import (HamiltonianPE, HamiltonianPEResult, PhaseEstimationScale,
+from .phase_estimators import (HamiltonianPhaseEstimation, HamiltonianPhaseEstimationResult, PhaseEstimationScale,
                                PhaseEstimation, PhaseEstimationResult)
 from .education import EOH, Simon, DeutschJozsa, BernsteinVazirani
 
@@ -271,8 +271,8 @@ __all__ = [
     'IterativeAmplitudeEstimationResult',
     'MaximumLikelihoodAmplitudeEstimation',
     'MaximumLikelihoodAmplitudeEstimationResult',
-    'HamiltonianPE',
-    'HamiltonianPEResult',
+    'HamiltonianPhaseEstimation',
+    'HamiltonianPhaseEstimationResult',
     'PhaseEstimationScale',
     'PhaseEstimation',
     'PhaseEstimationResult',

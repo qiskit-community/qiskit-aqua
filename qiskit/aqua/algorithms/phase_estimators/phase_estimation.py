@@ -152,7 +152,7 @@ class PhaseEstimation(QuantumAlgorithm, PhaseEstimator):
         gives the state of the phase-reading register with the LSB leftmost when interpreted as a
         phase. In order to maintain the compact representation, the phases are maintained as decimal
         integers.  They may be converted to other forms via the results object,
-        `PhaseEstimationResult` or `HamiltonianPEResult`.
+        `PhaseEstimationResult` or `HamiltonianPhaseEstimationResult`.
 
          2) If the backend samples bitstrings, then the counts are first retrieved as a dict.  The
         binary strings (the keys) are then reversed so that the LSB is rightmost and the counts are

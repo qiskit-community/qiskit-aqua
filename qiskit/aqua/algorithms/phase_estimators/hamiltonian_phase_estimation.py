@@ -19,11 +19,11 @@ from qiskit.aqua.operators import EvolutionBase, OperatorBase
 from qiskit.providers import BaseBackend, Backend
 from .phase_estimation import PhaseEstimation
 from . import phase_estimation_scale
-from .hamiltonian_pe_result import HamiltonianPEResult
+from .hamiltonian_phase_estimation_result import HamiltonianPhaseEstimationResult
 from .phase_estimation_scale import PhaseEstimationScale
 
 
-class HamiltonianPE(PhaseEstimation):
+class HamiltonianPhaseEstimation(PhaseEstimation):
     r"""Run the Quantum Phase Estimation algorithm to find the eigenvalues of a Hermitian operator.
 
     This class is nearly the same as :class:`~qiskit.aqua.algorithms.PhaseEstimator`, differing only
@@ -118,12 +118,12 @@ class HamiltonianPE(PhaseEstimation):
         # It does not break any others that we tested.
         return unitary_circuit.decompose().decompose()
 
-    def _run(self) -> HamiltonianPEResult:
-        """Run the circuit and return and return `HamiltonianPEResult`.
+    def _run(self) -> HamiltonianPhaseEstimationResult:
+        """Run the circuit and return and return `HamiltonianPhaseEstimationResult`.
         """
 
         circuit_result = self._quantum_instance.execute(self.construct_circuit())
         phases = self._compute_phases(circuit_result)
-        return HamiltonianPEResult(
+        return HamiltonianPhaseEstimationResult(
             self._num_evaluation_qubits, phases=phases,
             circuit_result=circuit_result, phase_estimation_scale=self._pe_scale)

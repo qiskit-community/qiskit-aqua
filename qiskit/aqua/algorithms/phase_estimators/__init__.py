@@ -16,14 +16,14 @@ from .phase_estimator import PhaseEstimator
 from .phase_estimation import PhaseEstimation
 from .phase_estimation_result import PhaseEstimationResult
 from .phase_estimation_scale import PhaseEstimationScale
-from .hamiltonian_pe import HamiltonianPE
-from .hamiltonian_pe_result import HamiltonianPEResult
+from .hamiltonian_phase_estimation import HamiltonianPhaseEstimation
+from .hamiltonian_phase_estimation_result import HamiltonianPhaseEstimationResult
 
 __all__ = [
     'PhaseEstimator',
     'PhaseEstimation',
     'PhaseEstimationResult',
     'PhaseEstimationScale',
-    'HamiltonianPE',
-    'HamiltonianPEResult'
+    'HamiltonianPhaseEstimation',
+    'HamiltonianPhaseEstimationResult'
 ]

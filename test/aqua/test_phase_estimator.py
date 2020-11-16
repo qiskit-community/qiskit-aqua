@@ -15,13 +15,13 @@
 import unittest
 from test.aqua import QiskitAquaTestCase
 import numpy as np
-from qiskit.aqua.algorithms.phase_estimators import PhaseEstimation, HamiltonianPE
+from qiskit.aqua.algorithms.phase_estimators import PhaseEstimation, HamiltonianPhaseEstimation
 from qiskit.aqua.operators.evolutions import PauliTrotterEvolution, MatrixEvolution
 import qiskit
 from qiskit.aqua.operators import (H, X, Y, Z, I)
 
 
-class TestHamiltonianPE(QiskitAquaTestCase):
+class TestHamiltonianPhaseEstimation(QiskitAquaTestCase):
     """Tests for obtaining eigenvalues from phase estimation"""
 
     def setUp(self):
@@ -31,9 +31,9 @@ class TestHamiltonianPE(QiskitAquaTestCase):
     def hamiltonian_pe(self, hamiltonian, state_preparation=None, num_evaluation_qubits=6,
                        backend=qiskit.BasicAer.get_backend('statevector_simulator'),
                        evolution=MatrixEvolution()):
-        """Run HamiltonianPE and return result with all  phases."""
+        """Run HamiltonianPhaseEstimation and return result with all  phases."""
         quantum_instance = qiskit.aqua.QuantumInstance(backend=backend, shots=10000)
-        phase_est = HamiltonianPE(
+        phase_est = HamiltonianPhaseEstimation(
             num_evaluation_qubits=num_evaluation_qubits,
             hamiltonian=hamiltonian, quantum_instance=quantum_instance,
             state_preparation=state_preparation, evolution=evolution)
@@ -96,7 +96,7 @@ class TestHamiltonianPE(QiskitAquaTestCase):
         bound = 1.2 * sum([abs(hamiltonian.coeff * pauli.coeff) for pauli in hamiltonian])
         backend = qiskit.BasicAer.get_backend('statevector_simulator')
         qi = qiskit.aqua.QuantumInstance(backend=backend, shots=10000)
-        phase_est = HamiltonianPE(num_evaluation_qubits=6,
+        phase_est = HamiltonianPhaseEstimation(num_evaluation_qubits=6,
                                   hamiltonian=hamiltonian,
                                   bound=bound,
                                   quantum_instance=qi,
@@ -106,7 +106,7 @@ class TestHamiltonianPE(QiskitAquaTestCase):
         return result
 
     def test_from_bound(self):
-        """HamiltonianPE with bound"""
+        """HamiltonianPhaseEstimation with bound"""
         result = self._setup_from_bound(MatrixEvolution())
         phases = result.filter_phases()
         with self.subTest('test phases has the correct length'):
@@ -121,7 +121,7 @@ class TestHamiltonianPE(QiskitAquaTestCase):
             self.assertEqual(result.most_likely_phase, 0.75)
 
     def test_trotter_from_bound(self):
-        """HamiltonianPE with bound and Trotterization"""
+        """HamiltonianPhaseEstimation with bound and Trotterization"""
         result = self._setup_from_bound(PauliTrotterEvolution(trotter_mode='suzuki', reps=3))
         phase_dict = result.filter_phases(0.1)
         phases = list(phase_dict.keys())
