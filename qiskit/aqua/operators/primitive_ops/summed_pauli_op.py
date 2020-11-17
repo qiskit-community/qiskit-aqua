@@ -271,7 +271,7 @@ class SummedPauliOp(PrimitiveOp):
                 raise ValueError("Operator composed with a measurement is undefined.")
 
             # Composable types with PauliOp
-            elif isinstance(front, (SparsePauliOp, PauliOp, CircuitOp, CircuitStateFn)):
+            elif isinstance(front, (SummedPauliOp, PauliOp, CircuitOp, CircuitStateFn)):
                 return self.compose(front)
 
             # Covers VectorStateFn and OperatorStateFn
