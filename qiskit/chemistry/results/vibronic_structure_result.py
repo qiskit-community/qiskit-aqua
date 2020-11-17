@@ -70,7 +70,7 @@ class VibronicStructureResult(EigenstateResult):
         lines.append('=== GROUND STATE ENERGY ===')
         lines.append(' ')
         lines.append('* Vibronic ground state energy (cm^-1): {}'.
-                     format(round(self.computed_vibronic_energies[0], 12)))
+                     format(np.round(self.computed_vibronic_energies[0], 12)))
         if len(self.num_occupied_modals_per_mode) > 0:
             lines.append('The number of occupied modals is')
         for i in range(len(self.num_occupied_modals_per_mode)):

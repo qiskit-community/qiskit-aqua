@@ -478,7 +478,6 @@ jobs:
           rm -r tutorials/circuits/
           rm -r tutorials/circuits_advanced/
           rm -r tutorials/noise/
-          rm -r tutorials/pulse/
           rm -r tutorials/simulators/
           sphinx-build -b html . _build/html
           cd _build/html
