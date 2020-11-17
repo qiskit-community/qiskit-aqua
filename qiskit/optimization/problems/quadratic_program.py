@@ -561,11 +561,11 @@ class QuadraticProgram:
         # keep track of names separately, since docplex allows to have None names.
         var_names = {}
         for x in model.iter_variables():
-            if isinstance(x.get_vartype(), ContinuousVarType):
+            if isinstance(x.vartype, ContinuousVarType):
                 x_new = self.continuous_var(x.lb, x.ub, x.name)
-            elif isinstance(x.get_vartype(), BinaryVarType):
+            elif isinstance(x.vartype, BinaryVarType):
                 x_new = self.binary_var(x.name)
-            elif isinstance(x.get_vartype(), IntegerVarType):
+            elif isinstance(x.vartype, IntegerVarType):
                 x_new = self.integer_var(x.lb, x.ub, x.name)
             else:
                 raise QiskitOptimizationError(
@@ -591,7 +591,7 @@ class QuadraticProgram:
         # get quadratic part of objective
         quadratic = {}
         if isinstance(model.objective_expr, QuadExpr):
-            for quad_triplet in model.objective_expr.generate_quad_triplets():
+            for quad_triplet in model.objective_expr.iter_quad_triplets():
                 i = var_names[quad_triplet[0]]
                 j = var_names[quad_triplet[1]]
                 v = quad_triplet[2]
@@ -618,15 +618,22 @@ class QuadraticProgram:
             name = constraint.name
             sense = constraint.sense
 
-            rhs = 0
-            if not isinstance(constraint.lhs, Var):
-                rhs -= constraint.lhs.constant
-            if not isinstance(constraint.rhs, Var):
-                rhs += constraint.rhs.constant
+            left_expr = constraint.get_left_expr()
+            right_expr = constraint.get_right_expr()
+            # for linear constraints we may get an instance of Var instead of expression,
+            # e.g. x + y = z
+            if isinstance(left_expr, Var):
+                left_expr = left_expr + 0
+            if isinstance(right_expr, Var):
+                right_expr = right_expr + 0
+
+            rhs = right_expr.constant - left_expr.constant
 
             lhs = {}
-            for x in constraint.iter_net_linear_coefs():
-                lhs[var_names[x[0]]] = x[1]
+            for x in left_expr.iter_variables():
+                lhs[var_names[x]] = left_expr.get_coef(x)
+            for x in right_expr.iter_variables():
+                lhs[var_names[x]] = lhs.get(var_names[x], 0.0) - right_expr.get_coef(x)
 
             if sense == sense.EQ:
                 self.linear_constraint(lhs, '==', rhs, name)
