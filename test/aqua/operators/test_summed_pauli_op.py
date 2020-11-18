@@ -17,12 +17,10 @@ from test.aqua import QiskitAquaTestCase
 
 import numpy as np
 from qiskit.circuit import ParameterVector
-from qiskit.circuit.library import HGate
 from qiskit.quantum_info import Pauli, SparsePauliOp
 from scipy.sparse import csr_matrix
 
 from qiskit import QuantumCircuit
-from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.operators import (DictStateFn, I, SummedOp, SummedPauliOp, X,
                                    Y, Z, Zero)
 
@@ -150,6 +148,7 @@ class TestSummedPauliOp(QiskitAquaTestCase):
         self.assertEqual(target.to_pauli_op(), expected)
 
     def test_getitem(self):
+        """ test getitem method """
         target = X + Z
         self.assertEqual(target[0], X.to_summed_pauli_op())
         self.assertEqual(target[1], Z.to_summed_pauli_op())
