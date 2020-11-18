@@ -122,20 +122,19 @@ class SummedPauliOp(PrimitiveOp):
         return TensoredOp([self, other])
 
     def permute(self, permutation: List[int]) -> "SummedPauliOp":
-        """Permutes the sequence of Pauli matrices.
+        """Permutes the sequence of ``SummedPauliOp``.
 
         Args:
             permutation: A list defining where each Pauli should be permuted. The Pauli at index
                 j of the primitive should be permuted to position permutation[j].
 
         Returns:
-              A new PauliOp representing the permuted operator. For operator (X ^ Y ^ Z) and
+              A new SummedPauliOp representing the permuted operator. For operator (X ^ Y ^ Z) and
               indices=[1,2,4], it returns (X ^ I ^ Y ^ Z ^ I).
 
         Raises:
             AquaError: if indices do not define a new index for each qubit.
         """
-        # TODO: need check the validity of permutation
         if len(permutation) != self.num_qubits:
             raise AquaError(
                 "List of indices to permute must have the same size as Pauli Operator"
