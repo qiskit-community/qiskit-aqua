@@ -148,7 +148,7 @@ class TestSummedPauliOp(QiskitAquaTestCase):
         self.assertEqual(target.to_pauli_op(), expected)
 
     def test_getitem(self):
-        """ test getitem method """
+        """ test get item method """
         target = X + Z
         self.assertEqual(target[0], X.to_summed_pauli_op())
         self.assertEqual(target[1], Z.to_summed_pauli_op())
