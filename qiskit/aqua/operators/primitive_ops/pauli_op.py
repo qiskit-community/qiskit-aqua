@@ -267,6 +267,7 @@ class PauliOp(PrimitiveOp):
             elif corrected_x[sig_qubit_index]:
                 rot_op = PrimitiveOp(RXGate(2 * coeff))
 
+            # pylint: disable=cyclic-import
             from ..operator_globals import I
             left_pad = I.tensorpower(sig_qubit_index)
             right_pad = I.tensorpower(self.num_qubits - sig_qubit_index - 1)

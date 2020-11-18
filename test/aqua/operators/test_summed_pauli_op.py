@@ -16,11 +16,11 @@ import unittest
 from test.aqua import QiskitAquaTestCase
 
 import numpy as np
-from qiskit.circuit import ParameterVector
-from qiskit.quantum_info import Pauli, SparsePauliOp
 from scipy.sparse import csr_matrix
 
 from qiskit import QuantumCircuit
+from qiskit.circuit import ParameterVector
+from qiskit.quantum_info import Pauli, SparsePauliOp
 from qiskit.aqua.operators import (DictStateFn, I, SummedOp, SummedPauliOp, X,
                                    Y, Z, Zero)
 
@@ -130,7 +130,7 @@ class TestSummedPauliOp(QiskitAquaTestCase):
 
     def test_exp_i(self):
         """ exp_i test """
-        # TODO: add tests if special medhods are added
+        # TODO: add tests when special methods are added
         pass
 
     def test_to_instruction(self):
