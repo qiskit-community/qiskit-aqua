@@ -42,6 +42,7 @@ Primitive Operators
    CircuitOp
    MatrixOp
    PauliOp
+   SummedPauliOp
 
 """
 
