@@ -332,13 +332,20 @@ class SummedPauliOp(PrimitiveOp):
         """
         return len(self.primitive)
 
-    def reduce(self) -> "SummedPauliOp":
+
+    def reduce(
+            self, atol: Optional[float] = None, rtol: Optional[float] = None
+    ) -> "SummedPauliOp":
         """Simplify the primitive ``SparsePauliOp``.
+
+        Args:
+            atol: Absolute tolerance for checking if coefficients are zero (Default: 1e-8).
+            rtol: Relative tolerance for checking if coefficients are zero (Default: 1e-5).
 
         Returns:
             The simplified ``SummedPauliOp``.
         """
-        return SummedPauliOp(self.primitive.simplify(), self.coeff)  # type: ignore
+        return SummedPauliOp(self.primitive.simplify(atol=atol, rtol=rtol), self.coeff)  # type: ignore
 
     def to_spmatrix(self) -> spmatrix:
         """Returns SciPy sparse matrix representation of the ``SummedPauliOp``.
@@ -360,3 +367,4 @@ class SummedPauliOp(PrimitiveOp):
             The list of operators.
         """
         return self.to_pauli_op().oplist  # type: ignore
+
