@@ -332,7 +332,7 @@ class SummedPauliOp(PrimitiveOp):
         """
         return len(self.primitive)
 
-
+    # pylint: disable=arguments-differ
     def reduce(
             self, atol: Optional[float] = None, rtol: Optional[float] = None
     ) -> "SummedPauliOp":
@@ -345,7 +345,9 @@ class SummedPauliOp(PrimitiveOp):
         Returns:
             The simplified ``SummedPauliOp``.
         """
-        return SummedPauliOp(self.primitive.simplify(atol=atol, rtol=rtol), self.coeff)  # type: ignore
+        return SummedPauliOp(
+                self.primitive.simplify(atol=atol, rtol=rtol), self.coeff  # type: ignore
+                )
 
     def to_spmatrix(self) -> spmatrix:
         """Returns SciPy sparse matrix representation of the ``SummedPauliOp``.
@@ -367,4 +369,3 @@ class SummedPauliOp(PrimitiveOp):
             The list of operators.
         """
         return self.to_pauli_op().oplist  # type: ignore
-

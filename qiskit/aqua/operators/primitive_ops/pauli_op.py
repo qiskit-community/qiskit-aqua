@@ -74,7 +74,6 @@ class PauliOp(PrimitiveOp):
         if (
                 isinstance(other, PauliOp)
                 and isinstance(self.coeff, (int, float, complex))
-                and hasattr(other, 'coeff')
                 and isinstance(other.coeff, (int, float, complex))
         ):
             return self.to_summed_pauli_op() + other.to_summed_pauli_op()
