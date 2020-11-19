@@ -18,9 +18,9 @@ from test.aqua import QiskitAquaTestCase
 import numpy as np
 from scipy.sparse import csr_matrix
 
-from qiskit import QuantumCircuit
 from qiskit.circuit import ParameterVector
 from qiskit.quantum_info import Pauli, SparsePauliOp
+from qiskit import QuantumCircuit
 from qiskit.aqua.operators import (DictStateFn, I, SummedOp, SummedPauliOp, X,
                                    Y, Z, Zero)
 
@@ -75,7 +75,7 @@ class TestSummedPauliOp(QiskitAquaTestCase):
         summed_pauli1 = theta[1] * (X + Z)
         expected = SummedPauliOp(
             SparsePauliOp(Pauli(label="X")) + SparsePauliOp(Pauli(label="Z")),
-            coeff=theta[0],
+            coeff=1.*theta[0],
         )
         self.assertEqual(summed_pauli0, expected)
         self.assertNotEqual(summed_pauli1, expected)
@@ -173,6 +173,26 @@ class TestSummedPauliOp(QiskitAquaTestCase):
         """ test oplist """
         target = X + Y + Z
         self.assertEqual(target.oplist, [X, Y, Z])
+
+    def test_from_list(self):
+        """ test from_list """
+        target = SummedPauliOp.from_list(
+            [
+                ("II", -1.052373245772859),
+                ("IZ", 0.39793742484318045),
+                ("ZI", -0.39793742484318045),
+                ("ZZ", -0.01128010425623538),
+                ("XX", 0.18093119978423156),
+            ]
+        )
+        expected = (
+            -1.052373245772859 * (I ^ I)
+            + 0.39793742484318045 * (I ^ Z)
+            - 0.39793742484318045 * (Z ^ I)
+            - 0.01128010425623538 * (Z ^ Z)
+            + 0.18093119978423156 * (X ^ X)
+        )
+        self.assertEqual(target, expected)
 
 
 if __name__ == "__main__":

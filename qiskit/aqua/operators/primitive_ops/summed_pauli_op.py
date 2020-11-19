@@ -13,7 +13,8 @@
 """ SummedPauliOp Class """
 
 import logging
-from typing import Dict, List, Optional, Set, Union, cast
+from numbers import Number
+from typing import Dict, List, Optional, Set, Tuple, Union, cast
 
 import numpy as np
 from scipy.sparse import spmatrix
@@ -369,3 +370,15 @@ class SummedPauliOp(PrimitiveOp):
             The list of operators.
         """
         return self.to_pauli_op().oplist  # type: ignore
+
+    @staticmethod
+    def from_list(pauli_list: List[Tuple[str, Number]]) -> "SummedPauliOp":
+        """ Construct from a pauli_list with the form [(pauli_str, coeffs)]
+
+        Args:
+            pauli_list: A list of Tuple of pauli_str and coefficient.
+
+        Returns:
+            The SummedPauliOp constructed from the pauli_list.
+        """
+        return SummedPauliOp(SparsePauliOp.from_list(pauli_list))
