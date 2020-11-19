@@ -347,8 +347,8 @@ class SummedPauliOp(PrimitiveOp):
             The simplified ``SummedPauliOp``.
         """
         return SummedPauliOp(
-                self.primitive.simplify(atol=atol, rtol=rtol), self.coeff  # type: ignore
-                )
+            self.primitive.simplify(atol=atol, rtol=rtol), self.coeff  # type: ignore
+        )
 
     def to_spmatrix(self) -> spmatrix:
         """Returns SciPy sparse matrix representation of the ``SummedPauliOp``.
