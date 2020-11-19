@@ -681,7 +681,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         # set quadratic objective y
         quadratic_y = self._params.beta / 2 * np.eye(binary_size) + \
-                      self._state.rho / 2 * np.eye(binary_size)
+            self._state.rho / 2 * np.eye(binary_size)
         op3.objective.quadratic = quadratic_y
 
         # set linear objective for y
@@ -760,7 +760,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         """
         return self._state.lambda_mult + \
-               self._state.rho * (self._state.x0 - self._state.z - self._state.y)
+            self._state.rho * (self._state.x0 - self._state.z - self._state.y)
 
     def _update_rho(self, primal_residual: float, dual_residual: float) -> None:
         """Updating the rho parameter in ADMM.
