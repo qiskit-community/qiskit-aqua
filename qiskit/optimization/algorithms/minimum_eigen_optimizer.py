@@ -17,9 +17,9 @@ import numpy as np
 from qiskit.aqua.algorithms import MinimumEigensolver, MinimumEigensolverResult
 from qiskit.aqua.operators import StateFn, DictStateFn
 
-from .. import QiskitOptimizationError
 from .optimization_algorithm import (OptimizationResultStatus, OptimizationAlgorithm,
                                      OptimizationResult)
+from .. import QiskitOptimizationError
 from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo, QuadraticProgramConverter
 from ..problems.quadratic_program import QuadraticProgram, Variable
 
@@ -179,7 +179,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
 
         # only try to solve non-empty Ising Hamiltonians
         x = None  # type: Optional[Any]
-        eigen_result = None     # type: MinimumEigensolverResult
+        eigen_result = None  # type: MinimumEigensolverResult
         if operator.num_qubits > 0:
 
             # approximate ground state of operator using min eigen solver
@@ -207,25 +207,20 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
             x_str = '0' * problem_.get_num_binary_vars()
             samples = [(x_str, offset, 1.0)]
 
-        # translate result back to integers
-        result = OptimizationResult(x=x, fval=fval, variables=problem_.variables,
-                                    status=OptimizationResultStatus.SUCCESS)
-
-        result = self._interpret(result, self._converters)
-
-        if result.fval is None or result.x is None:
+        if fval is None or x is None:
             # if not function value is given, then something went wrong, e.g., a
             # NumPyMinimumEigensolver has been configured with an infeasible filter criterion.
             return MinimumEigenOptimizationResult(x=None, fval=None,
-                                                  variables=result.variables,
+                                                  variables=problem.variables,
                                                   status=OptimizationResultStatus.FAILURE,
                                                   samples=None,
                                                   min_eigen_solver_result=eigen_result)
-
-        return MinimumEigenOptimizationResult(x=result.x, fval=result.fval,
-                                              variables=result.variables,
-                                              status=self._get_feasibility_status(problem,
-                                                                                  result.x),
+        # translate result back to integers
+        new_x = self._interpret(x, self._converters)
+        status = self._get_feasibility_status(problem, new_x)
+        return MinimumEigenOptimizationResult(x=new_x, fval=fval,
+                                              variables=problem.variables,
+                                              status=status,
                                               samples=samples, min_eigen_solver_result=eigen_result)
 
 

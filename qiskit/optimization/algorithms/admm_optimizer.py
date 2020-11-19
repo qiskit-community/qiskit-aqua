@@ -377,16 +377,14 @@ class ADMMOptimizer(OptimizationAlgorithm):
         objective_value = objective_value * sense
 
         # convert back integer to binary
-        base_result = OptimizationResult(solution, objective_value, problem.variables,
-                                         OptimizationResultStatus.SUCCESS)
-        base_result = int2bin.interpret(base_result)
+        new_x = int2bin.interpret(solution)
+        status = self._get_feasibility_status(original_problem, new_x)
 
         # third parameter is our internal state of computations.
-        result = ADMMOptimizationResult(x=base_result.x, fval=base_result.fval,
+        result = ADMMOptimizationResult(x=new_x, fval=objective_value,
                                         variables=original_problem.variables,
                                         state=self._state,
-                                        status=self._get_feasibility_status(original_problem,
-                                                                            base_result.x))
+                                        status=status)
 
         # debug
         self._log.debug("solution=%s, objective=%s at iteration=%s",
@@ -625,13 +623,15 @@ class ADMMOptimizer(OptimizationAlgorithm):
             op1.binary_var(name=name)
 
         # prepare and set quadratic objective.
-        quadratic_objective = self._state.q0 + \
-            self._params.factor_c / 2 * np.dot(self._state.a0.transpose(), self._state.a0) +\
+        quadratic_objective = \
+            self._state.q0 + \
+            self._params.factor_c / 2 * np.dot(self._state.a0.transpose(), self._state.a0) + \
             self._state.rho / 2 * np.eye(binary_size)
         op1.objective.quadratic = quadratic_objective
 
         # prepare and set linear objective.
-        linear_objective = self._state.c0 - \
+        linear_objective = \
+            self._state.c0 - \
             self._params.factor_c * np.dot(self._state.b0, self._state.a0) + \
             self._state.rho * (- self._state.y[self._state.step1_relative_indices] -
                                self._state.z[self._state.step1_relative_indices]) + \
@@ -658,7 +658,8 @@ class ADMMOptimizer(OptimizationAlgorithm):
             # replacing Q0 objective and take of min/max sense, initially we consider minimization
             op2.objective.quadratic[var_index, var_index] = self._state.rho / 2
             # replacing linear objective
-            op2.objective.linear[var_index] = -1 * self._state.lambda_mult[i] - self._state.rho * \
+            op2.objective.linear[var_index] = \
+                -1 * self._state.lambda_mult[i] - self._state.rho * \
                 (self._state.x0[i] - self._state.y[i])
 
         # remove A0 x0 = b0 constraints
@@ -682,7 +683,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         # set quadratic objective y
         quadratic_y = self._params.beta / 2 * np.eye(binary_size) + \
-            self._state.rho / 2 * np.eye(binary_size)
+                      self._state.rho / 2 * np.eye(binary_size)
         op3.objective.quadratic = quadratic_y
 
         # set linear objective for y
@@ -761,7 +762,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         """
         return self._state.lambda_mult + \
-            self._state.rho * (self._state.x0 - self._state.z - self._state.y)
+               self._state.rho * (self._state.x0 - self._state.z - self._state.y)
 
     def _update_rho(self, primal_residual: float, dual_residual: float) -> None:
         """Updating the rho parameter in ADMM.

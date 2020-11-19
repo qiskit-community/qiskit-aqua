@@ -18,13 +18,13 @@ from copy import deepcopy
 from typing import Optional, Dict, Union, List
 
 import numpy as np
-
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms.amplitude_amplifiers.grover import Grover
-from qiskit.providers import BaseBackend
-from qiskit.providers import Backend
 from qiskit.circuit.library import QuadraticForm
+from qiskit.providers import Backend
+from qiskit.providers import BaseBackend
+
 from .optimization_algorithm import (OptimizationResultStatus, OptimizationAlgorithm,
                                      OptimizationResult)
 from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo, QuadraticProgramConverter
@@ -264,17 +264,16 @@ class GroverOptimizer(OptimizationAlgorithm):
 
         # Compute function value
         fval = problem_init.objective.evaluate(opt_x)
-        result = OptimizationResult(x=opt_x, fval=fval, variables=problem_.variables,
-                                    status=OptimizationResultStatus.SUCCESS)
 
         # cast binaries back to integers
-        result = self._interpret(result, self._converters)
+        new_x = self._interpret(opt_x, self._converters)
+        status = self._get_feasibility_status(problem, new_x)
 
-        return GroverOptimizationResult(x=result.x, fval=result.fval, variables=result.variables,
+        return GroverOptimizationResult(x=new_x, fval=fval, variables=problem_.variables,
                                         operation_counts=operation_count, n_input_qubits=n_key,
                                         n_output_qubits=n_value, intermediate_fval=fval,
                                         threshold=threshold,
-                                        status=self._get_feasibility_status(problem, result.x))
+                                        status=status)
 
     def _measure(self, circuit: QuantumCircuit) -> str:
         """Get probabilities from the given backend, and picks a random outcome."""
