@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -168,5 +166,5 @@ class EigsQPE(Eigenvalues):
             qc.cx(sgn, qi)
         apply_ne_qft(self._ne_qfts[0])
         for i, qi in enumerate(reversed(qs)):
-            qc.cu1(2 * np.pi / 2 ** (i + 1), sgn, qi)
+            qc.cp(2 * np.pi / 2 ** (i + 1), sgn, qi)
         apply_ne_qft(self._ne_qfts[1])

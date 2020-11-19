@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -68,13 +66,13 @@ class EuropeanCallDelta(UncertaintyProblem):
 
     def required_ancillas(self):
         num_uncertainty_ancillas = self._uncertainty_model.required_ancillas()
-        num_comparator_ancillas = self._comparator.num_ancilla_qubits
+        num_comparator_ancillas = self._comparator.num_ancillas
         num_ancillas = num_uncertainty_ancillas + num_comparator_ancillas
         return num_ancillas
 
     def required_ancillas_controlled(self):
         num_uncertainty_ancillas = self._uncertainty_model.required_ancillas_controlled()
-        num_comparator_ancillas = self._comparator.num_ancilla_qubits
+        num_comparator_ancillas = self._comparator.num_ancillas
         num_ancillas_controlled = num_uncertainty_ancillas + num_comparator_ancillas
         return num_ancillas_controlled
 

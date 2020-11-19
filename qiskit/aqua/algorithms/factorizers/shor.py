@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2019, 2020.
@@ -25,6 +23,7 @@ from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 from qiskit.circuit import Gate, Instruction, ParameterVector
 from qiskit.circuit.library import QFT
 from qiskit.providers import BaseBackend
+from qiskit.providers import Backend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import AlgorithmResult, QuantumAlgorithm
 from qiskit.aqua.utils import get_subsystem_density_matrix, summarize_circuits
@@ -55,7 +54,8 @@ class Shor(QuantumAlgorithm):
     def __init__(self,
                  N: int = 15,
                  a: int = 2,
-                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
+                 quantum_instance: Optional[
+                     Union[QuantumInstance, BaseBackend, Backend]] = None) -> None:
         """
         Args:
             N: The integer to be factored, has a min. value of 3.
@@ -114,7 +114,7 @@ class Shor(QuantumAlgorithm):
         """Gate that performs addition by a in Fourier Space."""
         circuit = QuantumCircuit(size, name="phi_add")
         for i, angle in enumerate(angles):
-            circuit.u1(angle, i)
+            circuit.p(angle, i)
         return circuit.to_gate()
 
     def _double_controlled_phi_add_mod_N(self,

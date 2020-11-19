@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -13,6 +11,8 @@
 # that they have been altered from the originals.
 
 """ Test Particle Hole """
+
+import unittest
 
 from test.chemistry import QiskitChemistryTestCase
 from ddt import ddt, idata, unpack
@@ -79,3 +79,7 @@ class TestParticleHole(QiskitChemistryTestCase):
 
         self.assertAlmostEqual(result.eigenvalue.real,
                                ph_result.eigenvalue.real - ph_shift, msg=config)
+
+
+if __name__ == '__main__':
+    unittest.main()

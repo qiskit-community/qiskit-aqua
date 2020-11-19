@@ -1,6 +1,4 @@
 
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -19,8 +17,7 @@ import logging
 from typing import Optional
 
 from qiskit.aqua import MissingOptionalLibraryError
-from .optimization_algorithm import (OptimizationAlgorithm, OptimizationResult,
-                                     OptimizationResultStatus)
+from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
 from ..exceptions import QiskitOptimizationError
 from ..problems.quadratic_program import QuadraticProgram
 
@@ -139,12 +136,10 @@ class CplexOptimizer(OptimizationAlgorithm):
         sol = cplex.solution
 
         # create results
-        x = sol.get_values()
-        status = OptimizationResultStatus.SUCCESS if problem.is_feasible(x) \
-            else OptimizationResultStatus.INFEASIBLE
-        result = OptimizationResult(x=x, fval=sol.get_objective_value(),
+        result = OptimizationResult(x=sol.get_values(), fval=sol.get_objective_value(),
                                     variables=problem.variables,
-                                    raw_results=sol, status=status)
+                                    status=self._get_feasibility_status(problem, sol.get_values()),
+                                    raw_results=sol)
 
         # return solution
         return result

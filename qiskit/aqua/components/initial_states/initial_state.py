@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -17,6 +15,7 @@ initial states. An initial state might be used by a variational
 form or in eoh as a trial state to evolve
 """
 
+import warnings
 from typing import Optional
 # below to allow it for python 3.6.1
 try:
@@ -40,6 +39,17 @@ class InitialState(ABC):
     @abstractmethod
     def __init__(self) -> None:
         super().__init__()
+
+        warnings.warn('The {} class is deprecated as of Aqua 0.9 and will be removed no earlier '
+                      'than 3 months after the release date. Instead, all algorithms and circuits '
+                      'accept a plain QuantumCircuit. {}'.format(
+                          self.__class__.__name__, self._replacement(),
+                      ),
+                      category=DeprecationWarning, stacklevel=2)
+
+    @staticmethod
+    def _replacement():
+        return ''
 
     @abstractmethod
     def construct_circuit(self,

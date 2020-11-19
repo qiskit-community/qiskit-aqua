@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -140,12 +138,18 @@ class TestStateConstruction(QiskitAquaTestCase):
         sfc_vector = CircuitStateFn.from_vector(StateFn(statedict).to_matrix())
         np.testing.assert_array_almost_equal(StateFn(statedict).to_matrix(), sfc_vector.to_matrix())
 
+    # #1276
+    def test_circuit_state_fn_from_complex_vector_initialize(self):
+        """ state fn circuit from complex vector initialize test """
+        sfc = CircuitStateFn.from_vector(np.array([1j/np.sqrt(2), 0, 1j/np.sqrt(2), 0]))
+        self.assertIsInstance(sfc, CircuitStateFn)
+
     def test_sampling(self):
         """ state fn circuit from dict initialize test """
-        statedict = {'101': .5,
-                     '100': .1,
-                     '000': .2,
-                     '111': .5}
+        statedict = {'101': .5 + 1.j,
+                     '100': .1 + 2.j,
+                     '000': .2 + 0.j,
+                     '111': .5 + 1.j}
         sfc = CircuitStateFn.from_dict(statedict)
         circ_samples = sfc.sample()
         dict_samples = StateFn(statedict).sample()

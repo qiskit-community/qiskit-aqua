@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -16,7 +14,7 @@ This module implements a molecular Hamiltonian operator, representing the
 energy of the electrons and nuclei in a molecule.
 """
 import warnings
-from typing import Optional, List, Union, cast
+from typing import Optional, List, Union, cast, Tuple
 import logging
 from enum import Enum
 
@@ -28,7 +26,6 @@ from qiskit.chemistry.fermionic_operator import FermionicOperator
 from .chemistry_operator import (ChemistryOperator,
                                  MolecularGroundStateResult,
                                  DipoleTuple)
-from ..components.initial_states import HartreeFock
 
 logger = logging.getLogger(__name__)
 
@@ -84,6 +81,9 @@ class Hamiltonian(ChemistryOperator):
         Raises:
             QiskitChemistryError: Invalid symmetry reduction
         """
+        warnings.warn('The Hamiltonian class is deprecated as of Qiskit Aqua 0.8.0 and will be '
+                      'removed no earlier than 3 months after the release date. Instead, the '
+                      'FermionicTransformation can be used.', DeprecationWarning, stacklevel=2)
         transformation = transformation.value
         qubit_mapping = qubit_mapping.value
         orbital_reduction = orbital_reduction if orbital_reduction is not None else []
@@ -116,7 +116,9 @@ class Hamiltonian(ChemistryOperator):
         self._ph_y_dipole_shift = 0.0
         self._ph_z_dipole_shift = 0.0
 
-    def run(self, qmolecule):
+    def run(self, qmolecule: QMolecule) -> Tuple[WeightedPauliOperator,
+                                                 List[WeightedPauliOperator]]:
+        """ run method"""
         logger.debug('Processing started...')
         # Save these values for later combination with the quantum computation result
         self._hf_energy = qmolecule.hf_energy
@@ -157,7 +159,8 @@ class Hamiltonian(ChemistryOperator):
         if orbitals_list:
             orbitals_list = np.array(orbitals_list)
             orbitals_list = \
-                orbitals_list[(orbitals_list >= 0) & (orbitals_list < qmolecule.num_orbitals)]
+                orbitals_list[(cast(np.ndarray, orbitals_list) >= 0) &
+                              (orbitals_list < qmolecule.num_orbitals)]
 
             freeze_list_alpha = [i for i in orbitals_list if i < num_alpha]
             freeze_list_beta = [i for i in orbitals_list if i < num_beta]
@@ -260,7 +263,7 @@ class Hamiltonian(ChemistryOperator):
         logger.info('Molecule num spin orbitals: %s, remaining for processing: %s',
                     nspinorbs, new_nspinorbs)
 
-        self._add_molecule_info(self.INFO_NUM_PARTICLES, [new_num_alpha, new_num_beta])
+        self._add_molecule_info(self.INFO_NUM_PARTICLES, (new_num_alpha, new_num_beta))
         self._add_molecule_info(self.INFO_NUM_ORBITALS, new_nspinorbs)
         self._add_molecule_info(self.INFO_TWO_QUBIT_REDUCTION,
                                 self._two_qubit_reduction
@@ -302,11 +305,14 @@ class Hamiltonian(ChemistryOperator):
                     aux_ops[i] = None  # Discard since no meaningful measurement can be done
 
             if self._z2symmetry_reduction == 'auto':
-                hf_state = HartreeFock(num_orbitals=self._molecule_info[self.INFO_NUM_ORBITALS],
-                                       qubit_mapping=self._qubit_mapping,
-                                       two_qubit_reduction=self._two_qubit_reduction,
-                                       num_particles=self._molecule_info[self.INFO_NUM_PARTICLES])
-                z2_symmetries = Hamiltonian._pick_sector(z2_symmetries, hf_state.bitstr)
+                from ..circuit.library.initial_states.hartree_fock import hartree_fock_bitstring
+                hf_bitstr = hartree_fock_bitstring(
+                    num_orbitals=self._molecule_info['num_orbitals'],
+                    qubit_mapping=self._qubit_mapping,
+                    two_qubit_reduction=self._two_qubit_reduction,
+                    num_particles=self._molecule_info['num_particles']
+                    )
+                z2_symmetries = Hamiltonian._pick_sector(z2_symmetries, hf_bitstr)
             else:
                 if len(self._z2symmetry_reduction) != len(z2_symmetries.symmetries):
                     raise QiskitChemistryError('z2symmetry_reduction tapering values list has '

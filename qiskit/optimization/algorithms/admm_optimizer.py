@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -23,8 +21,8 @@ import numpy as np
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 
 from .minimum_eigen_optimizer import MinimumEigenOptimizer
-from .optimization_algorithm import (OptimizationAlgorithm, OptimizationResult,
-                                     OptimizationResultStatus)
+from .optimization_algorithm import (OptimizationResultStatus, OptimizationAlgorithm,
+                                     OptimizationResult)
 from .slsqp_optimizer import SlsqpOptimizer
 from ..problems.constraint import Constraint
 from ..problems.linear_constraint import LinearConstraint
@@ -190,9 +188,9 @@ class ADMMOptimizationResult(OptimizationResult):
             fval: the optimal function value.
             variables: the list of variables of the optimization problem.
             state: the internal computation state of ADMM.
-            status: the termination status of the optimization algorithm.
+            status: Termination status of an optimization algorithm
         """
-        super().__init__(x=x, fval=fval, variables=variables, raw_results=state, status=status)
+        super().__init__(x=x, fval=fval, variables=variables, status=status, raw_results=state)
 
     @property
     def state(self) -> ADMMState:
@@ -378,13 +376,17 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # flip the objective sign again if required
         objective_value = objective_value * sense
 
+        # convert back integer to binary
+        base_result = OptimizationResult(solution, objective_value, problem.variables,
+                                         OptimizationResultStatus.SUCCESS)
+        base_result = int2bin.interpret(base_result)
+
         # third parameter is our internal state of computations.
-        new_x = int2bin.interpret(solution)
-        status = OptimizationResultStatus.SUCCESS if original_problem.is_feasible(new_x) \
-            else OptimizationResultStatus.INFEASIBLE
-        result = ADMMOptimizationResult(x=new_x, fval=objective_value,
+        result = ADMMOptimizationResult(x=base_result.x, fval=base_result.fval,
                                         variables=original_problem.variables,
-                                        state=self._state, status=status)
+                                        state=self._state,
+                                        status=self._get_feasibility_status(original_problem,
+                                                                            base_result.x))
 
         # debug
         self._log.debug("solution=%s, objective=%s at iteration=%s",

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2019, 2020.
@@ -16,6 +14,7 @@
 
 import logging
 
+import warnings
 import numpy as np
 
 from qiskit.circuit.library.arithmetic import WeightedAdder
@@ -41,6 +40,10 @@ class WeightedSumOperator(CircuitFactory):
         Raises:
             AquaError: invalid input
         """
+        warnings.warn('The WeightedSumOperator class is deprecated as of Aqua 0.8.0 and will be '
+                      'removed no sooner than 3 months after that release. You should use the '
+                      'qiskit.circuit.library.WeightedAdder instead.',
+                      DeprecationWarning, stacklevel=2)
 
         self._weights = weights
 

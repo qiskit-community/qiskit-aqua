@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -94,7 +92,7 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
 
     def required_ancillas(self):
         num_uncertainty_ancillas = self._uncertainty_model.required_ancillas()
-        num_comparator_ancillas = self._comparator.num_ancilla_qubits
+        num_comparator_ancillas = self._comparator.num_ancillas
         num_ancillas = int(np.maximum(num_uncertainty_ancillas, num_comparator_ancillas))
         return num_ancillas
 
@@ -111,7 +109,7 @@ class EuropeanCallExpectedValue(UncertaintyProblem):
         # apply comparator to compare qubit
         qubits = q_state[:] + [q_compare]
         if q_ancillas:
-            qubits += q_ancillas[:self._comparator.num_ancilla_qubits]
+            qubits += q_ancillas[:self._comparator.num_ancillas]
         qc.append(self._comparator.to_instruction(), qubits)
 
         # apply approximate payoff function

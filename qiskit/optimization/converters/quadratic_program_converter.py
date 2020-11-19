@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -15,11 +13,10 @@
 """An abstract class for optimization algorithms in Qiskit's optimization module."""
 
 import warnings
+
 from abc import ABC, abstractmethod
 
-import numpy as np
-
-from ..algorithms.optimization_algorithm import OptimizationResult
+import qiskit.optimization.algorithms  # pylint: disable=unused-import
 from ..problems.quadratic_program import QuadraticProgram
 
 
@@ -27,7 +24,6 @@ class QuadraticProgramConverter(ABC):
     """
     An abstract class for converters of quadratic programs in Qiskit's optimization module.
     """
-
     @abstractmethod
     def convert(self, problem: QuadraticProgram) -> QuadraticProgram:
         """Convert a QuadraticProgram into another form
@@ -37,7 +33,31 @@ class QuadraticProgramConverter(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def interpret(self, x: np.ndarray) -> np.ndarray:
+    def interpret(self, result: 'qiskit.optimization.algorithms.OptimizationResult') \
+            -> 'qiskit.optimization.algorithms.OptimizationResult':  # type: ignore
         """ Interpret a result into another form using the information of conversion"""
 
         raise NotImplementedError
+
+    def encode(self, problem: QuadraticProgram) -> QuadraticProgram:  # type: ignore
+        """DEPRECATED Encode a QuadraticProgram into another form
+        and keep the information required to decode the result.
+        """
+        warnings.warn('The qiskit.optimization.converters.QuadraticProgramConverter.encode() '
+                      'method is deprecated as of 0.7.4 and will be removed no sooner '
+                      'than 3 months after the release. You should use '
+                      'qiskit.optimization.converters.QuadraticProgramConverter.convert() '
+                      'instead.',
+                      DeprecationWarning, stacklevel=1)
+        return self.convert(problem)
+
+    def decode(self, result: 'qiskit.optimization.algorithms.OptimizationResult') \
+            -> 'qiskit.optimization.algorithms.OptimizationResult':  # type: ignore
+        """DEPRECATED Decode a result into another form using the information of conversion."""
+        warnings.warn('The qiskit.optimization.converters.QuadraticProgramConverter.decode() '
+                      'method is deprecated as of 0.7.4 and will be removed no sooner '
+                      'than 3 months after the release. You should use '
+                      'qiskit.optimization.converters.QuadraticProgramConverter.interpret() '
+                      'instead.',
+                      DeprecationWarning, stacklevel=1)
+        return self.interpret(result)

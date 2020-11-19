@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -24,6 +22,7 @@ import numpy as np
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.quantum_info import Pauli
 from qiskit.providers import BaseBackend
+from qiskit.providers import Backend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import (WeightedPauliOperator, suzuki_expansion_slice_pauli_list,
                                    evolution_instruction)
@@ -58,13 +57,14 @@ class IQPE(QuantumAlgorithm, MinimumEigensolver):
 
     def __init__(self,
                  operator: Optional[Union[OperatorBase, LegacyBaseOperator]] = None,
-                 state_in: Optional[InitialState] = None,
+                 state_in: Optional[Union[QuantumCircuit, InitialState]] = None,
                  num_time_slices: int = 1,
                  num_iterations: int = 1,
                  expansion_mode: str = 'suzuki',
                  expansion_order: int = 2,
                  shallow_circuit_concat: bool = False,
-                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
+                 quantum_instance: Optional[
+                     Union[QuantumInstance, BaseBackend, Backend]] = None) -> None:
         """
 
         Args:
@@ -192,10 +192,13 @@ class IQPE(QuantumAlgorithm, MinimumEigensolver):
         self._ancillary_register = a
         self._state_register = q
         qc = QuantumCircuit(q)
-        qc += self._state_in.construct_circuit('circuit', q)
+        if isinstance(self._state_in, QuantumCircuit):
+            qc.append(self._state_in, q)
+        else:
+            qc += self._state_in.construct_circuit('circuit', q)
         # hadamard on a[0]
         qc.add_register(a)
-        qc.u2(0, np.pi, a[0])
+        qc.h(a[0])
         # controlled-U
         qc_evolutions_inst = evolution_instruction(self._slice_pauli_list, -2 * np.pi,
                                                    self._num_time_slices,
@@ -208,11 +211,11 @@ class IQPE(QuantumAlgorithm, MinimumEigensolver):
         else:
             qc.append(qc_evolutions_inst, list(q) + [a[0]])
         # global phase due to identity pauli
-        qc.u1(2 * np.pi * self._ancilla_phase_coef * (2 ** (k - 1)), a[0])
+        qc.p(2 * np.pi * self._ancilla_phase_coef * (2 ** (k - 1)), a[0])
         # rz on a[0]
-        qc.u1(omega, a[0])
+        qc.p(omega, a[0])
         # hadamard on a[0]
-        qc.u2(0, np.pi, a[0])
+        qc.h(a[0])
         if measurement:
             c = ClassicalRegister(1, name='c')
             qc.add_register(c)

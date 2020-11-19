@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2019, 2020.
@@ -32,7 +30,7 @@ class TestTPBGroupedWeightedPauliOperator(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
-        seed = 0
+        seed = 1
         aqua_globals.random_seed = seed
 
         self.num_qubits = 3

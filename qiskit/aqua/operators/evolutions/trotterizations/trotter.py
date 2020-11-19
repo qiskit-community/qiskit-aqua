@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -28,4 +26,4 @@ class Trotter(Suzuki):
         Args:
             reps: The number of times to repeat the Trotterization circuit.
         """
-        super().__init__(order=1, reps=1)
+        super().__init__(order=1, reps=reps)

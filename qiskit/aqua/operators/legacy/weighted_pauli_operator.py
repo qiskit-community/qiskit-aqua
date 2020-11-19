@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2019, 2020.
@@ -28,7 +26,7 @@ from qiskit.quantum_info import Pauli
 from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
 
-from qiskit.aqua import AquaError, aqua_globals
+from qiskit.aqua import AquaError, aqua_globals, MissingOptionalLibraryError
 from .base_operator import LegacyBaseOperator
 from .common import (measure_pauli_z, covariance, pauli_measurement,
                      kernel_F2, suzuki_expansion_slice_pauli_list,
@@ -103,9 +101,19 @@ class WeightedPauliOperator(LegacyBaseOperator):
         pauli_ops = []
         for [w, p] in self.paulis:
             pauli = Pauli.from_label(str(p)[::-1]) if reverse_endianness else p
-            # Adding the imaginary is necessary to handle the imaginary coefficients in UCCSD.
-            # TODO fix these or add support for them in Terra.
-            pauli_ops += [PrimitiveOp(pauli, coeff=np.real(w) + np.imag(w))]
+            # This weighted pauli operator has the coeff stored as a complex type
+            # irrespective of whether the value has any imaginary part or not.
+            # For many operators the coeff will be real. Hence below the coeff is made real,
+            # when creating the PrimitiveOp, since it can be stored then as a float, if its
+            # value is real, i.e. has no imaginary part. This avoids any potential issues around
+            # complex - but if there are complex coeffs then maybe that using the opflow
+            # later will fail if it happens to be used where complex is not supported.
+            # Now there are imaginary coefficients in UCCSD that would need to be handled
+            # when this is converted to opflow (evolution of hopping operators) where currently
+            # Terra does not handle complex.
+            # TODO fix these or add support for them in Terra
+            coeff = np.real(w) if np.isreal(w) else w
+            pauli_ops += [PrimitiveOp(pauli, coeff=coeff)]
         return sum(pauli_ops)
 
     @property
@@ -706,6 +714,7 @@ class WeightedPauliOperator(LegacyBaseOperator):
 
         Raises:
             AquaError: if Operator is empty
+            MissingOptionalLibraryError: qiskit-aer not installed
         """
         if self.is_empty():
             raise AquaError("Operator is empty, check the operator.")
@@ -714,8 +723,14 @@ class WeightedPauliOperator(LegacyBaseOperator):
         qc = QuantumCircuit(qr)
         if use_simulator_snapshot_mode and self.paulis:
             # pylint: disable=import-outside-toplevel
-            from qiskit.providers.aer.extensions import SnapshotExpectationValue
-            snapshot = SnapshotExpectationValue('expval', self.paulis, variance=True)
+            try:
+                from qiskit.providers.aer.extensions import SnapshotExpectationValue
+            except ImportError as ex:
+                raise MissingOptionalLibraryError(
+                    libname='qiskit-aer',
+                    name='evaluation_instruction',
+                    pip_install='pip install qiskit-aer') from ex
+            snapshot = SnapshotExpectationValue('expval', self.paulis)
             instructions = {'expval_snapshot': snapshot}
         elif statevector_mode:
             for _, pauli in self._paulis:
@@ -1245,7 +1260,7 @@ class Z2Symmetries:
                         "Return the empty operator back.")
             return operator
 
-        if isinstance(num_particles, list):
+        if isinstance(num_particles, (tuple, list)):
             num_alpha = num_particles[0]
             num_beta = num_particles[1]
         else:

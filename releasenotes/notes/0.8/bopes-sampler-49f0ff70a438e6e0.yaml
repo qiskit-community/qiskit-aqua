@@ -1,0 +1,7 @@
+---
+features:
+  - |
+    A new algorithm has been added: the Born Openheimer Potential Energy surface for the 
+    calculation of potential energy surface along different degrees of freedom of the molecule. 
+    The algorithm is called ``BOPESSampler``. It further provides functionalities of fitting the 
+    potential energy surface to an analytic function of predefined potentials.some details.

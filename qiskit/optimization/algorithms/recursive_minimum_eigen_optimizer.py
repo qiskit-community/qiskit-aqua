@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -23,10 +21,10 @@ import numpy as np
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.aqua.utils.validation import validate_min
 
-from .optimization_algorithm import (OptimizationAlgorithm, OptimizationResult,
-                                     OptimizationResultStatus)
+from .optimization_algorithm import (OptimizationResultStatus, OptimizationAlgorithm,
+                                     OptimizationResult)
 from .minimum_eigen_optimizer import MinimumEigenOptimizer, MinimumEigenOptimizationResult
-from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo
+from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo, QuadraticProgramConverter
 from ..exceptions import QiskitOptimizationError
 from ..problems import Variable
 from ..problems.quadratic_program import QuadraticProgram
@@ -53,11 +51,9 @@ class IntermediateResult(Enum):
 
 class RecursiveMinimumEigenOptimizationResult(OptimizationResult):
     """Recursive Eigen Optimizer Result."""
-    def __init__(self, x: Union[List[float], np.ndarray], fval: float,
-                 variables: List[Variable],
-                 replacements: Dict[str, Tuple[str, int]],
-                 history: Tuple[List[MinimumEigenOptimizationResult], OptimizationResult],
-                 status: OptimizationResultStatus = OptimizationResultStatus.SUCCESS) -> None:
+    def __init__(self, x: Union[List[float], np.ndarray], fval: float, variables: List[Variable],
+                 status: OptimizationResultStatus, replacements: Dict[str, Tuple[str, int]],
+                 history: Tuple[List[MinimumEigenOptimizationResult], OptimizationResult]) -> None:
         """
         Constructs an instance of the result class.
 
@@ -65,6 +61,7 @@ class RecursiveMinimumEigenOptimizationResult(OptimizationResult):
             x: the optimal value found in the optimization.
             fval: the optimal function value.
             variables: the list of variables of the optimization problem.
+            status: the termination status of the optimization algorithm.
             replacements: a dictionary of substituted variables. Key is a variable being
                 substituted, value is a tuple of substituting variable and a weight, either 1 or -1.
             history: a tuple containing intermediate results. The first element is a list of
@@ -73,9 +70,8 @@ class RecursiveMinimumEigenOptimizationResult(OptimizationResult):
                 the second element is an instance of
                 :class:`~qiskit.optimization.algorithm.OptimizationResult` obtained at the last step
                 via `min_num_vars_optimizer`.
-            status: the termination status of the optimization algorithm.
         """
-        super().__init__(x, fval, variables, None, status)
+        super().__init__(x, fval, variables, status, None)
         self._replacements = replacements
         self._history = history
 
@@ -128,7 +124,9 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
     def __init__(self, min_eigen_optimizer: MinimumEigenOptimizer, min_num_vars: int = 1,
                  min_num_vars_optimizer: Optional[OptimizationAlgorithm] = None,
                  penalty: Optional[float] = None,
-                 history: Optional[IntermediateResult] = IntermediateResult.LAST_ITERATION) -> None:
+                 history: Optional[IntermediateResult] = IntermediateResult.LAST_ITERATION,
+                 converters: Optional[Union[QuadraticProgramConverter,
+                                            List[QuadraticProgramConverter]]] = None) -> None:
         """ Initializes the recursive minimum eigen optimizer.
 
         This initializer takes a ``MinimumEigenOptimizer``, the parameters to specify until when to
@@ -145,9 +143,13 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
                 equality constraints.
             history: Whether the intermediate results are stored.
                 Default value is :py:obj:`~IntermediateResult.LAST_ITERATION`.
+            converters: The converters to use for converting a problem into a different form.
+                By default, when None is specified, an internally created instance of
+                :class:`~qiskit.optimization.converters.QuadraticProgramToQubo` will be used.
 
         Raises:
             QiskitOptimizationError: In case of invalid parameters (num_min_vars < 1).
+            TypeError: When there one of converters is an invalid type.
         """
 
         validate_min('min_num_vars', min_num_vars, 1)
@@ -160,7 +162,8 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
             self._min_num_vars_optimizer = MinimumEigenOptimizer(NumPyMinimumEigensolver())
         self._penalty = penalty
         self._history = history
-        self._qubo_converter = QuadraticProgramToQubo()
+
+        self._converters = self._prepare_converters(converters, penalty)
 
     def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
         """Checks whether a given problem can be solved with this optimizer.
@@ -194,7 +197,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         self._verify_compatibility(problem)
 
         # convert problem to QUBO, this implicitly checks if the problem is compatible
-        problem_ = self._qubo_converter.convert(problem)
+        problem_ = self._convert(problem, self._converters)
         problem_ref = deepcopy(problem_)
 
         # run recursive optimization until the resulting problem is small enough
@@ -284,15 +287,19 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
                    None if self._history == IntermediateResult.NO_ITERATIONS else result)
 
         # construct result
-        x_v = np.array([var_values[x_aux.name] for x_aux in problem_ref.variables])
-        new_x = self._qubo_converter.interpret(x_v)
-        status = OptimizationResultStatus.SUCCESS if problem.is_feasible(new_x) \
-            else OptimizationResultStatus.INFEASIBLE
+        x_v = [var_values[x_aux.name] for x_aux in problem_ref.variables]
+        fval = result.fval
+        result = OptimizationResult(x=x_v, fval=fval, variables=problem_ref.variables,
+                                    status=OptimizationResultStatus.SUCCESS)
 
-        return RecursiveMinimumEigenOptimizationResult(x=new_x, fval=result.fval,
-                                                       variables=problem.variables,
+        result = self._interpret(result, self._converters)
+
+        return RecursiveMinimumEigenOptimizationResult(x=result.x, fval=result.fval,
+                                                       variables=result.variables,
                                                        replacements=replacements,
-                                                       history=history, status=status)
+                                                       history=history,
+                                                       status=(self._get_feasibility_status
+                                                               (problem, result.x)))
 
     def _find_strongest_correlation(self, correlations):
 

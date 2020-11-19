@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -14,7 +12,9 @@
 
 """ Test Driver Methods PySCF """
 
-from test.chemistry.test_driver_methods import TestDriverMethods
+import unittest
+
+from test.chemistry.test_driver_methods_gsc import TestDriverMethods
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType, HFMethodType
 from qiskit.chemistry.core import TransformationType, QubitMappingType
 from qiskit.chemistry import QiskitChemistryError
@@ -150,3 +150,7 @@ class TestDriverMethodsPySCF(TestDriverMethods):
         result = self._run_driver(driver, transformation=TransformationType.FULL,
                                   qubit_mapping=QubitMappingType.BRAVYI_KITAEV)
         self._assert_energy_and_dipole(result, 'oh')
+
+
+if __name__ == '__main__':
+    unittest.main()

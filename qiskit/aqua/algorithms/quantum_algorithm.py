@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -23,6 +21,7 @@ Doing so requires that the required algorithm interface is implemented.
 from abc import ABC, abstractmethod
 from typing import Union, Dict, Optional
 from qiskit.providers import BaseBackend
+from qiskit.providers.backend import Backend
 from qiskit.aqua import aqua_globals, QuantumInstance, AquaError
 
 
@@ -35,7 +34,8 @@ class QuantumAlgorithm(ABC):
     """
     @abstractmethod
     def __init__(self,
-                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]]) -> None:
+                 quantum_instance: Optional[
+                     Union[QuantumInstance, Backend, BaseBackend, Backend]]) -> None:
         self._quantum_instance = None
         if quantum_instance:
             self.quantum_instance = quantum_instance
@@ -46,7 +46,8 @@ class QuantumAlgorithm(ABC):
         return aqua_globals.random
 
     def run(self,
-            quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None,
+            quantum_instance: Optional[
+                Union[QuantumInstance, Backend, BaseBackend]] = None,
             **kwargs) -> Dict:
         """Execute the algorithm with selected backend.
 
@@ -59,9 +60,9 @@ class QuantumAlgorithm(ABC):
             AquaError: If a quantum instance or backend has not been provided
         """
         if quantum_instance is None and self.quantum_instance is None:
-            raise AquaError("Quantum device or backend "
-                            "is needed since you are running quantum algorithm.")
-        if isinstance(quantum_instance, BaseBackend):
+            raise AquaError("A QuantumInstance or Backend "
+                            "must be supplied to run the quantum algorithm.")
+        if isinstance(quantum_instance, (BaseBackend, Backend)):
             self.set_backend(quantum_instance, **kwargs)
         else:
             if quantum_instance is not None:
@@ -74,28 +75,29 @@ class QuantumAlgorithm(ABC):
         raise NotImplementedError()
 
     @property
-    def quantum_instance(self) -> Union[None, QuantumInstance]:
+    def quantum_instance(self) -> Optional[QuantumInstance]:
         """ Returns quantum instance. """
         return self._quantum_instance
 
     @quantum_instance.setter
-    def quantum_instance(self, quantum_instance: Union[QuantumInstance, BaseBackend]) -> None:
+    def quantum_instance(self, quantum_instance: Union[QuantumInstance,
+                                                       BaseBackend, Backend]) -> None:
         """ Sets quantum instance. """
-        if isinstance(quantum_instance, BaseBackend):
+        if isinstance(quantum_instance, (BaseBackend, Backend)):
             quantum_instance = QuantumInstance(quantum_instance)
         self._quantum_instance = quantum_instance
 
-    def set_backend(self, backend: BaseBackend, **kwargs) -> None:
+    def set_backend(self, backend: Union[Backend, BaseBackend], **kwargs) -> None:
         """ Sets backend with configuration. """
         self.quantum_instance = QuantumInstance(backend)
         self.quantum_instance.set_config(**kwargs)
 
     @property
-    def backend(self) -> BaseBackend:
+    def backend(self) -> Union[Backend, BaseBackend]:
         """ Returns backend. """
         return self.quantum_instance.backend
 
     @backend.setter
-    def backend(self, backend: BaseBackend):
+    def backend(self, backend: Union[Backend, BaseBackend]):
         """ Sets backend without additional configuration. """
         self.set_backend(backend)

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -23,6 +21,7 @@ import re
 import numpy as np
 
 from qiskit.providers import BaseBackend
+from qiskit.providers import Backend
 from qiskit import ClassicalRegister
 from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.algorithms import VQAlgorithm, VQE, VQEResult
@@ -37,8 +36,7 @@ logger = logging.getLogger(__name__)
 
 
 class VQEAdapt(VQAlgorithm):
-    """
-    The Adaptive VQE algorithm.
+    """DEPRECATED. The Adaptive VQE algorithm.
 
     See https://arxiv.org/abs/1812.11173
     """
@@ -53,7 +51,8 @@ class VQEAdapt(VQAlgorithm):
                  max_iterations: Optional[int] = None,
                  max_evals_grouped: int = 1,
                  aux_operators: Optional[List[LegacyBaseOperator]] = None,
-                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
+                 quantum_instance: Optional[
+                     Union[QuantumInstance, Backend, BaseBackend]] = None) -> None:
         """
         Args:
             operator: Qubit operator
@@ -73,6 +72,10 @@ class VQEAdapt(VQAlgorithm):
             ValueError: if var_form_base is not an instance of UCCSD.
             See also: qiskit/chemistry/components/variational_forms/uccsd_adapt.py
         """
+        warnings.warn('The qiskit.chemistry.algorithms.minimum_eigen_solvers.VQEAdapt object is '
+                      'deprecated as of 0.8.0 and will be removed no sooner than 3 months after the'
+                      ' release. You should use qiskit.chemistry.algorithms.ground_state_solvers.'
+                      'AdaptVQE instead.', DeprecationWarning, stacklevel=2)
         validate_min('threshold', threshold, 1e-15)
         validate_min('delta', delta, 1e-5)
         super().__init__(var_form=var_form_base,

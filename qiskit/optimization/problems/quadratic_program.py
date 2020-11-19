@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2019, 2020.
@@ -14,14 +12,16 @@
 
 """Quadratic Program."""
 
+from typing import cast, List, Union, Dict, Optional, Tuple
 import logging
-import warnings
 from collections import defaultdict
 from enum import Enum
-from math import fsum
-from typing import cast, List, Union, Dict, Optional, Tuple
-
+from math import fsum, isclose
+import warnings
 import numpy as np
+from numpy import (ndarray, zeros, bool as nbool)
+from scipy.sparse import spmatrix
+
 from docplex.mp.constr import (LinearConstraint as DocplexLinearConstraint,
                                QuadraticConstraint as DocplexQuadraticConstraint,
                                NotEqualConstraint)
@@ -29,12 +29,11 @@ from docplex.mp.linear import Var
 from docplex.mp.model import Model
 from docplex.mp.model_reader import ModelReader
 from docplex.mp.quad import QuadExpr
-from numpy import (ndarray, zeros, bool as nbool)
-from scipy.sparse import spmatrix
+from docplex.mp.vartype import ContinuousVarType, BinaryVarType, IntegerVarType
+
 from qiskit.aqua import MissingOptionalLibraryError
 from qiskit.aqua.operators import I, OperatorBase, PauliOp, WeightedPauliOperator, SummedOp, ListOp
 from qiskit.quantum_info import Pauli
-
 from .constraint import Constraint, ConstraintSense
 from .linear_constraint import LinearConstraint
 from .linear_expression import LinearExpression
@@ -562,11 +561,11 @@ class QuadraticProgram:
         # keep track of names separately, since docplex allows to have None names.
         var_names = {}
         for x in model.iter_variables():
-            if x.get_vartype().one_letter_symbol() == 'C':
+            if isinstance(x.vartype, ContinuousVarType):
                 x_new = self.continuous_var(x.lb, x.ub, x.name)
-            elif x.get_vartype().one_letter_symbol() == 'B':
+            elif isinstance(x.vartype, BinaryVarType):
                 x_new = self.binary_var(x.name)
-            elif x.get_vartype().one_letter_symbol() == 'I':
+            elif isinstance(x.vartype, IntegerVarType):
                 x_new = self.integer_var(x.lb, x.ub, x.name)
             else:
                 raise QiskitOptimizationError(
@@ -592,7 +591,7 @@ class QuadraticProgram:
         # get quadratic part of objective
         quadratic = {}
         if isinstance(model.objective_expr, QuadExpr):
-            for quad_triplet in model.objective_expr.generate_quad_triplets():
+            for quad_triplet in model.objective_expr.iter_quad_triplets():
                 i = var_names[quad_triplet[0]]
                 j = var_names[quad_triplet[1]]
                 v = quad_triplet[2]
@@ -619,15 +618,22 @@ class QuadraticProgram:
             name = constraint.name
             sense = constraint.sense
 
-            rhs = 0
-            if not isinstance(constraint.lhs, Var):
-                rhs -= constraint.lhs.constant
-            if not isinstance(constraint.rhs, Var):
-                rhs += constraint.rhs.constant
+            left_expr = constraint.get_left_expr()
+            right_expr = constraint.get_right_expr()
+            # for linear constraints we may get an instance of Var instead of expression,
+            # e.g. x + y = z
+            if isinstance(left_expr, Var):
+                left_expr = left_expr + 0
+            if isinstance(right_expr, Var):
+                right_expr = right_expr + 0
+
+            rhs = right_expr.constant - left_expr.constant
 
             lhs = {}
-            for x in constraint.iter_net_linear_coefs():
-                lhs[var_names[x[0]]] = x[1]
+            for x in left_expr.iter_variables():
+                lhs[var_names[x]] = left_expr.get_coef(x)
+            for x in right_expr.iter_variables():
+                lhs[var_names[x]] = lhs.get(var_names[x], 0.0) - right_expr.get_coef(x)
 
             if sense == sense.EQ:
                 self.linear_constraint(lhs, '==', rhs, name)
@@ -666,7 +672,7 @@ class QuadraticProgram:
             if right_expr.is_quad_expr():
                 for x in right_expr.linear_part.iter_variables():
                     linear[var_names[x]] = linear.get(var_names[x], 0.0) - \
-                                           right_expr.linear_part.get_coef(x)
+                        right_expr.linear_part.get_coef(x)
                 for quad_triplet in right_expr.iter_quad_triplets():
                     i = var_names[quad_triplet[0]]
                     j = var_names[quad_triplet[1]]
@@ -1093,31 +1099,62 @@ class QuadraticProgram:
         self.minimize(constant=offset, linear=linear_terms, quadratic=quadratic_terms)
         offset -= offset
 
-    def is_feasible(self, x: np.ndarray) -> bool:
-        """Check whether this optimization problem is feasible or not with given variables.
-
+    def get_feasibility_info(self, x: Union[List[float], np.ndarray]) \
+            -> Tuple[bool, List[Variable], List[Constraint]]:
+        """Returns whether a solution is feasible or not along with the violations.
         Args:
-            x: value of variables.
-
+            x: a solution value, such as returned in an optimizer result.
         Returns:
-            ``True`` if the problem is feasible with ``x``.
+            feasible: Whether the solution provided is feasible or not.
+            List[Variable]: List of variables which are violated.
+            List[Constraint]: List of constraints which are violated.
 
         Raises:
-            QiskitOptimizationError: if size of `x` differs from the number of variables.
+            QiskitOptimizationError: If the input `x` is not same len as total vars
         """
-
+        # if input `x` is not the same len as the total vars, raise an error
         if len(x) != self.get_num_vars():
             raise QiskitOptimizationError(
-                'The size of `x` differs from the number of variables.'
-                ' size of `x`: {}, num. of vars: {}'.format(len(x), self.get_num_vars())
+                'The size of solution `x`: {}, does not match the number of problem variables: {}'
+                .format(len(x), self.get_num_vars())
             )
-        # Substitute variables to obtain the function value and feasibility in the original problem
-        var = {}  # type: Dict[Union[str, int], float]
-        for i, val in enumerate(x):
-            var[self.variables[i].name] = val
-        new_qp = self.substitute_variables(var)
 
-        return new_qp.status == QuadraticProgramStatus.VALID
+        # check whether the input satisfy the bounds of the problem
+        violated_variables = []     # type: List[Variable]
+        for i, val in enumerate(x):
+            variable = self.get_variable(i)
+            if val < variable.lowerbound or variable.upperbound < val:
+                violated_variables.append(variable)
+
+        # check whether the input satisfy the constraints of the problem
+        violated_constraints = []       # type: List[Constraint]
+        for constraint in cast(List[Constraint], self._linear_constraints) + \
+                cast(List[Constraint], self._quadratic_constraints):
+            lhs = constraint.evaluate(x)
+            if constraint.sense == ConstraintSense.LE and lhs > constraint.rhs:
+                violated_constraints.append(constraint)
+            elif constraint.sense == ConstraintSense.GE and lhs < constraint.rhs:
+                violated_constraints.append(constraint)
+            elif constraint.sense == ConstraintSense.EQ and not isclose(lhs, constraint.rhs):
+                violated_constraints.append(constraint)
+
+        feasible = not violated_variables and not violated_constraints
+
+        return feasible, violated_variables, violated_constraints
+
+    def is_feasible(self, x: Union[List[float], np.ndarray]) -> bool:
+        """Returns whether a solution is feasible or not.
+
+        Args:
+            x: a solution value, such as returned in an optimizer result.
+
+        Returns:
+            ``True`` if the solution provided is feasible otherwise ``False``.
+
+        """
+        feasible, _, _ = self.get_feasibility_info(x)
+
+        return feasible
 
 
 class SubstituteVariables:

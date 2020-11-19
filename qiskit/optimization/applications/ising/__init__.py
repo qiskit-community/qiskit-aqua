@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2019, 2020.
@@ -28,6 +26,7 @@ Ising Models
    :nosignatures:
 
    clique
+   common
    exact_cover
    graph_partition
    max_cut

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -14,15 +12,19 @@
 
 """Quantum Phase Estimation Circuit."""
 
+from typing import Optional, List, Union
 import numpy as np
 
 from qiskit import QuantumRegister, QuantumCircuit, ClassicalRegister
 from qiskit.circuit.library import QFT
 
 from qiskit.aqua import AquaError
+from qiskit.aqua.utils import CircuitFactory
 from qiskit.aqua.operators import (WeightedPauliOperator,   # pylint: disable=unused-import
                                    suzuki_expansion_slice_pauli_list,
                                    evolution_instruction)
+from qiskit.aqua.components.initial_states import InitialState
+from qiskit.quantum_info import Pauli
 
 
 class PhaseEstimationCircuit:
@@ -30,38 +32,36 @@ class PhaseEstimationCircuit:
 
     def __init__(
             self,
-            operator=None,
-            state_in=None,
-            iqft=None,
-            num_time_slices=1,
-            num_ancillae=1,
-            expansion_mode='trotter',
-            expansion_order=1,
-            evo_time=2 * np.pi,
-            state_in_circuit_factory=None,
-            unitary_circuit_factory=None,
-            shallow_circuit_concat=False,
-            pauli_list=None
+            operator: Optional[WeightedPauliOperator] = None,
+            state_in: Optional[Union[QuantumCircuit, InitialState]] = None,
+            iqft: Optional[QuantumCircuit] = None,
+            num_time_slices: int = 1,
+            num_ancillae: int = 1,
+            expansion_mode: str = 'trotter',
+            expansion_order: int = 1,
+            evo_time: float = 2 * np.pi,
+            state_in_circuit_factory: Optional[CircuitFactory] = None,
+            unitary_circuit_factory: Optional[CircuitFactory] = None,
+            shallow_circuit_concat: bool = False,
+            pauli_list: Optional[List[Pauli]] = None
     ):
         """
         Args:
-            operator (WeightedPauliOperator): the hamiltonian Operator object
-            state_in (InitialState): the InitialState component
+            operator: the hamiltonian Operator object
+            state_in: the InitialState component or a quantum circuit
             representing the initial quantum state
-            iqft (Union[QuantumCircuit, IQFT]): the Inverse Quantum Fourier Transform as circuit or
+            iqft: the Inverse Quantum Fourier Transform as circuit or
                 Aqua component
-            num_time_slices (int): the number of time slices
-            num_ancillae (int): the number of ancillary qubits to use for the measurement
-            expansion_mode (str): the expansion mode (trotter|suzuki)
-            expansion_order (int): the suzuki expansion order
-            evo_time (float): the evolution time
-            state_in_circuit_factory (CircuitFactory): the initial state represented by
-            a CircuitFactory object
-            unitary_circuit_factory (CircuitFactory): the problem unitary represented
-            by a CircuitFactory object
-            shallow_circuit_concat (bool): indicate whether to use shallow (cheap) mode
-            for circuit concatenation
-            pauli_list (list[Pauli]): the flat list of paulis for the operator
+            num_time_slices: the number of time slices
+            num_ancillae: the number of ancillary qubits to use for the measurement
+            expansion_mode: the expansion mode (trotter|suzuki)
+            expansion_order: the suzuki expansion order
+            evo_time: the evolution time
+            state_in_circuit_factory: the initial state represented by a CircuitFactory object
+            unitary_circuit_factory: the problem unitary represented by a CircuitFactory object
+            shallow_circuit_concat: indicate whether to use shallow (cheap) mode for circuit
+                concatenation
+            pauli_list: the flat list of paulis for the operator
 
         Raises:
             AquaError: Missing input
@@ -131,7 +131,7 @@ class PhaseEstimationCircuit:
                 if self._operator is not None:
                     q = QuantumRegister(self._operator.num_qubits, name='q')
                 elif self._unitary_circuit_factory is not None:
-                    q = QuantumRegister(self._unitary_circuit_factory.num_target_qubits, name='q')
+                    q = QuantumRegister(self._unitary_circuit_factory.num_target_qubits, 'q')
                 else:
                     raise RuntimeError('Missing operator specification.')
             else:
@@ -145,9 +145,10 @@ class PhaseEstimationCircuit:
                 if self._state_in_circuit_factory is not None:
                     num_aux_qubits = self._state_in_circuit_factory.required_ancillas()
                 if self._unitary_circuit_factory is not None:
-                    num_aux_qubits = \
-                        max(num_aux_qubits,
-                            self._unitary_circuit_factory.required_ancillas_controlled())
+                    num_aux_qubits = max(
+                        num_aux_qubits,
+                        self._unitary_circuit_factory.required_ancillas_controlled()
+                    )
 
                 if num_aux_qubits > 0:
                     aux = QuantumRegister(num_aux_qubits, name='aux')
@@ -157,13 +158,15 @@ class PhaseEstimationCircuit:
                 qc.add_register(aux)
 
             # initialize state_in
-            if self._state_in is not None:
+            if isinstance(self._state_in, QuantumCircuit):
+                qc.append(self._state_in.to_gate(), q)
+            elif isinstance(self._state_in, InitialState):
                 qc.data += self._state_in.construct_circuit('circuit', q).data
             elif self._state_in_circuit_factory is not None:
                 self._state_in_circuit_factory.build(qc, q, aux)
 
             # Put all ancillae in uniform superposition
-            qc.u2(0, np.pi, a)
+            qc.h(a)
 
             # phase kickbacks via dynamics
             if self._operator is not None:
@@ -204,11 +207,11 @@ class PhaseEstimationCircuit:
                     else:
                         qc.append(qc_evolutions_inst, qargs=list(q) + [a[i]])
                     # global phase shift for the ancilla due to the identity pauli term
-                    qc.u1(self._evo_time * self._ancilla_phase_coef * (2 ** i), a[i])
+                    qc.p(self._evo_time * self._ancilla_phase_coef * (2 ** i), a[i])
 
             elif self._unitary_circuit_factory is not None:
                 for i in range(self._num_ancillae):
-                    self._unitary_circuit_factory.build_controlled_power(qc, q, a[i], 2 ** i, aux)
+                    self._unitary_circuit_factory.build_controlled_power(qc, q, a[i], 2**i, aux)
 
             # inverse qft on ancillae
             if self._iqft.num_qubits != len(a):  # check if QFT has the right size

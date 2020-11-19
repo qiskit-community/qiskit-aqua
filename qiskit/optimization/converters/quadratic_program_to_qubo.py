@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -16,11 +14,10 @@
 
 from typing import Optional
 
-import numpy as np
-
-from .quadratic_program_converter import QuadraticProgramConverter
+import qiskit.optimization.algorithms  # pylint: disable=unused-import
 from ..exceptions import QiskitOptimizationError
 from ..problems.quadratic_program import QuadraticProgram
+from .quadratic_program_converter import QuadraticProgramConverter
 
 
 class QuadraticProgramToQubo(QuadraticProgramConverter):
@@ -79,19 +76,20 @@ class QuadraticProgramToQubo(QuadraticProgramConverter):
         # Return QUBO
         return problem_
 
-    def interpret(self, x: np.ndarray) -> np.ndarray:
+    def interpret(self, result: 'qiskit.optimization.algorithms.OptimizationResult') \
+            -> 'qiskit.optimization.algorithms.OptimizationResult':  # type: ignore
         """Convert a result of a converted problem into that of the original problem.
 
             Args:
-                x: The result of the converted problem.
+                result: The result of the converted problem.
 
             Returns:
                 The result of the original problem.
         """
-        x = self._penalize_lin_eq_constraints.interpret(x)
-        x = self._int_to_bin.interpret(x)
-        x = self._ineq_to_eq.interpret(x)
-        return x
+        result_ = self._penalize_lin_eq_constraints.interpret(result)
+        result_ = self._int_to_bin.interpret(result_)
+        result_ = self._ineq_to_eq.interpret(result_)
+        return result_
 
     @staticmethod
     def get_compatibility_msg(problem: QuadraticProgram) -> str:

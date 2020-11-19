@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -42,6 +40,10 @@ class BernoulliDistribution(UnivariateDistribution):
         probabilities = np.array([1 - p, p])
         super().__init__(1, probabilities, low, high)
         self._p = p
+
+    @staticmethod
+    def _replacement():
+        return 'a 1-qubit circuit with a RY(np.arcsin(np.sqrt(p))) gate'
 
     @property
     def p(self):

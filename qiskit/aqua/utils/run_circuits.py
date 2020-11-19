@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -14,6 +12,7 @@
 
 """ run circuits functions """
 
+from typing import Optional, Dict, Callable, List, Union, Tuple
 import sys
 import logging
 import time
@@ -22,11 +21,14 @@ import os
 import uuid
 
 import numpy as np
-from qiskit.providers import BaseBackend, JobStatus, JobError
+from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
+from qiskit.providers import Backend, BaseBackend, JobStatus, JobError, BaseJob
 from qiskit.providers.jobstatus import JOB_FINAL_STATES
 from qiskit.providers.basicaer import BasicAerJob
+from qiskit.result import Result
 from qiskit.qobj import QasmQobj
 from qiskit.exceptions import QiskitError
+from qiskit.aqua import MissingOptionalLibraryError
 from qiskit.aqua.aqua_error import AquaError
 from qiskit.aqua.utils.backend_utils import (is_aer_provider,
                                              is_basicaer_provider,
@@ -40,16 +42,18 @@ MAX_GATES_PER_JOB = os.environ.get('QISKIT_AQUA_MAX_GATES_PER_JOB', None)
 logger = logging.getLogger(__name__)
 
 
-def find_regs_by_name(circuit, name, qreg=True):
+def find_regs_by_name(circuit: QuantumCircuit,
+                      name: str,
+                      qreg: bool = True) -> Optional[Union[QuantumRegister, ClassicalRegister]]:
     """Find the registers in the circuits.
 
     Args:
-        circuit (QuantumCircuit): the quantum circuit.
-        name (str): name of register
-        qreg (bool): quantum or classical register
+        circuit: the quantum circuit.
+        name: name of register
+        qreg: quantum or classical register
 
     Returns:
-        QuantumRegister or ClassicalRegister or None: if not found, return None.
+        if not found, return None.
 
     """
     found_reg = None
@@ -61,7 +65,7 @@ def find_regs_by_name(circuit, name, qreg=True):
     return found_reg
 
 
-def _combine_result_objects(results):
+def _combine_result_objects(results: List[Result]) -> Result:
     """Temporary helper function.
 
     TODO:
@@ -78,7 +82,8 @@ def _combine_result_objects(results):
     return new_result
 
 
-def _split_qobj_to_qobjs(qobj, chunk_size):
+def _split_qobj_to_qobjs(qobj: QasmQobj,
+                         chunk_size: int) -> List[QasmQobj]:
     qobjs = []
     num_chunks = int(np.ceil(len(qobj.experiments) / chunk_size))
     if num_chunks == 1:
@@ -98,7 +103,7 @@ def _split_qobj_to_qobjs(qobj, chunk_size):
     return qobjs
 
 
-def _maybe_split_qobj_by_gates(qobjs, qobj):
+def _maybe_split_qobj_by_gates(qobjs: List[QasmQobj], qobj: QasmQobj) -> List[QasmQobj]:
     if MAX_GATES_PER_JOB is not None:
         max_gates_per_job = int(MAX_GATES_PER_JOB)
         total_num_gates = 0
@@ -133,7 +138,11 @@ def _maybe_split_qobj_by_gates(qobjs, qobj):
     return qobjs
 
 
-def _safe_submit_qobj(qobj, backend, backend_options, noise_config, skip_qobj_validation):
+def _safe_submit_qobj(qobj: QasmQobj,
+                      backend: Union[Backend, BaseBackend],
+                      backend_options: Dict,
+                      noise_config: Dict,
+                      skip_qobj_validation: bool) -> Tuple[BaseJob, str]:
     # assure get job ids
     while True:
         try:
@@ -145,7 +154,13 @@ def _safe_submit_qobj(qobj, backend, backend_options, noise_config, skip_qobj_va
         except QiskitError as ex:
             failure_warn = True
             if is_ibmq_provider(backend):
-                from qiskit.providers.ibmq import IBMQBackendJobLimitError
+                try:
+                    from qiskit.providers.ibmq import IBMQBackendJobLimitError
+                except ImportError as ex1:
+                    raise MissingOptionalLibraryError(
+                        libname='qiskit-ibmq-provider',
+                        name='_safe_submit_qobj',
+                        pip_install='pip install qiskit-ibmq-provider') from ex1
                 if isinstance(ex, IBMQBackendJobLimitError):
 
                     oldest_running = backend.jobs(limit=1, descending=False,
@@ -171,7 +186,7 @@ def _safe_submit_qobj(qobj, backend, backend_options, noise_config, skip_qobj_va
     return job, job_id
 
 
-def _safe_get_job_status(job, job_id):
+def _safe_get_job_status(job: BaseJob, job_id: str) -> JobStatus:
 
     while True:
         try:
@@ -189,8 +204,13 @@ def _safe_get_job_status(job, job_id):
     return job_status
 
 
-def run_qobj(qobj, backend, qjob_config=None, backend_options=None,
-             noise_config=None, skip_qobj_validation=False, job_callback=None):
+def run_qobj(qobj: QasmQobj,
+             backend: Union[Backend, BaseBackend],
+             qjob_config: Optional[Dict] = None,
+             backend_options: Optional[Dict] = None,
+             noise_config: Optional[Dict] = None,
+             skip_qobj_validation: bool = False,
+             job_callback: Optional[Callable] = None) -> Result:
     """
     An execution wrapper with Qiskit-Terra, with job auto recover capability.
 
@@ -198,19 +218,19 @@ def run_qobj(qobj, backend, qjob_config=None, backend_options=None,
     This wrapper will try to get the result no matter how long it takes.
 
     Args:
-        qobj (QasmQobj): qobj to execute
-        backend (BaseBackend): backend instance
-        qjob_config (dict, optional): configuration for quantum job object
-        backend_options (dict, optional): configuration for simulator
-        noise_config (dict, optional): configuration for noise model
-        skip_qobj_validation (bool, optional): Bypass Qobj validation to decrease submission time,
+        qobj: qobj to execute
+        backend: backend instance
+        qjob_config: configuration for quantum job object
+        backend_options: configuration for simulator
+        noise_config: configuration for noise model
+        skip_qobj_validation: Bypass Qobj validation to decrease submission time,
                                                only works for Aer and BasicAer providers
-        job_callback (Callable, optional): callback used in querying info of the submitted job, and
+        job_callback: callback used in querying info of the submitted job, and
                                            providing the following arguments:
                                             job_id, job_status, queue_position, job
 
     Returns:
-        Result: Result object
+        Result object
 
     Raises:
         ValueError: invalid backend
@@ -220,7 +240,7 @@ def run_qobj(qobj, backend, qjob_config=None, backend_options=None,
     backend_options = backend_options or {}
     noise_config = noise_config or {}
 
-    if backend is None or not isinstance(backend, BaseBackend):
+    if backend is None or not isinstance(backend, (Backend, BaseBackend)):
         raise ValueError('Backend is missing or not an instance of BaseBackend')
 
     with_autorecover = not is_simulator_backend(backend)
@@ -327,26 +347,34 @@ def run_qobj(qobj, backend, qjob_config=None, backend_options=None,
                     break
         raise AquaError('Circuit execution failed: {}'.format(msg))
 
+    if not hasattr(result, 'time_taken'):
+        setattr(result, 'time_taken', 0.)
+
     return result
 
 
 # skip_qobj_validation = True does what backend.run
 # and aerjob.submit do, but without qobj validation.
-def run_on_backend(backend, qobj, backend_options=None,
-                   noise_config=None, skip_qobj_validation=False):
+def run_on_backend(backend: Union[Backend, BaseBackend],
+                   qobj: QasmQobj,
+                   backend_options: Optional[Dict] = None,
+                   noise_config: Optional[Dict] = None,
+                   skip_qobj_validation: bool = False) -> BaseJob:
     """ run on backend """
     if skip_qobj_validation:
-        job_id = str(uuid.uuid4())
         if is_aer_provider(backend):
-            # pylint: disable=import-outside-toplevel
-            from qiskit.providers.aer.aerjob import AerJob
-            temp_backend_options = \
-                backend_options['backend_options'] if backend_options != {} else None
-            temp_noise_config = noise_config['noise_model'] if noise_config != {} else None
-            job = AerJob(backend, job_id,
-                         backend._run_job, qobj, temp_backend_options, temp_noise_config, False)
-            job._future = job._executor.submit(job._fn, job._job_id, job._qobj, *job._args)
+            if backend_options is not None:
+                for option, value in backend_options.items():
+                    if option == 'backend_options':
+                        for key, val in value.items():
+                            setattr(qobj.config, key, val)
+                    else:
+                        setattr(qobj.config, option, value)
+            if noise_config is not None and 'noise_model' in noise_config:
+                qobj.config.noise_model = noise_config['noise_model']
+            job = backend.run(qobj, validate=False)
         elif is_basicaer_provider(backend):
+            job_id = str(uuid.uuid4())
             backend._set_options(qobj_config=qobj.config, **backend_options)
             job = BasicAerJob(backend, job_id, backend._run_job, qobj)
             job._future = job._executor.submit(job._fn, job._job_id, job._qobj)

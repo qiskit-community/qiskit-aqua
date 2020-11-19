@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -66,7 +64,7 @@ class NLoptOptimizer(Optimizer):
                     ' for installation information')
 
         super().__init__()
-        for k, v in locals().items():
+        for k, v in list(locals().items()):
             if k in self._OPTIONS:
                 self._options[k] = v
 
@@ -95,6 +93,8 @@ class NLoptOptimizer(Optimizer):
                  variable_bounds=None, initial_point=None):
         super().optimize(num_vars, objective_function,
                          gradient_function, variable_bounds, initial_point)
+        if variable_bounds is None:
+            variable_bounds = [(None, None)] * num_vars
         return self._minimize(self._optimizer_names[self.get_nlopt_optimizer()],
                               objective_function,
                               variable_bounds,
@@ -103,7 +103,7 @@ class NLoptOptimizer(Optimizer):
     def _minimize(self,
                   name: str,
                   objective_function: Callable,
-                  variable_bounds: Optional[List[Tuple[float, float]]] = None,
+                  variable_bounds: Optional[List[Tuple[float, float]]],
                   initial_point: Optional[np.ndarray] = None,
                   max_evals: int = 1000) -> Tuple[float, float, int]:
         """Minimize using objective function

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -15,20 +13,25 @@
 """ Test EOH """
 
 import unittest
+import warnings
 from test.aqua import QiskitAquaTestCase
+from ddt import ddt, data
 
-from qiskit import BasicAer
+import numpy as np
 
+from qiskit import BasicAer, QuantumCircuit
 from qiskit.aqua.operators import MatrixOperator
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.components.initial_states import Custom
 from qiskit.aqua.algorithms import EOH
 
 
+@ddt
 class TestEOH(QiskitAquaTestCase):
     """Evolution tests."""
 
-    def test_eoh(self):
+    @data('initial_state', 'circuit')
+    def test_eoh(self, mode):
         """ EOH test """
         size = 2
         aqua_globals.random_seed = 0
@@ -41,7 +44,15 @@ class TestEOH(QiskitAquaTestCase):
         h_1 = temp + temp.T
         evo_op = MatrixOperator(matrix=h_1)
 
-        state_in = Custom(size, state='random')
+        if mode == 'initial_state':
+            with warnings.catch_warnings():
+                warnings.filterwarnings('ignore', category=DeprecationWarning)
+                state_in = Custom(size, state='random')
+        else:
+            random_state = aqua_globals.random.random(2 ** size)
+            random_state = random_state / np.linalg.norm(random_state)
+            state_in = QuantumCircuit(size)
+            state_in.initialize(random_state, range(size))
 
         evo_time = 1
         num_time_slices = 100

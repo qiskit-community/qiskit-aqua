@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -16,8 +14,10 @@
 
 import os
 from test.aqua import QiskitAquaTestCase
+
 import numpy as np
 from ddt import ddt, data
+
 from qiskit import BasicAer, QuantumCircuit
 from qiskit.circuit.library import ZZFeatureMap
 from qiskit.aqua import QuantumInstance, aqua_globals, MissingOptionalLibraryError
@@ -25,6 +25,8 @@ from qiskit.aqua.components.multiclass_extensions import (ErrorCorrectingCode,
                                                           AllPairs,
                                                           OneAgainstRest)
 from qiskit.aqua.algorithms import QSVM
+from qiskit.aqua.utils import split_dataset_to_data_and_labels, optimize_svm
+from qiskit.ml.datasets import ad_hoc_data
 
 
 @ddt
@@ -77,7 +79,7 @@ class TestQSVM(QiskitAquaTestCase):
         else:
             data_preparation = self.data_preparation
 
-        svm = QSVM(data_preparation, self.training_data, self.testing_data, None)
+        svm = QSVM(data_preparation, self.training_data, self.testing_data, None, lambda2=0)
 
         try:
             result = svm.run(self.qasm_simulator)
@@ -102,7 +104,7 @@ class TestQSVM(QiskitAquaTestCase):
 
         Also tests saving and loading models."""
         data_preparation = self.data_preparation
-        svm = QSVM(data_preparation, self.training_data, self.testing_data, None)
+        svm = QSVM(data_preparation, self.training_data, self.testing_data, None, lambda2=0)
 
         file_path = self.get_resource_path('qsvm_test.npz')
         try:
@@ -211,10 +213,64 @@ class TestQSVM(QiskitAquaTestCase):
         data_preparation = self.data_preparation
         try:
             svm = QSVM(data_preparation, train_input, test_input, total_array,
-                       multiclass_extension=method[multiclass_extension])
+                       multiclass_extension=method[multiclass_extension], lambda2=0)
             result = svm.run(self.qasm_simulator)
             self.assertAlmostEqual(result['testing_accuracy'], accuracy[multiclass_extension],
                                    places=4)
             self.assertEqual(result['predicted_classes'], predicted_classes[multiclass_extension])
         except MissingOptionalLibraryError as ex:
             self.skipTest(str(ex))
+
+    def test_matrix_psd(self):
+        """ Test kernel matrix positive semi-definite enforcement. """
+        try:
+            from cvxpy.error import DQCPError
+        except ImportError:
+            self.skipTest('cvxpy does not appeat to be installed')
+
+        seed = 10598
+        feature_dim = 2
+        _, training_input, _, _ = ad_hoc_data(
+            training_size=10,
+            test_size=5,
+            n=feature_dim,
+            gap=0.3
+        )
+        training_input, _ = split_dataset_to_data_and_labels(training_input)
+        training_data = training_input[0]
+        training_labels = training_input[1]
+        labels = training_labels * 2 - 1  # map label from 0 --> -1 and 1 --> 1
+        labels = labels.astype(np.float)
+
+        feature_map = ZZFeatureMap(feature_dimension=feature_dim, reps=2, entanglement='linear')
+
+        with self.assertRaises(DQCPError):
+            # Sampling noise means that the kernel matrix will not quite be positive
+            # semi-definite which will cause the optimize svm to fail
+            backend = BasicAer.get_backend('qasm_simulator')
+            quantum_instance = QuantumInstance(backend, shots=1024, seed_simulator=seed,
+                                               seed_transpiler=seed)
+            kernel_matrix = QSVM.get_kernel_matrix(quantum_instance, feature_map=feature_map,
+                                                   x1_vec=training_data, enforce_psd=False)
+            _ = optimize_svm(kernel_matrix, labels, lambda2=0)
+
+        # This time we enforce that the matrix be positive semi-definite which runs logic to
+        # make it so.
+        backend = BasicAer.get_backend('qasm_simulator')
+        quantum_instance = QuantumInstance(backend, shots=1024, seed_simulator=seed,
+                                           seed_transpiler=seed)
+        kernel_matrix = QSVM.get_kernel_matrix(quantum_instance, feature_map=feature_map,
+                                               x1_vec=training_data, enforce_psd=True)
+        alpha, b, support = optimize_svm(kernel_matrix, labels, lambda2=0)
+
+        expected_alpha = [0.855861781, 2.59807482, 0, 0.962959215,
+                          1.08141696, 0.217172547, 0, 0,
+                          0.786462904, 0, 0.969727949, 1.98066946,
+                          0, 0, 1.62049430, 0,
+                          0.394212728, 0, 0.507740935, 1.02910286]
+        expected_b = [-0.17543365]
+        expected_support = [True, True, False, True, True, True, False, False, True, False,
+                            True, True, False, False, True, False, True, False, True, True]
+        np.testing.assert_array_almost_equal(alpha, expected_alpha)
+        np.testing.assert_array_almost_equal(b, expected_b)
+        np.testing.assert_array_equal(support, expected_support)

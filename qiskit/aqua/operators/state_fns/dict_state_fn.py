@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -14,18 +12,19 @@
 
 """ DictStateFn Class """
 
-from typing import Union, Set, cast
+from typing import Optional, Union, Set, Dict, cast, List
 import itertools
 import numpy as np
 from scipy import sparse
 
 from qiskit.result import Result
 from qiskit.circuit import ParameterExpression
-from qiskit.aqua import aqua_globals
+from qiskit.aqua import aqua_globals, AquaError
 
 from ..operator_base import OperatorBase
 from .state_fn import StateFn
 from ..list_ops.list_op import ListOp
+from .vector_state_fn import VectorStateFn
 
 
 class DictStateFn(StateFn):
@@ -109,6 +108,26 @@ class DictStateFn(StateFn):
                            coeff=np.conj(self.coeff),
                            is_measurement=(not self.is_measurement))
 
+    def permute(self, permutation: List[int]) -> 'DictStateFn':
+        new_num_qubits = max(permutation) + 1
+        if self.num_qubits != len(permutation):
+            raise AquaError("New index must be defined for each qubit of the operator.")
+
+        # helper function to permute the key
+        def perm(key):
+            list_key = ['0'] * new_num_qubits
+            for i, k in enumerate(permutation):
+                list_key[k] = key[i]
+            return ''.join(list_key)
+
+        new_dict = {perm(key): value for key, value in self.primitive.items()}
+        return DictStateFn(new_dict, coeff=self.coeff, is_measurement=self.is_measurement)
+
+    def _expand_dim(self, num_qubits: int) -> 'DictStateFn':
+        pad = '0'*num_qubits
+        new_dict = {key + pad: value for key, value in self.primitive.items()}
+        return DictStateFn(new_dict, coeff=self.coeff, is_measurement=self.is_measurement)
+
     def tensor(self, other: OperatorBase) -> OperatorBase:
         # Both dicts
         if isinstance(other, DictStateFn):
@@ -122,21 +141,12 @@ class DictStateFn(StateFn):
         return TensoredOp([self, other])
 
     def to_density_matrix(self, massive: bool = False) -> np.ndarray:
-        if self.num_qubits > 16 and not massive:
-            raise ValueError(
-                'to_matrix will return an exponentially large matrix,'
-                ' in this case {0}x{0} elements.'
-                ' Set massive=True if you want to proceed.'.format(2**self.num_qubits))
-
+        OperatorBase._check_massive('to_density_matrix', True, self.num_qubits, massive)
         states = int(2 ** self.num_qubits)
-        return self.to_matrix() * np.eye(states) * self.coeff
+        return self.to_matrix(massive=massive) * np.eye(states) * self.coeff
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
-        if self.num_qubits > 16 and not massive:
-            raise ValueError(
-                'to_vector will return an exponentially large vector, in this case {0} elements.'
-                ' Set massive=True if you want to proceed.'.format(2**self.num_qubits))
-
+        OperatorBase._check_massive('to_matrix', False, self.num_qubits, massive)
         states = int(2 ** self.num_qubits)
         probs = np.zeros(states) + 0.j
         for k, v in self.primitive.items():
@@ -182,8 +192,12 @@ class DictStateFn(StateFn):
 
     # pylint: disable=too-many-return-statements
     def eval(self,
-             front: Union[str, dict, np.ndarray,
-                          OperatorBase] = None) -> Union[OperatorBase, float, complex]:
+             front: Optional[Union[str, Dict[str, complex], np.ndarray, OperatorBase]] = None
+             ) -> Union[OperatorBase, float, complex]:
+        if front is None:
+            vector_state_fn = self.to_matrix_op().eval()
+            vector_state_fn = cast(OperatorBase, vector_state_fn)
+            return vector_state_fn
 
         if not self.is_measurement and isinstance(front, OperatorBase):
             raise ValueError(
@@ -212,7 +226,6 @@ class DictStateFn(StateFn):
 
         # All remaining possibilities only apply when self.is_measurement is True
 
-        from .vector_state_fn import VectorStateFn
         if isinstance(front, VectorStateFn):
             # TODO does it need to be this way for measurement?
             # return sum([v * front.primitive.data[int(b, 2)] *
@@ -239,7 +252,7 @@ class DictStateFn(StateFn):
                shots: int = 1024,
                massive: bool = False,
                reverse_endianness: bool = False) -> dict:
-        probs = np.array(list(self.primitive.values()))**2
+        probs = np.square(np.abs(np.array(list(self.primitive.values()))))
         unique, counts = np.unique(aqua_globals.random.choice(list(self.primitive.keys()),
                                                               size=shots,
                                                               p=(probs / sum(probs))),

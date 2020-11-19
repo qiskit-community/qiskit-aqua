@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -14,13 +12,14 @@
 
 """ OperatorStateFn Class """
 
-from typing import Union, Set
+from typing import Union, Set, List
 import numpy as np
 
 from qiskit.circuit import ParameterExpression
 
 from ..operator_base import OperatorBase
 from .state_fn import StateFn
+from .vector_state_fn import VectorStateFn
 from ..list_ops.list_op import ListOp
 from ..list_ops.summed_op import SummedOp
 
@@ -35,7 +34,7 @@ class OperatorStateFn(StateFn):
 
     # TODO allow normalization somehow?
     def __init__(self,
-                 primitive: Union[OperatorBase] = None,
+                 primitive: OperatorBase = None,
                  coeff: Union[int, float, complex, ParameterExpression] = 1.0,
                  is_measurement: bool = False) -> None:
         """
@@ -82,6 +81,16 @@ class OperatorStateFn(StateFn):
                                coeff=np.conj(self.coeff),
                                is_measurement=(not self.is_measurement))
 
+    def _expand_dim(self, num_qubits: int) -> 'OperatorStateFn':
+        return OperatorStateFn(self.primitive._expand_dim(num_qubits),
+                               coeff=self.coeff,
+                               is_measurement=self.is_measurement)
+
+    def permute(self, permutation: List[int]) -> 'OperatorStateFn':
+        return OperatorStateFn(self.primitive.permute(permutation),
+                               coeff=self.coeff,
+                               is_measurement=self.is_measurement)
+
     def tensor(self, other: OperatorBase) -> OperatorBase:
         if isinstance(other, OperatorStateFn):
             return StateFn(self.primitive.tensor(other.primitive),
@@ -99,13 +108,7 @@ class OperatorStateFn(StateFn):
         converter, but in this case a convenience method for quick hacking and
         access to classical tools is
         appropriate. """
-
-        if self.num_qubits > 16 and not massive:
-            raise ValueError(
-                'to_matrix will return an exponentially large matrix,'
-                ' in this case {0}x{0} elements.'
-                ' Set massive=True if you want to proceed.'.format(2 ** self.num_qubits))
-
+        OperatorBase._check_massive('to_density_matrix', True, self.num_qubits, massive)
         return self.primitive.to_matrix() * self.coeff
 
     def to_matrix_op(self, massive: bool = False) -> OperatorBase:
@@ -136,15 +139,10 @@ class OperatorStateFn(StateFn):
         Raises:
             ValueError: Invalid parameters.
         """
-
-        if self.num_qubits > 16 and not massive:
-            raise ValueError(
-                'to_vector will return an exponentially large vector, in this case {0} elements.'
-                ' Set massive=True if you want to proceed.'.format(2 ** self.num_qubits))
-
+        OperatorBase._check_massive('to_matrix', False, self.num_qubits, massive)
         # Operator - return diagonal (real values, not complex),
         # not rank 1 decomposition (statevector)!
-        mat = self.primitive.to_matrix()
+        mat = self.primitive.to_matrix(massive=massive)
         # TODO change to weighted sum of eigenvectors' StateFns?
 
         # ListOp primitives can return lists of matrices (or trees for nested ListOps),
@@ -181,6 +179,10 @@ class OperatorStateFn(StateFn):
     def eval(self,
              front: Union[str, dict, np.ndarray,
                           OperatorBase] = None) -> Union[OperatorBase, float, complex]:
+        if front is None:
+            matrix = self.primitive.to_matrix_op().primitive.data
+            return VectorStateFn(matrix[0, :])
+
         if not self.is_measurement and isinstance(front, OperatorBase):
             raise ValueError(
                 'Cannot compute overlap with StateFn or Operator if not Measurement. Try taking '

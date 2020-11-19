@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -22,6 +20,7 @@ from qiskit import QuantumCircuit
 from qiskit.quantum_info import Pauli
 
 from qiskit.providers import BaseBackend
+from qiskit.providers import Backend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import op_converter, OperatorBase
 from qiskit.aqua.utils import get_subsystem_density_matrix
@@ -57,14 +56,15 @@ class QPE(QuantumAlgorithm, MinimumEigensolver):
 
     def __init__(self,
                  operator: Optional[Union[OperatorBase, LegacyBaseOperator]] = None,
-                 state_in: Optional[InitialState] = None,
+                 state_in: Optional[Union[InitialState, QuantumCircuit]] = None,
                  iqft: Optional[QuantumCircuit] = None,
                  num_time_slices: int = 1,
                  num_ancillae: int = 1,
                  expansion_mode: str = 'trotter',
                  expansion_order: int = 1,
                  shallow_circuit_concat: bool = False,
-                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
+                 quantum_instance: Optional[
+                     Union[QuantumInstance, BaseBackend, Backend]] = None) -> None:
         """
 
         Args:

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -26,7 +24,7 @@ from qiskit.aqua.algorithms import QPE, NumPyMinimumEigensolver
 from qiskit.aqua.operators import Z2Symmetries
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry import FermionicOperator, QiskitChemistryError
-from qiskit.chemistry.components.initial_states import HartreeFock
+from qiskit.chemistry.circuit.library import HartreeFock
 
 
 @ddt

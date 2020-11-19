@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -14,11 +12,12 @@
 
 """Global X phases and parameterized problem hamiltonian."""
 
-from typing import Optional
+from typing import Optional, Union
 
 import numpy as np
 
-from qiskit.aqua.operators import (OperatorBase, X, I, H, Zero, CircuitStateFn,
+from qiskit import QuantumCircuit
+from qiskit.aqua.operators import (OperatorBase, X, I, H, CircuitStateFn,
                                    EvolutionFactory, LegacyBaseOperator)
 from qiskit.aqua.components.variational_forms import VariationalForm
 from qiskit.aqua.components.initial_states import InitialState
@@ -33,7 +32,7 @@ class QAOAVarForm(VariationalForm):
     def __init__(self,
                  cost_operator: OperatorBase,
                  p: int,
-                 initial_state: Optional[InitialState] = None,
+                 initial_state: Optional[Union[QuantumCircuit, InitialState]] = None,
                  mixer_operator: Optional[OperatorBase] = None):
         """
         Constructor, following the QAOA paper https://arxiv.org/abs/1411.4028
@@ -58,7 +57,6 @@ class QAOAVarForm(VariationalForm):
         self._initial_state = initial_state
         self._num_parameters = 2 * p
         self._bounds = [(0, np.pi)] * p + [(0, 2 * np.pi)] * p
-        self._preferred_init_points = [0] * p * 2
 
         # prepare the mixer operator
         if mixer_operator is None:
@@ -82,13 +80,13 @@ class QAOAVarForm(VariationalForm):
                 self.num_parameters, len(parameters)
             ))
 
-        circuit = (H ^ self._num_qubits)
         # initialize circuit, possibly based on given register/initial state
-        if self._initial_state is not None:
-            init_state = CircuitStateFn(self._initial_state.construct_circuit('circuit'))
+        if isinstance(self._initial_state, QuantumCircuit):
+            circuit = CircuitStateFn(self._initial_state)
+        elif self._initial_state is not None:
+            circuit = CircuitStateFn(self._initial_state.construct_circuit('circuit'))
         else:
-            init_state = Zero
-        circuit = circuit.compose(init_state)
+            circuit = (H ^ self._num_qubits)
 
         for idx in range(self._p):
             circuit = (self._cost_operator * parameters[idx]).exp_i().compose(circuit)

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -84,6 +82,10 @@ class MultivariateDistribution(UncertaintyModel, ABC):
             self._high = np.zeros(self.dimension)
             for i in range(self.dimension):
                 self._high[i] = 2**num_qubits[i] - 1
+
+    @staticmethod
+    def _replacement():
+        return 'a qiskit.QuantumCircuit'
 
     @property
     def num_qubits(self):

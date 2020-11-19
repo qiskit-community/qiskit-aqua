@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -18,8 +16,7 @@ import logging
 import math
 from typing import List, Optional, Union
 
-import numpy as np
-
+import qiskit.optimization.algorithms  # pylint: disable=unused-import
 from .quadratic_program_converter import QuadraticProgramConverter
 from ..exceptions import QiskitOptimizationError
 from ..problems.constraint import Constraint
@@ -189,21 +186,30 @@ class InequalityToEquality(QuadraticProgramConverter):
 
         lhs_lb, lhs_ub = self._calc_linear_bounds(linear)
 
+        var_added = False
+
         if sense == Constraint.Sense.LE:
-            sign = 1
-            self._dst.integer_var(
-                name=slack_name, lowerbound=0, upperbound=new_rhs - lhs_lb)
+            var_ub = new_rhs - lhs_lb
+            if var_ub > 0:
+                sign = 1
+                self._dst.integer_var(
+                    name=slack_name, lowerbound=0, upperbound=var_ub)
+                var_added = True
         elif sense == Constraint.Sense.GE:
-            sign = -1
-            self._dst.integer_var(
-                name=slack_name, lowerbound=0, upperbound=lhs_ub - new_rhs)
+            var_ub = lhs_ub - new_rhs
+            if var_ub > 0:
+                sign = -1
+                self._dst.integer_var(
+                    name=slack_name, lowerbound=0, upperbound=var_ub)
+                var_added = True
         else:
             raise QiskitOptimizationError(
                 'The type of Sense in {} is not supported'.format(name))
 
         # Add a new equality constraint.
         new_linear = copy.deepcopy(linear)
-        new_linear[slack_name] = sign
+        if var_added:
+            new_linear[slack_name] = sign
         self._dst.linear_constraint(new_linear, "==", new_rhs, name)
 
     def _add_continuous_slack_var_linear_constraint(self, linear, sense, rhs, name):
@@ -211,21 +217,29 @@ class InequalityToEquality(QuadraticProgramConverter):
 
         lhs_lb, lhs_ub = self._calc_linear_bounds(linear)
 
+        var_added = False
         if sense == Constraint.Sense.LE:
-            sign = 1
-            self._dst.continuous_var(
-                name=slack_name, lowerbound=0, upperbound=rhs - lhs_lb)
+            var_ub = rhs - lhs_lb
+            if var_ub > 0:
+                sign = 1
+                self._dst.continuous_var(
+                    name=slack_name, lowerbound=0, upperbound=var_ub)
+                var_added = True
         elif sense == Constraint.Sense.GE:
-            sign = -1
-            self._dst.continuous_var(
-                name=slack_name, lowerbound=0, upperbound=lhs_ub - rhs)
+            var_ub = lhs_ub - rhs
+            if var_ub > 0:
+                sign = -1
+                self._dst.continuous_var(
+                    name=slack_name, lowerbound=0, upperbound=var_ub)
+                var_added = True
         else:
             raise QiskitOptimizationError(
                 'The type of Sense in {} is not supported'.format(name))
 
         # Add a new equality constraint.
         new_linear = copy.deepcopy(linear)
-        new_linear[slack_name] = sign
+        if var_added:
+            new_linear[slack_name] = sign
         self._dst.linear_constraint(new_linear, "==", rhs, name)
 
     def _add_auto_slack_var_linear_constraint(self, linear, sense, rhs, name):
@@ -258,21 +272,30 @@ class InequalityToEquality(QuadraticProgramConverter):
 
         lhs_lb, lhs_ub = self._calc_quadratic_bounds(linear, quadratic)
 
+        var_added = False
+
         if sense == Constraint.Sense.LE:
-            sign = 1
-            self._dst.integer_var(
-                name=slack_name, lowerbound=0, upperbound=new_rhs - lhs_lb)
+            var_ub = new_rhs - lhs_lb
+            if var_ub > 0:
+                sign = 1
+                self._dst.integer_var(
+                    name=slack_name, lowerbound=0, upperbound=var_ub)
+                var_added = True
         elif sense == Constraint.Sense.GE:
-            sign = -1
-            self._dst.integer_var(
-                name=slack_name, lowerbound=0, upperbound=lhs_ub - new_rhs)
+            var_ub = lhs_ub - new_rhs
+            if var_ub > 0:
+                sign = -1
+                self._dst.integer_var(
+                    name=slack_name, lowerbound=0, upperbound=var_ub)
+                var_added = True
         else:
             raise QiskitOptimizationError(
                 'The type of Sense in {} is not supported'.format(name))
 
         # Add a new equality constraint.
         new_linear = copy.deepcopy(linear)
-        new_linear[slack_name] = sign
+        if var_added:
+            new_linear[slack_name] = sign
         self._dst.quadratic_constraint(
             new_linear, quadratic, "==", new_rhs, name)
 
@@ -282,21 +305,30 @@ class InequalityToEquality(QuadraticProgramConverter):
 
         lhs_lb, lhs_ub = self._calc_quadratic_bounds(linear, quadratic)
 
+        var_added = False
+
         if sense == Constraint.Sense.LE:
-            sign = 1
-            self._dst.continuous_var(
-                name=slack_name, lowerbound=0, upperbound=rhs - lhs_lb)
+            var_ub = rhs - lhs_lb
+            if var_ub > 0:
+                sign = 1
+                self._dst.continuous_var(
+                    name=slack_name, lowerbound=0, upperbound=var_ub)
+                var_added = True
         elif sense == Constraint.Sense.GE:
-            sign = -1
-            self._dst.continuous_var(
-                name=slack_name, lowerbound=0, upperbound=lhs_ub - rhs)
+            var_ub = lhs_ub - rhs
+            if var_ub > 0:
+                sign = -1
+                self._dst.continuous_var(
+                    name=slack_name, lowerbound=0, upperbound=lhs_ub - rhs)
+                var_added = True
         else:
             raise QiskitOptimizationError(
                 'The type of Sense in {} is not supported'.format(name))
 
         # Add a new equality constraint.
         new_linear = copy.deepcopy(linear)
-        new_linear[slack_name] = sign
+        if var_added:
+            new_linear[slack_name] = sign
         self._dst.quadratic_constraint(new_linear, quadratic, "==", rhs, name)
 
     def _add_auto_slack_var_quadratic_constraint(self, linear, quadratic, sense, rhs, name):
@@ -342,29 +374,36 @@ class InequalityToEquality(QuadraticProgramConverter):
             )
         return lhs_lb, lhs_ub
 
-    def interpret(self, x: np.ndarray) -> np.ndarray:
+    def interpret(self, result: 'qiskit.optimization.algorithms.OptimizationResult') \
+            -> 'qiskit.optimization.algorithms.OptimizationResult':  # type: ignore
         """Convert a result of a converted problem into that of the original problem.
 
         Args:
-            x: The result of the converted problem.
+            result: The result of the converted problem or the given result in case of FAILURE.
 
         Returns:
             The result of the original problem.
-
-        Raises:
-            QiskitOptimizationError: if size of `x` differs from the number of variables.
         """
-        if len(x) != self._dst.get_num_vars():
-            raise QiskitOptimizationError(
-                'The size of `x` differs from the the number of variables.'
-                ' size of `x`: {}, num. of vars: {}'.format(len(x), self._dst.get_num_vars())
-            )
+        # pylint: disable=cyclic-import
+        from ..algorithms.optimization_algorithm import OptimizationResult
 
-        sol = {var.name: x[i] for i, var in enumerate(self._dst.variables)}
+        if result.x is None:
+            return result
+
+        # convert back the optimization result into that of the original problem
+        names = [x.name for x in self._dst.variables]
+        new_x = self._interpret_var(names, result.x)
+        return OptimizationResult(x=new_x, fval=result.fval, variables=self._src.variables,
+                                  status=result.status, raw_results=result.raw_results)
+
+    def _interpret_var(self, names, vals) -> List[int]:
+        # interpret slack variables
+        sol = {name: vals[i] for i, name in enumerate(names)}
+
         new_vals = []
-        for var in self._src.variables:
-            new_vals.append(sol[var.name])
-        return np.array(new_vals)
+        for x in self._src.variables:
+            new_vals.append(sol[x.name])
+        return new_vals
 
     @staticmethod
     def _contains_any_float_value(values: List[Union[int, float]]) -> bool:

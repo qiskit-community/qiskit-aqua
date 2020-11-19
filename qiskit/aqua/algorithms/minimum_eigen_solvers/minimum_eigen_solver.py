@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -54,10 +52,11 @@ class MinimumEigensolver(ABC):
         if operator is not None:
             self.operator = operator  # type: ignore
         if aux_operators is not None:
-            self.aux_operators = aux_operators if aux_operators else None  # type: ignore
+            self.aux_operators = aux_operators  # type: ignore
         return MinimumEigensolverResult()
 
-    def supports_aux_operators(self) -> bool:
+    @classmethod
+    def supports_aux_operators(cls) -> bool:
         """Whether computing the expectation value of auxiliary operators is supported.
 
         If the minimum eigensolver computes an eigenstate of the main operator then it
@@ -100,7 +99,7 @@ class MinimumEigensolverResult(AlgorithmResult):
     """ Minimum Eigensolver Result."""
 
     @property
-    def eigenvalue(self) -> Union[None, complex]:
+    def eigenvalue(self) -> Optional[complex]:
         """ returns eigen value """
         return self.get('eigenvalue')
 
@@ -110,7 +109,7 @@ class MinimumEigensolverResult(AlgorithmResult):
         self.data['eigenvalue'] = value
 
     @property
-    def eigenstate(self) -> Union[None, np.ndarray]:
+    def eigenstate(self) -> Optional[np.ndarray]:
         """ return eigen state """
         return self.get('eigenstate')
 
@@ -120,7 +119,7 @@ class MinimumEigensolverResult(AlgorithmResult):
         self.data['eigenstate'] = value
 
     @property
-    def aux_operator_eigenvalues(self) -> Union[None, np.ndarray]:
+    def aux_operator_eigenvalues(self) -> Optional[np.ndarray]:
         """ return aux operator eigen values """
         return self.get('aux_operator_eigenvalues')
 
