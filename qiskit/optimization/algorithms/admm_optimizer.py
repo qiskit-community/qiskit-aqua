@@ -621,15 +621,13 @@ class ADMMOptimizer(OptimizationAlgorithm):
             op1.binary_var(name=name)
 
         # prepare and set quadratic objective.
-        quadratic_objective = \
-            self._state.q0 + \
+        quadratic_objective = self._state.q0 + \
             self._params.factor_c / 2 * np.dot(self._state.a0.transpose(), self._state.a0) + \
             self._state.rho / 2 * np.eye(binary_size)
         op1.objective.quadratic = quadratic_objective
 
         # prepare and set linear objective.
-        linear_objective = \
-            self._state.c0 - \
+        linear_objective = self._state.c0 - \
             self._params.factor_c * np.dot(self._state.b0, self._state.a0) + \
             self._state.rho * (- self._state.y[self._state.step1_relative_indices] -
                                self._state.z[self._state.step1_relative_indices]) + \
@@ -656,8 +654,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
             # replacing Q0 objective and take of min/max sense, initially we consider minimization
             op2.objective.quadratic[var_index, var_index] = self._state.rho / 2
             # replacing linear objective
-            op2.objective.linear[var_index] = \
-                -1 * self._state.lambda_mult[i] - self._state.rho * \
+            op2.objective.linear[var_index] = -1 * self._state.lambda_mult[i] - self._state.rho * \
                 (self._state.x0[i] - self._state.y[i])
 
         # remove A0 x0 = b0 constraints

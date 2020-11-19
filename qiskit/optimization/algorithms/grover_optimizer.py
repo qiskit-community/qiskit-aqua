@@ -22,8 +22,7 @@ from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms.amplitude_amplifiers.grover import Grover
 from qiskit.circuit.library import QuadraticForm
-from qiskit.providers import Backend
-from qiskit.providers import BaseBackend
+from qiskit.providers import Backend, BaseBackend
 
 from .optimization_algorithm import (OptimizationResultStatus, OptimizationAlgorithm,
                                      OptimizationResult)
