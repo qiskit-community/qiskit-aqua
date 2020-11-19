@@ -289,13 +289,13 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
 
         # construct result
         x_v = np.array([var_values[x_aux.name] for x_aux in problem_ref.variables])
-        new_x, new_fval, status = self._interpret(x_v, self._converters)
+        result = self._interpret(x_v, self._converters)
 
-        return RecursiveMinimumEigenOptimizationResult(x=new_x, fval=new_fval,
-                                                       variables=problem.variables,
+        return RecursiveMinimumEigenOptimizationResult(x=result.x, fval=result.fval,
+                                                       variables=result.variables,
                                                        replacements=replacements,
                                                        history=history,
-                                                       status=status)
+                                                       status=result.status)
 
     @staticmethod
     def _find_strongest_correlation(correlations):

@@ -14,7 +14,7 @@
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import List, Union, Any, Optional, Dict, Tuple
+from typing import List, Union, Any, Optional, Dict
 
 import numpy as np
 
@@ -346,8 +346,7 @@ class OptimizationAlgorithm(ABC):
     @classmethod
     def _interpret(cls, x: np.ndarray,
                    converters: Union[QuadraticProgramConverter,
-                                     List[QuadraticProgramConverter]]) \
-            -> Tuple[np.ndarray, float, OptimizationResultStatus]:
+                                     List[QuadraticProgramConverter]]) -> OptimizationResult:
         """Convert back the result of the converted problem to the result of the original problem.
 
         Args:
@@ -356,8 +355,7 @@ class OptimizationAlgorithm(ABC):
                 to the result of the original problem.
 
         Returns:
-            The result of the original problem, which is a tuple of the solution, the objective
-            function value, and feasibility status.
+            The result of the original problem.
 
         Raises:
             QiskitOptimizationError: if converters is an empty list.
@@ -378,4 +376,6 @@ class OptimizationAlgorithm(ABC):
         prob = converters[0].input_problem()
         if prob is None:
             raise QiskitOptimizationError('The input problem of converter(s) is not included')
-        return x, prob.objective.evaluate(x), cls._get_feasibility_status(prob, x)
+        return OptimizationResult(x=x, fval=prob.objective.evaluate(x),
+                                  variables=prob.variables,
+                                  status=cls._get_feasibility_status(prob, x))

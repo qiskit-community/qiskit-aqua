@@ -216,10 +216,10 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
                                                   samples=None,
                                                   min_eigen_solver_result=eigen_result)
         # translate result back to integers
-        new_x, new_fval, status = self._interpret(x, self._converters)
-        return MinimumEigenOptimizationResult(x=new_x, fval=new_fval,
-                                              variables=problem.variables,
-                                              status=status,
+        result = self._interpret(x, self._converters)
+        return MinimumEigenOptimizationResult(x=result.x, fval=result.fval,
+                                              variables=result.variables,
+                                              status=result.status,
                                               samples=samples, min_eigen_solver_result=eigen_result)
 
 

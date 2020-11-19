@@ -266,13 +266,13 @@ class GroverOptimizer(OptimizationAlgorithm):
         fval = problem_init.objective.evaluate(opt_x)
 
         # cast binaries back to integers
-        new_x, new_fval, status = self._interpret(opt_x, self._converters)
+        result = self._interpret(opt_x, self._converters)
 
-        return GroverOptimizationResult(x=new_x, fval=new_fval, variables=problem.variables,
+        return GroverOptimizationResult(x=result.x, fval=result.fval, variables=result.variables,
                                         operation_counts=operation_count, n_input_qubits=n_key,
                                         n_output_qubits=n_value, intermediate_fval=fval,
                                         threshold=threshold,
-                                        status=status)
+                                        status=result.status)
 
     def _measure(self, circuit: QuantumCircuit) -> str:
         """Get probabilities from the given backend, and picks a random outcome."""
