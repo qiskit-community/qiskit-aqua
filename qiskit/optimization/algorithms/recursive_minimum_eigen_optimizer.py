@@ -288,12 +288,10 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
                    None if self._history == IntermediateResult.NO_ITERATIONS else result)
 
         # construct result
-        fval = result.fval
         x_v = np.array([var_values[x_aux.name] for x_aux in problem_ref.variables])
-        new_x = self._interpret(x_v, self._converters)
-        status = self._get_feasibility_status(problem, new_x)
+        new_x, new_fval, status = self._interpret(x_v, self._converters)
 
-        return RecursiveMinimumEigenOptimizationResult(x=new_x, fval=fval,
+        return RecursiveMinimumEigenOptimizationResult(x=new_x, fval=new_fval,
                                                        variables=problem.variables,
                                                        replacements=replacements,
                                                        history=history,

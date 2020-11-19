@@ -4,6 +4,9 @@ features:
     Change the signature of `QuadraticProgramConverter.interpret` from
     `interpret(OptimizationResult) -> OptimizationResult` into
     `interpret(Union[np.ndarray, List[float]) -> np.ndarray`.
+    Change the signature of `OptimizationProblem._interpret` to return
+    the solution, the objective function value, and the fesibility.
+    Add QuadraticProgramConverter to return the input problem.
 deprecations:
   - |
     Remove deprecated methods `QuadraticProgramConverter.{encode,decode}`

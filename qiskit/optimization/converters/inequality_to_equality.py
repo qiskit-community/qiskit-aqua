@@ -56,6 +56,14 @@ class InequalityToEquality(QuadraticProgramConverter):
         self._dst = None  # type: Optional[QuadraticProgram]
         self._mode = mode
 
+    def input_problem(self) -> Optional[QuadraticProgram]:
+        """Returns the input problem to be converted.
+
+        Returns:
+            The input problem to be converted.
+        """
+        return self._src
+
     def convert(self, problem: QuadraticProgram) -> QuadraticProgram:
         """Convert a problem with inequality constraints into one with only equality constraints.
 
@@ -385,13 +393,13 @@ class InequalityToEquality(QuadraticProgramConverter):
             The result of the original problem.
         """
         # convert back the optimization result into that of the original problem
-        names = [x.name for x in self._dst.variables]
+        names = [var.name for var in self._dst.variables]
 
         # interpret slack variables
         sol = {name: x[i] for i, name in enumerate(names)}
         new_x = np.zeros(self._src.get_num_vars())
-        for i, x in enumerate(self._src.variables):
-            new_x[i] = sol[x.name]
+        for i, var in enumerate(self._src.variables):
+            new_x[i] = sol[var.name]
         return new_x
 
     @staticmethod

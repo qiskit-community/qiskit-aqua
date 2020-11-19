@@ -377,11 +377,10 @@ class ADMMOptimizer(OptimizationAlgorithm):
         objective_value = objective_value * sense
 
         # convert back integer to binary
-        new_x = int2bin.interpret(solution)
-        status = self._get_feasibility_status(original_problem, new_x)
+        new_x, fval, status = self._interpret(solution, int2bin)
 
         # third parameter is our internal state of computations.
-        result = ADMMOptimizationResult(x=new_x, fval=objective_value,
+        result = ADMMOptimizationResult(x=new_x, fval=fval,
                                         variables=original_problem.variables,
                                         state=self._state,
                                         status=status)

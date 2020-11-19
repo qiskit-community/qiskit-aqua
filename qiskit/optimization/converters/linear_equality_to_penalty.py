@@ -42,6 +42,14 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
         self._dst = None  # type: Optional[QuadraticProgram]
         self._penalty = penalty  # type: Optional[float]
 
+    def input_problem(self) -> Optional[QuadraticProgram]:
+        """Returns the input problem to be converted.
+
+        Returns:
+            The input problem to be converted.
+        """
+        return self._src
+
     def convert(self, problem: QuadraticProgram) -> QuadraticProgram:
         """Convert a problem with equality constraints into an unconstrained problem.
 

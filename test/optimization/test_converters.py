@@ -14,7 +14,6 @@
 
 import logging
 import unittest
-import warnings
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 
 import numpy as np
@@ -356,7 +355,7 @@ class TestConverters(QiskitOptimizationTestCase):
             linear[x.name] = 1
         op.linear_constraint(linear, Constraint.Sense.EQ, 6, 'x0x1x2')
         conv = IntegerToBinary()
-        op2 = conv.convert(op)
+        _ = conv.convert(op)
         new_x = conv.interpret([0, 1, 1, 1, 1])
         np.testing.assert_array_almost_equal(new_x, [0, 1, 5])
 

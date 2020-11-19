@@ -13,7 +13,7 @@
 """An abstract class for optimization algorithms in Qiskit's optimization module."""
 
 from abc import ABC, abstractmethod
-from typing import List, Union
+from typing import List, Union, Optional
 
 import numpy as np
 
@@ -35,4 +35,9 @@ class QuadraticProgramConverter(ABC):
     @abstractmethod
     def interpret(self, x: Union[np.ndarray, List[float]]) -> np.ndarray:
         """ Interpret a result into another form using the information of conversion"""
+        raise NotImplementedError
+
+    @abstractmethod
+    def input_problem(self) -> Optional[QuadraticProgram]:
+        """ The input problem to be converted """
         raise NotImplementedError
