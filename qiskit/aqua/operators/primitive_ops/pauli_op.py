@@ -19,7 +19,7 @@ from scipy.sparse import spmatrix
 
 from qiskit import QuantumCircuit
 from qiskit.circuit import ParameterExpression, Instruction
-from qiskit.quantum_info import Pauli
+from qiskit.quantum_info import Pauli, SparsePauliOp
 from qiskit.circuit.library import RZGate, RYGate, RXGate, XGate, YGate, ZGate, IGate
 
 from ..operator_base import OperatorBase
@@ -76,7 +76,10 @@ class PauliOp(PrimitiveOp):
                 and isinstance(self.coeff, (int, float, complex))
                 and isinstance(other.coeff, (int, float, complex))
         ):
-            return self.to_summed_pauli_op() + other.to_summed_pauli_op()
+            return SummedPauliOp(
+                SparsePauliOp(self.primitive, coeffs=[self.coeff])
+                + SparsePauliOp(other.primitive, coeffs=[other.coeff])
+            )
 
         if isinstance(other, SummedPauliOp) and isinstance(self.coeff, (int, float, complex)):
             return self.to_summed_pauli_op() + other
@@ -333,5 +336,4 @@ class PauliOp(PrimitiveOp):
         Returns:
             ``SummedPauliOp`` equivalent to this Operator.
         """
-        from qiskit.quantum_info import SparsePauliOp
-        return SummedPauliOp(SparsePauliOp(self.primitive, coeffs=[self.coeff]), coeff=1)
+        return SummedPauliOp(SparsePauliOp(self.primitive, coeffs=[self.coeff]))
