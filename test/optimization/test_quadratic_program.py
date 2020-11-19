@@ -152,15 +152,6 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
             self.assertEqual(q_p.get_num_binary_vars(), b_count)
             self.assertEqual(q_p.get_num_integer_vars(), i_count)
 
-        def check_dict(var_dict, offset):
-            verify_counts()
-            variables = var_dict.values()
-            for i, x in enumerate(variables):
-                y = q_p.get_variable(i + offset)
-                z = q_p.get_variable(x.name)
-                assert_equal(x, y)
-                assert_equal(x, z)
-
         def check_list(var_list, offset):
             verify_counts()
             for i, x in enumerate(var_list):
@@ -194,10 +185,6 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         d_4 = q_p.continuous_var_list(name='c', keys=range(3))
         c_count += 3
         check_list(d_4, len(d_0) + len(d_1) + len(d_2) + len(d_3))
-
-        d_5 = q_p.binary_var_dict(name='d', keys=range(5))
-        b_count += 5
-        check_dict(d_5, len(d_0) + len(d_1) + len(d_2) + len(d_3) + len(d_4))
 
         with self.assertRaises(QiskitOptimizationError):
             q_p.binary_var_list(name='c0')
