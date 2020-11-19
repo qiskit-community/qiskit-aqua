@@ -66,6 +66,12 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         q_p.name = name
         self.assertEqual(q_p.name, name)
 
+    def assert_equal(self, x: Variable, y: Variable):
+        self.assertEqual(x.name, y.name)
+        self.assertEqual(x.lowerbound, y.lowerbound)
+        self.assertEqual(x.upperbound, y.upperbound)
+        self.assertEqual(x.vartype, y.vartype)
+
     def test_var_dict(self):
         """test {binary,integer,continuous}_var_dict"""
         q_p = QuadraticProgram()
@@ -86,14 +92,8 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
             for i, x in enumerate(variables):
                 y = q_p.get_variable(i + offset)
                 z = q_p.get_variable(x.name)
-                assert_equal(x, y)
-                assert_equal(x, z)
-
-        def assert_equal(x: Variable, y: Variable):
-            self.assertEqual(x.name, y.name)
-            self.assertEqual(x.lowerbound, y.lowerbound)
-            self.assertEqual(x.upperbound, y.upperbound)
-            self.assertEqual(x.vartype, y.vartype)
+                self.assert_equal(x, y)
+                self.assert_equal(x, z)
 
         d_0 = q_p.continuous_var_dict(name='a', formatter='_{}', keys=3)
         c_count += 3
@@ -157,14 +157,8 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
             for i, x in enumerate(var_list):
                 y = q_p.get_variable(i + offset)
                 z = q_p.get_variable(x.name)
-                assert_equal(x, y)
-                assert_equal(x, z)
-
-        def assert_equal(x: Variable, y: Variable):
-            self.assertEqual(x.name, y.name)
-            self.assertEqual(x.lowerbound, y.lowerbound)
-            self.assertEqual(x.upperbound, y.upperbound)
-            self.assertEqual(x.vartype, y.vartype)
+                self.assert_equal(x, y)
+                self.assert_equal(x, z)
 
         d_0 = q_p.continuous_var_list(name='a', formatter='_{}', keys=3)
         c_count += 3
