@@ -78,7 +78,6 @@ class ListOp(OperatorBase):
         self._abelian = abelian
         self._grad_combo_fn = grad_combo_fn
 
-    @property
     def _state(self,
                coeff: Optional[Union[int, float, complex, ParameterExpression]] = None,
                combo_fn: Optional[Callable] = None,
@@ -238,7 +237,7 @@ class ListOp(OperatorBase):
     def _expand_dim(self, num_qubits: int) -> 'ListOp':
         oplist = [op._expand_dim(num_qubits + self.num_qubits - op.num_qubits)
                   for op in self.oplist]
-        return ListOp(oplist, **self._state)
+        return ListOp(oplist, **self._state())
 
     def permute(self, permutation: List[int]) -> 'ListOp':
         """Permute the qubits of the operator.
@@ -455,7 +454,7 @@ class ListOp(OperatorBase):
     def reduce(self) -> OperatorBase:
         reduced_ops = [op.reduce() for op in self.oplist]
         if self.__class__ == ListOp:
-            return ListOp(reduced_ops, **self._state)
+            return ListOp(reduced_ops, **self._state())
         return self.__class__(reduced_ops, coeff=self.coeff, abelian=self.abelian)
 
     def to_matrix_op(self, massive: bool = False) -> OperatorBase:
@@ -464,7 +463,7 @@ class ListOp(OperatorBase):
         if self.__class__ == ListOp:
             return ListOp(
                 [op.to_matrix_op(massive=massive) for op in self.oplist],  # type: ignore
-                **self._state
+                **self._state()
                 ).reduce()
         return self.__class__(
             [op.to_matrix_op(massive=massive) for op in self.oplist],  # type: ignore
@@ -479,7 +478,7 @@ class ListOp(OperatorBase):
         if self.__class__ == ListOp:
             return ListOp([op.to_circuit_op()  # type: ignore
                            if not isinstance(op, OperatorStateFn) else op
-                           for op in self.oplist], **self._state).reduce()
+                           for op in self.oplist], **self._state()).reduce()
         return self.__class__([op.to_circuit_op()  # type: ignore
                                if not isinstance(op, OperatorStateFn) else op
                                for op in self.oplist],
@@ -493,7 +492,7 @@ class ListOp(OperatorBase):
         if self.__class__ == ListOp:
             return ListOp([op.to_pauli_op(massive=massive)  # type: ignore
                            if not isinstance(op, StateFn) else op
-                           for op in self.oplist], **self._state).reduce()
+                           for op in self.oplist], **self._state()).reduce()
         return self.__class__([op.to_pauli_op(massive=massive)  # type: ignore
                                if not isinstance(op, StateFn) else op
                                for op in self.oplist],
@@ -523,7 +522,7 @@ class ListOp(OperatorBase):
             return self.oplist[offset]
 
         if self.__class__ == ListOp:
-            return ListOp(oplist=self._oplist[offset], **self._state)
+            return ListOp(oplist=self._oplist[offset], **self._state())
 
         return self.__class__(oplist=self._oplist[offset],
                               coeff=self._coeff,
