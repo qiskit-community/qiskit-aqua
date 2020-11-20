@@ -344,7 +344,7 @@ class CircuitSampler(ConverterBase):
     def _build_aer_params(self,
                           circuit: QuantumCircuit,
                           building_param_tables: Dict[Tuple[int, int], List[float]],
-                          input_params: Dict[Parameter, List[float]]
+                          input_params: Dict[Parameter, float]
                           ) -> None:
 
         def resolve_param(inst_param):
