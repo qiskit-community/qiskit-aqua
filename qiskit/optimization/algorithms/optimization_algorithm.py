@@ -345,9 +345,9 @@ class OptimizationAlgorithm(ABC):
 
     @classmethod
     def _interpret(cls, x: np.ndarray,
-                   converters: Union[QuadraticProgramConverter,
-                                     List[QuadraticProgramConverter]],
                    problem: QuadraticProgram,
+                   converters: Optional[Union[QuadraticProgramConverter,
+                                              List[QuadraticProgramConverter]]] = None,
                    result_class: Type[OptimizationResult] = OptimizationResult,
                    **kwargs) -> OptimizationResult:
         """Convert back the result of the converted problem to the result of the original problem.
@@ -365,7 +365,6 @@ class OptimizationAlgorithm(ABC):
 
         Raises:
             QiskitOptimizationError: if result_class is not a sub-class of OptimizationResult.
-            QiskitOptimizationError: if converters is an empty list.
             TypeError: if converters are not QuadraticProgramConverter or a list of
                 QuadraticProgramConverter.
         """
@@ -373,10 +372,9 @@ class OptimizationAlgorithm(ABC):
             raise QiskitOptimizationError(
                 'Invalid result class, not derived from OptimizationResult: '
                 '{}'.format(result_class))
-        if isinstance(converters, list):
-            if len(converters) == 0:
-                raise QiskitOptimizationError('The list of converters is empty')
-        else:
+        if converters is None:
+            converters = []
+        if not isinstance(converters, list):
             converters = [converters]
         if not all(isinstance(conv, QuadraticProgramConverter) for conv in converters):
             raise TypeError('Invalid object of converters: {}'.format(converters))
