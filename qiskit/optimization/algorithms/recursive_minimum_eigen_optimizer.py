@@ -290,8 +290,8 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         # construct result
         x_v = np.array([var_values[x_aux.name] for x_aux in problem_ref.variables])
         return cast(RecursiveMinimumEigenOptimizationResult,
-                    self._interpret(x_v, self._converters,
-                                    RecursiveMinimumEigenOptimizationResult,
+                    self._interpret(x=x_v, converters=self._converters, problem=problem,
+                                    result_class=RecursiveMinimumEigenOptimizationResult,
                                     replacements=replacements, history=history))
 
     @staticmethod

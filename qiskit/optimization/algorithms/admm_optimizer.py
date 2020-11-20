@@ -286,6 +286,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # map integer variables to binary variables
         from ..converters.integer_to_binary import IntegerToBinary
         int2bin = IntegerToBinary()
+        original_problem = problem
         problem = int2bin.convert(problem)
 
         # we deal with minimization in the optimizer, so turn the problem to minimization
@@ -375,16 +376,15 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # flip the objective sign again if required
         objective_value = objective_value * sense
 
-        # convert back integer to binary
-        # `state` is our internal state of computations.
-        result = cast(ADMMOptimizationResult,
-                      self._interpret(solution, int2bin, ADMMOptimizationResult,
-                                      state=self._state))
-
         self._log.debug("solution=%s, objective=%s at iteration=%s",
                         solution, objective_value, iteration)
 
-        return result
+        # convert back integer to binary
+        # `state` is our internal state of computations.
+        return cast(ADMMOptimizationResult,
+                    self._interpret(x=solution, converters=int2bin, problem=original_problem,
+                                    result_class=ADMMOptimizationResult,
+                                    state=self._state))
 
     @staticmethod
     def _turn_to_minimization(problem: QuadraticProgram) -> Tuple[QuadraticProgram, float]:

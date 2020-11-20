@@ -347,6 +347,7 @@ class OptimizationAlgorithm(ABC):
     def _interpret(cls, x: np.ndarray,
                    converters: Union[QuadraticProgramConverter,
                                      List[QuadraticProgramConverter]],
+                   problem: QuadraticProgram,
                    result_class: Type[OptimizationResult] = OptimizationResult,
                    **kwargs) -> OptimizationResult:
         """Convert back the result of the converted problem to the result of the original problem.
@@ -355,7 +356,9 @@ class OptimizationAlgorithm(ABC):
             x: The result of the converted problem.
             converters: The converters to use for converting back the result of the problem
                 to the result of the original problem.
+            problem: The original problem for which `x` is interpreted.
             result_class: The class of the result object.
+            kwargs: parameters of the constructor of result_class
 
         Returns:
             The result of the original problem.
@@ -363,7 +366,6 @@ class OptimizationAlgorithm(ABC):
         Raises:
             QiskitOptimizationError: if result_class is not a sub-class of OptimizationResult.
             QiskitOptimizationError: if converters is an empty list.
-            QiskitOptimizationError: if converters do not have information of the source problem.
             TypeError: if converters are not QuadraticProgramConverter or a list of
                 QuadraticProgramConverter.
         """
@@ -381,9 +383,7 @@ class OptimizationAlgorithm(ABC):
 
         for converter in converters[::-1]:
             x = converter.interpret(x)
-        prob = converters[0].input_problem()
-        if prob is None:
-            raise QiskitOptimizationError('The input problem of converter(s) is not included')
-        return result_class(x=x, fval=prob.objective.evaluate(x),
-                            variables=prob.variables,
-                            status=cls._get_feasibility_status(prob, x), **kwargs)
+        return result_class(x=x, fval=problem.objective.evaluate(x),
+                            variables=problem.variables,
+                            status=cls._get_feasibility_status(problem, x),
+                            **kwargs)

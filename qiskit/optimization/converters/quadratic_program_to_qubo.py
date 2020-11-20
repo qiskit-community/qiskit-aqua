@@ -47,14 +47,6 @@ class QuadraticProgramToQubo(QuadraticProgramConverter):
         self._ineq_to_eq = InequalityToEquality(mode='integer')
         self._penalize_lin_eq_constraints = LinearEqualityToPenalty(penalty=penalty)
 
-    def input_problem(self) -> Optional[QuadraticProgram]:
-        """Returns the input problem to be converted.
-
-        Returns:
-            The input problem to be converted.
-        """
-        return self._ineq_to_eq.input_problem()
-
     def convert(self, problem: QuadraticProgram) -> QuadraticProgram:
         """Convert a problem with linear equality constraints into new one with a QUBO form.
 

@@ -266,7 +266,8 @@ class GroverOptimizer(OptimizationAlgorithm):
 
         # cast binaries back to integers
         return cast(GroverOptimizationResult,
-                    self._interpret(opt_x, self._converters, GroverOptimizationResult,
+                    self._interpret(x=opt_x, converters=self._converters, problem=problem,
+                                    result_class=GroverOptimizationResult,
                                     operation_counts=operation_count, n_input_qubits=n_key,
                                     n_output_qubits=n_value, intermediate_fval=fval,
                                     threshold=threshold))

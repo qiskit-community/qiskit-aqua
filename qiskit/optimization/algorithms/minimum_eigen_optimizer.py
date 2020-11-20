@@ -217,8 +217,10 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
                                                   min_eigen_solver_result=eigen_result)
         # translate result back to integers
         return cast(MinimumEigenOptimizationResult,
-                    self._interpret(x, self._converters, MinimumEigenOptimizationResult,
-                                    samples=samples, min_eigen_solver_result=eigen_result))
+                    self._interpret(x=x, converters=self._converters, problem=problem,
+                                    result_class=MinimumEigenOptimizationResult,
+                                    samples=samples,
+                                    min_eigen_solver_result=eigen_result))
 
 
 def _eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray, StateFn],

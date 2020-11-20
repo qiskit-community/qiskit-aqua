@@ -6,7 +6,6 @@ features:
     `interpret(Union[np.ndarray, List[float]) -> np.ndarray`.
     Change the signature of `OptimizationProblem._interpret` to return
     OptimizationResult.
-    Add QuadraticProgramConverter to return the input problem.
 deprecations:
   - |
     Remove deprecated methods `QuadraticProgramConverter.{encode,decode}`
