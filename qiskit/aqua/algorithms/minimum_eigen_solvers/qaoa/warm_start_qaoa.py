@@ -18,7 +18,7 @@ from qiskit.providers.backend import Backend
 from qiskit.providers.basebackend import BaseBackend
 
 from qiskit import QuantumCircuit
-from qiskit.aqua.algorithms import QAOA
+from qiskit.aqua.algorithms import QAOA, VQE
 
 from qiskit.aqua import AquaError, QuantumInstance
 from qiskit.aqua.components.initial_states import InitialState
@@ -28,14 +28,12 @@ from qiskit.aqua.operators import CircuitOp, OperatorBase, LegacyBaseOperator, G
     ExpectationBase
 
 
-class WarmStartQAOA(QAOA):
+class WarmStartQAOA(VQE):
 
     def __init__(self,
                  operator: Union[OperatorBase, LegacyBaseOperator] = None,
                  optimizer: Optimizer = None,
                  p: int = 1,
-                 initial_state: Optional[Union[QuantumCircuit, InitialState]] = None,
-                 mixer: Union[OperatorBase, LegacyBaseOperator] = None,
                  initial_point: Optional[np.ndarray] = None,
                  gradient: Optional[Union[GradientBase,
                                           Callable[[Union[np.ndarray, List]],
@@ -47,7 +45,13 @@ class WarmStartQAOA(QAOA):
                  None,
                  callback: Optional[Callable[[int, np.ndarray, float, float], None]] = None,
                  quantum_instance: Optional[
-                     Union[QuantumInstance, BaseBackend, Backend]] = None) -> None:
+                     Union[QuantumInstance, BaseBackend, Backend]] = None,
+                 initial_variables: Optional[List[float]] = None,
+                 epsilon: float = 0.0,
+                 ) -> None:
+        self._epsilon = epsilon
+        self.set_initial_variables(initial_variables)
+        initial_state = self._create_initial_state()
         super().__init__(operator, optimizer, p, initial_state, mixer, initial_point, gradient,
                          expectation, include_custom, max_evals_grouped, aux_operators, callback,
                          quantum_instance)
@@ -83,11 +87,11 @@ class WarmStartQAOA(QAOA):
             else:
                 self._initial_variables.append(variable)
 
-    def make_it_so(self,
-                   quantum_instance: Optional[Union[QuantumInstance, Backend, BaseBackend]] = None,
-                   **kwargs) -> Dict:
-        qaoa = QAOA()
-        qaoa.run()
+    # def make_it_so(self,
+    #                quantum_instance: Optional[Union[QuantumInstance, Backend, BaseBackend]] = None,
+    #                **kwargs) -> Dict:
+    #     qaoa = QAOA()
+    #     qaoa.run()
 
     def _prepare_mixer_warm(self, beta: float) -> OperatorBase:
         """
