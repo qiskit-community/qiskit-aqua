@@ -67,6 +67,7 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         self.assertEqual(q_p.name, name)
 
     def assert_equal(self, x: Variable, y: Variable):
+        """asserts variable equality"""
         self.assertEqual(x.name, y.name)
         self.assertEqual(x.lowerbound, y.lowerbound)
         self.assertEqual(x.upperbound, y.upperbound)

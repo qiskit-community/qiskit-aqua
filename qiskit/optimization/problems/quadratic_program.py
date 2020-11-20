@@ -53,6 +53,7 @@ class QuadraticProgramStatus(Enum):
     VALID = 0
     INFEASIBLE = 1
 
+
 class QuadraticProgram:
     """Quadratically Constrained Quadratic Program representation.
 
