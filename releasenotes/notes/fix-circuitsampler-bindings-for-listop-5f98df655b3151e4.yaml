@@ -1,5 +1,5 @@
 ---
-fixes:
+features:
   - |
     Previously, if a parameterized ``ListOp`` was passed to the circuit sampler, along with 
     parameter bindings, all operators must have been parameterized by the same parameters. 
