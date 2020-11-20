@@ -15,7 +15,7 @@ import copy
 import logging
 import time
 import warnings
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, cast
 
 import numpy as np
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
@@ -376,17 +376,14 @@ class ADMMOptimizer(OptimizationAlgorithm):
         objective_value = objective_value * sense
 
         # convert back integer to binary
-        result = self._interpret(solution, int2bin)
+        # `state` is our internal state of computations.
+        result = cast(ADMMOptimizationResult,
+                      self._interpret(solution, int2bin, ADMMOptimizationResult,
+                                      state=self._state))
 
-        # third parameter is our internal state of computations.
-        result = ADMMOptimizationResult(x=result.x, fval=result.fval,
-                                        variables=result.variables,
-                                        state=self._state,
-                                        status=result.status)
-
-        # debug
         self._log.debug("solution=%s, objective=%s at iteration=%s",
                         solution, objective_value, iteration)
+
         return result
 
     @staticmethod

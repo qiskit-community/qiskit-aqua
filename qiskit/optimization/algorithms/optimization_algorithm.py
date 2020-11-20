@@ -14,7 +14,7 @@
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import List, Union, Any, Optional, Dict
+from typing import List, Union, Any, Optional, Dict, Type
 
 import numpy as np
 
@@ -346,23 +346,31 @@ class OptimizationAlgorithm(ABC):
     @classmethod
     def _interpret(cls, x: np.ndarray,
                    converters: Union[QuadraticProgramConverter,
-                                     List[QuadraticProgramConverter]]) -> OptimizationResult:
+                                     List[QuadraticProgramConverter]],
+                   result_class: Type[OptimizationResult] = OptimizationResult,
+                   **kwargs) -> OptimizationResult:
         """Convert back the result of the converted problem to the result of the original problem.
 
         Args:
             x: The result of the converted problem.
             converters: The converters to use for converting back the result of the problem
                 to the result of the original problem.
+            result_class: The class of the result object.
 
         Returns:
             The result of the original problem.
 
         Raises:
+            QiskitOptimizationError: if result_class is not a sub-class of OptimizationResult.
             QiskitOptimizationError: if converters is an empty list.
             QiskitOptimizationError: if converters do not have information of the source problem.
             TypeError: if converters are not QuadraticProgramConverter or a list of
                 QuadraticProgramConverter.
         """
+        if not issubclass(result_class, OptimizationResult):
+            raise QiskitOptimizationError(
+                'Invalid result class, not derived from OptimizationResult: '
+                '{}'.format(result_class))
         if isinstance(converters, list):
             if len(converters) == 0:
                 raise QiskitOptimizationError('The list of converters is empty')
@@ -376,6 +384,6 @@ class OptimizationAlgorithm(ABC):
         prob = converters[0].input_problem()
         if prob is None:
             raise QiskitOptimizationError('The input problem of converter(s) is not included')
-        return OptimizationResult(x=x, fval=prob.objective.evaluate(x),
-                                  variables=prob.variables,
-                                  status=cls._get_feasibility_status(prob, x))
+        return result_class(x=x, fval=prob.objective.evaluate(x),
+                            variables=prob.variables,
+                            status=cls._get_feasibility_status(prob, x), **kwargs)

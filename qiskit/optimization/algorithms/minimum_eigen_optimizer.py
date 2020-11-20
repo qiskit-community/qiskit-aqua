@@ -11,7 +11,7 @@
 # that they have been altered from the originals.
 
 """A wrapper for minimum eigen solvers from Aqua to be used within the optimization module."""
-from typing import Optional, Any, Union, Tuple, List
+from typing import Optional, Any, Union, Tuple, List, cast
 
 import numpy as np
 from qiskit.aqua.algorithms import MinimumEigensolver, MinimumEigensolverResult
@@ -216,11 +216,9 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
                                                   samples=None,
                                                   min_eigen_solver_result=eigen_result)
         # translate result back to integers
-        result = self._interpret(x, self._converters)
-        return MinimumEigenOptimizationResult(x=result.x, fval=result.fval,
-                                              variables=result.variables,
-                                              status=result.status,
-                                              samples=samples, min_eigen_solver_result=eigen_result)
+        return cast(MinimumEigenOptimizationResult,
+                    self._interpret(x, self._converters, MinimumEigenOptimizationResult,
+                                    samples=samples, min_eigen_solver_result=eigen_result))
 
 
 def _eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray, StateFn],

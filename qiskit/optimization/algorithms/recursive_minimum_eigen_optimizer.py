@@ -15,7 +15,7 @@
 import logging
 from copy import deepcopy
 from enum import Enum
-from typing import Optional, Union, List, Tuple, Dict
+from typing import Optional, Union, List, Tuple, Dict, cast
 
 import numpy as np
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
@@ -289,13 +289,10 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
 
         # construct result
         x_v = np.array([var_values[x_aux.name] for x_aux in problem_ref.variables])
-        result = self._interpret(x_v, self._converters)
-
-        return RecursiveMinimumEigenOptimizationResult(x=result.x, fval=result.fval,
-                                                       variables=result.variables,
-                                                       replacements=replacements,
-                                                       history=history,
-                                                       status=result.status)
+        return cast(RecursiveMinimumEigenOptimizationResult,
+                    self._interpret(x_v, self._converters,
+                                    RecursiveMinimumEigenOptimizationResult,
+                                    replacements=replacements, history=history))
 
     @staticmethod
     def _find_strongest_correlation(correlations):

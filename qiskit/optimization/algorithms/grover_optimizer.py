@@ -15,7 +15,7 @@
 import logging
 import math
 from copy import deepcopy
-from typing import Optional, Dict, Union, List
+from typing import Optional, Dict, Union, List, cast
 
 import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister
@@ -265,13 +265,11 @@ class GroverOptimizer(OptimizationAlgorithm):
         fval = problem_init.objective.evaluate(opt_x)
 
         # cast binaries back to integers
-        result = self._interpret(opt_x, self._converters)
-
-        return GroverOptimizationResult(x=result.x, fval=result.fval, variables=result.variables,
-                                        operation_counts=operation_count, n_input_qubits=n_key,
-                                        n_output_qubits=n_value, intermediate_fval=fval,
-                                        threshold=threshold,
-                                        status=result.status)
+        return cast(GroverOptimizationResult,
+                    self._interpret(opt_x, self._converters, GroverOptimizationResult,
+                                    operation_counts=operation_count, n_input_qubits=n_key,
+                                    n_output_qubits=n_value, intermediate_fval=fval,
+                                    threshold=threshold))
 
     def _measure(self, circuit: QuantumCircuit) -> str:
         """Get probabilities from the given backend, and picks a random outcome."""
