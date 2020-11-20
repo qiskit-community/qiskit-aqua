@@ -372,7 +372,7 @@ class CircuitSampler(ConverterBase):
             gate_index += 1
 
     def _prepare_parameterized_run_config(self, param_bindings:
-                                          List[Dict[Parameter, List[float]]]) -> List[Any]:
+                                          List[Dict[Parameter, float]]) -> List[Any]:
 
         self.quantum_instance._run_config.parameterizations = []
 
