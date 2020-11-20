@@ -198,6 +198,7 @@ class CircuitSampler(ConverterBase):
                                    for (param, value_list) in params.items()}
                                   for i in range(num_parameterizations)]
             else:
+                num_parameterizations = 1
                 param_bindings = [params]  # type: ignore
 
         else:

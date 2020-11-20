@@ -20,7 +20,9 @@ import numpy
 from qiskit import Aer
 from qiskit.circuit import QuantumCircuit, Parameter
 from qiskit.aqua import QuantumInstance
-from qiskit.aqua.operators import StateFn, Zero, One, H, X, I, Z, Plus, Minus, CircuitSampler
+from qiskit.aqua.operators import (
+    StateFn, Zero, One, H, X, I, Z, Plus, Minus, CircuitSampler, ListOp
+)
 
 
 # pylint: disable=invalid-name
