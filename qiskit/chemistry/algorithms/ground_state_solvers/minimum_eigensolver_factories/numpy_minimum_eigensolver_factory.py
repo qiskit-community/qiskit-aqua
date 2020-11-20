@@ -68,7 +68,7 @@ class NumPyMinimumEigensolverFactory(MinimumEigensolverFactory):
         provided by the ``transformation``.
 
         Args:
-            transformation: a fermionic qubit operator transformation.
+            transformation: a fermionic/bosonic qubit operator transformation.
 
         Returns:
             A NumPyMinimumEigensolver suitable to compute the ground state of the molecule

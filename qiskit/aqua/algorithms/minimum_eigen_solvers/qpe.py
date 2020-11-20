@@ -56,7 +56,7 @@ class QPE(QuantumAlgorithm, MinimumEigensolver):
 
     def __init__(self,
                  operator: Optional[Union[OperatorBase, LegacyBaseOperator]] = None,
-                 state_in: Optional[InitialState] = None,
+                 state_in: Optional[Union[InitialState, QuantumCircuit]] = None,
                  iqft: Optional[QuantumCircuit] = None,
                  num_time_slices: int = 1,
                  num_ancillae: int = 1,

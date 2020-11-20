@@ -19,7 +19,8 @@ from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms import VQE
 from qiskit.aqua.components.optimizers import SLSQP, SPSA
 from qiskit.aqua.operators import AerPauliExpectation, PauliExpectation
-from qiskit.chemistry.components.initial_states import HartreeFock
+
+from qiskit.chemistry.circuit.library import HartreeFock
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.core import QubitMappingType
 from qiskit.chemistry.drivers import HDF5Driver
@@ -68,7 +69,7 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
 
         result = gsc.solve(self.driver)
 
-        self.assertAlmostEqual(result.energy, self.reference_energy, places=6)
+        self.assertAlmostEqual(result.total_energies[0], self.reference_energy, places=6)
 
     def test_uccsd_hf_qasm(self):
         """ uccsd hf test with qasm_simulator. """
@@ -83,8 +84,7 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         gsc = GroundStateEigensolver(self.fermionic_transformation, solver)
 
         result = gsc.solve(self.driver)
-
-        self.assertAlmostEqual(result.energy, -1.138, places=2)
+        self.assertAlmostEqual(result.total_energies[0], -1.138, places=2)
 
     def test_uccsd_hf_aer_statevector(self):
         """ uccsd hf test with Aer statevector """
@@ -101,8 +101,7 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         gsc = GroundStateEigensolver(self.fermionic_transformation, solver)
 
         result = gsc.solve(self.driver)
-
-        self.assertAlmostEqual(result.energy, self.reference_energy, places=6)
+        self.assertAlmostEqual(result.total_energies[0], self.reference_energy, places=6)
 
     def test_uccsd_hf_aer_qasm(self):
         """ uccsd hf test with Aer qasm_simulator. """
@@ -123,8 +122,7 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         gsc = GroundStateEigensolver(self.fermionic_transformation, solver)
 
         result = gsc.solve(self.driver)
-
-        self.assertAlmostEqual(result.energy, -1.138, places=2)
+        self.assertAlmostEqual(result.total_energies[0], -1.138, places=2)
 
     def test_uccsd_hf_aer_qasm_snapshot(self):
         """ uccsd hf test with Aer qasm_simulator snapshot. """
@@ -143,7 +141,7 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         gsc = GroundStateEigensolver(self.fermionic_transformation, solver)
 
         result = gsc.solve(self.driver)
-        self.assertAlmostEqual(result.energy, self.reference_energy, places=3)
+        self.assertAlmostEqual(result.total_energies[0], self.reference_energy, places=3)
 
     EXCITATION_RESULTS = \
         [[[[0, 1], [0, 2], [3, 4], [3, 5]],

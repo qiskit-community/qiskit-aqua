@@ -22,7 +22,7 @@ from qiskit.aqua.components.optimizers import SLSQP
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry.components.variational_forms import UCCSD
-from qiskit.chemistry.components.initial_states import HartreeFock
+from qiskit.chemistry.circuit.library import HartreeFock
 from qiskit.chemistry.algorithms.ground_state_solvers import GroundStateEigensolver
 from qiskit.chemistry.core import TransformationType, QubitMappingType
 from qiskit.chemistry.transformations import FermionicTransformation
@@ -103,8 +103,7 @@ class TestSymmetries(QiskitChemistryTestCase):
         gsc = GroundStateEigensolver(self.fermionic_transformation, solver)
 
         result = gsc.solve(self.driver)
-
-        self.assertAlmostEqual(result.energy, self.reference_energy, places=6)
+        self.assertAlmostEqual(result.total_energies[0], self.reference_energy, places=6)
 
 
 if __name__ == '__main__':

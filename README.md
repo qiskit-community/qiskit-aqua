@@ -223,12 +223,15 @@ from qiskit.aqua.components.optimizers import L_BFGS_B
 optimizer = L_BFGS_B()
 
 # setup the initial state for the variational form
-from qiskit.chemistry.components.initial_states import HartreeFock
+from qiskit.chemistry.circuit.library import HartreeFock
 init_state = HartreeFock(num_spin_orbitals, num_particles)
 
 # setup the variational form for VQE
 from qiskit.circuit.library import TwoLocal
-var_form = TwoLocal(num_qubits, ['ry', 'rz'], 'cz', initial_state=init_state)
+var_form = TwoLocal(num_qubits, ['ry', 'rz'], 'cz')
+
+# add the initial state
+var_form.compose(init_state, front=True)
 
 # setup and run VQE
 from qiskit.aqua.algorithms import VQE
@@ -537,3 +540,4 @@ However there is some code that is included under other licensing as follows:
 * The [Gaussian 16 driver](qiskit/chemistry/drivers/gaussiand) in `qiskit.chemistry`
   contains [work](qiskit/chemistry/drivers/gaussiand/gauopen) licensed under the
   [Gaussian Open-Source Public License](qiskit/chemistry/drivers/gaussiand/gauopen/LICENSE.txt).
+

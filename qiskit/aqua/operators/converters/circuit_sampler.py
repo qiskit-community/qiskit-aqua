@@ -21,13 +21,13 @@ from qiskit.providers import BaseBackend
 from qiskit.providers import Backend
 from qiskit.circuit import QuantumCircuit, Parameter, ParameterExpression
 from qiskit import QiskitError
-from qiskit.aqua import QuantumInstance
+from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.utils.backend_utils import is_aer_provider, is_statevector_backend
 from qiskit.aqua.operators.operator_base import OperatorBase
-from qiskit.aqua.operators.operator_globals import Zero
 from qiskit.aqua.operators.list_ops.list_op import ListOp
 from qiskit.aqua.operators.state_fns.state_fn import StateFn
 from qiskit.aqua.operators.state_fns.circuit_state_fn import CircuitStateFn
+from qiskit.aqua.operators.state_fns.dict_state_fn import DictStateFn
 from qiskit.aqua.operators.converters.converter_base import ConverterBase
 
 logger = logging.getLogger(__name__)
@@ -49,7 +49,7 @@ class CircuitSampler(ConverterBase):
     """
 
     def __init__(self,
-                 backend: Union[Backend, BaseBackend, QuantumInstance] = None,
+                 backend: Union[Backend, BaseBackend, QuantumInstance],
                  statevector: Optional[bool] = None,
                  param_qobj: bool = False,
                  attach_results: bool = False) -> None:
@@ -165,6 +165,8 @@ class CircuitSampler(ConverterBase):
 
         Returns:
             The converted Operator with CircuitStateFns replaced by DictStateFns or VectorStateFns.
+        Raises:
+            AquaError: if extracted circuits are empty.
         """
         if self._last_op is None or id(operator) != id(self._last_op):
             # Clear caches
@@ -181,6 +183,11 @@ class CircuitSampler(ConverterBase):
         if not self._circuit_ops_cache:
             self._circuit_ops_cache = {}
             self._extract_circuitstatefns(self._reduced_op_cache)
+            if not self._circuit_ops_cache:
+                raise AquaError(
+                    'Circuits are empty. '
+                    'Check that the operator is an instance of CircuitStateFn or its ListOp.'
+                )
 
         if params:
             p_0 = list(params.values())[0]  # type: ignore
@@ -243,8 +250,14 @@ class CircuitSampler(ConverterBase):
 
         Returns:
             The dictionary mapping ids of the CircuitStateFns to their replacement StateFns.
+        Raises:
+            AquaError: if extracted circuits are empty.
         """
-        if circuit_sfns or not self._transpiled_circ_cache:
+        if not circuit_sfns and not self._transpiled_circ_cache:
+            raise AquaError('CircuitStateFn is empty and there is no cache.')
+
+        if circuit_sfns:
+            self._transpiled_circ_templates = None
             if self._statevector:
                 circuits = [op_c.to_circuit(meas=False) for op_c in circuit_sfns]
             else:
@@ -266,14 +279,14 @@ class CircuitSampler(ConverterBase):
                 start_time = time()
                 ready_circs = self._prepare_parameterized_run_config(param_bindings)
                 end_time = time()
-                logger.info('Parameter conversion %.5f (ms)', (end_time - start_time) * 1000)
+                logger.debug('Parameter conversion %.5f (ms)', (end_time - start_time) * 1000)
             else:
                 start_time = time()
                 ready_circs = [circ.assign_parameters(binding)
                                for circ in self._transpiled_circ_cache
                                for binding in param_bindings]
                 end_time = time()
-                logger.info('Parameter binding %.5f (ms)', (end_time - start_time) * 1000)
+                logger.debug('Parameter binding %.5f (ms)', (end_time - start_time) * 1000)
         else:
             ready_circs = self._transpiled_circ_cache
 
@@ -306,13 +319,16 @@ class CircuitSampler(ConverterBase):
                         avg = avg[0] + 1j * avg[1]
                     # Will be replaced with just avg when eval is called later
                     num_qubits = circuit_sfns[0].num_qubits
-                    result_sfn = (Zero ^ num_qubits).adjoint() * avg
+                    result_sfn = DictStateFn('0' * num_qubits,
+                                             is_measurement=op_c.is_measurement) * avg
                 elif self._statevector:
-                    result_sfn = StateFn(op_c.coeff * results.get_statevector(circ_index))
+                    result_sfn = StateFn(op_c.coeff * results.get_statevector(circ_index),
+                                         is_measurement=op_c.is_measurement)
                 else:
                     shots = self.quantum_instance._run_config.shots
                     result_sfn = StateFn({b: (v / shots) ** 0.5 * op_c.coeff
-                                          for (b, v) in results.get_counts(circ_index).items()})
+                                          for (b, v) in results.get_counts(circ_index).items()},
+                                         is_measurement=op_c.is_measurement)
                 if self._attach_results:
                     result_sfn.execution_results = circ_results
                 c_statefns.append(result_sfn)
