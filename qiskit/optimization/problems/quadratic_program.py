@@ -1388,7 +1388,7 @@ class QuadraticProgram:
         if len(x) != self.get_num_vars():
             raise QiskitOptimizationError(
                 'The size of solution `x`: {}, does not match the number of problem variables: {}'
-                    .format(len(x), self.get_num_vars()))
+                .format(len(x), self.get_num_vars()))
 
         # check whether the input satisfy the bounds of the problem
         violated_variables = []  # type: List[Variable]
@@ -1400,7 +1400,7 @@ class QuadraticProgram:
         # check whether the input satisfy the constraints of the problem
         violated_constraints = []  # type: List[Constraint]
         for constraint in cast(List[Constraint], self._linear_constraints) + \
-                          cast(List[Constraint], self._quadratic_constraints):
+                cast(List[Constraint], self._quadratic_constraints):
             lhs = constraint.evaluate(x)
             if constraint.sense == ConstraintSense.LE and lhs > constraint.rhs:
                 violated_constraints.append(constraint)
