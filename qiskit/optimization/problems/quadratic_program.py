@@ -53,17 +53,6 @@ class QuadraticProgramStatus(Enum):
     VALID = 0
     INFEASIBLE = 1
 
-
-def _update_var_list(var_list: List[Variable], variable: Variable) -> List[Variable]:
-    var_list.append(variable)
-    return var_list
-
-
-def _update_var_dict(var_dict: Dict[str, Variable], variable: Variable) -> Dict[str, Variable]:
-    var_dict[variable.name] = variable
-    return var_dict
-
-
 class QuadraticProgram:
     """Quadratically Constrained Quadratic Program representation.
 
