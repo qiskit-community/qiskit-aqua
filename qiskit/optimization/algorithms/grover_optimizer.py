@@ -305,21 +305,6 @@ class GroverOptimizer(OptimizationAlgorithm):
         return hist
 
     @staticmethod
-    def _twos_complement(v: int, n_bits: int) -> str:
-        """Converts an integer into a binary string of n bits using two's complement."""
-        if not -2 ** (n_bits - 1) <= v < 2 ** (n_bits - 1):
-            raise ValueError('Too few bits ({}) to encode {} in 2s complement.'.format(n_bits, v))
-
-        if v < 0:
-            v += 2 ** n_bits
-            bin_v = bin(v)[2:]
-        else:
-            format_string = '{0:0' + str(n_bits) + 'b}'
-            bin_v = format_string.format(v)
-
-        return bin_v
-
-    @staticmethod
     def _bin_to_int(v: str, num_value_bits: int) -> int:
         """Converts a binary string of n bits using two's complement to an integer."""
         if v.startswith("1"):
