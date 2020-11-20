@@ -135,7 +135,7 @@ class QSVM(QuantumAlgorithm):
             self.feature_map_params_y = ParameterVector('y', self.feature_map.feature_dimension)
         else:
             warnings.warn("""
-            The {} object as input for the QSVM is deprecated as of 0.7.0 and will
+            The {} object as input for the QSVM is deprecated as of 0.9.0 and will
             be removed no earlier than 3 months after the release.
             You should pass a QuantumCircuit object instead.
             See also qiskit.circuit.library.data_preparation for a collection
