@@ -95,7 +95,7 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
                 self.assert_equal(x, y)
                 self.assert_equal(x, z)
 
-        d_0 = q_p.continuous_var_dict(name='a', formatter='_{}', keys=3)
+        d_0 = q_p.continuous_var_dict(name='a', key_format='_{}', keys=3)
         c_count += 3
         check_dict(d_0, 0)
 
@@ -103,11 +103,11 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         b_count += 5
         check_dict(d_1, len(d_0))
 
-        d_2 = q_p.integer_var_dict(formatter='_{}', keys=7, lowerbound=-4, upperbound=10)
+        d_2 = q_p.integer_var_dict(key_format='_{}', keys=7, lowerbound=-4, upperbound=10)
         i_count += 7
         check_dict(d_2, len(d_0) + len(d_1))
 
-        d_3 = q_p.continuous_var_dict(name='a', formatter='_{}', keys=3)
+        d_3 = q_p.continuous_var_dict(name='a', key_format='_{}', keys=3)
         c_count += 3
         check_dict(d_3, len(d_0) + len(d_1) + len(d_2))
 
@@ -123,7 +123,7 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
 
         with self.assertRaises(QiskitOptimizationError):
             q_p = QuadraticProgram()
-            q_p.binary_var_dict(formatter='{}{}')
+            q_p.binary_var_dict(key_format='{}{}')
 
         with self.assertRaises(QiskitOptimizationError):
             q_p = QuadraticProgram()
@@ -136,7 +136,7 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
 
         with self.assertRaises(QiskitOptimizationError):
             q_p = QuadraticProgram()
-            q_p.binary_var_dict(formatter='_{{}}')
+            q_p.binary_var_dict(key_format='_{{}}')
 
     def test_var_list(self):
         """test {binary,integer,continuous}_var_list"""
@@ -160,7 +160,7 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
                 self.assert_equal(x, y)
                 self.assert_equal(x, z)
 
-        d_0 = q_p.continuous_var_list(name='a', formatter='_{}', keys=3)
+        d_0 = q_p.continuous_var_list(name='a', key_format='_{}', keys=3)
         c_count += 3
         check_list(d_0, 0)
 
@@ -168,11 +168,11 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         b_count += 5
         check_list(d_1, len(d_0))
 
-        d_2 = q_p.integer_var_list(formatter='_{}', keys=7, lowerbound=-4, upperbound=10)
+        d_2 = q_p.integer_var_list(key_format='_{}', keys=7, lowerbound=-4, upperbound=10)
         i_count += 7
         check_list(d_2, len(d_0) + len(d_1))
 
-        d_3 = q_p.continuous_var_list(name='a', formatter='_{}', keys=3)
+        d_3 = q_p.continuous_var_list(name='a', key_format='_{}', keys=3)
         c_count += 3
         check_list(d_3, len(d_0) + len(d_1) + len(d_2))
 
@@ -188,7 +188,7 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
 
         with self.assertRaises(QiskitOptimizationError):
             q_p = QuadraticProgram()
-            q_p.binary_var_list(formatter='{}{}')
+            q_p.binary_var_list(key_format='{}{}')
 
         with self.assertRaises(QiskitOptimizationError):
             q_p = QuadraticProgram()
@@ -201,7 +201,7 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
 
         with self.assertRaises(QiskitOptimizationError):
             q_p = QuadraticProgram()
-            q_p.binary_var_list(formatter='_{{}}')
+            q_p.binary_var_list(key_format='_{{}}')
 
     def test_variables_handling(self):
         """ test add variables """
