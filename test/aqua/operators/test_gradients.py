@@ -664,7 +664,8 @@ class TestGradients(QiskitAquaTestCase):
         grad_op = ListOp([StateFn(qc)], combo_fn=combo_fn, grad_combo_fn=grad_combo_fn)
         grad = Gradient(grad_method=method).convert(grad_op, qc.ordered_parameters)
         value_dict = dict(zip(qc.ordered_parameters, np.random.rand(len(qc.ordered_parameters))))
-        correct_values = [[(-0.16666)], [(-7.24495)], [(-2.97979)], [(-5.31019)]]
+        correct_values = [[(-0.16666259133549044+0j)], [(-7.244949702732864+0j)],
+                          [(-2.979791752749964+0j)], [(-5.310186078432614+0j)]]
         np.testing.assert_array_almost_equal(grad.assign_parameters(value_dict).eval(),
                                              correct_values)
 
