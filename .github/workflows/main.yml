@@ -57,10 +57,6 @@ jobs:
           pip install "cvxpy>1.0.0"
           pip install https://github.com/rpmuller/pyquante2/archive/master.zip
         shell: bash
-      - name: Terminate if failure above
-        run: exit 1
-        if: ${{ !success() }}
-        shell: bash
       - run:  pip check
         if: ${{ !cancelled() }}
         shell: bash
@@ -126,10 +122,6 @@ jobs:
         run: |
           pip install "cvxpy>1.0.0"
           pip install https://github.com/rpmuller/pyquante2/archive/master.zip
-      - name: Terminate if failure above
-        run: exit 1
-        if: ${{ !success() }}
-        shell: bash
       - run: make lint
         if: ${{ !cancelled() }}
         shell: bash
@@ -250,11 +242,10 @@ jobs:
           if [ -f "$HOME/miniconda/etc/profile.d/conda.sh" ]; then
             source "$HOME/miniconda/etc/profile.d/conda.sh"
             conda activate
+            pip install https://github.com/rpmuller/pyquante2/archive/master.zip
             # PSI4 has problems with dataclasses
             pip uninstall -y dataclasses
           fi
-          sudo apt-get -y install libgfortran5
-          pip install https://github.com/rpmuller/pyquante2/archive/master.zip
           pip install pyscf
         shell: bash
       - name: Install cplex
@@ -267,8 +258,6 @@ jobs:
         if: ${{ matrix.python-version == 3.7 }}
         shell: bash
       - name: Chemistry Unit Tests under Python ${{ matrix.python-version }}
-        env: 
-          OPENBLAS_NUM_THREADS: 1
         uses: ./.github/actions/run-tests
         with:
           domain: chemistry
@@ -462,7 +451,6 @@ jobs:
         shell: bash
       - name: Install Dependencies
         run: |
-          sudo apt-get -y install libgfortran5
           pip install https://github.com/rpmuller/pyquante2/archive/master.zip
           pip install pyscf
           pip install "cvxpy>1.0.0"
@@ -470,15 +458,12 @@ jobs:
           sudo apt-get install -y pandoc graphviz
         shell: bash
       - name: Run Aqua Tutorials
-        env:
-          OPENBLAS_NUM_THREADS: 1
         run: |
           git clone https://github.com/Qiskit/qiskit-tutorials
           cd qiskit-tutorials
           rm -r tutorials/circuits/
           rm -r tutorials/circuits_advanced/
           rm -r tutorials/noise/
-          rm -r tutorials/pulse/
           rm -r tutorials/simulators/
           sphinx-build -b html . _build/html
           cd _build/html
