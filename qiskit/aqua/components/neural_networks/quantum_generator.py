@@ -333,16 +333,16 @@ class QuantumGenerator(GenerativeNetwork):
                 loss_gradients (np.ndarray): array of partial derivatives of the loss
                     function w.r.t. the variational parameters.
             """
-            bound_params = self._bound_parameters
-            free_params = self._free_parameters            
-            generated_data, generated_prob = self.get_output(quantum_instance, 
-                                                             params=bound_params,
-                                                             shots=self._shots)            
+            # bound_params = self._bound_parameters
+            free_params = self._free_parameters
+            generated_data, _ = self.get_output(quantum_instance,
+                                                             params=initial_point,
+                                                             shots=self._shots)
             prediction_generated = discriminator.get_label(generated_data, detach=True)
-            op = ~CircuitStateFn(primitive=self.generator_circuit) 
-            grad_object = Gradient(grad_method='param_shift').convert(operator=op, 
+            op = ~CircuitStateFn(primitive=self.generator_circuit)
+            grad_object = Gradient(grad_method='param_shift').convert(operator=op,
                                                                       params=free_params)
-            value_dict = {free_params[i]: bound_params[i] for i in range(len(free_params))}
+            value_dict = {free_params[i]: initial_point[i] for i in range(len(free_params))}
             analytical_gradients = np.array(grad_object.assign_parameters(value_dict).eval())
             loss_gradients = self.loss(prediction_generated, analytical_gradients).real
             return loss_gradients
