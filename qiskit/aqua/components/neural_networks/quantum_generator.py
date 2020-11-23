@@ -26,6 +26,8 @@ from qiskit.aqua.components.optimizers import Optimizer
 from qiskit.aqua.components.uncertainty_models import UnivariateVariationalDistribution, \
     MultivariateVariationalDistribution
 from qiskit.aqua.components.neural_networks.generative_network import GenerativeNetwork
+from qiskit.aqua.operators.gradients import Gradient
+from qiskit.aqua.operators import CircuitStateFn
 
 # pylint: disable=invalid-name
 
@@ -308,6 +310,45 @@ class QuantumGenerator(GenerativeNetwork):
 
         return objective_function
 
+    def _get_analytical_loss_gradient(self, quantum_instance, discriminator):
+        """
+        Get analytical loss gradient
+
+        Args:
+            quantum_instance (QuantumInstance): used to run the quantum circuit.
+            discriminator (torch.nn.Module): discriminator network to compute the sample labels.
+
+        Returns:
+            analytical_loss_gradient: function that computes analytical loss gradients.
+        """
+
+        def analytical_loss_gradient(initial_point):
+            """
+            Analytical loss gradient
+
+            Args:
+                initial_point (np.ndarray): Initial values for the variational parameters.
+
+            Returns:
+                loss_gradients (np.ndarray): array of partial derivatives of the loss
+                    function w.r.t. the variational parameters.
+            """
+            bound_params = self._bound_parameters
+            free_params = self._free_parameters            
+            generated_data, generated_prob = self.get_output(quantum_instance, 
+                                                             params=bound_params,
+                                                             shots=self._shots)            
+            prediction_generated = discriminator.get_label(generated_data, detach=True)
+            op = ~CircuitStateFn(primitive=self.generator_circuit) 
+            grad_object = Gradient(grad_method='param_shift').convert(operator=op, 
+                                                                      params=free_params)
+            value_dict = {free_params[i]: bound_params[i] for i in range(len(free_params))}
+            analytical_gradients = np.array(grad_object.assign_parameters(value_dict).eval())
+            loss_gradients = self.loss(prediction_generated, analytical_gradients).real
+            return loss_gradients
+
+        return analytical_loss_gradient
+
     def train(self, quantum_instance=None, shots=None):
         """
         Perform one training step w.r.t to the generator's parameters
@@ -342,10 +383,12 @@ class QuantumGenerator(GenerativeNetwork):
                               'and discriminator are updated in an alternating fashion.')
 
         objective = self._get_objective_function(quantum_instance, self._discriminator)
+        loss_gradient = self._get_analytical_loss_gradient(quantum_instance, self._discriminator)
         self._bound_parameters, loss, _ = self._optimizer.optimize(
             num_vars=len(self._bound_parameters),
             objective_function=objective,
-            initial_point=self._bound_parameters
+            initial_point=self._bound_parameters,
+            gradient_function=loss_gradient
             )
 
         self._ret['loss'] = loss
