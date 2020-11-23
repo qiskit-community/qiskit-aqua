@@ -1,0 +1,7 @@
+---
+features:
+  - |
+    Add analytic gradients to the QuantumGenerator class so that
+    we can use analytically computed gradients using the gradient 
+    framework instead of estimates using the finite difference method when
+    no optmizer is provided during instantiation.
