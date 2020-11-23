@@ -13,6 +13,7 @@
 Arbitrary State-Vector Circuit.
 """
 
+import warnings
 from qiskit.circuit import QuantumRegister, QuantumCircuit, Qubit
 
 from qiskit.aqua import AquaError
@@ -24,6 +25,7 @@ class StateVectorCircuit:
     """
     Arbitrary State-Vector Circuit.
     """
+
     def __init__(self, state_vector):
         """Constructor.
 
@@ -32,6 +34,13 @@ class StateVectorCircuit:
         Raises:
             AquaError: invalid input
         """
+        warnings.warn('The StateVectorCircuit class is deprecated as of Qiskit Aqua 0.9.0 and will '
+                      'be removed no earlier than 3 months after the release. If you need to '
+                      'initialize a circuit, use the QuantumCircuit.initialize or '
+                      'QuantumCircuit.isometry methods. For a parameterized initialization, try '
+                      'the qiskit.ml.circuit.library.RawFeatureVector class.',
+                      DeprecationWarning, stacklevel=2)
+
         if not is_power_of_2(len(state_vector)):
             raise AquaError('The length of the input state vector needs to be a power of 2.')
         self._num_qubits = log2(len(state_vector))
