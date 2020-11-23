@@ -196,4 +196,4 @@ class Gradient(GradientBase):
 
             # f(g_1(x), g_2(x)) --> df/dx = df/dg_1 dg_1/dx + df/dg_2 dg_2/dx
             return ListOp([ListOp(operator.oplist, combo_fn=grad_combo_fn), ListOp(grad_ops)],
-                          combo_fn=lambda x: np.dot(x[0], x[1]))
+                          combo_fn=lambda x: np.dot(x[1], x[0]))
