@@ -222,9 +222,8 @@ class GroverOptimizer(OptimizationAlgorithm):
                 k = int(outcome[0:n_key], 2)
                 v = outcome[n_key:n_key + n_value]
                 int_v = self._bin_to_int(v, n_value) + threshold
-                v = self._twos_complement(int_v, n_value)
                 logger.info('Outcome: %s', outcome)
-                logger.info('Value: %s = %s', v, int_v)
+                logger.info('Value Q(x): %s', int_v)
 
                 # If the value is an improvement, we update the iteration parameters (e.g. oracle).
                 if int_v < optimum_value:
@@ -232,9 +231,8 @@ class GroverOptimizer(OptimizationAlgorithm):
                     optimum_value = int_v
                     logger.info('Current Optimum Key: %s', optimum_key)
                     logger.info('Current Optimum Value: %s', optimum_value)
-                    if v.startswith('1'):
-                        improvement_found = True
-                        threshold = optimum_value
+                    improvement_found = True
+                    threshold = optimum_value
                 else:
                     # Using Durr and Hoyer method, increase m.
                     m = int(np.ceil(min(m * 8 / 7, 2 ** (n_key / 2))))
@@ -305,20 +303,6 @@ class GroverOptimizer(OptimizationAlgorithm):
                 hist[key[::-1]] = state[key] / shots
         hist = dict(filter(lambda p: p[1] > 0, hist.items()))
         return hist
-
-    @staticmethod
-    def _twos_complement(v: int, n_bits: int) -> str:
-        """Converts an integer into a binary string of n bits using two's complement."""
-        assert -2 ** n_bits <= v < 2 ** n_bits
-
-        if v < 0:
-            v += 2 ** n_bits
-            bin_v = bin(v)[2:]
-        else:
-            format_string = '{0:0' + str(n_bits) + 'b}'
-            bin_v = format_string.format(v)
-
-        return bin_v
 
     @staticmethod
     def _bin_to_int(v: str, num_value_bits: int) -> int:
