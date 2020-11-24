@@ -697,7 +697,7 @@ class TestGradients(QiskitAquaTestCase):
             zip(qc.ordered_parameters, np.random.rand(len(qc.ordered_parameters))))
         correct_values = [[0.20777236], [-18.92560338], [-15.89005475], [-10.44002031]]
         np.testing.assert_array_almost_equal(grad.assign_parameters(value_dict).eval(),
-                                             correct_values)
+                                             correct_values, decimal=3)
 
     @data('lin_comb', 'param_shift', 'fin_diff')
     def test_operator_coefficient_gradient(self, method):
