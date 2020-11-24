@@ -691,8 +691,8 @@ class TestGradients(QiskitAquaTestCase):
 
         qc = RealAmplitudes(2, reps=1)
         grad_op = ListOp([StateFn(qc)], combo_fn=combo_fn, grad_combo_fn=grad_combo_fn)
-        grad = NaturalGradient(grad_method='lin_comb', regularization='ridge').convert(grad_op,
-                                                                      qc.ordered_parameters)
+        grad = NaturalGradient(grad_method='lin_comb', regularization='ridge'
+                               ).convert(grad_op, qc.ordered_parameters)
         value_dict = dict(
             zip(qc.ordered_parameters, np.random.rand(len(qc.ordered_parameters))))
         correct_values = [[0.20777236], [-18.92560338], [-15.89005475], [-10.44002031]]
