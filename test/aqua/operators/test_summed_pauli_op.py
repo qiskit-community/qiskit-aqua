@@ -169,11 +169,6 @@ class TestSummedPauliOp(QiskitAquaTestCase):
         expected = csr_matrix([[0, 1 - 1j], [1 + 1j, 0]])
         self.assertEqual((target.to_spmatrix() - expected).nnz, 0)
 
-    def test_oplist(self):
-        """ test oplist """
-        target = X + Y + Z
-        self.assertEqual(target.oplist, [X, Y, Z])
-
     def test_from_list(self):
         """ test from_list """
         target = SummedPauliOp.from_list(

@@ -361,16 +361,6 @@ class SummedPauliOp(PrimitiveOp):
         """
         return self.primitive.to_matrix(sparse=True) * self.coeff  # type: ignore
 
-    @property
-    def oplist(self) -> List[OperatorBase]:
-        """The list of operators.
-        This function is for compatibility with ``SummedOp``.
-
-        Return:
-            The list of operators.
-        """
-        return self.to_pauli_op().oplist  # type: ignore
-
     @staticmethod
     def from_list(pauli_list: List[Tuple[str, Number]]) -> "SummedPauliOp":
         """ Construct from a pauli_list with the form [(pauli_str, coeffs)]
