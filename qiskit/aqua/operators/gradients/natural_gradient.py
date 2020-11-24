@@ -84,7 +84,9 @@ class NaturalGradient(GradientBase):
                 state is not ``CircuitStateFn``.
             ValueError: If ``params`` contains a parameter not present in ``operator``.
         """
-        if not isinstance(operator, ComposedOp) or not isinstance(operator[-1], CircuitStateFn):
+        if not isinstance(operator, CircuitStateFn) ^ (
+                not isinstance(operator, ComposedOp) or not isinstance(operator[-1],
+                                                                       CircuitStateFn)):
             raise TypeError(
                 'Please make sure that the operator for which you want to compute Quantum '
                 'Fisher Information represents an expectation value and that the quantum '
