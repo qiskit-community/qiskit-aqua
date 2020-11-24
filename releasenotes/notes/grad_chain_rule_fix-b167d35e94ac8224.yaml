@@ -1,0 +1,4 @@
+---
+fixes:
+  - |
+    Fix order in multiplication for chain rule in the gradient evaluation.
