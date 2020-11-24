@@ -97,11 +97,11 @@ class TestHamiltonianPhaseEstimation(QiskitAquaTestCase):
         backend = qiskit.BasicAer.get_backend('statevector_simulator')
         qi = qiskit.aqua.QuantumInstance(backend=backend, shots=10000)
         phase_est = HamiltonianPhaseEstimation(num_evaluation_qubits=6,
-                                  hamiltonian=hamiltonian,
-                                  bound=bound,
-                                  quantum_instance=qi,
-                                  state_preparation=state_preparation,
-                                  evolution=evolution)
+                                               hamiltonian=hamiltonian,
+                                               bound=bound,
+                                               quantum_instance=qi,
+                                               state_preparation=state_preparation,
+                                               evolution=evolution)
         result = phase_est.run()
         return result
 

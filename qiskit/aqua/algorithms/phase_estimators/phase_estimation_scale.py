@@ -84,6 +84,7 @@ class PhaseEstimationScale():
         else:
             return (phi - 1) * w
 
+    # pylint: disable=unsubscriptable-object
     def scale_phases(self, phases: Union[List, Dict]) -> Union[Dict, List]:
         """Convert a list or dict of phases to eigenvalues.
 
