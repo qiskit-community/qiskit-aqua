@@ -16,7 +16,7 @@ from collections.abc import Iterable
 from typing import List, Tuple, Callable, Optional, Union
 
 import numpy as np
-from qiskit.aqua.operators import (OperatorBase, ListOp, ComposedOp, CircuitStateFn)
+from qiskit.aqua.operators import (OperatorBase, ListOp, CircuitStateFn)
 from qiskit.aqua.operators.gradients.circuit_gradients import CircuitGradient
 from qiskit.aqua.operators.gradients.circuit_qfis import CircuitQFI
 from qiskit.aqua.operators.gradients.gradient import Gradient
@@ -85,10 +85,10 @@ class NaturalGradient(GradientBase):
             ValueError: If ``params`` contains a parameter not present in ``operator``.
         """
         if not isinstance(operator[-1], CircuitStateFn):
-                raise TypeError(
-                    'Please make sure that the operator for which you want to compute Quantum '
-                    'Fisher Information represents an expectation value or a loss function and '
-                    'that the quantum state is given as CircuitStateFn.')
+            raise TypeError('Please make sure that the operator for which you want to compute '
+                            'Quantum Fisher Information represents an expectation value or a '
+                            'loss function and that the quantum state is given as '
+                            'CircuitStateFn.')
         if not isinstance(params, Iterable):
             params = [params]
         grad = Gradient(self._grad_method, epsilon=self._epsilon).convert(operator, params)
