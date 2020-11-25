@@ -198,13 +198,13 @@ class PauliSumOp(PrimitiveOp):
             return f"+ {x}"
 
         indent = "" if self.coeff == 1 else "  "
-        prim_list = self.primitive.to_list()
+        prim_list = self.primitive.to_list()  # type: ignore
         if prim_list:
             first = prim_list[0]
             if isinstance(first[1], (int, float)) and first[1] < 0:
                 main_string = indent + f"- {-first[1].real} * {first[0]}"
             else:
-                main_string = indent +  f"{format_sign(first[1])} * {first[0]}"
+                main_string = indent + f"{format_sign(first[1])} * {first[0]}"
 
         main_string += "".join([f"\n{indent}{format_number(c)} * {p}" for p, c in prim_list[1:]])
         return f"{main_string}" if self.coeff == 1 else f"{self.coeff} * (\n{main_string}\n)"

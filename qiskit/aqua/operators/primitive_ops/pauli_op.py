@@ -82,7 +82,7 @@ class PauliOp(PrimitiveOp):
             )
 
         if isinstance(other, PauliSumOp) and isinstance(self.coeff, (int, float, complex)):
-            return self.to_summed_pauli_op() + other
+            return PauliSumOp(SparsePauliOp(self.primitive, coeffs=[self.coeff])) + other
 
         return SummedOp([self, other])
 
