@@ -1030,9 +1030,10 @@ class QuadraticProgram:
         if not isinstance(qubit_op, SummedOp):
             oplist = [qubit_op.to_pauli_op()]
         else:
-            oplist = qubit_op.to_pauli_op().oplist
+            oplist = qubit_op.to_pauli_op()
 
         for pauli_op in oplist:
+            pauli_op = pauli_op.to_pauli_op()
             pauli = pauli_op.primitive
             coeff = pauli_op.coeff
             # Count the number of Pauli Zs in a Pauli term
