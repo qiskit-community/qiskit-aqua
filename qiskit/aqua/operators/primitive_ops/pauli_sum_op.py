@@ -188,19 +188,26 @@ class PauliSumOp(PrimitiveOp):
         return self.primitive.to_matrix() * self.coeff  # type: ignore
 
     def __str__(self) -> str:
-        prim_list = self.primitive.to_list()  # type:ignore
-
-        def format_number(x):
+        def format_sign(x):
             return x.real if np.isreal(x) else x
 
-        coeff_string = "" if self.coeff == 1 else f" * {self.coeff}"
+        def format_number(x):
+            x = format_sign(x)
+            if isinstance(x, (int, float)) and x < 0:
+                return f"- {-x}"
+            return f"+ {x}"
 
-        return (
-            "PauliSumOp([\n"
-            + "".join([f"{format_number(c)} * {p},\n" for p, c in prim_list])
-            + "])"
-            + coeff_string
-        )
+        indent = "" if self.coeff == 1 else "  "
+        prim_list = self.primitive.to_list()
+        if prim_list:
+            first = prim_list[0]
+            if isinstance(first[1], (int, float)) and first[1] < 0:
+                main_string = indent + f"- {-first[1].real} * {first[0]}"
+            else:
+                main_string = indent +  f"{format_sign(first[1])} * {first[0]}"
+
+        main_string += "".join([f"\n{indent}{format_number(c)} * {p}" for p, c in prim_list[1:]])
+        return f"{main_string}" if self.coeff == 1 else f"{self.coeff} * (\n{main_string}\n)"
 
     def eval(
         self,

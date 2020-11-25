@@ -111,9 +111,9 @@ class TestPauliSumOp(QiskitAquaTestCase):
 
     def test_str(self):
         """ str test """
-        target = str(3.0 * (X + 2.0 * Y))
-        expected = "PauliSumOp([\n1.0 * X,\n2.0 * Y,\n]) * 3.0"
-        self.assertEqual(target, expected)
+        target = 3.0 * (X + 2.0 * Y - 4.0 * Z)
+        expected = "3.0 * (\n  1.0 * X\n  + 2.0 * Y\n  - 4.0 * Z\n)"
+        self.assertEqual(str(target), expected)
 
     def test_eval(self):
         """ eval test """
