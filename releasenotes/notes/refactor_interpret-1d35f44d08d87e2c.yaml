@@ -5,7 +5,7 @@ features:
     `interpret(OptimizationResult) -> OptimizationResult` into
     `interpret(Union[np.ndarray, List[float]) -> np.ndarray`.
     Change the signature of `OptimizationAlgorithm._interpret` to return
-    OptimizationResult.
+    a subclass of `OptimizationResult`.
 deprecations:
   - |
     Remove deprecated methods `QuadraticProgramConverter.{encode,decode}`
