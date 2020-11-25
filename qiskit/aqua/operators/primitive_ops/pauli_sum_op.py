@@ -35,9 +35,9 @@ class PauliSumOp(PrimitiveOp):
     """Class for Operators backend by Terra's ``SparsePauliOp`` class."""
 
     def __init__(
-            self,
-            primitive: SparsePauliOp,
-            coeff: Union[int, float, complex, ParameterExpression] = 1.0,
+        self,
+        primitive: SparsePauliOp,
+        coeff: Union[int, float, complex, ParameterExpression] = 1.0,
     ) -> None:
         """
         Args:
@@ -94,7 +94,7 @@ class PauliSumOp(PrimitiveOp):
             return False
 
         if isinstance(self.coeff, ParameterExpression) or isinstance(
-                other.coeff, ParameterExpression
+            other.coeff, ParameterExpression
         ):
             return (
                 self.coeff == other.coeff
@@ -151,10 +151,10 @@ class PauliSumOp(PrimitiveOp):
         return PauliSumOp(spop, self.coeff)
 
     def compose(
-            self,
-            other: OperatorBase,
-            permutation: Optional[List[int]] = None,
-            front: bool = False,
+        self,
+        other: OperatorBase,
+        permutation: Optional[List[int]] = None,
+        front: bool = False,
     ) -> OperatorBase:
 
         new_self, other = self._expand_shorter_operator_and_permute(other, permutation)
@@ -206,14 +206,20 @@ class PauliSumOp(PrimitiveOp):
             else:
                 main_string = indent + f"{format_sign(first[1])} * {first[0]}"
 
-        main_string += "".join([f"\n{indent}{format_number(c)} * {p}" for p, c in prim_list[1:]])
-        return f"{main_string}" if self.coeff == 1 else f"{self.coeff} * (\n{main_string}\n)"
+        main_string += "".join(
+            [f"\n{indent}{format_number(c)} * {p}" for p, c in prim_list[1:]]
+        )
+        return (
+            f"{main_string}"
+            if self.coeff == 1
+            else f"{self.coeff} * (\n{main_string}\n)"
+        )
 
     def eval(
-            self,
-            front: Optional[
-                Union[str, Dict[str, complex], np.ndarray, OperatorBase]
-            ] = None,
+        self,
+        front: Optional[
+            Union[str, Dict[str, complex], np.ndarray, OperatorBase]
+        ] = None,
     ) -> Union[OperatorBase, float, complex]:
         if front is None:
             return self.to_matrix_op()
@@ -342,7 +348,7 @@ class PauliSumOp(PrimitiveOp):
 
     # pylint: disable=arguments-differ
     def reduce(
-            self, atol: Optional[float] = None, rtol: Optional[float] = None
+        self, atol: Optional[float] = None, rtol: Optional[float] = None
     ) -> "PauliSumOp":
         """Simplify the primitive ``SparsePauliOp``.
 
@@ -368,14 +374,19 @@ class PauliSumOp(PrimitiveOp):
         """
         return self.primitive.to_matrix(sparse=True) * self.coeff  # type: ignore
 
-    @staticmethod
-    def from_list(pauli_list: List[Tuple[str, Number]]) -> "PauliSumOp":
+    @classmethod
+    def from_list(
+            cls,
+            pauli_list: List[Tuple[str, Number]],
+            coeff: Union[int, float, complex, ParameterExpression] = 1.0,
+    ) -> "PauliSumOp":
         """Construct from a pauli_list with the form [(pauli_str, coeffs)]
 
         Args:
             pauli_list: A list of Tuple of pauli_str and coefficient.
+            coeff: A coefficient multiplying the primitive.
 
         Returns:
             The PauliSumOp constructed from the pauli_list.
         """
-        return PauliSumOp(SparsePauliOp.from_list(pauli_list))
+        return cls(SparsePauliOp.from_list(pauli_list), coeff=coeff)
