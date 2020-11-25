@@ -46,8 +46,12 @@ class AerPauliExpectation(ExpectationBase):
             The converted operator.
         """
         # TODO: implement direct way
-        if isinstance(operator, OperatorStateFn) and isinstance(operator.primitive, PauliSumOp):
-            operator = ~OperatorStateFn(operator.primitive.to_pauli_op())
+        if (
+                isinstance(operator, OperatorStateFn)
+                and isinstance(operator.primitive, PauliSumOp)
+                and operator.is_measurement
+        ):
+            operator = ~OperatorStateFn(operator.primitive.to_pauli_op(), coeff=operator.coeff)
 
         if isinstance(operator, OperatorStateFn) and operator.is_measurement:
             return self._replace_pauli_sums(operator.primitive) * operator.coeff
