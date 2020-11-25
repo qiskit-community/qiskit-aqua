@@ -4,7 +4,7 @@ features:
     Change the signature of `QuadraticProgramConverter.interpret` from
     `interpret(OptimizationResult) -> OptimizationResult` into
     `interpret(Union[np.ndarray, List[float]) -> np.ndarray`.
-    Change the signature of `OptimizationProblem._interpret` to return
+    Change the signature of `OptimizationAlgorithm._interpret` to return
     OptimizationResult.
 deprecations:
   - |
