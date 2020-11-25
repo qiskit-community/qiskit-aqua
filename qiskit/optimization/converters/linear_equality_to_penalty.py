@@ -15,15 +15,16 @@
 import copy
 import logging
 from math import fsum
-from typing import Optional, cast, Union, Tuple, Dict
+from typing import Optional, cast, Union, Tuple, List
 
-import qiskit.optimization.algorithms  # pylint: disable=unused-import
+import numpy as np
+
+from .quadratic_program_converter import QuadraticProgramConverter
 from ..exceptions import QiskitOptimizationError
 from ..problems.constraint import Constraint
 from ..problems.quadratic_objective import QuadraticObjective
-from ..problems.quadratic_program import QuadraticProgram, QuadraticProgramStatus
+from ..problems.quadratic_program import QuadraticProgram
 from ..problems.variable import Variable
-from .quadratic_program_converter import QuadraticProgramConverter
 
 logger = logging.getLogger(__name__)
 
@@ -158,12 +159,11 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
 
         return fsum(penalties)
 
-    def interpret(self, result: 'qiskit.optimization.algorithms.OptimizationResult') \
-            -> 'qiskit.optimization.algorithms.OptimizationResult':  # type: ignore
+    def interpret(self, x: Union[np.ndarray, List[float]]) -> np.ndarray:
         """Convert the result of the converted problem back to that of the original problem
 
         Args:
-            result: The result of the converted problem or the given result in case of FAILURE.
+            x: The result of the converted problem or the given result in case of FAILURE.
 
         Returns:
             The result of the original problem.
@@ -172,33 +172,12 @@ class LinearEqualityToPenalty(QuadraticProgramConverter):
             QiskitOptimizationError: if the number of variables in the result differs from
                                      that of the original problem.
         """
-        # pylint: disable=cyclic-import
-        from ..algorithms.optimization_algorithm import OptimizationResult, OptimizationResultStatus
-
-        if result.x is None:
-            return result
-
-        if len(result.x) != self._src.get_num_vars():
+        if len(x) != self._src.get_num_vars():
             raise QiskitOptimizationError(
                 'The number of variables in the passed result differs from '
                 'that of the original problem.'
             )
-        # Substitute variables to obtain the function value and feasibility in the original problem
-        substitute_dict = {}  # type: Dict[Union[str, int], float]
-        variables = self._src.variables
-        for i in range(len(result.x)):
-            substitute_dict[variables[i].name] = float(result.x[i])
-        substituted_qp = self._src.substitute_variables(substitute_dict)
-
-        # Set the new status of optimization result
-        if substituted_qp.status == QuadraticProgramStatus.VALID:
-            new_status = OptimizationResultStatus.SUCCESS
-        else:
-            new_status = OptimizationResultStatus.INFEASIBLE
-
-        return OptimizationResult(x=result.x, fval=substituted_qp.objective.constant,
-                                  variables=self._src.variables, status=new_status,
-                                  raw_results=result.raw_results)
+        return np.asarray(x)
 
     @property
     def penalty(self) -> Optional[float]:

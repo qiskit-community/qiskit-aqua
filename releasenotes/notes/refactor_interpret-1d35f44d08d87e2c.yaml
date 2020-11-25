@@ -1,0 +1,13 @@
+---
+features:
+  - |
+    Change the signature of `QuadraticProgramConverter.interpret` from
+    `interpret(OptimizationResult) -> OptimizationResult` into
+    `interpret(Union[np.ndarray, List[float]) -> np.ndarray`.
+    Change the signature of `OptimizationAlgorithm._interpret` to return
+    a subclass of `OptimizationResult`.
+deprecations:
+  - |
+    Remove deprecated methods `QuadraticProgramConverter.{encode,decode}`
+    and deprecated classes `IsingToQuadraticProgram` and
+    `QuadraticProgramToIsing`.
