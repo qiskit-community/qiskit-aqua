@@ -264,7 +264,7 @@ class TestOpConstruction(QiskitAquaTestCase):
 
     def test_summed_op_reduce(self):
         """Test SummedOp"""
-        sum_op = (X ^ X * 2) + (Y ^ Y)  # type: SummedPauliOp
+        sum_op = (X ^ X * 2) + (Y ^ Y)  # type: PauliSumOp
         sum_op = sum_op.to_pauli_op()  # type: SummedOp[PauliOp]
         with self.subTest('SummedOp test 1'):
             self.assertEqual(sum_op.coeff, 1)

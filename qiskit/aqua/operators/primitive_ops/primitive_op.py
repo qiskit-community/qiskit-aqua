@@ -86,8 +86,8 @@ class PrimitiveOp(OperatorBase):
             return PauliOp.__new__(PauliOp)
 
         if isinstance(primitive, SparsePauliOp):
-            from .summed_pauli_op import SummedPauliOp
-            return SummedPauliOp.__new__(SummedPauliOp)
+            from .summed_pauli_op import PauliSumOp
+            return PauliSumOp.__new__(PauliSumOp)
 
         raise TypeError('Unsupported primitive type {} passed into PrimitiveOp '
                         'factory constructor'.format(type(primitive)))

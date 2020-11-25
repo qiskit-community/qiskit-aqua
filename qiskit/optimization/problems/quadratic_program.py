@@ -33,7 +33,7 @@ from docplex.mp.vartype import ContinuousVarType, BinaryVarType, IntegerVarType
 
 from qiskit.aqua import MissingOptionalLibraryError
 from qiskit.aqua.operators import (I, ListOp, OperatorBase, PauliOp, SummedOp,
-                                   SummedPauliOp, WeightedPauliOperator)
+                                   PauliSumOp, WeightedPauliOperator)
 from qiskit.quantum_info import Pauli
 from .constraint import Constraint, ConstraintSense
 from .linear_constraint import LinearConstraint
@@ -1006,7 +1006,7 @@ class QuadraticProgram:
         """
         if isinstance(qubit_op, WeightedPauliOperator):
             qubit_op = qubit_op.to_opflow()
-        if isinstance(qubit_op, SummedPauliOp):
+        if isinstance(qubit_op, PauliSumOp):
             qubit_op = qubit_op.to_pauli_op()
 
         # No support for ListOp yet, this can be added in future

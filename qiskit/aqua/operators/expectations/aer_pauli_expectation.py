@@ -22,7 +22,7 @@ from ..list_ops.list_op import ListOp
 from ..list_ops.composed_op import ComposedOp
 from ..list_ops.summed_op import SummedOp
 from ..primitive_ops.pauli_op import PauliOp
-from ..primitive_ops.summed_pauli_op import SummedPauliOp
+from ..primitive_ops.pauli_sum_op import PauliSumOp
 from ..state_fns.circuit_state_fn import CircuitStateFn
 from ..state_fns.operator_state_fn import OperatorStateFn
 
@@ -46,7 +46,7 @@ class AerPauliExpectation(ExpectationBase):
             The converted operator.
         """
         # TODO: implement direct way
-        if isinstance(operator, OperatorStateFn) and isinstance(operator.primitive, SummedPauliOp):
+        if isinstance(operator, OperatorStateFn) and isinstance(operator.primitive, PauliSumOp):
             operator = ~OperatorStateFn(operator.primitive.to_pauli_op())
 
         if isinstance(operator, OperatorStateFn) and operator.is_measurement:
@@ -72,7 +72,7 @@ class AerPauliExpectation(ExpectationBase):
         # circuit to replace with a DictStateFn
 
         # TODO: implement direct way
-        if isinstance(operator, SummedPauliOp):
+        if isinstance(operator, PauliSumOp):
             operator = operator.to_pauli_op()
 
         # Change to Pauli representation if necessary

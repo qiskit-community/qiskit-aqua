@@ -23,7 +23,7 @@ from .trotterization_base import TrotterizationBase
 from ...operator_base import OperatorBase
 from ...list_ops.summed_op import SummedOp
 from ...list_ops.composed_op import ComposedOp
-from ...primitive_ops.summed_pauli_op import SummedPauliOp
+from ...primitive_ops.pauli_sum_op import PauliSumOp
 
 
 # pylint: disable=invalid-name
@@ -43,7 +43,7 @@ class QDrift(TrotterizationBase):
 
     def convert(self, operator: OperatorBase) -> OperatorBase:
         # TODO: implement direct way
-        if isinstance(operator, SummedPauliOp):
+        if isinstance(operator, PauliSumOp):
             operator = operator.to_pauli_op()
 
         if not isinstance(operator, SummedOp):

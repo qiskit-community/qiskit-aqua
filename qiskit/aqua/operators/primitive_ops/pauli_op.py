@@ -24,7 +24,7 @@ from qiskit.circuit.library import RZGate, RYGate, RXGate, XGate, YGate, ZGate, 
 
 from ..operator_base import OperatorBase
 from .primitive_op import PrimitiveOp
-from .summed_pauli_op import SummedPauliOp
+from .pauli_sum_op import PauliSumOp
 from ..list_ops.summed_op import SummedOp
 from ..list_ops.tensored_op import TensoredOp
 from ..legacy.weighted_pauli_operator import WeightedPauliOperator
@@ -76,12 +76,12 @@ class PauliOp(PrimitiveOp):
                 and isinstance(self.coeff, (int, float, complex))
                 and isinstance(other.coeff, (int, float, complex))
         ):
-            return SummedPauliOp(
+            return PauliSumOp(
                 SparsePauliOp(self.primitive, coeffs=[self.coeff])
                 + SparsePauliOp(other.primitive, coeffs=[other.coeff])
             )
 
-        if isinstance(other, SummedPauliOp) and isinstance(self.coeff, (int, float, complex)):
+        if isinstance(other, PauliSumOp) and isinstance(self.coeff, (int, float, complex)):
             return self.to_summed_pauli_op() + other
 
         return SummedOp([self, other])
@@ -329,11 +329,3 @@ class PauliOp(PrimitiveOp):
         else:
             coeff = cast(float, self.coeff)
         return WeightedPauliOperator(paulis=[(coeff, self.primitive)])  # type: ignore
-
-    def to_summed_pauli_op(self) -> SummedPauliOp:
-        """Returns a ``SummedPauliOp`` with one paulis.
-
-        Returns:
-            ``SummedPauliOp`` equivalent to this Operator.
-        """
-        return SummedPauliOp(SparsePauliOp(self.primitive, coeffs=[self.coeff]))

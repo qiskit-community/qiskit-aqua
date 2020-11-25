@@ -24,7 +24,7 @@ from ..list_ops.list_op import ListOp
 from ..list_ops.summed_op import SummedOp
 from ..operator_base import OperatorBase
 from ..primitive_ops.pauli_op import PauliOp
-from ..primitive_ops.summed_pauli_op import SummedPauliOp
+from ..primitive_ops.pauli_sum_op import PauliSumOp
 from ..state_fns.operator_state_fn import OperatorStateFn
 
 
@@ -63,7 +63,7 @@ class AbelianGrouper(ConverterBase):
         from ..evolutions.evolved_op import EvolvedOp
 
         # TODO: implement direct way
-        if isinstance(operator, SummedPauliOp):
+        if isinstance(operator, PauliSumOp):
             operator = operator.to_pauli_op()
 
         if isinstance(operator, ListOp):
@@ -106,7 +106,7 @@ class AbelianGrouper(ConverterBase):
                           'sooner than 3 months following the 0.8.0 release.')
 
         # TODO: implement direct way
-        if isinstance(list_op, SummedPauliOp):
+        if isinstance(list_op, PauliSumOp):
             list_op = list_op.to_pauli_op()
 
         for op in list_op.oplist:

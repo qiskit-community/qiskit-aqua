@@ -10,7 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Test SummedPauliOp """
+""" Test PauliSumOp """
 
 import unittest
 from test.aqua import QiskitAquaTestCase
@@ -18,51 +18,46 @@ from test.aqua import QiskitAquaTestCase
 import numpy as np
 from scipy.sparse import csr_matrix
 
+from qiskit import QuantumCircuit, transpile
+from qiskit.aqua.operators import DictStateFn, I, PauliSumOp, SummedOp, X, Y, Z, Zero
 from qiskit.circuit import ParameterVector
 from qiskit.quantum_info import Pauli, SparsePauliOp
-from qiskit import QuantumCircuit
-from qiskit.aqua.operators import (DictStateFn, I, SummedOp, SummedPauliOp, X,
-                                   Y, Z, Zero)
 
 
-class TestSummedPauliOp(QiskitAquaTestCase):
-    """SummedPauliOp tests."""
+class TestPauliSumOp(QiskitAquaTestCase):
+    """PauliSumOp tests."""
 
     def test_construct(self):
         """ constructor test """
         sparse_pauli = SparsePauliOp(Pauli(label="XYZX"), coeffs=[2.0])
         coeff = 3.0
-        summed_pauli = SummedPauliOp(sparse_pauli, coeff=coeff)
-        self.assertIsInstance(summed_pauli, SummedPauliOp)
-        self.assertEqual(summed_pauli.primitive, sparse_pauli)
-        self.assertEqual(summed_pauli.coeff, coeff)
-        self.assertEqual(summed_pauli.num_qubits, 4)
+        pauli_sum = PauliSumOp(sparse_pauli, coeff=coeff)
+        self.assertIsInstance(pauli_sum, PauliSumOp)
+        self.assertEqual(pauli_sum.primitive, sparse_pauli)
+        self.assertEqual(pauli_sum.coeff, coeff)
+        self.assertEqual(pauli_sum.num_qubits, 4)
 
     def test_add(self):
         """ add test """
-        summed_pauli = 3 * X + Y
-        self.assertIsInstance(summed_pauli, SummedPauliOp)
+        pauli_sum = 3 * X + Y
+        self.assertIsInstance(pauli_sum, PauliSumOp)
 
-        expected = SummedPauliOp(
+        expected = PauliSumOp(
             3.0 * SparsePauliOp(Pauli(label="X")) + SparsePauliOp(Pauli(label="Y"))
         )
 
-        self.assertEqual(summed_pauli, expected)
+        self.assertEqual(pauli_sum, expected)
 
     def test_adjoint(self):
         """ adjoint test """
-        summed_pauli = SummedPauliOp(
-            SparsePauliOp(Pauli(label="XYZX"), coeffs=[2]), coeff=3
-        )
-        expected = SummedPauliOp(SparsePauliOp(Pauli(label="XYZX")), coeff=-6)
+        pauli_sum = PauliSumOp(SparsePauliOp(Pauli(label="XYZX"), coeffs=[2]), coeff=3)
+        expected = PauliSumOp(SparsePauliOp(Pauli(label="XYZX")), coeff=-6)
 
-        self.assertEqual(summed_pauli.adjoint(), expected)
+        self.assertEqual(pauli_sum.adjoint(), expected)
 
-        summed_pauli = SummedPauliOp(
-            SparsePauliOp(Pauli(label="XYZY"), coeffs=[2]), coeff=3j
-        )
-        expected = SummedPauliOp(SparsePauliOp(Pauli(label="XYZY")), coeff=-6j)
-        self.assertEqual(summed_pauli.adjoint(), expected)
+        pauli_sum = PauliSumOp(SparsePauliOp(Pauli(label="XYZY"), coeffs=[2]), coeff=3j)
+        expected = PauliSumOp(SparsePauliOp(Pauli(label="XYZY")), coeff=-6j)
+        self.assertEqual(pauli_sum.adjoint(), expected)
 
     def test_equals(self):
         """ equality test """
@@ -71,18 +66,18 @@ class TestSummedPauliOp(QiskitAquaTestCase):
         self.assertEqual((X ^ X) + (Y ^ Y), (Y ^ Y) + (X ^ X))
 
         theta = ParameterVector("theta", 2)
-        summed_pauli0 = theta[0] * (X + Z)
-        summed_pauli1 = theta[1] * (X + Z)
-        expected = SummedPauliOp(
+        pauli_sum0 = theta[0] * (X + Z)
+        pauli_sum1 = theta[1] * (X + Z)
+        expected = PauliSumOp(
             SparsePauliOp(Pauli(label="X")) + SparsePauliOp(Pauli(label="Z")),
-            coeff=1.*theta[0],
+            coeff=1.0 * theta[0],
         )
-        self.assertEqual(summed_pauli0, expected)
-        self.assertNotEqual(summed_pauli1, expected)
+        self.assertEqual(pauli_sum0, expected)
+        self.assertNotEqual(pauli_sum1, expected)
 
     def test_tensor(self):
         """ Test for tensor operation """
-        summed_pauli = ((I - Z) ^ (I - Z)) + ((X - Y) ^ (X + Y))
+        pauli_sum = ((I - Z) ^ (I - Z)) + ((X - Y) ^ (X + Y))
         expected = (
             (I ^ I)
             - (I ^ Z)
@@ -93,14 +88,14 @@ class TestSummedPauliOp(QiskitAquaTestCase):
             - (Y ^ X)
             - (Y ^ Y)
         )
-        self.assertEqual(summed_pauli, expected)
+        self.assertEqual(pauli_sum, expected)
 
     def test_permute(self):
         """ permute test """
-        summed_pauli = SummedPauliOp(SparsePauliOp((X ^ Y ^ Z).primitive))
-        expected = SummedPauliOp(SparsePauliOp((X ^ I ^ Y ^ Z ^ I).primitive))
+        pauli_sum = PauliSumOp(SparsePauliOp((X ^ Y ^ Z).primitive))
+        expected = PauliSumOp(SparsePauliOp((X ^ I ^ Y ^ Z ^ I).primitive))
 
-        self.assertEqual(summed_pauli.permute([1, 2, 4]), expected)
+        self.assertEqual(pauli_sum.permute([1, 2, 4]), expected)
 
     def test_compose(self):
         """ compose test """
@@ -117,7 +112,7 @@ class TestSummedPauliOp(QiskitAquaTestCase):
     def test_str(self):
         """ str test """
         target = str(3.0 * (X + 2.0 * Y))
-        expected = "SummedPauliOp([\n1.0 * X,\n2.0 * Y,\n]) * 3.0"
+        expected = "PauliSumOp([\n1.0 * X,\n2.0 * Y,\n]) * 3.0"
         self.assertEqual(target, expected)
 
     def test_eval(self):
@@ -137,21 +132,21 @@ class TestSummedPauliOp(QiskitAquaTestCase):
         """ test for to_instruction """
         target = ((X + Z) / np.sqrt(2)).to_instruction()
         qc = QuantumCircuit(1)
-        qc.u3(np.pi / 2, 0, np.pi, 0)
-        self.assertEqual(target.definition, qc)
+        qc.u(np.pi / 2, 0, np.pi, 0)
+        self.assertEqual(transpile(target.definition, basis_gates=["u"]), qc)
 
     def test_to_pauli_op(self):
         """ test to_pauli_op method """
         target = X + Y
-        self.assertIsInstance(target, SummedPauliOp)
+        self.assertIsInstance(target, PauliSumOp)
         expected = SummedOp([X, Y])
         self.assertEqual(target.to_pauli_op(), expected)
 
     def test_getitem(self):
         """ test get item method """
         target = X + Z
-        self.assertEqual(target[0], X.to_summed_pauli_op())
-        self.assertEqual(target[1], Z.to_summed_pauli_op())
+        self.assertEqual(target[0], PauliSumOp(SparsePauliOp(X.primitive)))
+        self.assertEqual(target[1], PauliSumOp(SparsePauliOp(Z.primitive)))
 
     def test_len(self):
         """ test len """
@@ -171,7 +166,7 @@ class TestSummedPauliOp(QiskitAquaTestCase):
 
     def test_from_list(self):
         """ test from_list """
-        target = SummedPauliOp.from_list(
+        target = PauliSumOp.from_list(
             [
                 ("II", -1.052373245772859),
                 ("IZ", 0.39793742484318045),
