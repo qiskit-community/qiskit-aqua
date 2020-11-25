@@ -705,26 +705,6 @@ class TestOpConstruction(QiskitAquaTestCase):
                 # QiskitError: multiplication of Operator with ParameterExpression isn't implemented
                 self.assertRaises(QiskitError, getattr(matrix_op, method))
 
-    def test_primitive_op_to_matrix(self):
-        """Test to reveal TypeError: multiplication of 'complex' and 'Parameter' is not
-        implemented, which is raised on PrimitiveOps with parameter, when to_matrix is called. """
-        # MatrixOp
-        m = np.array([[0, 0, 1, 0], [0, 0, 0, -1], [1, 0, 0, 0], [0, -1, 0, 0]])
-        matrix_op = MatrixOp(m, Parameter('beta'))
-
-        # PauliOp
-        pauli_op = PauliOp(primitive=Pauli(label='XYZ'), coeff=Parameter('beta'))
-        self.assertRaises(TypeError, pauli_op.to_matrix)
-
-        # CircuitOp
-        qc = QuantumCircuit(2)
-        qc.cx(0, 1)
-        circuit_op = CircuitOp(qc, coeff=Parameter('alpha'))
-
-        for operator in [matrix_op, pauli_op, circuit_op]:
-            with self.subTest(operator):
-                self.assertRaises(TypeError, operator.to_matrix)
-
     def test_list_op_to_circuit(self):
         """Test if unitary ListOps transpile to circuit. """
 
