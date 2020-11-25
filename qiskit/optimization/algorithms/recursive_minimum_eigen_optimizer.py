@@ -12,18 +12,18 @@
 
 """A recursive minimal eigen optimizer in Qiskit's optimization module."""
 
+import logging
 from copy import deepcopy
 from enum import Enum
-from typing import Optional, Union, List, Tuple, Dict
-import logging
-import numpy as np
+from typing import Optional, Union, List, Tuple, Dict, cast
 
+import numpy as np
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.aqua.utils.validation import validate_min
 
+from .minimum_eigen_optimizer import MinimumEigenOptimizer, MinimumEigenOptimizationResult
 from .optimization_algorithm import (OptimizationResultStatus, OptimizationAlgorithm,
                                      OptimizationResult)
-from .minimum_eigen_optimizer import MinimumEigenOptimizer, MinimumEigenOptimizationResult
 from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo, QuadraticProgramConverter
 from ..exceptions import QiskitOptimizationError
 from ..problems import Variable
@@ -51,6 +51,7 @@ class IntermediateResult(Enum):
 
 class RecursiveMinimumEigenOptimizationResult(OptimizationResult):
     """Recursive Eigen Optimizer Result."""
+
     def __init__(self, x: Union[List[float], np.ndarray], fval: float, variables: List[Variable],
                  status: OptimizationResultStatus, replacements: Dict[str, Tuple[str, int]],
                  history: Tuple[List[MinimumEigenOptimizationResult], OptimizationResult]) -> None:
@@ -201,12 +202,12 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
         problem_ref = deepcopy(problem_)
 
         # run recursive optimization until the resulting problem is small enough
-        replacements = {}   # type: Dict[str, Tuple[str, int]]
-        min_eigen_results = []        # type: List[MinimumEigenOptimizationResult]
+        replacements = {}  # type: Dict[str, Tuple[str, int]]
+        min_eigen_results = []  # type: List[MinimumEigenOptimizationResult]
         while problem_.get_num_vars() > self._min_num_vars:
 
             # solve current problem with optimizer
-            res = self._min_eigen_optimizer.solve(problem_)   # type: MinimumEigenOptimizationResult
+            res = self._min_eigen_optimizer.solve(problem_)  # type: MinimumEigenOptimizationResult
             if self._history == IntermediateResult.ALL_ITERATIONS:
                 min_eigen_results.append(res)
 
@@ -237,7 +238,7 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
                 for k in range(problem_.get_num_vars()):
                     coeff = problem_.objective.linear[k]
                     if k == i:
-                        coeff += 2*problem_.objective.quadratic[i, k]
+                        coeff += 2 * problem_.objective.quadratic[i, k]
                     else:
                         coeff += problem_.objective.quadratic[i, k]
 
@@ -287,21 +288,14 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
                    None if self._history == IntermediateResult.NO_ITERATIONS else result)
 
         # construct result
-        x_v = [var_values[x_aux.name] for x_aux in problem_ref.variables]
-        fval = result.fval
-        result = OptimizationResult(x=x_v, fval=fval, variables=problem_ref.variables,
-                                    status=OptimizationResultStatus.SUCCESS)
+        x_v = np.array([var_values[x_aux.name] for x_aux in problem_ref.variables])
+        return cast(RecursiveMinimumEigenOptimizationResult,
+                    self._interpret(x=x_v, converters=self._converters, problem=problem,
+                                    result_class=RecursiveMinimumEigenOptimizationResult,
+                                    replacements=replacements, history=history))
 
-        result = self._interpret(result, self._converters)
-
-        return RecursiveMinimumEigenOptimizationResult(x=result.x, fval=result.fval,
-                                                       variables=result.variables,
-                                                       replacements=replacements,
-                                                       history=history,
-                                                       status=(self._get_feasibility_status
-                                                               (problem, result.x)))
-
-    def _find_strongest_correlation(self, correlations):
+    @staticmethod
+    def _find_strongest_correlation(correlations):
 
         # get absolute values and set diagonal to -1 to make sure maximum is always on off-diagonal
         abs_correlations = np.abs(correlations)
@@ -313,5 +307,5 @@ class RecursiveMinimumEigenOptimizer(OptimizationAlgorithm):
 
         # translate back to indices
         i = int(m_max // len(correlations))
-        j = int(m_max - i*len(correlations))
+        j = int(m_max - i * len(correlations))
         return (i, j)
