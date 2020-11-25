@@ -204,6 +204,22 @@ class TestOpConstruction(QiskitAquaTestCase):
         np.testing.assert_array_almost_equal(
             op6.to_matrix(), op5.to_matrix() + Operator.from_label('+r').data)
 
+        param = Parameter("α")
+        m = np.array([[0, -1j], [1j, 0]])
+        op7 = MatrixOp(m, param)
+        np.testing.assert_array_equal(op7.to_matrix(), m * param)
+
+        param = Parameter("β")
+        op8 = PauliOp(primitive=Pauli(label="Y"), coeff=param)
+        np.testing.assert_array_equal(op8.to_matrix(), m * param)
+
+        param = Parameter("γ")
+        qc = QuantumCircuit(1)
+        qc.h(0)
+        op9 = CircuitOp(qc, coeff=param)
+        m = np.array([[1, 1], [1, -1]]) / np.sqrt(2)
+        np.testing.assert_array_equal(op9.to_matrix(), m * param)
+
     def test_circuit_op_to_matrix(self):
         """ test CircuitOp.to_matrix """
         qc = QuantumCircuit(1)
