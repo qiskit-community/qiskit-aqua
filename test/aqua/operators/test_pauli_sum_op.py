@@ -19,7 +19,20 @@ import numpy as np
 from scipy.sparse import csr_matrix
 
 from qiskit import QuantumCircuit, transpile
-from qiskit.aqua.operators import DictStateFn, I, PauliSumOp, SummedOp, X, Y, Z, Zero
+from qiskit.aqua.operators import (
+    CX,
+    CircuitStateFn,
+    DictStateFn,
+    H,
+    I,
+    OperatorStateFn,
+    PauliSumOp,
+    SummedOp,
+    X,
+    Y,
+    Z,
+    Zero,
+)
 from qiskit.circuit import ParameterVector
 from qiskit.quantum_info import Pauli, SparsePauliOp
 
@@ -102,6 +115,10 @@ class TestPauliSumOp(QiskitAquaTestCase):
         target = (X + Z) @ (Y + Z)
         expected = 1j * Z - 1j * Y - 1j * X + I
         self.assertEqual(target, expected)
+
+        observable = (X ^ X) + (Y ^ Y) + (Z ^ Z)
+        state = CircuitStateFn((CX @ (X ^ H @ X)).to_circuit())
+        self.assertAlmostEqual((~OperatorStateFn(observable) @ state).eval(), -3)
 
     def test_to_matrix(self):
         """ test for to_matrix method """
