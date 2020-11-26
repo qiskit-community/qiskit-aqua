@@ -179,7 +179,7 @@ class PauliSumOp(PrimitiveOp):
         from .circuit_op import CircuitOp
 
         if isinstance(other, (CircuitOp, CircuitStateFn)):
-            return new_self.to_pauli_op().to_circuit_op().compose(other)
+            return new_self.to_pauli_op().to_circuit_op().compose(other)  # type: ignore
 
         return super(PauliSumOp, new_self).compose(other)
 
@@ -285,7 +285,7 @@ class PauliSumOp(PrimitiveOp):
 
             # Composable types with PauliOp
             elif isinstance(front, (PauliSumOp, PauliOp, CircuitOp, CircuitStateFn)):
-                return self.compose(front).eval()
+                return self.compose(front).eval()  # type: ignore
 
             # Covers VectorStateFn and OperatorStateFn
             elif isinstance(front, OperatorBase):
