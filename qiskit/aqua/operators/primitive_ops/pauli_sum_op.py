@@ -185,7 +185,9 @@ class PauliSumOp(PrimitiveOp):
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
         OperatorBase._check_massive("to_matrix", True, self.num_qubits, massive)
-        return self.primitive.to_matrix() * self.coeff  # type: ignore
+        if isinstance(self.coeff, ParameterExpression):
+            return (self.primitive.to_matrix(sparse=True)).toarray() * self.coeff  # type: ignore
+        return (self.primitive.to_matrix(sparse=True) * self.coeff).toarray()  # type: ignore
 
     def __str__(self) -> str:
         def format_sign(x):
@@ -359,6 +361,11 @@ class PauliSumOp(PrimitiveOp):
         Returns:
             The simplified ``PauliSumOp``.
         """
+        if isinstance(self.coeff, Number):
+            primitive = self.coeff * self.primitive  # type: ignore
+            return PauliSumOp(
+                primitive.simplify(atol=atol, rtol=rtol)  # type: ignore
+            )
         return PauliSumOp(
             self.primitive.simplify(atol=atol, rtol=rtol), self.coeff  # type: ignore
         )
