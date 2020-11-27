@@ -242,7 +242,7 @@ class TestQAOA(QiskitOptimizationTestCase):
         with self.subTest('Initial Point'):
             # If None the preferred random initial point of QAOA variational form
             if init_pt is None:
-                np.testing.assert_almost_equal([1.5108, 0.3378], first_pt, decimal=4)
+                np.testing.assert_almost_equal([-0.2398, 0.3378], first_pt, decimal=4)
             else:
                 self.assertListEqual(init_pt, first_pt)
 
@@ -320,7 +320,7 @@ class TestQAOA(QiskitOptimizationTestCase):
                                            shots=4096)
         _ = qaoa.run(quantum_instance)
 
-        np.testing.assert_almost_equal([2.5179, 0.3528], qaoa.optimal_params, decimal=4)
+        np.testing.assert_almost_equal([-0.8792,  0.3948], qaoa.optimal_params, decimal=4)
 
 
 if __name__ == '__main__':

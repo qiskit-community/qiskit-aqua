@@ -18,7 +18,7 @@ import numpy as np
 
 from qiskit import QuantumCircuit
 from qiskit.aqua.operators import (OperatorBase, X, I, H, CircuitStateFn,
-                                   EvolutionFactory, LegacyBaseOperator, CircuitOp)
+                                   EvolutionFactory, CircuitOp)
 from qiskit.aqua.components.variational_forms import VariationalForm
 from qiskit.aqua.components.initial_states import InitialState
 
@@ -55,27 +55,27 @@ class QAOAVarForm(VariationalForm):
         self._num_qubits = cost_operator.num_qubits
         self._p = p
         self._initial_state = initial_state
+
         if isinstance(mixer_operator, QuantumCircuit):
             self._num_parameters = (1 + mixer_operator.num_parameters) * p
-            self._bounds = [(0, np.pi)] * p + [(0, None)] * p * mixer_operator.num_parameters
-
-        else:
+            self._bounds = [(None, None)] * p + [(None, None)] * p * mixer_operator.num_parameters
+            self._mixer = mixer_operator
+        elif isinstance(mixer_operator, OperatorBase):
             self._num_parameters = 2 * p
-            self._bounds = [(0, np.pi)] * p + [(0, None)] * p
-
-        # prepare the mixer operator
-        if mixer_operator is None:
+            self._bounds = [(None, None)] * p + [(None, None)] * p
+            self._mixer = mixer_operator
+        elif mixer_operator is None:
+            self._num_parameters = 2 * p
+            # next three lines are to avoid a mypy error (incorrect types, etc)
+            self._bounds = []
+            self._bounds.extend([(None, None)] * p)
+            self._bounds.extend([(0, 2 * np.pi)] * p)
             # Mixer is just a sum of single qubit X's on each qubit. Evolving by this operator
             # will simply produce rx's on each qubit.
             num_qubits = self._cost_operator.num_qubits
             mixer_terms = [(I ^ left) ^ X ^ (I ^ (num_qubits - left - 1))
                            for left in range(num_qubits)]
             self._mixer = sum(mixer_terms)
-        elif isinstance(mixer_operator, LegacyBaseOperator):
-            self._mixer = mixer_operator.to_opflow()
-        else:
-            # mixer can be a QuantumCircuit or OperatorBase
-            self._mixer = mixer_operator
 
         self.support_parameterized_circuit = True
 
