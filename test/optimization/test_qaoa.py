@@ -320,7 +320,7 @@ class TestQAOA(QiskitOptimizationTestCase):
                                            shots=4096)
         _ = qaoa.run(quantum_instance)
 
-        np.testing.assert_almost_equal([-0.8792,  0.3948], qaoa.optimal_params, decimal=4)
+        np.testing.assert_almost_equal([-0.8792, 0.3948], qaoa.optimal_params, decimal=4)
 
 
 if __name__ == '__main__':
