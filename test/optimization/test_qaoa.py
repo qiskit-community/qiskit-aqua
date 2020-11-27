@@ -124,6 +124,50 @@ class TestQAOA(QiskitOptimizationTestCase):
         graph_solution = max_cut.get_graph_solution(x)
         self.assertIn(''.join([str(int(i)) for i in graph_solution]), solutions)
 
+    def test_qaoa_qc_mixer_many_parameters(self):
+        """ QAOA test with a mixer as a parameterized circuit with the num of parameters > 1. """
+        seed = 0
+        aqua_globals.random_seed = seed
+
+        optimizer = COBYLA()
+        qubit_op, _ = max_cut.get_operator(W1)
+        qubit_op = qubit_op.to_opflow()
+
+        num_qubits = qubit_op.num_qubits
+        mixer = QuantumCircuit(num_qubits)
+        for i in range(num_qubits):
+            theta = Parameter('θ' + str(i))
+            mixer.rx(theta, range(num_qubits))
+
+        qaoa = QAOA(qubit_op, optimizer=optimizer, p=2, mixer=mixer)
+        backend = BasicAer.get_backend('statevector_simulator')
+        quantum_instance = QuantumInstance(backend, seed_simulator=seed, seed_transpiler=seed)
+        result = qaoa.run(quantum_instance)
+        x = sample_most_likely(result.eigenstate)
+        print(x)
+        graph_solution = max_cut.get_graph_solution(x)
+        self.assertIn(''.join([str(int(i)) for i in graph_solution]), S1)
+
+    def test_qaoa_qc_mixer_no_parameters(self):
+        """ QAOA test with a mixer as a parameterized circuit with zero parameters. """
+        seed = 0
+        aqua_globals.random_seed = seed
+
+        qubit_op, _ = max_cut.get_operator(W1)
+        qubit_op = qubit_op.to_opflow()
+
+        num_qubits = qubit_op.num_qubits
+        mixer = QuantumCircuit(num_qubits)
+        # just arbitrary circuit
+        mixer.rx(np.pi/2, range(num_qubits))
+
+        qaoa = QAOA(qubit_op, optimizer=COBYLA(), p=1, mixer=mixer)
+        backend = BasicAer.get_backend('statevector_simulator')
+        quantum_instance = QuantumInstance(backend, seed_simulator=seed, seed_transpiler=seed)
+        result = qaoa.run(quantum_instance)
+        # we just assert that we get a result, it is not meaningful.
+        self.assertIsNotNone(result.eigenstate)
+
     def test_change_operator_size(self):
         """ QAOA change operator size test """
 

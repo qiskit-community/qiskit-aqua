@@ -91,6 +91,8 @@ class QAOA(VQE):
             initial_state: An optional initial state to prepend the QAOA circuit with
             mixer: the mixer Hamiltonian to evolve with or a custom quantum circuit. Allows support
                 of optimizations in constrained subspaces as per https://arxiv.org/abs/1709.03489
+                as well as warm-starting the optimization as introduced
+                in http://arxiv.org/abs/2009.10095.
             initial_point: An optional initial point (i.e. initial parameter values)
                 for the optimizer. If ``None`` then it will simply compute a random one.
             gradient: An optional gradient operator respectively a gradient function used for

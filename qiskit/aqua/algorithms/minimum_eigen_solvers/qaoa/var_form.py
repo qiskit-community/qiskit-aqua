@@ -57,11 +57,11 @@ class QAOAVarForm(VariationalForm):
         self._initial_state = initial_state
         if isinstance(mixer_operator, QuantumCircuit):
             self._num_parameters = (1 + mixer_operator.num_parameters) * p
-            self._bounds = [(0, np.pi)] * p + [(0, 2 * np.pi)] * p * mixer_operator.num_parameters
+            self._bounds = [(0, np.pi)] * p + [(0, None)] * p * mixer_operator.num_parameters
 
         else:
             self._num_parameters = 2 * p
-            self._bounds = [(0, np.pi)] * p + [(0, 2 * np.pi)] * p
+            self._bounds = [(0, np.pi)] * p + [(0, None)] * p
 
         # prepare the mixer operator
         if mixer_operator is None:
@@ -88,30 +88,36 @@ class QAOAVarForm(VariationalForm):
 
         # initialize circuit, possibly based on given register/initial state
         if isinstance(self._initial_state, QuantumCircuit):
-            circuit = CircuitStateFn(self._initial_state)
+            circuit_op = CircuitStateFn(self._initial_state)
         elif self._initial_state is not None:
-            circuit = CircuitStateFn(self._initial_state.construct_circuit('circuit'))
+            circuit_op = CircuitStateFn(self._initial_state.construct_circuit('circuit'))
         else:
-            circuit = (H ^ self._num_qubits)
+            circuit_op = (H ^ self._num_qubits)
 
+        # iterate over layers
         for idx in range(self._p):
-            circuit = (self._cost_operator * parameters[idx]).exp_i().compose(circuit)
+            # the first [:self._p] parameters are used for the cost operator,
+            # so we apply them here
+            circuit_op = (self._cost_operator * parameters[idx]).exp_i().compose(circuit_op)
             if isinstance(self._mixer, OperatorBase):
                 mixer = cast(OperatorBase, self._mixer)
-                circuit = (mixer * parameters[idx + self._p]).exp_i().compose(circuit)
+                # we apply beta parameter in case of operator based mixer.
+                circuit_op = (mixer * parameters[idx + self._p]).exp_i().compose(circuit_op)
             else:
                 # mixer as a quantum circuit that can be parameterized
                 mixer = cast(QuantumCircuit, self._mixer)
                 num_params = mixer.num_parameters
+                # the remaining [self._p:] parameters are used for the mixer,
+                # there may be multiple layers, so parameters are grouped by layers.
                 param_values = parameters[self._p + num_params * idx:
                                           self._p + num_params * (idx + 1)]
                 param_dict = dict(zip(mixer.parameters, param_values))
                 mixer = mixer.assign_parameters(param_dict)
-                circuit = CircuitOp(mixer).compose(circuit)
+                circuit_op = CircuitOp(mixer).compose(circuit_op)
 
         evolution = EvolutionFactory.build(self._cost_operator)
-        circuit = evolution.convert(circuit)
-        return circuit.to_circuit()
+        circuit_op = evolution.convert(circuit_op)
+        return circuit_op.to_circuit()
 
     @property
     def setting(self):
