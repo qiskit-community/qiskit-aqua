@@ -61,6 +61,27 @@ class TestPauliSumOp(QiskitAquaTestCase):
 
         self.assertEqual(pauli_sum, expected)
 
+    def test_mul(self):
+        """ mul test """
+        target = 2 * (X + Z)
+        self.assertEqual(target.coeff, 1)
+        self.assertListEqual(
+            target.primitive.to_list(), [("X", (2 + 0j)), ("Z", (2 + 0j))]
+        )
+
+        target = 0 * (X + Z)
+        self.assertEqual(target.coeff, 0)
+        self.assertListEqual(
+            target.primitive.to_list(), [("X", (1 + 0j)), ("Z", (1 + 0j))]
+        )
+
+        beta = Parameter("β")
+        target = beta * (X + Z)
+        self.assertEqual(target.coeff, 1.0 * beta)
+        self.assertListEqual(
+            target.primitive.to_list(), [("X", (1 + 0j)), ("Z", (1 + 0j))]
+        )
+
     def test_adjoint(self):
         """ adjoint test """
         pauli_sum = PauliSumOp(SparsePauliOp(Pauli(label="XYZX"), coeffs=[2]), coeff=3)
