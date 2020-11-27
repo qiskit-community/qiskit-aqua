@@ -16,7 +16,7 @@ from collections.abc import Iterable
 from typing import List, Tuple, Callable, Optional, Union
 
 import numpy as np
-from qiskit.aqua.operators import (OperatorBase, ListOp, ComposedOp, CircuitStateFn)
+from qiskit.aqua.operators import (OperatorBase, ListOp, CircuitStateFn)
 from qiskit.aqua.operators.gradients.circuit_gradients import CircuitGradient
 from qiskit.aqua.operators.gradients.circuit_qfis import CircuitQFI
 from qiskit.aqua.operators.gradients.gradient import Gradient
@@ -84,11 +84,11 @@ class NaturalGradient(GradientBase):
                 state is not ``CircuitStateFn``.
             ValueError: If ``params`` contains a parameter not present in ``operator``.
         """
-        if not isinstance(operator, ComposedOp) or not isinstance(operator[-1], CircuitStateFn):
-            raise TypeError(
-                'Please make sure that the operator for which you want to compute Quantum '
-                'Fisher Information represents an expectation value and that the quantum '
-                'state is given as CircuitStateFn.')
+        if not isinstance(operator[-1], CircuitStateFn):
+            raise TypeError('Please make sure that the operator for which you want to compute '
+                            'Quantum Fisher Information represents an expectation value or a '
+                            'loss function and that the quantum state is given as '
+                            'CircuitStateFn.')
         if not isinstance(params, Iterable):
             params = [params]
         # Instantiate the gradient
@@ -109,10 +109,8 @@ class NaturalGradient(GradientBase):
                 try:
                     # Try to solve the system of linear equations Ax = C.
                     nat_grad = np.linalg.solve(a, c)
-                except np.LinAlgError:
-                    # If this is not possible, e.g., because A is singular use a least square
-                    # solver.
-                    nat_grad = np.linalg.lstsq(a, c)
+                except np.linalg.LinAlgError:  # singular matrix
+                    nat_grad = np.linalg.lstsq(a, c)[0]
             return np.real(nat_grad)
         # Define the ListOp which combines the gradient and the QFI according to the combination
         # function defined above.

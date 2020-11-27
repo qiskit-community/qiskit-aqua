@@ -1,0 +1,8 @@
+---
+fixes:
+  - |
+    Sort the parameters of the generator circuit by name to ensure result reproducibility.
+    Previously, the parameters of the generator circuit were converted to a list using a 
+    conversion from set to list. If this is repeated several times for the same circuit, 
+    the order of parameters can be inconsistent, leading to inconsistent results since the 
+    numerical optimizer updates the parameters in a different order.

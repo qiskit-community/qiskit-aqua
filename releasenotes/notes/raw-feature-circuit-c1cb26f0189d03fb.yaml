@@ -1,0 +1,13 @@
+---
+features:
+  - |
+    Add the :class:`~qiskit.ml.circuit.library.RawFeatureVector` class to 
+    allow encoding data points directly as qubit amplitudes, analogous to the now
+    deprecated :class:`~qiskit.aqua.components.feature_maps.RawFeatureVector`.
+deprecations:
+  - |
+    Deprecated :class:`~qiskit.aqua.components.feature_maps.RawFeatureVector` 
+    in favor of :class:`~qiskit.ml.circuit.library.RawFeatureVector`. Further,
+    :class:`~qiskit.aqua.circuits.StateVectorCircuit` has been deprecated, since 
+    instead the `isometry` and `initialize` of the `QuantumCircuit` can 
+    be used.
