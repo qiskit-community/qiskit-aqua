@@ -12,12 +12,13 @@
 
 """A converter from quadratic program to a QUBO."""
 
-from typing import Optional
+from typing import Optional, Union, List
 
-import qiskit.optimization.algorithms  # pylint: disable=unused-import
+import numpy as np
+
+from .quadratic_program_converter import QuadraticProgramConverter
 from ..exceptions import QiskitOptimizationError
 from ..problems.quadratic_program import QuadraticProgram
-from .quadratic_program_converter import QuadraticProgramConverter
 
 
 class QuadraticProgramToQubo(QuadraticProgramConverter):
@@ -76,20 +77,19 @@ class QuadraticProgramToQubo(QuadraticProgramConverter):
         # Return QUBO
         return problem_
 
-    def interpret(self, result: 'qiskit.optimization.algorithms.OptimizationResult') \
-            -> 'qiskit.optimization.algorithms.OptimizationResult':  # type: ignore
+    def interpret(self, x: Union[np.ndarray, List[float]]) -> np.ndarray:
         """Convert a result of a converted problem into that of the original problem.
 
             Args:
-                result: The result of the converted problem.
+                x: The result of the converted problem.
 
             Returns:
                 The result of the original problem.
         """
-        result_ = self._penalize_lin_eq_constraints.interpret(result)
-        result_ = self._int_to_bin.interpret(result_)
-        result_ = self._ineq_to_eq.interpret(result_)
-        return result_
+        x = self._penalize_lin_eq_constraints.interpret(x)
+        x = self._int_to_bin.interpret(x)
+        x = self._ineq_to_eq.interpret(x)
+        return x
 
     @staticmethod
     def get_compatibility_msg(problem: QuadraticProgram) -> str:

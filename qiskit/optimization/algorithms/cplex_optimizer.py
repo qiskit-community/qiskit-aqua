@@ -1,4 +1,3 @@
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -14,7 +13,6 @@
 """The CPLEX optimizer wrapped to be used within Qiskit's optimization module."""
 
 import logging
-from typing import Optional
 
 from qiskit.aqua import MissingOptionalLibraryError
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
@@ -45,7 +43,7 @@ class CplexOptimizer(OptimizationAlgorithm):
         >>> if optimizer: result = optimizer.solve(problem)
     """
 
-    def __init__(self, disp: Optional[bool] = False) -> None:
+    def __init__(self, disp: bool = False) -> None:
         """Initializes the CplexOptimizer.
 
         Args:
