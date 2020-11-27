@@ -106,7 +106,7 @@ class TestQAOA(QiskitOptimizationTestCase):
 
         backend = BasicAer.get_backend('statevector_simulator')
         optimizer = COBYLA()
-        qubit_op, offset = max_cut.get_operator(w)
+        qubit_op, _ = max_cut.get_operator(w)
         qubit_op = qubit_op.to_opflow()
         if convert_to_matrix_op:
             qubit_op = qubit_op.to_matrix_op()
