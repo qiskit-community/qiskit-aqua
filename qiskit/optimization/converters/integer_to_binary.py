@@ -18,12 +18,11 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
-import qiskit.optimization.algorithms  # pylint: disable=unused-import
+from .quadratic_program_converter import QuadraticProgramConverter
 from ..exceptions import QiskitOptimizationError
 from ..problems.quadratic_objective import QuadraticObjective
 from ..problems.quadratic_program import QuadraticProgram
 from ..problems.variable import Variable
-from .quadratic_program_converter import QuadraticProgramConverter
 
 logger = logging.getLogger(__name__)
 
@@ -208,34 +207,22 @@ class IntegerToBinary(QuadraticProgramConverter):
                 linear, quadratic, constraint.sense, constraint.rhs - constant, constraint.name
             )
 
-    def interpret(self, result: 'qiskit.optimization.algorithms.OptimizationResult') \
-            -> 'qiskit.optimization.algorithms.OptimizationResult':  # type: ignore
+    def interpret(self, x: Union[np.ndarray, List[float]]) -> np.ndarray:
         """Convert back the converted problem (binary variables)
         to the original (integer variables).
 
         Args:
-            result: The result of the converted problem or the given result in case of FAILURE.
+            x: The result of the converted problem or the given result in case of FAILURE.
 
         Returns:
             The result of the original problem.
         """
-        # pylint: disable=cyclic-import
-        from ..algorithms.optimization_algorithm import OptimizationResult
-
-        if result.x is None:
-            return result
-
-        new_x = self._interpret_var(result.x)
-        return OptimizationResult(x=new_x, fval=result.fval, variables=self._src.variables,
-                                  status=result.status, raw_results=result.raw_results)
-
-    def _interpret_var(self, vals: Union[List[float], np.ndarray]) -> List[float]:
         # interpret integer values
-        sol = {x.name: vals[i] for i, x in enumerate(self._dst.variables)}
-        new_vals = []
-        for x in self._src.variables:
-            if x in self._conv:
-                new_vals.append(sum(sol[aux] * coef for aux, coef in self._conv[x]) + x.lowerbound)
+        sol = {var.name: x[i] for i, var in enumerate(self._dst.variables)}
+        new_x = np.zeros(self._src.get_num_vars())
+        for i, var in enumerate(self._src.variables):
+            if var in self._conv:
+                new_x[i] = sum(sol[aux] * coef for aux, coef in self._conv[var]) + var.lowerbound
             else:
-                new_vals.append(sol[x.name])
-        return new_vals
+                new_x[i] = sol[var.name]
+        return np.array(new_x)

@@ -14,14 +14,14 @@
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import List, Union, Any, Optional, Dict
+from typing import List, Union, Any, Optional, Dict, Type
 
 import numpy as np
 
 from .. import QiskitOptimizationError
-from ..problems.quadratic_program import QuadraticProgram, Variable
 from ..converters.quadratic_program_to_qubo import (QuadraticProgramToQubo,
                                                     QuadraticProgramConverter)
+from ..problems.quadratic_program import QuadraticProgram, Variable
 
 
 class OptimizationResultStatus(Enum):
@@ -273,7 +273,8 @@ class OptimizationAlgorithm(ABC):
         if msg:
             raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
 
-    def _get_feasibility_status(self, problem: QuadraticProgram,
+    @staticmethod
+    def _get_feasibility_status(problem: QuadraticProgram,
                                 x: Union[List[float], np.ndarray]) -> OptimizationResultStatus:
         """Returns whether the input result is feasible or not for the given problem.
 
@@ -289,8 +290,9 @@ class OptimizationAlgorithm(ABC):
         return OptimizationResultStatus.SUCCESS if is_feasible \
             else OptimizationResultStatus.INFEASIBLE
 
-    def _prepare_converters(self, converters: Optional[Union[QuadraticProgramConverter,
-                                                             List[QuadraticProgramConverter]]],
+    @staticmethod
+    def _prepare_converters(converters: Optional[Union[QuadraticProgramConverter,
+                                                       List[QuadraticProgramConverter]]],
                             penalty: Optional[float] = None) -> List[QuadraticProgramConverter]:
         """Prepare a list of converters from the input.
 
@@ -308,20 +310,18 @@ class OptimizationAlgorithm(ABC):
             TypeError: When the converters include those that are not
             :class:`~qiskit.optimization.converters.QuadraticProgramConverter type.
         """
-        converters_ = []  # type: List[QuadraticProgramConverter]
         if converters is None:
-            converters_ = [QuadraticProgramToQubo(penalty=penalty)]
+            return [QuadraticProgramToQubo(penalty=penalty)]
         elif isinstance(converters, QuadraticProgramConverter):
-            converters_ = [converters]
+            return [converters]
         elif isinstance(converters, list) and \
                 all(isinstance(converter, QuadraticProgramConverter) for converter in converters):
-            converters_ = converters
+            return converters
         else:
             raise TypeError('`converters` must all be of the QuadraticProgramConverter type')
 
-        return converters_
-
-    def _convert(self, problem: QuadraticProgram,
+    @staticmethod
+    def _convert(problem: QuadraticProgram,
                  converters: Union[QuadraticProgramConverter,
                                    List[QuadraticProgramConverter]]) -> QuadraticProgram:
         """Convert the problem with the converters
@@ -343,22 +343,45 @@ class OptimizationAlgorithm(ABC):
 
         return problem_
 
-    def _interpret(self, result: OptimizationResult,
-                   converters: Union[QuadraticProgramConverter,
-                                     List[QuadraticProgramConverter]]) -> OptimizationResult:
+    @classmethod
+    def _interpret(cls, x: np.ndarray,
+                   problem: QuadraticProgram,
+                   converters: Optional[Union[QuadraticProgramConverter,
+                                              List[QuadraticProgramConverter]]] = None,
+                   result_class: Type[OptimizationResult] = OptimizationResult,
+                   **kwargs) -> OptimizationResult:
         """Convert back the result of the converted problem to the result of the original problem.
 
         Args:
-            result: The result of the converted problem.
+            x: The result of the converted problem.
             converters: The converters to use for converting back the result of the problem
                 to the result of the original problem.
+            problem: The original problem for which `x` is interpreted.
+            result_class: The class of the result object.
+            kwargs: parameters of the constructor of result_class
 
         Returns:
             The result of the original problem.
+
+        Raises:
+            QiskitOptimizationError: if result_class is not a sub-class of OptimizationResult.
+            TypeError: if converters are not QuadraticProgramConverter or a list of
+                QuadraticProgramConverter.
         """
+        if not issubclass(result_class, OptimizationResult):
+            raise QiskitOptimizationError(
+                'Invalid result class, not derived from OptimizationResult: '
+                '{}'.format(result_class))
+        if converters is None:
+            converters = []
         if not isinstance(converters, list):
             converters = [converters]
+        if not all(isinstance(conv, QuadraticProgramConverter) for conv in converters):
+            raise TypeError('Invalid object of converters: {}'.format(converters))
 
         for converter in converters[::-1]:
-            result = converter.interpret(result)
-        return result
+            x = converter.interpret(x)
+        return result_class(x=x, fval=problem.objective.evaluate(x),
+                            variables=problem.variables,
+                            status=cls._get_feasibility_status(problem, x),
+                            **kwargs)
