@@ -84,6 +84,12 @@ class PauliSumOp(PrimitiveOp):
 
         return SummedOp([self, other])
 
+    def mul(self, scalar: Union[int, float, complex, ParameterExpression]) -> OperatorBase:
+        if isinstance(scalar, Number):
+            return PauliSumOp(scalar * self.primitive, coeff=self.coeff)  # type: ignore
+
+        return super().mul(scalar)
+
     def adjoint(self) -> OperatorBase:
         return PauliSumOp(
             self.primitive.conjugate(), coeff=self.coeff.conjugate()  # type:ignore
