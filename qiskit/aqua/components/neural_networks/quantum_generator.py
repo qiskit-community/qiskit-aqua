@@ -323,9 +323,11 @@ class QuantumGenerator(GenerativeNetwork):
         Args:
             gradient_object (Gradient): the gradient object to be used to
                 compute analytical gradients.
+            quantum_instance (QuantumInstance): used to run the quantum circuit.
+            discriminator (torch.nn.Module): discriminator network to compute the sample labels.
 
         Returns:
-            gradient_function (Callable): a function that takes the current
+            gradient_function: gradient function that takes the current
                 parameter values and returns partial derivatives of the loss
                 function w.r.t. the variational parameters.
         """

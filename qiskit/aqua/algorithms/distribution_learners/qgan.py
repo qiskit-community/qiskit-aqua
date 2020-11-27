@@ -13,6 +13,7 @@
 """Quantum Generative Adversarial Network."""
 
 from typing import Optional, Union, List, Dict, Any, Callable
+from types import FunctionType
 import csv
 import os
 import logging
@@ -214,7 +215,7 @@ class QGAN(QuantumAlgorithm):
             AquaError: invalid input
         """
         if generator_gradient:
-            if not isinstance(generator_gradient, (Gradient, Callable)):
+            if not isinstance(generator_gradient, (Gradient, FunctionType)):
                 raise AquaError('Please pass either a Gradient object or a function as '
                                 'the generator_gradient argument.')
         print(generator_gradient)
