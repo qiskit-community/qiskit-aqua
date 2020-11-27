@@ -12,13 +12,13 @@
 
 """Global X phases and parameterized problem hamiltonian."""
 
-from typing import Optional, Union
+from typing import Optional, Union, cast
 
 import numpy as np
 
 from qiskit import QuantumCircuit
 from qiskit.aqua.operators import (OperatorBase, X, I, H, CircuitStateFn,
-                                   EvolutionFactory, LegacyBaseOperator)
+                                   EvolutionFactory, LegacyBaseOperator, CircuitOp)
 from qiskit.aqua.components.variational_forms import VariationalForm
 from qiskit.aqua.components.initial_states import InitialState
 
@@ -33,7 +33,7 @@ class QAOAVarForm(VariationalForm):
                  cost_operator: OperatorBase,
                  p: int,
                  initial_state: Optional[Union[QuantumCircuit, InitialState]] = None,
-                 mixer_operator: Optional[OperatorBase] = None):
+                 mixer_operator: Optional[Union[QuantumCircuit, OperatorBase]] = None):
         """
         Constructor, following the QAOA paper https://arxiv.org/abs/1411.4028
 
@@ -44,9 +44,9 @@ class QAOAVarForm(VariationalForm):
             p: The integer parameter p, which determines the depth of the circuit,
                 as specified in the original paper.
             initial_state: An optional initial state to use.
-            mixer_operator: An optional custom mixer operator to use instead of
-                            the global X-rotations,
-                            denoted as U(B, beta) in the original paper.
+            mixer_operator: An optional custom mixer to use instead of the global X-rotations,
+                            denoted as U(B, beta) in the original paper. Can be an operator or
+                            an optionally parameterized quantum circuit.
         Raises:
             TypeError: invalid input
         """
@@ -55,8 +55,13 @@ class QAOAVarForm(VariationalForm):
         self._num_qubits = cost_operator.num_qubits
         self._p = p
         self._initial_state = initial_state
-        self._num_parameters = 2 * p
-        self._bounds = [(0, np.pi)] * p + [(0, 2 * np.pi)] * p
+        if isinstance(mixer_operator, QuantumCircuit):
+            self._num_parameters = (1 + mixer_operator.num_parameters) * p
+            self._bounds = [(0, np.pi)] * p + [(0, 2 * np.pi)] * p * mixer_operator.num_parameters
+
+        else:
+            self._num_parameters = 2 * p
+            self._bounds = [(0, np.pi)] * p + [(0, 2 * np.pi)] * p
 
         # prepare the mixer operator
         if mixer_operator is None:
@@ -65,11 +70,12 @@ class QAOAVarForm(VariationalForm):
             num_qubits = self._cost_operator.num_qubits
             mixer_terms = [(I ^ left) ^ X ^ (I ^ (num_qubits - left - 1))
                            for left in range(num_qubits)]
-            self._mixer_operator = sum(mixer_terms)
+            self._mixer = sum(mixer_terms)
         elif isinstance(mixer_operator, LegacyBaseOperator):
-            self._mixer_operator = mixer_operator.to_opflow()
+            self._mixer = mixer_operator.to_opflow()
         else:
-            self._mixer_operator = mixer_operator
+            # mixer can be a QuantumCircuit or OperatorBase
+            self._mixer = mixer_operator
 
         self.support_parameterized_circuit = True
 
@@ -90,7 +96,18 @@ class QAOAVarForm(VariationalForm):
 
         for idx in range(self._p):
             circuit = (self._cost_operator * parameters[idx]).exp_i().compose(circuit)
-            circuit = (self._mixer_operator * parameters[idx + self._p]).exp_i().compose(circuit)
+            if isinstance(self._mixer, OperatorBase):
+                mixer = cast(OperatorBase, self._mixer)
+                circuit = (mixer * parameters[idx + self._p]).exp_i().compose(circuit)
+            else:
+                # mixer as a quantum circuit that can be parameterized
+                mixer = cast(QuantumCircuit, self._mixer)
+                num_params = mixer.num_parameters
+                param_values = parameters[self._p + num_params * idx:
+                                          self._p + num_params * (idx + 1)]
+                param_dict = dict(zip(mixer.parameters, param_values))
+                mixer = mixer.assign_parameters(param_dict)
+                circuit = CircuitOp(mixer).compose(circuit)
 
         evolution = EvolutionFactory.build(self._cost_operator)
         circuit = evolution.convert(circuit)

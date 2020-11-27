@@ -21,6 +21,7 @@ import numpy as np
 from ddt import ddt, idata, unpack
 from qiskit import BasicAer, QuantumCircuit, execute
 
+from qiskit.circuit import Parameter
 from qiskit.optimization.applications.ising import max_cut
 from qiskit.optimization.applications.ising.common import sample_most_likely
 from qiskit.aqua.components.optimizers import COBYLA, NELDER_MEAD
@@ -87,6 +88,40 @@ class TestQAOA(QiskitOptimizationTestCase):
         self.log.debug('maxcut objective:   %s', result.eigenvalue.real + offset)
         self.log.debug('solution:           %s', graph_solution)
         self.log.debug('solution objective: %s', max_cut.max_cut_value(x, w))
+        self.assertIn(''.join([str(int(i)) for i in graph_solution]), solutions)
+
+    @idata([
+        [W1, P1, S1, False],
+        [W2, P2, S2, False],
+        [W1, P1, S1, True],
+        [W2, P2, S2, True],
+    ])
+    @unpack
+    def test_qaoa_qc_mixer(self, w, prob, solutions, convert_to_matrix_op):
+        """ QAOA test with a mixer as a parameterized circuit"""
+        seed = 0
+        aqua_globals.random_seed = seed
+        self.log.debug('Testing %s-step QAOA with MaxCut on graph with '
+                       'a mixer as a parameterized circuit\n%s', prob, w)
+
+        backend = BasicAer.get_backend('statevector_simulator')
+        optimizer = COBYLA()
+        qubit_op, offset = max_cut.get_operator(w)
+        qubit_op = qubit_op.to_opflow()
+        if convert_to_matrix_op:
+            qubit_op = qubit_op.to_matrix_op()
+
+        num_qubits = qubit_op.num_qubits
+        mixer = QuantumCircuit(num_qubits)
+        theta = Parameter('θ')
+        mixer.rx(theta, range(num_qubits))
+
+        qaoa = QAOA(qubit_op, optimizer, prob, mixer=mixer)
+        quantum_instance = QuantumInstance(backend, seed_simulator=seed, seed_transpiler=seed)
+
+        result = qaoa.run(quantum_instance)
+        x = sample_most_likely(result.eigenstate)
+        graph_solution = max_cut.get_graph_solution(x)
         self.assertIn(''.join([str(int(i)) for i in graph_solution]), solutions)
 
     def test_change_operator_size(self):
