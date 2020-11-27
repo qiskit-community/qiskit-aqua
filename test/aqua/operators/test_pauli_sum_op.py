@@ -33,7 +33,7 @@ from qiskit.aqua.operators import (
     Z,
     Zero,
 )
-from qiskit.circuit import ParameterVector
+from qiskit.circuit import Parameter, ParameterVector
 from qiskit.quantum_info import Pauli, SparsePauliOp
 
 
@@ -129,7 +129,12 @@ class TestPauliSumOp(QiskitAquaTestCase):
     def test_str(self):
         """ str test """
         target = 3.0 * (X + 2.0 * Y - 4.0 * Z)
-        expected = "3.0 * (\n  1.0 * X\n  + 2.0 * Y\n  - 4.0 * Z\n)"
+        expected = "3.0 * X\n+ 6.0 * Y\n- 12.0 * Z"
+        self.assertEqual(str(target), expected)
+
+        alpha = Parameter("α")
+        target = alpha * (X + 2.0 * Y - 4.0 * Z)
+        expected = "1.0*α * (\n  1.0 * X\n  + 2.0 * Y\n  - 4.0 * Z\n)"
         self.assertEqual(str(target), expected)
 
     def test_eval(self):
