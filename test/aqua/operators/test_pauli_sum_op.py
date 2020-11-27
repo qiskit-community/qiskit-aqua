@@ -62,7 +62,7 @@ class TestPauliSumOp(QiskitAquaTestCase):
         self.assertEqual(pauli_sum, expected)
 
     def test_mul(self):
-        """ mul test """
+        """ multiplication test """
         target = 2 * (X + Z)
         self.assertEqual(target.coeff, 1)
         self.assertListEqual(
