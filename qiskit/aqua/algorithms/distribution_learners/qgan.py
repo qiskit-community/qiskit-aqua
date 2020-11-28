@@ -218,7 +218,6 @@ class QGAN(QuantumAlgorithm):
             if not isinstance(generator_gradient, (Gradient, FunctionType)):
                 raise AquaError('Please pass either a Gradient object or a function as '
                                 'the generator_gradient argument.')
-        print(generator_gradient)
         self._generator = QuantumGenerator(self._bounds, self._num_qubits,
                                            generator_circuit, generator_init_params,
                                            generator_optimizer,
