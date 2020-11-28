@@ -16,13 +16,15 @@ import unittest
 from test.optimization import QiskitOptimizationTestCase
 
 import math
+import networkx as nx
 import numpy as np
 from ddt import ddt, idata, unpack
 from qiskit import BasicAer, QuantumCircuit, execute
 
+from qiskit.circuit import Parameter
 from qiskit.optimization.applications.ising import max_cut
 from qiskit.optimization.applications.ising.common import sample_most_likely
-from qiskit.aqua.components.optimizers import COBYLA
+from qiskit.aqua.components.optimizers import COBYLA, NELDER_MEAD
 from qiskit.aqua.components.initial_states import Custom, Zero
 from qiskit.aqua.algorithms import QAOA
 from qiskit.aqua import QuantumInstance, aqua_globals
@@ -88,6 +90,84 @@ class TestQAOA(QiskitOptimizationTestCase):
         self.log.debug('solution objective: %s', max_cut.max_cut_value(x, w))
         self.assertIn(''.join([str(int(i)) for i in graph_solution]), solutions)
 
+    @idata([
+        [W1, P1, S1, False],
+        [W2, P2, S2, False],
+        [W1, P1, S1, True],
+        [W2, P2, S2, True],
+    ])
+    @unpack
+    def test_qaoa_qc_mixer(self, w, prob, solutions, convert_to_matrix_op):
+        """ QAOA test with a mixer as a parameterized circuit"""
+        seed = 0
+        aqua_globals.random_seed = seed
+        self.log.debug('Testing %s-step QAOA with MaxCut on graph with '
+                       'a mixer as a parameterized circuit\n%s', prob, w)
+
+        backend = BasicAer.get_backend('statevector_simulator')
+        optimizer = COBYLA()
+        qubit_op, _ = max_cut.get_operator(w)
+        qubit_op = qubit_op.to_opflow()
+        if convert_to_matrix_op:
+            qubit_op = qubit_op.to_matrix_op()
+
+        num_qubits = qubit_op.num_qubits
+        mixer = QuantumCircuit(num_qubits)
+        theta = Parameter('θ')
+        mixer.rx(theta, range(num_qubits))
+
+        qaoa = QAOA(qubit_op, optimizer, prob, mixer=mixer)
+        quantum_instance = QuantumInstance(backend, seed_simulator=seed, seed_transpiler=seed)
+
+        result = qaoa.run(quantum_instance)
+        x = sample_most_likely(result.eigenstate)
+        graph_solution = max_cut.get_graph_solution(x)
+        self.assertIn(''.join([str(int(i)) for i in graph_solution]), solutions)
+
+    def test_qaoa_qc_mixer_many_parameters(self):
+        """ QAOA test with a mixer as a parameterized circuit with the num of parameters > 1. """
+        seed = 0
+        aqua_globals.random_seed = seed
+
+        optimizer = COBYLA()
+        qubit_op, _ = max_cut.get_operator(W1)
+        qubit_op = qubit_op.to_opflow()
+
+        num_qubits = qubit_op.num_qubits
+        mixer = QuantumCircuit(num_qubits)
+        for i in range(num_qubits):
+            theta = Parameter('θ' + str(i))
+            mixer.rx(theta, range(num_qubits))
+
+        qaoa = QAOA(qubit_op, optimizer=optimizer, p=2, mixer=mixer)
+        backend = BasicAer.get_backend('statevector_simulator')
+        quantum_instance = QuantumInstance(backend, seed_simulator=seed, seed_transpiler=seed)
+        result = qaoa.run(quantum_instance)
+        x = sample_most_likely(result.eigenstate)
+        print(x)
+        graph_solution = max_cut.get_graph_solution(x)
+        self.assertIn(''.join([str(int(i)) for i in graph_solution]), S1)
+
+    def test_qaoa_qc_mixer_no_parameters(self):
+        """ QAOA test with a mixer as a parameterized circuit with zero parameters. """
+        seed = 0
+        aqua_globals.random_seed = seed
+
+        qubit_op, _ = max_cut.get_operator(W1)
+        qubit_op = qubit_op.to_opflow()
+
+        num_qubits = qubit_op.num_qubits
+        mixer = QuantumCircuit(num_qubits)
+        # just arbitrary circuit
+        mixer.rx(np.pi/2, range(num_qubits))
+
+        qaoa = QAOA(qubit_op, optimizer=COBYLA(), p=1, mixer=mixer)
+        backend = BasicAer.get_backend('statevector_simulator')
+        quantum_instance = QuantumInstance(backend, seed_simulator=seed, seed_transpiler=seed)
+        result = qaoa.run(quantum_instance)
+        # we just assert that we get a result, it is not meaningful.
+        self.assertIsNotNone(result.eigenstate)
+
     def test_change_operator_size(self):
         """ QAOA change operator size test """
 
@@ -138,6 +218,7 @@ class TestQAOA(QiskitOptimizationTestCase):
     @unpack
     def test_qaoa_initial_point(self, w, solutions, init_pt):
         """ Check first parameter value used is initial point as expected """
+        aqua_globals.random_seed = 10598
         optimizer = COBYLA()
         qubit_op, _ = max_cut.get_operator(w)
 
@@ -148,7 +229,9 @@ class TestQAOA(QiskitOptimizationTestCase):
             if eval_count == 1:
                 first_pt = list(parameters)
 
-        quantum_instance = QuantumInstance(BasicAer.get_backend('statevector_simulator'))
+        quantum_instance = QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                           seed_simulator=aqua_globals.random_seed,
+                                           seed_transpiler=aqua_globals.random_seed)
         qaoa = QAOA(qubit_op, optimizer, initial_point=init_pt, callback=cb_callback,
                     quantum_instance=quantum_instance)
 
@@ -156,11 +239,12 @@ class TestQAOA(QiskitOptimizationTestCase):
         x = sample_most_likely(result.eigenstate)
         graph_solution = max_cut.get_graph_solution(x)
 
-        if init_pt is None:       # If None the preferred initial point of QAOA variational form
-            init_pt = [0.0, 0.0]  # i.e. 0,0 should come through as the first point
-
         with self.subTest('Initial Point'):
-            self.assertListEqual(init_pt, first_pt)
+            # If None the preferred random initial point of QAOA variational form
+            if init_pt is None:
+                np.testing.assert_almost_equal([-0.2398, 0.3378], first_pt, decimal=4)
+            else:
+                self.assertListEqual(init_pt, first_pt)
 
         with self.subTest('Solution'):
             self.assertIn(''.join([str(int(i)) for i in graph_solution]), solutions)
@@ -221,6 +305,22 @@ class TestQAOA(QiskitOptimizationTestCase):
             statevector_custom = job_qaoa_init_state.result().get_statevector(custom_init_qc)
 
             self.assertEqual(statevector_original.tolist(), statevector_custom.tolist())
+
+    def test_qaoa_random_initial_point(self):
+        """ QAOA random initial point """
+        aqua_globals.random_seed = 10598
+        w = nx.adjacency_matrix(
+            nx.fast_gnp_random_graph(5, 0.5, seed=aqua_globals.random_seed)).toarray()
+        qubit_op, _ = max_cut.get_operator(w)
+        qaoa = QAOA(qubit_op, NELDER_MEAD(disp=True), 1)
+
+        quantum_instance = QuantumInstance(BasicAer.get_backend('qasm_simulator'),
+                                           seed_simulator=aqua_globals.random_seed,
+                                           seed_transpiler=aqua_globals.random_seed,
+                                           shots=4096)
+        _ = qaoa.run(quantum_instance)
+
+        np.testing.assert_almost_equal([-0.8792, 0.3948], qaoa.optimal_params, decimal=4)
 
 
 if __name__ == '__main__':

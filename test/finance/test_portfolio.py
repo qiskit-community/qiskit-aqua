@@ -64,7 +64,9 @@ class TestPortfolio(QiskitFinanceTestCase):
 
     def test_portfolio_qaoa(self):
         """ portfolio test with QAOA """
-        qaoa = QAOA(self.qubit_op, COBYLA(maxiter=500))
+        qaoa = QAOA(self.qubit_op,
+                    COBYLA(maxiter=500),
+                    initial_point=[0., 0.])
 
         backend = BasicAer.get_backend('statevector_simulator')
         quantum_instance = QuantumInstance(backend=backend,
