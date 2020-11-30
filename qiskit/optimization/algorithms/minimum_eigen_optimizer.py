@@ -15,7 +15,7 @@ from typing import Optional, Any, Union, Tuple, List, cast
 
 import numpy as np
 from qiskit.aqua.algorithms import MinimumEigensolver, MinimumEigensolverResult
-from qiskit.aqua.operators import StateFn, DictStateFn
+from qiskit.aqua.operators import StateFn, DictStateFn, OperatorBase
 
 from .optimization_algorithm import (OptimizationResultStatus, OptimizationAlgorithm,
                                      OptimizationResult)
@@ -177,6 +177,13 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         # construct operator and offset
         operator, offset = problem_.to_ising()
 
+        return self._solve_internal(operator, offset, problem_, problem)
+
+    def _solve_internal(self,
+                        operator: OperatorBase,
+                        offset: float,
+                        problem_: QuadraticProgram,
+                        problem: QuadraticProgram) -> MinimumEigenOptimizationResult:
         # only try to solve non-empty Ising Hamiltonians
         x = None  # type: Optional[Any]
         eigen_result = None  # type: MinimumEigensolverResult
