@@ -100,7 +100,7 @@ class PauliSumOp(PrimitiveOp):
             return False
 
         if isinstance(self_reduced.coeff, ParameterExpression) or isinstance(
-            other_reduced.coeff, ParameterExpression
+                other_reduced.coeff, ParameterExpression
         ):
             return (
                 self_reduced.coeff == other_reduced.coeff
