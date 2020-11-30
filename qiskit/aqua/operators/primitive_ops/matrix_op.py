@@ -214,7 +214,7 @@ class MatrixOp(PrimitiveOp):
 
     # Op Conversions
 
-    def to_matrix_op(self, massive: bool = False) -> OperatorBase:
+    def to_matrix_op(self, massive: bool = False) -> "MatrixOp":
         return self
 
     def to_instruction(self) -> Instruction:

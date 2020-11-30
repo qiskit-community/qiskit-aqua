@@ -28,6 +28,7 @@ from ..legacy.base_operator import LegacyBaseOperator
 
 if TYPE_CHECKING:
     from .matrix_op import MatrixOp
+    from ..list_ops.list_op import ListOp
 
 logger = logging.getLogger(__name__)
 
@@ -246,7 +247,7 @@ class PrimitiveOp(OperatorBase):
     def to_matrix(self, massive: bool = False) -> np.ndarray:
         raise NotImplementedError
 
-    def to_matrix_op(self, massive: bool = False) -> OperatorBase:
+    def to_matrix_op(self, massive: bool = False) -> Union["MatrixOp", "ListOp"]:
         """ Returns a ``MatrixOp`` equivalent to this Operator. """
         # pylint: disable=import-outside-toplevel
         prim_mat = self.__class__(self.primitive).to_matrix(massive=massive)

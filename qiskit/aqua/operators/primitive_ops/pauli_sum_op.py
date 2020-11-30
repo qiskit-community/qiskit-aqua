@@ -60,7 +60,7 @@ class PauliSumOp(PrimitiveOp):
 
     @property
     def num_qubits(self) -> int:
-        return cast(int, self.primitive.num_qubits)
+        return self.primitive.num_qubits  # type: ignore
 
     def add(self, other: OperatorBase) -> OperatorBase:
         if not self.num_qubits == other.num_qubits:
@@ -109,7 +109,7 @@ class PauliSumOp(PrimitiveOp):
             )
         simple_self = (self.coeff * self.primitive).simplify()  # type:ignore
         simple_other = (other.coeff * other.primitive).simplify()  # type:ignore
-        return simple_self == simple_other
+        return len(simple_self) == len(simple_other) and simple_self == simple_other
 
     def _expand_dim(self, num_qubits: int) -> "PauliSumOp":
         return PauliSumOp(
@@ -295,10 +295,8 @@ class PauliSumOp(PrimitiveOp):
             elif isinstance(front, (PauliSumOp, PauliOp, CircuitOp, CircuitStateFn)):
                 return self.compose(front).eval()  # type: ignore
 
-            # Covers VectorStateFn and OperatorStateFn
-            elif isinstance(front, OperatorBase):
-                return self.to_matrix_op().eval(front.to_matrix_op())  # type: ignore
-        return None
+        # Covers VectorStateFn and OperatorStateFn
+        return self.to_matrix_op().eval(front.to_matrix_op())  # type: ignore
 
     def exp_i(self) -> OperatorBase:
         """ Return a ``CircuitOp`` equivalent to e^-iH for this operator H. """
