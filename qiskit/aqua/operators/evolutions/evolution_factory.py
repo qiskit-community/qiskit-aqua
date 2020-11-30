@@ -48,7 +48,7 @@ class EvolutionFactory:
         if 'Matrix' in primitive_strings:
             return MatrixEvolution()
 
-        elif 'Pauli' in primitive_string or 'SparsePauliOp' in primitive_string:
+        elif 'Pauli' in primitive_strings or 'SparsePauliOp' in primitive_strings:
             # TODO figure out what to do based on qubits and hamming weight.
             return PauliTrotterEvolution()
 
