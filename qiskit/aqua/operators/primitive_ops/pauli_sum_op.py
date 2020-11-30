@@ -109,7 +109,7 @@ class PauliSumOp(PrimitiveOp):
             )
         simple_self = (self.coeff * self.primitive).simplify()  # type:ignore
         simple_other = (other.coeff * other.primitive).simplify()  # type:ignore
-        return len(simple_self) == len(simple_other) and simple_self == simple_other
+        return simple_self == simple_other
 
     def _expand_dim(self, num_qubits: int) -> "PauliSumOp":
         return PauliSumOp(
