@@ -42,7 +42,7 @@ class EvolvedOp(PrimitiveOp):
     def __init__(
             self,
             primitive: OperatorBase,
-            coeff: Optional[Union[int, float, complex, ParameterExpression]] = 1.0,
+            coeff: Union[int, float, complex, ParameterExpression] = 1.0,
     ) -> None:
         """
         Args:
