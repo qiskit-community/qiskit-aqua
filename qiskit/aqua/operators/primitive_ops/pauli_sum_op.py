@@ -60,7 +60,7 @@ class PauliSumOp(PrimitiveOp):
 
     @property
     def num_qubits(self) -> int:
-        return self.primitive.num_qubits  # type: ignore
+        return cast(int, self.primitive.num_qubits)
 
     def add(self, other: OperatorBase) -> OperatorBase:
         if not self.num_qubits == other.num_qubits:
