@@ -44,8 +44,8 @@ class EvolutionFactory:
                 method.
 
         """
-        primitive_string = operator.primitive_strings()
-        if 'Matrix' in primitive_string:
+        primitive_strings = operator.primitive_strings()
+        if 'Matrix' in primitive_strings:
             return MatrixEvolution()
 
         elif 'Pauli' in primitive_string or 'SparsePauliOp' in primitive_string:
