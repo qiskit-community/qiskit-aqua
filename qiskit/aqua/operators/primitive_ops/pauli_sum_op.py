@@ -13,7 +13,6 @@
 """ PauliSumOp Class """
 
 import logging
-from numbers import Number
 from typing import Dict, List, Optional, Set, Tuple, Union, cast
 
 import numpy as np
@@ -84,7 +83,7 @@ class PauliSumOp(PrimitiveOp):
         return SummedOp([self, other])
 
     def mul(self, scalar: Union[int, float, complex, ParameterExpression]) -> OperatorBase:
-        if isinstance(scalar, Number) and scalar != 0:
+        if isinstance(scalar, (int, float, complex)) and scalar != 0:
             return PauliSumOp(scalar * self.primitive, coeff=self.coeff)  # type: ignore
 
         return super().mul(scalar)
@@ -344,7 +343,7 @@ class PauliSumOp(PrimitiveOp):
         Returns:
             The simplified ``PauliSumOp``.
         """
-        if isinstance(self.coeff, Number):
+        if isinstance(self.coeff, (int, float, complex)):
             primitive = self.coeff * self.primitive  # type: ignore
             return PauliSumOp(primitive.simplify(atol=atol, rtol=rtol))  # type: ignore
         return PauliSumOp(self.primitive.simplify(atol=atol, rtol=rtol), self.coeff)  # type: ignore
@@ -363,7 +362,7 @@ class PauliSumOp(PrimitiveOp):
     @classmethod
     def from_list(
             cls,
-            pauli_list: List[Tuple[str, Number]],
+            pauli_list: List[Tuple[str, Union[int, float, complex]]],
             coeff: Union[int, float, complex, ParameterExpression] = 1.0,
     ) -> "PauliSumOp":
         """Construct from a pauli_list with the form [(pauli_str, coeffs)]

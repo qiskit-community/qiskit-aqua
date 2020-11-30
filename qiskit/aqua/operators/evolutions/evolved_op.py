@@ -151,7 +151,7 @@ class EvolvedOp(PrimitiveOp):
         # pylint: disable=no-member
         return scipy.linalg.expm(prim_mat) * self.coeff
 
-    def to_matrix_op(self, massive: bool = False) -> Union[MatrixOp, ListOp]:
+    def to_matrix_op(self, massive: bool = False) -> OperatorBase:
         """ Returns a ``MatrixOp`` equivalent to this Operator. """
         if self.primitive.__class__.__name__ == ListOp.__name__:
             return ListOp(

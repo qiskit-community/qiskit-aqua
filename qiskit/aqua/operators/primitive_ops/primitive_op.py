@@ -12,7 +12,7 @@
 
 """ PrimitiveOp Class """
 
-from typing import Optional, Union, Set, List, Dict, TYPE_CHECKING
+from typing import Optional, Union, Set, List, Dict
 import logging
 import numpy as np
 from scipy.sparse import spmatrix
@@ -25,10 +25,6 @@ from qiskit.quantum_info import Operator as MatrixOperator
 
 from ..operator_base import OperatorBase
 from ..legacy.base_operator import LegacyBaseOperator
-
-if TYPE_CHECKING:
-    from .matrix_op import MatrixOp
-    from ..list_ops.list_op import ListOp
 
 logger = logging.getLogger(__name__)
 
@@ -247,7 +243,7 @@ class PrimitiveOp(OperatorBase):
     def to_matrix(self, massive: bool = False) -> np.ndarray:
         raise NotImplementedError
 
-    def to_matrix_op(self, massive: bool = False) -> Union["MatrixOp", "ListOp"]:
+    def to_matrix_op(self, massive: bool = False) -> OperatorBase:
         """ Returns a ``MatrixOp`` equivalent to this Operator. """
         # pylint: disable=import-outside-toplevel
         prim_mat = self.__class__(self.primitive).to_matrix(massive=massive)
