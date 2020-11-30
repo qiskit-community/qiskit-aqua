@@ -144,7 +144,7 @@ class EvolvedOp(PrimitiveOp):
         )
 
     def eval(
-            self, front: Union[str, dict, np.ndarray, OperatorBase] = None
+            self, front: Optional[Union[str, dict, np.ndarray, OperatorBase]] = None
     ) -> Union[OperatorBase, float, complex]:
         return cast(
             Union[OperatorBase, float, complex], self.to_matrix_op().eval(front=front)
