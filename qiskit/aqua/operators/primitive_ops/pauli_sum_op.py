@@ -49,8 +49,7 @@ class PauliSumOp(PrimitiveOp):
         """
         if not isinstance(primitive, SparsePauliOp):
             raise TypeError(
-                "PauliSumOp can only be instantiated with SparsePauliOp, "
-                f"not {type(primitive)}"
+                f"PauliSumOp can only be instantiated with SparsePauliOp, not {type(primitive)}"
             )
 
         super().__init__(primitive, coeff=coeff)
@@ -96,20 +95,21 @@ class PauliSumOp(PrimitiveOp):
         )
 
     def equals(self, other: OperatorBase) -> bool:
-        if not isinstance(other, PauliSumOp):
+        self_reduced, other_reduced = self.reduce(), other.reduce()
+        if not isinstance(other_reduced, PauliSumOp):
             return False
 
-        if isinstance(self.coeff, ParameterExpression) or isinstance(
-                other.coeff, ParameterExpression
+        if isinstance(self_reduced.coeff, ParameterExpression) or isinstance(
+            other_reduced.coeff, ParameterExpression
         ):
             return (
-                self.coeff == other.coeff
-                and self.primitive.simplify()  # type:ignore
-                == other.primitive.simplify()  # type:ignore
+                self_reduced.coeff == other_reduced.coeff
+                and self_reduced.primitive == other_reduced.primitive  # type:ignore
             )
-        simple_self = (self.coeff * self.primitive).simplify()  # type:ignore
-        simple_other = (other.coeff * other.primitive).simplify()  # type:ignore
-        return len(simple_self) == len(simple_other) and simple_self == simple_other
+        return (
+            len(self_reduced) == len(other_reduced)
+            and self_reduced.primitive == other_reduced.primitive
+        )
 
     def _expand_dim(self, num_qubits: int) -> "PauliSumOp":
         return PauliSumOp(
@@ -143,9 +143,7 @@ class PauliSumOp(PrimitiveOp):
             AquaError: if indices do not define a new index for each qubit.
         """
         if len(permutation) != self.num_qubits:
-            raise AquaError(
-                "List of indices to permute must have the same size as Pauli Operator"
-            )
+            raise AquaError("List of indices to permute must have the same size as Pauli Operator")
         length = max(permutation) + 1
         spop = self.primitive.tensor(  # type:ignore
             SparsePauliOp(Pauli(label="I" * (length - self.num_qubits)))
@@ -214,20 +212,12 @@ class PauliSumOp(PrimitiveOp):
             else:
                 main_string = indent + f"{format_sign(first[1])} * {first[0]}"
 
-        main_string += "".join(
-            [f"\n{indent}{format_number(c)} * {p}" for p, c in prim_list[1:]]
-        )
-        return (
-            f"{main_string}"
-            if self.coeff == 1
-            else f"{self.coeff} * (\n{main_string}\n)"
-        )
+        main_string += "".join([f"\n{indent}{format_number(c)} * {p}" for p, c in prim_list[1:]])
+        return f"{main_string}" if self.coeff == 1 else f"{self.coeff} * (\n{main_string}\n)"
 
     def eval(
             self,
-            front: Optional[
-                Union[str, Dict[str, complex], np.ndarray, OperatorBase]
-            ] = None,
+            front: Optional[Union[str, Dict[str, complex], np.ndarray, OperatorBase]] = None,
     ) -> Union[OperatorBase, float, complex]:
         if front is None:
             return self.to_matrix_op()
@@ -246,10 +236,7 @@ class PauliSumOp(PrimitiveOp):
 
         if isinstance(front, ListOp) and front.distributive:
             return front.combo_fn(
-                [
-                    self.eval(front.coeff * front_elem)  # type: ignore
-                    for front_elem in front.oplist
-                ]
+                [self.eval(front.coeff * front_elem) for front_elem in front.oplist]  # type: ignore
             )
 
         else:
@@ -271,15 +258,9 @@ class PauliSumOp(PrimitiveOp):
                     bitstr = np.asarray(list(bstr)).astype(np.int).astype(np.bool)
                     new_b_str = np.logical_xor(bitstr, corrected_x_bits)
                     new_str = ["".join(map(str, 1 * bs)) for bs in new_b_str]
-                    z_factor = np.product(
-                        1 - 2 * np.logical_and(bitstr, corrected_z_bits), axis=1
-                    )
+                    z_factor = np.product(1 - 2 * np.logical_and(bitstr, corrected_z_bits), axis=1)
                     y_factor = np.product(
-                        np.sqrt(
-                            1
-                            - 2 * np.logical_and(corrected_x_bits, corrected_z_bits)
-                            + 0j
-                        ),
+                        np.sqrt(1 - 2 * np.logical_and(corrected_x_bits, corrected_z_bits) + 0j),
                         axis=1,
                     )
                     for i, n_str in enumerate(new_str):
@@ -353,9 +334,7 @@ class PauliSumOp(PrimitiveOp):
         return len(self.primitive)
 
     # pylint: disable=arguments-differ
-    def reduce(
-            self, atol: Optional[float] = None, rtol: Optional[float] = None
-    ) -> "PauliSumOp":
+    def reduce(self, atol: Optional[float] = None, rtol: Optional[float] = None) -> "PauliSumOp":
         """Simplify the primitive ``SparsePauliOp``.
 
         Args:
@@ -367,12 +346,8 @@ class PauliSumOp(PrimitiveOp):
         """
         if isinstance(self.coeff, Number):
             primitive = self.coeff * self.primitive  # type: ignore
-            return PauliSumOp(
-                primitive.simplify(atol=atol, rtol=rtol)  # type: ignore
-            )
-        return PauliSumOp(
-            self.primitive.simplify(atol=atol, rtol=rtol), self.coeff  # type: ignore
-        )
+            return PauliSumOp(primitive.simplify(atol=atol, rtol=rtol))  # type: ignore
+        return PauliSumOp(self.primitive.simplify(atol=atol, rtol=rtol), self.coeff)  # type: ignore
 
     def to_spmatrix(self) -> spmatrix:
         """Returns SciPy sparse matrix representation of the ``PauliSumOp``.
