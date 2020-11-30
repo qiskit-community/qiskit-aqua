@@ -63,8 +63,8 @@ class PauliSumOp(PrimitiveOp):
     def add(self, other: OperatorBase) -> OperatorBase:
         if not self.num_qubits == other.num_qubits:
             raise ValueError(
-                "Sum over operators with different numbers of qubits, {} and {}, is not well "
-                "defined".format(self.num_qubits, other.num_qubits)
+                f"Sum of operators with different numbers of qubits, {self.num_qubits} and "
+                f"{other.num_qubits}, is not well defined"
             )
 
         if isinstance(other, PauliSumOp):
