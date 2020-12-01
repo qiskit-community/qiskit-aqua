@@ -61,9 +61,9 @@ class PauliExpectation(ExpectationBase):
         """
         # TODO: implement direct way
         if (
-            isinstance(operator, OperatorStateFn)
-            and isinstance(operator.primitive, PauliSumOp)
-            and operator.is_measurement
+                isinstance(operator, OperatorStateFn)
+                and isinstance(operator.primitive, PauliSumOp)
+                and operator.is_measurement
         ):
             operator = ~OperatorStateFn(operator.primitive.to_pauli_op(), operator.coeff)
 
