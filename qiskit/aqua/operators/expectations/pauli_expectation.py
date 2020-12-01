@@ -60,7 +60,11 @@ class PauliExpectation(ExpectationBase):
             The converted operator.
         """
         # TODO: implement direct way
-        if isinstance(operator, OperatorStateFn) and isinstance(operator.primitive, PauliSumOp):
+        if (
+            isinstance(operator, OperatorStateFn)
+            and isinstance(operator.primitive, PauliSumOp)
+            and operator.is_measurement
+        ):
             operator = ~OperatorStateFn(operator.primitive.to_pauli_op(), operator.coeff)
 
         if isinstance(operator, OperatorStateFn) and operator.is_measurement:

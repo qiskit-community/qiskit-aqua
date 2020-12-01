@@ -1301,11 +1301,11 @@ class QuadraticProgram:
         qubo_matrix = zeros((qubit_op.num_qubits, qubit_op.num_qubits))
 
         if not isinstance(qubit_op, SummedOp):
-            oplist = [qubit_op.to_pauli_op()]
+            pauli_list = [qubit_op.to_pauli_op()]
         else:
-            oplist = qubit_op.to_pauli_op()
+            pauli_list = qubit_op.to_pauli_op()
 
-        for pauli_op in oplist:
+        for pauli_op in pauli_list:
             pauli_op = pauli_op.to_pauli_op()
             pauli = pauli_op.primitive
             coeff = pauli_op.coeff
