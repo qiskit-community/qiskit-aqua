@@ -182,7 +182,7 @@ class SummedOp(ListOp):
             coeff=self.coeff,
             abelian=self.abelian,
         ).reduce()
-        return pauli_sum.to_pauli_op()
+        return pauli_sum.to_pauli_op()  # type: ignore
 
     def to_legacy_op(self, massive: bool = False) -> LegacyBaseOperator:
         # We do this recursively in case there are SummedOps of PauliOps in oplist.
