@@ -15,15 +15,47 @@ Implementation of the Goemans-Williamson algorithm as an optimizer.
 Requires CVXPY to run.
 """
 
-from typing import Optional, List, Tuple
+from typing import Optional, List, Tuple, Union, Any
 
 import numpy as np
 
 from qiskit.aqua import MissingOptionalLibraryError
-from qiskit.optimization.algorithms import OptimizationAlgorithm, OptimizationResult
+from qiskit.optimization.algorithms import OptimizationAlgorithm, OptimizationResult, \
+    OptimizationResultStatus
 
 from qiskit.optimization import QuadraticProgram
 from qiskit.optimization.applications.ising.max_cut import cut_value
+from qiskit.optimization.problems import Variable
+
+
+class GoemansWilliamsonOptimizationResult(OptimizationResult):
+    """
+    Contains results of the Goemans-Williamson algorithm. The properties ``x`` and ``fval`` contain
+    values of just one solution. Explore ``all_solution`` for all posible solutions.
+    """
+    def __init__(self, x: Optional[Union[List[float], np.ndarray]], fval: float,
+                 variables: List[Variable], status: OptimizationResultStatus,
+                 all_solutions: Optional[List[Tuple[np.ndarray, float]]]) -> None:
+        """
+
+        Args:
+            x: the optimal value found in the optimization.
+            fval: the optimal function value.
+            variables: the list of variables of the optimization problem.
+            status: the termination status of the optimization algorithm.
+            all_solutions: all solutions.
+        """
+        super().__init__(x, fval, variables, status, None)
+        self._all_solutions = all_solutions
+
+    @property
+    def all_solutions(self) -> Optional[List[Tuple[np.ndarray, float]]]:
+        """
+        Returns:
+            All generated solutions and their values.
+
+        """
+        return self._all_solutions
 
 
 class GoemansWilliamsonOptimizer(OptimizationAlgorithm):
@@ -38,35 +70,22 @@ class GoemansWilliamsonOptimizer(OptimizationAlgorithm):
     """
 
     def __init__(self, num_cuts: int, num_best: int = None, sort_cuts: bool = True,
-                 unique_cuts: bool = True):
+                 unique_cuts: bool = True, seed: int = 0):
         """
         Args:
             num_cuts: Number of cuts to generate.
             num_best: number of best cuts to return. If None, all are returned.
+            sort_cuts:
             unique_cuts: The solve method returns only unique cuts.
+            seed: A seed value for the random number generator.
         """
         super().__init__()
+
         self._num_cuts = num_cuts
-        self._graph = None  # type: Optional[np.array]
-        self._num_vertices = None
         self._sort_cuts = sort_cuts
         self._unique_cuts = unique_cuts
         self._num_best = num_best or num_cuts
-
-    # todo: do we need property for the graph?
-    @property
-    def graph(self):
-        """
-        Graph of the problem as an adjacency matrix. No multi-edges or directed
-        edges are allowed.
-        """
-        return self._graph
-
-    @graph.setter
-    def graph(self, graph: np.array):
-        # todo: check that array is square
-        self._graph = graph
-        self._num_vertices = len(graph)
+        np.random.seed(seed)
 
     # todo: implement
     def get_compatibility_msg(self, problem: QuadraticProgram) -> str:
@@ -80,7 +99,6 @@ class GoemansWilliamsonOptimizer(OptimizationAlgorithm):
         """
         raise NotImplemented
 
-    # todo: define Tuple types
     def solve(self, problem: QuadraticProgram) -> OptimizationResult:
         """
         Returns a list of cuts generated according to the Goemans-Williamson algorithm.
@@ -91,13 +109,13 @@ class GoemansWilliamsonOptimizer(OptimizationAlgorithm):
         Returns:
             cuts: A list of generated cuts.
         """
-        self._graph = self._extract_adjacency_matrix(problem)
+        adj_matrix = self._extract_adjacency_matrix(problem)
 
-        chi = self._solve_max_cut_sdp()
+        chi = self._solve_max_cut_sdp(adj_matrix)
 
-        cuts = self._generate_random_cuts(chi)
+        cuts = self._generate_random_cuts(chi, len(adj_matrix))
 
-        solutions = [(cuts[i, :], cut_value(cuts[i, :], self.graph)) for i in range(self._num_cuts)]
+        solutions = [(cuts[i, :], cut_value(cuts[i, :], adj_matrix)) for i in range(self._num_cuts)]
 
         if self._sort_cuts:
             solutions.sort(key=lambda x: -x[1])
@@ -105,19 +123,25 @@ class GoemansWilliamsonOptimizer(OptimizationAlgorithm):
         if self._unique_cuts:
             solutions = self._get_unique_cuts(solutions)
 
-        # this is List[Tuple]
-        return solutions[:self._num_best]
+        best_solutions = solutions[:self._num_best]
+        return GoemansWilliamsonOptimizationResult(x=best_solutions[0][0],
+                                                   fval=best_solutions[0][1],
+                                                   variables=problem.variables,
+                                                   status=OptimizationResultStatus.SUCCESS,
+                                                   all_solutions=best_solutions)
 
-    def _get_unique_cuts(self, solutions: List[Tuple]) -> List[Tuple]:
+    def _get_unique_cuts(self, solutions: List[Tuple[np.ndarray, float]]) \
+            -> List[Tuple[np.ndarray, float]]:
         """
         Returns:
             Unique GW cuts.
         """
 
         # Remove symmetry in the cuts to chose the unique ones.
+        # todo: why do we need this?
         for idx, cut in enumerate(solutions):
             if cut[0][0] == 1:
-                solutions[idx] = ([0 if _ == 1 else 1 for _ in cut[0]], cut[1])
+                solutions[idx] = (np.array([0 if _ == 1 else 1 for _ in cut[0]]), cut[1])
 
         seen_cuts = set()
         unique_cuts = []
@@ -147,7 +171,7 @@ class GoemansWilliamsonOptimizer(OptimizationAlgorithm):
 
         return graph
 
-    def _solve_max_cut_sdp(self) -> np.array:
+    def _solve_max_cut_sdp(self, adj_matrix: np.ndarray) -> np.array:
         """
         Calculates the maximum weight cut by generating |V| vectors with a vector program,
         then generating a random plane that cuts the vertices. This is the Goemans-Williamson
@@ -165,17 +189,18 @@ class GoemansWilliamsonOptimizer(OptimizationAlgorithm):
                 name='GoemansWilliamsonOptimizer',
                 pip_install='pip install qiskit-aqua[cvxpy]')
 
+        num_vertices = len(adj_matrix)
         constraints, expr = [], 0
 
         # variables
-        x = cvx.Variable((self._num_vertices, self._num_vertices), PSD=True)
+        x = cvx.Variable((num_vertices, num_vertices), PSD=True)
 
         # constraints
-        for i in range(self._num_vertices):
+        for i in range(num_vertices):
             constraints.append(x[i, i] == 1)
 
         # objective function
-        expr = cvx.sum(cvx.multiply(self._graph, (np.ones((self._num_vertices, self._num_vertices)) - x)))
+        expr = cvx.sum(cvx.multiply(adj_matrix, (np.ones((num_vertices, num_vertices)) - x)))
 
         # solve
         problem = cvx.Problem(cvx.Maximize(expr), constraints)
@@ -185,7 +210,7 @@ class GoemansWilliamsonOptimizer(OptimizationAlgorithm):
         # todo: add checks that the problem is solved
         return x.value
 
-    def _generate_random_cuts(self, chi: np.array) -> np.array:
+    def _generate_random_cuts(self, chi: np.array, num_vertices: int) -> np.array:
         """
         Random hyperplane partitions vertices.
 
@@ -196,12 +221,12 @@ class GoemansWilliamsonOptimizer(OptimizationAlgorithm):
         eigs = np.linalg.eigh(chi)[0]
         # todo: weird numbers: 1.001 and 0.00001
         if min(eigs) < 0:
-            chi = chi + (1.001 * abs(min(eigs)) * np.identity(self._num_vertices))
+            chi = chi + (1.001 * abs(min(eigs)) * np.identity(num_vertices))
         elif min(eigs) == 0:
-            chi = chi + 0.00001 * np.identity(self._num_vertices)
+            chi = chi + 0.00001 * np.identity(num_vertices)
         x = np.linalg.cholesky(chi).T
 
-        r = np.random.normal(size=(self._num_cuts, self._num_vertices))
+        r = np.random.normal(size=(self._num_cuts, num_vertices))
 
         # todo: why "+ 0" ?
         return (np.dot(r, x) > 0) + 0

@@ -21,9 +21,11 @@ Note that the weights are symmetric, i.e., w[j, i] = x always holds.
 import logging
 
 import numpy as np
+from docplex.mp.model import Model
 
 from qiskit.quantum_info import Pauli
 from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.optimization import QuadraticProgram
 
 logger = logging.getLogger(__name__)
 
@@ -94,3 +96,30 @@ def cut_value(x: np.ndarray, w: np.ndarray):
     """
     # pylint: disable=invalid-name
     return np.dot((1 - x), np.dot(w, x))
+
+
+def max_cut_qp(adjacency_matrix: np.array) -> QuadraticProgram:
+    """
+    Creates the max-cut instance based on the adjacency graph.
+    """
+
+    size = len(adjacency_matrix)
+
+    # todo: should we use DOCplex here?
+    mdl = Model()
+    x = [mdl.binary_var('x%s' % i) for i in range(size)]
+
+    objective_terms = []
+    for i in range(size):
+        for j in range(size):
+            if adjacency_matrix[i, j] != 0.:
+                objective_terms.append(
+                    adjacency_matrix[i, j] * x[i] * (1 - x[j]))
+
+    objective = mdl.sum(objective_terms)
+    mdl.maximize(objective)
+
+    qp = QuadraticProgram()
+    qp.from_docplex(mdl)
+
+    return qp

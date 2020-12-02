@@ -67,15 +67,18 @@ class MeanAggregator(BaseAggregator):
         # Divide by the number of results to normalize
         new_samples = []
         for state in dict_samples:
-            sample = (state, dict_samples[state][0], dict_samples[state][1]/n_results)
+            sample = (state, dict_samples[state][0], dict_samples[state][1] / n_results)
             new_samples.append(sample)
 
         # todo: this snippet is also used in min eigen optimizer, consider making it as a function
-        new_samples.sort(key=lambda x: problem.objective.sense.value * x[1])
+        new_samples.sort(key=lambda sample: problem.objective.sense.value * sample[1])
         x = [float(e) for e in new_samples[0][0]]
         fval = new_samples[0][1]
 
-        return MinimumEigenOptimizationResult(x, fval, variables=problem.variables, status=OptimizationResultStatus.SUCCESS, samples=new_samples)
+        # todo: we have to call _interpret to convert to the original representation
+        return MinimumEigenOptimizationResult(x, fval, variables=problem.variables,
+                                              status=OptimizationResultStatus.SUCCESS,
+                                              samples=new_samples)
 
 
 class WarmStartQAOAOptimizer(MinimumEigenOptimizer):
@@ -95,7 +98,7 @@ class WarmStartQAOAOptimizer(MinimumEigenOptimizer):
         """ Initializes the warm start minimum eigen optimizer.
 
         Args:
-            pre_solver: The solver used to solve the relaxed version of the problem.
+            pre_solver: An instance of an optimizer to solve the relaxed version of the problem.
             qaoa: A QAOA instance to be used in the computations.
             epsilon: the regularization parameter that changes the initial variables
                 according to
@@ -106,7 +109,13 @@ class WarmStartQAOAOptimizer(MinimumEigenOptimizer):
             penalty: The penalty factor to be used, or ``None`` for applying a default logic.
             aggregator: Class that aggregates different results. This is used if the pre-solver
                 returns several initial states.
+
+        Raises:
+            AquaError: if ``epsilon`` is not specified for the warm start QAOA.
         """
+        if epsilon is None:
+            raise AquaError('Epsilon must be specified for the warm start QAOA')
+
         self._pre_solver = pre_solver
         self._qaoa = qaoa
         self._epsilon = epsilon
@@ -125,7 +134,7 @@ class WarmStartQAOAOptimizer(MinimumEigenOptimizer):
         Returns:
             A message describing the incompatibility.
         """
-        return QuadraticProgramToQubo.get_compatibility_msg(problem)
+        return super().get_compatibility_msg(problem)
 
     def solve(self, problem: QuadraticProgram) -> OptimizationResult:
         """Tries to solves the given problem using the optimizer.
@@ -148,8 +157,9 @@ class WarmStartQAOAOptimizer(MinimumEigenOptimizer):
             raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
 
         # convert problem to QUBO
-        qubo_converter = QuadraticProgramToQubo(self._penalty)
-        qubo_problem = qubo_converter.convert(problem)
+        # qubo_converter = QuadraticProgramToQubo(self._penalty)
+        # qubo_problem = qubo_converter.convert(problem)
+        qubo_problem = self._convert(problem, self._converters)
 
         # construct operator and offset
         operator, offset = qubo_problem.to_ising()
@@ -160,8 +170,8 @@ class WarmStartQAOAOptimizer(MinimumEigenOptimizer):
         # todo: accessing all solutions
         relaxed_solutions = opt_result.all_solutions
 
-        results = []    # type: List[MinimumEigenOptimizationResult]
-        for relaxed_solution in relaxed_solutions:
+        results = []  # type: List[MinimumEigenOptimizationResult]
+        for relaxed_solution, value in relaxed_solutions:
             # Set the solver using the result of the pre-solver.
             initial_variables = self._create_initial_variables(relaxed_solution)
             # todo: no such setter
@@ -175,7 +185,8 @@ class WarmStartQAOAOptimizer(MinimumEigenOptimizer):
         if len(results) == 1:
             return results[0]
         else:
-            return self._aggregator.aggregate(results, qubo_problem, qubo_converter)
+            # todo: handle converters and _interpret
+            return self._aggregator.aggregate(results, qubo_problem, None)
 
     def _create_initial_variables(self, solution: List[float]) -> List[float]:
         """
@@ -186,20 +197,14 @@ class WarmStartQAOAOptimizer(MinimumEigenOptimizer):
 
         Returns:
             A list of initial variables constructed from a relaxed solution.
-
-        Raises:
-            AquaError: if ``epsilon`` is not specified for the warm start QAOA.
         """
-        if self._epsilon is None:
-            raise AquaError('Epsilon must be specified for the warm start QAOA')
-
         initial_variables = []
 
         for variable in solution:
             if variable < self._epsilon:
                 initial_variables.append(self._epsilon)
             elif variable > 1. - self._epsilon:
-                initial_variables.append(1.-self._epsilon)
+                initial_variables.append(1. - self._epsilon)
             else:
                 initial_variables.append(variable)
 
@@ -246,4 +251,3 @@ class WarmStartQAOAOptimizer(MinimumEigenOptimizer):
             circuit.ry(-theta, index)
 
         return circuit
-
