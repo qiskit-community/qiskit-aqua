@@ -169,6 +169,21 @@ class SummedOp(ListOp):
 
         return accum * self.coeff
 
+    def to_pauli_op(self, massive: bool = False) -> OperatorBase:
+        # pylint: disable=cyclic-import
+        from ..state_fns.state_fn import StateFn
+        pauli_sum = SummedOp(
+            [
+                op.to_pauli_op(massive=massive)  # type: ignore
+                if not isinstance(op, StateFn)
+                else op
+                for op in self.oplist
+            ],
+            coeff=self.coeff,
+            abelian=self.abelian,
+        ).reduce()
+        return pauli_sum.to_pauli_op()
+
     def to_legacy_op(self, massive: bool = False) -> LegacyBaseOperator:
         # We do this recursively in case there are SummedOps of PauliOps in oplist.
         legacy_ops = [op.to_legacy_op(massive=massive) for op in self.oplist]

@@ -259,7 +259,7 @@ class TestOpConstruction(QiskitAquaTestCase):
         gnarly_op = 3 * (H ^ I ^ Y).compose(X ^ X ^ Z).tensor(T ^ Z) + \
             PrimitiveOp(Operator.from_label('+r0IX').data)
         mat_op = gnarly_op.to_matrix_op()
-        pauli_op = gnarly_op.to_pauli_op().to_pauli_op()
+        pauli_op = gnarly_op.to_pauli_op()
         self.assertIsInstance(pauli_op, SummedOp)
         for p in pauli_op:
             self.assertIsInstance(p, PauliOp)
