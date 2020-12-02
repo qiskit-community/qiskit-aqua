@@ -1,0 +1,10 @@
+---
+features:
+  - |
+    Previously, if a parameterized ``ListOp`` was passed to the circuit sampler, along with 
+    parameter bindings, all operators must have been parameterized by the same parameters. 
+    This restriction has been lifted, such that e.g. 
+    ``ListOp([contains parameter x, contains parameters x and y])`` can be passed.
+    Further, the representation of the ``params`` argument to ``CircuitSampler.convert`` now 
+    also allows ``{param: value}`` instead of requiring ``{param: [value]}`` for single 
+    parameter bindings.

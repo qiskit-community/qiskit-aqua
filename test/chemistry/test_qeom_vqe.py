@@ -29,7 +29,7 @@ from qiskit.chemistry.algorithms import QEomVQE
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
 from qiskit.chemistry.components.variational_forms import UCCSD
-from qiskit.chemistry.components.initial_states import HartreeFock
+from qiskit.chemistry.circuit.library import HartreeFock
 
 
 class TestEomVQE(QiskitAquaTestCase):

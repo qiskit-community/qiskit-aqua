@@ -1,0 +1,6 @@
+---
+fixes:
+  - |
+    A method ``one_letter_symbol`` has been removed from the ``VarType`` in the latest
+    build of DOCplex making Aqua incompatible with this version. So instead of using this method
+    an explicit type check of variable types has been introduced in the Aqua optimization module.

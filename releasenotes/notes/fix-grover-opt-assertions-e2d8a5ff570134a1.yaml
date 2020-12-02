@@ -1,0 +1,7 @@
+---
+fixes:
+  - |
+    The two's complement computation of ``v = Q(x)`` in the ``GroverOptimizer`` regularly raised 
+    assertion errors since not enough bits were provided to the conversion. The two's complement 
+    computation is in fact not necessary at all. The whole conversion has been removed along with
+    the obsolete check of the first bit in `v`.

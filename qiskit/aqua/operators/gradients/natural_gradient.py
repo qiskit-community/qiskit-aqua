@@ -16,7 +16,7 @@ from collections.abc import Iterable
 from typing import List, Tuple, Callable, Optional, Union
 
 import numpy as np
-from qiskit.aqua.operators import (OperatorBase, ListOp, ComposedOp, CircuitStateFn)
+from qiskit.aqua.operators import (OperatorBase, ListOp, CircuitStateFn)
 from qiskit.aqua.operators.gradients.circuit_gradients import CircuitGradient
 from qiskit.aqua.operators.gradients.circuit_qfis import CircuitQFI
 from qiskit.aqua.operators.gradients.gradient import Gradient
@@ -84,29 +84,36 @@ class NaturalGradient(GradientBase):
                 state is not ``CircuitStateFn``.
             ValueError: If ``params`` contains a parameter not present in ``operator``.
         """
-        if not isinstance(operator, ComposedOp) or not isinstance(operator[-1], CircuitStateFn):
-            raise TypeError(
-                'Please make sure that the operator for which you want to compute Quantum '
-                'Fisher Information represents an expectation value and that the quantum '
-                'state is given as CircuitStateFn.')
+        if not isinstance(operator[-1], CircuitStateFn):
+            raise TypeError('Please make sure that the operator for which you want to compute '
+                            'Quantum Fisher Information represents an expectation value or a '
+                            'loss function and that the quantum state is given as '
+                            'CircuitStateFn.')
         if not isinstance(params, Iterable):
             params = [params]
+        # Instantiate the gradient
         grad = Gradient(self._grad_method, epsilon=self._epsilon).convert(operator, params)
+        # Instantiate the QFI metric which is used to re-scale the gradient
         metric = self._qfi_method.convert(operator[-1], params) * 0.25
 
+        # Define the function which compute the natural gradient from the gradient and the QFI.
         def combo_fn(x):
             c = np.real(x[0])
             a = np.real(x[1])
             if self.regularization:
+                # If a regularization method is chosen then use a regularized solver to
+                # construct the natural gradient.
                 nat_grad = NaturalGradient._regularized_sle_solver(
                     a, c, regularization=self.regularization)
             else:
                 try:
+                    # Try to solve the system of linear equations Ax = C.
                     nat_grad = np.linalg.solve(a, c)
-                except np.LinAlgError:
-                    nat_grad = np.linalg.lstsq(a, c)
+                except np.linalg.LinAlgError:  # singular matrix
+                    nat_grad = np.linalg.lstsq(a, c)[0]
             return np.real(nat_grad)
-
+        # Define the ListOp which combines the gradient and the QFI according to the combination
+        # function defined above.
         return ListOp([grad, metric], combo_fn=combo_fn)
 
     @property
