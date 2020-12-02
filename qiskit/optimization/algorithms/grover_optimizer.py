@@ -15,16 +15,15 @@
 import logging
 import math
 from copy import deepcopy
-from typing import Optional, Dict, Union, List
+from typing import Optional, Dict, Union, List, cast
 
 import numpy as np
-
 from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms.amplitude_amplifiers.grover import Grover
-from qiskit.providers import BaseBackend
-from qiskit.providers import Backend
 from qiskit.circuit.library import QuadraticForm
+from qiskit.providers import Backend, BaseBackend
+
 from .optimization_algorithm import (OptimizationResultStatus, OptimizationAlgorithm,
                                      OptimizationResult)
 from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo, QuadraticProgramConverter
@@ -222,9 +221,8 @@ class GroverOptimizer(OptimizationAlgorithm):
                 k = int(outcome[0:n_key], 2)
                 v = outcome[n_key:n_key + n_value]
                 int_v = self._bin_to_int(v, n_value) + threshold
-                v = self._twos_complement(int_v, n_value)
                 logger.info('Outcome: %s', outcome)
-                logger.info('Value: %s = %s', v, int_v)
+                logger.info('Value Q(x): %s', int_v)
 
                 # If the value is an improvement, we update the iteration parameters (e.g. oracle).
                 if int_v < optimum_value:
@@ -232,9 +230,8 @@ class GroverOptimizer(OptimizationAlgorithm):
                     optimum_value = int_v
                     logger.info('Current Optimum Key: %s', optimum_key)
                     logger.info('Current Optimum Value: %s', optimum_value)
-                    if v.startswith('1'):
-                        improvement_found = True
-                        threshold = optimum_value
+                    improvement_found = True
+                    threshold = optimum_value
                 else:
                     # Using Durr and Hoyer method, increase m.
                     m = int(np.ceil(min(m * 8 / 7, 2 ** (n_key / 2))))
@@ -264,17 +261,14 @@ class GroverOptimizer(OptimizationAlgorithm):
 
         # Compute function value
         fval = problem_init.objective.evaluate(opt_x)
-        result = OptimizationResult(x=opt_x, fval=fval, variables=problem_.variables,
-                                    status=OptimizationResultStatus.SUCCESS)
 
         # cast binaries back to integers
-        result = self._interpret(result, self._converters)
-
-        return GroverOptimizationResult(x=result.x, fval=result.fval, variables=result.variables,
-                                        operation_counts=operation_count, n_input_qubits=n_key,
-                                        n_output_qubits=n_value, intermediate_fval=fval,
-                                        threshold=threshold,
-                                        status=self._get_feasibility_status(problem, result.x))
+        return cast(GroverOptimizationResult,
+                    self._interpret(x=opt_x, converters=self._converters, problem=problem,
+                                    result_class=GroverOptimizationResult,
+                                    operation_counts=operation_count, n_input_qubits=n_key,
+                                    n_output_qubits=n_value, intermediate_fval=fval,
+                                    threshold=threshold))
 
     def _measure(self, circuit: QuantumCircuit) -> str:
         """Get probabilities from the given backend, and picks a random outcome."""
@@ -305,20 +299,6 @@ class GroverOptimizer(OptimizationAlgorithm):
                 hist[key[::-1]] = state[key] / shots
         hist = dict(filter(lambda p: p[1] > 0, hist.items()))
         return hist
-
-    @staticmethod
-    def _twos_complement(v: int, n_bits: int) -> str:
-        """Converts an integer into a binary string of n bits using two's complement."""
-        assert -2 ** n_bits <= v < 2 ** n_bits
-
-        if v < 0:
-            v += 2 ** n_bits
-            bin_v = bin(v)[2:]
-        else:
-            format_string = '{0:0' + str(n_bits) + 'b}'
-            bin_v = format_string.format(v)
-
-        return bin_v
 
     @staticmethod
     def _bin_to_int(v: str, num_value_bits: int) -> int:
