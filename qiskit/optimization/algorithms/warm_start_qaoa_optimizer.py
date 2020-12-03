@@ -90,6 +90,7 @@ class WarmStartQAOAOptimizer(MinimumEigenOptimizer):
                  pre_solver: OptimizationAlgorithm,
                  qaoa: QAOA,
                  epsilon: float,
+                 num_relaxed_solutions: int = 1,
                  aggregator: Optional[BaseAggregator] = None,
                  penalty: Optional[float] = None,
                  converters: Optional[Union[QuadraticProgramConverter,
@@ -106,9 +107,13 @@ class WarmStartQAOAOptimizer(MinimumEigenOptimizer):
                 xi = 1-epsilon if xi > epsilon.
                 The regularization parameter epsilon should be between 0 and 0.5. When it
                 is 0.5 then warm start corresponds to standard QAOA.
-            penalty: The penalty factor to be used, or ``None`` for applying a default logic.
+            num_relaxed_solutions: A number of relaxed (continuous) solutions to use.
             aggregator: Class that aggregates different results. This is used if the pre-solver
                 returns several initial states.
+            penalty: The penalty factor to be used, or ``None`` for applying a default logic.
+            converters: The converters to use for converting a problem into a different form.
+                By default, when None is specified, an internally created instance of
+                :class:`~qiskit.optimization.converters.QuadraticProgramToQubo` will be used.
 
         Raises:
             AquaError: if ``epsilon`` is not specified for the warm start QAOA.
@@ -117,6 +122,7 @@ class WarmStartQAOAOptimizer(MinimumEigenOptimizer):
             raise AquaError('Epsilon must be specified for the warm start QAOA')
 
         self._pre_solver = pre_solver
+        self._num_relaxed_solutions = num_relaxed_solutions
         self._qaoa = qaoa
         self._epsilon = epsilon
         self._aggregator = aggregator
@@ -163,12 +169,11 @@ class WarmStartQAOAOptimizer(MinimumEigenOptimizer):
 
         # construct operator and offset
         operator, offset = qubo_problem.to_ising()
-        # operator_converter = QuadraticProgramToIsing()
-        # operator, offset = operator_converter.encode(qubo_problem)
 
         opt_result = self._pre_solver.solve(problem)
+        num_relaxed_solutions = min(self._num_relaxed_solutions, len(opt_result.all_solutions))
         # todo: accessing all solutions
-        relaxed_solutions = opt_result.all_solutions
+        relaxed_solutions = opt_result.all_solutions[:num_relaxed_solutions]
 
         results = []  # type: List[MinimumEigenOptimizationResult]
         for relaxed_solution, value in relaxed_solutions:
@@ -182,10 +187,10 @@ class WarmStartQAOAOptimizer(MinimumEigenOptimizer):
             # approximate ground state of operator using min eigen solver.
             results.append(self._solve_internal(operator, offset, qubo_problem, problem))
 
+        # todo: handle converters and _interpret
         if len(results) == 1:
             return results[0]
         else:
-            # todo: handle converters and _interpret
             return self._aggregator.aggregate(results, qubo_problem, None)
 
     def _create_initial_variables(self, solution: List[float]) -> List[float]:

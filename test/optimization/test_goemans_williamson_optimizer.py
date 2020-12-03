@@ -32,7 +32,7 @@ class TestGoemansWilliamson(QiskitOptimizationTestCase):
                               [2., 1., 0., 1.],
                               [0., 0., 1., 0.]])
 
-            optimizer = GoemansWilliamsonOptimizer(num_cuts=10, num_best=5, seed=0)
+            optimizer = GoemansWilliamsonOptimizer(num_cuts=10, seed=0)
             # todo: add a test for max_cut_qp()?
             problem = max_cut_qp(graph)
             results = optimizer.solve(problem)

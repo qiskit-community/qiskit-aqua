@@ -33,7 +33,7 @@ class TestWarmStartQAOAOptimizer(QiskitOptimizationTestCase):
         # G = nx.from_numpy_matrix(graph)
         # nx.draw_networkx(G)
 
-        presolver = GoemansWilliamsonOptimizer(num_cuts=10, num_best=5)
+        presolver = GoemansWilliamsonOptimizer(num_cuts=10)
         problem = max_cut_qp(graph)
 
         backend = BasicAer.get_backend('statevector_simulator')

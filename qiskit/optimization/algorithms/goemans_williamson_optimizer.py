@@ -35,7 +35,8 @@ class GoemansWilliamsonOptimizationResult(OptimizationResult):
     """
     def __init__(self, x: Optional[Union[List[float], np.ndarray]], fval: float,
                  variables: List[Variable], status: OptimizationResultStatus,
-                 all_solutions: Optional[List[Tuple[np.ndarray, float]]]) -> None:
+                 all_solutions: Optional[List[Tuple[np.ndarray, float]]],
+                 sdp_solution: np.ndarray) -> None:
         """
 
         Args:
@@ -44,9 +45,11 @@ class GoemansWilliamsonOptimizationResult(OptimizationResult):
             variables: the list of variables of the optimization problem.
             status: the termination status of the optimization algorithm.
             all_solutions: all solutions.
+            sdp_solution: an SDP solution of the problem.
         """
         super().__init__(x, fval, variables, status, None)
         self._all_solutions = all_solutions
+        self._sdp_solution = sdp_solution
 
     @property
     def all_solutions(self) -> Optional[List[Tuple[np.ndarray, float]]]:
@@ -56,6 +59,14 @@ class GoemansWilliamsonOptimizationResult(OptimizationResult):
 
         """
         return self._all_solutions
+
+    @property
+    def sdp_solution(self) -> np.ndarray:
+        """
+        Returns:
+            Returns an SDP solution of the problem.
+        """
+        return self._sdp_solution
 
 
 class GoemansWilliamsonOptimizer(OptimizationAlgorithm):
@@ -69,14 +80,14 @@ class GoemansWilliamsonOptimizer(OptimizationAlgorithm):
     the graph.
     """
 
-    def __init__(self, num_cuts: int, num_best: int = None, sort_cuts: bool = True,
+    def __init__(self, num_cuts: int, sort_cuts: bool = True,
                  unique_cuts: bool = True, seed: int = 0):
         """
         Args:
             num_cuts: Number of cuts to generate.
-            num_best: number of best cuts to return. If None, all are returned.
             sort_cuts:
-            unique_cuts: The solve method returns only unique cuts.
+            unique_cuts: The solve method returns only unique cuts, thus there may be less cuts
+                than ``num_cuts``.
             seed: A seed value for the random number generator.
         """
         super().__init__()
@@ -84,7 +95,6 @@ class GoemansWilliamsonOptimizer(OptimizationAlgorithm):
         self._num_cuts = num_cuts
         self._sort_cuts = sort_cuts
         self._unique_cuts = unique_cuts
-        self._num_best = num_best or num_cuts
         np.random.seed(seed)
 
     # todo: implement
@@ -123,12 +133,13 @@ class GoemansWilliamsonOptimizer(OptimizationAlgorithm):
         if self._unique_cuts:
             solutions = self._get_unique_cuts(solutions)
 
-        best_solutions = solutions[:self._num_best]
-        return GoemansWilliamsonOptimizationResult(x=best_solutions[0][0],
-                                                   fval=best_solutions[0][1],
+        solutions = solutions[:self._num_cuts]
+        return GoemansWilliamsonOptimizationResult(x=solutions[0][0],
+                                                   fval=solutions[0][1],
                                                    variables=problem.variables,
                                                    status=OptimizationResultStatus.SUCCESS,
-                                                   all_solutions=best_solutions)
+                                                   all_solutions=solutions,
+                                                   sdp_solution=chi)
 
     def _get_unique_cuts(self, solutions: List[Tuple[np.ndarray, float]]) \
             -> List[Tuple[np.ndarray, float]]:
@@ -166,10 +177,10 @@ class GoemansWilliamsonOptimizer(OptimizationAlgorithm):
         Returns:
             adjacency matrix of the graph.
         """
-        graph = -problem.objective.quadratic.coefficients.toarray()
-        graph = (graph + graph.T) / 2
+        adj_matrix = -problem.objective.quadratic.coefficients.toarray()
+        adj_matrix = (adj_matrix + adj_matrix.T) / 2
 
-        return graph
+        return adj_matrix
 
     def _solve_max_cut_sdp(self, adj_matrix: np.ndarray) -> np.array:
         """
