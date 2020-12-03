@@ -170,7 +170,6 @@ class QAOA(VQE):
     @initial_state.setter
     def initial_state(self, initial_state: Optional[Union[QuantumCircuit, InitialState]]) -> None:
         """
-        Sets initial state.
         Args:
             initial_state: Initial state to set.
         """
@@ -187,7 +186,6 @@ class QAOA(VQE):
     @mixer.setter
     def mixer(self, mixer: Union[QuantumCircuit, OperatorBase, LegacyBaseOperator]) -> None:
         """
-        Sets mixer.
         Args:
             mixer: Mixer to set.
         """
