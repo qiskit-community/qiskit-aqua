@@ -339,7 +339,7 @@ class QuantumGenerator(GenerativeNetwork):
                 current_point (np.ndarray): Current values for the variational parameters.
 
             Returns:
-                loss_gradients (np.ndarray): array of partial derivatives of the loss
+                np.ndarray: array of partial derivatives of the loss
                     function w.r.t. the variational parameters.
             """
             free_params = self._free_parameters
