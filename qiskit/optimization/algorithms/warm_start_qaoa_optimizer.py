@@ -281,8 +281,8 @@ class WarmStartQAOAOptimizer(MinimumEigenOptimizer):
         for index, relaxed_value in enumerate(initial_variables):
             theta = 2 * np.arcsin(np.sqrt(relaxed_value))
 
-            circuit.ry(theta, index)
-            circuit.rz(-2.0 * beta, index)
             circuit.ry(-theta, index)
+            circuit.rz(-2.0 * beta, index)
+            circuit.ry(theta, index)
 
         return circuit
