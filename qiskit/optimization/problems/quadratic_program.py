@@ -33,7 +33,8 @@ from docplex.mp.quad import QuadExpr
 from docplex.mp.vartype import ContinuousVarType, BinaryVarType, IntegerVarType
 
 from qiskit.aqua import MissingOptionalLibraryError
-from qiskit.aqua.operators import I, OperatorBase, PauliOp, WeightedPauliOperator, SummedOp, ListOp
+from qiskit.aqua.operators import (I, ListOp, OperatorBase, PauliOp, SummedOp,
+                                   PauliSumOp, WeightedPauliOperator)
 from qiskit.quantum_info import Pauli
 from .constraint import Constraint, ConstraintSense
 from .linear_constraint import LinearConstraint
@@ -1278,6 +1279,8 @@ class QuadraticProgram:
         """
         if isinstance(qubit_op, WeightedPauliOperator):
             qubit_op = qubit_op.to_opflow()
+        if isinstance(qubit_op, PauliSumOp):
+            qubit_op = qubit_op.to_pauli_op()
 
         # No support for ListOp yet, this can be added in future
         # pylint: disable=unidiomatic-typecheck
@@ -1298,11 +1301,12 @@ class QuadraticProgram:
         qubo_matrix = zeros((qubit_op.num_qubits, qubit_op.num_qubits))
 
         if not isinstance(qubit_op, SummedOp):
-            oplist = [qubit_op.to_pauli_op()]
+            pauli_list = [qubit_op.to_pauli_op()]
         else:
-            oplist = qubit_op.to_pauli_op().oplist
+            pauli_list = qubit_op.to_pauli_op()
 
-        for pauli_op in oplist:
+        for pauli_op in pauli_list:
+            pauli_op = pauli_op.to_pauli_op()
             pauli = pauli_op.primitive
             coeff = pauli_op.coeff
             # Count the number of Pauli Zs in a Pauli term
