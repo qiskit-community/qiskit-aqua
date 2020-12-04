@@ -11,11 +11,10 @@
 # that they have been altered from the originals.
 
 """ Test warm start QAOA optimizer. """
-import logging
 
-import numpy as np
 from test.optimization import QiskitOptimizationTestCase
 
+import numpy as np
 from qiskit import BasicAer
 from qiskit.aqua.algorithms import QAOA
 from qiskit.optimization.algorithms.goemans_williamson_optimizer import GoemansWilliamsonOptimizer
@@ -25,7 +24,10 @@ from qiskit.optimization.applications.ising.max_cut import max_cut_qp
 
 
 class TestWarmStartQAOAOptimizer(QiskitOptimizationTestCase):
+    """Tests for the warm start QAOA optimizer."""
+
     def test(self):
+        """Basic test."""
         graph = np.array([[0., 1., 2., 0.],
                           [1., 0., 1., 0.],
                           [2., 1., 0., 1.],

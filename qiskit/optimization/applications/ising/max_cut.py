@@ -119,7 +119,7 @@ def max_cut_qp(adjacency_matrix: np.array) -> QuadraticProgram:
     objective = mdl.sum(objective_terms)
     mdl.maximize(objective)
 
-    qp = QuadraticProgram()
-    qp.from_docplex(mdl)
+    q_p = QuadraticProgram()
+    q_p.from_docplex(mdl)
 
-    return qp
+    return q_p

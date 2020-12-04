@@ -12,13 +12,13 @@
 
 """ Test Goemans-Williamson optimizer. """
 
-import numpy as np
-
 from test.optimization import QiskitOptimizationTestCase
 
+import numpy as np
+
 from qiskit.aqua import MissingOptionalLibraryError
-from qiskit.optimization.algorithms.goemans_williamson_optimizer import GoemansWilliamsonOptimizer, \
-    GoemansWilliamsonOptimizationResult
+from qiskit.optimization.algorithms.goemans_williamson_optimizer \
+    import GoemansWilliamsonOptimizer, GoemansWilliamsonOptimizationResult
 from qiskit.optimization.applications.ising.max_cut import max_cut_qp
 
 

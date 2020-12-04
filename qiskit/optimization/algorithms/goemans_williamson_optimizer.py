@@ -15,30 +15,33 @@ Implementation of the Goemans-Williamson algorithm as an optimizer.
 Requires CVXPY to run.
 """
 
-from typing import Optional, List, Tuple, Union, Any
+from typing import Optional, List, Tuple, Union
 
 import numpy as np
-
 from qiskit.aqua import MissingOptionalLibraryError
+from qiskit.optimization import QuadraticProgram
 from qiskit.optimization.algorithms import OptimizationAlgorithm, OptimizationResult, \
     OptimizationResultStatus
-
-from qiskit.optimization import QuadraticProgram
 from qiskit.optimization.applications.ising.max_cut import cut_value
 from qiskit.optimization.problems import Variable
+
+try:
+    import cvxpy as cvx
+    _HAS_CVXPY = True
+except ImportError:
+    _HAS_CVXPY = False
 
 
 class GoemansWilliamsonOptimizationResult(OptimizationResult):
     """
     Contains results of the Goemans-Williamson algorithm. The properties ``x`` and ``fval`` contain
-    values of just one solution. Explore ``all_solution`` for all posible solutions.
+    values of just one solution. Explore ``all_solution`` for all possible solutions.
     """
     def __init__(self, x: Optional[Union[List[float], np.ndarray]], fval: float,
                  variables: List[Variable], status: OptimizationResultStatus,
                  all_solutions: Optional[List[Tuple[np.ndarray, float]]],
                  sdp_solution: np.ndarray) -> None:
         """
-
         Args:
             x: the optimal value found in the optimization.
             fval: the optimal function value.
@@ -46,7 +49,16 @@ class GoemansWilliamsonOptimizationResult(OptimizationResult):
             status: the termination status of the optimization algorithm.
             all_solutions: all solutions.
             sdp_solution: an SDP solution of the problem.
+
+        Raises:
+            MissingOptionalLibraryError: CVXPY is not installed.
         """
+        if not _HAS_CVXPY:
+            raise MissingOptionalLibraryError(
+                libname='CVXPY',
+                name='GoemansWilliamsonOptimizer',
+                pip_install='pip install qiskit-aqua[cvxpy]')
+
         super().__init__(x, fval, variables, status, None)
         self._all_solutions = all_solutions
         self._sdp_solution = sdp_solution
@@ -85,7 +97,7 @@ class GoemansWilliamsonOptimizer(OptimizationAlgorithm):
         """
         Args:
             num_cuts: Number of cuts to generate.
-            sort_cuts:
+            sort_cuts: True if sort cuts by their values.
             unique_cuts: The solve method returns only unique cuts, thus there may be less cuts
                 than ``num_cuts``.
             seed: A seed value for the random number generator.
@@ -107,7 +119,7 @@ class GoemansWilliamsonOptimizer(OptimizationAlgorithm):
         Returns:
             Returns the incompatibility message. If the message is empty no issues were found.
         """
-        raise NotImplemented
+        raise NotImplementedError
 
     def solve(self, problem: QuadraticProgram) -> OptimizationResult:
         """
@@ -145,11 +157,12 @@ class GoemansWilliamsonOptimizer(OptimizationAlgorithm):
             -> List[Tuple[np.ndarray, float]]:
         """
         Returns:
-            Unique GW cuts.
+            Unique Goemans-Williamson cuts.
         """
 
         # Remove symmetry in the cuts to chose the unique ones.
-        # todo: why do we need this?
+        # Cuts 010 and 101 are symmetric(same cut), so we convert all cuts
+        # starting from 1 to start from 0. In the next loop repetitive cuts will be removed.
         for idx, cut in enumerate(solutions):
             if cut[0][0] == 1:
                 solutions[idx] = (np.array([0 if _ == 1 else 1 for _ in cut[0]]), cut[1])
@@ -182,24 +195,19 @@ class GoemansWilliamsonOptimizer(OptimizationAlgorithm):
 
         return adj_matrix
 
-    def _solve_max_cut_sdp(self, adj_matrix: np.ndarray) -> np.array:
+    def _solve_max_cut_sdp(self, adj_matrix: np.ndarray) -> np.ndarray:
         """
         Calculates the maximum weight cut by generating |V| vectors with a vector program,
         then generating a random plane that cuts the vertices. This is the Goemans-Williamson
         algorithm that gives a .878-approximation.
 
         Returns:
-            chi: a list of length |V| where the ith element is +1 or -1, representing which
-                set the ith vertex is in. Returns None if an error occurs.
-        """
-        try:
-            import cvxpy as cvx
-        except ImportError:
-            raise MissingOptionalLibraryError(
-                libname='CVXPY',
-                name='GoemansWilliamsonOptimizer',
-                pip_install='pip install qiskit-aqua[cvxpy]')
+            chi: a list of length |V| where the i-th element is +1 or -1, representing which
+                set the it-h vertex is in. Returns None if an error occurs.
 
+        Raises:
+            MissingOptionalLibraryError: if CVXPY is not installed.
+        """
         num_vertices = len(adj_matrix)
         constraints, expr = [], 0
 
@@ -221,19 +229,23 @@ class GoemansWilliamsonOptimizer(OptimizationAlgorithm):
         # todo: add checks that the problem is solved
         return x.value
 
-    def _generate_random_cuts(self, chi: np.array, num_vertices: int) -> np.array:
+    def _generate_random_cuts(self, chi: np.ndarray, num_vertices: int) -> np.ndarray:
         """
         Random hyperplane partitions vertices.
 
         Args:
-            chi: a list of length |V| where the ith element is +1 or -1, representing
-            which set the ith vertex is in.
+            chi: a list of length |V| where the i-th element is +1 or -1, representing
+                which set the i-th vertex is in.
+            num_vertices: the number of vertices in the graph
+
+        Returns:
+            An array of random cuts.
         """
-        eigs = np.linalg.eigh(chi)[0]
+        eigenvalues = np.linalg.eigh(chi)[0]
         # todo: weird numbers: 1.001 and 0.00001
-        if min(eigs) < 0:
-            chi = chi + (1.001 * abs(min(eigs)) * np.identity(num_vertices))
-        elif min(eigs) == 0:
+        if min(eigenvalues) < 0:
+            chi = chi + (1.001 * abs(min(eigenvalues)) * np.identity(num_vertices))
+        elif min(eigenvalues) == 0:
             chi = chi + 0.00001 * np.identity(num_vertices)
         x = np.linalg.cholesky(chi).T
 

@@ -255,6 +255,7 @@ getter
 gfortran
 github
 globals
+goemans
 gogolin
 goldfarb
 gridpoints
@@ -542,6 +543,7 @@ prepending
 preprint
 Preprocesses
 preprocessing
+presolver
 priori
 probs
 programmatically
@@ -613,6 +615,7 @@ rightarrow
 rohf
 ronagh
 rosen
+rqaoa
 rsgtu
 rtol
 rtype
@@ -635,6 +638,7 @@ scikit
 scipy
 sd
 sdg
+sdp
 seealso
 seeley
 sergey
