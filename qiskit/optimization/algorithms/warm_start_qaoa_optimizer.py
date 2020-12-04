@@ -12,7 +12,7 @@
 
 # todo: update docstring
 """Implementation of the warm start QAOA optimizer."""
-
+import copy
 from abc import ABC
 from typing import Optional, List, Union
 
@@ -26,6 +26,7 @@ from qiskit.optimization import QuadraticProgram, QiskitOptimizationError
 from qiskit.optimization.algorithms import OptimizationAlgorithm, OptimizationResult, \
     MinimumEigenOptimizer, MinimumEigenOptimizationResult, OptimizationResultStatus
 from qiskit.optimization.converters import QuadraticProgramToQubo, QuadraticProgramConverter
+from qiskit.optimization.problems import VarType
 
 
 class BaseAggregator(ABC):
@@ -54,7 +55,6 @@ class MeanAggregator(BaseAggregator):
 
         # Use a dict for fast solution look-up
         dict_samples = {}
-        n_results = len(results)
 
         # Sum up all the probabilities in the results
         for result in results:
@@ -66,6 +66,7 @@ class MeanAggregator(BaseAggregator):
 
         # Divide by the number of results to normalize
         new_samples = []
+        n_results = len(results)
         for state in dict_samples:
             sample = (state, dict_samples[state][0], dict_samples[state][1] / n_results)
             new_samples.append(sample)
@@ -88,9 +89,10 @@ class WarmStartQAOAOptimizer(MinimumEigenOptimizer):
 
     def __init__(self,
                  pre_solver: OptimizationAlgorithm,
+                 relax_for_pre_solver: bool,
                  qaoa: QAOA,
                  epsilon: float,
-                 num_relaxed_solutions: int = 1,
+                 num_initial_solutions: int = 1,
                  aggregator: Optional[BaseAggregator] = None,
                  penalty: Optional[float] = None,
                  converters: Optional[Union[QuadraticProgramConverter,
@@ -100,6 +102,8 @@ class WarmStartQAOAOptimizer(MinimumEigenOptimizer):
 
         Args:
             pre_solver: An instance of an optimizer to solve the relaxed version of the problem.
+            relax_for_pre_solver: True if the problem must be relaxed to the continuous case
+                before passing it to the pre-solver.
             qaoa: A QAOA instance to be used in the computations.
             epsilon: the regularization parameter that changes the initial variables
                 according to
@@ -107,7 +111,7 @@ class WarmStartQAOAOptimizer(MinimumEigenOptimizer):
                 xi = 1-epsilon if xi > epsilon.
                 The regularization parameter epsilon should be between 0 and 0.5. When it
                 is 0.5 then warm start corresponds to standard QAOA.
-            num_relaxed_solutions: A number of relaxed (continuous) solutions to use.
+            num_initial_solutions: A number of relaxed (continuous) solutions to use.
             aggregator: Class that aggregates different results. This is used if the pre-solver
                 returns several initial states.
             penalty: The penalty factor to be used, or ``None`` for applying a default logic.
@@ -116,15 +120,22 @@ class WarmStartQAOAOptimizer(MinimumEigenOptimizer):
                 :class:`~qiskit.optimization.converters.QuadraticProgramToQubo` will be used.
 
         Raises:
-            AquaError: if ``epsilon`` is not specified for the warm start QAOA.
+            AquaError: if ``epsilon`` is not specified for the warm start QAOA or value is not in
+                the range [0, 0.5].
         """
         if epsilon is None:
             raise AquaError('Epsilon must be specified for the warm start QAOA')
 
+        if epsilon < 0. or epsilon > 0.5:
+            raise AquaError('Epsilon for warm-start QAOA needs to be between 0 and 0.5.')
+
         self._pre_solver = pre_solver
-        self._num_relaxed_solutions = num_relaxed_solutions
+        self._relax_for_pre_solver = relax_for_pre_solver
         self._qaoa = qaoa
         self._epsilon = epsilon
+        self._num_initial_solutions = num_initial_solutions
+        if num_initial_solutions > 1 and aggregator is None:
+            aggregator = MeanAggregator()
         self._aggregator = aggregator
         super().__init__(qaoa, penalty, converters)
 
@@ -142,7 +153,7 @@ class WarmStartQAOAOptimizer(MinimumEigenOptimizer):
         """
         return super().get_compatibility_msg(problem)
 
-    def solve(self, problem: QuadraticProgram) -> OptimizationResult:
+    def solve(self, problem: QuadraticProgram) -> MinimumEigenOptimizationResult:
         """Tries to solves the given problem using the optimizer.
 
         The pre-solver is run to warm-start the solver. Next, the optimizer is run
@@ -162,26 +173,29 @@ class WarmStartQAOAOptimizer(MinimumEigenOptimizer):
         if len(msg) > 0:
             raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
 
-        # convert problem to QUBO
-        # qubo_converter = QuadraticProgramToQubo(self._penalty)
-        # qubo_problem = qubo_converter.convert(problem)
+        # convert problem to QUBO or another form if converters are specified
         qubo_problem = self._convert(problem, self._converters)
+
+        # if the presolver can't solve the problem then it should be relaxed.
+        if self._relax_for_pre_solver:
+            pre_solver_problem = self._relax_problem(qubo_problem)
+        else:
+            pre_solver_problem = qubo_problem
+
+        opt_result = self._pre_solver.solve(pre_solver_problem)
+        num_initial_solutions = min(self._num_initial_solutions, len(opt_result.all_solutions))
 
         # construct operator and offset
         operator, offset = qubo_problem.to_ising()
 
-        opt_result = self._pre_solver.solve(problem)
-        num_relaxed_solutions = min(self._num_relaxed_solutions, len(opt_result.all_solutions))
         # todo: accessing all solutions
-        relaxed_solutions = opt_result.all_solutions[:num_relaxed_solutions]
+        initial_solutions = opt_result.all_solutions[:num_initial_solutions]
 
         results = []  # type: List[MinimumEigenOptimizationResult]
-        for relaxed_solution, value in relaxed_solutions:
+        for initial_solution, value in initial_solutions:
             # Set the solver using the result of the pre-solver.
-            initial_variables = self._create_initial_variables(relaxed_solution)
-            # todo: no such setter
+            initial_variables = self._create_initial_variables(initial_solution)
             self._qaoa.initial_state = self._create_initial_state(initial_variables)
-            # todo: no such setter
             self._qaoa.mixer = self._create_mixer(initial_variables)
 
             # approximate ground state of operator using min eigen solver.
@@ -192,6 +206,22 @@ class WarmStartQAOAOptimizer(MinimumEigenOptimizer):
             return results[0]
         else:
             return self._aggregator.aggregate(results, qubo_problem, None)
+
+    def _relax_problem(self, problem: QuadraticProgram) -> QuadraticProgram:
+        """
+        Change all variables to continuous.
+
+        Args:
+            problem: Problem to relax.
+
+        Returns:
+            A copy of the original problem where all variables are continuous.
+        """
+        relaxed_problem = copy.deepcopy(problem)
+        for variable in relaxed_problem.variables:
+            variable.vartype = VarType.CONTINUOUS
+
+        return relaxed_problem
 
     def _create_initial_variables(self, solution: List[float]) -> List[float]:
         """

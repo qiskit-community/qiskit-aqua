@@ -11,6 +11,7 @@
 # that they have been altered from the originals.
 
 """ Test warm start QAOA optimizer. """
+import logging
 
 import numpy as np
 from test.optimization import QiskitOptimizationTestCase
@@ -39,7 +40,8 @@ class TestWarmStartQAOAOptimizer(QiskitOptimizationTestCase):
         backend = BasicAer.get_backend('statevector_simulator')
         qaoa = QAOA(quantum_instance=backend, p=1)
         aggregator = MeanAggregator()
-        optimizer = WarmStartQAOAOptimizer(pre_solver=presolver, qaoa=qaoa, epsilon=0.25,
+        optimizer = WarmStartQAOAOptimizer(pre_solver=presolver, relax_for_pre_solver=False,
+                                           qaoa=qaoa, epsilon=0.25, num_initial_solutions=5,
                                            aggregator=aggregator)
         result_warm = optimizer.solve(problem)
 
