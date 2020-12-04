@@ -452,6 +452,11 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         result.combine(vqresult)
         result.eigenvalue = vqresult.optimal_value + 0j
         result.eigenstate = self.get_optimal_vector()
+        # when the eigenstate is a dictionary, we need to normalize it just as we do in
+        # CircuitSampler.sample_circuits
+        if isinstance(result.eigenstate, dict):
+            result.eigenstate = {b: (v / self._quantum_instance._run_config.shots) ** 0.5
+                                 for (b, v) in result.eigenstate.items()}
 
         self._ret['energy'] = self.get_optimal_cost()
         self._ret['eigvals'] = np.asarray([self._ret['energy']])
