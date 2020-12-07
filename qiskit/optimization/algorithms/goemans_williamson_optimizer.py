@@ -223,7 +223,6 @@ class GoemansWilliamsonOptimizer(OptimizationAlgorithm):
 
         # solve
         problem = cvx.Problem(cvx.Maximize(expr), constraints)
-        # print(problem)
         problem.solve()
 
         # todo: add checks that the problem is solved
