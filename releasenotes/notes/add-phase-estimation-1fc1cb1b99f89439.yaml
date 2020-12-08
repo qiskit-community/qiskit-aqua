@@ -1,10 +1,16 @@
 ---
 features:
   - |
-    Adds new classes for phase estimation. PhaseEstimator is an interface class
-    for performing phase estimation given a unitary and initial
+    Adds new classes for phase estimation.
+
+    PhaseEstimator is an interface class
+    for performing (parallel) phase estimation given a unitary and initial
     state. PhaseEstimation is an implementation.  HamiltonianPhaseEstimation is
     a subclass of PhaseEstimation that exponentiates a Hermitian operators using
     a subclass of EvolutionBase and performs phase estimation on the resulting
     unitary. These classes are supported by results classes PhaseEstimatorResult
     and HamiltonianPhaseEstimationResult.
+
+    IPhaseEstimation and IPhaseEstimationResult classes provide the iterative
+    phase estimation algorithm.
+    
