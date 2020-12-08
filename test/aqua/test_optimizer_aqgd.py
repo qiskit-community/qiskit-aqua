@@ -62,3 +62,13 @@ class TestOptimizerAQGD(QiskitAquaTestCase):
     def test_raises_exception(self):
         """ tests that AQGD raises an exception when incorrect values are passed. """
         self.assertRaises(AquaError, AQGD, maxiter=[1000], eta=[1.0, 0.5], momentum=[0.0, 0.5])
+
+    def test_int_values(self):
+        """ test AQGD with int values passed as eta and momentum. """
+        q_instance = QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                     seed_simulator=aqua_globals.random_seed,
+                                     seed_transpiler=aqua_globals.random_seed)
+
+        aqgd = AQGD(maxiter=1000, eta=1, momentum=0)
+        result = VQE(self.qubit_op, RealAmplitudes(), aqgd).run(q_instance)
+        self.assertAlmostEqual(result.eigenvalue.real, -1.857, places=3)

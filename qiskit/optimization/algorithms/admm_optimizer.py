@@ -15,7 +15,7 @@ import copy
 import logging
 import time
 import warnings
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, cast
 
 import numpy as np
 from qiskit.aqua.algorithms import NumPyMinimumEigensolver
@@ -376,22 +376,15 @@ class ADMMOptimizer(OptimizationAlgorithm):
         # flip the objective sign again if required
         objective_value = objective_value * sense
 
-        # convert back integer to binary
-        base_result = OptimizationResult(solution, objective_value, problem.variables,
-                                         OptimizationResultStatus.SUCCESS)
-        base_result = int2bin.interpret(base_result)
-
-        # third parameter is our internal state of computations.
-        result = ADMMOptimizationResult(x=base_result.x, fval=base_result.fval,
-                                        variables=original_problem.variables,
-                                        state=self._state,
-                                        status=self._get_feasibility_status(original_problem,
-                                                                            base_result.x))
-
-        # debug
         self._log.debug("solution=%s, objective=%s at iteration=%s",
                         solution, objective_value, iteration)
-        return result
+
+        # convert back integer to binary
+        # `state` is our internal state of computations.
+        return cast(ADMMOptimizationResult,
+                    self._interpret(x=solution, converters=int2bin, problem=original_problem,
+                                    result_class=ADMMOptimizationResult,
+                                    state=self._state))
 
     @staticmethod
     def _turn_to_minimization(problem: QuadraticProgram) -> Tuple[QuadraticProgram, float]:
@@ -626,7 +619,7 @@ class ADMMOptimizer(OptimizationAlgorithm):
 
         # prepare and set quadratic objective.
         quadratic_objective = self._state.q0 + \
-            self._params.factor_c / 2 * np.dot(self._state.a0.transpose(), self._state.a0) +\
+            self._params.factor_c / 2 * np.dot(self._state.a0.transpose(), self._state.a0) + \
             self._state.rho / 2 * np.eye(binary_size)
         op1.objective.quadratic = quadratic_objective
 

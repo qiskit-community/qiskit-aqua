@@ -161,7 +161,7 @@ class BooleanLogicNormalForm(ABC):
 
     @staticmethod
     def _set_up_register(num_qubits_needed, provided_register, description):
-        if provided_register == 'skip':
+        if isinstance(provided_register, str) and provided_register == 'skip':
             return None
         else:
             if provided_register is None:

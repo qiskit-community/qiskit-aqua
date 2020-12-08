@@ -1,0 +1,5 @@
+---
+fixes:
+  - |
+    Fixed a bug in AQGD optimizer when an integer value is passed as ``eta`` or ``momentum``
+    causing an exception: ``object of type 'int' has no len()``.

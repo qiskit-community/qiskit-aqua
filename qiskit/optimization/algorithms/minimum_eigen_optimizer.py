@@ -11,15 +11,15 @@
 # that they have been altered from the originals.
 
 """A wrapper for minimum eigen solvers from Aqua to be used within the optimization module."""
-from typing import Optional, Any, Union, Tuple, List
+from typing import Optional, Any, Union, Tuple, List, cast
 
 import numpy as np
 from qiskit.aqua.algorithms import MinimumEigensolver, MinimumEigensolverResult
 from qiskit.aqua.operators import StateFn, DictStateFn
 
-from .. import QiskitOptimizationError
 from .optimization_algorithm import (OptimizationResultStatus, OptimizationAlgorithm,
                                      OptimizationResult)
+from .. import QiskitOptimizationError
 from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo, QuadraticProgramConverter
 from ..problems.quadratic_program import QuadraticProgram, Variable
 
@@ -179,7 +179,7 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
 
         # only try to solve non-empty Ising Hamiltonians
         x = None  # type: Optional[Any]
-        eigen_result = None     # type: MinimumEigensolverResult
+        eigen_result = None  # type: MinimumEigensolverResult
         if operator.num_qubits > 0:
 
             # approximate ground state of operator using min eigen solver
@@ -207,26 +207,20 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
             x_str = '0' * problem_.get_num_binary_vars()
             samples = [(x_str, offset, 1.0)]
 
-        # translate result back to integers
-        result = OptimizationResult(x=x, fval=fval, variables=problem_.variables,
-                                    status=OptimizationResultStatus.SUCCESS)
-
-        result = self._interpret(result, self._converters)
-
-        if result.fval is None or result.x is None:
+        if fval is None or x is None:
             # if not function value is given, then something went wrong, e.g., a
             # NumPyMinimumEigensolver has been configured with an infeasible filter criterion.
             return MinimumEigenOptimizationResult(x=None, fval=None,
-                                                  variables=result.variables,
+                                                  variables=problem.variables,
                                                   status=OptimizationResultStatus.FAILURE,
                                                   samples=None,
                                                   min_eigen_solver_result=eigen_result)
-
-        return MinimumEigenOptimizationResult(x=result.x, fval=result.fval,
-                                              variables=result.variables,
-                                              status=self._get_feasibility_status(problem,
-                                                                                  result.x),
-                                              samples=samples, min_eigen_solver_result=eigen_result)
+        # translate result back to integers
+        return cast(MinimumEigenOptimizationResult,
+                    self._interpret(x=x, converters=self._converters, problem=problem,
+                                    result_class=MinimumEigenOptimizationResult,
+                                    samples=samples,
+                                    min_eigen_solver_result=eigen_result))
 
 
 def _eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray, StateFn],
