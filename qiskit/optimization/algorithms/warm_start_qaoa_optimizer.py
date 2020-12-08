@@ -84,7 +84,7 @@ class MeanAggregator(BaseAggregator):
 
 
 class MixerFactory(ABC):
-    """An abstract factory for creating mixers for warm start QAOA."""
+    """An abstract factory for creating mixers for QAOA."""
 
     def create_mixer(self, initial_variables: List[float]) -> QuantumCircuit:
         """
