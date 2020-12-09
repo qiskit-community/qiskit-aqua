@@ -24,13 +24,12 @@ from qiskit.providers import Backend, BaseBackend
 from qiskit.tools import parallel_map
 
 from qiskit.aqua import QuantumInstance, aqua_globals
-from qiskit.aqua.algorithms import QuantumAlgorithm
 
 logger = logging.getLogger(__name__)
 
-class QuantumKernel(QuantumAlgorithm):
+class QuantumKernel:
     """
-    Quantum Kernel Algorithm
+    Quantum Kernel
 
     The general task of machine learning is to find and study patterns in data. For many
     algorithms, the datapoints are better understood in a higher dimensional feature space,
@@ -59,7 +58,7 @@ class QuantumKernel(QuantumAlgorithm):
             enforce_psd:       # project to closest positive semidefinite matrix if x = y
             quantum_instance:  # Quantum Instance or Backend
         """
-        super().__init__(quantum_instance)
+        #super().__init__(quantum_instance)
 
         self._feature_map = feature_map
         self._enforce_psd = enforce_psd
@@ -271,6 +270,3 @@ class QuantumKernel(QuantumAlgorithm):
                 kernel = U @ np.diag(np.maximum(0, D)) @ U.transpose()
 
         return kernel
-
-    def _run(self):
-        return self.instance.run()
