@@ -30,6 +30,7 @@ Submodules
 
    circuit.library
    datasets
+   algorithms
 
 """
 
