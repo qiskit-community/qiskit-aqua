@@ -134,13 +134,22 @@ class GroundStateEigensolver(GroundStateSolver):
         if isinstance(operators, list):
             results = []
             for op in operators:
-                results.append(self._eval_op(state, op, quantum_instance))
+                if op is None:
+                    results.append(None)
+                else:
+                    results.append(self._eval_op(state, op, quantum_instance))
         elif isinstance(operators, dict):
             results = {}  # type: ignore
             for name, op in operators.items():
-                results[name] = self._eval_op(state, op, quantum_instance)
+                if op is None:
+                    results[name] = None
+                else:
+                    results[name] = self._eval_op(state, op, quantum_instance)
         else:
-            results = self._eval_op(state, operators, quantum_instance)
+            if operators is None:
+                results = None
+            else:
+                results = self._eval_op(state, operators, quantum_instance)
 
         return results
 
