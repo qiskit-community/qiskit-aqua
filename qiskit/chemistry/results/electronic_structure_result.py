@@ -12,7 +12,7 @@
 
 """The electronic structure result."""
 
-from typing import List, Optional, Tuple, cast, Union
+from typing import List, Optional, Tuple, cast
 
 import logging
 import numpy as np
