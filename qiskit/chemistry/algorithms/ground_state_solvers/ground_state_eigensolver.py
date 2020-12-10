@@ -132,7 +132,7 @@ class GroundStateEigensolver(GroundStateSolver):
         # handle all possible formats of operators
         # i.e. if a user gives us a dict of operators, we return the results equivalently, etc.
         if isinstance(operators, list):
-            results = []
+            results = []  # type: ignore
             for op in operators:
                 if op is None:
                     results.append(None)
