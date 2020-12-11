@@ -306,6 +306,7 @@ implicant
 implicants
 indvar
 init
+initialise
 initializer
 initio
 innerproduct
@@ -439,6 +440,7 @@ msq
 multiclass
 multinomial
 multiprocess
+MxD
 mxn
 mypy
 nakanishi
@@ -477,6 +479,7 @@ num
 numpy
 nxd
 nxk
+NxM
 nxn
 objval
 observable's
@@ -509,6 +512,7 @@ parameterexpression
 parameterization
 parameterizations
 parameterizes
+parametrised
 parametrized
 params
 parikh
@@ -637,6 +641,7 @@ sd
 sdg
 seealso
 seeley
+semidefinite
 sergey
 setia
 setted

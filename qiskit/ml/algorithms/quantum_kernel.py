@@ -21,11 +21,11 @@ import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 from qiskit.circuit import ParameterVector
 from qiskit.providers import Backend, BaseBackend
-from qiskit.tools import parallel_map
 
-from qiskit.aqua import QuantumInstance, aqua_globals
+from qiskit.aqua import QuantumInstance
 
 logger = logging.getLogger(__name__)
+
 
 class QuantumKernel:
     """
@@ -58,7 +58,7 @@ class QuantumKernel:
             enforce_psd:       # project to closest positive semidefinite matrix if x = y
             quantum_instance:  # Quantum Instance or Backend
         """
-        #super().__init__(quantum_instance)
+        # super().__init__(quantum_instance)
 
         self._feature_map = feature_map
         self._enforce_psd = enforce_psd
@@ -155,7 +155,7 @@ class QuantumKernel:
         if y_vec is not None and y_vec.ndim != 2:
             raise ValueError("y_vec must be a 2D array")
 
-        if x_vec.shape[1] != self._feature_map.num_qubits :
+        if x_vec.shape[1] != self._feature_map.num_qubits:
             raise ValueError("x_vec and class feature map incompatible dimensions.\n" +
                              "x_vec has %s dimensions, but feature map has %s." %
                              (x_vec.shape[1], self._feature_map.num_qubits))
@@ -177,7 +177,7 @@ class QuantumKernel:
 
         # set diagonal to 1 if symmetric
         if is_symmetric:
-            np.fill_diagonal(kernel,1)
+            np.fill_diagonal(kernel, 1)
 
         # get indices to calculate
         if is_symmetric:
@@ -190,11 +190,11 @@ class QuantumKernel:
         is_statevector_sim = self._quantum_instance.is_statevector
 
         # calculate kernel
-        if is_statevector_sim: # using state vector simulator
+        if is_statevector_sim:  # using state vector simulator
             if is_symmetric:
                 to_be_computed_data = x_vec
-            else: # not symmetric
-                to_be_computed_data = np.concatenate((x_vec,y_vec))
+            else:  # not symmetric
+                to_be_computed_data = np.concatenate((x_vec, y_vec))
 
             feature_map_params = ParameterVector('par_x', self._feature_map.num_parameters)
             parameterized_circuit = self._construct_circuit(
@@ -207,21 +207,21 @@ class QuantumKernel:
             results = self._quantum_instance.execute(circuits)
 
             offset = 0 if is_symmetric else len(x_vec)
-            matrix_elements = [self._compute_overlap(idx, results, is_statevector_sim) \
+            matrix_elements = [self._compute_overlap(idx, results, is_statevector_sim)
                                for idx in list(zip(mus, nus + offset))]
 
-            #using parallel_map causes an error
-            #matrix_elements = parallel_map(self._compute_overlap,
-            #                               list(zip(mus, nus + offset)),
-            #                               task_args=(results,is_statevector_sim),
-            #                               num_processes=aqua_globals.num_processes)
+            # using parallel_map causes an error
+            # matrix_elements = parallel_map(self._compute_overlap,
+            #                                list(zip(mus, nus + offset)),
+            #                                task_args=(results,is_statevector_sim),
+            #                                num_processes=aqua_globals.num_processes)
 
             for i, j, value in zip(mus, nus, matrix_elements):
                 kernel[i, j] = value
                 if is_symmetric:
                     kernel[j, i] = kernel[i, j]
 
-        else: # not using state vector simulator
+        else:  # not using state vector simulator
             feature_map_params_x = ParameterVector('par_x', self._feature_map.num_parameters)
             feature_map_params_y = ParameterVector('par_y', self._feature_map.num_parameters)
             parameterized_circuit = self._construct_circuit(
@@ -235,8 +235,8 @@ class QuantumKernel:
                 for sub_idx in range(idx, min(idx + QuantumKernel.BATCH_SIZE, len(mus))):
                     i = mus[sub_idx]
                     j = nus[sub_idx]
-                    xi = x_vec[i] # pylint: disable=invalid-name
-                    yj = y_vec[j] # pylint: disable=invalid-name
+                    xi = x_vec[i]  # pylint: disable=invalid-name
+                    yj = y_vec[j]  # pylint: disable=invalid-name
                     if not np.all(xi == yj):
                         to_be_computed_data_pair.append((xi, yj))
                         to_be_computed_index.append((i, j))
@@ -247,14 +247,14 @@ class QuantumKernel:
 
                 results = self._quantum_instance.execute(circuits)
 
-                matrix_elements = [self._compute_overlap(circuit, results, is_statevector_sim) \
+                matrix_elements = [self._compute_overlap(circuit, results, is_statevector_sim)
                                    for circuit in range(len(circuits))]
 
-                #using parallel_map causes an error
-                #matrix_elements = parallel_map(QuantumKernel._compute_overlap,
-                #                               range(len(circuits)),
-                #                               task_args=(results,is_statevector_sim),
-                #                               num_processes=aqua_globals.num_processes)
+                # using parallel_map causes an error
+                # matrix_elements = parallel_map(QuantumKernel._compute_overlap,
+                #                                range(len(circuits)),
+                #                                task_args=(results,is_statevector_sim),
+                #                                num_processes=aqua_globals.num_processes)
 
                 for (i, j), value in zip(to_be_computed_index, matrix_elements):
                     kernel[i, j] = value
@@ -266,7 +266,7 @@ class QuantumKernel:
                 # The (symmetric) matrix should always be positive semi-definite by construction,
                 # but this can be violated in case of noise, such as sampling noise, thus the
                 # adjustment is only done if NOT using the statevector simulation.
-                D, U = np.linalg.eig(kernel) # pylint: disable=invalid-name
+                D, U = np.linalg.eig(kernel)  # pylint: disable=invalid-name
                 kernel = U @ np.diag(np.maximum(0, D)) @ U.transpose()
 
         return kernel
