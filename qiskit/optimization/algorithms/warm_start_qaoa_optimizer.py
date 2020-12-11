@@ -87,7 +87,7 @@ class MeanAggregator(BaseAggregator):
 class WarmStartQAOACircuitFactory:
     """
     A factory that produces quantum circuits for the QAOA implementation. The methods of this
-    factory can be overridden to modify behaviour of QAOA. This implementation generates quantum
+    factory can be overridden to modify behavior of QAOA. This implementation generates quantum
     circuits for initial state and mixer to warm start QAOA.
     """
 
