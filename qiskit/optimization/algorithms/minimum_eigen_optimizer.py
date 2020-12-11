@@ -172,18 +172,30 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
         self._verify_compatibility(problem)
 
         # convert problem to QUBO
-        problem_ = self._convert(problem, self._converters)
+        converted_problem = self._convert(problem, self._converters)
 
         # construct operator and offset
-        operator, offset = problem_.to_ising()
+        operator, offset = converted_problem.to_ising()
 
-        return self._solve_internal(operator, offset, problem_, problem)
+        return self._solve_internal(operator, offset, converted_problem, problem)
 
     def _solve_internal(self,
                         operator: OperatorBase,
                         offset: float,
-                        problem_: QuadraticProgram,
-                        problem: QuadraticProgram) -> MinimumEigenOptimizationResult:
+                        converted_problem: QuadraticProgram,
+                        original_problem: QuadraticProgram) -> MinimumEigenOptimizationResult:
+        """
+        An internal (helper) method to solve a QUBO once everything is ready.
+
+        Args:
+            operator: An operator that represents the problem to solve.
+            offset: A constant value from the problem
+            converted_problem: A QUBO problem converted from the original one.
+            original_problem: An original problem, used for the backward conversion.
+
+        Returns:
+            A solution to the problem.
+        """
         # only try to solve non-empty Ising Hamiltonians
         x = None  # type: Optional[Any]
         eigen_result = None  # type: MinimumEigensolverResult
@@ -199,32 +211,32 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
             x_str = None
             samples = None
             if eigen_result.eigenstate is not None:
-                samples = _eigenvector_to_solutions(eigen_result.eigenstate, problem_)
+                samples = _eigenvector_to_solutions(eigen_result.eigenstate, converted_problem)
                 # print(offset, samples)
                 # samples = [(res[0], problem_.objective.sense.value * (res[1] + offset), res[2])
                 #    for res in samples]
-                samples.sort(key=lambda x: problem_.objective.sense.value * x[1])
+                samples.sort(key=lambda x: converted_problem.objective.sense.value * x[1])
                 x = [float(e) for e in samples[0][0]]
                 fval = samples[0][1]
 
         # if Hamiltonian is empty, then the objective function is constant to the offset
         else:
-            x = [0] * problem_.get_num_binary_vars()
+            x = [0] * converted_problem.get_num_binary_vars()
             fval = offset
-            x_str = '0' * problem_.get_num_binary_vars()
+            x_str = '0' * converted_problem.get_num_binary_vars()
             samples = [(x_str, offset, 1.0)]
 
         if fval is None or x is None:
             # if not function value is given, then something went wrong, e.g., a
             # NumPyMinimumEigensolver has been configured with an infeasible filter criterion.
             return MinimumEigenOptimizationResult(x=None, fval=None,
-                                                  variables=problem.variables,
+                                                  variables=original_problem.variables,
                                                   status=OptimizationResultStatus.FAILURE,
                                                   samples=None,
                                                   min_eigen_solver_result=eigen_result)
         # translate result back to integers
         return cast(MinimumEigenOptimizationResult,
-                    self._interpret(x=x, converters=self._converters, problem=problem,
+                    self._interpret(x=x, converters=self._converters, problem=original_problem,
                                     result_class=MinimumEigenOptimizationResult,
                                     samples=samples,
                                     min_eigen_solver_result=eigen_result))

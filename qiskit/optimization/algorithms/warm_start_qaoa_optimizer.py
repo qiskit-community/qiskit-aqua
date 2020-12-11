@@ -15,92 +15,135 @@
 
 import copy
 from abc import ABC
-from typing import Optional, List, Union, Dict, Tuple
+from typing import Optional, List, Union, Dict, Tuple, cast
 
 import numpy as np
 from qiskit import QuantumCircuit
-from qiskit.aqua import AquaError
 from qiskit.aqua.algorithms import QAOA
 from qiskit.circuit import Parameter
 from qiskit.optimization import QuadraticProgram, QiskitOptimizationError
 from qiskit.optimization.algorithms import OptimizationAlgorithm, MinimumEigenOptimizer, \
-    MinimumEigenOptimizationResult, OptimizationResultStatus
-from qiskit.optimization.converters import QuadraticProgramToQubo, QuadraticProgramConverter
+    MinimumEigenOptimizationResult
+from qiskit.optimization.converters import QuadraticProgramConverter
 from qiskit.optimization.problems import VarType
 
 
 class BaseAggregator(ABC):
-    """Aggregates results"""
+    """A base abstract class for aggregates results"""
 
-    def aggregate(self, results: List[MinimumEigenOptimizationResult], problem: QuadraticProgram,
-                  qubo_converter: QuadraticProgramToQubo) -> MinimumEigenOptimizationResult:
-        """Aggregates the results."""
+    def aggregate(self, results: List[MinimumEigenOptimizationResult]) \
+            -> List[Tuple[str, float, float]]:
+        """
+        Aggregates the results.
+
+        Args:
+            results: List of result objects that need to be combined.
+
+        Returns:
+             Aggregated samples.
+        """
         raise NotImplementedError
 
 
 class MeanAggregator(BaseAggregator):
     """Aggregates the results by averaging the probability of each sample."""
 
-    def aggregate(self, results: List[MinimumEigenOptimizationResult],
-                  problem: QuadraticProgram, qubo_converter: QuadraticProgramToQubo) \
-            -> MinimumEigenOptimizationResult:
+    def aggregate(self, results: List[MinimumEigenOptimizationResult]) \
+            -> List[Tuple[str, float, float]]:
         """
         Args:
             results: List of result objects that need to be combined.
-            problem: A converted problem being solved by the optimizer.
-            qubo_converter: A converter used to convert the initial problem.
 
         Returns:
-             An aggregated result.
+             Aggregated samples by averaging them.
         """
 
         # Use a dict for fast solution look-up
+        # Key: sample code, value: tuple of fval, probability
         dict_samples: Dict[str, Tuple[float, float]] = {}
 
         # Sum up all the probabilities in the results
         for result in results:
             for sample in result.samples:
-                if sample[0] in dict_samples:
-                    dict_samples[sample[0]] = (sample[1], dict_samples[sample[0]][1] + sample[2])
+                state, fval, prob = sample[0], sample[1], sample[2]
+                if state in dict_samples:
+                    dict_samples[state] = (fval, dict_samples[state][1] + prob)
                 else:
-                    dict_samples[sample[0]] = (sample[1], sample[2])
+                    dict_samples[state] = (fval, prob)
 
         # Divide by the number of results to normalize
         new_samples = []
-        n_results = len(results)
+        num_results = len(results)
         for state in dict_samples:
-            sample = (state, dict_samples[state][0], dict_samples[state][1] / n_results)
+            sample = (state, dict_samples[state][0], dict_samples[state][1] / num_results)
             new_samples.append(sample)
 
-        # todo: this snippet is also used in min eigen optimizer, consider making it as a function
-        new_samples.sort(key=lambda sample: problem.objective.sense.value * sample[1])
-        x = [float(e) for e in new_samples[0][0]]
-        fval = new_samples[0][1]
+        # new_samples.sort(key=lambda sample: problem.objective.sense.value * sample[1])
+        # x = [float(e) for e in new_samples[0][0]]
 
-        # todo: we have to call _interpret to convert to the original representation
-        return MinimumEigenOptimizationResult(x, fval, variables=problem.variables,
-                                              status=OptimizationResultStatus.SUCCESS,
-                                              samples=new_samples)
+        return new_samples
 
 
-class MixerFactory(ABC):
-    """An abstract factory for creating mixers for QAOA."""
+class WarmStartQAOACircuitFactory:
+    """
+    A factory that produces quantum circuits for the QAOA implementation. The methods of this
+    factory can be overridden to modify behaviour of QAOA. This implementation generates quantum
+    circuits for initial state and mixer to warm start QAOA.
+    """
 
-    def create_mixer(self, initial_variables: List[float]) -> QuantumCircuit:
+    def __init__(self, epsilon: float) -> None:
         """
-        Creates a mixer as a quantum circuit based on the initial variables.
+        Args:
+            epsilon: the regularization parameter that changes the initial variables according to
+                xi = epsilon if xi < epsilon
+                xi = 1-epsilon if xi > epsilon.
+                The regularization parameter epsilon should be between 0 and 0.5. When it
+                is 0.5 then warm start corresponds to standard QAOA.
+        Raises:
+            AquaError: if ``epsilon`` is not specified for the warm start QAOA or value is not in
+                the range [0, 0.5].
+        """
+        self._epsilon = epsilon
+
+    def create_initial_variables(self, solution: List[float]) -> List[float]:
+        """
+        Creates initial variable values to warm start QAOA.
 
         Args:
-            initial_variables: A list of initial variables.
+            solution: a solution obtained for the relaxed problem.
 
         Returns:
-            A quantum circuit to be used as a mixer in QAOA.
+            A list of initial variables constructed from a relaxed solution.
         """
-        raise NotImplementedError
+        initial_variables = []
 
+        for variable in solution:
+            if variable < self._epsilon:
+                initial_variables.append(self._epsilon)
+            elif variable > 1. - self._epsilon:
+                initial_variables.append(1. - self._epsilon)
+            else:
+                initial_variables.append(variable)
 
-class WarmStartMixerFactory(MixerFactory):
-    """Default implementation of the mixer factory."""
+        return initial_variables
+
+    def create_initial_state(self, initial_variables: List[float]) -> QuantumCircuit:
+        """
+        Creates an initial state quantum circuit to warm start QAOA.
+
+        Args:
+            initial_variables: Already created initial variables.
+
+        Returns:
+            A quantum circuit that represents initial state.
+        """
+        circuit = QuantumCircuit(len(initial_variables))
+
+        for index, relaxed_value in enumerate(initial_variables):
+            theta = 2 * np.arcsin(np.sqrt(relaxed_value))
+            circuit.ry(theta, index)
+
+        return circuit
 
     def create_mixer(self, initial_variables: List[float]) -> QuantumCircuit:
         """
@@ -134,30 +177,35 @@ class WarmStartQAOAOptimizer(MinimumEigenOptimizer):
                  pre_solver: OptimizationAlgorithm,
                  relax_for_pre_solver: bool,
                  qaoa: QAOA,
-                 epsilon: float,
+                 epsilon: Optional[float] = None,
                  num_initial_solutions: int = 1,
-                 mixer_factory: Optional[MixerFactory] = None,
+                 circuit_factory: Optional[WarmStartQAOACircuitFactory] = None,
                  aggregator: Optional[BaseAggregator] = None,
                  penalty: Optional[float] = None,
                  converters: Optional[Union[QuadraticProgramConverter,
                                             List[QuadraticProgramConverter]]] = None
                  ) -> None:
-        """ Initializes the warm start minimum eigen optimizer.
+        """ Initializes the warm start minimum eigen optimizer. For correct initialization either
+            ``epsilon`` or ``circuit_factory`` must be specified. If only ``epsilon`` is specified,
+            then a default ``WarmStartQAOACircuitFactory`` is created. If only ``circuit_factory``
+            is specified then this instance is used in the implementation. If both parameters are
+            specified then the circuit factory is used and ``epsilon`` is no longer relevant.
 
         Args:
             pre_solver: An instance of an optimizer to solve the relaxed version of the problem.
             relax_for_pre_solver: True if the problem must be relaxed to the continuous case
                 before passing it to the pre-solver.
             qaoa: A QAOA instance to be used in the computations.
-            epsilon: the regularization parameter that changes the initial variables
-                according to
+            epsilon: the regularization parameter that changes the initial variables according to
                 xi = epsilon if xi < epsilon
                 xi = 1-epsilon if xi > epsilon.
                 The regularization parameter epsilon should be between 0 and 0.5. When it
-                is 0.5 then warm start corresponds to standard QAOA.
+                is 0.5 then warm start corresponds to standard QAOA. If ``circuit_factory`` is
+                specified then this parameter is ignored.
             num_initial_solutions: A number of relaxed (continuous) solutions to use.
-            mixer_factory: An instance of the mixer factory to be used to create mixers. If none is
-                passed then a default one, ``WarmStartMixerFactory`` is used.
+            circuit_factory: An instance of the circuit factory to be used to create circuits for
+                the initial state and mixer. If none is passed then a default one,
+                ``WarmStartQAOACircuitFactory`` is created using ``epsilon`` parameter.
             aggregator: Class that aggregates different results. This is used if the pre-solver
                 returns several initial states.
             penalty: The penalty factor to be used, or ``None`` for applying a default logic.
@@ -166,14 +214,16 @@ class WarmStartQAOAOptimizer(MinimumEigenOptimizer):
                 :class:`~qiskit.optimization.converters.QuadraticProgramToQubo` will be used.
 
         Raises:
-            AquaError: if ``epsilon`` is not specified for the warm start QAOA or value is not in
-                the range [0, 0.5].
+            QiskitOptimizationError: if both ``epsilon`` and ``circuit_factory`` are not specified
+                or ``epsilon`` value is not in the range [0, 0.5].
         """
-        if epsilon is None:
-            raise AquaError('Epsilon must be specified for the warm start QAOA')
+        if epsilon is None and circuit_factory is None:
+            raise QiskitOptimizationError(
+                'Either epsilon or circuit_factory must be specified for the warm start QAOA')
 
-        if epsilon < 0. or epsilon > 0.5:
-            raise AquaError('Epsilon for warm-start QAOA needs to be between 0 and 0.5.')
+        if epsilon is not None and (epsilon < 0. or epsilon > 0.5):
+            raise QiskitOptimizationError(
+                'Epsilon for warm-start QAOA needs to be between 0 and 0.5.')
 
         self._pre_solver = pre_solver
         self._relax_for_pre_solver = relax_for_pre_solver
@@ -181,29 +231,15 @@ class WarmStartQAOAOptimizer(MinimumEigenOptimizer):
         self._epsilon = epsilon
         self._num_initial_solutions = num_initial_solutions
 
-        if mixer_factory is None:
-            mixer_factory = WarmStartMixerFactory()
-        self._mixer_factory = mixer_factory
+        if circuit_factory is None:
+            circuit_factory = WarmStartQAOACircuitFactory(self._epsilon)
+        self._circuit_factory = circuit_factory
 
         if num_initial_solutions > 1 and aggregator is None:
             aggregator = MeanAggregator()
         self._aggregator = aggregator
 
         super().__init__(qaoa, penalty, converters)
-
-    # def get_compatibility_msg(self, problem: QuadraticProgram) -> Optional[str]:
-    #     """Checks whether a given problem can be solved with this optimizer.
-    #
-    #     Checks whether the given problem is compatible, i.e., whether the problem can be converted
-    #     to a QUBO, and otherwise, returns a message explaining the incompatibility.
-    #
-    #     Args:
-    #         problem: The optimization problem to check compatibility.
-    #
-    #     Returns:
-    #         A message describing the incompatibility.
-    #     """
-    #     return super().get_compatibility_msg(problem)
 
     def solve(self, problem: QuadraticProgram) -> MinimumEigenOptimizationResult:
         """Tries to solves the given problem using the optimizer.
@@ -226,38 +262,45 @@ class WarmStartQAOAOptimizer(MinimumEigenOptimizer):
             raise QiskitOptimizationError('Incompatible problem: {}'.format(msg))
 
         # convert problem to QUBO or another form if converters are specified
-        qubo_problem = self._convert(problem, self._converters)
+        converted_problem = self._convert(problem, self._converters)
 
         # if the pre-solver can't solve the problem then it should be relaxed.
         if self._relax_for_pre_solver:
-            pre_solver_problem = self._relax_problem(qubo_problem)
+            pre_solver_problem = self._relax_problem(converted_problem)
         else:
-            pre_solver_problem = qubo_problem
+            pre_solver_problem = converted_problem
 
         opt_result = self._pre_solver.solve(pre_solver_problem)
-        num_initial_solutions = min(self._num_initial_solutions, len(opt_result.all_solutions))
+        num_initial_solutions = min(self._num_initial_solutions, len(opt_result.explored_solutions))
+        initial_solutions = opt_result.explored_solutions[:num_initial_solutions]
 
         # construct operator and offset
-        operator, offset = qubo_problem.to_ising()
-
-        # todo: accessing all solutions
-        initial_solutions = opt_result.all_solutions[:num_initial_solutions]
+        operator, offset = converted_problem.to_ising()
 
         results = []  # type: List[MinimumEigenOptimizationResult]
         for initial_solution, _ in initial_solutions:
             # Set the solver using the result of the pre-solver.
-            initial_variables = self._create_initial_variables(initial_solution)
-            self._qaoa.initial_state = self._create_initial_state(initial_variables)
-            self._qaoa.mixer = self._mixer_factory.create_mixer(initial_variables)
+            initial_variables = self._circuit_factory.create_initial_variables(initial_solution)
+            self._qaoa.initial_state = self._circuit_factory.create_initial_state(initial_variables)
+            self._qaoa.mixer = self._circuit_factory.create_mixer(initial_variables)
 
             # approximate ground state of operator using min eigen solver.
-            results.append(self._solve_internal(operator, offset, qubo_problem, problem))
+            results.append(self._solve_internal(operator, offset, converted_problem, problem))
 
-        # todo: handle converters and _interpret
         if len(results) == 1:
+            # there's no need to call _interpret, it is done by MinimumEigenOptimizer
             return results[0]
         else:
-            return self._aggregator.aggregate(results, qubo_problem, None)
+            samples = self._aggregator.aggregate(results)
+
+            samples.sort(key=lambda sample: problem.objective.sense.value * sample[1])
+            x = [float(e) for e in samples[0][0]]
+
+            # translate result back to the original variables
+            return cast(MinimumEigenOptimizationResult,
+                        self._interpret(x=x, converters=self._converters, problem=problem,
+                                        result_class=MinimumEigenOptimizationResult,
+                                        samples=samples))
 
     @staticmethod
     def _relax_problem(problem: QuadraticProgram) -> QuadraticProgram:
@@ -275,44 +318,3 @@ class WarmStartQAOAOptimizer(MinimumEigenOptimizer):
             variable.vartype = VarType.CONTINUOUS
 
         return relaxed_problem
-
-    def _create_initial_variables(self, solution: List[float]) -> List[float]:
-        """
-        Creates initial variable values to warm start QAOA.
-
-        Args:
-            solution: a solution obtained for the relaxed problem.
-
-        Returns:
-            A list of initial variables constructed from a relaxed solution.
-        """
-        initial_variables = []
-
-        for variable in solution:
-            if variable < self._epsilon:
-                initial_variables.append(self._epsilon)
-            elif variable > 1. - self._epsilon:
-                initial_variables.append(1. - self._epsilon)
-            else:
-                initial_variables.append(variable)
-
-        return initial_variables
-
-    @staticmethod
-    def _create_initial_state(initial_variables: List[float]) -> QuantumCircuit:
-        """
-        Creates an initial state quantum circuit to warm start QAOA.
-
-        Args:
-            initial_variables: Already created initial variables.
-
-        Returns:
-            A quantum circuit that represents initial state.
-        """
-        circuit = QuantumCircuit(len(initial_variables))
-
-        for index, relaxed_value in enumerate(initial_variables):
-            theta = 2 * np.arcsin(np.sqrt(relaxed_value))
-            circuit.ry(theta, index)
-
-        return circuit

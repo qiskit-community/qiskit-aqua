@@ -64,7 +64,7 @@ class GoemansWilliamsonOptimizationResult(OptimizationResult):
         self._sdp_solution = sdp_solution
 
     @property
-    def all_solutions(self) -> Optional[List[Tuple[np.ndarray, float]]]:
+    def explored_solutions(self) -> Optional[List[Tuple[np.ndarray, float]]]:
         """
         Returns:
             All generated solutions and their values.

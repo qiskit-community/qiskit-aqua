@@ -33,17 +33,18 @@ class TestGoemansWilliamson(QiskitOptimizationTestCase):
                               [0., 0., 1., 0.]])
 
             optimizer = GoemansWilliamsonOptimizer(num_cuts=10, seed=0)
-            # todo: add a test for max_cut_qp()?
+
             problem = max_cut_qp(graph)
+            self.assertIsNotNone(problem)
+
             results = optimizer.solve(problem)
             self.assertIsNotNone(results)
             self.assertIsInstance(results, GoemansWilliamsonOptimizationResult)
-
             self.assertIsNotNone(results.x)
             np.testing.assert_almost_equal([0, 1, 1, 0], results.x, 3)
             self.assertIsNotNone(results.fval)
             np.testing.assert_almost_equal(4, results.fval, 3)
-            self.assertIsNotNone(results.all_solutions)
-            self.assertEqual(3, len(results.all_solutions))
+            self.assertIsNotNone(results.explored_solutions)
+            self.assertEqual(3, len(results.explored_solutions))
         except MissingOptionalLibraryError as ex:
             self.skipTest(str(ex))

@@ -14,7 +14,7 @@
 
 from abc import ABC, abstractmethod
 from enum import Enum
-from typing import List, Union, Any, Optional, Dict, Type
+from typing import List, Union, Any, Optional, Dict, Type, Tuple
 
 import numpy as np
 
@@ -209,6 +209,17 @@ class OptimizationResult:
             The list of variable names of the optimization problem.
         """
         return self._variable_names
+
+    @property
+    def explored_solutions(self) -> List[Tuple[np.ndarray, float]]:
+        """
+        Returns all solutions explored while solving the problem.
+        These solutions may be not optimal.
+
+        Returns:
+            All explored solution.
+        """
+        return [(self._x, self._fval)]
 
 
 class OptimizationAlgorithm(ABC):
