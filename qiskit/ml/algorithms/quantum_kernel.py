@@ -54,7 +54,7 @@ class QuantumKernel:
                      Union[QuantumInstance, BaseBackend, Backend]] = None) -> None:
         """
         Args
-            feature_map:       # parametrised circuit to be used as the feature map
+            feature_map:       # parameterized circuit to be used as the feature map
             enforce_psd:       # project to closest positive semidefinite matrix if x = y
             quantum_instance:  # Quantum Instance or Backend
         """
@@ -172,7 +172,7 @@ class QuantumKernel:
         if np.array_equal(x_vec, y_vec):
             is_symmetric = True
 
-        # initialise kernel matrix
+        # initialize kernel matrix
         kernel = np.zeros((x_vec.shape[0], y_vec.shape[0]))
 
         # set diagonal to 1 if symmetric

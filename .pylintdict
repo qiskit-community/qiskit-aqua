@@ -306,7 +306,6 @@ implicant
 implicants
 indvar
 init
-initialise
 initializer
 initio
 innerproduct
@@ -512,7 +511,6 @@ parameterexpression
 parameterization
 parameterizations
 parameterizes
-parametrised
 parametrized
 params
 parikh
