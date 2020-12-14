@@ -126,7 +126,7 @@ class QuantumKernel:
             kernel_value = result.get(measurement_basis, 0) / sum(result.values())
         return kernel_value
 
-    def evaluate(self, x_vec, y_vec=None):
+    def evaluate(self, x_vec: np.ndarray, y_vec: np.ndarray = None) -> np.ndarray:
         """
         Construct kernel matrix for given data and feature map
 
@@ -135,13 +135,13 @@ class QuantumKernel:
         product classically.
 
         Args:
-            x_vec (numpy.ndarray): 2D array of datapoints, NxD, where N is the number of datapoints,
-                               D is the feature dimension
-            y_vec (numpy.ndarray): 2D array of datapoints, MxD, where M is the number of datapoints,
-                               D is the feature dimension
+            x_vec: 2D array of datapoints, NxD, where N is the number of datapoints,
+                                                      D is the feature dimension
+            y_vec: 2D array of datapoints, MxD, where M is the number of datapoints,
+                                                      D is the feature dimension
 
         Returns:
-            numpy.ndarray: 2-D matrix, NxM
+            2D matrix, NxM
 
         Raises:
             AquaError:
@@ -155,6 +155,11 @@ class QuantumKernel:
                             "must be supplied to run the quantum kernel.")
         if isinstance(self._quantum_instance, (BaseBackend, Backend)):
             self._quantum_instance = QuantumInstance(self._quantum_instance)
+
+        if not isinstance(x_vec, np.ndarray):
+            x_vec = np.asarray(x_vec)
+        if y_vec is not None and not isinstance(y_vec, np.ndarray):
+            y_vec = np.asarray(y_vec)
 
         if x_vec.ndim != 2:
             raise ValueError("x_vec must be a 2D array")

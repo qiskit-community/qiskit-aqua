@@ -178,5 +178,6 @@ class TestQuantumKernel(QiskitAquaTestCase):
         with self.assertRaises(ValueError):
             _ = qkclass.evaluate(x_vec=self.sample_train, y_vec=self.label_train)
 
+
 if __name__ == '__main__':
     unittest.main()
