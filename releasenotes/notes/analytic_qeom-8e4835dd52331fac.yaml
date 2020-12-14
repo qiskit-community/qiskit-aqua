@@ -1,0 +1,10 @@
+---
+features:
+  - |
+     The parent QEOM class (qiskit-aqua/qiskit/chemistry/algorithms/excited_states_solvers/qeom.py)
+     has been updated with analytic_QEOM subclass so that calculations of excited states by the QEOM
+     algorithm can now also be performed using analytical commutator evaluation and parallelized
+     with MPI4PY. Analytical commutators are implemented in analytic_qeom_utils.py  and the mapping
+     of n-body fermionic operators onto qubit operators is carried out in
+     analytic_qeom_fermionic_operator.py.
+
