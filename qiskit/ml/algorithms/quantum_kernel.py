@@ -22,7 +22,7 @@ from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 from qiskit.circuit import ParameterVector
 from qiskit.providers import Backend, BaseBackend
 
-from qiskit.aqua import QuantumInstance
+from qiskit.aqua import QuantumInstance, AquaError
 
 logger = logging.getLogger(__name__)
 
@@ -144,10 +144,18 @@ class QuantumKernel:
             numpy.ndarray: 2-D matrix, NxM
 
         Raises:
+            AquaError:
+                - A quantum instance or backend has not been provided to the class
             ValueError:
                 - x_vec and/or y_vec are not two dimensional arrays
                 - x_vec and/or y_vec have incompatible dimension with feature map
         """
+        if self._quantum_instance is None:
+            raise AquaError("A QuantumInstance or Backend "
+                            "must be supplied to run the quantum kernel.")
+        if isinstance(self._quantum_instance, (BaseBackend, Backend)):
+            self._quantum_instance = self.quantum_instance(self._quantum_instance)
+
         if x_vec.ndim != 2:
             raise ValueError("x_vec must be a 2D array")
 

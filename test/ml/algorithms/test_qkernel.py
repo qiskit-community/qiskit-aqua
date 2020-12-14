@@ -20,7 +20,7 @@ import numpy as np
 
 from qiskit import BasicAer
 from qiskit.circuit.library import ZZFeatureMap
-from qiskit.aqua import QuantumInstance
+from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.ml.algorithms import QuantumKernel
 
 
@@ -155,6 +155,28 @@ class TestQuantumKernel(QiskitAquaTestCase):
                                              self.ref_kernel_train['qasm_sample_psd'],
                                              decimal=1)
 
+    def test_no_backend(self):
+        """ Test no backend provided """
+        qkclass = QuantumKernel(feature_map=self.feature_map)
+
+        with self.assertRaises(AquaError):
+            _ = qkclass.evaluate(x_vec=self.sample_train)
+
+    def test_xdim(self):
+        """ Test incorrect x_vec dimension """
+        qkclass = QuantumKernel(feature_map=self.feature_map,
+                                quantum_instance=self.qasm_simulator)
+
+        with self.assertRaises(ValueError):
+            _ = qkclass.evaluate(x_vec=self.label_train)        
+
+    def test_ydim(self):
+        """ Test incorrect y_vec dimension """
+        qkclass = QuantumKernel(feature_map=self.feature_map,
+                                quantum_instance=self.qasm_simulator)
+
+        with self.assertRaises(ValueError):
+            _ = qkclass.evaluate(x_vec=self.sample_train, y_vec=self.label_train)        
 
 if __name__ == '__main__':
     unittest.main()
