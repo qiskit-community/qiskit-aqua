@@ -165,11 +165,11 @@ class QuantumKernel:
                              (y_vec.shape[1], self._feature_map.num_parameters))
 
         # determine if calculating self inner product
-        is_symmetric = False
+        is_symmetric = True
         if y_vec is None:
             y_vec = x_vec
-        if np.array_equal(x_vec, y_vec):
-            is_symmetric = True
+        elif not np.array_equal(x_vec, y_vec):
+            is_symmetric = False
 
         # initialize kernel matrix
         kernel = np.zeros((x_vec.shape[0], y_vec.shape[0]))
