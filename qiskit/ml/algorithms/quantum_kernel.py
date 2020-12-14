@@ -241,10 +241,10 @@ class QuantumKernel:
                 for sub_idx in range(idx, min(idx + QuantumKernel.BATCH_SIZE, len(mus))):
                     i = mus[sub_idx]
                     j = nus[sub_idx]
-                    xi = x_vec[i]  # pylint: disable=invalid-name
-                    yj = y_vec[j]  # pylint: disable=invalid-name
-                    if not np.all(xi == yj):
-                        to_be_computed_data_pair.append((xi, yj))
+                    x_i = x_vec[i]
+                    y_j = y_vec[j]
+                    if not np.all(x_i == y_j):
+                        to_be_computed_data_pair.append((x_i, y_j))
                         to_be_computed_index.append((i, j))
 
                 circuits = [parameterized_circuit.assign_parameters({feature_map_params_x: x,
