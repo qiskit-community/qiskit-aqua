@@ -53,7 +53,7 @@ from .quadratic_expression import QuadraticExpression
 from .quadratic_objective import QuadraticObjective
 from .quadratic_program import QuadraticProgram
 from .quadratic_program_element import QuadraticProgramElement
-from .variable import Variable
+from .variable import Variable, VarType
 
 __all__ = ['Constraint',
            'LinearExpression',
@@ -64,4 +64,5 @@ __all__ = ['Constraint',
            'QuadraticProgram',
            'QuadraticProgramElement',
            'Variable',
+           'VarType'
            ]
