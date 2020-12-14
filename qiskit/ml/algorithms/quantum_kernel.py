@@ -58,7 +58,6 @@ class QuantumKernel:
             enforce_psd:       # project to closest positive semidefinite matrix if x = y
             quantum_instance:  # Quantum Instance or Backend
         """
-        # super().__init__(quantum_instance)
 
         self._feature_map = feature_map
         self._enforce_psd = enforce_psd
@@ -155,15 +154,15 @@ class QuantumKernel:
         if y_vec is not None and y_vec.ndim != 2:
             raise ValueError("y_vec must be a 2D array")
 
-        if x_vec.shape[1] != self._feature_map.num_qubits:
+        if x_vec.shape[1] != self._feature_map.num_parameters:
             raise ValueError("x_vec and class feature map incompatible dimensions.\n" +
                              "x_vec has %s dimensions, but feature map has %s." %
-                             (x_vec.shape[1], self._feature_map.num_qubits))
+                             (x_vec.shape[1], self._feature_map.num_parameters))
 
-        if y_vec is not None and y_vec.shape[1] != self._feature_map.num_qubits:
+        if y_vec is not None and y_vec.shape[1] != self._feature_map.num_parameters:
             raise ValueError("y_vec and class feature map incompatible dimensions.\n" +
                              "y_vec has %s dimensions, but feature map has %s." %
-                             (y_vec.shape[1], self._feature_map.num_qubits))
+                             (y_vec.shape[1], self._feature_map.num_parameters))
 
         # determine if calculating self inner product
         is_symmetric = False
