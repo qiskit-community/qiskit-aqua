@@ -16,7 +16,6 @@
 
 import itertools
 import logging
-import sys
 
 import numpy as np
 from qiskit.quantum_info import Pauli
@@ -50,7 +49,6 @@ class FermionicOperatorNBody:
     - K. Setia, J. D. Whitfield, arXiv:1712.00446 (2017)
     """
 
-
     def __init__(self, hs, ph_trans_shift=None):
         """Constructor.
 
@@ -70,7 +68,8 @@ class FermionicOperatorNBody:
         self._ph_trans_shift = ph_trans_shift
         self._modes = 0
         for h in self._hs:
-            if(h is not None): self._modes = h.shape[0]
+            if(h is not None):
+                self._modes = h.shape[0]
         self._map_type = None
 
     @property
@@ -261,7 +260,7 @@ class FermionicOperatorNBody:
                            update_pauli[j] * y_j * remainder_pauli[j]))
         return a_list
 
-    def mapping(self, map_type, threshold=0.00000001,idx=[None]*4):
+    def mapping(self, map_type, threshold=0.00000001, idx=[None]*4):
         self._map_type = map_type
         n = self._modes  # number of fermionic modes / qubits
         map_type = map_type.lower()
@@ -279,20 +278,24 @@ class FermionicOperatorNBody:
 
         pauli_list = WeightedPauliOperator(paulis=[])
 
-        for m,h in enumerate(self._hs):
+        for m, h in enumerate(self._hs):
             if(h is not None):
-               if(idx[m] is None):
-                  results = parallel_map(FermionicOperatorNBody._n_body_mapping,
-                                         [FermionicOperatorNBody._prep_mapping(h[indexes],a_list,indexes)
-                                          for indexes in list(itertools.product(range(n), repeat=len(h.shape)))
-                                          if h[indexes] != 0], num_processes=aqua_globals.num_processes)
-               else:
-                  results = parallel_map(FermionicOperatorNBody._n_body_mapping,
-                                         [FermionicOperatorNBody._prep_mapping(h[indexes],a_list,indexes)
-                                          for indexes in idx[m] if np.abs(h[indexes])>threshold], num_processes=aqua_globals.num_processes)
-               #print("IN MAPPING ",idx[m],[h[indexes] for indexes in idx[m] if np.abs(h[indexes])>threshold],[r.print_details() for r in results])
-               for result in results:
-                   pauli_list += result
+                if(idx[m] is None):
+                    results = parallel_map(FermionicOperatorNBody._n_body_mapping,
+                                           [FermionicOperatorNBody._prep_mapping(h[indexes], a_list,
+                                                                                 indexes)
+                                            for indexes in list(itertools.product(range(n),
+                                                                                  repeat=len(h.shape)))
+                                            if h[indexes] != 0],
+                                           num_processes=aqua_globals.num_processes)
+                else:
+                    results = parallel_map(FermionicOperatorNBody._n_body_mapping,
+                                           [FermionicOperatorNBody._prep_mapping(h[indexes], a_list,
+                                                                                 indexes)
+                                            for indexes in idx[m] if np.abs(h[indexes]) > threshold],
+                                           num_processes=aqua_globals.num_processes)
+                for result in results:
+                    pauli_list += result
 
         pauli_list.chop(threshold=threshold)
 
@@ -316,9 +319,9 @@ class FermionicOperatorNBody:
 
         h = h_a[0]
         a = []
-        for i in range(0,len(h_a[1:]),2):
+        for i in range(0, len(h_a[1:]), 2):
             a.append(h_a[1+i])
-        for i in range(1,len(h_a[1:]),2)[::-1]:
+        for i in range(1, len(h_a[1:]), 2)[::-1]:
             a.append(h_a[1+i])
 
         n = int(len(a)/2)
@@ -326,10 +329,12 @@ class FermionicOperatorNBody:
         a_lst = []
 
         for i in range(n):
-            a_lst.append(WeightedPauliOperator([[1,a[i][0]]])+WeightedPauliOperator([[-1j,a[i][1]]]))
+            a_lst.append(WeightedPauliOperator([[1, a[i][0]]]) +
+                         WeightedPauliOperator([[-1j, a[i][1]]]))
 
         for i in range(n):
-            a_lst.append(WeightedPauliOperator([[1, a[n+i][0]]])+WeightedPauliOperator([[1j, a[n+i][1]]]))
+            a_lst.append(WeightedPauliOperator([[1, a[n+i][0]]]) +
+                         WeightedPauliOperator([[1j, a[n+i][1]]]))
 
         product = a_lst[0]
 
