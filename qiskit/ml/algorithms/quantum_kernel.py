@@ -113,10 +113,8 @@ class QuantumKernel:
         Helper function to compute overlap for given input.
         """
         if is_statevector_sim:
-            i, j = idx
-            v_a = results.get_statevector(int(i))
-            v_b = results.get_statevector(int(j))
             # |<0|Psi^dagger(y) x Psi(x)|0>|^2, take the amplitude
+            v_a, v_b = [results.get_statevector(int(i)) for i in idx]
             tmp = np.vdot(v_a, v_b)
             kernel_value = np.vdot(tmp, tmp).real  # pylint: disable=no-member
         else:
