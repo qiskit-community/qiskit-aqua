@@ -154,7 +154,7 @@ class QuantumKernel:
             raise AquaError("A QuantumInstance or Backend "
                             "must be supplied to run the quantum kernel.")
         if isinstance(self._quantum_instance, (BaseBackend, Backend)):
-            self._quantum_instance = self.quantum_instance(self._quantum_instance)
+            self._quantum_instance = QuantumInstance(self._quantum_instance)
 
         if x_vec.ndim != 2:
             raise ValueError("x_vec must be a 2D array")
@@ -217,12 +217,6 @@ class QuantumKernel:
             matrix_elements = [self._compute_overlap(idx, results, is_statevector_sim)
                                for idx in list(zip(mus, nus + offset))]
 
-            # using parallel_map causes an error
-            # matrix_elements = parallel_map(self._compute_overlap,
-            #                                list(zip(mus, nus + offset)),
-            #                                task_args=(results,is_statevector_sim),
-            #                                num_processes=aqua_globals.num_processes)
-
             for i, j, value in zip(mus, nus, matrix_elements):
                 kernel[i, j] = value
                 if is_symmetric:
@@ -256,12 +250,6 @@ class QuantumKernel:
 
                 matrix_elements = [self._compute_overlap(circuit, results, is_statevector_sim)
                                    for circuit in range(len(circuits))]
-
-                # using parallel_map causes an error
-                # matrix_elements = parallel_map(QuantumKernel._compute_overlap,
-                #                                range(len(circuits)),
-                #                                task_args=(results,is_statevector_sim),
-                #                                num_processes=aqua_globals.num_processes)
 
                 for (i, j), value in zip(to_be_computed_index, matrix_elements):
                     kernel[i, j] = value

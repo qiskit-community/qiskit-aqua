@@ -168,7 +168,7 @@ class TestQuantumKernel(QiskitAquaTestCase):
                                 quantum_instance=self.qasm_simulator)
 
         with self.assertRaises(ValueError):
-            _ = qkclass.evaluate(x_vec=self.label_train)        
+            _ = qkclass.evaluate(x_vec=self.label_train)
 
     def test_ydim(self):
         """ Test incorrect y_vec dimension """
@@ -176,7 +176,7 @@ class TestQuantumKernel(QiskitAquaTestCase):
                                 quantum_instance=self.qasm_simulator)
 
         with self.assertRaises(ValueError):
-            _ = qkclass.evaluate(x_vec=self.sample_train, y_vec=self.label_train)        
+            _ = qkclass.evaluate(x_vec=self.sample_train, y_vec=self.label_train)
 
 if __name__ == '__main__':
     unittest.main()
