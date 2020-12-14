@@ -116,7 +116,7 @@ class QuantumKernel:
             i, j = idx
             v_a = results.get_statevector(int(i))
             v_b = results.get_statevector(int(j))
-            # |<0|Psi^daggar(y) x Psi(x)|0>|^2, take the amplitude
+            # |<0|Psi^dagger(y) x Psi(x)|0>|^2, take the amplitude
             tmp = np.vdot(v_a, v_b)
             kernel_value = np.vdot(tmp, tmp).real  # pylint: disable=no-member
         else:
