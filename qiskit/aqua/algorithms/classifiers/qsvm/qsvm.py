@@ -23,12 +23,13 @@ from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
 from qiskit.circuit import ParameterVector
 from qiskit.providers import BaseBackend
+from qiskit.providers import Backend
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua import AquaError
 from qiskit.aqua.utils.dataset_helper import get_num_classes
 from qiskit.aqua.utils import split_dataset_to_data_and_labels
-from qiskit.aqua.components.feature_maps import FeatureMap, RawFeatureVector
+from qiskit.aqua.components.feature_maps import FeatureMap
 from qiskit.aqua.components.multiclass_extensions import MulticlassExtension
 from ._qsvm_estimator import _QSVM_Estimator
 from ._qsvm_binary import _QSVM_Binary
@@ -79,7 +80,9 @@ class QSVM(QuantumAlgorithm):
                  test_dataset: Optional[Dict[str, np.ndarray]] = None,
                  datapoints: Optional[np.ndarray] = None,
                  multiclass_extension: Optional[MulticlassExtension] = None,
-                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
+                 lambda2: float = 0.001,
+                 quantum_instance: Optional[
+                     Union[QuantumInstance, BaseBackend, Backend]] = None) -> None:
         """
         Args:
             feature_map: Feature map module, used to transform data
@@ -88,6 +91,7 @@ class QSVM(QuantumAlgorithm):
             datapoints: Prediction dataset.
             multiclass_extension: If number of classes is greater than 2 then a multiclass scheme
                 must be supplied, in the form of a multiclass extension.
+            lambda2: L2 norm regularization factor
             quantum_instance: Quantum Instance or Backend
 
         Raises:
@@ -116,6 +120,7 @@ class QSVM(QuantumAlgorithm):
         self.setup_training_data(training_dataset)
         self.setup_test_data(test_dataset)
         self.setup_datapoint(datapoints)
+        self.lambda2 = lambda2
 
         self.feature_map = feature_map
         self.num_qubits = self.feature_map.num_qubits
@@ -129,14 +134,13 @@ class QSVM(QuantumAlgorithm):
             self.feature_map_params_x = ParameterVector('x', self.feature_map.feature_dimension)
             self.feature_map_params_y = ParameterVector('y', self.feature_map.feature_dimension)
         else:
-            if not isinstance(feature_map, RawFeatureVector):
-                warnings.warn("""
-                The {} object as input for the QSVM is deprecated as of 0.7.0 and will
-                be removed no earlier than 3 months after the release.
-                You should pass a QuantumCircuit object instead.
-                See also qiskit.circuit.library.data_preparation for a collection
-                of suitable circuits.""".format(type(feature_map)),
-                              DeprecationWarning, stacklevel=2)
+            warnings.warn("""
+            The {} object as input for the QSVM is deprecated as of 0.9.0 and will
+            be removed no earlier than 3 months after the release.
+            You should pass a QuantumCircuit object instead.
+            See also qiskit.circuit.library.data_preparation for a collection
+            of suitable circuits.""".format(type(feature_map)),
+                          DeprecationWarning, stacklevel=2)
             self.feature_map_params_x = ParameterVector('x', feature_map.feature_dimension)
             self.feature_map_params_y = ParameterVector('y', feature_map.feature_dimension)
 

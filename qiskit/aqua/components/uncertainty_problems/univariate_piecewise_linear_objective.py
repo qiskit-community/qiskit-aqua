@@ -162,6 +162,10 @@ class UnivariatePiecewiseLinearObjective(CircuitFactory):
             # create piecewise linear Y rotation
             self._pwl_ry = None
 
+    @staticmethod
+    def _replacement():
+        return 'qiskit.circuit.library.LinearAmplitudeFunction'
+
     def value_to_estimation(self, value):
         """ value to estimation """
         if self._c_approx < 1:
@@ -176,7 +180,7 @@ class UnivariatePiecewiseLinearObjective(CircuitFactory):
 
     def required_ancillas(self):
         """ requires ancillas """
-        return self._pwl_ry.num_ancilla_qubits
+        return self._pwl_ry.num_ancillas
 
     def build(self, qc, q, q_ancillas=None, params=None):
         """ build """

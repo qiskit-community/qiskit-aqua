@@ -1,0 +1,5 @@
+---
+fixes:
+  - |
+    Let backend simulators validate NoiseModel support instead of restricting to Aer only
+    in QuantumInstance.

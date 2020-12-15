@@ -15,12 +15,14 @@
 import logging
 from typing import Union
 
+from qiskit.aqua import MissingOptionalLibraryError
 from ..operator_base import OperatorBase
 from .expectation_base import ExpectationBase
 from ..list_ops.list_op import ListOp
 from ..list_ops.composed_op import ComposedOp
 from ..list_ops.summed_op import SummedOp
 from ..primitive_ops.pauli_op import PauliOp
+from ..primitive_ops.pauli_sum_op import PauliSumOp
 from ..state_fns.circuit_state_fn import CircuitStateFn
 from ..state_fns.operator_state_fn import OperatorStateFn
 
@@ -43,6 +45,14 @@ class AerPauliExpectation(ExpectationBase):
         Returns:
             The converted operator.
         """
+        # TODO: implement direct way
+        if (
+                isinstance(operator, OperatorStateFn)
+                and isinstance(operator.primitive, PauliSumOp)
+                and operator.is_measurement
+        ):
+            operator = ~OperatorStateFn(operator.primitive.to_pauli_op(), coeff=operator.coeff)
+
         if isinstance(operator, OperatorStateFn) and operator.is_measurement:
             return self._replace_pauli_sums(operator.primitive) * operator.coeff
         elif isinstance(operator, ListOp):
@@ -53,11 +63,21 @@ class AerPauliExpectation(ExpectationBase):
     # pylint: disable=inconsistent-return-statements,import-outside-toplevel
     @classmethod
     def _replace_pauli_sums(cls, operator):
-        from qiskit.providers.aer.extensions import SnapshotExpectationValue
+        try:
+            from qiskit.providers.aer.extensions import SnapshotExpectationValue
+        except ImportError as ex:
+            raise MissingOptionalLibraryError(
+                libname='qiskit-aer',
+                name='AerPauliExpectation',
+                pip_install='pip install qiskit-aer') from ex
         # The 'expval_measurement' label on the snapshot instruction is special - the
         # CircuitSampler will look for it to know that the circuit is a Expectation
         # measurement, and not simply a
         # circuit to replace with a DictStateFn
+
+        # TODO: implement direct way
+        if isinstance(operator, PauliSumOp):
+            operator = operator.to_pauli_op()
 
         # Change to Pauli representation if necessary
         if not {'Pauli'} == operator.primitive_strings():
@@ -69,16 +89,12 @@ class AerPauliExpectation(ExpectationBase):
 
         if isinstance(operator, SummedOp):
             paulis = [[meas.coeff, meas.primitive] for meas in operator.oplist]
-            snapshot_instruction = SnapshotExpectationValue('expval_measurement',
-                                                            paulis,
-                                                            variance=True)
+            snapshot_instruction = SnapshotExpectationValue('expval_measurement', paulis)
             snapshot_op = CircuitStateFn(snapshot_instruction, is_measurement=True)
             return snapshot_op
         if isinstance(operator, PauliOp):
             paulis = [[operator.coeff, operator.primitive]]
-            snapshot_instruction = SnapshotExpectationValue('expval_measurement',
-                                                            paulis,
-                                                            variance=True)
+            snapshot_instruction = SnapshotExpectationValue('expval_measurement', paulis)
             snapshot_op = CircuitStateFn(snapshot_instruction, is_measurement=True)
             return snapshot_op
         if isinstance(operator, ListOp):

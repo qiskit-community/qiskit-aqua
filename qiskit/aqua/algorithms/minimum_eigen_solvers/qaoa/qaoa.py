@@ -16,9 +16,12 @@ from typing import List, Callable, Optional, Union
 import logging
 import numpy as np
 
+from qiskit.circuit import QuantumCircuit
 from qiskit.providers import BaseBackend
+from qiskit.providers import Backend
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.operators import OperatorBase, ExpectationBase, LegacyBaseOperator
+from qiskit.aqua.operators.gradients import GradientBase
 from qiskit.aqua.components.initial_states import InitialState
 from qiskit.aqua.components.optimizers import Optimizer
 from qiskit.aqua.utils.validation import validate_min
@@ -51,9 +54,10 @@ class QAOA(VQE):
     starting **beta** and **gamma** parameters (as identically named in the
     original `QAOA paper <https://arxiv.org/abs/1411.4028>`__) for the QAOA variational form.
 
-    An operator may optionally also be provided as a custom `mixer` Hamiltonian. This allows,
-    as discussed in `this paper <https://doi.org/10.1103/PhysRevApplied.5.034007>`__
-    for quantum annealing, and in `this paper <https://arxiv.org/abs/1709.03489>`__ for QAOA,
+    An operator or a parameterized quantum circuit may optionally also be provided as a custom
+    `mixer` Hamiltonian. This allows, as discussed in
+    `this paper <https://doi.org/10.1103/PhysRevApplied.5.034007>`__ for quantum annealing,
+    and in `this paper <https://arxiv.org/abs/1709.03489>`__ for QAOA,
     to run constrained optimization problems where the mixer constrains
     the evolution to a feasible subspace of the full Hilbert space.
 
@@ -65,16 +69,19 @@ class QAOA(VQE):
                  operator: Union[OperatorBase, LegacyBaseOperator] = None,
                  optimizer: Optimizer = None,
                  p: int = 1,
-                 initial_state: Optional[InitialState] = None,
-                 mixer: Union[OperatorBase, LegacyBaseOperator] = None,
+                 initial_state: Optional[Union[QuantumCircuit, InitialState]] = None,
+                 mixer: Union[QuantumCircuit, OperatorBase, LegacyBaseOperator] = None,
                  initial_point: Optional[np.ndarray] = None,
+                 gradient: Optional[Union[GradientBase, Callable[[Union[np.ndarray, List]],
+                                                                 List]]] = None,
                  expectation: Optional[ExpectationBase] = None,
                  include_custom: bool = False,
                  max_evals_grouped: int = 1,
                  aux_operators: Optional[List[Optional[Union[OperatorBase, LegacyBaseOperator]]]] =
                  None,
                  callback: Optional[Callable[[int, np.ndarray, float, float], None]] = None,
-                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
+                 quantum_instance: Optional[
+                     Union[QuantumInstance, BaseBackend, Backend]] = None) -> None:
         """
         Args:
             operator: Qubit operator
@@ -82,10 +89,14 @@ class QAOA(VQE):
             p: the integer parameter p as specified in https://arxiv.org/abs/1411.4028,
                 Has a minimum valid value of 1.
             initial_state: An optional initial state to prepend the QAOA circuit with
-            mixer: the mixer Hamiltonian to evolve with. Allows support of optimizations in
-                constrained subspaces as per https://arxiv.org/abs/1709.03489
+            mixer: the mixer Hamiltonian to evolve with or a custom quantum circuit. Allows support
+                of optimizations in constrained subspaces as per https://arxiv.org/abs/1709.03489
+                as well as warm-starting the optimization as introduced
+                in http://arxiv.org/abs/2009.10095.
             initial_point: An optional initial point (i.e. initial parameter values)
                 for the optimizer. If ``None`` then it will simply compute a random one.
+            gradient: An optional gradient operator respectively a gradient function used for
+                      optimization.
             expectation: The Expectation converter for taking the average value of the
                 Observable over the var_form state function. When None (the default) an
                 :class:`~qiskit.aqua.operators.expectations.ExpectationFactory` is used to select
@@ -103,7 +114,8 @@ class QAOA(VQE):
                 potentially the expectation values can be computed in parallel. Typically this is
                 possible when a finite difference gradient is used by the optimizer such that
                 multiple points to compute the gradient can be passed and if computed in parallel
-                improve overall execution time.
+                improve overall execution time. Ignored if a gradient operator or function is
+                given.
             aux_operators: Optional list of auxiliary operators to be evaluated with the eigenstate
                 of the minimum eigenvalue main result and their expectation values returned.
                 For instance in chemistry these can be dipole operators, total particle count
@@ -118,7 +130,7 @@ class QAOA(VQE):
         validate_min('p', p, 1)
 
         self._p = p
-        self._mixer_operator = mixer.to_opflow() if isinstance(mixer, LegacyBaseOperator) else mixer
+        self._mixer = mixer.to_opflow() if isinstance(mixer, LegacyBaseOperator) else mixer
         self._initial_state = initial_state
 
         # VQE will use the operator setter, during its constructor, which is overridden below and
@@ -127,6 +139,7 @@ class QAOA(VQE):
                          None,
                          optimizer,
                          initial_point=initial_point,
+                         gradient=gradient,
                          expectation=expectation,
                          include_custom=include_custom,
                          max_evals_grouped=max_evals_grouped,
@@ -144,4 +157,36 @@ class QAOA(VQE):
         self.var_form = QAOAVarForm(self.operator,
                                     self._p,
                                     initial_state=self._initial_state,
-                                    mixer_operator=self._mixer_operator)
+                                    mixer_operator=self._mixer)
+
+    @property
+    def initial_state(self) -> Optional[Union[QuantumCircuit, InitialState]]:
+        """
+        Returns:
+            Returns the initial state.
+        """
+        return self._initial_state
+
+    @initial_state.setter
+    def initial_state(self, initial_state: Optional[Union[QuantumCircuit, InitialState]]) -> None:
+        """
+        Args:
+            initial_state: Initial state to set.
+        """
+        self._initial_state = initial_state
+
+    @property
+    def mixer(self) -> Union[QuantumCircuit, OperatorBase, LegacyBaseOperator]:
+        """
+        Returns:
+            Returns the mixer.
+        """
+        return self._mixer
+
+    @mixer.setter
+    def mixer(self, mixer: Union[QuantumCircuit, OperatorBase, LegacyBaseOperator]) -> None:
+        """
+        Args:
+            mixer: Mixer to set.
+        """
+        self._mixer = mixer

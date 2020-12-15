@@ -18,12 +18,14 @@ from test.aqua import QiskitAquaTestCase
 import numpy
 
 from qiskit import Aer
+from qiskit.circuit import QuantumCircuit, Parameter
 from qiskit.aqua import QuantumInstance
-from qiskit.aqua.operators import StateFn, Zero, One, H, X, I, Z, Plus, Minus, CircuitSampler
+from qiskit.aqua.operators import (
+    StateFn, Zero, One, H, X, I, Z, Plus, Minus, CircuitSampler, ListOp
+)
 
 
 # pylint: disable=invalid-name
-
 class TestStateOpMeasEvals(QiskitAquaTestCase):
     """Tests of evals of Meas-Operator-StateFn combos."""
 
@@ -78,6 +80,33 @@ class TestStateOpMeasEvals(QiskitAquaTestCase):
             state = (Plus + Minus) / numpy.sqrt(2)
             sampler = CircuitSampler(q_instance).convert(~StateFn(op) @ state)
             self.assertAlmostEqual(sampler.eval(), 1+0j)
+
+    def test_is_measurement_correctly_propagated(self):
+        """Test if is_measurement property of StateFn is propagated to converted StateFn."""
+        backend = Aer.get_backend('qasm_simulator')
+        q_instance = QuantumInstance(backend)  # no seeds needed since no values are compared
+        state = Plus
+        sampler = CircuitSampler(q_instance).convert(~state @ state)
+        self.assertTrue(sampler.oplist[0].is_measurement)
+
+    def test_parameter_binding_on_listop(self):
+        """Test passing a ListOp with differing parameters works with the circuit sampler."""
+        x, y = Parameter('x'), Parameter('y')
+
+        circuit1 = QuantumCircuit(1)
+        circuit1.p(0.2, 0)
+        circuit2 = QuantumCircuit(1)
+        circuit2.p(x, 0)
+        circuit3 = QuantumCircuit(1)
+        circuit3.p(y, 0)
+
+        bindings = {x: -0.4, y: 0.4}
+        listop = ListOp([StateFn(circuit) for circuit in [circuit1, circuit2, circuit3]])
+
+        sampler = CircuitSampler(Aer.get_backend('qasm_simulator'))
+        sampled = sampler.convert(listop, params=bindings)
+
+        self.assertTrue(all(len(op.parameters) == 0 for op in sampled.oplist))
 
 
 if __name__ == '__main__':

@@ -35,9 +35,8 @@ class CircuitOp(PrimitiveOp):
     """
 
     def __init__(self,
-                 primitive: Union[Instruction, QuantumCircuit] = None,
-                 coeff: Optional[Union[int, float, complex,
-                                       ParameterExpression]] = 1.0) -> None:
+                 primitive: Union[Instruction, QuantumCircuit],
+                 coeff: Union[int, float, complex, ParameterExpression] = 1.0) -> None:
         """
         Args:
             primitive: The QuantumCircuit which defines the
@@ -81,7 +80,7 @@ class CircuitOp(PrimitiveOp):
         return SummedOp([self, other])
 
     def adjoint(self) -> OperatorBase:
-        return CircuitOp(self.primitive.inverse(), coeff=np.conj(self.coeff))  # type: ignore
+        return CircuitOp(self.primitive.inverse(), coeff=self.coeff.conjugate())  # type: ignore
 
     def equals(self, other: OperatorBase) -> bool:
         if not isinstance(other, CircuitOp) or not self.coeff == other.coeff:
@@ -141,19 +140,12 @@ class CircuitOp(PrimitiveOp):
         return super(CircuitOp, new_self).compose(other)
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
-        if self.num_qubits > 16 and not massive:
-            raise ValueError(
-                'to_matrix will return an exponentially large matrix,'
-                ' in this case {0}x{0} elements.'
-                ' Set massive=True if you want to proceed.'.format(2 ** self.num_qubits))
-
+        OperatorBase._check_massive('to_matrix', True, self.num_qubits, massive)
         unitary = qiskit.quantum_info.Operator(self.to_circuit()).data
-        # pylint: disable=cyclic-import
-        from ..operator_globals import EVAL_SIG_DIGITS
-        return np.round(unitary * self.coeff, decimals=EVAL_SIG_DIGITS)
+        return unitary * self.coeff
 
     def __str__(self) -> str:
-        qc = self.reduce().to_circuit()  # type: ignore
+        qc = self.to_circuit()  # type: ignore
         prim_str = str(qc.draw(output='text'))
         if self.coeff == 1.0:
             return prim_str

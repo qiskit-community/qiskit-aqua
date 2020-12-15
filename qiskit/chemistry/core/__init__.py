@@ -16,6 +16,8 @@ Chemistry Core (:mod:`qiskit.chemistry.core`)
 
 .. currentmodule:: qiskit.chemistry.core
 
+**DEPRECATED** See :mod:`qiskit.chemistry.transformations` which replace this.
+
 The core was designed to be an extensible system that took a :class:`~qiskit.chemistry.QMolecule`
 and created output which was ready to be input directly to an Aqua algorithm
 in the form of a qubit operator and list of auxiliary operators such as

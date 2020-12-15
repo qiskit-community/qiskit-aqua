@@ -17,6 +17,7 @@ import logging
 
 from qiskit import BasicAer
 from qiskit.providers import BaseBackend
+from qiskit.providers import Backend
 from qiskit.aqua.utils.backend_utils import (is_statevector_backend,
                                              is_aer_qasm,
                                              has_aer)
@@ -38,7 +39,7 @@ class ExpectationFactory:
 
     @staticmethod
     def build(operator: OperatorBase,
-              backend: Optional[Union[BaseBackend, QuantumInstance]] = None,
+              backend: Optional[Union[Backend, BaseBackend, QuantumInstance]] = None,
               include_custom: bool = True) -> ExpectationBase:
         """
         A factory method for convenient automatic selection of an Expectation based on the
@@ -65,7 +66,7 @@ class ExpectationFactory:
 
         # pylint: disable=cyclic-import,import-outside-toplevel
         primitives = operator.primitive_strings()
-        if primitives == {'Pauli'}:
+        if primitives in ({'Pauli'}, {'SparsePauliOp'}):
 
             if backend_to_check is None:
                 # If user has Aer but didn't specify a backend, use the Aer fast expectation

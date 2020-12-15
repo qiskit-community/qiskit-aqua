@@ -12,11 +12,13 @@
 
 """ Test of UVCC and VSCF Aqua extensions """
 
+import warnings
 from test.chemistry import QiskitChemistryTestCase
 
 from qiskit import BasicAer
 from qiskit.chemistry import BosonicOperator
 
+from qiskit.aqua import aqua_globals, QuantumInstance
 from qiskit.aqua.algorithms import VQE
 from qiskit.aqua.components.optimizers import COBYLA
 from qiskit.chemistry.components.initial_states import VSCF
@@ -28,6 +30,7 @@ class TestUVCCVSCF(QiskitChemistryTestCase):
 
     def setUp(self):
         super().setUp()
+        aqua_globals.random_seed = 8
         self.reference_energy = 592.5346633819712
 
     def test_uvcc_vscf(self):
@@ -59,16 +62,19 @@ class TestUVCCVSCF(QiskitChemistryTestCase):
         bosonic_op = BosonicOperator(co2_2modes_2modals_2body, basis)
         qubit_op = bosonic_op.mapping('direct', threshold=1e-5)
 
-        init_state = VSCF(basis)
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            init_state = VSCF(basis)
 
         num_qubits = sum(basis)
         uvcc_varform = UVCC(num_qubits, basis, [0, 1], initial_state=init_state)
 
-        backend = BasicAer.get_backend('statevector_simulator')
+        q_instance = QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                     seed_transpiler=90, seed_simulator=12)
         optimizer = COBYLA(maxiter=1000)
 
         algo = VQE(qubit_op, uvcc_varform, optimizer)
-        vqe_result = algo.run(backend)
+        vqe_result = algo.run(q_instance)
 
         energy = vqe_result['optimal_value']
 

@@ -38,8 +38,9 @@ class BernoulliAFactory(UncertaintyProblem):
     """
 
     def __init__(self, probability=0.5):
-        #
-        super().__init__(1)
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            super().__init__(1)
         self._probability = probability
         self.i_state = 0
         self._theta_p = 2 * np.arcsin(np.sqrt(probability))
@@ -61,7 +62,9 @@ class BernoulliQFactory(QFactory):
     """
 
     def __init__(self, bernoulli_expected_value):
-        super().__init__(bernoulli_expected_value, i_objective=0)
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            super().__init__(bernoulli_expected_value, i_objective=0)
 
     def build(self, qc, q, q_ancillas=None, params=None):
         i_state = self.a_factory.i_state
@@ -90,7 +93,9 @@ class SineIntegralAFactory(UncertaintyProblem):
     """
 
     def __init__(self, num_qubits):
-        super().__init__(num_qubits + 1)
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            super().__init__(num_qubits + 1)
         self._i_objective = num_qubits
 
     def build(self, qc, q, q_ancillas=None, params=None):
@@ -199,6 +204,7 @@ class TestBernoulli(QiskitAquaTestCase):
         prob = 0.5
 
         for m in range(2, 7):
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
             qae = AmplitudeEstimation(m, a_factory=BernoulliAFactory(prob))
             angle = 2 * np.arcsin(np.sqrt(prob))
 
@@ -225,6 +231,7 @@ class TestBernoulli(QiskitAquaTestCase):
                     for _ in range(2**power):
                         q_factory.build_controlled(circuit, q_objective, q_ancilla[power])
 
+            warnings.filterwarnings('always', category=DeprecationWarning)
             # fourier transform
             iqft = QFT(m, do_swaps=False).inverse()
             circuit.append(iqft.to_instruction(), q_ancilla)
@@ -246,6 +253,7 @@ class TestBernoulli(QiskitAquaTestCase):
         prob = 0.5
 
         for k in range(2, 7):
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
             qae = IterativeAmplitudeEstimation(0.01, 0.05, a_factory=BernoulliAFactory(prob))
             angle = 2 * np.arcsin(np.sqrt(prob))
 
@@ -266,6 +274,7 @@ class TestBernoulli(QiskitAquaTestCase):
                 q_factory = QFactory(qae.a_factory, i_objective=0)
                 for _ in range(k):
                     q_factory.build(circuit, q_objective)
+            warnings.filterwarnings('always', category=DeprecationWarning)
 
             expected_unitary = self._unitary.execute(circuit).get_unitary()
 
@@ -281,6 +290,7 @@ class TestBernoulli(QiskitAquaTestCase):
         prob = 0.5
 
         for k in range(1, 7):
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
             qae = MaximumLikelihoodAmplitudeEstimation(k, a_factory=BernoulliAFactory(prob))
             angle = 2 * np.arcsin(np.sqrt(prob))
 
@@ -311,6 +321,7 @@ class TestBernoulli(QiskitAquaTestCase):
                     for _ in range(2**power):
                         q_factory.build(circuit, q_objective)
 
+            warnings.filterwarnings('always', category=DeprecationWarning)
             actual_circuits = qae.construct_circuits(measurement=False)
 
             for actual, expected in zip(actual_circuits, circuits):
@@ -326,19 +337,16 @@ class TestProblemSetting(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
-        warnings.filterwarnings(action="ignore", category=DeprecationWarning)
         self.a_bernoulli = BernoulliAFactory(0)
         self.q_bernoulli = BernoulliQFactory(self.a_bernoulli)
         self.i_bernoulli = 0
 
         num_qubits = 5
         self.a_integral = SineIntegralAFactory(num_qubits)
-        self.q_intergal = QFactory(self.a_integral, num_qubits)
-        self.i_intergal = num_qubits
-
-    def tearDown(self):
-        super().tearDown()
-        warnings.filterwarnings(action="always", category=DeprecationWarning)
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            self.q_integral = QFactory(self.a_integral, num_qubits)
+        self.i_integral = num_qubits
 
     @idata([
         [AmplitudeEstimation(2)],
@@ -348,6 +356,7 @@ class TestProblemSetting(QiskitAquaTestCase):
     @unpack
     def test_operators(self, qae):
         """ Test if A/Q operator + i_objective set correctly """
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         self.assertIsNone(qae.a_factory)
         self.assertIsNone(qae.q_factory)
         self.assertIsNone(qae.i_objective)
@@ -378,6 +387,7 @@ class TestProblemSetting(QiskitAquaTestCase):
         self.assertIsNotNone(qae._a_factory)
         self.assertIsNotNone(qae._q_factory)
         self.assertIsNotNone(qae._i_objective)
+        warnings.filterwarnings('always', category=DeprecationWarning)
 
     @data(
         AmplitudeEstimation(2),
@@ -387,6 +397,7 @@ class TestProblemSetting(QiskitAquaTestCase):
     def test_a_factory_update(self, qae):
         """Test if the Q factory is updated if the a_factory changes -- except set manually."""
         # Case 1: Set to BernoulliAFactory with default Q operator
+        warnings.filterwarnings(action="ignore", category=DeprecationWarning)
         qae.a_factory = self.a_bernoulli
         self.assertIsInstance(qae.q_factory.a_factory, BernoulliAFactory)
         self.assertEqual(qae.i_objective, self.i_bernoulli)
@@ -394,7 +405,7 @@ class TestProblemSetting(QiskitAquaTestCase):
         # Case 2: Change to SineIntegralAFactory with default Q operator
         qae.a_factory = self.a_integral
         self.assertIsInstance(qae.q_factory.a_factory, SineIntegralAFactory)
-        self.assertEqual(qae.i_objective, self.i_intergal)
+        self.assertEqual(qae.i_objective, self.i_integral)
 
         # Case 3: Set to BernoulliAFactory with special Q operator
         qae.a_factory = self.a_bernoulli
@@ -407,6 +418,7 @@ class TestProblemSetting(QiskitAquaTestCase):
         qae.a_factory = self.a_integral
         self.assertIsInstance(qae.q_factory, BernoulliQFactory)
         self.assertEqual(qae.i_objective, self.i_bernoulli)
+        warnings.filterwarnings(action="always", category=DeprecationWarning)
 
 
 @ddt
@@ -420,8 +432,6 @@ class TestSineIntegral(QiskitAquaTestCase):
 
     def setUp(self):
         super().setUp()
-        warnings.filterwarnings(action="ignore", category=DeprecationWarning)
-
         self._statevector = QuantumInstance(backend=BasicAer.get_backend('statevector_simulator'),
                                             seed_simulator=123,
                                             seed_transpiler=41)
@@ -432,10 +442,6 @@ class TestSineIntegral(QiskitAquaTestCase):
 
         self._qasm = qasm
 
-    def tearDown(self):
-        super().tearDown()
-        warnings.filterwarnings(action="always", category=DeprecationWarning)
-
     @idata([
         [2, AmplitudeEstimation(2), {'estimation': 0.5, 'mle': 0.270290}],
         [4, MaximumLikelihoodAmplitudeEstimation(4), {'estimation': 0.272675}],
@@ -445,7 +451,9 @@ class TestSineIntegral(QiskitAquaTestCase):
     def test_statevector(self, n, qae, expect):
         """ Statevector end-to-end test """
         # construct factories for A and Q
-        qae.a_factory = SineIntegralAFactory(n)
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            qae.a_factory = SineIntegralAFactory(n)
 
         result = qae.run(self._statevector)
 
@@ -462,7 +470,9 @@ class TestSineIntegral(QiskitAquaTestCase):
     def test_qasm(self, n, shots, qae, expect):
         """QASM simulator end-to-end test."""
         # construct factories for A and Q
-        qae.a_factory = SineIntegralAFactory(n)
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            qae.a_factory = SineIntegralAFactory(n)
 
         result = qae.run(self._qasm(shots))
 
@@ -485,7 +495,9 @@ class TestSineIntegral(QiskitAquaTestCase):
     def test_confidence_intervals(self, qae, key, expect):
         """End-to-end test for all confidence intervals."""
         n = 3
-        qae.a_factory = SineIntegralAFactory(n)
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            qae.a_factory = SineIntegralAFactory(n)
 
         # statevector simulator
         result = qae.run(self._statevector)
@@ -509,7 +521,9 @@ class TestSineIntegral(QiskitAquaTestCase):
     def test_iqae_confidence_intervals(self):
         """End-to-end test for the IQAE confidence interval."""
         n = 3
-        qae = IterativeAmplitudeEstimation(0.1, 0.01, a_factory=SineIntegralAFactory(n))
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            qae = IterativeAmplitudeEstimation(0.1, 0.01, a_factory=SineIntegralAFactory(n))
         expected_confint = [0.19840508760087738, 0.35110155403424115]
 
         # statevector simulator

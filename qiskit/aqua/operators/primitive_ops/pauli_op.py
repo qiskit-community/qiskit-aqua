@@ -19,11 +19,12 @@ from scipy.sparse import spmatrix
 
 from qiskit import QuantumCircuit
 from qiskit.circuit import ParameterExpression, Instruction
-from qiskit.quantum_info import Pauli
+from qiskit.quantum_info import Pauli, SparsePauliOp
 from qiskit.circuit.library import RZGate, RYGate, RXGate, XGate, YGate, ZGate, IGate
 
 from ..operator_base import OperatorBase
 from .primitive_op import PrimitiveOp
+from .pauli_sum_op import PauliSumOp
 from ..list_ops.summed_op import SummedOp
 from ..list_ops.tensored_op import TensoredOp
 from ..legacy.weighted_pauli_operator import WeightedPauliOperator
@@ -39,7 +40,7 @@ class PauliOp(PrimitiveOp):
     """
 
     def __init__(self,
-                 primitive: Union[Pauli] = None,
+                 primitive: Union[Pauli],
                  coeff: Union[int, float, complex, ParameterExpression] = 1.0) -> None:
         """
             Args:
@@ -70,10 +71,23 @@ class PauliOp(PrimitiveOp):
         if isinstance(other, PauliOp) and self.primitive == other.primitive:
             return PauliOp(self.primitive, coeff=self.coeff + other.coeff)
 
+        if (
+                isinstance(other, PauliOp)
+                and isinstance(self.coeff, (int, float, complex))
+                and isinstance(other.coeff, (int, float, complex))
+        ):
+            return PauliSumOp(
+                SparsePauliOp(self.primitive, coeffs=[self.coeff])
+                + SparsePauliOp(other.primitive, coeffs=[other.coeff])
+            )
+
+        if isinstance(other, PauliSumOp) and isinstance(self.coeff, (int, float, complex)):
+            return PauliSumOp(SparsePauliOp(self.primitive, coeffs=[self.coeff])) + other
+
         return SummedOp([self, other])
 
     def adjoint(self) -> OperatorBase:
-        return PauliOp(self.primitive, coeff=np.conj(self.coeff))
+        return PauliOp(self.primitive, coeff=self.coeff.conjugate())
 
     def equals(self, other: OperatorBase) -> bool:
         if not isinstance(other, PauliOp) or not self.coeff == other.coeff:
@@ -148,12 +162,7 @@ class PauliOp(PrimitiveOp):
         return super(PauliOp, new_self).compose(other)
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
-        if self.num_qubits > 16 and not massive:
-            raise ValueError(
-                'to_matrix will return an exponentially large matrix, '
-                'in this case {0}x{0} elements.'
-                ' Set massive=True if you want to proceed.'.format(2 ** self.num_qubits))
-
+        OperatorBase._check_massive('to_matrix', True, self.num_qubits, massive)
         return self.primitive.to_matrix() * self.coeff  # type: ignore
 
     def to_spmatrix(self) -> spmatrix:
@@ -260,6 +269,7 @@ class PauliOp(PrimitiveOp):
             elif corrected_x[sig_qubit_index]:
                 rot_op = PrimitiveOp(RXGate(2 * coeff))
 
+            # pylint: disable=cyclic-import
             from ..operator_globals import I
             left_pad = I.tensorpower(sig_qubit_index)
             right_pad = I.tensorpower(self.num_qubits - sig_qubit_index - 1)

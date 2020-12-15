@@ -22,6 +22,7 @@ from scipy.stats import entropy
 
 from qiskit.circuit import QuantumCircuit
 from qiskit.providers import BaseBackend
+from qiskit.providers import Backend
 from qiskit.aqua import QuantumInstance, AquaError, aqua_globals
 from qiskit.aqua.algorithms import QuantumAlgorithm
 from qiskit.aqua.components.neural_networks.discriminative_network import DiscriminativeNetwork
@@ -69,7 +70,8 @@ class QGAN(QuantumAlgorithm):
                  discriminator: Optional[DiscriminativeNetwork] = None,
                  generator: Optional[GenerativeNetwork] = None,
                  tol_rel_ent: Optional[float] = None, snapshot_dir: Optional[str] = None,
-                 quantum_instance: Optional[Union[QuantumInstance, BaseBackend]] = None) -> None:
+                 quantum_instance: Optional[
+                     Union[QuantumInstance, BaseBackend, Backend]] = None) -> None:
         """
 
         Args:
@@ -206,6 +208,7 @@ class QGAN(QuantumAlgorithm):
         """
         self._generator = QuantumGenerator(self._bounds, self._num_qubits,
                                            generator_circuit, generator_init_params,
+                                           generator_optimizer,
                                            self._snapshot_dir)
 
     @property

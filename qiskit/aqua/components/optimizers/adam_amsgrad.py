@@ -77,7 +77,7 @@ class ADAM(Optimizer):
                 after every step to the given directory
         """
         super().__init__()
-        for k, v in locals().items():
+        for k, v in list(locals().items()):
             if k in self._OPTIONS:
                 self._options[k] = v
         self._maxiter = maxiter
@@ -188,7 +188,8 @@ class ADAM(Optimizer):
 
         params = params_new = initial_point
         while self._t < self._maxiter:
-            derivative = gradient_function(params)
+            if self._t > 0:
+                derivative = gradient_function(params)
             self._t += 1
             self._m = self._beta_1 * self._m + (1 - self._beta_1) * derivative
             self._v = self._beta_2 * self._v + (1 - self._beta_2) * derivative * derivative

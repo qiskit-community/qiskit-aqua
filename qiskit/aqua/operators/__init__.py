@@ -124,6 +124,7 @@ only diagonal Paulis.
    converters
    evolutions
    expectations
+   gradients
 
 """
 
@@ -138,14 +139,14 @@ from .legacy import (LegacyBaseOperator, WeightedPauliOperator, Z2Symmetries,
 
 # New Operators
 from .operator_base import OperatorBase
-from .primitive_ops import PrimitiveOp, PauliOp, MatrixOp, CircuitOp
-from .state_fns import (StateFn, DictStateFn, VectorStateFn,
+from .primitive_ops import PrimitiveOp, PauliOp, MatrixOp, CircuitOp, PauliSumOp
+from .state_fns import (StateFn, DictStateFn, VectorStateFn, CVaRMeasurement,
                         CircuitStateFn, OperatorStateFn)
 from .list_ops import ListOp, SummedOp, ComposedOp, TensoredOp
 from .converters import (ConverterBase, CircuitSampler, PauliBasisChange,
                          DictToCircuitSum, AbelianGrouper)
 from .expectations import (ExpectationBase, ExpectationFactory, PauliExpectation,
-                           MatrixExpectation, AerPauliExpectation)
+                           MatrixExpectation, AerPauliExpectation, CVaRExpectation)
 from .evolutions import (EvolutionBase, EvolutionFactory, EvolvedOp, PauliTrotterEvolution,
                          MatrixEvolution, TrotterizationBase, TrotterizationFactory, Trotter,
                          Suzuki, QDrift)
@@ -155,6 +156,10 @@ from .operator_globals import (EVAL_SIG_DIGITS,
                                X, Y, Z, I,
                                CX, S, H, T, Swap, CZ,
                                Zero, One, Plus, Minus)
+# Gradients
+from .gradients import (DerivativeBase, GradientBase, Gradient, NaturalGradient,
+                        HessianBase, Hessian, QFIBase, QFI,
+                        CircuitGradient, CircuitQFI)
 
 __all__ = [
     # Common
@@ -167,15 +172,18 @@ __all__ = [
     'MatrixOperator',
     # Operators
     'OperatorBase',
-    'PrimitiveOp', 'PauliOp', 'MatrixOp', 'CircuitOp',
+    'PrimitiveOp', 'PauliOp', 'MatrixOp', 'CircuitOp', 'PauliSumOp',
     'StateFn', 'DictStateFn', 'VectorStateFn', 'CircuitStateFn', 'OperatorStateFn',
+    'CVaRMeasurement',
     'ListOp', 'SummedOp', 'ComposedOp', 'TensoredOp',
     # Converters
     'ConverterBase', 'CircuitSampler', 'AbelianGrouper', 'DictToCircuitSum', 'PauliBasisChange',
     'ExpectationBase', 'ExpectationFactory', 'PauliExpectation', 'MatrixExpectation',
-    'AerPauliExpectation',
+    'AerPauliExpectation', 'CVaRExpectation',
     'EvolutionBase', 'EvolvedOp', 'EvolutionFactory', 'PauliTrotterEvolution', 'MatrixEvolution',
     'TrotterizationBase', 'TrotterizationFactory', 'Trotter', 'Suzuki', 'QDrift',
     # Convenience immutable instances
-    'X', 'Y', 'Z', 'I', 'CX', 'S', 'H', 'T', 'Swap', 'CZ', 'Zero', 'One', 'Plus', 'Minus'
-]
+    'X', 'Y', 'Z', 'I', 'CX', 'S', 'H', 'T', 'Swap', 'CZ', 'Zero', 'One', 'Plus', 'Minus',
+    # Gradients
+    'DerivativeBase', 'GradientBase', 'Gradient', 'NaturalGradient',
+    'HessianBase', 'Hessian', 'QFIBase', 'QFI']

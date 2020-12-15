@@ -75,7 +75,7 @@ class VectorStateFn(StateFn):
 
     def adjoint(self) -> OperatorBase:
         return VectorStateFn(self.primitive.conjugate(),
-                             coeff=np.conj(self.coeff),
+                             coeff=self.coeff.conjugate(),
                              is_measurement=(not self.is_measurement))
 
     def permute(self, permutation: List[int]) -> 'VectorStateFn':
@@ -133,22 +133,12 @@ class VectorStateFn(StateFn):
         return TensoredOp([self, other])
 
     def to_density_matrix(self, massive: bool = False) -> np.ndarray:
-        if self.num_qubits > 16 and not massive:
-            raise ValueError(
-                'to_matrix will return an exponentially large matrix,'
-                ' in this case {0}x{0} elements.'
-                ' Set massive=True if you want to proceed.'.format(2**self.num_qubits))
-
+        OperatorBase._check_massive('to_density_matrix', True, self.num_qubits, massive)
         return self.primitive.to_operator().data * self.coeff
 
     def to_matrix(self, massive: bool = False) -> np.ndarray:
-        if self.num_qubits > 16 and not massive:
-            raise ValueError(
-                'to_vector will return an exponentially large vector, in this case {0} elements.'
-                ' Set massive=True if you want to proceed.'.format(2**self.num_qubits))
-
+        OperatorBase._check_massive('to_matrix', False, self.num_qubits, massive)
         vec = self.primitive.data * self.coeff
-
         return vec if not self.is_measurement else vec.reshape(1, -1)
 
     def to_matrix_op(self, massive: bool = False) -> OperatorBase:
@@ -157,7 +147,7 @@ class VectorStateFn(StateFn):
     def to_circuit_op(self) -> OperatorBase:
         """ Return ``StateFnCircuit`` corresponding to this StateFn."""
         from .circuit_state_fn import CircuitStateFn
-        csfn = CircuitStateFn.from_vector(self.to_matrix(massive=True)) * self.coeff  # type: ignore
+        csfn = CircuitStateFn.from_vector(self.primitive.data) * self.coeff  # type: ignore
         return csfn.adjoint() if self.is_measurement else csfn
 
     def __str__(self) -> str:

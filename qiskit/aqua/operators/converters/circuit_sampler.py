@@ -12,21 +12,23 @@
 
 """ CircuitSampler Class """
 
-from typing import Optional, Dict, List, Union, cast, Any
+from typing import Optional, Dict, List, Union, cast, Any, Tuple
 import logging
 from functools import partial
 from time import time
+import numpy as np
 
 from qiskit.providers import BaseBackend
+from qiskit.providers import Backend
 from qiskit.circuit import QuantumCircuit, Parameter, ParameterExpression
 from qiskit import QiskitError
-from qiskit.aqua import QuantumInstance
+from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.aqua.utils.backend_utils import is_aer_provider, is_statevector_backend
 from qiskit.aqua.operators.operator_base import OperatorBase
-from qiskit.aqua.operators.operator_globals import Zero
 from qiskit.aqua.operators.list_ops.list_op import ListOp
 from qiskit.aqua.operators.state_fns.state_fn import StateFn
 from qiskit.aqua.operators.state_fns.circuit_state_fn import CircuitStateFn
+from qiskit.aqua.operators.state_fns.dict_state_fn import DictStateFn
 from qiskit.aqua.operators.converters.converter_base import ConverterBase
 
 logger = logging.getLogger(__name__)
@@ -48,7 +50,7 @@ class CircuitSampler(ConverterBase):
     """
 
     def __init__(self,
-                 backend: Union[BaseBackend, QuantumInstance] = None,
+                 backend: Union[Backend, BaseBackend, QuantumInstance],
                  statevector: Optional[bool] = None,
                  param_qobj: bool = False,
                  attach_results: bool = False) -> None:
@@ -101,7 +103,7 @@ class CircuitSampler(ConverterBase):
                              'backend, not {}.'.format(self.quantum_instance.backend))
 
     @property
-    def backend(self) -> BaseBackend:
+    def backend(self) -> Union[Backend, BaseBackend]:
         """ Returns the backend.
 
         Returns:
@@ -110,11 +112,11 @@ class CircuitSampler(ConverterBase):
         return self.quantum_instance.backend
 
     @backend.setter
-    def backend(self, backend: BaseBackend):
+    def backend(self, backend: Union[Backend, BaseBackend]):
         """ Sets backend without additional configuration. """
         self.set_backend(backend)
 
-    def set_backend(self, backend: BaseBackend, **kwargs) -> None:
+    def set_backend(self, backend: Union[Backend, BaseBackend], **kwargs) -> None:
         """ Sets backend with configuration.
 
         Raises:
@@ -133,13 +135,14 @@ class CircuitSampler(ConverterBase):
         return self._quantum_instance
 
     @quantum_instance.setter
-    def quantum_instance(self, quantum_instance: Union[QuantumInstance, BaseBackend]) -> None:
+    def quantum_instance(self, quantum_instance: Union[QuantumInstance,
+                                                       Backend, BaseBackend]) -> None:
         """ Sets the QuantumInstance.
 
         Raises:
             ValueError: statevector or param_qobj are True when not supported by backend.
         """
-        if isinstance(quantum_instance, BaseBackend):
+        if isinstance(quantum_instance, (Backend, BaseBackend)):
             quantum_instance = QuantumInstance(quantum_instance)
         self._quantum_instance = quantum_instance
         self._check_quantum_instance_and_modes_consistent()
@@ -163,6 +166,8 @@ class CircuitSampler(ConverterBase):
 
         Returns:
             The converted Operator with CircuitStateFns replaced by DictStateFns or VectorStateFns.
+        Raises:
+            AquaError: if extracted circuits are empty.
         """
         if self._last_op is None or id(operator) != id(self._last_op):
             # Clear caches
@@ -179,20 +184,30 @@ class CircuitSampler(ConverterBase):
         if not self._circuit_ops_cache:
             self._circuit_ops_cache = {}
             self._extract_circuitstatefns(self._reduced_op_cache)
+            if not self._circuit_ops_cache:
+                raise AquaError(
+                    'Circuits are empty. '
+                    'Check that the operator is an instance of CircuitStateFn or its ListOp.'
+                )
 
-        if params:
+        if params is not None and len(params.keys()) > 0:
             p_0 = list(params.values())[0]  # type: ignore
-            num_parameterizations = len(cast(List, p_0))
-            param_bindings = [{param: value_list[i]  # type: ignore
-                               for (param, value_list) in params.items()}
-                              for i in range(num_parameterizations)]
+            if isinstance(p_0, (list, np.ndarray)):
+                num_parameterizations = len(cast(List, p_0))
+                param_bindings = [{param: value_list[i]  # type: ignore
+                                   for (param, value_list) in params.items()}
+                                  for i in range(num_parameterizations)]
+            else:
+                num_parameterizations = 1
+                param_bindings = [params]  # type: ignore
+
         else:
             param_bindings = None
             num_parameterizations = 1
 
         # Don't pass circuits if we have in the cache, the sampling function knows to use the cache
         circs = list(self._circuit_ops_cache.values()) if not self._transpiled_circ_cache else None
-        p_b = cast(List[Dict[Parameter, List[float]]], param_bindings)
+        p_b = cast(List[Dict[Parameter, float]], param_bindings)
         sampled_statefn_dicts = self.sample_circuits(circuit_sfns=circs,
                                                      param_bindings=p_b)
 
@@ -224,7 +239,7 @@ class CircuitSampler(ConverterBase):
 
     def sample_circuits(self,
                         circuit_sfns: Optional[List[CircuitStateFn]] = None,
-                        param_bindings: Optional[List[Dict[Parameter, List[float]]]] = None
+                        param_bindings: Optional[List[Dict[Parameter, float]]] = None
                         ) -> Dict[int, Union[StateFn, List[StateFn]]]:
         r"""
         Samples the CircuitStateFns and returns a dict associating their ``id()`` values to their
@@ -241,8 +256,14 @@ class CircuitSampler(ConverterBase):
 
         Returns:
             The dictionary mapping ids of the CircuitStateFns to their replacement StateFns.
+        Raises:
+            AquaError: if extracted circuits are empty.
         """
-        if circuit_sfns or not self._transpiled_circ_cache:
+        if not circuit_sfns and not self._transpiled_circ_cache:
+            raise AquaError('CircuitStateFn is empty and there is no cache.')
+
+        if circuit_sfns:
+            self._transpiled_circ_templates = None
             if self._statevector:
                 circuits = [op_c.to_circuit(meas=False) for op_c in circuit_sfns]
             else:
@@ -264,14 +285,14 @@ class CircuitSampler(ConverterBase):
                 start_time = time()
                 ready_circs = self._prepare_parameterized_run_config(param_bindings)
                 end_time = time()
-                logger.info('Parameter conversion %.5f (ms)', (end_time - start_time) * 1000)
+                logger.debug('Parameter conversion %.5f (ms)', (end_time - start_time) * 1000)
             else:
                 start_time = time()
-                ready_circs = [circ.assign_parameters(binding)
+                ready_circs = [circ.assign_parameters(_filter_params(circ, binding))
                                for circ in self._transpiled_circ_cache
                                for binding in param_bindings]
                 end_time = time()
-                logger.info('Parameter binding %.5f (ms)', (end_time - start_time) * 1000)
+                logger.debug('Parameter binding %.5f (ms)', (end_time - start_time) * 1000)
         else:
             ready_circs = self._transpiled_circ_cache
 
@@ -304,43 +325,54 @@ class CircuitSampler(ConverterBase):
                         avg = avg[0] + 1j * avg[1]
                     # Will be replaced with just avg when eval is called later
                     num_qubits = circuit_sfns[0].num_qubits
-                    result_sfn = (Zero ^ num_qubits).adjoint() * avg
+                    result_sfn = DictStateFn('0' * num_qubits,
+                                             is_measurement=op_c.is_measurement) * avg
                 elif self._statevector:
-                    result_sfn = StateFn(op_c.coeff * results.get_statevector(circ_index))
+                    result_sfn = StateFn(op_c.coeff * results.get_statevector(circ_index),
+                                         is_measurement=op_c.is_measurement)
                 else:
                     shots = self.quantum_instance._run_config.shots
                     result_sfn = StateFn({b: (v / shots) ** 0.5 * op_c.coeff
-                                          for (b, v) in results.get_counts(circ_index).items()})
+                                          for (b, v) in results.get_counts(circ_index).items()},
+                                         is_measurement=op_c.is_measurement)
                 if self._attach_results:
                     result_sfn.execution_results = circ_results
                 c_statefns.append(result_sfn)
             sampled_statefn_dicts[id(op_c)] = c_statefns
         return sampled_statefn_dicts
 
-    def _generate_aer_params(self,
-                             circuit: QuantumCircuit,
-                             input_params: Dict[Parameter, List[float]]
-                             ) -> List[List[Any]]:
-        ret = []
+    def _build_aer_params(self,
+                          circuit: QuantumCircuit,
+                          building_param_tables: Dict[Tuple[int, int], List[float]],
+                          input_params: Dict[Parameter, float]
+                          ) -> None:
+
+        def resolve_param(inst_param):
+            if not isinstance(inst_param, ParameterExpression):
+                return None
+            param_mappings = {}
+            for param in inst_param._parameter_symbols.keys():
+                if param not in input_params:
+                    raise ValueError('unexpected parameter: {0}'.format(param))
+                param_mappings[param] = input_params[param]
+            return float(inst_param.bind(param_mappings))
 
         gate_index = 0
         for inst, _, _ in circuit.data:
             param_index = 0
             for inst_param in inst.params:
-                param_mappings = {}
-                if isinstance(inst_param, ParameterExpression):
-                    for param in inst_param._parameter_symbols.keys():
-                        if param not in input_params:
-                            raise ValueError('unexpected parameter: {0}'.format(param))
-                        param_mappings[param] = input_params[param]
-                    val = float(inst_param.bind(param_mappings))
-                    ret.append([[gate_index, param_index], [val]])
+                val = resolve_param(inst_param)
+                if val is not None:
+                    param_key = (gate_index, param_index)
+                    if param_key in building_param_tables:
+                        building_param_tables[param_key].append(val)
+                    else:
+                        building_param_tables[param_key] = [val]
                 param_index += 1
             gate_index += 1
-        return ret
 
     def _prepare_parameterized_run_config(self, param_bindings:
-                                          List[Dict[Parameter, List[float]]]) -> List[Any]:
+                                          List[Dict[Parameter, float]]) -> List[Any]:
 
         self.quantum_instance._run_config.parameterizations = []
 
@@ -349,17 +381,29 @@ class CircuitSampler(ConverterBase):
 
             # temporally resolve parameters of self._transpiled_circ_cache
             # They will be overridden in Aer from the next iterations
-            self._transpiled_circ_templates = [circ.assign_parameters(param_bindings[0])
-                                               for circ in self._transpiled_circ_cache]
+            self._transpiled_circ_templates = [
+                circ.assign_parameters(_filter_params(circ, param_bindings[0]))
+                for circ in self._transpiled_circ_cache
+            ]
 
-        ready_circ = []
-        for circ, temp in zip(self._transpiled_circ_cache, self._transpiled_circ_templates):
+        for circ in self._transpiled_circ_cache:
+            building_param_tables = {}  # type: Dict[Tuple[int, int], List[float]]
             for param_binding in param_bindings:
-                self.quantum_instance._run_config.parameterizations.append(
-                    self._generate_aer_params(circ, param_binding))
-                ready_circ.append(temp)
+                self._build_aer_params(circ, building_param_tables, param_binding)
+            param_tables = []
+            for gate_and_param_indices in building_param_tables:
+                gate_index = gate_and_param_indices[0]
+                param_index = gate_and_param_indices[1]
+                param_tables.append([
+                    [gate_index, param_index], building_param_tables[(gate_index, param_index)]])
+            self.quantum_instance._run_config.parameterizations.append(param_tables)
 
-        return ready_circ
+        return self._transpiled_circ_templates
 
     def _clean_parameterized_run_config(self) -> None:
         self.quantum_instance._run_config.parameterizations = []
+
+
+def _filter_params(circuit, param_dict):
+    """Remove all parameters from ``param_dict`` that are not in ``circuit``."""
+    return {param: value for param, value in param_dict.items() if param in circuit.parameters}

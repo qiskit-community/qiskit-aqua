@@ -13,7 +13,9 @@
 """ Test VQE to IQPE """
 
 import unittest
+import warnings
 from test.aqua import QiskitAquaTestCase
+from ddt import ddt, data
 
 from qiskit import BasicAer
 from qiskit.circuit.library import TwoLocal
@@ -27,6 +29,7 @@ from qiskit.aqua.algorithms import VQE
 from qiskit.aqua.algorithms import IQPE
 
 
+@ddt
 class TestVQE2IQPE(QiskitAquaTestCase):
     """ Test VQE to IQPE """
 
@@ -40,11 +43,12 @@ class TestVQE2IQPE(QiskitAquaTestCase):
             - 0.01128010425623538 * (Z ^ Z) \
             + 0.18093119978423156 * (X ^ X)
 
-    def test_vqe_2_iqpe(self):
+    @data('initial_state', 'circuit')
+    def test_vqe_2_iqpe(self, mode):
         """ vqe to iqpe test """
         backend = BasicAer.get_backend('qasm_simulator')
         num_qbits = self.qubit_op.num_qubits
-        wavefunction = TwoLocal(num_qbits, ['ry', 'rz'], 'cz', reps=3, insert_barriers=True)
+        wavefunction = TwoLocal(num_qbits, ['ry', 'rz'], 'cz', reps=3)
 
         optimizer = SPSA(maxiter=10)
         algo = VQE(self.qubit_op, wavefunction, optimizer)
@@ -61,7 +65,12 @@ class TestVQE2IQPE(QiskitAquaTestCase):
         num_iterations = 6
 
         param_dict = result.optimal_parameters
-        state_in = VarFormBased(wavefunction, param_dict)
+        if mode == 'initial_state':
+            with warnings.catch_warnings():
+                warnings.filterwarnings('ignore', category=DeprecationWarning)
+                state_in = VarFormBased(wavefunction, param_dict)
+        else:
+            state_in = wavefunction.assign_parameters(param_dict)
 
         iqpe = IQPE(self.qubit_op, state_in, num_time_slices, num_iterations,
                     expansion_mode='suzuki', expansion_order=2,
