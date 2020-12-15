@@ -225,7 +225,7 @@ class QuantumKernel:
             results = self._quantum_instance.execute(circuits)
 
             offset = 0 if is_symmetric else len(x_vec)
-            matrix_elements = [self._compute_overlap(idx, results, 
+            matrix_elements = [self._compute_overlap(idx, results,
                                                      is_statevector_sim, measurement_basis)
                                for idx in list(zip(mus, nus + offset))]
 
@@ -260,7 +260,7 @@ class QuantumKernel:
 
                 results = self._quantum_instance.execute(circuits)
 
-                matrix_elements = [self._compute_overlap(circuit, results, 
+                matrix_elements = [self._compute_overlap(circuit, results,
                                                          is_statevector_sim, measurement_basis)
                                    for circuit in range(len(circuits))]
 
