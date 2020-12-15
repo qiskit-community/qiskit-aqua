@@ -46,17 +46,17 @@ class QuantumKernel:
     algorithms such as support vector classification, spectral clustering or ridge regression.
     """
 
-    BATCH_SIZE = 1000
-
     def __init__(self,
                  feature_map: QuantumCircuit,
                  enforce_psd: bool = False,
+                 batch_size: int = 1000,
                  quantum_instance: Optional[
                      Union[QuantumInstance, BaseBackend, Backend]] = None) -> None:
         """
         Args
             feature_map:       # parameterized circuit to be used as the feature map
             enforce_psd:       # project to closest positive semidefinite matrix if x = y
+            batch_size:        # number of circuits to batch together for computation
             quantum_instance:  # Quantum Instance or Backend
         """
         self._feature_map = feature_map
@@ -64,6 +64,7 @@ class QuantumKernel:
             self.feature_map.ordered_parameters = sorted(feature_map.parameters,
                                                          key=lambda p: p.name)
         self._enforce_psd = enforce_psd
+        self._batch_size = batch_size
         self._quantum_instance = quantum_instance
 
     @property
@@ -225,7 +226,7 @@ class QuantumKernel:
             results = self._quantum_instance.execute(circuits)
 
             offset = 0 if is_symmetric else len(x_vec)
-            matrix_elements = [self._compute_overlap(idx, results, 
+            matrix_elements = [self._compute_overlap(idx, results,
                                                      is_statevector_sim, measurement_basis)
                                for idx in list(zip(mus, nus + offset))]
 
@@ -242,10 +243,10 @@ class QuantumKernel:
                 measurement=measurement, is_statevector_sim=is_statevector_sim)
             parameterized_circuit = self._quantum_instance.transpile(parameterized_circuit)[0]
 
-            for idx in range(0, len(mus), QuantumKernel.BATCH_SIZE):
+            for idx in range(0, len(mus), self._batch_size):
                 to_be_computed_data_pair = []
                 to_be_computed_index = []
-                for sub_idx in range(idx, min(idx + QuantumKernel.BATCH_SIZE, len(mus))):
+                for sub_idx in range(idx, min(idx + self._batch_size, len(mus))):
                     i = mus[sub_idx]
                     j = nus[sub_idx]
                     x_i = x_vec[i]
@@ -260,7 +261,7 @@ class QuantumKernel:
 
                 results = self._quantum_instance.execute(circuits)
 
-                matrix_elements = [self._compute_overlap(circuit, results, 
+                matrix_elements = [self._compute_overlap(circuit, results,
                                                          is_statevector_sim, measurement_basis)
                                    for circuit in range(len(circuits))]
 
