@@ -22,8 +22,8 @@ import logging
 
 import numpy as np
 
+from qiskit.opflow import PauliSumOp
 from qiskit.quantum_info import Pauli
-from qiskit.aqua.operators import WeightedPauliOperator
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ def get_operator(weight_matrix):
         weight_matrix (numpy.ndarray) : adjacency matrix.
 
     Returns:
-        WeightedPauliOperator: operator for the Hamiltonian
+        PauliSumOp: operator for the Hamiltonian
         float: a constant shift for the obj function.
 
     """
@@ -49,9 +49,9 @@ def get_operator(weight_matrix):
                 z_p = np.zeros(num_nodes, dtype=np.bool)
                 z_p[i] = True
                 z_p[j] = True
-                pauli_list.append([0.5 * weight_matrix[i, j], Pauli(z_p, x_p)])
+                pauli_list.append((Pauli((z_p, x_p)).to_label(), 0.5 * weight_matrix[i, j]))
                 shift -= 0.5 * weight_matrix[i, j]
-    return WeightedPauliOperator(paulis=pauli_list), shift
+    return PauliSumOp.from_list(pauli_list), shift
 
 
 def max_cut_value(x, w):

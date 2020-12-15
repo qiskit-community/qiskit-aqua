@@ -15,11 +15,12 @@
 from typing import Optional, Union, Callable
 import numpy as np
 
-from qiskit.aqua import QuantumInstance, AquaError
-from qiskit.aqua.algorithms import MinimumEigensolver, VQE
-from qiskit.aqua.operators import ExpectationBase
-from qiskit.aqua.operators.gradients import GradientBase
-from qiskit.aqua.components.optimizers import Optimizer
+from qiskit.aqua import AquaError
+from qiskit.utils import QuantumInstance
+from qiskit.algorithms import MinimumEigensolver, VQE
+from qiskit.opflow import ExpectationBase
+from qiskit.opflow.gradients import GradientBase
+from qiskit.algorithms.optimizers import Optimizer
 from ....components.variational_forms import UCCSD
 from ....transformations import Transformation
 from ....transformations.fermionic_transformation import FermionicTransformation

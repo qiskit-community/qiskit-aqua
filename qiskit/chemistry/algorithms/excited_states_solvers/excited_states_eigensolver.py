@@ -15,8 +15,8 @@
 import logging
 from typing import List, Union, Optional, Any
 
-from qiskit.aqua.algorithms import Eigensolver
-from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.algorithms import Eigensolver
+from qiskit.opflow import WeightedPauliOperator
 from qiskit.chemistry import FermionicOperator
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.results import (EigenstateResult,

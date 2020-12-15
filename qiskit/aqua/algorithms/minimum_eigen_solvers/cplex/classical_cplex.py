@@ -16,13 +16,14 @@ import csv
 import logging
 from math import fsum
 from timeit import default_timer
-from typing import Dict, List, Tuple, Any
+from typing import Dict, List, Tuple, Any, Union
 import warnings
+
 import numpy as np
 
 from qiskit.aqua.algorithms import ClassicalAlgorithm
-from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.aqua.utils.validation import validate_min, validate_range
+from qiskit.opflow import PauliSumOp, WeightedPauliOperator
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +42,7 @@ class ClassicalCPLEX(ClassicalAlgorithm):
     if you need more information in that regard.
     """
 
-    def __init__(self, operator: WeightedPauliOperator,
+    def __init__(self, operator: Union[PauliSumOp, WeightedPauliOperator],
                  timelimit: int = 600, thread: int = 1,
                  display: int = 2) -> None:
         """
@@ -55,12 +56,16 @@ class ClassicalCPLEX(ClassicalAlgorithm):
                 mixed integer optimization. This value must be between 0 and 5 where the
                 amount of information displayed increases with increasing values of this parameter.
         """
+        # TODO: Remove 3 months after 0.17
+        if isinstance(operator, WeightedPauliOperator):
+            operator = operator.to_opflow()
+
         validate_min('timelimit', timelimit, 1)
         validate_min('thread', thread, 0)
         validate_range('display', display, 0, 5)
         super().__init__()
         self._ins = IsingInstance()
-        self._ins.parse(operator.to_dict()['paulis'])
+        self._ins.parse(operator.reduce().primitive.to_list())
         self._timelimit = timelimit
         self._thread = thread
         self._display = display
@@ -85,7 +90,7 @@ class CPLEX_Ising(ClassicalCPLEX):
     The deprecated CPLEX Ising algorithm.
     """
 
-    def __init__(self, operator: WeightedPauliOperator,
+    def __init__(self, operator: Union[PauliSumOp, WeightedPauliOperator],
                  timelimit: int = 600, thread: int = 1,
                  display: int = 2) -> None:
         warnings.warn('Deprecated class {}, use {}.'.format('CPLEX_Ising', 'ClassicalCPLEX'),
@@ -135,24 +140,24 @@ class IsingInstance:
         """ returns quad coef """
         return self._quad
 
-    def parse(self, pauli_list: List[Dict[str, Any]]):
+    def parse(self, pauli_list: List[Tuple[str, Any]]):
         """ parse """
-        for pauli in pauli_list:
+        for label, coeff in pauli_list:
             if self._num_vars == 0:
-                self._num_vars = len(pauli['label'])
-            elif self._num_vars != len(pauli['label']):
+                self._num_vars = len(label)
+            elif self._num_vars != len(label):
                 logger.critical('Inconsistent number of qubits: (target) %d, (actual) %d %s',
-                                self._num_vars, len(pauli['label']), pauli)
+                                self._num_vars, len(label), label)
                 continue
-            label = pauli['label'][::-1]
-            if 'imag' in pauli['coeff'] and pauli['coeff']['imag'] != 0.0:
+            label = label[::-1]
+            if np.iscomplex(coeff):
                 logger.critical(
-                    'CPLEX backend cannot deal with complex coefficient %s', pauli)
+                    'CPLEX backend cannot deal with complex coefficient %s', label)
                 continue
-            weight = pauli['coeff']['real']
+            weight = coeff.real
             if 'X' in label or 'Y' in label:
                 logger.critical(
-                    'CPLEX backend cannot deal with X and Y Pauli matrices: %s', pauli)
+                    'CPLEX backend cannot deal with X and Y Pauli matrices: %s', label)
                 continue
             ones = []
             for i, e in enumerate(label):
@@ -179,7 +184,7 @@ class IsingInstance:
                 self._quad[k_t] = weight
             else:
                 logger.critical(
-                    'CPLEX backend cannot deal with Hamiltonian more than quadratic: %s', pauli)
+                    'CPLEX backend cannot deal with Hamiltonian more than quadratic: %s', label)
 
 
 class IsingModel:

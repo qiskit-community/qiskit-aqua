@@ -23,7 +23,7 @@ from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
 from qiskit.aqua import aqua_globals
 from qiskit.aqua.algorithms import AlgorithmResult
-from qiskit.aqua.operators import Z2Symmetries, commutator, WeightedPauliOperator
+from qiskit.opflow import Z2Symmetries, commutator, PauliSumOp
 from qiskit.chemistry import FermionicOperator, BosonicOperator
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.results import (ElectronicStructureResult, VibronicStructureResult,
@@ -225,14 +225,12 @@ class QEOM(ExcitedStatesSolver):
                     value = np.asarray(value)
                     if np.all(value == targeted_sector):
                         available_hopping_ops[key] = hopping_operators[key]
-                # untapered_qubit_op is a WeightedPauliOperator and should not be exposed.
                 _build_one_sector(available_hopping_ops,
                                   self._gsc.transformation.untapered_qubit_op,  # type: ignore
                                   z2_symmetries,
                                   self._gsc.transformation.commutation_rule)
 
         else:
-            # untapered_qubit_op is a WeightedPauliOperator and should not be exposed.
             _build_one_sector(hopping_operators,
                               self._gsc.transformation.untapered_qubit_op,  # type: ignore
                               z2_symmetries,
@@ -241,10 +239,10 @@ class QEOM(ExcitedStatesSolver):
         return all_matrix_operators
 
     @staticmethod
-    def _build_commutator_routine(params: List, operator: WeightedPauliOperator,
+    def _build_commutator_routine(params: List, operator: PauliSumOp,
                                   z2_symmetries: Z2Symmetries, sign: int
-                                  ) -> Tuple[int, int, WeightedPauliOperator, WeightedPauliOperator,
-                                             WeightedPauliOperator, WeightedPauliOperator]:
+                                  ) -> Tuple[int, int, PauliSumOp, PauliSumOp,
+                                             PauliSumOp, PauliSumOp]:
         """Numerically computes the commutator / double commutator between operators.
 
         Args:
@@ -274,8 +272,8 @@ class QEOM(ExcitedStatesSolver):
                 if right_op_1 is not None:
                     q_mat_op = commutator(left_op, operator, right_op_1, sign=sign)
                     w_mat_op = commutator(left_op, right_op_1, sign=sign)
-                    q_mat_op = None if q_mat_op.is_empty() else q_mat_op
-                    w_mat_op = None if w_mat_op.is_empty() else w_mat_op
+                    q_mat_op = None if q_mat_op.is_zero() else q_mat_op
+                    w_mat_op = None if w_mat_op.is_zero() else w_mat_op
                 else:
                     q_mat_op = None
                     w_mat_op = None
@@ -283,20 +281,20 @@ class QEOM(ExcitedStatesSolver):
                 if right_op_2 is not None:
                     m_mat_op = commutator(left_op, operator, right_op_2, sign=sign)
                     v_mat_op = commutator(left_op, right_op_2, sign=sign)
-                    m_mat_op = None if m_mat_op.is_empty() else m_mat_op
-                    v_mat_op = None if v_mat_op.is_empty() else v_mat_op
+                    m_mat_op = None if m_mat_op.is_zero() else m_mat_op
+                    v_mat_op = None if v_mat_op.is_zero() else v_mat_op
                 else:
                     m_mat_op = None
                     v_mat_op = None
 
                 if not z2_symmetries.is_empty():
-                    if q_mat_op is not None and not q_mat_op.is_empty():
+                    if q_mat_op is not None and not q_mat_op.is_zero():
                         q_mat_op = z2_symmetries.taper(q_mat_op)
-                    if w_mat_op is not None and not w_mat_op.is_empty():
+                    if w_mat_op is not None and not w_mat_op.is_zero():
                         w_mat_op = z2_symmetries.taper(w_mat_op)
-                    if m_mat_op is not None and not m_mat_op.is_empty():
+                    if m_mat_op is not None and not m_mat_op.is_zero():
                         m_mat_op = z2_symmetries.taper(m_mat_op)
-                    if v_mat_op is not None and not v_mat_op.is_empty():
+                    if v_mat_op is not None and not v_mat_op.is_zero():
                         v_mat_op = z2_symmetries.taper(v_mat_op)
 
         return m_u, n_u, q_mat_op, w_mat_op, m_mat_op, v_mat_op

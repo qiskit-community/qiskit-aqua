@@ -20,8 +20,13 @@ from qiskit import QuantumCircuit
 from qiskit.circuit import Instruction
 from qiskit.quantum_info import Statevector
 from qiskit.result import Result
-from qiskit.aqua.algorithms import MinimumEigensolver
-from qiskit.aqua.operators import OperatorBase, WeightedPauliOperator, StateFn, CircuitSampler
+from qiskit.algorithms import MinimumEigensolver
+from qiskit.opflow import (
+    CircuitSampler,
+    OperatorBase,
+    StateFn,
+    WeightedPauliOperator,
+)
 from ...fermionic_operator import FermionicOperator
 from ...bosonic_operator import BosonicOperator
 from ...drivers.base_driver import BaseDriver
@@ -145,11 +150,12 @@ class GroundStateEigensolver(GroundStateSolver):
         return results
 
     def _eval_op(self, state, op, quantum_instance):
+        # TODO: remove 3 months after 0.17.0.
         if isinstance(op, WeightedPauliOperator):
             op = op.to_opflow()
 
         # if the operator is empty we simply return 0
-        if op == 0:
+        if op.is_zero():
             # Note, that for some reason the individual results need to be wrapped in lists.
             # See also: VQE._eval_aux_ops()
             return [0.j]

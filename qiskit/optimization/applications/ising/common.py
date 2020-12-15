@@ -16,8 +16,8 @@ from collections import OrderedDict
 
 import numpy as np
 
-from qiskit.aqua import aqua_globals
-from qiskit.aqua.operators import StateFn
+from qiskit.utils import aqua_globals
+from qiskit.opflow import StateFn
 
 
 def random_graph(n, weight_range=10, edge_prob=0.3, negative_weight=True,

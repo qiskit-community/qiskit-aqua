@@ -17,9 +17,9 @@ import logging
 from typing import Optional, List, Tuple, Union
 import numpy as np
 
-from qiskit.aqua.utils.validation import validate_min
-from qiskit.aqua.operators import WeightedPauliOperator
-from qiskit.aqua.algorithms import VQE
+from qiskit.utils.validation import validate_min
+from qiskit.opflow import PauliSumOp
+from qiskit.algorithms import VQE
 from qiskit.aqua import AquaError
 from ...results.electronic_structure_result import ElectronicStructureResult
 from ...results.vibronic_structure_result import VibronicStructureResult
@@ -67,10 +67,10 @@ class AdaptVQE(GroundStateEigensolver):
         return True
 
     def _compute_gradients(self,
-                           excitation_pool: List[WeightedPauliOperator],
+                           excitation_pool: List[PauliSumOp],
                            theta: List[float],
                            vqe: VQE,
-                           ) -> List[Tuple[float, WeightedPauliOperator]]:
+                           ) -> List[Tuple[float, PauliSumOp]]:
         """
         Computes the gradients for all available excitation operators.
 
@@ -170,7 +170,7 @@ class AdaptVQE(GroundStateEigensolver):
         max_iterations_exceeded = False
         prev_op_indices: List[int] = []
         theta: List[float] = []
-        max_grad: Tuple[float, Optional[WeightedPauliOperator]] = (0., None)
+        max_grad: Tuple[float, Optional[PauliSumOp]] = (0., None)
         iteration = 0
         while self._max_iterations is None or iteration < self._max_iterations:
             iteration += 1

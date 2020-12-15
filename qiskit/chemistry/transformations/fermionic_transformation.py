@@ -23,9 +23,18 @@ from enum import Enum
 import numpy as np
 
 from qiskit.tools import parallel_map
-from qiskit.aqua import AquaError, aqua_globals
-from qiskit.aqua.operators import Z2Symmetries, WeightedPauliOperator, OperatorBase
-from qiskit.aqua.algorithms import EigensolverResult, MinimumEigensolverResult
+from qiskit.utils import aqua_globals
+from qiskit.aqua import AquaError
+from qiskit.opflow import (
+    OperatorBase,
+    PauliOp,
+    PauliSumOp,
+    Z2Symmetries,
+    Z2Taper,
+    anti_commutator,
+    commutator,
+)
+from qiskit.algorithms import EigensolverResult, MinimumEigensolverResult
 from qiskit.chemistry import QiskitChemistryError, QMolecule
 from qiskit.chemistry.fermionic_operator import FermionicOperator
 from qiskit.chemistry.drivers import BaseDriver
@@ -150,16 +159,11 @@ class FermionicTransformation(Transformation):
         q_molecule = driver.run()
         ops, aux_ops = self._do_transform(q_molecule, aux_operators)
 
-        # the internal method may still return legacy operators which is why we make sure to convert
-        # all of the operator to the operator flow
-        ops = ops.to_opflow() if isinstance(ops, WeightedPauliOperator) else ops
-        aux_ops = [a.to_opflow() if isinstance(a, WeightedPauliOperator) else a for a in aux_ops]
-
         return ops, aux_ops
 
     def _do_transform(self, qmolecule: QMolecule,
                       aux_operators: Optional[List[FermionicOperator]] = None
-                      ) -> Tuple[WeightedPauliOperator, List[WeightedPauliOperator]]:
+                      ) -> Tuple[PauliSumOp, List[PauliSumOp]]:
         """
         Args:
             qmolecule: qmolecule
@@ -272,7 +276,7 @@ class FermionicTransformation(Transformation):
             )
         qubit_op.name = 'Fermionic Operator'
 
-        logger.debug('  num paulis: %s, num qubits: %s', len(qubit_op.paulis), qubit_op.num_qubits)
+        logger.debug('  num terms: %s, num qubits: %s', len(qubit_op), qubit_op.num_qubits)
 
         aux_ops = []  # list of the aux operators
 
@@ -291,7 +295,7 @@ class FermionicTransformation(Transformation):
             aux_qop.name = name
 
             aux_ops.append(aux_qop)
-            logger.debug('  num paulis: %s', aux_qop.paulis)
+            logger.debug('  num terms: %s', len(aux_qop))
 
         # the first three operators are hardcoded to number of particles, angular momentum
         # and magnetization in this order
@@ -307,7 +311,7 @@ class FermionicTransformation(Transformation):
             self._has_dipole_moments = True
 
             def _dipole_op(dipole_integrals: np.ndarray, axis: str) \
-                    -> Tuple[WeightedPauliOperator, float, float]:
+                    -> Tuple[PauliSumOp, float, float]:
                 """
                 Dipole operators
 
@@ -335,7 +339,7 @@ class FermionicTransformation(Transformation):
                                                                   new_nel,
                                                                   self._two_qubit_reduction)
                 qubit_op_.name = 'Dipole ' + axis
-                logger.debug('  num paulis: %s', len(qubit_op_.paulis))
+                logger.debug('  num terms: %s', len(qubit_op_))
                 return qubit_op_, shift, ph_shift_
 
             op_dipole_x, self._x_dipole_shift, self._ph_x_dipole_shift = \
@@ -384,8 +388,8 @@ class FermionicTransformation(Transformation):
         return self._untapered_qubit_op
 
     def _process_z2symmetry_reduction(self,
-                                      qubit_op: WeightedPauliOperator,
-                                      aux_ops: List[WeightedPauliOperator]) -> Tuple:
+                                      qubit_op: PauliSumOp,
+                                      aux_ops: List[PauliSumOp]) -> Tuple:
         """
         Implement z2 symmetries in the qubit operator
 
@@ -413,7 +417,7 @@ class FermionicTransformation(Transformation):
             logger.debug('Checking operators commute with symmetry:')
             symmetry_ops = []
             for symmetry in z2_symmetries.symmetries:
-                symmetry_ops.append(WeightedPauliOperator(paulis=[[1.0, symmetry]]))
+                symmetry_ops.append(PauliOp(symmetry))
             commutes = FermionicTransformation._check_commutes(symmetry_ops, qubit_op)
             if not commutes:
                 raise QiskitChemistryError('Z2 symmetry failure main operator must commute '
@@ -447,19 +451,19 @@ class FermionicTransformation(Transformation):
 
             logger.debug('Apply symmetry with tapering values %s', z2_symmetries.tapering_values)
             chop_to = 0.00000001  # Use same threshold as qubit mapping to chop tapered operator
-            z2_qubit_op = z2_symmetries.taper(qubit_op).chop(chop_to)
+            z2_qubit_op = z2_symmetries.taper(qubit_op).reduce(atol=chop_to)
             z2_aux_ops = []
             for aux_op in aux_ops:
                 if aux_op is None:
                     z2_aux_ops += [None]
                 else:
-                    z2_aux_ops += [z2_symmetries.taper(aux_op).chop(chop_to)]
+                    z2_aux_ops += [z2_symmetries.taper(aux_op).reduce(atol=chop_to)]
 
         return z2_qubit_op, z2_aux_ops, z2_symmetries
 
     @staticmethod
-    def _check_commutes(cliffords: List[WeightedPauliOperator],
-                        operator: WeightedPauliOperator) -> bool:
+    def _check_commutes(cliffords: List[PauliSumOp],
+                        operator: PauliSumOp) -> bool:
         """
         Check commutations
 
@@ -472,7 +476,7 @@ class FermionicTransformation(Transformation):
         """
         commutes = []
         for clifford in cliffords:
-            commutes.append(operator.commute_with(clifford))
+            commutes.append(commutator(operator, clifford).is_zero())
         does_commute = np.all(commutes)
         logger.debug('  \'%s\' commutes: %s, %s', operator.name, does_commute, commutes)
         return does_commute
@@ -631,7 +635,7 @@ class FermionicTransformation(Transformation):
     def _map_fermionic_operator_to_qubit(fer_op: FermionicOperator,
                                          qubit_mapping: str,
                                          num_particles: List[int],
-                                         two_qubit_reduction: bool) -> WeightedPauliOperator:
+                                         two_qubit_reduction: bool) -> PauliSumOp:
         """
 
         Args:
@@ -646,7 +650,7 @@ class FermionicTransformation(Transformation):
 
         qubit_op = fer_op.mapping(map_type=qubit_mapping, threshold=0.00000001)
         if qubit_mapping == 'parity' and two_qubit_reduction:
-            qubit_op = Z2Symmetries.two_qubit_reduction(qubit_op, num_particles)
+            qubit_op = Z2Taper(num_particles).convert(qubit_op)
         return qubit_op
 
     @staticmethod
@@ -664,14 +668,14 @@ class FermionicTransformation(Transformation):
         fer_op = FermionicOperator(h_1, h_2)
         qubit_op = fer_op.mapping(qubit_mapping)
         if qubit_mapping == 'parity' and two_qubit_reduction:
-            qubit_op = Z2Symmetries.two_qubit_reduction(qubit_op, num_particles)
+            qubit_op = Z2Taper(num_particles).convert(qubit_op)
 
         commutativities = []
         if not z2_symmetries.is_empty():
             for symmetry in z2_symmetries.symmetries:
-                symmetry_op = WeightedPauliOperator(paulis=[[1.0, symmetry]])
-                commuting = qubit_op.commute_with(symmetry_op)
-                anticommuting = qubit_op.anticommute_with(symmetry_op)
+                symmetry_op = PauliOp(symmetry)
+                commuting = commutator(qubit_op, symmetry_op).is_zero()
+                anticommuting = anti_commutator(qubit_op, symmetry_op).is_zero()
 
                 if commuting != anticommuting:  # only one of them is True
                     if commuting:
@@ -685,7 +689,7 @@ class FermionicTransformation(Transformation):
         return qubit_op, commutativities
 
     def build_hopping_operators(self, excitations: Union[str, List[List[int]]] = 'sd'
-                                ) -> Tuple[Dict[str, WeightedPauliOperator],
+                                ) -> Tuple[Dict[str, PauliSumOp],
                                            Dict[str, List[bool]],
                                            Dict[str, List[Any]]]:
         """Builds the product of raising and lowering operators (basic excitation operators)
@@ -716,7 +720,7 @@ class FermionicTransformation(Transformation):
         # mus, nus = np.triu_indices(size)
 
         # build all hopping operators
-        hopping_operators: Dict[str, WeightedPauliOperator] = {}
+        hopping_operators: Dict[str, PauliSumOp] = {}
         type_of_commutativities: Dict[str, List[bool]] = {}
         excitation_indices = {}
         to_be_executed_list = []

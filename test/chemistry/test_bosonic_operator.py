@@ -17,7 +17,7 @@ from test.chemistry import QiskitChemistryTestCase
 
 import numpy as np
 
-from qiskit.aqua.algorithms import NumPyMinimumEigensolver
+from qiskit.algorithms import NumPyMinimumEigensolver
 from qiskit.chemistry import BosonicOperator
 
 

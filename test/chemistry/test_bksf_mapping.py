@@ -16,7 +16,7 @@ import unittest
 from test.chemistry import QiskitChemistryTestCase
 import numpy as np
 from qiskit.quantum_info import Pauli
-from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.opflow import PauliSumOp
 from qiskit.chemistry.bksf import edge_operator_aij, edge_operator_bi
 
 
@@ -32,19 +32,15 @@ class TestBKSFMapping(QiskitChemistryTestCase):
         qterm_b2 = edge_operator_bi(edge_list, 2)
         qterm_b3 = edge_operator_bi(edge_list, 3)
 
-        ref_qterm_b0 = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('IIIZZZ')]])
-        ref_qterm_b1 = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('IZZIIZ')]])
-        ref_qterm_b2 = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('ZIZIZI')]])
-        ref_qterm_b3 = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('ZZIZII')]])
+        ref_qterm_b0 = PauliSumOp.from_list([('IIIZZZ', 1)])
+        ref_qterm_b1 = PauliSumOp.from_list([('IZZIIZ', 1)])
+        ref_qterm_b2 = PauliSumOp.from_list([('ZIZIZI', 1)])
+        ref_qterm_b3 = PauliSumOp.from_list([('ZZIZII', 1)])
 
-        self.assertEqual(qterm_b0, ref_qterm_b0, "\n{} vs \n{}".format(
-            qterm_b0.print_details(), ref_qterm_b0.print_details()))
-        self.assertEqual(qterm_b1, ref_qterm_b1, "\n{} vs \n{}".format(
-            qterm_b1.print_details(), ref_qterm_b1.print_details()))
-        self.assertEqual(qterm_b2, ref_qterm_b2, "\n{} vs \n{}".format(
-            qterm_b2.print_details(), ref_qterm_b2.print_details()))
-        self.assertEqual(qterm_b3, ref_qterm_b3, "\n{} vs \n{}".format(
-            qterm_b3.print_details(), ref_qterm_b3.print_details()))
+        self.assertEqual(qterm_b0, ref_qterm_b0)
+        self.assertEqual(qterm_b1, ref_qterm_b1)
+        self.assertEqual(qterm_b2, ref_qterm_b2)
+        self.assertEqual(qterm_b3, ref_qterm_b3)
 
     def test_bksf_edge_op_aij(self):
         """Test bksf mapping, edge operator aij"""
@@ -57,25 +53,19 @@ class TestBKSFMapping(QiskitChemistryTestCase):
         qterm_a13 = edge_operator_aij(edge_list, 1, 3)
         qterm_a23 = edge_operator_aij(edge_list, 2, 3)
 
-        ref_qterm_a01 = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('IIIIIX')]])
-        ref_qterm_a02 = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('IIIIXZ')]])
-        ref_qterm_a03 = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('IIIXZZ')]])
-        ref_qterm_a12 = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('IIXIZZ')]])
-        ref_qterm_a13 = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('IXZZIZ')]])
-        ref_qterm_a23 = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('XZZZZI')]])
+        ref_qterm_a01 = PauliSumOp.from_list([('IIIIIX', 1)])
+        ref_qterm_a02 = PauliSumOp.from_list([('IIIIXZ', 1)])
+        ref_qterm_a03 = PauliSumOp.from_list([('IIIXZZ', 1)])
+        ref_qterm_a12 = PauliSumOp.from_list([('IIXIZZ', 1)])
+        ref_qterm_a13 = PauliSumOp.from_list([('IXZZIZ', 1)])
+        ref_qterm_a23 = PauliSumOp.from_list([('XZZZZI', 1)])
 
-        self.assertEqual(qterm_a01, ref_qterm_a01, "\n{} vs \n{}".format(
-            qterm_a01.print_details(), ref_qterm_a01.print_details()))
-        self.assertEqual(qterm_a02, ref_qterm_a02, "\n{} vs \n{}".format(
-            qterm_a02.print_details(), ref_qterm_a02.print_details()))
-        self.assertEqual(qterm_a03, ref_qterm_a03, "\n{} vs \n{}".format(
-            qterm_a03.print_details(), ref_qterm_a03.print_details()))
-        self.assertEqual(qterm_a12, ref_qterm_a12, "\n{} vs \n{}".format(
-            qterm_a12.print_details(), ref_qterm_a12.print_details()))
-        self.assertEqual(qterm_a13, ref_qterm_a13, "\n{} vs \n{}".format(
-            qterm_a13.print_details(), ref_qterm_a13.print_details()))
-        self.assertEqual(qterm_a23, ref_qterm_a23, "\n{} vs \n{}".format(
-            qterm_a23.print_details(), ref_qterm_a23.print_details()))
+        self.assertEqual(qterm_a01, ref_qterm_a01)
+        self.assertEqual(qterm_a02, ref_qterm_a02)
+        self.assertEqual(qterm_a03, ref_qterm_a03)
+        self.assertEqual(qterm_a12, ref_qterm_a12)
+        self.assertEqual(qterm_a13, ref_qterm_a13)
+        self.assertEqual(qterm_a23, ref_qterm_a23)
 
 
 if __name__ == '__main__':

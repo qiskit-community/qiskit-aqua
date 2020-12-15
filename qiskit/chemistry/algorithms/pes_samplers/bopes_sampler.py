@@ -17,7 +17,7 @@ from typing import Optional, List, Dict
 
 import numpy as np
 from qiskit.aqua import AquaError
-from qiskit.aqua.algorithms import VQAlgorithm
+from qiskit.algorithms import VQAlgorithm
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.algorithms.ground_state_solvers import GroundStateSolver
 from qiskit.chemistry.results.bopes_sampler_result import BOPESSamplerResult

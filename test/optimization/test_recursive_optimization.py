@@ -18,8 +18,8 @@ from os import path
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 from qiskit.optimization.algorithms.recursive_minimum_eigen_optimizer import IntermediateResult
 
-from qiskit.aqua import MissingOptionalLibraryError
-from qiskit.aqua.algorithms import NumPyMinimumEigensolver
+from qiskit.exceptions import MissingOptionalLibraryError
+from qiskit.algorithms import NumPyMinimumEigensolver
 
 from qiskit.optimization.algorithms import (MinimumEigenOptimizer, CplexOptimizer,
                                             RecursiveMinimumEigenOptimizer)

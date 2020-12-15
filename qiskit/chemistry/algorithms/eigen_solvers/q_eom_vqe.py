@@ -19,12 +19,12 @@ import numpy as np
 from qiskit.circuit import QuantumCircuit
 from qiskit.providers import BaseBackend
 from qiskit.providers import Backend
-from qiskit.aqua import QuantumInstance
-from qiskit.aqua.algorithms import VQE
-from qiskit.aqua.operators import LegacyBaseOperator, Z2Symmetries
+from qiskit.utils import QuantumInstance
+from qiskit.algorithms import VQE
+from qiskit.opflow import OperatorBase, LegacyBaseOperator, Z2Symmetries
 from qiskit.aqua.components.optimizers import Optimizer
 from qiskit.aqua.components.variational_forms import VariationalForm
-from qiskit.aqua.utils.validation import validate_min, validate_in_set
+from qiskit.utils.validation import validate_min, validate_in_set
 from .q_equation_of_motion import QEquationOfMotion
 
 logger = logging.getLogger(__name__)
@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 class QEomVQE(VQE):
     """ QEomVQE algorithm """
 
-    def __init__(self, operator: LegacyBaseOperator,
+    def __init__(self, operator: Union[LegacyBaseOperator, OperatorBase],
                  var_form: Union[QuantumCircuit, VariationalForm],
                  optimizer: Optimizer, num_orbitals: int,
                  num_particles: Union[List[int], int],
@@ -85,13 +85,17 @@ class QEomVQE(VQE):
         Raises:
             ValueError: invalid parameter
         """
+        # TODO: Remove 3 months after 0.17
+        if isinstance(operator, LegacyBaseOperator):
+            operator = operator.to_opflow()
+
         validate_min('num_orbitals', num_orbitals, 1)
         validate_in_set('qubit_mapping', qubit_mapping,
                         {'jordan_wigner', 'parity', 'bravyi_kitaev'})
         if isinstance(num_particles, list) and len(num_particles) != 2:
             raise ValueError('Num particles value {}. Number of values allowed is 2'.format(
                 num_particles))
-        super().__init__(operator.copy(), var_form, optimizer, initial_point=initial_point,
+        super().__init__(operator, var_form, optimizer, initial_point=initial_point,
                          max_evals_grouped=max_evals_grouped, aux_operators=aux_operators,
                          callback=callback,
                          quantum_instance=quantum_instance)

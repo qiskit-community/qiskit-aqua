@@ -19,8 +19,8 @@ from typing import Optional, Dict, Union, List, cast
 
 import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister
-from qiskit.aqua import QuantumInstance, aqua_globals
-from qiskit.aqua.algorithms.amplitude_amplifiers.grover import Grover
+from qiskit.utils import QuantumInstance, aqua_globals
+from qiskit.algorithms.amplitude_amplifiers.grover import Grover
 from qiskit.circuit.library import QuadraticForm
 from qiskit.providers import Backend, BaseBackend
 

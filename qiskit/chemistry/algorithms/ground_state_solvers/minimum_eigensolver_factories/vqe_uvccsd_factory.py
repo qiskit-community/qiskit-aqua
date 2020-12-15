@@ -15,10 +15,10 @@
 from typing import Optional, Union, Callable
 import numpy as np
 
-from qiskit.aqua import QuantumInstance
-from qiskit.aqua.algorithms import MinimumEigensolver, VQE
-from qiskit.aqua.operators import ExpectationBase
-from qiskit.aqua.operators.gradients import GradientBase
+from qiskit.utils import QuantumInstance
+from qiskit.algorithms import MinimumEigensolver, VQE
+from qiskit.opflow import ExpectationBase
+from qiskit.opflow.gradients import GradientBase
 from qiskit.aqua.components.optimizers import Optimizer
 from qiskit.chemistry.components.initial_states import VSCF
 from qiskit.chemistry.components.variational_forms import UVCC

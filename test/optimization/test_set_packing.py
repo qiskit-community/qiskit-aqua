@@ -20,9 +20,9 @@ import numpy as np
 from qiskit.circuit.library import TwoLocal
 from qiskit.optimization.applications.ising import set_packing
 from qiskit.optimization.applications.ising.common import sample_most_likely
-from qiskit.aqua import QuantumInstance, aqua_globals
-from qiskit.aqua.algorithms import NumPyMinimumEigensolver, VQE
-from qiskit.aqua.components.optimizers import SPSA
+from qiskit.utils import QuantumInstance, aqua_globals
+from qiskit.algorithms import NumPyMinimumEigensolver, VQE
+from qiskit.algorithms.optimizers import SPSA
 
 
 class TestSetPacking(QiskitOptimizationTestCase):

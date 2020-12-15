@@ -21,7 +21,7 @@ from qiskit import QuantumCircuit
 from qiskit.circuit import Instruction
 from qiskit.quantum_info import Statevector
 from qiskit.result import Result
-from qiskit.aqua.operators import OperatorBase, WeightedPauliOperator
+from qiskit.opflow import OperatorBase, WeightedPauliOperator
 from ...fermionic_operator import FermionicOperator
 from ...bosonic_operator import BosonicOperator
 from ...drivers.base_driver import BaseDriver

@@ -20,7 +20,7 @@ from qiskit import QuantumRegister, QuantumCircuit
 
 from qiskit.circuit import ParameterVector, Parameter
 
-from qiskit.aqua.components.variational_forms import VariationalForm
+from qiskit.algorithms.variational_forms import VariationalForm
 from qiskit.aqua.components.initial_states import InitialState
 
 

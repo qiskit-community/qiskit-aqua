@@ -18,9 +18,9 @@ from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 
 import numpy as np
 from docplex.mp.model import Model
-from qiskit.aqua import MissingOptionalLibraryError
-from qiskit.aqua.algorithms import NumPyMinimumEigensolver
-from qiskit.aqua.operators import Z, I
+from qiskit.exceptions import MissingOptionalLibraryError
+from qiskit.algorithms import NumPyMinimumEigensolver
+from qiskit.opflow import Z, I
 from qiskit.optimization import QuadraticProgram, QiskitOptimizationError
 from qiskit.optimization.algorithms import MinimumEigenOptimizer, CplexOptimizer, ADMMOptimizer
 from qiskit.optimization.algorithms.admm_optimizer import ADMMParameters

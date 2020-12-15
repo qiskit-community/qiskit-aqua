@@ -14,8 +14,8 @@
 from typing import Optional, Any, Union, Tuple, List, cast
 
 import numpy as np
-from qiskit.aqua.algorithms import MinimumEigensolver, MinimumEigensolverResult
-from qiskit.aqua.operators import StateFn, DictStateFn
+from qiskit.algorithms import MinimumEigensolver, MinimumEigensolverResult
+from qiskit.opflow import StateFn, DictStateFn
 
 from .optimization_algorithm import (OptimizationResultStatus, OptimizationAlgorithm,
                                      OptimizationResult)

@@ -20,7 +20,7 @@ import logging
 import numpy as np
 from qiskit.quantum_info import Pauli
 
-from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.opflow import PauliSumOp
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,7 @@ def get_operator(weight_matrix):
         weight_matrix (numpy.ndarray) : adjacency matrix.
 
     Returns:
-        tuple(WeightedPauliOperator, float): operator for the Hamiltonian and a
+        tuple(PauliSumOp, float): operator for the Hamiltonian and a
         constant shift for the obj function.
 
     Goals:
@@ -60,15 +60,15 @@ def get_operator(weight_matrix):
                 v_p = np.zeros(n)
                 v_p[i] = 1
                 v_p[j] = 1
-                pauli_list.append([a__ * 0.25, Pauli(v_p, w_p)])
+                pauli_list.append((Pauli((v_p, w_p)).to_label(), a__ * 0.25))
 
                 v_p2 = np.zeros(n)
                 v_p2[i] = 1
-                pauli_list.append([-a__ * 0.25, Pauli(v_p2, w_p)])
+                pauli_list.append((Pauli((v_p2, w_p)).to_label(), -a__ * 0.25))
 
                 v_p3 = np.zeros(n)
                 v_p3[j] = 1
-                pauli_list.append([-a__ * 0.25, Pauli(v_p3, w_p)])
+                pauli_list.append((Pauli((v_p3, w_p)).to_label(), -a__ * 0.25))
 
                 shift += a__ * 0.25
 
@@ -76,9 +76,9 @@ def get_operator(weight_matrix):
         w_p = np.zeros(n)
         v_p = np.zeros(n)
         v_p[i] = 1
-        pauli_list.append([0.5, Pauli(v_p, w_p)])
+        pauli_list.append((Pauli((v_p, w_p)).to_label(), 0.5))
         shift += 0.5
-    return WeightedPauliOperator(paulis=pauli_list), shift
+    return PauliSumOp.from_list(pauli_list), shift
 
 
 def check_full_edge_coverage(x, w):

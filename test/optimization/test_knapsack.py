@@ -18,7 +18,7 @@ import numpy as np
 
 from qiskit.optimization.applications.ising import knapsack
 from qiskit.optimization.applications.ising.common import sample_most_likely
-from qiskit.aqua.algorithms import NumPyMinimumEigensolver
+from qiskit.algorithms import NumPyMinimumEigensolver
 
 
 class TestTSP(QiskitOptimizationTestCase):

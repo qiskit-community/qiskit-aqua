@@ -18,12 +18,12 @@ from test.aqua import QiskitAquaTestCase
 import numpy as np
 from ddt import ddt, idata, unpack
 from qiskit import BasicAer, QuantumCircuit
-from qiskit.aqua import QuantumInstance
+from qiskit.utils import QuantumInstance
 from qiskit.aqua.utils import decimal_to_binary
 from qiskit.aqua.algorithms import IQPE
-from qiskit.aqua.algorithms import NumPyMinimumEigensolver
-from qiskit.aqua.operators import WeightedPauliOperator, MatrixOperator
-from qiskit.aqua.operators.legacy import op_converter
+from qiskit.algorithms import NumPyMinimumEigensolver
+from qiskit.opflow import WeightedPauliOperator, MatrixOperator
+from qiskit.opflow import op_converter
 from qiskit.aqua.components.initial_states import Custom
 
 # pylint: disable=invalid-name

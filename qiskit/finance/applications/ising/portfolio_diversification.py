@@ -15,13 +15,13 @@
 import numpy as np
 from qiskit.quantum_info import Pauli
 
-from qiskit.aqua.algorithms import MinimumEigensolverResult
-from qiskit.aqua.operators import WeightedPauliOperator, StateFn
+from qiskit.algorithms import MinimumEigensolverResult
+from qiskit.opflow import PauliSumOp, StateFn
 
 # pylint: disable=invalid-name
 
 
-def get_operator(rho: np.ndarray, n: int, q: int) -> WeightedPauliOperator:
+def get_operator(rho: np.ndarray, n: int, q: int) -> PauliSumOp:
     """Converts an instance of portfolio optimization into a list of Paulis.
 
     Args:
@@ -111,7 +111,7 @@ def get_operator(rho: np.ndarray, n: int, q: int) -> WeightedPauliOperator:
             wp = np.zeros(N)
             vp = np.zeros(N)
             vp[i] = 1
-            pauli_list.append((gz[i], Pauli(vp, wp)))
+            pauli_list.append((Pauli(vp, wp).to_label(), gz[i]))
     for i in range(N):
         for j in range(i):
             if Qz[i, j] != 0:
@@ -119,10 +119,10 @@ def get_operator(rho: np.ndarray, n: int, q: int) -> WeightedPauliOperator:
                 vp = np.zeros(N)
                 vp[i] = 1
                 vp[j] = 1
-                pauli_list.append((2 * Qz[i, j], Pauli(vp, wp)))
+                pauli_list.append((Pauli(vp, wp).to_label(), 2 * Qz[i, j]))
 
-    pauli_list.append((cz, Pauli(np.zeros(N), np.zeros(N))))
-    return WeightedPauliOperator(paulis=pauli_list)
+    pauli_list.append((Pauli(np.zeros(N), np.zeros(N)).to_label(), cz))
+    return PauliSumOp.from_list(pauli_list)
 
 
 def get_portfoliodiversification_solution(rho: np.ndarray,

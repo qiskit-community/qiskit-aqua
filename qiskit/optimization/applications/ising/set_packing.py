@@ -17,7 +17,7 @@ import logging
 import numpy as np
 from qiskit.quantum_info import Pauli
 
-from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.opflow import PauliSumOp
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +43,7 @@ def get_operator(list_of_subsets):
         list_of_subsets (list): list of lists (i.e., subsets)
 
     Returns:
-        tuple(WeightedPauliOperator, float): operator for the Hamiltonian,
+        tuple(PauliSumOp, float): operator for the Hamiltonian,
                                         a constant shift for the obj function.
     """
     # pylint: disable=invalid-name
@@ -58,15 +58,15 @@ def get_operator(list_of_subsets):
                 vp = np.zeros(n)
                 vp[i] = 1
                 vp[j] = 1
-                pauli_list.append([A * 0.25, Pauli(vp, wp)])
+                pauli_list.append((Pauli((vp, wp)).to_label(), A * 0.25))
 
                 vp2 = np.zeros(n)
                 vp2[i] = 1
-                pauli_list.append([A * 0.25, Pauli(vp2, wp)])
+                pauli_list.append((Pauli((vp2, wp)).to_label(), A * 0.25))
 
                 vp3 = np.zeros(n)
                 vp3[j] = 1
-                pauli_list.append([A * 0.25, Pauli(vp3, wp)])
+                pauli_list.append((Pauli((vp3, wp)).to_label(), A * 0.25))
 
                 shift += A * 0.25
 
@@ -74,10 +74,10 @@ def get_operator(list_of_subsets):
         wp = np.zeros(n)
         vp = np.zeros(n)
         vp[i] = 1
-        pauli_list.append([-0.5, Pauli(vp, wp)])
+        pauli_list.append((Pauli((vp, wp)).to_label(), -0.5))
         shift += -0.5
 
-    return WeightedPauliOperator(paulis=pauli_list), shift
+    return PauliSumOp.from_list(pauli_list), shift
 
 
 def get_solution(x):

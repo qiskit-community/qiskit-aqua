@@ -18,7 +18,8 @@ from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 from qiskit.quantum_info import Pauli
 from qiskit.aqua import aqua_globals
-from qiskit.aqua.algorithms import NumPyMinimumEigensolver
+from qiskit.opflow import PauliOp
+from qiskit.algorithms import NumPyMinimumEigensolver
 from qiskit.optimization.applications.ising.vehicle_routing import get_operator
 
 
@@ -42,20 +43,12 @@ class TestVehicleRouting(QiskitOptimizationTestCase):
     def test_simple1(self):
         """ simple1 test """
         # Compares the output in terms of Paulis.
-        paulis = [(79.6, Pauli(z=[True, False], x=[False, False])),
-                  (79.6, Pauli(z=[False, True], x=[False, False])),
-                  (160.8, Pauli(z=[False, False], x=[False, False]))]
-        # Could also consider op = Operator(paulis) and then __eq__, but
-        # that would not use assert_approx_equal
-        for pauli_a, pauli_b in zip(self.qubit_op._paulis, paulis):
-            cost_a, binary_a = pauli_a
-            cost_b, binary_b = pauli_b
-            # Note that the construction is a bit iffy, i.e.,
-            # can be a small bit off even when the random seed is fixed,
-            # even when the ordering is the same. Obviously, when the
-            # ordering changes, the test will become invalid.
-            np.testing.assert_approx_equal(np.real(cost_a), cost_b, 2)
-            self.assertEqual(binary_a, binary_b)
+        paulis = (
+            PauliOp(Pauli(z=[True, False], x=[False, False]), 79.6)
+            + PauliOp(Pauli(z=[False, True], x=[False, False]), 79.6)
+            + PauliOp(Pauli(z=[False, False], x=[False, False]), 160.8)
+        )
+        self.assertEqual(self.qubit_op, paulis)
 
     def test_simple2(self):
         """ simple2 test """

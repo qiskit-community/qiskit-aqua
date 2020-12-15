@@ -19,13 +19,14 @@ import numpy as np
 from qiskit.circuit import QuantumRegister, QuantumCircuit, Qubit
 from qiskit import execute as q_execute
 
-from qiskit.aqua import AquaError, aqua_globals
+from qiskit.aqua import AquaError
+from qiskit.utils import aqua_globals
 from qiskit.aqua.components.initial_states import InitialState
 from qiskit.aqua.circuits import StateVectorCircuit
-from qiskit.aqua.utils.arithmetic import normalize_vector
+from qiskit.utils.arithmetic import normalize_vector
 from qiskit.aqua.utils.circuit_utils import convert_to_basis_gates
 from qiskit.aqua.utils.validation import validate_in_set, validate_min
-from qiskit.aqua.operators import StateFn
+from qiskit.opflow import StateFn
 
 logger = logging.getLogger(__name__)
 

@@ -32,9 +32,9 @@ from docplex.mp.model_reader import ModelReader
 from docplex.mp.quad import QuadExpr
 from docplex.mp.vartype import ContinuousVarType, BinaryVarType, IntegerVarType
 
-from qiskit.aqua import MissingOptionalLibraryError
-from qiskit.aqua.operators import (I, ListOp, OperatorBase, PauliOp, SummedOp,
-                                   PauliSumOp, WeightedPauliOperator)
+from qiskit.exceptions import MissingOptionalLibraryError
+from qiskit.opflow import (I, ListOp, OperatorBase, PauliOp, SummedOp,
+                           PauliSumOp, WeightedPauliOperator)
 from qiskit.quantum_info import Pauli
 from .constraint import Constraint, ConstraintSense
 from .linear_constraint import LinearConstraint
@@ -1277,8 +1277,10 @@ class QuadraticProgram:
             QiskitOptimizationError: If there are more than 2 Pauli Zs in any Pauli term
             NotImplementedError: If the input operator is a ListOp
         """
+        # TODO: Remove 3 months after 0.17
         if isinstance(qubit_op, WeightedPauliOperator):
             qubit_op = qubit_op.to_opflow()
+
         if isinstance(qubit_op, PauliSumOp):
             qubit_op = qubit_op.to_pauli_op()
 

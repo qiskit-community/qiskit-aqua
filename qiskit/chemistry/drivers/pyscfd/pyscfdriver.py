@@ -16,7 +16,7 @@ from typing import Optional, Union, List
 import importlib
 from enum import Enum
 import logging
-from qiskit.aqua.utils.validation import validate_min
+from qiskit.utils.validation import validate_min
 from ..units_type import UnitsType
 from ..fermionic_driver import FermionicDriver, HFMethodType
 from ...qiskit_chemistry_error import QiskitChemistryError

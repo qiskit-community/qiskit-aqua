@@ -19,10 +19,9 @@ from ddt import ddt, data
 import numpy as np
 
 from qiskit import BasicAer
-from qiskit.aqua import MissingOptionalLibraryError
-from qiskit.aqua.algorithms import NumPyMinimumEigensolver
-from qiskit.aqua.algorithms import QAOA
-from qiskit.aqua.components.optimizers import COBYLA
+from qiskit.exceptions import MissingOptionalLibraryError
+from qiskit.algorithms import NumPyMinimumEigensolver, QAOA
+from qiskit.algorithms.optimizers import COBYLA
 from qiskit.optimization.algorithms import MinimumEigenOptimizer, CplexOptimizer
 from qiskit.optimization.problems import QuadraticProgram
 from qiskit.optimization.converters import (IntegerToBinary, InequalityToEquality,

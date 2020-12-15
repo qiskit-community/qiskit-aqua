@@ -19,8 +19,8 @@ import logging
 from enum import Enum
 
 import numpy as np
-from qiskit.aqua.algorithms import MinimumEigensolverResult, EigensolverResult
-from qiskit.aqua.operators import Z2Symmetries, WeightedPauliOperator
+from qiskit.algorithms import MinimumEigensolverResult, EigensolverResult
+from qiskit.opflow import Z2Symmetries, Z2Taper, PauliOp, PauliSumOp, commutator
 from qiskit.chemistry import QMolecule, QiskitChemistryError
 from qiskit.chemistry.fermionic_operator import FermionicOperator
 from .chemistry_operator import (ChemistryOperator,
@@ -116,8 +116,7 @@ class Hamiltonian(ChemistryOperator):
         self._ph_y_dipole_shift = 0.0
         self._ph_z_dipole_shift = 0.0
 
-    def run(self, qmolecule: QMolecule) -> Tuple[WeightedPauliOperator,
-                                                 List[WeightedPauliOperator]]:
+    def run(self, qmolecule: QMolecule) -> Tuple[PauliSumOp, List[PauliSumOp]]:
         """ run method"""
         logger.debug('Processing started...')
         # Save these values for later combination with the quantum computation result
@@ -203,7 +202,7 @@ class Hamiltonian(ChemistryOperator):
                                                                 self._two_qubit_reduction)
         qubit_op.name = 'Electronic Hamiltonian'
 
-        logger.debug('  num paulis: %s, num qubits: %s', len(qubit_op.paulis), qubit_op.num_qubits)
+        logger.debug('  num paulis: %s, num qubits: %s', len(qubit_op), qubit_op.num_qubits)
 
         aux_ops = []
 
@@ -214,7 +213,7 @@ class Hamiltonian(ChemistryOperator):
                                                                    self._two_qubit_reduction)
             aux_qop.name = name
             aux_ops.append(aux_qop)
-            logger.debug('  num paulis: %s', aux_qop.paulis)
+            logger.debug('  num paulis: %s', aux_qop)
 
         logger.debug('Creating aux op for Number of Particles')
         _add_aux_op(fer_op.total_particle_number(), 'Number of Particles')
@@ -242,7 +241,7 @@ class Hamiltonian(ChemistryOperator):
                                                                   new_nel,
                                                                   self._two_qubit_reduction)
                 qubit_op_.name = 'Dipole ' + axis
-                logger.debug('  num paulis: %s', len(qubit_op_.paulis))
+                logger.debug('  num paulis: %s', len(qubit_op_))
                 return qubit_op_, shift, ph_shift_
 
             op_dipole_x, self._x_dipole_shift, self._ph_x_dipole_shift = \
@@ -294,7 +293,7 @@ class Hamiltonian(ChemistryOperator):
             logger.debug('Checking operators commute with symmetry:')
             symmetry_ops = []
             for symmetry in z2_symmetries.symmetries:
-                symmetry_ops.append(WeightedPauliOperator(paulis=[[1.0, symmetry]]))
+                symmetry_ops.append(PauliOp(symmetry))
             commutes = Hamiltonian._check_commutes(symmetry_ops, qubit_op)
             if not commutes:
                 raise QiskitChemistryError('Z2 symmetry failure main operator must commute '
@@ -328,11 +327,12 @@ class Hamiltonian(ChemistryOperator):
 
             logger.debug('Apply symmetry with tapering values %s', z2_symmetries.tapering_values)
             chop_to = 0.00000001  # Use same threshold as qubit mapping to chop tapered operator
-            z2_qubit_op = z2_symmetries.taper(qubit_op).chop(chop_to)
+            z2_qubit_op = z2_symmetries.taper(qubit_op).reduce(atol=chop_to)
             z2_aux_ops = []
             for aux_op in aux_ops:
-                z2_aux_ops.append(z2_symmetries.taper(aux_op).chop(chop_to) if aux_op is not None
-                                  else None)
+                z2_aux_ops.append(
+                    z2_symmetries.taper(aux_op).reduce(atol=chop_to) if aux_op is not None else None
+                )
 
         return z2_qubit_op, z2_aux_ops, z2_symmetries
 
@@ -340,7 +340,7 @@ class Hamiltonian(ChemistryOperator):
     def _check_commutes(cliffords, operator):
         commutes = []
         for clifford in cliffords:
-            commutes.append(operator.commute_with(clifford))
+            commutes.append(commutator(operator, clifford).is_zero())
         does_commute = np.all(commutes)
         logger.debug('  \'%s\' commutes: %s, %s', operator.name, does_commute, commutes)
         return does_commute
@@ -544,7 +544,7 @@ class Hamiltonian(ChemistryOperator):
     def _map_fermionic_operator_to_qubit(fer_op, qubit_mapping, num_particles, two_qubit_reduction):
         qubit_op = fer_op.mapping(map_type=qubit_mapping, threshold=0.00000001)
         if qubit_mapping == 'parity' and two_qubit_reduction:
-            qubit_op = Z2Symmetries.two_qubit_reduction(qubit_op, num_particles)
+            qubit_op = Z2Taper(num_particles).convert(qubit_op)
         return qubit_op
 
     @staticmethod

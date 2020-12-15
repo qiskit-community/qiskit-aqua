@@ -20,7 +20,7 @@ import logging
 import numpy as np
 from qiskit.quantum_info import Pauli
 
-from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.opflow import PauliSumOp
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +57,7 @@ def get_operator(weight_matrix, K):  # pylint: disable=invalid-name
         K (numpy.ndarray): K
 
     Returns:
-        tuple(WeightedPauliOperator, float):
+        tuple(PauliSumOp, float):
             The operator for the Hamiltonian and a constant shift for the obj function.
     """
     # pylint: disable=invalid-name
@@ -78,14 +78,14 @@ def get_operator(weight_matrix, K):  # pylint: disable=invalid-name
                 zp = np.zeros(num_nodes, dtype=np.bool)
                 zp[i] = True
                 zp[j] = True
-                pauli_list.append([A * 0.25, Pauli(zp, xp)])
+                pauli_list.append((Pauli((zp, xp)).to_label(), A * 0.25))
             else:
                 shift += A * 0.25
     for i in range(num_nodes):
         xp = np.zeros(num_nodes, dtype=np.bool)
         zp = np.zeros(num_nodes, dtype=np.bool)
         zp[i] = True
-        pauli_list.append([-A * Y, Pauli(zp, xp)])
+        pauli_list.append((Pauli((zp, xp)).to_label(), -A * Y))
 
     shift += 0.5 * K * (K - 1)
 
@@ -96,19 +96,19 @@ def get_operator(weight_matrix, K):  # pylint: disable=invalid-name
                 zp = np.zeros(num_nodes, dtype=np.bool)
                 zp[i] = True
                 zp[j] = True
-                pauli_list.append([-0.25, Pauli(zp, xp)])
+                pauli_list.append((Pauli((zp, xp)).to_label(), -0.25))
 
                 zp2 = np.zeros(num_nodes, dtype=np.bool)
                 zp2[i] = True
-                pauli_list.append([-0.25, Pauli(zp2, xp)])
+                pauli_list.append((Pauli((zp2, xp)).to_label(), -0.25))
 
                 zp3 = np.zeros(num_nodes, dtype=np.bool)
                 zp3[j] = True
-                pauli_list.append([-0.25, Pauli(zp3, xp)])
+                pauli_list.append((Pauli((zp3, xp)).to_label(), -0.25))
 
                 shift += -0.25
 
-    return WeightedPauliOperator(paulis=pauli_list), shift
+    return PauliSumOp.from_list(pauli_list), shift
 
 
 def satisfy_or_not(x, w, K):  # pylint: disable=invalid-name

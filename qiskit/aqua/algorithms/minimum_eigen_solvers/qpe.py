@@ -21,16 +21,16 @@ from qiskit.quantum_info import Pauli
 
 from qiskit.providers import BaseBackend
 from qiskit.providers import Backend
-from qiskit.aqua import QuantumInstance
-from qiskit.aqua.operators import op_converter, OperatorBase
+from qiskit.utils import QuantumInstance
+from qiskit.opflow import op_converter, OperatorBase
 from qiskit.aqua.utils import get_subsystem_density_matrix
-from qiskit.aqua.algorithms import QuantumAlgorithm
+from qiskit.algorithms import QuantumAlgorithm
 from qiskit.aqua.circuits import PhaseEstimationCircuit
-from qiskit.aqua.operators import WeightedPauliOperator
-from qiskit.aqua.operators import LegacyBaseOperator
+from qiskit.opflow import WeightedPauliOperator
+from qiskit.opflow import LegacyBaseOperator
 from qiskit.aqua.components.initial_states import InitialState
-from qiskit.aqua.utils.validation import validate_min, validate_in_set
-from .minimum_eigen_solver import MinimumEigensolver, MinimumEigensolverResult
+from qiskit.utils.validation import validate_min, validate_in_set
+from qiskit.algorithms import MinimumEigensolver, MinimumEigensolverResult
 
 logger = logging.getLogger(__name__)
 

@@ -19,9 +19,9 @@ from test.chemistry import QiskitChemistryTestCase
 from ddt import ddt, idata, unpack
 import qiskit
 from qiskit.circuit.library import TwoLocal
-from qiskit.aqua import QuantumInstance
-from qiskit.aqua.algorithms import VQE
-from qiskit.aqua.components.optimizers import COBYLA, SPSA
+from qiskit.utils import QuantumInstance
+from qiskit.algorithms import VQE
+from qiskit.algorithms.optimizers import COBYLA, SPSA
 from qiskit.chemistry.drivers import HDF5Driver
 from qiskit.chemistry.core import Hamiltonian, TransformationType, QubitMappingType
 

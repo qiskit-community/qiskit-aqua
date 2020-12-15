@@ -13,7 +13,8 @@
 
 import logging
 import sys
-from typing import Optional, List, Tuple, Union, cast
+from functools import reduce
+from typing import Optional, List, Union, cast
 
 import numpy as np
 
@@ -23,10 +24,10 @@ from qiskit.tools.events import TextProgressBar
 
 from qiskit.circuit import ParameterVector, Parameter
 
-from qiskit.aqua import aqua_globals
-from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.utils import aqua_globals
+from qiskit.opflow import PauliSumOp, PauliTrotterEvolution
 from qiskit.aqua.components.initial_states import InitialState
-from qiskit.aqua.components.variational_forms import VariationalForm
+from qiskit.algorithms.variational_forms import VariationalForm
 from qiskit.chemistry.bosonic_operator import BosonicOperator
 
 logger = logging.getLogger(__name__)
@@ -101,7 +102,7 @@ class UVCC(VariationalForm):
 
     @staticmethod
     def _build_hopping_operator(index: List[List[int]], basis: List[int], qubit_mapping: str) \
-            -> WeightedPauliOperator:
+            -> PauliSumOp:
         """
         Builds a hopping operator given the list of indices (index) that is a single, a double
         or a higher order excitation.
@@ -133,7 +134,7 @@ class UVCC(VariationalForm):
 
         dummpy_op = BosonicOperator(np.asarray(hml, dtype=object), basis)
         qubit_op = dummpy_op.mapping(qubit_mapping)
-        if len(qubit_op.paulis) == 0:
+        if qubit_op.is_zero():
             qubit_op = None
 
         return qubit_op
@@ -197,40 +198,18 @@ class UVCC(VariationalForm):
 
         num_excitations = len(self._hopping_ops)
 
-        results = parallel_map(UVCC._construct_circuit_for_one_excited_operator,
-                               [(self._hopping_ops[index % num_excitations], parameters[index])
-                                for index in range(self._reps * num_excitations)],
-                               task_args=(q, self._num_time_slices),
-                               num_processes=aqua_globals.num_processes)
-        for qc in results:
-            if self._shallow_circuit_concat:
-                circuit.data += qc.data
-            else:
-                circuit += qc
-
+        list_excitation_operators = [
+            (self._hopping_ops[index % num_excitations], parameters[index])
+            for index in range(self._reps * num_excitations)
+        ]
+        pauli_trotter = PauliTrotterEvolution(reps=self._num_time_slices)
+        ops = [pauli_trotter.convert((qubit_op.reduce() * -1j * param).exp_i())
+               for qubit_op, param in list_excitation_operators]
+        if self._shallow_circuit_concat:
+            circuit.data += reduce(lambda x, y: x @ y, reversed(ops)).to_circuit().data
+        else:
+            circuit += reduce(lambda x, y: x @ y, reversed(ops)).to_circuit()
         return circuit
-
-    @staticmethod
-    def _construct_circuit_for_one_excited_operator(
-            qubit_op_and_param: Tuple[WeightedPauliOperator, float],
-            qr: QuantumRegister, num_time_slices: int) -> QuantumCircuit:
-        """ Construct the circuit building block corresponding to one excitation operator
-
-        Args:
-            qubit_op_and_param: list containing the qubit operator and the parameter
-            qr: the quantum register to build the circuit on
-            num_time_slices: the number of time the building block should be added,
-                this should be set to 1
-
-        Returns:
-             The quantum circuit
-        """
-        qubit_op, param = qubit_op_and_param
-        qubit_op = qubit_op * -1j
-        qc = qubit_op.evolve(state_in=None, evo_time=param, num_time_slices=num_time_slices,
-                             quantum_registers=qr)
-
-        return qc
 
     @staticmethod
     def compute_excitation_lists(basis: List[int], degrees: List[int]) -> List[List[int]]:

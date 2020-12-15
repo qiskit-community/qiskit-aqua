@@ -21,12 +21,14 @@ import numpy as np
 
 from qiskit.quantum_info import Pauli
 
-from qiskit.aqua import aqua_globals
-from qiskit.aqua.algorithms import NumPyMinimumEigensolver
-from qiskit.finance.applications.ising.portfolio_diversification import \
-    (get_portfoliodiversification_solution,
-     get_operator,
-     get_portfoliodiversification_value)
+from qiskit.utils import aqua_globals
+from qiskit.algorithms import NumPyMinimumEigensolver
+from qiskit.opflow import PauliOp
+from qiskit.finance.applications.ising.portfolio_diversification import (
+    get_portfoliodiversification_solution,
+    get_operator,
+    get_portfoliodiversification_value
+)
 
 logger = logging.getLogger(__name__)
 
@@ -205,8 +207,10 @@ class TestPortfolioDiversification(QiskitFinanceTestCase):
                 x=[False, False, False, False, False, False]
             ))
         ]
-        for pauli_a, pauli_b in zip(self.qubit_op._paulis, paulis):
-            cost_a, binary_a = pauli_a
+        for pauli_a, pauli_b in zip(self.qubit_op, paulis):
+            pauli_op = pauli_a.to_pauli_op()
+            cost_a = pauli_op.coeff
+            binary_a = pauli_op.primitive
             cost_b, binary_b = pauli_b
             # Note that the construction is a bit iffy, e.g., I can get:
             # Items are not equal to 7 significant digits:

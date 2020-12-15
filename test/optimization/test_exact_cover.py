@@ -18,11 +18,11 @@ from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 from qiskit import BasicAer
 from qiskit.circuit.library import EfficientSU2
-from qiskit.aqua import aqua_globals, QuantumInstance
+from qiskit.utils import aqua_globals, QuantumInstance
 from qiskit.optimization.applications.ising import exact_cover
 from qiskit.optimization.applications.ising.common import sample_most_likely
-from qiskit.aqua.algorithms import NumPyMinimumEigensolver, VQE
-from qiskit.aqua.components.optimizers import COBYLA
+from qiskit.algorithms import NumPyMinimumEigensolver, VQE
+from qiskit.algorithms.optimizers import COBYLA
 
 
 class TestExactCover(QiskitOptimizationTestCase):

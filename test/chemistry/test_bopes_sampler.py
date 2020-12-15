@@ -17,11 +17,11 @@ from functools import partial
 
 import numpy as np
 from qiskit import BasicAer
-from qiskit.aqua import QuantumInstance
-from qiskit.aqua import aqua_globals
-from qiskit.aqua.algorithms import VQE, NumPyMinimumEigensolver
-from qiskit.aqua.components.optimizers import AQGD
-from qiskit.aqua.operators import PauliExpectation
+from qiskit.utils import QuantumInstance
+from qiskit.utils import aqua_globals
+from qiskit.algorithms import VQE, NumPyMinimumEigensolver
+from qiskit.algorithms.optimizers import AQGD
+from qiskit.opflow import PauliExpectation
 from qiskit.chemistry.algorithms.pes_samplers.bopes_sampler import BOPESSampler
 from qiskit.chemistry.circuit.library import HartreeFock
 from qiskit.chemistry.drivers import Molecule, PySCFDriver

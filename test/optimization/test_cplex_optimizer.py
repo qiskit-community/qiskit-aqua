@@ -16,7 +16,7 @@ import unittest
 from os import path
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 from ddt import ddt, data
-from qiskit.aqua import MissingOptionalLibraryError
+from qiskit.exceptions import MissingOptionalLibraryError
 from qiskit.optimization.algorithms import CplexOptimizer
 from qiskit.optimization.problems import QuadraticProgram
 

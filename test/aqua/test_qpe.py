@@ -17,11 +17,11 @@ from test.aqua import QiskitAquaTestCase
 import numpy as np
 from ddt import ddt, data, unpack
 from qiskit import BasicAer
-from qiskit.aqua import QuantumInstance
-from qiskit.aqua.operators import MatrixOperator, WeightedPauliOperator
-from qiskit.aqua.operators.legacy import op_converter
+from qiskit.utils import QuantumInstance
+from qiskit.opflow import MatrixOperator, WeightedPauliOperator
+from qiskit.opflow import op_converter
 from qiskit.aqua.utils import decimal_to_binary
-from qiskit.aqua.algorithms import NumPyMinimumEigensolver
+from qiskit.algorithms import NumPyMinimumEigensolver
 from qiskit.aqua.algorithms import QPE
 from qiskit.circuit.library import QFT
 from qiskit.aqua.components.initial_states import Custom

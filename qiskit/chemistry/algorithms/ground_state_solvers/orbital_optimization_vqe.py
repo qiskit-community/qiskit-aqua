@@ -20,8 +20,8 @@ import copy
 import numpy as np
 from scipy.linalg import expm
 from qiskit.aqua import AquaError
-from qiskit.aqua.algorithms import VQE, MinimumEigensolver
-from qiskit.aqua.operators import LegacyBaseOperator
+from qiskit.algorithms import VQE, MinimumEigensolver
+from qiskit.opflow import LegacyBaseOperator
 
 from .ground_state_eigensolver import GroundStateEigensolver
 from .minimum_eigensolver_factories import MinimumEigensolverFactory

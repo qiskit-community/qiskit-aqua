@@ -16,10 +16,10 @@ import warnings
 import unittest
 from test.chemistry import QiskitChemistryTestCase
 
-from qiskit.aqua import aqua_globals
-from qiskit.aqua.components.optimizers import L_BFGS_B
-from qiskit.aqua.operators.legacy.op_converter import to_weighted_pauli_operator
-from qiskit.aqua.operators.legacy.weighted_pauli_operator import Z2Symmetries
+from qiskit.utils import aqua_globals
+from qiskit.algorithms.optimizers import L_BFGS_B
+from qiskit.opflow import Z2Taper
+
 from qiskit.chemistry import FermionicOperator
 from qiskit.chemistry.algorithms import VQEAdapt
 from qiskit.chemistry.circuit.library import HartreeFock
@@ -50,8 +50,7 @@ class TestVQEAdaptUCCSD(QiskitChemistryTestCase):
         fer_op = FermionicOperator(h1=molecule.one_body_integrals, h2=molecule.two_body_integrals)
         map_type = 'PARITY'
         qubit_op = fer_op.mapping(map_type)
-        self.qubit_op = Z2Symmetries.two_qubit_reduction(to_weighted_pauli_operator(qubit_op),
-                                                         self.num_particles)
+        self.qubit_op = Z2Taper(self.num_particles).convert(qubit_op)
         self.num_qubits = self.qubit_op.num_qubits
         self.init_state = HartreeFock(self.num_spin_orbitals, self.num_particles)
         self.var_form_base = None

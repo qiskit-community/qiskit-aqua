@@ -25,8 +25,8 @@ from collections import namedtuple
 import numpy as np
 from qiskit.quantum_info import Pauli
 
-from qiskit.aqua import aqua_globals
-from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.utils import aqua_globals
+from qiskit.opflow import PauliSumOp
 
 logger = logging.getLogger(__name__)
 
@@ -131,7 +131,7 @@ def get_operator(ins, penalty=1e5):
         penalty (float) : Penalty coefficient for the constraints
 
     Returns:
-        tuple(WeightedPauliOperator, float): operator for the Hamiltonian and a
+        tuple(PauliSumOp, float): operator for the Hamiltonian and a
         constant shift for the obj function.
 
     """
@@ -150,22 +150,22 @@ def get_operator(ins, penalty=1e5):
 
                 z_p = np.zeros(num_qubits, dtype=np.bool)
                 z_p[i * num_nodes + p__] = True
-                pauli_list.append([-ins.w[i, j] / 4, Pauli(z_p, zero)])
+                pauli_list.append((Pauli((z_p, zero)).to_label(), -ins.w[i, j] / 4))
 
                 z_p = np.zeros(num_qubits, dtype=np.bool)
                 z_p[j * num_nodes + q] = True
-                pauli_list.append([-ins.w[i, j] / 4, Pauli(z_p, zero)])
+                pauli_list.append((Pauli((z_p, zero)).to_label(), -ins.w[i, j] / 4))
 
                 z_p = np.zeros(num_qubits, dtype=np.bool)
                 z_p[i * num_nodes + p__] = True
                 z_p[j * num_nodes + q] = True
-                pauli_list.append([ins.w[i, j] / 4, Pauli(z_p, zero)])
+                pauli_list.append((Pauli((z_p, zero)).to_label(), ins.w[i, j] / 4))
 
     for i in range(num_nodes):
         for p__ in range(num_nodes):
             z_p = np.zeros(num_qubits, dtype=np.bool)
             z_p[i * num_nodes + p__] = True
-            pauli_list.append([penalty, Pauli(z_p, zero)])
+            pauli_list.append((Pauli((z_p, zero)).to_label(), penalty))
             shift += -penalty
 
     for p__ in range(num_nodes):
@@ -175,16 +175,16 @@ def get_operator(ins, penalty=1e5):
 
                 z_p = np.zeros(num_qubits, dtype=np.bool)
                 z_p[i * num_nodes + p__] = True
-                pauli_list.append([-penalty / 2, Pauli(z_p, zero)])
+                pauli_list.append((Pauli((z_p, zero)).to_label(), -penalty / 2))
 
                 z_p = np.zeros(num_qubits, dtype=np.bool)
                 z_p[j * num_nodes + p__] = True
-                pauli_list.append([-penalty / 2, Pauli(z_p, zero)])
+                pauli_list.append((Pauli((z_p, zero)).to_label(), -penalty / 2))
 
                 z_p = np.zeros(num_qubits, dtype=np.bool)
                 z_p[i * num_nodes + p__] = True
                 z_p[j * num_nodes + p__] = True
-                pauli_list.append([penalty / 2, Pauli(z_p, zero)])
+                pauli_list.append((Pauli((z_p, zero)).to_label(), penalty / 2))
 
     for i in range(num_nodes):
         for p__ in range(num_nodes):
@@ -193,18 +193,18 @@ def get_operator(ins, penalty=1e5):
 
                 z_p = np.zeros(num_qubits, dtype=np.bool)
                 z_p[i * num_nodes + p__] = True
-                pauli_list.append([-penalty / 2, Pauli(z_p, zero)])
+                pauli_list.append((Pauli((z_p, zero)).to_label(), -penalty / 2))
 
                 z_p = np.zeros(num_qubits, dtype=np.bool)
                 z_p[i * num_nodes + q] = True
-                pauli_list.append([-penalty / 2, Pauli(z_p, zero)])
+                pauli_list.append((Pauli((z_p, zero)).to_label(), -penalty / 2))
 
                 z_p = np.zeros(num_qubits, dtype=np.bool)
                 z_p[i * num_nodes + p__] = True
                 z_p[i * num_nodes + q] = True
-                pauli_list.append([penalty / 2, Pauli(z_p, zero)])
+                pauli_list.append((Pauli((z_p, zero)).to_label(), penalty / 2))
     shift += 2 * penalty * num_nodes
-    return WeightedPauliOperator(paulis=pauli_list), shift
+    return PauliSumOp.from_list(pauli_list), shift
 
 
 def tsp_value(z, w):

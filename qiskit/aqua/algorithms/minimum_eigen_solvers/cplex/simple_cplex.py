@@ -15,7 +15,7 @@
 import logging
 from itertools import product
 from sys import stdout
-from qiskit.aqua import MissingOptionalLibraryError
+from qiskit.exceptions import MissingOptionalLibraryError
 
 logger = logging.getLogger(__name__)
 

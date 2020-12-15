@@ -30,7 +30,7 @@ import math
 import numpy as np
 
 from qiskit.quantum_info import Pauli
-from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.opflow import PauliSumOp
 
 
 logger = logging.getLogger(__name__)
@@ -68,7 +68,7 @@ def get_operator(values, weights, max_weight):
         max_weight (non negative integer) : the maximum weight the knapsack can carry
 
     Returns:
-        WeightedPauliOperator: operator for the Hamiltonian
+        PauliSumOp: operator for the Hamiltonian
         float: a constant shift for the obj function.
 
     Raises:
@@ -104,16 +104,16 @@ def get_operator(values, weights, max_weight):
         for j in range(n):
             coefficient = -1 * 0.25 * weights[i] * weights[j] * M
             pauli_op = _get_pauli_op(num_values, [j])
-            pauli_list.append([coefficient, pauli_op])
+            pauli_list.append((pauli_op.to_label(), coefficient))
             shift -= coefficient
 
             pauli_op = _get_pauli_op(num_values, [i])
-            pauli_list.append([coefficient, pauli_op])
+            pauli_list.append((pauli_op.to_label(), coefficient))
             shift -= coefficient
 
             coefficient = -1 * coefficient
             pauli_op = _get_pauli_op(num_values, [i, j])
-            pauli_list.append([coefficient, pauli_op])
+            pauli_list.append((pauli_op.to_label(), coefficient))
             shift -= coefficient
 
     # term for sum(2**j*y_j)**2
@@ -122,16 +122,16 @@ def get_operator(values, weights, max_weight):
             coefficient = -1 * 0.25 * (2 ** i) * (2 ** j) * M
 
             pauli_op = _get_pauli_op(num_values, [n + j])
-            pauli_list.append([coefficient, pauli_op])
+            pauli_list.append((pauli_op.to_label(), coefficient))
             shift -= coefficient
 
             pauli_op = _get_pauli_op(num_values, [n + i])
-            pauli_list.append([coefficient, pauli_op])
+            pauli_list.append((pauli_op.to_label(), coefficient))
             shift -= coefficient
 
             coefficient = -1 * coefficient
             pauli_op = _get_pauli_op(num_values, [n + i, n + j])
-            pauli_list.append([coefficient, pauli_op])
+            pauli_list.append((pauli_op.to_label(), coefficient))
             shift -= coefficient
 
     # term for -2*W_max*sum(x_i*w_i)
@@ -139,7 +139,7 @@ def get_operator(values, weights, max_weight):
         coefficient = max_weight * weights[i] * M
 
         pauli_op = _get_pauli_op(num_values, [i])
-        pauli_list.append([coefficient, pauli_op])
+        pauli_list.append((pauli_op.to_label(), coefficient))
         shift -= coefficient
 
     # term for -2*W_max*sum(2**j*y_j)
@@ -147,7 +147,7 @@ def get_operator(values, weights, max_weight):
         coefficient = max_weight * (2 ** j) * M
 
         pauli_op = _get_pauli_op(num_values, [n + j])
-        pauli_list.append([coefficient, pauli_op])
+        pauli_list.append((pauli_op.to_label(), coefficient))
         shift -= coefficient
 
     for i in range(n):
@@ -155,16 +155,16 @@ def get_operator(values, weights, max_weight):
             coefficient = -1 * 0.5 * weights[i] * (2 ** j) * M
 
             pauli_op = _get_pauli_op(num_values, [n + j])
-            pauli_list.append([coefficient, pauli_op])
+            pauli_list.append((pauli_op.to_label(), coefficient))
             shift -= coefficient
 
             pauli_op = _get_pauli_op(num_values, [i])
-            pauli_list.append([coefficient, pauli_op])
+            pauli_list.append((pauli_op.to_label(), coefficient))
             shift -= coefficient
 
             coefficient = -1 * coefficient
             pauli_op = _get_pauli_op(num_values, [i, n + j])
-            pauli_list.append([coefficient, pauli_op])
+            pauli_list.append((pauli_op.to_label(), coefficient))
             shift -= coefficient
 
     # term for sum(x_i*v_i)
@@ -172,10 +172,10 @@ def get_operator(values, weights, max_weight):
         coefficient = 0.5 * values[i]
 
         pauli_op = _get_pauli_op(num_values, [i])
-        pauli_list.append([coefficient, pauli_op])
+        pauli_list.append((pauli_op.to_label(), coefficient))
         shift -= coefficient
 
-    return WeightedPauliOperator(paulis=pauli_list), shift
+    return PauliSumOp.from_list(pauli_list), shift
 
 
 def get_solution(x, values):
@@ -220,4 +220,4 @@ def _get_pauli_op(num_values, indexes):
     for i in indexes:
         pauli_z[i] = not pauli_z[i]
 
-    return Pauli(pauli_z, pauli_x)
+    return Pauli((pauli_z, pauli_x))

@@ -13,7 +13,7 @@
 """The minimum eigensolver factory for ground state calculation algorithms."""
 
 from abc import ABC, abstractmethod
-from qiskit.aqua.algorithms import MinimumEigensolver
+from qiskit.algorithms import MinimumEigensolver
 from ....transformations.transformation import Transformation
 
 

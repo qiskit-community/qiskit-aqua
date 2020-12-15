@@ -19,7 +19,7 @@ from typing import List, Tuple, Union, Optional
 import numpy as np
 
 from qiskit.quantum_info import Pauli
-from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.opflow import PauliSumOp
 
 logger = logging.getLogger(__name__)
 
@@ -77,11 +77,11 @@ class BosonicOperator:
             b_z = np.asarray([0] * i + [1] + [0] * (n - i - 1), dtype=np.bool)
             b_x = np.asarray([0] * i + [1] + [0] * (n - i - 1), dtype=np.bool)
 
-            paulis.append((Pauli(a_z, a_x), Pauli(b_z, b_x)))
+            paulis.append((Pauli((a_z, a_x)), Pauli(b_z, b_x)))
 
         return paulis
 
-    def _one_body_mapping(self, h1_ij_aij: Tuple[float, Pauli, Pauli]) -> WeightedPauliOperator:
+    def _one_body_mapping(self, h1_ij_aij: Tuple[float, Pauli, Pauli]) -> List[Tuple[float, Pauli]]:
         """ Subroutine for one body mapping.
 
         Args:
@@ -96,15 +96,13 @@ class BosonicOperator:
             for beta in range(2):
                 pauli_prod = Pauli.sgn_prod(a_i[alpha], a_j[beta])
                 coeff = h1_ij / 4 * pauli_prod[1] * np.power(-1j, alpha) * np.power(1j, beta)
-                pauli_term = [coeff, pauli_prod[0]]
+                pauli_term = (pauli_prod[0], coeff)
                 pauli_list.append(pauli_term)
 
-        op = WeightedPauliOperator(pauli_list)
+        return pauli_list
 
-        return op
-
-    def _extend(self, list1: List[Tuple[float, Pauli]], list2: List[Tuple[float, Pauli]]) \
-            -> List[Tuple[float, Pauli]]:
+    def _extend(self, list1: List[Tuple[Pauli, float]], list2: List[Tuple[Pauli, float]]) \
+            -> List[Tuple[Pauli, float]]:
         """ Concatenates the paulis for different modes together
 
         Args:
@@ -117,16 +115,16 @@ class BosonicOperator:
         final_list = []
         for pauli1 in list1:
             for pauli2 in list2:
-                p1c = copy.deepcopy(pauli1[1])
-                p2c = copy.deepcopy(pauli2[1])
+                p1c = copy.deepcopy(pauli1[0])
+                p2c = copy.deepcopy(pauli2[0])
                 p1c.insert_paulis(paulis=p2c)
-                coeff = pauli1[0]*pauli2[0]
-                final_list.append((coeff, p1c))
+                coeff = pauli1[1]*pauli2[1]
+                final_list.append((p1c, coeff))
 
         return final_list
 
-    def _combine(self, modes: List[int], paulis: dict, coeff: float) -> WeightedPauliOperator:
-        """ Combines the paulis of each mode together in one WeightedPauliOperator.
+    def _combine(self, modes: List[int], paulis: dict, coeff: float) -> PauliSumOp:
+        """ Combines the paulis of each mode together in one PauliSumOp.
 
         Args:
             modes: list with the indices of the modes to be combined
@@ -134,7 +132,7 @@ class BosonicOperator:
             coeff: coefficient multiplying the term
 
         Returns:
-            WeightedPauliOperator acting on the modes given in argument
+            PauliSumOp acting on the modes given in argument
         """
         m = 0
 
@@ -143,7 +141,7 @@ class BosonicOperator:
         else:
             a_z = np.asarray([0] * self._basis[m], dtype=np.bool)
             a_x = np.asarray([0] * self._basis[m], dtype=np.bool)
-            pauli_list = [(1, Pauli(a_z, a_x))]
+            pauli_list = [(Pauli((a_z, a_x)), 1)]
 
         for m in range(1, self._num_modes):
             if m in modes:
@@ -151,17 +149,17 @@ class BosonicOperator:
             else:
                 a_z = np.asarray([0] * self._basis[m], dtype=np.bool)
                 a_x = np.asarray([0] * self._basis[m], dtype=np.bool)
-                new_list = [(1, Pauli(a_z, a_x))]
+                new_list = [(Pauli((a_z, a_x)), 1)]
             pauli_list = self._extend(pauli_list, new_list)
 
         new_pauli_list = []
         for pauli in pauli_list:
-            new_pauli_list.append([coeff * pauli[0], pauli[1]])
+            new_pauli_list.append((pauli[0].to_label(), coeff * pauli[1]))
 
-        return WeightedPauliOperator(new_pauli_list)
+        return PauliSumOp.from_list(new_pauli_list)
 
     def mapping(self, qubit_mapping: str = 'direct',
-                threshold: float = 1e-8) -> WeightedPauliOperator:
+                threshold: float = 1e-8) -> PauliSumOp:
         """ Maps a bosonic operator into a qubit operator.
 
         Args:
@@ -175,7 +173,7 @@ class BosonicOperator:
         Raises:
             ValueError: If requested mapping is not supported
         """
-        qubit_op = WeightedPauliOperator([])
+        qubit_op_list = []
 
         pau = []
         for mode in range(self._num_modes):
@@ -192,11 +190,16 @@ class BosonicOperator:
                     for i in range(deg+1):
                         m, bf1, bf2 = element[0][i]
                         modes.append(m)
-                        paulis[m] = (self._one_body_mapping((1, pau[m][bf1], pau[m][bf2]))).paulis
+                        paulis[m] = self._one_body_mapping((1, pau[m][bf1], pau[m][bf2]))
 
-                    qubit_op += self._combine(modes, paulis, coeff)
+                    qubit_op_list.append(self._combine(modes, paulis, coeff))
 
-            qubit_op.chop(threshold)
+            if qubit_op_list:
+                qubit_op: PauliSumOp = sum(qubit_op_list)
+            else:
+                num_qubits = sum(self._basis)
+                qubit_op = PauliSumOp.from_list([("I" * num_qubits, 0)])
+            qubit_op = qubit_op.reduce(atol=threshold)
 
         else:
             raise ValueError('Only the direct mapping is implemented')

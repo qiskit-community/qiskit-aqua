@@ -16,7 +16,8 @@ import unittest
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 
-from qiskit.aqua import aqua_globals, MissingOptionalLibraryError
+from qiskit.utils import aqua_globals
+from qiskit.exceptions import MissingOptionalLibraryError
 from qiskit.optimization.applications.ising import max_cut
 from qiskit.optimization.applications.ising.common import random_graph
 from qiskit.aqua.algorithms import ClassicalCPLEX

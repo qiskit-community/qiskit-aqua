@@ -24,12 +24,21 @@ from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.tools import parallel_map
 from qiskit.tools.events import TextProgressBar
 from qiskit.aqua import AquaError, aqua_globals
-from qiskit.aqua.operators import (LegacyBaseOperator,
-                                   WeightedPauliOperator,
-                                   Z2Symmetries,
-                                   TPBGroupedWeightedPauliOperator,
-                                   commutator)
-from qiskit.aqua.operators.legacy import op_converter
+from qiskit.opflow import (
+    anti_commutator,
+    PauliOp,
+    Z2Symmetries,
+    Z2Taper,
+    commutator,
+    OperatorBase,
+    OperatorStateFn,
+    ListOp,
+    CircuitSampler,
+    CircuitStateFn,
+    VectorStateFn,
+    ExpectationFactory,
+    LegacyBaseOperator,
+)
 
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry import FermionicOperator
@@ -39,7 +48,7 @@ logger = logging.getLogger(__name__)
 
 class QEquationOfMotion:
     """ QEquationOfMotion algorithm """
-    def __init__(self, operator: LegacyBaseOperator,
+    def __init__(self, operator: Union[OperatorBase, LegacyBaseOperator],
                  num_orbitals: int,
                  num_particles: Union[List[int], int],
                  qubit_mapping: Optional[str] = None,
@@ -50,7 +59,7 @@ class QEquationOfMotion:
                  se_list: Optional[List[List[int]]] = None,
                  de_list: Optional[List[List[int]]] = None,
                  z2_symmetries: Optional[Z2Symmetries] = None,
-                 untapered_op: Optional[LegacyBaseOperator] = None) -> None:
+                 untapered_op: Optional[OperatorBase] = None) -> None:
         """Constructor.
 
         Args:
@@ -72,6 +81,10 @@ class QEquationOfMotion:
             untapered_op: if the operator is tapered, we need untapered operator
                             to build element of EoM matrix
         """
+        # TODO: Remove 3 months after 0.17
+        if isinstance(operator, LegacyBaseOperator):
+            operator = operator.to_opflow()
+
         self._operator = operator
         self._num_orbitals = num_orbitals
         self._num_particles = num_particles
@@ -132,12 +145,6 @@ class QEquationOfMotion:
                 wave_fn = QuantumCircuit(q)
         else:
             temp_quantum_instance = None
-
-        # this is required to assure paulis mode is there regardless how you compute VQE
-        # it might be slow if you calculate vqe through matrix mode and then convert
-        # it back to paulis
-        self._operator = op_converter.to_weighted_pauli_operator(self._operator)
-        self._untapered_op = op_converter.to_weighted_pauli_operator(self._untapered_op)
 
         excitations_list = self._de_list + self._se_list if excitations_list is None \
             else excitations_list
@@ -267,18 +274,18 @@ class QEquationOfMotion:
                                    num_processes=aqua_globals.num_processes)
             for result in results:
                 m_u, n_u, q_mat_op, w_mat_op, m_mat_op, v_mat_op = result
-                q_commutators[m_u][n_u] = op_converter.to_tpb_grouped_weighted_pauli_operator(
-                    q_mat_op, TPBGroupedWeightedPauliOperator.sorted_grouping) \
-                    if q_mat_op is not None else q_commutators[m_u][n_u]
-                w_commutators[m_u][n_u] = op_converter.to_tpb_grouped_weighted_pauli_operator(
-                    w_mat_op, TPBGroupedWeightedPauliOperator.sorted_grouping) \
-                    if w_mat_op is not None else w_commutators[m_u][n_u]
-                m_commutators[m_u][n_u] = op_converter.to_tpb_grouped_weighted_pauli_operator(
-                    m_mat_op, TPBGroupedWeightedPauliOperator.sorted_grouping) \
-                    if m_mat_op is not None else m_commutators[m_u][n_u]
-                v_commutators[m_u][n_u] = op_converter.to_tpb_grouped_weighted_pauli_operator(
-                    v_mat_op, TPBGroupedWeightedPauliOperator.sorted_grouping) \
-                    if v_mat_op is not None else v_commutators[m_u][n_u]
+                q_commutators[m_u][n_u] = (
+                    q_mat_op if q_mat_op is not None else q_commutators[m_u][n_u]
+                )
+                w_commutators[m_u][n_u] = (
+                    w_mat_op if w_mat_op is not None else w_commutators[m_u][n_u]
+                )
+                m_commutators[m_u][n_u] = (
+                    m_mat_op if m_mat_op is not None else m_commutators[m_u][n_u]
+                )
+                v_commutators[m_u][n_u] = (
+                    v_mat_op if v_mat_op is not None else v_commutators[m_u][n_u]
+                )
 
         available_entry = 0
         if not self._z2_symmetries.is_empty():
@@ -352,63 +359,58 @@ class QEquationOfMotion:
 
         if quantum_instance is not None:
 
-            circuit_names = []
-            circuits = []
+            operators = sum(
+                [
+                    [
+                        m_commutators[m_u][n_u],
+                        v_commutators[m_u][n_u],
+                        q_commutators[m_u][n_u],
+                        w_commutators[m_u][n_u],
+                    ]
+                    for m_u, n_u in zip(mus, nus)
+                ],
+                [],
+            )
+            exist_idx = [op is not None for op in operators]
+            operators = [op for op in operators if op is not None]
+
+            expectation = ExpectationFactory.build(operators[0], quantum_instance)
+            op_meas = expectation.convert(ListOp([~OperatorStateFn(op) for op in operators]))
+            op_expectation = op_meas @ CircuitStateFn(wave_fn)
+            sampler = CircuitSampler(quantum_instance)
+            sampled_op = sampler.convert(op_expectation)
+            means = np.real(sampled_op.eval())
+            variance = np.real(expectation.compute_variance(sampled_op))
+            standard_error = np.sqrt(variance / quantum_instance.run_config.shots)
+
+            mean_idx = iter(range(sum(exist_idx)))
+            std_idx = iter(range(sum(exist_idx)))
             for idx, _ in enumerate(mus):
                 m_u = mus[idx]
                 n_u = nus[idx]
 
-                for op in [q_commutators[m_u][n_u], w_commutators[m_u][n_u],
-                           m_commutators[m_u][n_u], v_commutators[m_u][n_u]]:
-                    if op is not None and not op.is_empty():
-                        curr_circuits = op.construct_evaluation_circuit(
-                            wave_function=wave_fn, statevector_mode=quantum_instance.is_statevector)
-                        for c in curr_circuits:
-                            if c.name not in circuit_names:
-                                circuits.append(c)
-                                circuit_names.append(c.name)
-
-            result = quantum_instance.execute(circuits)
-
-            # evaluate results
-            for idx, _ in enumerate(mus):
-                m_u = mus[idx]
-                n_u = nus[idx]
-
-                def _get_result(op):
-                    mean, std = 0.0, 0.0
-                    if op is not None and not op.is_empty():
-                        mean, std = \
-                            op.evaluate_with_result(
-                                result=result,
-                                statevector_mode=quantum_instance.is_statevector)
-                    return mean, std
-
-                q_mean, q_std = _get_result(q_commutators[m_u][n_u])
-                w_mean, w_std = _get_result(w_commutators[m_u][n_u])
-                m_mean, m_std = _get_result(m_commutators[m_u][n_u])
-                v_mean, v_std = _get_result(v_commutators[m_u][n_u])
-
-                q_mat[m_u][n_u] = q_mean if q_mean != 0.0 else q_mat[m_u][n_u]
-                w_mat[m_u][n_u] = w_mean if w_mean != 0.0 else w_mat[m_u][n_u]
-                m_mat[m_u][n_u] = m_mean if m_mean != 0.0 else m_mat[m_u][n_u]
-                v_mat[m_u][n_u] = v_mean if v_mean != 0.0 else v_mat[m_u][n_u]
-                q_mat_std += q_std
-                w_mat_std += w_std
-                m_mat_std += m_std
-                v_mat_std += v_std
+                q_mat[m_u][n_u] = means[next(mean_idx)] if exist_idx[idx*4] else q_mat[m_u][n_u]
+                w_mat[m_u][n_u] = means[next(mean_idx)] if exist_idx[idx*4+1] else w_mat[m_u][n_u]
+                m_mat[m_u][n_u] = means[next(mean_idx)] if exist_idx[idx*4+2] else m_mat[m_u][n_u]
+                v_mat[m_u][n_u] = means[next(mean_idx)] if exist_idx[idx*4+3] else v_mat[m_u][n_u]
+                q_mat_std += standard_error[next(std_idx)] if exist_idx[idx*4] else 0
+                w_mat_std += standard_error[next(std_idx)] if exist_idx[idx*4+1] else 0
+                m_mat_std += standard_error[next(std_idx)] if exist_idx[idx*4+2] else 0
+                v_mat_std += standard_error[next(std_idx)] if exist_idx[idx*4+3] else 0
         else:
             for idx, _ in enumerate(mus):
                 m_u = mus[idx]
                 n_u = nus[idx]
-                q_mean, q_std = q_commutators[m_u][n_u].evaluate_with_statevector(wave_fn) \
-                    if q_commutators[m_u][n_u] is not None else (0.0, 0.0)
-                w_mean, w_std = w_commutators[m_u][n_u].evaluate_with_statevector(wave_fn) \
-                    if w_commutators[m_u][n_u] is not None else (0.0, 0.0)
-                m_mean, m_std = m_commutators[m_u][n_u].evaluate_with_statevector(wave_fn) \
-                    if m_commutators[m_u][n_u] is not None else (0.0, 0.0)
-                v_mean, v_std = v_commutators[m_u][n_u].evaluate_with_statevector(wave_fn) \
-                    if v_commutators[m_u][n_u] is not None else (0.0, 0.0)
+                state = VectorStateFn(wave_fn)
+                q_mean = (~OperatorStateFn(q_commutators[m_u][n_u])).eval(state) \
+                    if q_commutators[m_u][n_u] is not None else 0.0
+                w_mean = (~OperatorStateFn(w_commutators[m_u][n_u])).eval(state) \
+                    if w_commutators[m_u][n_u] is not None else 0.0
+                m_mean = (~OperatorStateFn(m_commutators[m_u][n_u])).eval(state) \
+                    if m_commutators[m_u][n_u] is not None else 0.0
+                v_mean = (~OperatorStateFn(v_commutators[m_u][n_u])).eval(state) \
+                    if v_commutators[m_u][n_u] is not None else 0.0
+                q_mat_std = w_mat_std = m_mat_std = v_mat_std = 0.0
                 q_mat[m_u][n_u] = q_mean if q_mean != 0.0 else q_mat[m_u][n_u]
                 w_mat[m_u][n_u] = w_mean if w_mean != 0.0 else w_mat[m_u][n_u]
                 m_mat[m_u][n_u] = m_mean if m_mean != 0.0 else m_mat[m_u][n_u]
@@ -489,14 +491,14 @@ class QEquationOfMotion:
         fer_op = FermionicOperator(h_1, h_2)
         qubit_op = fer_op.mapping(qubit_mapping)
         if two_qubit_reduction:
-            qubit_op = Z2Symmetries.two_qubit_reduction(qubit_op, num_particles)
+            qubit_op = Z2Taper(num_particles).convert(qubit_op)
 
         commutativities = []
         if not z2_symmetries.is_empty():
             for symmetry in z2_symmetries.symmetries:
-                symmetry_op = WeightedPauliOperator(paulis=[[1.0, symmetry]])
-                commuting = qubit_op.commute_with(symmetry_op)
-                anticommuting = qubit_op.anticommute_with(symmetry_op)
+                symmetry_op = PauliOp(symmetry)
+                commuting = commutator(qubit_op, symmetry_op).is_zero()
+                anticommuting = anti_commutator(qubit_op, symmetry_op).is_zero()
 
                 if commuting != anticommuting:  # only one of them is True
                     if commuting:
@@ -527,8 +529,8 @@ class QEquationOfMotion:
                 if right_op_1 is not None:
                     q_mat_op = commutator(left_op, operator, right_op_1)
                     w_mat_op = commutator(left_op, right_op_1)
-                    q_mat_op = None if q_mat_op.is_empty() else q_mat_op
-                    w_mat_op = None if w_mat_op.is_empty() else w_mat_op
+                    q_mat_op = None if q_mat_op.is_zero() else q_mat_op
+                    w_mat_op = None if w_mat_op.is_zero() else w_mat_op
                 else:
                     q_mat_op = None
                     w_mat_op = None
@@ -536,20 +538,20 @@ class QEquationOfMotion:
                 if right_op_2 is not None:
                     m_mat_op = commutator(left_op, operator, right_op_2)
                     v_mat_op = commutator(left_op, right_op_2)
-                    m_mat_op = None if m_mat_op.is_empty() else m_mat_op
-                    v_mat_op = None if v_mat_op.is_empty() else v_mat_op
+                    m_mat_op = None if m_mat_op.is_zero() else m_mat_op
+                    v_mat_op = None if v_mat_op.is_zero() else v_mat_op
                 else:
                     m_mat_op = None
                     v_mat_op = None
 
                 if not z2_symmetries.is_empty():
-                    if q_mat_op is not None and not q_mat_op.is_empty():
+                    if q_mat_op is not None and not q_mat_op.is_zero():
                         q_mat_op = z2_symmetries.taper(q_mat_op)
-                    if w_mat_op is not None and not w_mat_op.is_empty():
+                    if w_mat_op is not None and not w_mat_op.is_zero():
                         w_mat_op = z2_symmetries.taper(w_mat_op)
-                    if m_mat_op is not None and not m_mat_op.is_empty():
+                    if m_mat_op is not None and not m_mat_op.is_zero():
                         m_mat_op = z2_symmetries.taper(m_mat_op)
-                    if v_mat_op is not None and not v_mat_op.is_empty():
+                    if v_mat_op is not None and not v_mat_op.is_zero():
                         v_mat_op = z2_symmetries.taper(v_mat_op)
 
         return m_u, n_u, q_mat_op, w_mat_op, m_mat_op, v_mat_op

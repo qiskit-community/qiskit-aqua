@@ -69,13 +69,13 @@ from docplex.mp.model import Model
 from qiskit.quantum_info import Pauli
 
 from qiskit.aqua import AquaError
-from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.opflow import PauliSumOp
 
 logger = logging.getLogger(__name__)
 
 
 def get_operator(mdl: Model, auto_penalty: bool = True,
-                 default_penalty: float = 1e5) -> Tuple[WeightedPauliOperator, float]:
+                 default_penalty: float = 1e5) -> Tuple[PauliSumOp, float]:
     """Generate Ising Hamiltonian from a model of DOcplex.
 
     Args:
@@ -129,7 +129,7 @@ def get_operator(mdl: Model, auto_penalty: bool = True,
         weight = j[1] * sign / 2
         z_p[index] = True
 
-        pauli_list.append([-weight, Pauli(z_p, zero)])
+        pauli_list.append((Pauli((z_p, zero)).to_label(), -weight))
         shift += weight
 
     # convert quadratic parts of the object function into Hamiltonian.
@@ -145,15 +145,15 @@ def get_operator(mdl: Model, auto_penalty: bool = True,
             z_p = np.zeros(num_nodes, dtype=np.bool)
             z_p[index1] = True
             z_p[index2] = True
-            pauli_list.append([weight, Pauli(z_p, zero)])
+            pauli_list.append((Pauli((z_p, zero)).to_label(), weight))
 
         z_p = np.zeros(num_nodes, dtype=np.bool)
         z_p[index1] = True
-        pauli_list.append([-weight, Pauli(z_p, zero)])
+        pauli_list.append((Pauli((z_p, zero)).to_label(), -weight))
 
         z_p = np.zeros(num_nodes, dtype=np.bool)
         z_p[index2] = True
-        pauli_list.append([-weight, Pauli(z_p, zero)])
+        pauli_list.append((Pauli((z_p, zero)).to_label(), -weight))
 
         shift += weight
 
@@ -173,7 +173,7 @@ def get_operator(mdl: Model, auto_penalty: bool = True,
             weight = __l[1]
             z_p[index] = True
 
-            pauli_list.append([penalty * constant * weight, Pauli(z_p, zero)])
+            pauli_list.append((Pauli((z_p, zero)).to_label(), penalty * constant * weight))
             shift += -penalty * constant * weight
 
         # quadratic parts of penalty*(Constant-func)**2: penalty*(func**2)
@@ -191,20 +191,20 @@ def get_operator(mdl: Model, auto_penalty: bool = True,
                     z_p = np.zeros(num_nodes, dtype=np.bool)
                     z_p[index1] = True
                     z_p[index2] = True
-                    pauli_list.append([penalty_weight1_weight2, Pauli(z_p, zero)])
+                    pauli_list.append((Pauli((z_p, zero)).to_label(), penalty_weight1_weight2))
 
                 z_p = np.zeros(num_nodes, dtype=np.bool)
                 z_p[index1] = True
-                pauli_list.append([-penalty_weight1_weight2, Pauli(z_p, zero)])
+                pauli_list.append((Pauli((z_p, zero)).to_label(), -penalty_weight1_weight2))
 
                 z_p = np.zeros(num_nodes, dtype=np.bool)
                 z_p[index2] = True
-                pauli_list.append([-penalty_weight1_weight2, Pauli(z_p, zero)])
+                pauli_list.append((Pauli((z_p, zero)).to_label(), -penalty_weight1_weight2))
 
                 shift += penalty_weight1_weight2
 
     # Remove paulis whose coefficients are zeros.
-    qubit_op = WeightedPauliOperator(paulis=pauli_list)
+    qubit_op = PauliSumOp.from_list(pauli_list)
 
     return qubit_op, shift
 

@@ -24,11 +24,11 @@ from qiskit import BasicAer, QuantumCircuit, execute
 from qiskit.circuit import Parameter
 from qiskit.optimization.applications.ising import max_cut
 from qiskit.optimization.applications.ising.common import sample_most_likely
-from qiskit.aqua.components.optimizers import COBYLA, NELDER_MEAD
+from qiskit.algorithms.optimizers import COBYLA, NELDER_MEAD
 from qiskit.aqua.components.initial_states import Custom, Zero
-from qiskit.aqua.algorithms import QAOA
-from qiskit.aqua import QuantumInstance, aqua_globals
-from qiskit.aqua.operators import X, I
+from qiskit.algorithms import QAOA
+from qiskit.utils import QuantumInstance, aqua_globals
+from qiskit.opflow import X, I
 
 W1 = np.array([
     [0, 1, 0, 1],
@@ -73,7 +73,6 @@ class TestQAOA(QiskitOptimizationTestCase):
         backend = BasicAer.get_backend('statevector_simulator')
         optimizer = COBYLA()
         qubit_op, offset = max_cut.get_operator(w)
-        qubit_op = qubit_op.to_opflow()
         if convert_to_matrix_op:
             qubit_op = qubit_op.to_matrix_op()
 
@@ -107,7 +106,6 @@ class TestQAOA(QiskitOptimizationTestCase):
         backend = BasicAer.get_backend('statevector_simulator')
         optimizer = COBYLA()
         qubit_op, _ = max_cut.get_operator(w)
-        qubit_op = qubit_op.to_opflow()
         if convert_to_matrix_op:
             qubit_op = qubit_op.to_matrix_op()
 
@@ -131,7 +129,6 @@ class TestQAOA(QiskitOptimizationTestCase):
 
         optimizer = COBYLA()
         qubit_op, _ = max_cut.get_operator(W1)
-        qubit_op = qubit_op.to_opflow()
 
         num_qubits = qubit_op.num_qubits
         mixer = QuantumCircuit(num_qubits)
@@ -154,7 +151,6 @@ class TestQAOA(QiskitOptimizationTestCase):
         aqua_globals.random_seed = seed
 
         qubit_op, _ = max_cut.get_operator(W1)
-        qubit_op = qubit_op.to_opflow()
 
         num_qubits = qubit_op.num_qubits
         mixer = QuantumCircuit(num_qubits)
@@ -179,7 +175,7 @@ class TestQAOA(QiskitOptimizationTestCase):
                 [0, 1, 0, 1],
                 [1, 0, 1, 0]
             ]))
-        qaoa = QAOA(qubit_op.to_opflow(), COBYLA(), 1)
+        qaoa = QAOA(qubit_op, COBYLA(), 1)
         quantum_instance = QuantumInstance(BasicAer.get_backend('statevector_simulator'),
                                            seed_simulator=aqua_globals.random_seed,
                                            seed_transpiler=aqua_globals.random_seed)
@@ -199,7 +195,7 @@ class TestQAOA(QiskitOptimizationTestCase):
                     [0, 1, 0, 1, 0, 1],
                     [1, 0, 1, 0, 1, 0],
                 ]))
-            qaoa.operator = qubit_op.to_opflow()
+            qaoa.operator = qubit_op
         except Exception as ex:  # pylint: disable=broad-except
             self.fail("Failed to change operator. Error: '{}'".format(str(ex)))
             return

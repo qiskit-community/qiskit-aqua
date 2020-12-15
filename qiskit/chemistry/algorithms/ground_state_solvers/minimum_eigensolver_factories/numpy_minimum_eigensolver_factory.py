@@ -15,7 +15,7 @@
 from typing import Optional, Union, List, Callable
 import numpy as np
 
-from qiskit.aqua.algorithms import MinimumEigensolver, NumPyMinimumEigensolver
+from qiskit.algorithms import MinimumEigensolver, NumPyMinimumEigensolver
 from ....transformations.transformation import Transformation
 from .minimum_eigensolver_factory import MinimumEigensolverFactory
 

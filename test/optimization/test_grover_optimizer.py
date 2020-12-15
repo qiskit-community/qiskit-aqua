@@ -19,8 +19,8 @@ import numpy as np
 from ddt import data, ddt
 from docplex.mp.model import Model
 from qiskit import Aer
-from qiskit.aqua import QuantumInstance, aqua_globals
-from qiskit.aqua.algorithms import NumPyMinimumEigensolver
+from qiskit.utils import QuantumInstance, aqua_globals
+from qiskit.algorithms import NumPyMinimumEigensolver
 from qiskit.optimization.algorithms import (GroverOptimizer,
                                             MinimumEigenOptimizer)
 from qiskit.optimization.converters import (InequalityToEquality,

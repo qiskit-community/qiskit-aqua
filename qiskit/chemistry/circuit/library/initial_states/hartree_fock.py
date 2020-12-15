@@ -17,7 +17,7 @@ from typing import Optional, Union, List, Tuple
 import logging
 import numpy as np
 from qiskit import QuantumRegister, QuantumCircuit
-from qiskit.aqua.utils.validation import validate_min, validate_in_set
+from qiskit.utils.validation import validate_min, validate_in_set
 
 logger = logging.getLogger(__name__)
 

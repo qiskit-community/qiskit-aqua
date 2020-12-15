@@ -21,7 +21,7 @@ import numpy as np
 from qiskit.quantum_info import Pauli
 
 from qiskit.aqua.algorithms import MinimumEigensolverResult
-from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.opflow import PauliSumOp
 
 # pylint: disable=invalid-name
 
@@ -109,7 +109,7 @@ def get_vehiclerouting_cost(instance: np.ndarray, n: int, K: int, x_sol: np.ndar
     return cost
 
 
-def get_operator(instance: np.ndarray, n: int, K: int) -> WeightedPauliOperator:
+def get_operator(instance: np.ndarray, n: int, K: int) -> PauliSumOp:
     """Converts an instance of a vehicle routing problem into a list of Paulis.
 
     Args:
@@ -140,7 +140,7 @@ def get_operator(instance: np.ndarray, n: int, K: int) -> WeightedPauliOperator:
             w_p = np.zeros(N)
             v_p = np.zeros(N)
             v_p[i] = 1
-            pauli_list.append((g_z[i], Pauli(v_p, w_p)))
+            pauli_list.append((Pauli((v_p, w_p)).to_label(), g_z[i]))
     for i in range(N):
         for j in range(i):
             if q_z[i, j] != 0:
@@ -148,10 +148,10 @@ def get_operator(instance: np.ndarray, n: int, K: int) -> WeightedPauliOperator:
                 v_p = np.zeros(N)
                 v_p[i] = 1
                 v_p[j] = 1
-                pauli_list.append((2 * q_z[i, j], Pauli(v_p, w_p)))
+                pauli_list.append((Pauli((v_p, w_p)).to_label(), 2 * q_z[i, j]))
 
-    pauli_list.append((c_z, Pauli(np.zeros(N), np.zeros(N))))
-    return WeightedPauliOperator(paulis=pauli_list)
+    pauli_list.append((Pauli((np.zeros(N), np.zeros(N))).to_label(), c_z))
+    return PauliSumOp.from_list(pauli_list)
 
 
 def get_vehiclerouting_solution(instance: np.ndarray,

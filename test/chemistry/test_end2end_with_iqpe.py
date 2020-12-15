@@ -18,9 +18,10 @@ import numpy as np
 from ddt import ddt, idata, unpack
 import qiskit
 from qiskit.aqua.utils import decimal_to_binary
-from qiskit.aqua import QuantumInstance
-from qiskit.aqua.algorithms import IQPE, NumPyMinimumEigensolver
-from qiskit.aqua.operators import Z2Symmetries
+from qiskit.utils import QuantumInstance
+from qiskit.algorithms import NumPyMinimumEigensolver
+from qiskit.aqua.algorithms import IQPE
+from qiskit.opflow import Z2Symmetries
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry import FermionicOperator, QiskitChemistryError
 from qiskit.chemistry.circuit.library import HartreeFock

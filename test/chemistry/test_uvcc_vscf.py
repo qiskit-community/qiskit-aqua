@@ -16,11 +16,11 @@ import warnings
 from test.chemistry import QiskitChemistryTestCase
 
 from qiskit import BasicAer
-from qiskit.chemistry import BosonicOperator
+from qiskit.utils import aqua_globals, QuantumInstance
+from qiskit.algorithms import VQE
+from qiskit.algorithms.optimizers import COBYLA
 
-from qiskit.aqua import aqua_globals, QuantumInstance
-from qiskit.aqua.algorithms import VQE
-from qiskit.aqua.components.optimizers import COBYLA
+from qiskit.chemistry import BosonicOperator
 from qiskit.chemistry.components.initial_states import VSCF
 from qiskit.chemistry.components.variational_forms import UVCC
 

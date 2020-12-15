@@ -23,7 +23,7 @@ import logging
 import numpy as np
 from qiskit.quantum_info import Pauli
 
-from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.opflow import PauliSumOp
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ def get_operator(w):
         w (numpy.ndarray) : adjacency matrix.
 
     Returns:
-        tuple(WeightedPauliOperator, float): operator for the Hamiltonian and a
+        tuple(PauliSumOp, float): operator for the Hamiltonian and a
         constant shift for the obj function.
 
     """
@@ -49,15 +49,15 @@ def get_operator(w):
                 z_p = np.zeros(num_nodes, dtype=np.bool)
                 z_p[i] = True
                 z_p[j] = True
-                pauli_list.append([1.0, Pauli(z_p, x_p)])
+                pauli_list.append((Pauli((z_p, x_p)).to_label(), 1.0))
                 shift += 1
     for i in range(num_nodes):
         degree = np.sum(w[i, :])
         x_p = np.zeros(num_nodes, dtype=np.bool)
         z_p = np.zeros(num_nodes, dtype=np.bool)
         z_p[i] = True
-        pauli_list.append([degree - 1 / 2, Pauli(z_p, x_p)])
-    return WeightedPauliOperator(paulis=pauli_list), shift - num_nodes / 2
+        pauli_list.append((Pauli((z_p, x_p)).to_label(), degree - 1 / 2))
+    return PauliSumOp.from_list(pauli_list), shift - num_nodes / 2
 
 
 def stable_set_value(x, w):

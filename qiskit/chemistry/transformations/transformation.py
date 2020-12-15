@@ -17,8 +17,8 @@ from typing import Tuple, List, Optional, Union, Callable, Dict, Any
 
 import numpy as np
 
-from qiskit.aqua.algorithms import EigensolverResult, MinimumEigensolverResult
-from qiskit.aqua.operators import OperatorBase, WeightedPauliOperator
+from qiskit.algorithms import EigensolverResult, MinimumEigensolverResult
+from qiskit.opflow import OperatorBase, PauliSumOp
 from qiskit.chemistry import FermionicOperator, BosonicOperator
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.results import EigenstateResult
@@ -74,7 +74,7 @@ class Transformation(ABC):
 
     @abstractmethod
     def build_hopping_operators(self, excitations: Union[str, List[List[int]]] = 'sd'
-                                ) -> Tuple[Dict[str, WeightedPauliOperator],
+                                ) -> Tuple[Dict[str, PauliSumOp],
                                            Dict[str, List[bool]],
                                            Dict[str, List[Any]]]:
         """Builds the product of raising and lowering operators (basic excitation operators)

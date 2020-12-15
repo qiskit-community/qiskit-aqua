@@ -20,12 +20,12 @@ from ddt import ddt, data
 from qiskit import BasicAer
 from qiskit.circuit.library import TwoLocal
 
-from qiskit.aqua import QuantumInstance, aqua_globals
-from qiskit.aqua.operators import I, X, Z
+from qiskit.utils import QuantumInstance, aqua_globals
+from qiskit.opflow import I, X, Z
 from qiskit.aqua.utils import decimal_to_binary
 from qiskit.aqua.components.initial_states import VarFormBased
-from qiskit.aqua.components.optimizers import SPSA
-from qiskit.aqua.algorithms import VQE
+from qiskit.algorithms.optimizers import SPSA
+from qiskit.algorithms import VQE
 from qiskit.aqua.algorithms import IQPE
 
 

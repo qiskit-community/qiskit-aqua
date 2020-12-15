@@ -17,7 +17,7 @@ import unittest
 from test.chemistry import QiskitChemistryTestCase
 
 from qiskit import BasicAer
-from qiskit.aqua import QuantumInstance
+from qiskit.utils import QuantumInstance
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry.transformations import (FermionicTransformation,

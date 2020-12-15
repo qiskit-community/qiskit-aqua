@@ -23,14 +23,14 @@ import numpy as np
 from qiskit.providers import BaseBackend
 from qiskit.providers import Backend
 from qiskit import ClassicalRegister
-from qiskit.aqua import QuantumInstance, AquaError
-from qiskit.aqua.algorithms import VQAlgorithm, VQE, VQEResult
+from qiskit.utils import QuantumInstance
+from qiskit.aqua import AquaError
+from qiskit.algorithms import VQAlgorithm, VQE, VQEResult
 from qiskit.chemistry.components.variational_forms import UCCSD
-from qiskit.aqua.operators import WeightedPauliOperator
-from qiskit.aqua.operators import LegacyBaseOperator
-from qiskit.aqua.components.optimizers import Optimizer
-from qiskit.aqua.components.variational_forms import VariationalForm
-from qiskit.aqua.utils.validation import validate_min
+from qiskit.opflow import WeightedPauliOperator, LegacyBaseOperator
+from qiskit.algorithms.optimizers import Optimizer
+from qiskit.algorithms.variational_forms import VariationalForm
+from qiskit.utils.validation import validate_min
 
 logger = logging.getLogger(__name__)
 

@@ -17,9 +17,9 @@ import unittest
 from test.chemistry import QiskitChemistryTestCase
 
 from qiskit import BasicAer
-from qiskit.aqua import QuantumInstance
-from qiskit.aqua.operators import WeightedPauliOperator
-from qiskit.aqua.components.optimizers import COBYLA
+from qiskit.utils import QuantumInstance
+from qiskit.opflow import PauliSumOp
+from qiskit.algorithms.optimizers import COBYLA
 from qiskit.chemistry.transformations import (BosonicTransformation,
                                               BosonicTransformationType,
                                               BosonicQubitMappingType)
@@ -39,10 +39,10 @@ class TestBosonicTransformation(QiskitChemistryTestCase):
         self.reference_energy = 2536.4879763624226
 
     def _validate_input_object(self, qubit_op, num_qubits, num_paulis):
-        self.assertTrue(isinstance(qubit_op, WeightedPauliOperator))
+        self.assertTrue(isinstance(qubit_op, PauliSumOp))
         self.assertIsNotNone(qubit_op)
         self.assertEqual(qubit_op.num_qubits, num_qubits)
-        self.assertEqual(len(qubit_op.to_dict()['paulis']), num_paulis)
+        self.assertEqual(len(qubit_op), num_paulis)
 
     def test_output(self):
         """ Test output of transformation """

@@ -15,24 +15,33 @@
 See https://arxiv.org/abs/quant-ph/0610214
 """
 
-from typing import Optional, List, Dict, Union, Any
+
 import logging
+from typing import Any, Dict, List, Optional, Union
+
 import numpy as np
 
-from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
-from qiskit.quantum_info import Pauli
-from qiskit.providers import BaseBackend
-from qiskit.providers import Backend
-from qiskit.aqua import QuantumInstance
-from qiskit.aqua.operators import (WeightedPauliOperator, suzuki_expansion_slice_pauli_list,
-                                   evolution_instruction)
-from qiskit.aqua.operators.legacy import op_converter
-from qiskit.aqua.utils import get_subsystem_density_matrix
-from qiskit.aqua.algorithms import QuantumAlgorithm
-from qiskit.aqua.operators import LegacyBaseOperator, OperatorBase
+from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
+from qiskit.algorithms import (
+    MinimumEigensolver,
+    MinimumEigensolverResult,
+    QuantumAlgorithm,
+)
 from qiskit.aqua.components.initial_states import InitialState
-from qiskit.aqua.utils.validation import validate_min, validate_in_set
-from .minimum_eigen_solver import MinimumEigensolver, MinimumEigensolverResult
+from qiskit.aqua.utils import get_subsystem_density_matrix
+from qiskit.opflow import (
+    LegacyBaseOperator,
+    OperatorBase,
+    WeightedPauliOperator,
+    evolution_instruction,
+    op_converter,
+    suzuki_expansion_slice_pauli_list,
+)
+from qiskit.providers import Backend, BaseBackend
+from qiskit.quantum_info import Pauli
+from qiskit.utils import QuantumInstance
+from qiskit.utils.validation import validate_in_set, validate_min
+
 from .qpe import QPEResult
 
 logger = logging.getLogger(__name__)

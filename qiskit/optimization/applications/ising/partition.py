@@ -20,7 +20,7 @@ import logging
 import numpy as np
 from qiskit.quantum_info import Pauli
 
-from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.opflow import PauliSumOp
 
 logger = logging.getLogger(__name__)
 
@@ -35,7 +35,7 @@ def get_operator(values):
         values (numpy.ndarray): array of values.
 
     Returns:
-        tuple(WeightedPauliOperator, float): operator for the Hamiltonian and a
+        tuple(PauliSumOp, float): operator for the Hamiltonian and a
         constant shift for the obj function.
 
     """
@@ -49,8 +49,8 @@ def get_operator(values):
             z_p = np.zeros(n, dtype=np.bool)
             z_p[i] = True
             z_p[j] = True
-            pauli_list.append([2. * values[i] * values[j], Pauli(z_p, x_p)])
-    return WeightedPauliOperator(paulis=pauli_list), sum(values * values)
+            pauli_list.append((Pauli((z_p, x_p)).to_label(), 2. * values[i] * values[j]))
+    return PauliSumOp.from_list(pauli_list), sum(values * values)
 
 
 def partition_value(x, number_list):

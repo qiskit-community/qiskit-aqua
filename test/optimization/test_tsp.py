@@ -16,10 +16,10 @@ import unittest
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 
-from qiskit.aqua import aqua_globals
+from qiskit.utils import aqua_globals
 from qiskit.optimization.applications.ising import tsp
 from qiskit.optimization.applications.ising.common import sample_most_likely
-from qiskit.aqua.algorithms import NumPyMinimumEigensolver
+from qiskit.algorithms import NumPyMinimumEigensolver
 
 
 class TestTSP(QiskitOptimizationTestCase):
@@ -38,7 +38,6 @@ class TestTSP(QiskitOptimizationTestCase):
         algo = NumPyMinimumEigensolver(self.qubit_op)
         result = algo.run()
         x = sample_most_likely(result.eigenstate)
-        # print(self.qubit_op.to_opflow().eval(result.eigenstate).adjoint().eval(result.eigenstate))
         order = tsp.get_tsp_solution(x)
         np.testing.assert_equal(tsp.tsp_value(order, self.ins.w),
                                 tsp.tsp_value([1, 2, 0], self.ins.w))

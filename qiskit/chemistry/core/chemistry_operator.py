@@ -21,7 +21,7 @@ import logging
 from typing import Dict, Union, List, Tuple, Optional, cast
 import numpy as np
 
-from qiskit.aqua.algorithms import MinimumEigensolverResult, EigensolverResult, AlgorithmResult
+from qiskit.algorithms import MinimumEigensolverResult, EigensolverResult, AlgorithmResult
 from qiskit.chemistry import QMolecule
 
 logger = logging.getLogger(__name__)

@@ -20,10 +20,11 @@ import retworkx as rx
 import numpy as np
 from docplex.mp.model import Model
 
-from qiskit.aqua import AquaError, aqua_globals
-from qiskit.aqua.algorithms import NumPyMinimumEigensolver
+from qiskit.utils import aqua_globals
+from qiskit.aqua import AquaError
+from qiskit.algorithms import NumPyMinimumEigensolver
 from qiskit.optimization.applications.ising import docplex, tsp
-from qiskit.aqua.operators import I, Z
+from qiskit.opflow import I, Z
 
 # Reference operators and offsets for maxcut and tsp.
 QUBIT_OP_MAXCUT = 0.5 * ((I ^ I ^ Z ^ Z) + (I ^ Z ^ I ^ Z) + (I ^ Z ^ Z ^ I) + (Z ^ I ^ I ^ Z)
@@ -276,7 +277,7 @@ class TestDocplex(QiskitOptimizationTestCase):
         mdl.add_constraint(x == y)
 
         qubit_op, offset = docplex.get_operator(mdl)
-        self.log.debug(qubit_op.print_details())
+        self.log.debug(qubit_op)
         e_e = NumPyMinimumEigensolver(qubit_op)
         result = e_e.run()
 

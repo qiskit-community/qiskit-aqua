@@ -17,7 +17,6 @@ import unittest
 from test.chemistry import QiskitChemistryTestCase
 import numpy as np
 from qiskit.aqua.utils import random_unitary
-from qiskit.aqua.operators.legacy import op_converter
 from qiskit.chemistry import FermionicOperator, QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 
@@ -135,10 +134,8 @@ class TestFermionicOperator(QiskitChemistryTestCase):
         jw_op = fer_op.mapping('jordan_wigner')
         bksf_op = fer_op.mapping('bksf')
 
-        jw_op = op_converter.to_matrix_operator(jw_op)
-        bksf_op = op_converter.to_matrix_operator(bksf_op)
-        jw_eigs = np.linalg.eigvals(jw_op.matrix.toarray())
-        bksf_eigs = np.linalg.eigvals(bksf_op.matrix.toarray())
+        jw_eigs = np.linalg.eigvals(jw_op.to_matrix())
+        bksf_eigs = np.linalg.eigvals(bksf_op.to_matrix())
 
         jw_eigs = np.sort(np.around(jw_eigs.real, 6))
         bksf_eigs = np.sort(np.around(bksf_eigs.real, 6))

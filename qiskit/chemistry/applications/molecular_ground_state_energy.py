@@ -17,9 +17,9 @@ from typing import List, Optional, Callable, Union
 
 from qiskit.providers import BaseBackend
 from qiskit.providers import Backend
-from qiskit.aqua import QuantumInstance
-from qiskit.aqua.algorithms import MinimumEigensolver, VQE
-from qiskit.aqua.operators import Z2Symmetries
+from qiskit.utils import QuantumInstance
+from qiskit.algorithms import MinimumEigensolver, VQE
+from qiskit.opflow import Z2Symmetries
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.circuit.library import HartreeFock
 from qiskit.chemistry.components.variational_forms import UCCSD

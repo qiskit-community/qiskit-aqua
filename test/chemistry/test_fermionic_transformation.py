@@ -15,7 +15,7 @@
 import unittest
 
 from test.chemistry import QiskitChemistryTestCase
-from qiskit.aqua.operators import OperatorBase, I, Z
+from qiskit.opflow import OperatorBase, I, Z
 from qiskit.chemistry import QiskitChemistryError, FermionicOperator
 from qiskit.chemistry.core import TransformationType, QubitMappingType
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType

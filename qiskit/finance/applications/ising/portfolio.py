@@ -18,8 +18,8 @@ import numpy as np
 from sklearn.datasets import make_spd_matrix
 from qiskit.quantum_info import Pauli
 
-from qiskit.aqua import aqua_globals
-from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.utils import aqua_globals
+from qiskit.opflow import PauliSumOp
 
 
 def random_model(n, seed=None):
@@ -69,7 +69,7 @@ def get_operator(mu, sigma, q, budget, penalty):  # pylint: disable=invalid-name
             xp = np.zeros(n, dtype=np.bool)
             zp = np.zeros(n, dtype=np.bool)
             zp[i_] = True
-            pauli_list.append([mu_z[i_], Pauli(zp, xp)])
+            pauli_list.append((Pauli((zp, xp)).to_label(), mu_z[i_]))
         for j in range(i):
             j_ = j
             # j_ = n-j-1
@@ -78,10 +78,10 @@ def get_operator(mu, sigma, q, budget, penalty):  # pylint: disable=invalid-name
                 zp = np.zeros(n, dtype=np.bool)
                 zp[i_] = True
                 zp[j_] = True
-                pauli_list.append([2 * sigma_z[i_, j_], Pauli(zp, xp)])
+                pauli_list.append((Pauli((zp, xp)).to_label(), 2 * sigma_z[i_, j_]))
         offset += sigma_z[i_, i_]
 
-    return WeightedPauliOperator(paulis=pauli_list), offset
+    return PauliSumOp.from_list(pauli_list), offset
 
 
 def portfolio_value(x, mu, sigma, q, budget, penalty):  # pylint: disable=invalid-name

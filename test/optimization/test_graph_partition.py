@@ -17,11 +17,11 @@ from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 from qiskit import BasicAer
 from qiskit.circuit.library import RealAmplitudes
-from qiskit.aqua import aqua_globals, QuantumInstance
+from qiskit.utils import aqua_globals, QuantumInstance
 from qiskit.optimization.applications.ising import graph_partition
 from qiskit.optimization.applications.ising.common import random_graph, sample_most_likely
-from qiskit.aqua.algorithms import NumPyMinimumEigensolver, VQE
-from qiskit.aqua.components.optimizers import SPSA
+from qiskit.algorithms import NumPyMinimumEigensolver, VQE
+from qiskit.algorithms.optimizers import SPSA
 
 
 class TestGraphPartition(QiskitOptimizationTestCase):

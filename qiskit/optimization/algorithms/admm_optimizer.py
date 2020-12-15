@@ -18,7 +18,7 @@ import warnings
 from typing import List, Optional, Tuple, cast
 
 import numpy as np
-from qiskit.aqua.algorithms import NumPyMinimumEigensolver
+from qiskit.algorithms import NumPyMinimumEigensolver
 
 from .minimum_eigen_optimizer import MinimumEigenOptimizer
 from .optimization_algorithm import (OptimizationResultStatus, OptimizationAlgorithm,

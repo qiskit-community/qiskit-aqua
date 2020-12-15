@@ -17,10 +17,10 @@ from test.chemistry import QiskitChemistryTestCase
 from qiskit.chemistry.drivers import HDF5Driver
 from qiskit.providers.basicaer import BasicAer
 from qiskit.circuit.library import RealAmplitudes
-from qiskit.aqua import QuantumInstance
+from qiskit.utils import QuantumInstance
 from qiskit.aqua import AquaError
-from qiskit.aqua.algorithms import VQE
-from qiskit.aqua.components.optimizers import COBYLA
+from qiskit.algorithms import VQE
+from qiskit.algorithms.optimizers import COBYLA
 from qiskit.chemistry.algorithms.ground_state_solvers import OrbitalOptimizationVQE
 from qiskit.chemistry.transformations import FermionicTransformation
 from qiskit.chemistry.transformations.fermionic_transformation import FermionicQubitMappingType

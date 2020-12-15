@@ -20,7 +20,7 @@ Doing so requires that the required algorithm interface is implemented.
 
 from abc import ABC, abstractmethod
 from typing import Dict
-from qiskit.aqua import aqua_globals
+from qiskit.utils import aqua_globals
 
 
 class ClassicalAlgorithm(ABC):

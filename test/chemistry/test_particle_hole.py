@@ -16,7 +16,7 @@ import unittest
 
 from test.chemistry import QiskitChemistryTestCase
 from ddt import ddt, idata, unpack
-from qiskit.aqua.algorithms import NumPyMinimumEigensolver
+from qiskit.algorithms import NumPyMinimumEigensolver
 from qiskit.chemistry import FermionicOperator, QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType, HFMethodType
 

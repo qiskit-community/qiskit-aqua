@@ -16,8 +16,8 @@ import unittest
 from test.chemistry import QiskitChemistryTestCase
 
 from qiskit import BasicAer
-from qiskit.aqua import aqua_globals, QuantumInstance
-from qiskit.aqua.components.optimizers import COBYLA
+from qiskit.utils import aqua_globals, QuantumInstance
+from qiskit.algorithms.optimizers import COBYLA
 from qiskit.chemistry import WatsonHamiltonian
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.algorithms.ground_state_solvers import (
