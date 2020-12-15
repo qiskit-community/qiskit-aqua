@@ -60,9 +60,6 @@ class QuantumKernel:
             quantum_instance:  # Quantum Instance or Backend
         """
         self._feature_map = feature_map
-        if not hasattr(feature_map, 'ordered_parameters'):
-            self.feature_map.ordered_parameters = sorted(feature_map.parameters,
-                                                         key=lambda p: p.name)
         self._enforce_psd = enforce_psd
         self._batch_size = batch_size
         self._quantum_instance = quantum_instance
