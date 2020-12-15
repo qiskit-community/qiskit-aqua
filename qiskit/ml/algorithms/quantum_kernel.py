@@ -60,7 +60,9 @@ class QuantumKernel:
             quantum_instance:  # Quantum Instance or Backend
         """
         self._feature_map = feature_map
-        self._feature_map_params = sorted(self._feature_map.parameters, key=lambda p: p.name)
+        if not hasattr(feature_map, 'ordered_parameters'):
+            self.feature_map.ordered_parameters = sorted(feature_map.parameters,
+                                                         key=lambda p: p.name)
         self._enforce_psd = enforce_psd
         self._quantum_instance = quantum_instance
 
@@ -73,7 +75,9 @@ class QuantumKernel:
     def feature_map(self, feature_map: QuantumCircuit):
         """ Sets feature map """
         self._feature_map = feature_map
-        self._feature_map_params = sorted(self._feature_map.parameters, key=lambda p: p.name)
+        if not hasattr(feature_map, 'ordered_parameters'):
+            self.feature_map.ordered_parameters = sorted(feature_map.parameters,
+                                                         key=lambda p: p.name)
 
     @property
     def quantum_instance(self) -> QuantumInstance:
@@ -97,12 +101,12 @@ class QuantumKernel:
         c = ClassicalRegister(self._feature_map.num_qubits, 'c')
         qc = QuantumCircuit(q, c)
 
-        x_dict = dict(zip(self._feature_map_params, x))
+        x_dict = dict(zip(self._feature_map.ordered_parameters, x))
         psi_x = self._feature_map.assign_parameters(x_dict)
         qc.append(psi_x.to_instruction(), qc.qubits)
 
         if not is_statevector_sim:
-            y_dict = dict(zip(self._feature_map_params, y))
+            y_dict = dict(zip(self._feature_map.ordered_parameters, y))
             psi_y_dag = self._feature_map.assign_parameters(y_dict)
             qc.append(psi_y_dag.to_instruction().inverse(), qc.qubits)
 
