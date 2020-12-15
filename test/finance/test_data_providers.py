@@ -216,8 +216,8 @@ class TestDataProviders(QiskitFinanceTestCase):
                 [8.44268222e-05, 1.00000000e+00]
             ])
             covariance = np.array(
-                [[7.035e+00, -1.653e-04],
-                 [-1.653e-04, 1.199e-06]])
+                [[6.933e+00, -1.643e-04],
+                 [-1.643e-04, 1.199e-06]])
             with self.subTest('test YahooDataProvider get_covariance_matrix'):
                 np.testing.assert_array_almost_equal(yahoo.get_covariance_matrix(),
                                                      covariance, decimal=3)
