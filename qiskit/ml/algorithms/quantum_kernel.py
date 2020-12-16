@@ -102,8 +102,8 @@ class QuantumKernel:
         If y is None and not using `statevector_simulator`, self inner product is calculated.
 
         Args:
-            x:                  # first datapoint parameter vector
-            y:                  # second datapoint parameter vector,
+            x:                  # first data point parameter vector
+            y:                  # second data point parameter vector,
                                   ignored if using statevector simulator
             measurement:        # include measurement if not using statevector simulator
             is_statevector_sim: # use state vector simulator
