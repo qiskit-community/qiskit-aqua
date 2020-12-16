@@ -1,4 +1,3 @@
-OO
 abelian
 abstractmethod
 acc
@@ -12,6 +11,7 @@ aer
 aer's
 aerjob
 affine
+Äguivalenzverbot
 aij
 al
 allgemeine
@@ -59,9 +59,9 @@ bohr
 bool
 boolean
 bools
+bopes
 boson
 bosonic
-bopes
 bpa
 brassard
 bravyi
@@ -172,6 +172,7 @@ ecc
 eckstein
 ee
 egger
+EI
 eigen
 eigenenergies
 eigensolution
@@ -184,6 +185,8 @@ eigs
 eigvals
 eigvecs
 einact
+einsum
+EJ
 el
 els
 encodings
@@ -192,6 +195,7 @@ endianness
 endif
 entangler
 entires
+Enu
 enum
 eoh
 eom
@@ -212,8 +216,8 @@ exponentiated
 exponentiations
 expr
 extrapolator
-extrapolators
 extrapolator's
+extrapolators
 factorizers
 factr
 fcidump
@@ -299,7 +303,9 @@ ih
 iht
 ij
 ijkl
+ijkm
 ik
+ikmj
 imag
 imode
 implicant
@@ -487,6 +493,7 @@ ollitrault
 onee
 onodera
 onwards
+OO
 oom
 oovqe
 operatorbase
