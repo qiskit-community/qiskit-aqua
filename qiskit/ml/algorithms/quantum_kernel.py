@@ -91,10 +91,36 @@ class QuantumKernel:
         else:
             self._quantum_instance = quantum_instance
 
-    def _construct_circuit(self, x, y, measurement=True, is_statevector_sim=False):
+    def construct_circuit(self, x: ParameterVector, y: ParameterVector = None,
+                          measurement: bool = True,
+                          is_statevector_sim: bool = False) -> QuantumCircuit:
+        r"""
+        Construct inner product circuit for given datapoints and feature map.
+
+        If using `statevector_simulator`, only construct circuit for :math:`\Psi(x)|0\rangle`,
+        otherwise construct :math:`Psi^dagger(y) x Psi(x)|0>`
+        If y is None and not using `statevector_simulator`, self inner product is calculated.
+
+        Args:
+            x:                  # first datapoint parameter vector
+            y:                  # second datapoint parameter vector,
+                                  ignored if using statevector simulator
+            measurement:        # include measurement if not using statevector simulator
+            is_statevector_sim: # use state vector simulator
+
+        Returns:
+            QuantumCircuit
+
+        Raises:
+            ValueError:
+                - x and/or y have incompatible dimension with feature map
         """
-        Helper function to generate inner product circuit for the given feature map.
-        """
+
+        if len(x) != self._feature_map.num_parameters:
+            raise ValueError("x and class feature map incompatible dimensions.\n" +
+                             "x has %s dimensions, but feature map has %s." %
+                             (len(x), self._feature_map.num_parameters))
+
         q = QuantumRegister(self._feature_map.num_qubits, 'q')
         c = ClassicalRegister(self._feature_map.num_qubits, 'c')
         qc = QuantumCircuit(q, c)
@@ -104,6 +130,14 @@ class QuantumKernel:
         qc.append(psi_x.to_instruction(), qc.qubits)
 
         if not is_statevector_sim:
+            if y is not None and len(y) != self._feature_map.num_parameters:
+                raise ValueError("y and class feature map incompatible dimensions.\n" +
+                                 "y has %s dimensions, but feature map has %s." %
+                                 (len(y), self._feature_map.num_parameters))
+
+            if y is None:
+                y = x
+
             y_dict = dict(zip(self._feature_map.ordered_parameters, y))
             psi_y_dag = self._feature_map.assign_parameters(y_dict)
             qc.append(psi_y_dag.to_instruction().inverse(), qc.qubits)
@@ -129,12 +163,12 @@ class QuantumKernel:
         return kernel_value
 
     def evaluate(self, x_vec: np.ndarray, y_vec: np.ndarray = None) -> np.ndarray:
-        """
+        r"""
         Construct kernel matrix for given data and feature map
 
         If y is None, self inner product is calculated.
-        If using `statevector_simulator`, only build circuits for  Phi(x)|0>, then perform inner
-        product classically.
+        If using `statevector_simulator`, only build circuits for :math:`\Psi(x)|0\rangle`,
+        then perform inner product classically.
 
         Args:
             x_vec: 2D array of datapoints, NxD, where N is the number of datapoints,
@@ -213,7 +247,7 @@ class QuantumKernel:
                 to_be_computed_data = np.concatenate((x_vec, y_vec))
 
             feature_map_params = ParameterVector('par_x', self._feature_map.num_parameters)
-            parameterized_circuit = self._construct_circuit(
+            parameterized_circuit = self.construct_circuit(
                 feature_map_params, feature_map_params,
                 measurement=measurement, is_statevector_sim=is_statevector_sim)
             parameterized_circuit = self._quantum_instance.transpile(parameterized_circuit)[0]
@@ -235,7 +269,7 @@ class QuantumKernel:
         else:  # not using state vector simulator
             feature_map_params_x = ParameterVector('par_x', self._feature_map.num_parameters)
             feature_map_params_y = ParameterVector('par_y', self._feature_map.num_parameters)
-            parameterized_circuit = self._construct_circuit(
+            parameterized_circuit = self.construct_circuit(
                 feature_map_params_x, feature_map_params_y,
                 measurement=measurement, is_statevector_sim=is_statevector_sim)
             parameterized_circuit = self._quantum_instance.transpile(parameterized_circuit)[0]
