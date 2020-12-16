@@ -18,14 +18,68 @@ from test.aqua import QiskitAquaTestCase
 
 import numpy as np
 
+from sklearn.svm import SVC
+
 from qiskit import BasicAer
 from qiskit.circuit.library import ZZFeatureMap
 from qiskit.aqua import QuantumInstance, AquaError
 from qiskit.ml.algorithms import QuantumKernel
 
 
+class TestQuantumKernelClassify(QiskitAquaTestCase):
+    """ Test QuantumKernel for Classification using SKLearn """
+
+    def setUp(self):
+        super().setUp()
+
+        self.random_seed = 10598
+
+        self.statevector_simulator = QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                                     shots=1,
+                                                     seed_simulator=self.random_seed,
+                                                     seed_transpiler=self.random_seed)
+
+        self.feature_map = ZZFeatureMap(feature_dimension=2, reps=2)
+
+        self.sample_train = np.asarray([[3.07876080, 1.75929189],
+                                        [6.03185789, 5.27787566],
+                                        [6.22035345, 2.70176968],
+                                        [0.18849556, 2.82743339]])
+        self.label_train = np.asarray([0, 0, 1, 1])
+
+        self.sample_test = np.asarray([[2.199114860, 5.15221195],
+                                       [0.50265482, 0.06283185]])
+        self.label_test = np.asarray([0, 1])
+
+    def test_callable(self):
+        """ Test callable kernel in sklearn """
+        kernel = QuantumKernel(feature_map=self.feature_map,
+                               quantum_instance=self.statevector_simulator)
+
+        svc = SVC(kernel=kernel.evaluate)
+        svc.fit(self.sample_train, self.label_train)
+        score = svc.score(self.sample_test, self.label_test)
+
+        self.assertEqual(score, 0.5)
+
+    def test_precomputed(self):
+        """ Test precomputed kernel in sklearn """
+        kernel = QuantumKernel(feature_map=self.feature_map,
+                               quantum_instance=self.statevector_simulator)
+
+        kernel_train = kernel.evaluate(x_vec=self.sample_train)
+        kernel_test = kernel.evaluate(x_vec=self.sample_test,
+                                      y_vec=self.sample_train)
+
+        svc = SVC(kernel='precomputed')
+        svc.fit(kernel_train, self.label_train)
+        score = svc.score(kernel_test, self.label_test)
+
+        self.assertEqual(score, 0.5)
+
+
 class TestQuantumKernelEvaluate(QiskitAquaTestCase):
-    """ Test QuantumKernel Evaluate Method"""
+    """ Test QuantumKernel Evaluate Method """
 
     def setUp(self):
         super().setUp()
@@ -168,7 +222,7 @@ class TestQuantumKernelEvaluate(QiskitAquaTestCase):
 
 
 class TestQuantumKernelConstructCircuit(QiskitAquaTestCase):
-    """ Test QuantumKernel ConstructCircuit Method"""
+    """ Test QuantumKernel ConstructCircuit Method """
 
     def setUp(self):
         super().setUp()
@@ -180,31 +234,31 @@ class TestQuantumKernelConstructCircuit(QiskitAquaTestCase):
         self.feature_map = ZZFeatureMap(feature_dimension=2, reps=1)
 
     def test_innerproduct(self):
-        """ Test inner product"""
+        """ Test inner product """
         qkclass = QuantumKernel(feature_map=self.feature_map)
         qc = qkclass.construct_circuit(self.x, self.y)
         self.assertEqual(qc.decompose().size(), 16)
 
     def test_selfinnerproduct(self):
-        """ Test self inner product"""
+        """ Test self inner product """
         qkclass = QuantumKernel(feature_map=self.feature_map)
         qc = qkclass.construct_circuit(self.x)
         self.assertEqual(qc.decompose().size(), 16)
 
     def test_innerproduct_nomeasurement(self):
-        """ Test inner product no measurement"""
+        """ Test inner product no measurement """
         qkclass = QuantumKernel(feature_map=self.feature_map)
         qc = qkclass.construct_circuit(self.x, self.y, measurement=False)
         self.assertEqual(qc.decompose().size(), 14)
 
     def test_selfinnerprodect_nomeasurement(self):
-        """ Test self inner product no measurement"""
+        """ Test self inner product no measurement """
         qkclass = QuantumKernel(feature_map=self.feature_map)
         qc = qkclass.construct_circuit(self.x, measurement=False)
         self.assertEqual(qc.decompose().size(), 14)
 
     def test_statevector(self):
-        """ Test state vector simulator"""
+        """ Test state vector simulator """
         qkclass = QuantumKernel(feature_map=self.feature_map)
         qc = qkclass.construct_circuit(self.x, is_statevector_sim=True)
         self.assertEqual(qc.decompose().size(), 7)
