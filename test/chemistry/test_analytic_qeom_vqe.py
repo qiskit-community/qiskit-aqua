@@ -15,7 +15,7 @@ import unittest
 from test.chemistry import QiskitChemistryTestCase
 
 from qiskit.chemistry.algorithms.excited_states_solvers import ExcitedStatesEigensolver
-from qiskit.chemistry.algorithms.excited_states_solvers import analytic_QEOM
+from qiskit.chemistry.algorithms.excited_states_solvers import AnalyticQEOM
 from qiskit.chemistry.algorithms.ground_state_solvers import (GroundStateEigensolver,
                                                               VQEUCCSDFactory)
 from qiskit.aqua import QuantumInstance
@@ -54,10 +54,10 @@ class TestAnalyticQEOMVQE(QiskitChemistryTestCase):
         gsc = GroundStateEigensolver(transformation, solver)
 
         # The qEOM algorithm is simply instantiated with the chosen ground state solver
-        qeom_excited_states_calculation = analytic_QEOM(gsc, 'sd')
+        qeom_excited_states_calculation = AnalyticQEOM(gsc, 'sd')
 
-        numpy_excited_states_calculation = ExcitedStatesEigensolver(transformation, numpy_solver)
-        numpy_results = numpy_excited_states_calculation.solve(driver)
+        numpy_excited_states = ExcitedStatesEigensolver(transformation, numpy_solver)
+        numpy_results = numpy_excited_states.solve(driver)
 
         qeom_results = qeom_excited_states_calculation.solve(driver)
 

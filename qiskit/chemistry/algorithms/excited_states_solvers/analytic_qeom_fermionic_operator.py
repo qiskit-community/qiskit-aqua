@@ -18,15 +18,15 @@ import logging
 import numpy as np
 from qiskit.quantum_info import Pauli
 from qiskit.tools import parallel_map
-from qiskit.tools.events import TextProgressBar
 
 from qiskit.aqua import aqua_globals
 from qiskit.aqua.operators import WeightedPauliOperator
 from qiskit.chemistry.qiskit_chemistry_error import QiskitChemistryError
 from qiskit.chemistry.bksf import bksf_mapping
-from qiskit.chemistry.particle_hole import particle_hole_transformation
 
 logger = logging.getLogger(__name__)
+
+# pylint: disable=invalid-name
 
 
 class FermionicOperatorNBody:
@@ -66,7 +66,7 @@ class FermionicOperatorNBody:
         self._ph_trans_shift = ph_trans_shift
         self._modes = 0
         for h in self._hs:
-            if(h is not None):
+            if h is not None:
                 self._modes = h.shape[0]
         self._map_type = None
 
@@ -258,7 +258,10 @@ class FermionicOperatorNBody:
                            update_pauli[j] * y_j * remainder_pauli[j]))
         return a_list
 
-    def mapping(self, map_type, threshold=0.00000001, idx=[None]*4):
+    def mapping(self, map_type, threshold=0.00000001, idx=None):
+        """ mapping """
+        if idx is None:
+            idx = [None]*4
         self._map_type = map_type
         n = self._modes  # number of fermionic modes / qubits
         map_type = map_type.lower()
@@ -277,8 +280,8 @@ class FermionicOperatorNBody:
         pauli_list = WeightedPauliOperator(paulis=[])
 
         for m, h in enumerate(self._hs):
-            if(h is not None):
-                if(idx[m] is None):
+            if h is not None:
+                if idx[m] is None:
                     results = parallel_map(FermionicOperatorNBody._n_body_mapping,
                                            [FermionicOperatorNBody._prep_mapping(h[indexes], a_list,
                                                                                  indexes)

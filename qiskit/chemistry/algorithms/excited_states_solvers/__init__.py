@@ -16,12 +16,12 @@ from .excited_states_solver import ExcitedStatesSolver
 from .qeom import QEOM
 from .eigensolver_factories import EigensolverFactory, NumPyEigensolverFactory
 from .excited_states_eigensolver import ExcitedStatesEigensolver
-from .analytic_qeom import analytic_QEOM
+from .analytic_qeom import AnalyticQEOM
 
 __all__ = ['ExcitedStatesSolver',
            'ExcitedStatesEigensolver',
            'EigensolverFactory',
            'NumPyEigensolverFactory',
            'QEOM',
-           'analytic_QEOM'
+           'AnalyticQEOM'
            ]

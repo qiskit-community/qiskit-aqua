@@ -1,28 +1,47 @@
-import numpy as np
+# This code is part of Qiskit.
+#
+# (C) Copyright IBM 2020.
+#
+# This code is licensed under the Apache License, Version 2.0. You may
+# obtain a copy of this license in the LICENSE.txt file in the root directory
+# of this source tree or at http://www.apache.org/licenses/LICENSE-2.0.
+#
+# Any modifications or derivative works of this code must retain this
+# copyright notice, and modified files need to carry a notice indicating
+# that they have been altered from the originals.
+
+""" Analytic QEOM utility functions """
+
+from typing import List, Tuple
 import itertools
-from qiskit.chemistry import FermionicOperator
+import numpy as np
 from .analytic_qeom_fermionic_operator import FermionicOperatorNBody
-from typing import List, Union, Optional, Tuple, Dict, cast
+
+# pylint: disable=invalid-name
 
 
 def delta(p, r):
-    if(p == r):
+    """ delta """
+    if p == r:
         return 1
     return 0
 
 
-def commutator_adj_nor(n: int, Emu: List, Enu: List):
+def commutator_adj_nor(n: int, Emu: List, Enu: List) -> Tuple[FermionicOperatorNBody, int]:
     """
-      Args:
+    Args:
       n [int]:    number of orbitals
       Emu [list]: excitation operator
       Enu [list]: excitation operator
 
       constructs the FermionicOperator representation of operator
       V_{IJ} = (Psi|[dag(E_I),E_J]|Psi)
+
+    Returns:
+        Tuple FermionicOperatorNBody and index
     """
 
-    hs = [None]*4
+    hs = np.array([None]*4)
     idx = [None]*4
     if len(Emu) == 2 and len(Enu) == 2:
         a, i = Emu
@@ -78,49 +97,57 @@ def commutator_adj_nor(n: int, Emu: List, Enu: List):
         hs[2][c, l, i, k, j, b] += -1*delta(a, d)
         idx[2] += [(c, l, i, k, j, b)]
     for k in range(4):
-        if(idx[k] is not None):
+        if idx[k] is not None:
             idx[k] = list(set(idx[k]))
     return FermionicOperatorNBody(hs), idx
 
 
-def commutator_adj_adj(n: int, Emu: List, Enu: List):
+# pylint: disable=unused-argument
+def commutator_adj_adj(n: int, Emu: List, Enu: List) -> Tuple[FermionicOperatorNBody, int]:
     """
-      Args:
-      n [int]:    number of orbitals
-      Emu [list]: excitation operator
-      Enu [list]: excitation operator
+    Args:
+      n: number of orbitals
+      Emu: excitation operator
+      Enu: excitation operator
 
       constructs the FermionicOperator representation of operator
       W_{IJ} = (Psi|[dag(E_I),dag(E_J)]|Psi)
+
+    Returns:
+          Tuple FermionicOperatorNBody and index
     """
     hs = [None]*4
     idx = [None]*4
-    if(len(Emu) == 2 and len(Enu) == 2):
-        a, i = Emu
-        b, j = Enu
-    if(len(Emu) == 2 and len(Enu) == 4):
-        a, i = Emu
-        b, c, k, j = Enu
-    if(len(Emu) == 4 and len(Enu) == 4):
-        a, b, j, i = Emu
-        c, d, l, k = Enu
+    # if len(Emu) == 2 and len(Enu) == 2:
+    #   a, i = Emu
+    #   b, j = Enu
+    # if len(Emu) == 2 and len(Enu) == 4:
+    #   a, i = Emu
+    #   b, c, k, j = Enu
+    # if len(Emu) == 4 and len(Enu) == 4:
+    #   a, b, j, i = Emu
+    #   c, d, l, k = Enu
     for k in range(4):
-        if(idx[k] is not None):
+        if idx[k] is not None:
             idx[k] = list(set(idx[k]))
     return FermionicOperatorNBody(hs), idx
 
 
-def triple_commutator_adj_onebody_nor(n: int, Emu: List, Enu: List, H: float):
+def triple_commutator_adj_onebody_nor(n: int, Emu: List, Enu: List, H: float) \
+        -> Tuple[FermionicOperatorNBody, int]:
     """
-      Args:
-      n [int]:          number of orbitals
-      Emu [list]:       excitation operator
-      Enu [list]:       excitation operator
-      H [rank-2 float]: matrix corresponding to H[i,j] \\hat{a}^\\dagger_i \\hat{a}_j
+    Args:
+      n: number of orbitals
+      Emu: excitation operator
+      Enu: excitation operator
+      H: matrix corresponding to H[i,j] \\hat{a}^\\dagger_i \\hat{a}_j
       constructs the FermionicOperator representation of operator
       M_{IJ} = (Psi|[dag(E_I),H,E_J]|Psi)
+
+    Returns:
+          Tuple FermionicOperatorNBody and index
     """
-    hs = [None]*4
+    hs = np.array([None] * 4)
     idx = [None]*4
     if len(Emu) == 2 and len(Enu) == 2:
         a, i = Emu
@@ -357,19 +384,22 @@ def triple_commutator_adj_onebody_nor(n: int, Emu: List, Enu: List, H: float):
     return FermionicOperatorNBody(hs), idx
 
 
-def triple_commutator_adj_onebody_adj(n, Emu, Enu, H):
+def triple_commutator_adj_onebody_adj(n, Emu, Enu, H) -> Tuple[FermionicOperatorNBody, int]:
     """
-      Args:
+    Args:
       n [int]:          number of orbitals
       Emu [list]:       excitation operator
       Enu [list]:       excitation operator
       H [rank-2 float]: matrix corresponding to H[i,j] \\hat{a}^\\dagger_i \\hat{a}_j
       constructs the FermionicOperator representation of operator
       Q_{IJ} = (Psi|[dag(E_I),H,dag(E_J)]|Psi)
+
+    Returns:
+        Tuple FermionicOperatorNBody and index
     """
-    hs = [None]*4
+    hs = np.array([None] * 4)
     idx = [None]*4
-    if(len(Emu) == 2 and len(Enu) == 2):
+    if len(Emu) == 2 and len(Enu) == 2:
         a, i = Emu
         b, j = Enu
         hs[0] = np.zeros(tuple([n]*2))
@@ -378,7 +408,7 @@ def triple_commutator_adj_onebody_adj(n, Emu, Enu, H):
         idx[0] += [(i, b)]
         hs[0][j, a] += 2*H[b, i]
         idx[0] += [(j, a)]
-    if(len(Emu) == 2 and len(Enu) == 4):
+    if len(Emu) == 2 and len(Enu) == 4:
         a, i = Emu
         b, c, k, j = Enu
         hs[1] = np.zeros(tuple([n]*4))
@@ -391,7 +421,7 @@ def triple_commutator_adj_onebody_adj(n, Emu, Enu, H):
         idx[1] += [(j, b, k, a)]
         hs[1][j, c, k, a] += -2*H[b, i]
         idx[1] += [(j, c, k, a)]
-    if(len(Emu) == 4 and len(Enu) == 4):
+    if len(Emu) == 4 and len(Enu) == 4:
         a, b, j, i = Emu
         c, d, l, k = Enu
         hs[2] = np.zeros(tuple([n]*6))
@@ -413,14 +443,14 @@ def triple_commutator_adj_onebody_adj(n, Emu, Enu, H):
         hs[2][i, d, k, b, l, a] += -2*H[c, j]
         idx[2] += [(i, d, k, b, l, a)]
     for k in range(4):
-        if(idx[k] is not None):
+        if idx[k] is not None:
             idx[k] = list(set(idx[k]))
     return FermionicOperatorNBody(hs), idx
 
 
-def triple_commutator_adj_twobody_nor(n, Emu, Enu, H):
+def triple_commutator_adj_twobody_nor(n, Emu, Enu, H) -> Tuple[FermionicOperatorNBody, int]:
     """
-      Args:
+    Args:
       n [int]:          number of orbitals
       Emu [list]:       excitation operator
       Enu [list]:       excitation operator
@@ -428,10 +458,13 @@ def triple_commutator_adj_twobody_nor(n, Emu, Enu, H):
                         H[i,j,k,l] \\hat{a}^\\dagger_i \\hat{a}^\\dagger_j \\hat{a}_k \\hat{a}_l
       constructs the FermionicOperator representation of operator
       M_{IJ} = (Psi|[dag(E_I),H,E_J]|Psi)
+
+    Returns:
+        Tuple FermionicOperatorNBody and index
     """
-    hs = [None]*4
+    hs = np.array([None] * 4)
     idx = [None]*4
-    if(len(Emu) == 2 and len(Enu) == 2):
+    if len(Emu) == 2 and len(Enu) == 2:
         a, i = Emu
         b, j = Enu
         hs[1] = np.zeros(tuple([n]*4))
@@ -476,7 +509,7 @@ def triple_commutator_adj_twobody_nor(n, Emu, Enu, H):
         idx[1] += [(i, u, v, w) for (u, v, w) in itertools.product(range(n), repeat=3)]
         hs[1][i, :, :, :] += -1*H[:, :, j, :].transpose(2, 0, 1)*delta(a, b)
         idx[1] += [(i, u, v, w) for (u, v, w) in itertools.product(range(n), repeat=3)]
-    if(len(Emu) == 2 and len(Enu) == 4):
+    if len(Emu) == 2 and len(Enu) == 4:
         a, i = Emu
         b, c, k, j = Enu
         hs[1] = np.zeros(tuple([n]*4))
@@ -643,7 +676,7 @@ def triple_commutator_adj_twobody_nor(n, Emu, Enu, H):
         idx[2] += [(b, u, c, v, w, j) for (u, v, w) in itertools.product(range(n), repeat=3)]
         hs[2][b, :, c, :, :, k] += -1*H[a, :, :, :].transpose(2, 0, 1)*delta(j, i)
         idx[2] += [(b, u, c, v, w, k) for (u, v, w) in itertools.product(range(n), repeat=3)]
-    if(len(Emu) == 4 and len(Enu) == 4):
+    if len(Emu) == 4 and len(Enu) == 4:
         a, b, j, i = Emu
         c, d, l, k = Enu
         hs[1] = np.zeros(tuple([n]*4))
@@ -1378,9 +1411,9 @@ def triple_commutator_adj_twobody_nor(n, Emu, Enu, H):
     return FermionicOperatorNBody(hs), idx
 
 
-def triple_commutator_adj_twobody_adj(n, Emu, Enu, H):
+def triple_commutator_adj_twobody_adj(n, Emu, Enu, H) -> Tuple[FermionicOperatorNBody, int]:
     """
-      Args:
+    Args:
       n [int]:          number of orbitals
       Emu [list]:       excitation operator
       Enu [list]:       excitation operator
@@ -1388,10 +1421,13 @@ def triple_commutator_adj_twobody_adj(n, Emu, Enu, H):
                         to H[i,j,k,l] \\hat{a}^\\dagger_i \\hat{a}^\\dagger_j \\hat{a}_k \\hat{a}_l
       constructs the FermionicOperator representation of operator
       Q_{IJ} = (Psi|[dag(E_I),H,dag(E_J)]|Psi)
+
+    Returns:
+        Tuple FermionicOperatorNBody and index
     """
-    hs = [None]*4
+    hs = np.array([None] * 4)
     idx = [None]*4
-    if(len(Emu) == 2 and len(Enu) == 2):
+    if len(Emu) == 2 and len(Enu) == 2:
         a, i = Emu
         b, j = Enu
         hs[1] = np.zeros(tuple([n]*4))
@@ -1420,7 +1456,7 @@ def triple_commutator_adj_twobody_adj(n, Emu, Enu, H):
         idx[1] += [(j, u, v, a) for (u, v) in itertools.product(range(n), repeat=2)]
         hs[1][j, :, :, a] += 2*H[:, i, b, :].transpose(1, 0)
         idx[1] += [(j, u, v, a) for (u, v) in itertools.product(range(n), repeat=2)]
-    if(len(Emu) == 2 and len(Enu) == 4):
+    if len(Emu) == 2 and len(Enu) == 4:
         a, i = Emu
         b, c, k, j = Enu
         hs[1] = np.zeros(tuple([n]*4))
@@ -1491,7 +1527,7 @@ def triple_commutator_adj_twobody_adj(n, Emu, Enu, H):
         idx[2] += [(i, u, j, v, k, b) for (u, v) in itertools.product(range(n), repeat=2)]
         hs[2][i, :, j, :, k, c] += 2*H[a, :, b, :].transpose(1, 0)
         idx[2] += [(i, u, j, v, k, c) for (u, v) in itertools.product(range(n), repeat=2)]
-    if(len(Emu) == 4 and len(Enu) == 4):
+    if len(Emu) == 4 and len(Enu) == 4:
         a, b, j, i = Emu
         c, d, l, k = Enu
         hs[1] = np.zeros(tuple([n]*4))
@@ -1678,7 +1714,7 @@ def triple_commutator_adj_twobody_adj(n, Emu, Enu, H):
         idx[3] += [(i, u, j, v, k, d, l, b) for (u, v) in itertools.product(range(n), repeat=2)]
 
     for k in range(4):
-        if(idx[k] is not None):
+        if idx[k] is not None:
             idx[k] = list(set(idx[k]))
 
     return FermionicOperatorNBody(hs), idx

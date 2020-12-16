@@ -15,22 +15,15 @@
 from typing import List, Union, Optional, Tuple, Dict, cast
 import itertools
 import logging
-import sys
 import numpy as np
-from scipy import linalg
 
-from qiskit.tools import parallel_map
-from qiskit.tools.events import TextProgressBar
-from qiskit.aqua import aqua_globals
-from qiskit.aqua.algorithms import AlgorithmResult
-from qiskit.aqua.operators import Z2Symmetries, commutator, WeightedPauliOperator
+from qiskit.aqua.operators import Z2Symmetries
 from qiskit.chemistry import FermionicOperator, BosonicOperator
 from qiskit.chemistry.drivers import BaseDriver
 from qiskit.chemistry.results import (ElectronicStructureResult, VibronicStructureResult,
                                       EigenstateResult)
 
 from .qeom import QEOM, QEOMResult
-from .excited_states_solver import ExcitedStatesSolver
 from ..ground_state_solvers import GroundStateSolver
 from .analytic_qeom_utils import (commutator_adj_nor,
                                   commutator_adj_adj,
@@ -39,13 +32,15 @@ from .analytic_qeom_utils import (commutator_adj_nor,
 
 logger = logging.getLogger(__name__)
 
+# pylint: disable=invalid-name
 
-class analytic_QEOM(QEOM):
+
+class AnalyticQEOM(QEOM):
+    """ Analytic QEOM """
 
     def __init__(self, ground_state_solver: GroundStateSolver,
                  excitations: Union[str, List[List[int]]] = 'sd') -> None:
-        self._gsc = ground_state_solver
-        self.excitations = excitations
+        super().__init__(ground_state_solver, excitations)
         try:
             from mpi4py import MPI
             self.size = MPI.COMM_WORLD.Get_size()
@@ -108,8 +103,8 @@ class analytic_QEOM(QEOM):
             res = self.comm.gather(measurement_results, root=0)
             res = self.comm.bcast(res, root=0)
             measurement_results = {}
-            for d in res:
-                measurement_results.update(d)
+            for item in res:
+                measurement_results.update(item)
         for k in measurement_results.keys():
             print("measurements ", k, measurement_results[k])
 
@@ -146,9 +141,10 @@ class analytic_QEOM(QEOM):
 
         return result
 
-    def _prepare_matrix_operators(self, driver):
+    def _prepare_matrix_operators(self, driver)\
+            -> Tuple[dict, int]:  # pylint: disable=arguments-differ
         data = self._gsc.transformation.build_hopping_operators(self._excitations)
-        hopping_operators, type_of_commutativities, excitation_indices = data
+        _, _, excitation_indices = data
 
         for k in excitation_indices.keys():
             if len(excitation_indices[k]) == 2:
@@ -174,7 +170,7 @@ class analytic_QEOM(QEOM):
             adj_nor_oper, adj_nor_idx = commutator_adj_nor(n, EI, EJ)  # ; print("V")
             eom_matrix_operators['v_%d_%d' % (I, J)] = self.transform(adj_nor_oper, adj_nor_idx)
             adj_adj_oper, adj_adj_idx = commutator_adj_adj(n, EI, EJ)  # ; print("W")
-            eom_matrix_operators['w_%d_%d' % (I, J)] = -self.transform(adj_adj_oper, adj_adj_idx)
+            eom_matrix_operators['w_%d_%d' % (I, J)] = -1*self.transform(adj_adj_oper, adj_adj_idx)
             adj_nor_oper, adj_nor_idx = \
                 triple_commutator_adj_twobody_nor(n, EI, EJ, h)  # ; print("M")
             eom_matrix_operators['m_%d_%d' % (I, J)] = 0.5*self.transform(adj_nor_oper, adj_nor_idx)
@@ -213,6 +209,7 @@ class analytic_QEOM(QEOM):
         return 2*n, h
 
     def transform(self, oper, idx):
+        """ transform """
         qubit_mapping = self._gsc.transformation._qubit_mapping
         two_qubit_reduction = self._gsc.transformation._two_qubit_reduction
         num_particles = self._gsc.transformation._molecule_info['num_particles']
