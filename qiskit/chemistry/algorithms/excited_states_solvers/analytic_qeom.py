@@ -141,8 +141,8 @@ class AnalyticQEOM(QEOM):
 
         return result
 
-    def _prepare_matrix_operators(self, driver)\
-            -> Tuple[dict, int]:  # pylint: disable=arguments-differ
+    # pylint: disable=arguments-differ
+    def _prepare_matrix_operators(self, driver) -> Tuple[dict, int]:  # type: ignore
         data = self._gsc.transformation.build_hopping_operators(self._excitations)
         _, _, excitation_indices = data
 

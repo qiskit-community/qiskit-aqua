@@ -27,7 +27,7 @@ def delta(p, r):
     return 0
 
 
-def commutator_adj_nor(n: int, Emu: List, Enu: List) -> Tuple[FermionicOperatorNBody, int]:
+def commutator_adj_nor(n: int, Emu: List, Enu: List) -> Tuple[FermionicOperatorNBody, List]:
     """
     Args:
       n [int]:    number of orbitals
@@ -38,11 +38,11 @@ def commutator_adj_nor(n: int, Emu: List, Enu: List) -> Tuple[FermionicOperatorN
       V_{IJ} = (Psi|[dag(E_I),E_J]|Psi)
 
     Returns:
-        Tuple FermionicOperatorNBody and index
+        Tuple FermionicOperatorNBody and list
     """
 
     hs = np.array([None]*4)
-    idx = [None]*4
+    idx = np.array([None]*4)
     if len(Emu) == 2 and len(Enu) == 2:
         a, i = Emu
         b, j = Enu
@@ -103,7 +103,7 @@ def commutator_adj_nor(n: int, Emu: List, Enu: List) -> Tuple[FermionicOperatorN
 
 
 # pylint: disable=unused-argument
-def commutator_adj_adj(n: int, Emu: List, Enu: List) -> Tuple[FermionicOperatorNBody, int]:
+def commutator_adj_adj(n: int, Emu: List, Enu: List) -> Tuple[FermionicOperatorNBody, List]:
     """
     Args:
       n: number of orbitals
@@ -114,10 +114,10 @@ def commutator_adj_adj(n: int, Emu: List, Enu: List) -> Tuple[FermionicOperatorN
       W_{IJ} = (Psi|[dag(E_I),dag(E_J)]|Psi)
 
     Returns:
-          Tuple FermionicOperatorNBody and index
+          Tuple FermionicOperatorNBody and list
     """
-    hs = [None]*4
-    idx = [None]*4
+    hs = np.array([None] * 4)
+    idx = np.array([None] * 4)
     # if len(Emu) == 2 and len(Enu) == 2:
     #   a, i = Emu
     #   b, j = Enu
@@ -133,8 +133,8 @@ def commutator_adj_adj(n: int, Emu: List, Enu: List) -> Tuple[FermionicOperatorN
     return FermionicOperatorNBody(hs), idx
 
 
-def triple_commutator_adj_onebody_nor(n: int, Emu: List, Enu: List, H: float) \
-        -> Tuple[FermionicOperatorNBody, int]:
+def triple_commutator_adj_onebody_nor(n: int, Emu: List, Enu: List, H: np.ndarray) \
+        -> Tuple[FermionicOperatorNBody, List]:
     """
     Args:
       n: number of orbitals
@@ -145,10 +145,10 @@ def triple_commutator_adj_onebody_nor(n: int, Emu: List, Enu: List, H: float) \
       M_{IJ} = (Psi|[dag(E_I),H,E_J]|Psi)
 
     Returns:
-          Tuple FermionicOperatorNBody and index
+          Tuple FermionicOperatorNBody and list
     """
     hs = np.array([None] * 4)
-    idx = [None]*4
+    idx = np.array([None]*4)
     if len(Emu) == 2 and len(Enu) == 2:
         a, i = Emu
         b, j = Enu
@@ -384,7 +384,7 @@ def triple_commutator_adj_onebody_nor(n: int, Emu: List, Enu: List, H: float) \
     return FermionicOperatorNBody(hs), idx
 
 
-def triple_commutator_adj_onebody_adj(n, Emu, Enu, H) -> Tuple[FermionicOperatorNBody, int]:
+def triple_commutator_adj_onebody_adj(n, Emu, Enu, H) -> Tuple[FermionicOperatorNBody, List]:
     """
     Args:
       n [int]:          number of orbitals
@@ -395,10 +395,10 @@ def triple_commutator_adj_onebody_adj(n, Emu, Enu, H) -> Tuple[FermionicOperator
       Q_{IJ} = (Psi|[dag(E_I),H,dag(E_J)]|Psi)
 
     Returns:
-        Tuple FermionicOperatorNBody and index
+        Tuple FermionicOperatorNBody and list
     """
     hs = np.array([None] * 4)
-    idx = [None]*4
+    idx = np.array([None]*4)
     if len(Emu) == 2 and len(Enu) == 2:
         a, i = Emu
         b, j = Enu
@@ -448,7 +448,7 @@ def triple_commutator_adj_onebody_adj(n, Emu, Enu, H) -> Tuple[FermionicOperator
     return FermionicOperatorNBody(hs), idx
 
 
-def triple_commutator_adj_twobody_nor(n, Emu, Enu, H) -> Tuple[FermionicOperatorNBody, int]:
+def triple_commutator_adj_twobody_nor(n, Emu, Enu, H) -> Tuple[FermionicOperatorNBody, List]:
     """
     Args:
       n [int]:          number of orbitals
@@ -460,10 +460,10 @@ def triple_commutator_adj_twobody_nor(n, Emu, Enu, H) -> Tuple[FermionicOperator
       M_{IJ} = (Psi|[dag(E_I),H,E_J]|Psi)
 
     Returns:
-        Tuple FermionicOperatorNBody and index
+        Tuple FermionicOperatorNBody and list
     """
     hs = np.array([None] * 4)
-    idx = [None]*4
+    idx = np.array([None]*4)
     if len(Emu) == 2 and len(Enu) == 2:
         a, i = Emu
         b, j = Enu
@@ -1411,7 +1411,7 @@ def triple_commutator_adj_twobody_nor(n, Emu, Enu, H) -> Tuple[FermionicOperator
     return FermionicOperatorNBody(hs), idx
 
 
-def triple_commutator_adj_twobody_adj(n, Emu, Enu, H) -> Tuple[FermionicOperatorNBody, int]:
+def triple_commutator_adj_twobody_adj(n, Emu, Enu, H) -> Tuple[FermionicOperatorNBody, List]:
     """
     Args:
       n [int]:          number of orbitals
@@ -1423,10 +1423,10 @@ def triple_commutator_adj_twobody_adj(n, Emu, Enu, H) -> Tuple[FermionicOperator
       Q_{IJ} = (Psi|[dag(E_I),H,dag(E_J)]|Psi)
 
     Returns:
-        Tuple FermionicOperatorNBody and index
+        Tuple FermionicOperatorNBody and list
     """
     hs = np.array([None] * 4)
-    idx = [None]*4
+    idx = np.array([None]*4)
     if len(Emu) == 2 and len(Enu) == 2:
         a, i = Emu
         b, j = Enu

@@ -282,20 +282,24 @@ class FermionicOperatorNBody:
         for m, h in enumerate(self._hs):
             if h is not None:
                 if idx[m] is None:
-                    results = parallel_map(FermionicOperatorNBody._n_body_mapping,
-                                           [FermionicOperatorNBody._prep_mapping(h[indexes], a_list,
-                                                                                 indexes)
-                                            for indexes in list(
-                                               itertools.product(range(n), repeat=len(h.shape)))
-                                            if h[indexes] != 0],
-                                           num_processes=aqua_globals.num_processes)
+                    results = \
+                        parallel_map(FermionicOperatorNBody._n_body_mapping,
+                                     [FermionicOperatorNBody._prep_mapping(h[indexes],
+                                                                           a_list,
+                                                                           indexes)
+                                      for indexes in list(itertools.product(range(n),
+                                                                            repeat=len(h.shape)))
+                                      if h[indexes] != 0],
+                                     num_processes=aqua_globals.num_processes)
                 else:
-                    results = parallel_map(FermionicOperatorNBody._n_body_mapping,
-                                           [FermionicOperatorNBody._prep_mapping(h[indexes], a_list,
-                                                                                 indexes)
-                                            for indexes in idx[m]
-                                            if np.abs(h[indexes]) > threshold],
-                                           num_processes=aqua_globals.num_processes)
+                    results = \
+                        parallel_map(FermionicOperatorNBody._n_body_mapping,
+                                     [FermionicOperatorNBody._prep_mapping(h[indexes],
+                                                                           a_list,
+                                                                           indexes)
+                                      for indexes in idx[m]
+                                      if np.abs(h[indexes]) > threshold],
+                                     num_processes=aqua_globals.num_processes)
                 for result in results:
                     pauli_list += result
 
