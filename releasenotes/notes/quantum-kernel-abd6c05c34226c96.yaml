@@ -1,0 +1,11 @@
+---
+features:
+  - |
+    Introduced new ``QuantumKernel`` class that computes a kernel matrix given
+    datapoints x and y and feature map f, all of n dimension. This matrix
+    can then be used in classical machine learning algorithms in ``sklearn``
+deprecations:
+  - |
+    Deprecate the ``QSVM`` algorithm, to be removed in a future release.
+    Use ``QuantumKernel`` class to estimate quantum kernel and use
+    `sklearn.svm.SVC` support vector machine implemetation for classification.
