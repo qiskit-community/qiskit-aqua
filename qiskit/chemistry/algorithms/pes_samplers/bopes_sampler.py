@@ -117,7 +117,7 @@ class BOPESSampler:
         for key in self._raw_results:
             energy = self._raw_results[key].computed_energies[0] + \
                      self._raw_results[key].nuclear_repulsion_energy + \
-                     self._raw_results[key].frozen_extracted_energy if self._frozen_energy else 0
+                     (self._raw_results[key].frozen_extracted_energy if self._frozen_energy else 0)
             self._energies.append(energy)
 
         result = BOPESSamplerResult(self._points, self._energies, self._raw_results)

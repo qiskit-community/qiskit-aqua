@@ -20,14 +20,16 @@ from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua import aqua_globals
 from qiskit.aqua.algorithms import VQE, NumPyMinimumEigensolver
-from qiskit.aqua.components.optimizers import AQGD
+from qiskit.aqua.components.optimizers import AQGD, SLSQP
 from qiskit.aqua.operators import PauliExpectation
+from qiskit.chemistry.algorithms import VQEUCCSDFactory
 from qiskit.chemistry.algorithms.pes_samplers.bopes_sampler import BOPESSampler
 from qiskit.chemistry.circuit.library import HartreeFock
 from qiskit.chemistry.drivers import Molecule, PySCFDriver
 from qiskit.chemistry.algorithms.ground_state_solvers import GroundStateEigensolver
 from qiskit.chemistry.algorithms.pes_samplers.potentials.morse_potential import MorsePotential
-from qiskit.chemistry.transformations import FermionicTransformation
+from qiskit.chemistry.transformations import FermionicTransformation, FermionicTransformationType, \
+    FermionicQubitMappingType
 from qiskit.circuit.library import RealAmplitudes
 
 
@@ -134,6 +136,52 @@ class TestBOPES(unittest.TestCase):
 
         np.testing.assert_array_almost_equal([pot.alpha, pot.r_0], [2.235, 0.720], decimal=3)
         np.testing.assert_array_almost_equal([pot.d_e, pot.m_shift], [0.2107, -1.1419], decimal=3)
+
+    def test_frozen_energy(self):
+        """Evaluate BOPES with addition of frozen_state_energy to total energy. """
+        distance = partial(Molecule.absolute_distance, atom_pair=(1, 0))
+        mol = Molecule(geometry=[('Li', [0., 0., 0.]),
+                                 ('H', [0., 0., 0.5])],
+                       degrees_of_freedom=[distance],
+                       )
+
+        driver = PySCFDriver(molecule=mol)
+
+        backend = BasicAer.get_backend('statevector_simulator')
+        quantum_instance = QuantumInstance(backend, shots=1, noise_model=None)
+
+        optimizer = SLSQP(maxiter=200, disp=True)
+
+        solver = VQEUCCSDFactory(quantum_instance, optimizer=optimizer)
+
+        transformation_type = FermionicTransformationType.FULL
+        mapping = FermionicQubitMappingType.JORDAN_WIGNER
+        reduction = False
+        freeze_core = True
+        orbital_reduction = [-3, -2]
+
+        transformation = FermionicTransformation(
+            transformation=transformation_type,
+            qubit_mapping=mapping,
+            two_qubit_reduction=reduction,
+            freeze_core=freeze_core,
+            orbital_reduction=orbital_reduction,
+            z2symmetry_reduction=None)
+
+        gsc = GroundStateEigensolver(transformation, solver)
+
+        points = [0.5, 0.8, 4]
+
+        pes = BOPESSampler(
+            gss=gsc,
+            bootstrap=False,
+            frozen_extracted_energy=True
+        )
+
+        results = pes.sample(driver, points)
+
+        np.testing.assert_array_almost_equal(results.points, points)
+        np.testing.assert_array_almost_equal(results.energies, [-7.0397324, -7.6309782, -7.7839183])
 
 
 if __name__ == "__main__":
