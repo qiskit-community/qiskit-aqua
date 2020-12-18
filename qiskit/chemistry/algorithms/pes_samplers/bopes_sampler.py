@@ -35,7 +35,8 @@ class BOPESSampler:
                  tolerance: float = 1e-3,
                  bootstrap: bool = True,
                  num_bootstrap: Optional[int] = None,
-                 extrapolator: Optional[Extrapolator] = None) -> None:
+                 extrapolator: Optional[Extrapolator] = None,
+                 frozen_extracted_energy: bool = False) -> None:
         """
         Args:
             gss: GroundStateSolver
@@ -48,6 +49,7 @@ class BOPESSampler:
                 all previous points will be used for bootstrapping.
             extrapolator: Extrapolator objects that define space/window
                            and method to extrapolate variational parameters.
+            frozen_extracted_energy: should frozen_extracted_energy be added to total energy
 
         Raises:
             AquaError: If ``num_boostrap`` is an integer smaller than 2, or
@@ -65,6 +67,7 @@ class BOPESSampler:
         self._points_optparams = None   # type: Optional[Dict[float, List[float]]]
         self._num_bootstrap = num_bootstrap
         self._extrapolator = extrapolator
+        self._frozen_energy = frozen_extracted_energy
 
         if self._extrapolator:
             if num_bootstrap is None:
@@ -113,7 +116,8 @@ class BOPESSampler:
         self._energies = []
         for key in self._raw_results:
             energy = self._raw_results[key].computed_energies[0] + \
-                     self._raw_results[key].nuclear_repulsion_energy
+                     self._raw_results[key].nuclear_repulsion_energy + \
+                     self._raw_results[key].frozen_extracted_energy if self._frozen_energy else 0
             self._energies.append(energy)
 
         result = BOPESSamplerResult(self._points, self._energies, self._raw_results)
