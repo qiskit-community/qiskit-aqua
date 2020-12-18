@@ -106,13 +106,15 @@ class TestQuantumKernelEvaluate(QiskitAquaTestCase):
                                         [3.14159265, 4.08407045],
                                         [4.08407045, 2.26194671],
                                         [4.46106157, 2.38761042]])
-        self.label_train = np.asarray([0, 0, 1, 1])
 
         self.sample_test = np.asarray([[3.83274304, 2.45044227],
                                        [3.89557489, 0.31415927]])
-        self.label_test = np.asarray([0, 1])
+
+        self.sample_feature_dim = np.asarray([[1,2,3], [4,5,6]])
+        self.sample_more_dim = np.asarray([[[0,0], [1,1]]])
 
         self.ref_kernel_train = {
+            'one_dim': np.array([[1.]]),
             'qasm': np.array([[1.000000, 0.856583, 0.120417, 0.358833],
                               [0.856583, 1.000000, 0.113167, 0.449250],
                               [0.120417, 0.113167, 1.000000, 0.671500],
@@ -132,6 +134,8 @@ class TestQuantumKernelEvaluate(QiskitAquaTestCase):
         }
 
         self.ref_kernel_test = {
+            'one_y_dim': np.array([[0.144395], [0.181701], [0.474796], [0.146918]]),
+            'one_xy_dim': np.array([[0.144395]]),
             'qasm': np.array([[0.140667, 0.327833],
                               [0.177750, 0.371750],
                               [0.467833, 0.018417],
@@ -197,6 +201,33 @@ class TestQuantumKernelEvaluate(QiskitAquaTestCase):
 
         np.testing.assert_allclose(kernel, self.ref_kernel_train['qasm_sample_psd'], rtol=1e-4)
 
+    def test_x_one_dim(self):
+        """ Test one x_vec dimension """
+        qkclass = QuantumKernel(feature_map=self.feature_map,
+                                quantum_instance=self.statevector_simulator)
+
+        kernel = qkclass.evaluate(x_vec=self.sample_train[0])
+
+        np.testing.assert_allclose(kernel, self.ref_kernel_train['one_dim'], rtol=1e-4)
+
+    def test_y_one_dim(self):
+        """ Test one y_vec dimension """
+        qkclass = QuantumKernel(feature_map=self.feature_map,
+                                quantum_instance=self.statevector_simulator)
+
+        kernel = qkclass.evaluate(x_vec=self.sample_train,y_vec=self.sample_test[0])
+
+        np.testing.assert_allclose(kernel, self.ref_kernel_test['one_y_dim'], rtol=1e-4)
+
+    def test_xy_one_dim(self):
+        """ Test one y_vec dimension """
+        qkclass = QuantumKernel(feature_map=self.feature_map,
+                                quantum_instance=self.statevector_simulator)
+
+        kernel = qkclass.evaluate(x_vec=self.sample_train[0],y_vec=self.sample_test[0])
+
+        np.testing.assert_allclose(kernel, self.ref_kernel_test['one_xy_dim'], rtol=1e-4)
+
     def test_no_backend(self):
         """ Test no backend provided """
         qkclass = QuantumKernel(feature_map=self.feature_map)
@@ -204,21 +235,37 @@ class TestQuantumKernelEvaluate(QiskitAquaTestCase):
         with self.assertRaises(AquaError):
             _ = qkclass.evaluate(x_vec=self.sample_train)
 
-    def test_xdim(self):
+    def test_x_more_dim(self):
         """ Test incorrect x_vec dimension """
         qkclass = QuantumKernel(feature_map=self.feature_map,
                                 quantum_instance=self.qasm_simulator)
 
         with self.assertRaises(ValueError):
-            _ = qkclass.evaluate(x_vec=self.label_train)
+            _ = qkclass.evaluate(x_vec=self.sample_more_dim)
 
-    def test_ydim(self):
+    def test_y_more_dim(self):
         """ Test incorrect y_vec dimension """
         qkclass = QuantumKernel(feature_map=self.feature_map,
                                 quantum_instance=self.qasm_simulator)
 
         with self.assertRaises(ValueError):
-            _ = qkclass.evaluate(x_vec=self.sample_train, y_vec=self.label_train)
+            _ = qkclass.evaluate(x_vec=self.sample_train, y_vec=self.sample_more_dim)
+
+    def test_x_feature_dim(self):
+        """ Test incorrect x_vec feature dimension """
+        qkclass = QuantumKernel(feature_map=self.feature_map,
+                                quantum_instance=self.qasm_simulator)
+
+        with self.assertRaises(ValueError):
+            _ = qkclass.evaluate(x_vec=self.sample_feature_dim)
+
+    def test_y_feature_dim(self):
+        """ Test incorrect y_vec feature dimension """
+        qkclass = QuantumKernel(feature_map=self.feature_map,
+                                quantum_instance=self.qasm_simulator)
+
+        with self.assertRaises(ValueError):
+            _ = qkclass.evaluate(x_vec=self.sample_train, y_vec=self.sample_feature_dim)
 
 
 class TestQuantumKernelConstructCircuit(QiskitAquaTestCase):

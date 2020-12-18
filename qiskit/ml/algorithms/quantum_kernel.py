@@ -171,10 +171,10 @@ class QuantumKernel:
         then perform inner product classically.
 
         Args:
-            x_vec: 2D array of datapoints, NxD, where N is the number of datapoints,
-                                                      D is the feature dimension
-            y_vec: 2D array of datapoints, MxD, where M is the number of datapoints,
-                                                      D is the feature dimension
+            x_vec: 1D or 2D array of datapoints, NxD, where N is the number of datapoints,
+                                                            D is the feature dimension
+            y_vec: 1D or 2D array of datapoints, MxD, where M is the number of datapoints,
+                                                            D is the feature dimension
 
         Returns:
             2D matrix, NxM
@@ -183,7 +183,7 @@ class QuantumKernel:
             AquaError:
                 - A quantum instance or backend has not been provided to the class
             ValueError:
-                - x_vec and/or y_vec are not two dimensional arrays
+                - x_vec and/or y_vec are not one or two dimensional arrays
                 - x_vec and/or y_vec have incompatible dimension with feature map
         """
         if self._quantum_instance is None:
@@ -197,11 +197,17 @@ class QuantumKernel:
         if y_vec is not None and not isinstance(y_vec, np.ndarray):
             y_vec = np.asarray(y_vec)
 
-        if x_vec.ndim != 2:
-            raise ValueError("x_vec must be a 2D array")
+        if x_vec.ndim > 2:
+            raise ValueError("x_vec must be a 1D or 2D array")
 
-        if y_vec is not None and y_vec.ndim != 2:
-            raise ValueError("y_vec must be a 2D array")
+        if x_vec.ndim == 1:
+            x_vec = np.reshape(x_vec, (-1, 2))
+
+        if y_vec is not None and y_vec.ndim > 2:
+            raise ValueError("y_vec must be a 1D or 2D array")
+
+        if y_vec is not None and y_vec.ndim == 1:
+            y_vec = np.reshape(y_vec, (-1, 2))
 
         if x_vec.shape[1] != self._feature_map.num_parameters:
             raise ValueError("x_vec and class feature map incompatible dimensions.\n" +
