@@ -110,8 +110,8 @@ class TestQuantumKernelEvaluate(QiskitAquaTestCase):
         self.sample_test = np.asarray([[3.83274304, 2.45044227],
                                        [3.89557489, 0.31415927]])
 
-        self.sample_feature_dim = np.asarray([[1,2,3], [4,5,6]])
-        self.sample_more_dim = np.asarray([[[0,0], [1,1]]])
+        self.sample_feature_dim = np.asarray([[1, 2, 3], [4, 5, 6]])
+        self.sample_more_dim = np.asarray([[[0, 0], [1, 1]]])
 
         self.ref_kernel_train = {
             'one_dim': np.array([[1.]]),
@@ -215,7 +215,7 @@ class TestQuantumKernelEvaluate(QiskitAquaTestCase):
         qkclass = QuantumKernel(feature_map=self.feature_map,
                                 quantum_instance=self.statevector_simulator)
 
-        kernel = qkclass.evaluate(x_vec=self.sample_train,y_vec=self.sample_test[0])
+        kernel = qkclass.evaluate(x_vec=self.sample_train, y_vec=self.sample_test[0])
 
         np.testing.assert_allclose(kernel, self.ref_kernel_test['one_y_dim'], rtol=1e-4)
 
@@ -224,7 +224,7 @@ class TestQuantumKernelEvaluate(QiskitAquaTestCase):
         qkclass = QuantumKernel(feature_map=self.feature_map,
                                 quantum_instance=self.statevector_simulator)
 
-        kernel = qkclass.evaluate(x_vec=self.sample_train[0],y_vec=self.sample_test[0])
+        kernel = qkclass.evaluate(x_vec=self.sample_train[0], y_vec=self.sample_test[0])
 
         np.testing.assert_allclose(kernel, self.ref_kernel_test['one_xy_dim'], rtol=1e-4)
 
