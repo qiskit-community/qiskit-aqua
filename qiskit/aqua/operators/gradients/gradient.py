@@ -36,11 +36,10 @@ except ImportError:
 
 class Gradient(GradientBase):
     """Convert an operator expression to the first-order gradient."""
-
+    # pylint: disable=signature-differs
     def convert(self,
                 operator: OperatorBase,
-                params: Optional[Union[ParameterVector, ParameterExpression,
-                                       List[ParameterExpression]]] = None
+                params: Union[ParameterVector, ParameterExpression, List[ParameterExpression]]
                 ) -> OperatorBase:
         r"""
         Args:
@@ -53,9 +52,6 @@ class Gradient(GradientBase):
         Raises:
             ValueError: If ``params`` contains a parameter not present in ``operator``.
         """
-
-        if params is None:
-            raise ValueError("No parameters were provided to differentiate")
 
         if isinstance(params, (ParameterVector, list)):
             param_grads = [self.convert(operator, param) for param in params]

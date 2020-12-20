@@ -35,8 +35,7 @@ class OverlapDiag(CircuitQFI):
 
     def convert(self,
                 operator: Union[CircuitOp, CircuitStateFn],
-                params: Optional[Union[ParameterExpression, ParameterVector,
-                                       List[ParameterExpression]]] = None
+                params: Union[ParameterExpression, ParameterVector, List[ParameterExpression]]
                 ) -> ListOp:
         r"""
         Args:
@@ -62,7 +61,7 @@ class OverlapDiag(CircuitQFI):
     # This should be fixed.
     def _diagonal_approx(self,
                          operator: Union[CircuitOp, CircuitStateFn],
-                         params: Union[ParameterExpression, ParameterVector, List] = None
+                         params: Union[ParameterExpression, ParameterVector, List]
                          ) -> OperatorBase:
         """
         Args:
@@ -83,6 +82,10 @@ class OverlapDiag(CircuitQFI):
 
         if not isinstance(operator, CircuitStateFn):
             raise NotImplementedError('operator must be a CircuitStateFn')
+
+        # If a single parameter is given wrap it into a list.
+        if isinstance(params, ParameterExpression):
+            params = [params]
 
         circuit = operator.primitive
 

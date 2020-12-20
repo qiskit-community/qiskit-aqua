@@ -33,11 +33,10 @@ class QFI(QFIBase):
             − \langle\partial_k \psi | \psi \rangle \langle\psi | \partial_l \psi \rangle].
 
     """
-
+    # pylint: disable=signature-differs
     def convert(self,
                 operator: CircuitStateFn,
-                params: Optional[Union[ParameterExpression, ParameterVector,
-                                       List[ParameterExpression]]] = None
+                params: Union[ParameterVector, ParameterExpression, List[ParameterExpression]]
                 ) -> ListOp:
         r"""
         Args:

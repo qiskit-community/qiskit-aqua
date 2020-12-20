@@ -14,7 +14,7 @@
 
 import logging
 from abc import abstractmethod
-from typing import List, Union, Optional, Tuple
+from typing import List, Union, Tuple
 
 from qiskit.aqua.operators.converters.converter_base import ConverterBase
 from qiskit.aqua.operators.operator_base import OperatorBase
@@ -41,11 +41,10 @@ class CircuitGradient(ConverterBase):
     @abstractmethod
     def convert(self,
                 operator: OperatorBase,
-                params: Optional[Union[ParameterExpression, ParameterVector,
-                                       List[ParameterExpression],
-                                       Tuple[ParameterExpression, ParameterExpression],
-                                       List[Tuple[ParameterExpression, ParameterExpression]]]]
-                = None,
+                params: Union[ParameterExpression, ParameterVector,
+                              List[ParameterExpression],
+                              Tuple[ParameterExpression, ParameterExpression],
+                              List[Tuple[ParameterExpression, ParameterExpression]]]
                 ) -> OperatorBase:
         r"""
         Args:

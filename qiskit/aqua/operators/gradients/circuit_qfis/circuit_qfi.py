@@ -39,8 +39,7 @@ class CircuitQFI(ConverterBase):
     @abstractmethod
     def convert(self,
                 operator: OperatorBase,
-                params: Optional[Union[ParameterExpression, ParameterVector,
-                                       List[ParameterExpression]]] = None,
+                params: Union[ParameterExpression, ParameterVector, List[ParameterExpression]]
                 ) -> OperatorBase:
         r"""
         Args:

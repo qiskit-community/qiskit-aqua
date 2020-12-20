@@ -15,7 +15,7 @@
 from collections.abc import Iterable
 from copy import deepcopy
 from functools import partial
-from typing import List, Union, Optional, Tuple, Dict
+from typing import List, Union, Tuple, Dict
 
 import numpy as np
 from qiskit import transpile, QuantumCircuit
@@ -72,14 +72,13 @@ class ParamShift(CircuitGradient):
         """
         return self._epsilon
 
-    # pylint: disable=arguments-differ
     def convert(self,
                 operator: OperatorBase,
-                params: Optional[Union[ParameterExpression, ParameterVector,
-                                       List[ParameterExpression],
-                                       Tuple[ParameterExpression, ParameterExpression],
-                                       List[Tuple[ParameterExpression,
-                                                  ParameterExpression]]]] = None) -> OperatorBase:
+                params: Union[ParameterExpression, ParameterVector,
+                              List[ParameterExpression],
+                              Tuple[ParameterExpression, ParameterExpression],
+                              List[Tuple[ParameterExpression, ParameterExpression]]]
+                ) -> OperatorBase:
         """
         Args:
             operator: The operator corresponding to our quantum state we are taking the

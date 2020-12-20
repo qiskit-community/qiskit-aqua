@@ -40,8 +40,7 @@ class LinCombFull(CircuitQFI):
 
     def convert(self,
                 operator: CircuitStateFn,
-                params: Optional[Union[ParameterExpression, ParameterVector,
-                                       List[ParameterExpression]]] = None,
+                params: Union[ParameterExpression, ParameterVector, List[ParameterExpression]]
                 ) -> ListOp:
         r"""
         Args:
@@ -69,8 +68,9 @@ class LinCombFull(CircuitQFI):
                 'LinCombFull is only compatible with states that are given as CircuitStateFn')
 
         # If a single parameter is given wrap it into a list.
-        if not isinstance(params, (list, np.ndarray)):
+        if isinstance(params, ParameterExpression):
             params = [params]
+
         state_qc = operator.primitive
 
         # First, the operators are computed which can compensate for a potential phase-mismatch
