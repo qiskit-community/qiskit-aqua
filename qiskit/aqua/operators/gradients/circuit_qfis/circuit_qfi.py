@@ -13,7 +13,7 @@
 """ CircuitQFI Class """
 
 from abc import abstractmethod
-from typing import List, Optional, Union
+from typing import List, Union
 
 from qiskit.aqua.operators.converters.converter_base import ConverterBase
 from qiskit.aqua.operators.operator_base import OperatorBase

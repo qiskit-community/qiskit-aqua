@@ -13,7 +13,7 @@
 """The module for Quantum the Fisher Information."""
 
 from copy import deepcopy
-from typing import List, Union, Optional, Tuple
+from typing import List, Union, Tuple
 
 import numpy as np
 from qiskit.aqua import AquaError

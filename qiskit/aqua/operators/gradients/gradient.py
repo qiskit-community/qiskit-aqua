@@ -12,7 +12,7 @@
 
 """The base interface for Aqua's gradient."""
 
-from typing import Union, List, Optional
+from typing import Union, List
 
 import numpy as np
 from qiskit.aqua import AquaError

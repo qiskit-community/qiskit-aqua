@@ -144,8 +144,6 @@ class ParamShift(CircuitGradient):
         # By this point, it's only one parameter
         param = params
 
-        if not isinstance(param, ParameterExpression):
-            raise ValueError
         if isinstance(operator, ListOp) and not isinstance(operator, ComposedOp):
             return_op = operator.traverse(partial(self._parameter_shift, params=param))
 

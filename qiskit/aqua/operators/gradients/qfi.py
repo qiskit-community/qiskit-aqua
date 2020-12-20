@@ -12,7 +12,7 @@
 
 """The module for Quantum the Fisher Information."""
 
-from typing import List, Union, Optional
+from typing import List, Union
 
 from qiskit.aqua.operators import ListOp
 from qiskit.aqua.operators.expectations import PauliExpectation

@@ -12,7 +12,7 @@
 
 """The module to compute Hessians."""
 
-from typing import Optional, Union, List, Tuple
+from typing import Union, List, Tuple
 
 import numpy as np
 from qiskit.aqua.aqua_globals import AquaError
@@ -50,9 +50,6 @@ class Hessian(HessianBase):
 
         Returns:
             OperatorBase: An operator whose evaluation yields the Hessian
-
-        Raises:
-            ValueError: If `params` is not set.
         """
         # if input is a tuple instead of a list, wrap it into a list
         if isinstance(params, (ParameterVector, list)):

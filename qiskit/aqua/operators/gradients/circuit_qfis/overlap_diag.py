@@ -12,7 +12,7 @@
 
 """The module for Quantum the Fisher Information."""
 import copy
-from typing import List, Union, Optional
+from typing import List, Union
 
 import numpy as np
 from qiskit.aqua.operators import OperatorBase, ListOp, CircuitOp
