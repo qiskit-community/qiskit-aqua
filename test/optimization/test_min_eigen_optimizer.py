@@ -151,6 +151,7 @@ class TestMinEigenOptimizer(QiskitOptimizationTestCase):
         penalize = LinearEqualityToPenalty()
         converters = [ineq2eq, int2bin, penalize]
         min_eigen_optimizer = MinimumEigenOptimizer(min_eigen_solver, converters=converters)
+        result = min_eigen_optimizer.solve(op)
         self.assertEqual(result.fval, 4)
         with self.assertRaises(TypeError):
             invalid = [qp2qubo, "invalid converter"]

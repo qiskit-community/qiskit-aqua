@@ -1,0 +1,4 @@
+---
+features:
+  - |
+    Enable compatibility of NaturalGradient with generic loss functions which are given as ListOps of StateFns with a combo_fn
