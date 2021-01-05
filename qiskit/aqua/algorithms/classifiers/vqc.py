@@ -106,7 +106,7 @@ class VQC(VQAlgorithm):
         super().__init__(
             var_form=var_form,
             optimizer=optimizer,
-            cost_fn=self.loss,
+            cost_fn=self._loss,
             quantum_instance=quantum_instance
         )
         self._batches = None
@@ -330,7 +330,7 @@ class VQC(VQAlgorithm):
 
         result = self.find_minimum(initial_point=self.initial_point,
                                    var_form=self.var_form,
-                                   cost_fn=self.loss,
+                                   cost_fn=self._loss,
                                    optimizer=self.optimizer,
                                    gradient_fn=grad_fn)
 
@@ -366,18 +366,18 @@ class VQC(VQAlgorithm):
             numpy.ndarray: 1-d array with the same shape as theta. The  gradient computed
         """
         epsilon = 1e-8
-        f_orig = self.loss(theta)
+        f_orig = self._loss(theta)
         grad = np.zeros((len(theta),), float)
         for k, _ in enumerate(theta):
             theta[k] += epsilon
-            f_new = self.loss(theta)
+            f_new = self._loss(theta)
             grad[k] = (f_new - f_orig) / epsilon
             theta[k] -= epsilon  # recover to the center state
         if self.is_gradient_really_supported():
             self._batch_index += 1  # increment the batch after gradient callback
         return grad
 
-    def loss(self, theta):
+    def _loss(self, theta):
         """Compute the loss over the current batch given a set of parameter
         values.
 
