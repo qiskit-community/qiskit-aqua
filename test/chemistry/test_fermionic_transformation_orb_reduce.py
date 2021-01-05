@@ -55,7 +55,7 @@ class TestFermionicTransformationOrbReduce(QiskitChemistryTestCase):
         self.assertTrue(isinstance(qubit_op, OperatorBase))
         self.assertIsNotNone(qubit_op)
         self.assertEqual(qubit_op.num_qubits, num_qubits)
-        self.assertEqual(len(qubit_op.oplist), num_paulis)
+        self.assertEqual(len(qubit_op), num_paulis)
 
     def test_output(self):
         """ output test """

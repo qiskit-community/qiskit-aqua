@@ -16,7 +16,8 @@ import logging
 import math
 from typing import List, Optional, Union
 
-import qiskit.optimization.algorithms  # pylint: disable=unused-import
+import numpy as np
+
 from .quadratic_program_converter import QuadraticProgramConverter
 from ..exceptions import QiskitOptimizationError
 from ..problems.constraint import Constraint
@@ -374,36 +375,24 @@ class InequalityToEquality(QuadraticProgramConverter):
             )
         return lhs_lb, lhs_ub
 
-    def interpret(self, result: 'qiskit.optimization.algorithms.OptimizationResult') \
-            -> 'qiskit.optimization.algorithms.OptimizationResult':  # type: ignore
+    def interpret(self, x: Union[np.ndarray, List[float]]) -> np.ndarray:
         """Convert a result of a converted problem into that of the original problem.
 
         Args:
-            result: The result of the converted problem or the given result in case of FAILURE.
+            x: The result of the converted problem or the given result in case of FAILURE.
 
         Returns:
             The result of the original problem.
         """
-        # pylint: disable=cyclic-import
-        from ..algorithms.optimization_algorithm import OptimizationResult
-
-        if result.x is None:
-            return result
-
         # convert back the optimization result into that of the original problem
-        names = [x.name for x in self._dst.variables]
-        new_x = self._interpret_var(names, result.x)
-        return OptimizationResult(x=new_x, fval=result.fval, variables=self._src.variables,
-                                  status=result.status, raw_results=result.raw_results)
+        names = [var.name for var in self._dst.variables]
 
-    def _interpret_var(self, names, vals) -> List[int]:
         # interpret slack variables
-        sol = {name: vals[i] for i, name in enumerate(names)}
-
-        new_vals = []
-        for x in self._src.variables:
-            new_vals.append(sol[x.name])
-        return new_vals
+        sol = {name: x[i] for i, name in enumerate(names)}
+        new_x = np.zeros(self._src.get_num_vars())
+        for i, var in enumerate(self._src.variables):
+            new_x[i] = sol[var.name]
+        return new_x
 
     @staticmethod
     def _contains_any_float_value(values: List[Union[int, float]]) -> bool:
