@@ -243,8 +243,6 @@ jobs:
             source "$HOME/miniconda/etc/profile.d/conda.sh"
             conda activate
             pip install https://github.com/rpmuller/pyquante2/archive/master.zip
-            # PSI4 has problems with dataclasses
-            pip uninstall -y dataclasses
           fi
           pip install pyscf
         shell: bash
