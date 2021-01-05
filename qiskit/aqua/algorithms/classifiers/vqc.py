@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -385,7 +385,7 @@ class VQC(VQAlgorithm):
             theta (numpy.ndarray): array of parameter values.
 
         Returns:
-            (list): list of loss values.
+            list: list of loss values.
         """
         batch_index = self._batch_index % len(self._batches)
         predicted_probs, _ = self._get_prediction(self._batches[batch_index], theta)
