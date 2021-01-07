@@ -45,7 +45,7 @@ class IQPE(QuantumAlgorithm, MinimumEigensolver):
     """The Iterative Quantum Phase Estimation algorithm.
 
     IQPE, as its name suggests, iteratively computes the phase so as to require fewer qubits.
-    It takes has the same set of parameters as :class:`QPE`, except for the number of
+    It has the same set of parameters as :class:`QPE`, except for the number of
     ancillary qubits *num_ancillae*, being replaced by *num_iterations* and that
     an Inverse Quantum Fourier Transform (IQFT) is not used for IQPE.
 
