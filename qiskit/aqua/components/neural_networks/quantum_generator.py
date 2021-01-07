@@ -20,7 +20,7 @@ import numpy as np
 
 from qiskit import QuantumRegister, ClassicalRegister, QuantumCircuit
 from qiskit.circuit.library import TwoLocal
-from qiskit.aqua import aqua_globals
+from qiskit.aqua import AquaError, aqua_globals
 from qiskit.aqua.components.optimizers import ADAM
 from qiskit.aqua.components.optimizers import Optimizer
 from qiskit.aqua.components.uncertainty_models import UnivariateVariationalDistribution, \
@@ -85,9 +85,9 @@ class QuantumGenerator(GenerativeNetwork):
         if isinstance(generator_circuit, (UnivariateVariationalDistribution,
                                           MultivariateVariationalDistribution)):
             warnings.warn('Passing a UnivariateVariationalDistribution or MultivariateVariational'
-                          'Distribution is as ``generator_circuit`` is deprecated as of Aqua 0.8.0 '
+                          'Distribution as ``generator_circuit`` is deprecated as of Aqua 0.8.0 '
                           'and the support will be removed no earlier than 3 months after the '
-                          'release data. You should pass as QuantumCircuit instead.',
+                          'release data. You should pass a QuantumCircuit instead.',
                           DeprecationWarning, stacklevel=2)
             self._free_parameters = generator_circuit._var_form_params
             self.generator_circuit = generator_circuit._var_form
@@ -161,6 +161,22 @@ class QuantumGenerator(GenerativeNetwork):
             discriminator (Discriminator): Discriminator used to compute the loss function.
         """
         self._discriminator = discriminator
+
+    def set_optimizer(self, optimizer):
+        """
+        Set generator optimizer.
+
+        Args:
+            optimizer (Optimizer): optimzier to use with the generator.
+
+        Raises:
+            AquaError: invalid input.
+        """
+        if isinstance(optimizer, Optimizer):
+            self._optimizer = optimizer
+        else:
+            raise AquaError('Please pass an Optimizer object to use as the'
+                            'generator optimizer')
 
     def construct_circuit(self, params=None):
         """
