@@ -48,11 +48,11 @@ Algorithms and results
    MinimumEigenOptimizationResult
    MinimumEigenOptimizer
    OptimizationResultStatus
-   OptimizationSolutionSample
    RecursiveMinimumEigenOptimizationResult
    RecursiveMinimumEigenOptimizer
    SlsqpOptimizationResult
    SlsqpOptimizer
+   SolutionSample
 
 """
 

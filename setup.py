@@ -40,6 +40,7 @@ requirements = [
     "quandl",
     "yfinance",
     "retworkx>=0.5.0",
+    "dataclasses; python_version < '3.7'"
 ]
 
 if not hasattr(setuptools, 'find_namespace_packages') or not inspect.ismethod(setuptools.find_namespace_packages):

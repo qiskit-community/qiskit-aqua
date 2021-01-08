@@ -200,8 +200,8 @@ class TestMinEigenOptimizer(QiskitOptimizationTestCase):
         self.assertAlmostEqual(min(s.fval for s in result.samples), 0)
         self.assertAlmostEqual(min(s.fval for s in result.samples if s.status == SUCCESS), opt_sol)
         self.assertAlmostEqual(min(s.fval for s in result.raw_samples), opt_sol)
-        for s in result.raw_samples:
-            self.assertEqual(s.status, SUCCESS)
+        for sample in result.raw_samples:
+            self.assertEqual(sample.status, SUCCESS)
         np.testing.assert_array_almost_equal(result.x, result.samples[0].x)
         self.assertAlmostEqual(result.fval, result.samples[0].fval)
         self.assertEqual(result.status, result.samples[0].status)
@@ -239,8 +239,8 @@ class TestMinEigenOptimizer(QiskitOptimizationTestCase):
         self.assertAlmostEqual(max(s.fval for s in result.samples), 5)
         self.assertAlmostEqual(max(s.fval for s in result.samples if s.status == SUCCESS), opt_sol)
         self.assertAlmostEqual(max(s.fval for s in result.raw_samples), opt_sol)
-        for s in result.raw_samples:
-            self.assertEqual(s.status, SUCCESS)
+        for sample in result.raw_samples:
+            self.assertEqual(sample.status, SUCCESS)
         np.testing.assert_array_almost_equal(result.x, result.samples[0].x)
         self.assertAlmostEqual(result.fval, result.samples[0].fval)
         self.assertEqual(result.status, result.samples[0].status)
