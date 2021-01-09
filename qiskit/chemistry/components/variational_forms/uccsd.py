@@ -35,7 +35,7 @@ from qiskit.opflow import (
     PauliSumOp,
     PauliTrotterEvolution,
     Z2Symmetries,
-    Z2Taper,
+    TwoQubitReduction,
     commutator,
 )
 from qiskit.algorithms.variational_forms import VariationalForm
@@ -311,7 +311,7 @@ class UCCSD(VariationalForm):
         dummpy_fer_op = FermionicOperator(h1=h_1, h2=h_2)
         qubit_op = dummpy_fer_op.mapping(qubit_mapping)
         if two_qubit_reduction:
-            qubit_op = Z2Taper(num_particles).convert(qubit_op)
+            qubit_op = TwoQubitReduction(num_particles).convert(qubit_op)
 
         if not z2_symmetries.is_empty():
             symm_commuting = True

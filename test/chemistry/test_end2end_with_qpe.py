@@ -22,7 +22,7 @@ from qiskit.aqua.utils import decimal_to_binary
 from qiskit.utils import QuantumInstance
 from qiskit.algorithms import NumPyMinimumEigensolver
 from qiskit.aqua.algorithms import QPE
-from qiskit.opflow import Z2Symmetries
+from qiskit.opflow import TwoQubitReduction
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry import FermionicOperator, QiskitChemistryError
 from qiskit.chemistry.circuit.library import HartreeFock
@@ -51,7 +51,7 @@ class TestEnd2EndWithQPE(QiskitChemistryTestCase):
         fer_op = FermionicOperator(
             h1=molecule.one_body_integrals, h2=molecule.two_body_integrals)
         qubit_op = fer_op.mapping(map_type=qubit_mapping, threshold=1e-10)
-        qubit_op = Z2Symmetries.two_qubit_reduction(qubit_op, 2)
+        qubit_op = TwoQubitReduction(2).convert(qubit_op)
 
         exact_eigensolver = NumPyMinimumEigensolver(qubit_op)
         results = exact_eigensolver.run()

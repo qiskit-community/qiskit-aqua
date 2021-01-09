@@ -112,10 +112,10 @@ class TestEomEE(QiskitAquaTestCase):
 
         z2_symmetries = Z2Symmetries.find_Z2_symmetries(qubit_op)
         tapered_op = z2_symmetries.taper(qubit_op)[5]
-        z2_symmetries.tapering_values = [-1, 1, -1]
+
         eom_ee = QEomEE(tapered_op, num_orbitals=num_orbitals, num_particles=num_particles,
                         qubit_mapping=qubit_mapping, two_qubit_reduction=two_qubit_reduction,
-                        z2_symmetries=z2_symmetries, untapered_op=qubit_op)
+                        z2_symmetries=tapered_op.z2_symmetries, untapered_op=qubit_op)
         result = eom_ee.run()
         np.testing.assert_array_almost_equal(self.reference, result['energies'])
 

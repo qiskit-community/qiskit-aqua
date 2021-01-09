@@ -112,22 +112,21 @@ class TestEomVQE(QiskitAquaTestCase):
         z2_symmetries = Z2Symmetries.find_Z2_symmetries(qubit_op)
         # know the sector
         tapered_op = z2_symmetries.taper(qubit_op)[1]
-        z2_symmetries.tapering_values = [-1]
 
         initial_state = HartreeFock(num_orbitals=num_orbitals,
                                     num_particles=num_particles, qubit_mapping=qubit_mapping,
                                     two_qubit_reduction=two_qubit_reduction,
-                                    sq_list=z2_symmetries.sq_list)
+                                    sq_list=tapered_op.z2_symmetries.sq_list)
         var_form = UCCSD(num_orbitals=num_orbitals,
                          num_particles=num_particles, initial_state=initial_state,
                          qubit_mapping=qubit_mapping, two_qubit_reduction=two_qubit_reduction,
-                         z2_symmetries=z2_symmetries)
+                         z2_symmetries=tapered_op.z2_symmetries)
         optimizer = SPSA(maxiter=50)
 
         eom_vqe = QEomVQE(tapered_op, var_form, optimizer, num_orbitals=num_orbitals,
                           num_particles=num_particles, qubit_mapping=qubit_mapping,
                           two_qubit_reduction=two_qubit_reduction,
-                          z2_symmetries=z2_symmetries, untapered_op=qubit_op)
+                          z2_symmetries=tapered_op.z2_symmetries, untapered_op=qubit_op)
 
         backend = BasicAer.get_backend('statevector_simulator')
         quantum_instance = QuantumInstance(backend)
@@ -154,7 +153,6 @@ class TestEomVQE(QiskitAquaTestCase):
         z2_symmetries = Z2Symmetries.find_Z2_symmetries(qubit_op)
         # know the sector
         tapered_op = z2_symmetries.taper(qubit_op)[1]
-        z2_symmetries.tapering_values = [-1]
 
         var_form = RealAmplitudes(tapered_op.num_qubits, reps=1)
         optimizer = SPSA(maxiter=50)
@@ -162,7 +160,7 @@ class TestEomVQE(QiskitAquaTestCase):
         eom_vqe = QEomVQE(tapered_op, var_form, optimizer, num_orbitals=num_orbitals,
                           num_particles=num_particles, qubit_mapping=qubit_mapping,
                           two_qubit_reduction=two_qubit_reduction,
-                          z2_symmetries=z2_symmetries, untapered_op=qubit_op)
+                          z2_symmetries=tapered_op.z2_symmetries, untapered_op=qubit_op)
 
         backend = BasicAer.get_backend('qasm_simulator')
         quantum_instance = QuantumInstance(backend, shots=65536)

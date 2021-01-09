@@ -199,7 +199,7 @@ to compute the ground-state (minimum) energy of a molecule.
 ```python
 from qiskit.chemistry import FermionicOperator
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
-from qiskit.opflow import Z2Symmetries
+from qiskit.opflow import TwoQubitReduction
 
 # Use PySCF, a classical computational chemistry software
 # package, to compute the one-body and two-body integrals in
@@ -215,7 +215,7 @@ num_spin_orbitals = molecule.num_orbitals * 2
 ferm_op = FermionicOperator(h1=molecule.one_body_integrals, h2=molecule.two_body_integrals)
 map_type = 'PARITY'
 qubit_op = ferm_op.mapping(map_type)
-qubit_op = Z2Symmetries.two_qubit_reduction(qubit_op, num_particles)
+qubit_op = TwoQubitReduction(num_particles).convert(qubit_op)
 num_qubits = qubit_op.num_qubits
 
 # setup a classical optimizer for VQE

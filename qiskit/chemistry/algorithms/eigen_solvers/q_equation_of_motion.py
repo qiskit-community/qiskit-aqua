@@ -28,7 +28,7 @@ from qiskit.opflow import (
     anti_commutator,
     PauliOp,
     Z2Symmetries,
-    Z2Taper,
+    TwoQubitReduction,
     commutator,
     OperatorBase,
     OperatorStateFn,
@@ -491,7 +491,7 @@ class QEquationOfMotion:
         fer_op = FermionicOperator(h_1, h_2)
         qubit_op = fer_op.mapping(qubit_mapping)
         if two_qubit_reduction:
-            qubit_op = Z2Taper(num_particles).convert(qubit_op)
+            qubit_op = TwoQubitReduction(num_particles).convert(qubit_op)
 
         commutativities = []
         if not z2_symmetries.is_empty():

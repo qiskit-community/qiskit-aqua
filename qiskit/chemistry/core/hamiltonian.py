@@ -20,7 +20,7 @@ from enum import Enum
 
 import numpy as np
 from qiskit.algorithms import MinimumEigensolverResult, EigensolverResult
-from qiskit.opflow import Z2Symmetries, Z2Taper, PauliOp, PauliSumOp, commutator
+from qiskit.opflow import Z2Symmetries, TwoQubitReduction, PauliOp, PauliSumOp, commutator
 from qiskit.chemistry import QMolecule, QiskitChemistryError
 from qiskit.chemistry.fermionic_operator import FermionicOperator
 from .chemistry_operator import (ChemistryOperator,
@@ -544,7 +544,7 @@ class Hamiltonian(ChemistryOperator):
     def _map_fermionic_operator_to_qubit(fer_op, qubit_mapping, num_particles, two_qubit_reduction):
         qubit_op = fer_op.mapping(map_type=qubit_mapping, threshold=0.00000001)
         if qubit_mapping == 'parity' and two_qubit_reduction:
-            qubit_op = Z2Taper(num_particles).convert(qubit_op)
+            qubit_op = TwoQubitReduction(num_particles).convert(qubit_op)
         return qubit_op
 
     @staticmethod

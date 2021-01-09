@@ -30,7 +30,7 @@ from qiskit.opflow import (
     PauliOp,
     PauliSumOp,
     Z2Symmetries,
-    Z2Taper,
+    TwoQubitReduction,
     anti_commutator,
     commutator,
 )
@@ -650,7 +650,7 @@ class FermionicTransformation(Transformation):
 
         qubit_op = fer_op.mapping(map_type=qubit_mapping, threshold=0.00000001)
         if qubit_mapping == 'parity' and two_qubit_reduction:
-            qubit_op = Z2Taper(num_particles).convert(qubit_op)
+            qubit_op = TwoQubitReduction(num_particles).convert(qubit_op)
         return qubit_op
 
     @staticmethod
@@ -668,7 +668,7 @@ class FermionicTransformation(Transformation):
         fer_op = FermionicOperator(h_1, h_2)
         qubit_op = fer_op.mapping(qubit_mapping)
         if qubit_mapping == 'parity' and two_qubit_reduction:
-            qubit_op = Z2Taper(num_particles).convert(qubit_op)
+            qubit_op = TwoQubitReduction(num_particles).convert(qubit_op)
 
         commutativities = []
         if not z2_symmetries.is_empty():
