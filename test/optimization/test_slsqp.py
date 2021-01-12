@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -59,6 +59,11 @@ class TestSlsqpOptimizer(QiskitOptimizationTestCase):
         self.assertGreaterEqual(result.its, 1)
         self.assertEqual(result.imode, 0)
         self.assertIsNotNone(result.smode)
+        self.assertEqual(len(result.samples), 1)
+        self.assertAlmostEqual(result.fval, result.samples[0].fval)
+        np.testing.assert_almost_equal(result.x, result.samples[0].x)
+        self.assertEqual(result.status, result.samples[0].status)
+        self.assertAlmostEqual(result.samples[0].probability, 1.0)
 
     def test_slsqp_unbounded(self):
         """Unbounded test for optimization"""
@@ -152,7 +157,7 @@ class TestSlsqpOptimizer(QiskitOptimizationTestCase):
 
         linear = [-1, -1]
         quadratic = [[1, 0], [0, 1]]
-        problem.quadratic_constraint(linear=linear, quadratic=quadratic, rhs=-1/2)
+        problem.quadratic_constraint(linear=linear, quadratic=quadratic, rhs=-1 / 2)
 
         slsqp = SlsqpOptimizer()
         solution = slsqp.solve(problem)

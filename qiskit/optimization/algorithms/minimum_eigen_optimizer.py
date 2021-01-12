@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -11,14 +11,14 @@
 # that they have been altered from the originals.
 
 """A wrapper for minimum eigen solvers from Aqua to be used within the optimization module."""
-from typing import Optional, Any, Union, Tuple, List, cast
+from typing import Optional, Any, Union, List, cast
 
 import numpy as np
+
 from qiskit.aqua.algorithms import MinimumEigensolver, MinimumEigensolverResult
 from qiskit.aqua.operators import StateFn, DictStateFn
-
 from .optimization_algorithm import (OptimizationResultStatus, OptimizationAlgorithm,
-                                     OptimizationResult)
+                                     OptimizationResult, SolutionSample)
 from .. import QiskitOptimizationError
 from ..converters.quadratic_program_to_qubo import QuadraticProgramToQubo, QuadraticProgramConverter
 from ..problems.quadratic_program import QuadraticProgram, Variable
@@ -28,25 +28,26 @@ class MinimumEigenOptimizationResult(OptimizationResult):
     """ Minimum Eigen Optimizer Result."""
 
     def __init__(self, x: Union[List[float], np.ndarray], fval: float, variables: List[Variable],
-                 status: OptimizationResultStatus, samples: List[Tuple[str, float, float]],
-                 min_eigen_solver_result: Optional[MinimumEigensolverResult] = None) -> None:
+                 status: OptimizationResultStatus,
+                 samples: Optional[List[SolutionSample]] = None,
+                 min_eigen_solver_result: Optional[MinimumEigensolverResult] = None,
+                 raw_samples: Optional[List[SolutionSample]] = None) -> None:
         """
         Args:
             x: the optimal value found by ``MinimumEigensolver``.
             fval: the optimal function value.
             variables: the list of variables of the optimization problem.
             status: the termination status of the optimization algorithm.
-            samples: the basis state as bitstring, the QUBO value, and the probability of sampling.
             min_eigen_solver_result: the result obtained from the underlying algorithm.
+            samples: the x value, the objective function value of the original problem,
+                the probability, and the status of sampling.
+            raw_samples: the x values of the QUBO, the objective function value of the QUBO,
+                and the probability of sampling.
         """
-        super().__init__(x, fval, variables, status, None)
-        self._samples = samples
+        super().__init__(x=x, fval=fval, variables=variables, status=status, raw_results=None,
+                         samples=samples)
         self._min_eigen_solver_result = min_eigen_solver_result
-
-    @property
-    def samples(self) -> List[Tuple[str, float, float]]:
-        """Returns samples."""
-        return self._samples
+        self._raw_samples = raw_samples
 
     @property
     def min_eigen_solver_result(self) -> MinimumEigensolverResult:
@@ -56,8 +57,8 @@ class MinimumEigenOptimizationResult(OptimizationResult):
     def get_correlations(self) -> np.ndarray:
         """Get <Zi x Zj> correlation matrix from samples."""
 
-        states = [v[0] for v in self.samples]
-        probs = [v[2] for v in self.samples]
+        states = [v.x for v in self.samples]
+        probs = [v.probability for v in self.samples]
 
         n = len(states[0])
         correlations = np.zeros((n, n))
@@ -70,6 +71,15 @@ class MinimumEigenOptimizationResult(OptimizationResult):
                     else:
                         correlations[i, j] -= prob
         return correlations
+
+    @property
+    def raw_samples(self) -> Optional[List[SolutionSample]]:
+        """Returns the list of raw solution samples of ``MinimumEigensolver``.
+
+        Returns:
+            The list of raw solution samples of ``MinimumEigensolver``.
+        """
+        return self._raw_samples
 
 
 class MinimumEigenOptimizer(OptimizationAlgorithm):
@@ -189,23 +199,21 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
             # backend = getattr(self._min_eigen_solver, 'quantum_instance', None)
             fval = None
             x = None
-            x_str = None
-            samples = None
+            raw_samples = None
             if eigen_result.eigenstate is not None:
-                samples = _eigenvector_to_solutions(eigen_result.eigenstate, problem_)
+                raw_samples = _eigenvector_to_solutions(eigen_result.eigenstate, problem_)
                 # print(offset, samples)
                 # samples = [(res[0], problem_.objective.sense.value * (res[1] + offset), res[2])
                 #    for res in samples]
-                samples.sort(key=lambda x: problem_.objective.sense.value * x[1])
-                x = [float(e) for e in samples[0][0]]
-                fval = samples[0][1]
+                raw_samples.sort(key=lambda x: problem_.objective.sense.value * x.fval)
+                x = raw_samples[0].x
+                fval = raw_samples[0].fval
 
         # if Hamiltonian is empty, then the objective function is constant to the offset
         else:
-            x = [0] * problem_.get_num_binary_vars()
+            x = np.zeros(problem_.get_num_binary_vars())
             fval = offset
-            x_str = '0' * problem_.get_num_binary_vars()
-            samples = [(x_str, offset, 1.0)]
+            raw_samples = [SolutionSample(x, fval, 1.0, OptimizationResultStatus.SUCCESS)]
 
         if fval is None or x is None:
             # if not function value is given, then something went wrong, e.g., a
@@ -213,20 +221,43 @@ class MinimumEigenOptimizer(OptimizationAlgorithm):
             return MinimumEigenOptimizationResult(x=None, fval=None,
                                                   variables=problem.variables,
                                                   status=OptimizationResultStatus.FAILURE,
-                                                  samples=None,
+                                                  samples=None, raw_samples=None,
                                                   min_eigen_solver_result=eigen_result)
         # translate result back to integers
+        samples = self._interpret_samples(problem, raw_samples)
         return cast(MinimumEigenOptimizationResult,
                     self._interpret(x=x, converters=self._converters, problem=problem,
                                     result_class=MinimumEigenOptimizationResult,
-                                    samples=samples,
+                                    samples=samples, raw_samples=raw_samples,
                                     min_eigen_solver_result=eigen_result))
+
+    def _interpret_samples(self, problem: QuadraticProgram, raw_samples: List[SolutionSample]) \
+            -> List[SolutionSample]:
+        prob = {}  # type: dict
+        array = {}
+        for sample in raw_samples:
+            x = sample.x
+            for converter in self._converters[::-1]:
+                x = converter.interpret(x)
+            key = tuple(x)
+            prob[key] = prob.get(key, 0.0) + sample.probability
+            array[key] = x
+
+        samples = []
+        for key, x in array.items():
+            probability = prob[key]
+            fval = problem.objective.evaluate(x)
+            status = self._get_feasibility_status(problem, x)
+            samples.append(SolutionSample(x, fval, probability, status))
+
+        return sorted(samples,
+                      key=lambda v: (v.status.value, problem.objective.sense.value * v.fval))
 
 
 def _eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray, StateFn],
                               qubo: QuadraticProgram,
                               min_probability: float = 1e-6,
-                              ) -> List[Tuple[str, float, float]]:
+                              ) -> List[SolutionSample]:
     """Convert the eigenvector to the bitstrings and corresponding eigenvalues.
 
     Args:
@@ -260,6 +291,12 @@ def _eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray, StateFn],
     elif isinstance(eigenvector, StateFn):
         eigenvector = eigenvector.to_matrix()
 
+    def generate_solution(bitstr, qubo, probability):
+        x = np.fromiter(list(bitstr), dtype=int)
+        fval = qubo.objective.evaluate(x)
+        return SolutionSample(x=x, fval=fval, probability=probability,
+                              status=OptimizationResultStatus.SUCCESS)
+
     solutions = []
     if isinstance(eigenvector, dict):
         all_counts = sum(eigenvector.values())
@@ -267,10 +304,8 @@ def _eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray, StateFn],
         for bitstr, count in eigenvector.items():
             sampling_probability = count / all_counts
             # add the bitstring, if the sampling probability exceeds the threshold
-            if sampling_probability > 0:
-                if sampling_probability >= min_probability:
-                    value = qubo.objective.evaluate([int(bit) for bit in bitstr])
-                    solutions += [(bitstr, value, sampling_probability)]
+            if sampling_probability >= min_probability:
+                solutions.append(generate_solution(bitstr, qubo, sampling_probability))
 
     elif isinstance(eigenvector, np.ndarray):
         num_qubits = int(np.log2(eigenvector.size))
@@ -278,13 +313,10 @@ def _eigenvector_to_solutions(eigenvector: Union[dict, np.ndarray, StateFn],
 
         # iterate over all states and their sampling probabilities
         for i, sampling_probability in enumerate(probabilities):
-
             # add the i-th state if the sampling probability exceeds the threshold
-            if sampling_probability > 0:
-                if sampling_probability >= min_probability:
-                    bitstr = '{:b}'.format(i).rjust(num_qubits, '0')[::-1]
-                    value = qubo.objective.evaluate([int(bit) for bit in bitstr])
-                    solutions += [(bitstr, value, sampling_probability)]
+            if sampling_probability >= min_probability:
+                bitstr = '{:b}'.format(i).rjust(num_qubits, '0')[::-1]
+                solutions.append(generate_solution(bitstr, qubo, sampling_probability))
 
     else:
         raise TypeError('Unsupported format of eigenvector. Provide a dict or numpy.ndarray.')
