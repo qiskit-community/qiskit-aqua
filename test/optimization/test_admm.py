@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -46,6 +46,11 @@ class TestADMMOptimizer(QiskitOptimizationTestCase):
         np.testing.assert_almost_equal(10, solution.fval, 3)
         self.assertIsNotNone(solution.state)
         self.assertIsInstance(solution.state, ADMMState)
+        self.assertEqual(len(solution.samples), 1)
+        self.assertAlmostEqual(solution.fval, solution.samples[0].fval)
+        np.testing.assert_almost_equal(solution.x, solution.samples[0].x)
+        self.assertEqual(solution.status, solution.samples[0].status)
+        self.assertAlmostEqual(solution.samples[0].probability, 1.0)
 
     def test_admm_ex4(self):
         """Example 4 as a unit test. Example 4 is reported in:
