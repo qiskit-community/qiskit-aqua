@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -13,8 +13,10 @@
 """An abstract class for optimization algorithms in Qiskit's optimization module."""
 
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from enum import Enum
 from typing import List, Union, Any, Optional, Dict, Type
+from warnings import warn
 
 import numpy as np
 
@@ -35,6 +37,22 @@ class OptimizationResultStatus(Enum):
 
     INFEASIBLE = 2
     """the optimization algorithm obtained an infeasible solution."""
+
+
+@dataclass
+class SolutionSample:
+    """A sample of an optimization solution
+
+    Attributes:
+        x: the values of variables
+        fval: the objective function value
+        probability: the probability of this sample
+        status: the status of this sample
+    """
+    x: np.ndarray
+    fval: float
+    probability: float
+    status: OptimizationResultStatus
 
 
 class OptimizationResult:
@@ -80,7 +98,8 @@ class OptimizationResult:
     def __init__(self, x: Optional[Union[List[float], np.ndarray]], fval: float,
                  variables: List[Variable],
                  status: OptimizationResultStatus,
-                 raw_results: Optional[Any] = None) -> None:
+                 raw_results: Optional[Any] = None,
+                 samples: Optional[List[SolutionSample]] = None) -> None:
         """
         Args:
             x: the optimal value found in the optimization, or possibly None in case of FAILURE.
@@ -88,6 +107,7 @@ class OptimizationResult:
             variables: the list of variables of the optimization problem.
             raw_results: the original results object from the optimization algorithm.
             status: the termination status of the optimization algorithm.
+            samples: the solution samples.
 
         Raises:
             QiskitOptimizationError: if sizes of ``x`` and ``variables`` do not match.
@@ -104,13 +124,20 @@ class OptimizationResult:
                     'Inconsistent size of optimal value and variables. x: size {} {}, '
                     'variables: size {} {}'.format(len(x), x, len(variables),
                                                    [v.name for v in variables]))
-            self._x = x if isinstance(x, np.ndarray) else np.array(
-                x)  # pylint: disable=invalid-name
+            self._x = np.asarray(x)
             self._variables_dict = dict(zip(self._variable_names, self._x))
 
         self._fval = fval
         self._raw_results = raw_results
         self._status = status
+        if samples:
+            sum_prob = np.sum([e.probability for e in samples])
+            if not np.isclose(sum_prob, 1.0):
+                warn('The sum of probability of samples is not close to 1: {}'.format(sum_prob))
+            self._samples = samples
+        else:
+            self._samples = [
+                SolutionSample(x=x, fval=fval, status=status, probability=1.0)]
 
     def __repr__(self) -> str:
         return 'optimal function value: {}\n' \
@@ -209,6 +236,15 @@ class OptimizationResult:
             The list of variable names of the optimization problem.
         """
         return self._variable_names
+
+    @property
+    def samples(self) -> List[SolutionSample]:
+        """Returns the list of solution samples
+
+        Returns:
+            The list of solution samples.
+        """
+        return self._samples
 
 
 class OptimizationAlgorithm(ABC):
