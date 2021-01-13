@@ -25,7 +25,6 @@ from qiskit import ClassicalRegister, QuantumCircuit, QuantumRegister
 from qiskit.algorithms import (
     MinimumEigensolver,
     MinimumEigensolverResult,
-    QuantumAlgorithm,
 )
 from qiskit.aqua.components.initial_states import InitialState
 from qiskit.aqua.utils import get_subsystem_density_matrix
@@ -42,6 +41,7 @@ from qiskit.quantum_info import Pauli
 from qiskit.utils import QuantumInstance
 from qiskit.utils.validation import validate_in_set, validate_min
 
+from ..quantum_algorithm import QuantumAlgorithm
 from .qpe import QPEResult
 
 logger = logging.getLogger(__name__)
