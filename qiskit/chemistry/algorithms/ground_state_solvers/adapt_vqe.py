@@ -153,7 +153,7 @@ class AdaptVQE(GroundStateEigensolver):
             information about the AdaptVQE algorithm like the number of iterations, finishing
             criterion, and the final maximum gradient.
         """
-        operator, aux_operators = self._transformation.transform(driver, aux_operators)
+        operator, aux_ops = self._transformation.transform(driver, aux_operators)
 
         vqe = self._solver.get_solver(self._transformation)
         vqe.operator = operator
@@ -218,8 +218,8 @@ class AdaptVQE(GroundStateEigensolver):
             logger.info("Final maximum gradient: %s", str(np.abs(max_grad[0])))
 
         # once finished evaluate auxiliary operators if any
-        if aux_operators is not None:
-            aux_values = self.evaluate_operators(raw_vqe_result.eigenstate, aux_operators)
+        if aux_ops is not None:
+            aux_values = self.evaluate_operators(raw_vqe_result.eigenstate, aux_ops)
         else:
             aux_values = None
         raw_vqe_result.aux_operator_eigenvalues = aux_values
