@@ -12,13 +12,16 @@
 
 """ Test GroundStateEigensolver """
 
+import copy
 import unittest
 
 from test.chemistry import QiskitChemistryTestCase
 
+import numpy as np
+
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
-from qiskit.chemistry import QiskitChemistryError
+from qiskit.chemistry import QiskitChemistryError, FermionicOperator
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry.transformations import (FermionicTransformation,
                                               FermionicQubitMappingType)
@@ -66,6 +69,21 @@ class TestGroundStateEigensolver(QiskitChemistryTestCase):
         calc = GroundStateEigensolver(self.transformation, solver)
         res = calc.solve(self.driver)
         self.assertAlmostEqual(res.total_energies[0], self.reference_energy, places=6)
+
+    def test_aux_ops_reusability(self):
+        """ Test that the auxiliary operators can be reused """
+        # Regression test against #1475
+        solver = NumPyMinimumEigensolverFactory()
+        calc = GroundStateEigensolver(self.transformation, solver)
+
+        modes = 4
+        h_1 = np.eye(modes, dtype=np.complex)
+        h_2 = np.zeros((modes, modes, modes, modes))
+        aux_ops = [FermionicOperator(h_1, h_2)]
+        aux_ops_copy = copy.deepcopy(aux_ops)
+
+        _ = calc.solve(self.driver, aux_ops)
+        assert all([a == b for a, b in zip(aux_ops, aux_ops_copy)])
 
     def _setup_evaluation_operators(self):
         # first we run a ground state calculation

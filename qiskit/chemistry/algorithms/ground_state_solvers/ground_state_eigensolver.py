@@ -85,9 +85,9 @@ class GroundStateEigensolver(GroundStateSolver):
             structure or bosonic result.
         """
         # get the operator and auxiliary operators, and transform the provided auxiliary operators
-        # note that ``aux_operators`` contains not only the transformed ``aux_operators`` passed
-        # by the user but also additional ones from the transformation
-        operator, aux_operators = self.transformation.transform(driver, aux_operators)
+        # note that ``aux_ops`` contains not only the transformed ``aux_operators`` passed by the
+        # user but also additional ones from the transformation
+        operator, aux_ops = self.transformation.transform(driver, aux_operators)
 
         if isinstance(self._solver, MinimumEigensolverFactory):
             # this must be called after transformation.transform
@@ -97,9 +97,9 @@ class GroundStateEigensolver(GroundStateSolver):
 
         # if the eigensolver does not support auxiliary operators, reset them
         if not solver.supports_aux_operators():
-            aux_operators = None
+            aux_ops = None
 
-        raw_mes_result = solver.compute_minimum_eigenvalue(operator, aux_operators)
+        raw_mes_result = solver.compute_minimum_eigenvalue(operator, aux_ops)
 
         result = self.transformation.interpret(raw_mes_result)
         return result
