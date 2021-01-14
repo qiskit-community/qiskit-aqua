@@ -110,7 +110,8 @@ class GroundStateEigensolver(GroundStateSolver):
                                         QuantumCircuit, Instruction,
                                         OperatorBase],
                            operators: Union[WeightedPauliOperator, OperatorBase, list, dict]
-                           ) -> Union[float, List[float], Dict[str, List[float]]]:
+                           ) -> Union[Optional[float], List[Optional[float]],
+                                      Dict[str, List[Optional[float]]]]:
         """Evaluates additional operators at the given state.
 
         Args:
