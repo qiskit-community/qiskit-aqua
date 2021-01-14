@@ -11,14 +11,18 @@
 # that they have been altered from the originals.
 
 """ Test of the Adaptive VQE ground state calculations """
+import copy
 import unittest
+
 from test.chemistry import QiskitChemistryTestCase
+
+import numpy as np
 
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.providers.basicaer import BasicAer
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import VQE
-from qiskit.chemistry import QiskitChemistryError
+from qiskit.chemistry import QiskitChemistryError, FermionicOperator
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.circuit.library import HartreeFock
 from qiskit.aqua.components.optimizers import L_BFGS_B
@@ -50,6 +54,21 @@ class TestAdaptVQE(QiskitChemistryTestCase):
         calc = AdaptVQE(self.transformation, solver)
         res = calc.solve(self.driver)
         self.assertAlmostEqual(res.electronic_energies[0], self.expected, places=6)
+
+    def test_aux_ops_reusability(self):
+        """ Test that the auxiliary operators can be reused """
+        # Regression test against #1475
+        solver = VQEUCCSDFactory(QuantumInstance(BasicAer.get_backend('statevector_simulator')))
+        calc = AdaptVQE(self.transformation, solver)
+
+        modes = 4
+        h_1 = np.eye(modes, dtype=np.complex)
+        h_2 = np.zeros((modes, modes, modes, modes))
+        aux_ops = [FermionicOperator(h_1, h_2)]
+        aux_ops_copy = copy.deepcopy(aux_ops)
+
+        _ = calc.solve(self.driver, aux_ops)
+        assert all([a == b for a, b in zip(aux_ops, aux_ops_copy)])
 
     def test_custom_minimum_eigensolver(self):
         """ Test custom MES """
