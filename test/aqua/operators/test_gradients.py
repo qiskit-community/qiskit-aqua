@@ -38,6 +38,7 @@ from qiskit.aqua.operators.gradients.qfi import QFI
 from qiskit.aqua.operators.gradients.circuit_qfis import LinCombFull, OverlapBlockDiag, OverlapDiag
 from qiskit.circuit import Parameter, ParameterExpression
 from qiskit.circuit import ParameterVector
+from qiskit.circuit.library import RealAmplitudes
 
 
 @ddt
@@ -466,7 +467,8 @@ class TestGradients(QiskitAquaTestCase):
                 np.testing.assert_array_almost_equal(prob_grad_result,
                                                      correct_values[i][j], decimal=1)
 
-    def test_prob_hess_lin_comb(self):
+    @data('lin_comb', 'param_shift', 'fin_diff')
+    def test_prob_hess(self, method):
         """Test the probability Hessian using linear combination of unitaries method
 
         d^2p0/da^2 = - sin(a)sin(b) / 2
@@ -487,7 +489,7 @@ class TestGradients(QiskitAquaTestCase):
 
         op = CircuitStateFn(primitive=qc, coeff=1.)
 
-        prob_hess = Hessian(hess_method='lin_comb').convert(operator=op, params=params)
+        prob_hess = Hessian(hess_method=method).convert(operator=op, params=params)
         values_dict = [{a: np.pi / 4, b: 0}, {a: np.pi / 4, b: np.pi / 4},
                        {a: np.pi / 2, b: np.pi}]
         correct_values = [[[0, 0], [1 / (2 * np.sqrt(2)), - 1 / (2 * np.sqrt(2))]],
@@ -637,6 +639,66 @@ class TestGradients(QiskitAquaTestCase):
             np.testing.assert_array_almost_equal(state_grad.assign_parameters(value_dict).eval(),
                                                  correct_values[i],
                                                  decimal=1)
+
+    @data('lin_comb', 'param_shift', 'fin_diff')
+    def test_grad_combo_fn_chain_rule(self, method):
+        """
+        Test the chain rule for a custom gradient combo function
+
+        """
+        np.random.seed(2)
+
+        def combo_fn(x):
+            amplitudes = x[0].primitive.data
+            pdf = np.multiply(amplitudes, np.conj(amplitudes))
+            return np.sum(np.log(pdf)) / (-len(amplitudes))
+
+        def grad_combo_fn(x):
+            amplitudes = x[0].primitive.data
+            pdf = np.multiply(amplitudes, np.conj(amplitudes))
+            grad = []
+            for prob in pdf:
+                grad += [-1 / prob]
+            return grad
+
+        qc = RealAmplitudes(2, reps=1)
+        grad_op = ListOp([StateFn(qc)], combo_fn=combo_fn, grad_combo_fn=grad_combo_fn)
+        grad = Gradient(grad_method=method).convert(grad_op, qc.ordered_parameters)
+        value_dict = dict(zip(qc.ordered_parameters, np.random.rand(len(qc.ordered_parameters))))
+        correct_values = [[(-0.16666259133549044+0j)], [(-7.244949702732864+0j)],
+                          [(-2.979791752749964+0j)], [(-5.310186078432614+0j)]]
+        np.testing.assert_array_almost_equal(grad.assign_parameters(value_dict).eval(),
+                                             correct_values)
+
+    def test_grad_combo_fn_chain_rule_nat_grad(self):
+        """
+        Test the chain rule for a custom gradient combo function
+
+        """
+        np.random.seed(2)
+
+        def combo_fn(x):
+            amplitudes = x[0].primitive.data
+            pdf = np.multiply(amplitudes, np.conj(amplitudes))
+            return np.sum(np.log(pdf)) / (-len(amplitudes))
+
+        def grad_combo_fn(x):
+            amplitudes = x[0].primitive.data
+            pdf = np.multiply(amplitudes, np.conj(amplitudes))
+            grad = []
+            for prob in pdf:
+                grad += [-1 / prob]
+            return grad
+
+        qc = RealAmplitudes(2, reps=1)
+        grad_op = ListOp([StateFn(qc)], combo_fn=combo_fn, grad_combo_fn=grad_combo_fn)
+        grad = NaturalGradient(grad_method='lin_comb', regularization='ridge'
+                               ).convert(grad_op, qc.ordered_parameters)
+        value_dict = dict(
+            zip(qc.ordered_parameters, np.random.rand(len(qc.ordered_parameters))))
+        correct_values = [[0.20777236], [-18.92560338], [-15.89005475], [-10.44002031]]
+        np.testing.assert_array_almost_equal(grad.assign_parameters(value_dict).eval(),
+                                             correct_values, decimal=3)
 
     @data('lin_comb', 'param_shift', 'fin_diff')
     def test_operator_coefficient_gradient(self, method):

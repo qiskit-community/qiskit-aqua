@@ -14,6 +14,7 @@ Raw Feature Vector feature map.
 """
 
 import logging
+import warnings
 
 import numpy as np
 from qiskit import QuantumCircuit  # pylint: disable=unused-import
@@ -42,7 +43,16 @@ class RawFeatureVector(FeatureMap):
             feature_dimension: The feature dimension, has a minimum value of 1.
         """
         validate_min('feature_dimension', feature_dimension, 1)
-        super().__init__()
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            super().__init__()
+
+        warnings.warn('The RawFeatureVector class has moved to qiskit.ml.circuit.library and '
+                      'subclasses the QuantumCircuit. This class, in qiskit.aqua.components, is '
+                      'deprecated as of Qiskit Aqua 0.9.0 and will be removed no earlier than 3 '
+                      'months after the release date.',
+                      DeprecationWarning, stacklevel=2)
+
         self._feature_dimension = feature_dimension
         self._num_qubits = next_power_of_2_base(feature_dimension)
 
