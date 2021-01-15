@@ -110,7 +110,8 @@ class GroundStateEigensolver(GroundStateSolver):
                                         QuantumCircuit, Instruction,
                                         OperatorBase],
                            operators: Union[WeightedPauliOperator, OperatorBase, list, dict]
-                           ) -> Union[float, List[float], Dict[str, List[float]]]:
+                           ) -> Union[Optional[float], List[Optional[float]],
+                                      Dict[str, List[Optional[float]]]]:
         """Evaluates additional operators at the given state.
 
         Args:
@@ -132,15 +133,24 @@ class GroundStateEigensolver(GroundStateSolver):
         # handle all possible formats of operators
         # i.e. if a user gives us a dict of operators, we return the results equivalently, etc.
         if isinstance(operators, list):
-            results = []
+            results = []  # type: ignore
             for op in operators:
-                results.append(self._eval_op(state, op, quantum_instance))
+                if op is None:
+                    results.append(None)
+                else:
+                    results.append(self._eval_op(state, op, quantum_instance))
         elif isinstance(operators, dict):
             results = {}  # type: ignore
             for name, op in operators.items():
-                results[name] = self._eval_op(state, op, quantum_instance)
+                if op is None:
+                    results[name] = None
+                else:
+                    results[name] = self._eval_op(state, op, quantum_instance)
         else:
-            results = self._eval_op(state, operators, quantum_instance)
+            if operators is None:
+                results = None
+            else:
+                results = self._eval_op(state, operators, quantum_instance)
 
         return results
 
