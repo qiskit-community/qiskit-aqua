@@ -87,7 +87,7 @@ class QuantumGenerator(GenerativeNetwork):
             warnings.warn('Passing a UnivariateVariationalDistribution or MultivariateVariational'
                           'Distribution as ``generator_circuit`` is deprecated as of Aqua 0.8.0 '
                           'and the support will be removed no earlier than 3 months after the '
-                          'release data. You should pass a QuantumCircuit instead.',
+                          'release date. You should pass a QuantumCircuit instead.',
                           DeprecationWarning, stacklevel=2)
             self._free_parameters = generator_circuit._var_form_params
             self.generator_circuit = generator_circuit._var_form
@@ -100,12 +100,8 @@ class QuantumGenerator(GenerativeNetwork):
         self._bound_parameters = init_params
 
         # Set optimizer for updating the generator network
-        if optimizer:
-            self._optimizer = optimizer
-        else:
-            self._optimizer = ADAM(maxiter=1, tol=1e-6, lr=1e-3, beta_1=0.7,
-                                   beta_2=0.99, noise_factor=1e-6,
-                                   eps=1e-6, amsgrad=True, snapshot_dir=snapshot_dir)
+        self._snapshot_dir = snapshot_dir
+        self.optimizer = optimizer
 
         if np.ndim(self._bounds) == 1:
             bounds = np.reshape(self._bounds, (1, len(self._bounds)))
@@ -140,9 +136,28 @@ class QuantumGenerator(GenerativeNetwork):
                 self._grid_elements = deepcopy(temp)
         self._data_grid = np.array(self._data_grid)
 
+        self._seed = None
         self._shots = None
         self._discriminator = None
         self._ret = {}  # type: Dict[str, Any]
+
+    @property
+    def seed(self):
+        """
+        Get seed.
+        """
+        return self._seed
+
+    @seed.setter
+    def seed(self, seed):
+        """
+        Set seed.
+
+        Args:
+            seed (int): seed to use.
+        """
+        self._seed = seed
+        aqua_globals.random_seed = seed
 
     def set_seed(self, seed):
         """
@@ -151,20 +166,59 @@ class QuantumGenerator(GenerativeNetwork):
         Args:
             seed (int): seed
         """
+        warnings.warn('Using set_seed() is deprecated as of Aqua 0.9.0 '
+                      'and support for it will be removed no earlier than '
+                      'three months after the release date. Please use '
+                      'the QuantumGenerator.seed property instead.',
+                      DeprecationWarning, stacklevel=2)
+
         aqua_globals.random_seed = seed
+
+    @property
+    def discriminator(self):
+        """
+        Get discriminator.
+        """
+        return self._discriminator
+
+    @discriminator.setter
+    def discriminator(self, discriminator):
+        """
+        Set discriminator.
+
+        Args:
+            discriminator (DiscriminativeNetwork): Discriminator used to
+                compute the loss function.
+        """
+        self._discriminator = discriminator
 
     def set_discriminator(self, discriminator):
         """
         Set discriminator network.
 
         Args:
-            discriminator (Discriminator): Discriminator used to compute the loss function.
+            discriminator (DiscriminativeNetwork): Discriminator used to
+                compute the loss function.
         """
+        warnings.warn('Using set_discriminator() is deprecated as of '
+                      'Aqua 0.9.0 and support for it will be removed no earlier'
+                      ' than three months after the release date. Please use '
+                      'the QuantumGenerator.discriminator property instead.',
+                      DeprecationWarning, stacklevel=2)
+
         self._discriminator = discriminator
 
-    def set_optimizer(self, optimizer):
+    @property
+    def optimizer(self):
         """
-        Set generator optimizer.
+        Get optimizer.
+        """
+        return self._optimizer
+
+    @optimizer.setter
+    def optimizer(self, optimizer):
+        """
+        Set optimizer.
 
         Args:
             optimizer (Optimizer): optimizer to use with the generator.
@@ -172,11 +226,17 @@ class QuantumGenerator(GenerativeNetwork):
         Raises:
             AquaError: invalid input.
         """
-        if isinstance(optimizer, Optimizer):
-            self._optimizer = optimizer
+        if optimizer:
+            if isinstance(optimizer, Optimizer):
+                self._optimizer = optimizer
+            else:
+                raise AquaError('Please provide an Optimizer object to use'
+                                'as the generator optimizer.')
         else:
-            raise AquaError('Please pass an Optimizer object to use as the'
-                            'generator optimizer')
+            self._optimizer = ADAM(maxiter=1, tol=1e-6, lr=1e-3, beta_1=0.7,
+                                   beta_2=0.99, noise_factor=1e-6,
+                                   eps=1e-6, amsgrad=True,
+                                   snapshot_dir=self._snapshot_dir)
 
     def construct_circuit(self, params=None):
         """
