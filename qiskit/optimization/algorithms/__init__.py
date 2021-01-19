@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -44,14 +44,15 @@ Algorithms and results
    CplexOptimizer
    GroverOptimizationResult
    GroverOptimizer
+   IntermediateResult
    MinimumEigenOptimizationResult
    MinimumEigenOptimizer
    OptimizationResultStatus
    RecursiveMinimumEigenOptimizationResult
    RecursiveMinimumEigenOptimizer
-   IntermediateResult
    SlsqpOptimizationResult
    SlsqpOptimizer
+   SolutionSample
 
 """
 
@@ -59,10 +60,10 @@ from .admm_optimizer import ADMMOptimizer, ADMMOptimizationResult, ADMMState, AD
 from .cobyla_optimizer import CobylaOptimizer
 from .cplex_optimizer import CplexOptimizer
 from .grover_optimizer import GroverOptimizer, GroverOptimizationResult
-from .minimum_eigen_optimizer import MinimumEigenOptimizer, MinimumEigenOptimizationResult
+from .minimum_eigen_optimizer import (MinimumEigenOptimizer, MinimumEigenOptimizationResult)
 from .multistart_optimizer import MultiStartOptimizer
 from .optimization_algorithm import (OptimizationAlgorithm, OptimizationResult,
-                                     OptimizationResultStatus)
+                                     OptimizationResultStatus, SolutionSample)
 from .recursive_minimum_eigen_optimizer import (RecursiveMinimumEigenOptimizer,
                                                 RecursiveMinimumEigenOptimizationResult,
                                                 IntermediateResult)
@@ -71,5 +72,5 @@ from .slsqp_optimizer import SlsqpOptimizer, SlsqpOptimizationResult
 __all__ = ["ADMMOptimizer", "OptimizationAlgorithm", "OptimizationResult", "CplexOptimizer",
            "CobylaOptimizer", "MinimumEigenOptimizer", "MinimumEigenOptimizationResult",
            "RecursiveMinimumEigenOptimizer", "RecursiveMinimumEigenOptimizationResult",
-           "GroverOptimizer", "GroverOptimizationResult", "SlsqpOptimizer",
-           "SlsqpOptimizationResult"]
+           "IntermediateResult", "GroverOptimizer", "GroverOptimizationResult", "SlsqpOptimizer",
+           "SlsqpOptimizationResult", "SolutionSample"]
