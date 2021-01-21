@@ -120,6 +120,40 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         with self.assertRaises(QiskitOptimizationError):
             q_p.binary_var_dict(name='c', keys=range(3))
 
+        d_4 = q_p.binary_var_dict(1, 'x', '_')
+        self.assertSetEqual(set(d_4.keys()), {'x_'})
+        self.assertSetEqual({var.name for var in q_p.variables},
+                            {'a_0', 'a_1', 'a_2', 'b3', 'b4', 'b5', 'b6', 'b7', 'x-8',
+                             'c0', 'c1', 'c2', 'x_'})
+        for var in q_p.variables[-1:]:
+            self.assertAlmostEqual(var.lowerbound, 0)
+            self.assertAlmostEqual(var.upperbound, 1)
+            self.assertEqual(var.vartype, VarType.BINARY)
+            self.assertTupleEqual(var.as_tuple(), d_4[var.name].as_tuple())
+
+        with self.assertRaises(QiskitOptimizationError):
+            q_p.binary_var_dict(1, 'x', '_')
+
+        with self.assertRaises(QiskitOptimizationError):
+            q_p.binary_var('x_')
+
+        d_5 = q_p.continuous_var_dict(1, -1, 2, '', '')
+        self.assertSetEqual(set(d_5.keys()), {''})
+        self.assertSetEqual({var.name for var in q_p.variables},
+                            {'a_0', 'a_1', 'a_2', 'b3', 'b4', 'b5', 'b6', 'b7', 'x-8',
+                             'c0', 'c1', 'c2', 'x_', ''})
+        for var in q_p.variables[-1:]:
+            self.assertAlmostEqual(var.lowerbound, -1)
+            self.assertAlmostEqual(var.upperbound, 2)
+            self.assertEqual(var.vartype, VarType.CONTINUOUS)
+            self.assertTupleEqual(var.as_tuple(), d_5[var.name].as_tuple())
+
+        with self.assertRaises(QiskitOptimizationError):
+            q_p.binary_var_dict(1, '', '')
+
+        with self.assertRaises(QiskitOptimizationError):
+            q_p.integer_var(0, 1, '')
+
         with self.assertRaises(QiskitOptimizationError):
             q_p = QuadraticProgram()
             q_p.binary_var_dict(keys=1, key_format='{}{}')
@@ -131,6 +165,14 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         with self.assertRaises(QiskitOptimizationError):
             q_p = QuadraticProgram()
             q_p.binary_var_dict(keys=1, key_format='_{{}}')
+
+        with self.assertRaises(QiskitOptimizationError):
+            q_p = QuadraticProgram()
+            q_p.binary_var_dict(keys=2, key_format='')
+
+        with self.assertRaises(QiskitOptimizationError):
+            q_p = QuadraticProgram()
+            q_p.binary_var_dict(keys=range(2), key_format='')
 
     def test_var_list(self):
         """test {binary,integer,continuous}_var_list"""
@@ -183,6 +225,42 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         with self.assertRaises(QiskitOptimizationError):
             q_p.binary_var_list(name='c', keys=range(3))
 
+        d_4 = q_p.binary_var_dict(1, 'x', '_')
+        names = ['x_']
+        self.assertSetEqual({var.name for var in q_p.variables},
+                            {'a_0', 'a_1', 'a_2', 'b3', 'b4', 'b5', 'b6', 'b7', 'x-8',
+                             'c0', 'c1', 'c2', 'x_'})
+        for i, var in enumerate(q_p.variables[-1:]):
+            self.assertEqual(var.name, names[i])
+            self.assertAlmostEqual(var.lowerbound, 0)
+            self.assertAlmostEqual(var.upperbound, 1)
+            self.assertEqual(var.vartype, VarType.BINARY)
+            self.assertTupleEqual(var.as_tuple(), d_4[var.name].as_tuple())
+
+        with self.assertRaises(QiskitOptimizationError):
+            q_p.binary_var_list(1, 'x', '_')
+
+        with self.assertRaises(QiskitOptimizationError):
+            q_p.binary_var('x_')
+
+        d_5 = q_p.integer_var_list(1, -1, 2, '', '')
+        names = ['']
+        self.assertSetEqual({var.name for var in q_p.variables},
+                            {'a_0', 'a_1', 'a_2', 'b3', 'b4', 'b5', 'b6', 'b7', 'x-8',
+                             'c0', 'c1', 'c2', 'x_', ''})
+        for i, var in enumerate(q_p.variables[-1:]):
+            self.assertEqual(var.name, names[i])
+            self.assertAlmostEqual(var.lowerbound, -1)
+            self.assertAlmostEqual(var.upperbound, 2)
+            self.assertEqual(var.vartype, VarType.INTEGER)
+            self.assertTupleEqual(var.as_tuple(), d_5[i].as_tuple())
+
+        with self.assertRaises(QiskitOptimizationError):
+            q_p.binary_var_list(1, '', '')
+
+        with self.assertRaises(QiskitOptimizationError):
+            q_p.integer_var(0, 1, '')
+
         with self.assertRaises(QiskitOptimizationError):
             q_p = QuadraticProgram()
             q_p.binary_var_list(keys=1, key_format='{}{}')
@@ -194,6 +272,14 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         with self.assertRaises(QiskitOptimizationError):
             q_p = QuadraticProgram()
             q_p.binary_var_list(keys=1, key_format='_{{}}')
+
+        with self.assertRaises(QiskitOptimizationError):
+            q_p = QuadraticProgram()
+            q_p.binary_var_list(keys=2, key_format='')
+
+        with self.assertRaises(QiskitOptimizationError):
+            q_p = QuadraticProgram()
+            q_p.binary_var_list(keys=range(2), key_format='')
 
     def test_variables_handling(self):
         """ test add variables """
