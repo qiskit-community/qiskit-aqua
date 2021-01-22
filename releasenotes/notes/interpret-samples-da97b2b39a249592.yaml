@@ -1,0 +1,6 @@
+---
+features:
+  - |
+    Add a list of solution samples as ``OptimizationResult.samples``.
+    Add a list of raw solution samples by ``MinimumEigensolver`` to
+    ``MinimumEigenOptimizationResult.raw_samples``
