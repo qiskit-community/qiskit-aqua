@@ -1191,7 +1191,7 @@ class QuadraticProgram:
         # initialize Hamiltonian.
         num_nodes = self.get_num_vars()
         pauli_list = []
-        offset = 0
+        offset = 0.
         zero = zeros(num_nodes, dtype=nbool)
 
         # set a sign corresponding to a maximized or minimized problem.
