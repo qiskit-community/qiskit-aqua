@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -17,11 +17,11 @@ import unittest
 from os import path
 from test.optimization.optimization_test_case import QiskitOptimizationTestCase
 
-from docplex.mp.model import Model, DOcplexException
+from docplex.mp.model import DOcplexException, Model
 
 from qiskit.aqua import MissingOptionalLibraryError
-from qiskit.optimization import QuadraticProgram, QiskitOptimizationError, INFINITY
-from qiskit.optimization.problems import Variable, Constraint, QuadraticObjective
+from qiskit.optimization import INFINITY, QiskitOptimizationError, QuadraticProgram
+from qiskit.optimization.problems import Constraint, QuadraticObjective, Variable, VarType
 
 
 class TestQuadraticProgram(QiskitOptimizationTestCase):
@@ -77,54 +77,86 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         """test {binary,integer,continuous}_var_dict"""
         q_p = QuadraticProgram()
 
-        c_count = 0
-        b_count = 0
-        i_count = 0
-
-        def verify_counts():
-            self.assertEqual(q_p.get_num_vars(), c_count + b_count + i_count)
-            self.assertEqual(q_p.get_num_continuous_vars(), c_count)
-            self.assertEqual(q_p.get_num_binary_vars(), b_count)
-            self.assertEqual(q_p.get_num_integer_vars(), i_count)
-
-        def check_dict(var_dict, offset):
-            verify_counts()
-            variables = var_dict.values()
-            for i, x in enumerate(variables):
-                y = q_p.get_variable(i + offset)
-                z = q_p.get_variable(x.name)
-                self.assert_equal(x, y)
-                self.assert_equal(x, z)
-
         d_0 = q_p.continuous_var_dict(name='a', key_format='_{}', keys=3)
-        c_count += 3
-        check_dict(d_0, 0)
+        self.assertSetEqual(set(d_0.keys()), {'a_0', 'a_1', 'a_2'})
+        self.assertSetEqual({var.name for var in q_p.variables}, {'a_0', 'a_1', 'a_2'})
+        for var in q_p.variables:
+            self.assertAlmostEqual(var.lowerbound, 0)
+            self.assertAlmostEqual(var.upperbound, INFINITY)
+            self.assertEqual(var.vartype, VarType.CONTINUOUS)
+            self.assertTupleEqual(var.as_tuple(), d_0[var.name].as_tuple())
 
         d_1 = q_p.binary_var_dict(name='b', keys=5)
-        b_count += 5
-        check_dict(d_1, len(d_0))
+        self.assertSetEqual(set(d_1.keys()), {'b3', 'b4', 'b5', 'b6', 'b7'})
+        self.assertSetEqual({var.name for var in q_p.variables},
+                            {'a_0', 'a_1', 'a_2', 'b3', 'b4', 'b5', 'b6', 'b7'})
+        for var in q_p.variables[-5:]:
+            self.assertAlmostEqual(var.lowerbound, 0)
+            self.assertAlmostEqual(var.upperbound, 1)
+            self.assertEqual(var.vartype, VarType.BINARY)
+            self.assertTupleEqual(var.as_tuple(), d_1[var.name].as_tuple())
 
-        d_2 = q_p.integer_var_dict(key_format='_{}', keys=7, lowerbound=-4, upperbound=10)
-        i_count += 7
-        check_dict(d_2, len(d_0) + len(d_1))
+        d_2 = q_p.integer_var_dict(keys=1, key_format='-{}', lowerbound=-4, upperbound=10)
+        self.assertSetEqual(set(d_2.keys()), {'x-8'})
+        self.assertSetEqual({var.name for var in q_p.variables},
+                            {'a_0', 'a_1', 'a_2', 'b3', 'b4', 'b5', 'b6', 'b7', 'x-8'})
+        for var in q_p.variables[-1:]:
+            self.assertAlmostEqual(var.lowerbound, -4)
+            self.assertAlmostEqual(var.upperbound, 10)
+            self.assertEqual(var.vartype, VarType.INTEGER)
+            self.assertTupleEqual(var.as_tuple(), d_2[var.name].as_tuple())
 
-        d_3 = q_p.continuous_var_dict(name='a', key_format='_{}', keys=3)
-        c_count += 3
-        check_dict(d_3, len(d_0) + len(d_1) + len(d_2))
-
-        d_4 = q_p.continuous_var_dict(name='c', keys=range(3))
-        c_count += 3
-        check_dict(d_4, len(d_0) + len(d_1) + len(d_2) + len(d_3))
-
-        with self.assertRaises(QiskitOptimizationError):
-            q_p.binary_var_dict(name='c0')
+        d_3 = q_p.binary_var_dict(name='c', keys=range(3))
+        self.assertSetEqual(set(d_3.keys()), {'c0', 'c1', 'c2'})
+        self.assertSetEqual({var.name for var in q_p.variables},
+                            {'a_0', 'a_1', 'a_2', 'b3', 'b4', 'b5', 'b6', 'b7', 'x-8',
+                             'c0', 'c1', 'c2'})
+        for var in q_p.variables[-3:]:
+            self.assertAlmostEqual(var.lowerbound, 0)
+            self.assertAlmostEqual(var.upperbound, 1)
+            self.assertEqual(var.vartype, VarType.BINARY)
+            self.assertTupleEqual(var.as_tuple(), d_3[var.name].as_tuple())
 
         with self.assertRaises(QiskitOptimizationError):
             q_p.binary_var_dict(name='c', keys=range(3))
 
+        d_4 = q_p.binary_var_dict(1, 'x', '_')
+        self.assertSetEqual(set(d_4.keys()), {'x_'})
+        self.assertSetEqual({var.name for var in q_p.variables},
+                            {'a_0', 'a_1', 'a_2', 'b3', 'b4', 'b5', 'b6', 'b7', 'x-8',
+                             'c0', 'c1', 'c2', 'x_'})
+        for var in q_p.variables[-1:]:
+            self.assertAlmostEqual(var.lowerbound, 0)
+            self.assertAlmostEqual(var.upperbound, 1)
+            self.assertEqual(var.vartype, VarType.BINARY)
+            self.assertTupleEqual(var.as_tuple(), d_4[var.name].as_tuple())
+
+        with self.assertRaises(QiskitOptimizationError):
+            q_p.binary_var_dict(1, 'x', '_')
+
+        with self.assertRaises(QiskitOptimizationError):
+            q_p.binary_var('x_')
+
+        d_5 = q_p.continuous_var_dict(1, -1, 2, '', '')
+        self.assertSetEqual(set(d_5.keys()), {''})
+        self.assertSetEqual({var.name for var in q_p.variables},
+                            {'a_0', 'a_1', 'a_2', 'b3', 'b4', 'b5', 'b6', 'b7', 'x-8',
+                             'c0', 'c1', 'c2', 'x_', ''})
+        for var in q_p.variables[-1:]:
+            self.assertAlmostEqual(var.lowerbound, -1)
+            self.assertAlmostEqual(var.upperbound, 2)
+            self.assertEqual(var.vartype, VarType.CONTINUOUS)
+            self.assertTupleEqual(var.as_tuple(), d_5[var.name].as_tuple())
+
+        with self.assertRaises(QiskitOptimizationError):
+            q_p.binary_var_dict(1, '', '')
+
+        with self.assertRaises(QiskitOptimizationError):
+            q_p.integer_var(0, 1, '')
+
         with self.assertRaises(QiskitOptimizationError):
             q_p = QuadraticProgram()
-            q_p.binary_var_dict(key_format='{}{}')
+            q_p.binary_var_dict(keys=1, key_format='{}{}')
 
         with self.assertRaises(QiskitOptimizationError):
             q_p = QuadraticProgram()
@@ -132,64 +164,106 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
 
         with self.assertRaises(QiskitOptimizationError):
             q_p = QuadraticProgram()
-            q_p.binary_var_dict(name='a')
-            q_p.binary_var_dict(name='a')
+            q_p.binary_var_dict(keys=1, key_format='_{{}}')
 
         with self.assertRaises(QiskitOptimizationError):
             q_p = QuadraticProgram()
-            q_p.binary_var_dict(key_format='_{{}}')
+            q_p.binary_var_dict(keys=2, key_format='')
+
+        with self.assertRaises(QiskitOptimizationError):
+            q_p = QuadraticProgram()
+            q_p.binary_var_dict(keys=range(2), key_format='')
 
     def test_var_list(self):
         """test {binary,integer,continuous}_var_list"""
         q_p = QuadraticProgram()
 
-        c_count = 0
-        b_count = 0
-        i_count = 0
-
-        def verify_counts():
-            self.assertEqual(q_p.get_num_vars(), c_count + b_count + i_count)
-            self.assertEqual(q_p.get_num_continuous_vars(), c_count)
-            self.assertEqual(q_p.get_num_binary_vars(), b_count)
-            self.assertEqual(q_p.get_num_integer_vars(), i_count)
-
-        def check_list(var_list, offset):
-            verify_counts()
-            for i, x in enumerate(var_list):
-                y = q_p.get_variable(i + offset)
-                z = q_p.get_variable(x.name)
-                self.assert_equal(x, y)
-                self.assert_equal(x, z)
-
         d_0 = q_p.continuous_var_list(name='a', key_format='_{}', keys=3)
-        c_count += 3
-        check_list(d_0, 0)
+        names = ['a_0', 'a_1', 'a_2']
+        self.assertSetEqual({var.name for var in q_p.variables}, {'a_0', 'a_1', 'a_2'})
+        for i, var in enumerate(q_p.variables):
+            self.assertEqual(var.name, names[i])
+            self.assertAlmostEqual(var.lowerbound, 0)
+            self.assertAlmostEqual(var.upperbound, INFINITY)
+            self.assertEqual(var.vartype, VarType.CONTINUOUS)
+            self.assertTupleEqual(var.as_tuple(), d_0[i].as_tuple())
 
         d_1 = q_p.binary_var_list(name='b', keys=5)
-        b_count += 5
-        check_list(d_1, len(d_0))
+        names = ['b3', 'b4', 'b5', 'b6', 'b7']
+        self.assertSetEqual({var.name for var in q_p.variables},
+                            {'a_0', 'a_1', 'a_2', 'b3', 'b4', 'b5', 'b6', 'b7'})
+        for i, var in enumerate(q_p.variables[-5:]):
+            self.assertEqual(var.name, names[i])
+            self.assertAlmostEqual(var.lowerbound, 0)
+            self.assertAlmostEqual(var.upperbound, 1)
+            self.assertEqual(var.vartype, VarType.BINARY)
+            self.assertTupleEqual(var.as_tuple(), d_1[i].as_tuple())
 
-        d_2 = q_p.integer_var_list(key_format='_{}', keys=7, lowerbound=-4, upperbound=10)
-        i_count += 7
-        check_list(d_2, len(d_0) + len(d_1))
+        d_2 = q_p.integer_var_list(keys=1, key_format='-{}', lowerbound=-4, upperbound=10)
+        names = ['x-8']
+        self.assertSetEqual({var.name for var in q_p.variables},
+                            {'a_0', 'a_1', 'a_2', 'b3', 'b4', 'b5', 'b6', 'b7', 'x-8'})
+        for i, var in enumerate(q_p.variables[-1:]):
+            self.assertEqual(var.name, names[i])
+            self.assertAlmostEqual(var.lowerbound, -4)
+            self.assertAlmostEqual(var.upperbound, 10)
+            self.assertEqual(var.vartype, VarType.INTEGER)
+            self.assertTupleEqual(var.as_tuple(), d_2[i].as_tuple())
 
-        d_3 = q_p.continuous_var_list(name='a', key_format='_{}', keys=3)
-        c_count += 3
-        check_list(d_3, len(d_0) + len(d_1) + len(d_2))
-
-        d_4 = q_p.continuous_var_list(name='c', keys=range(3))
-        c_count += 3
-        check_list(d_4, len(d_0) + len(d_1) + len(d_2) + len(d_3))
-
-        with self.assertRaises(QiskitOptimizationError):
-            q_p.binary_var_list(name='c0')
+        d_3 = q_p.binary_var_list(name='c', keys=range(3))
+        names = ['c0', 'c1', 'c2']
+        self.assertSetEqual({var.name for var in q_p.variables},
+                            {'a_0', 'a_1', 'a_2', 'b3', 'b4', 'b5', 'b6', 'b7', 'x-8',
+                             'c0', 'c1', 'c2'})
+        for i, var in enumerate(q_p.variables[-3:]):
+            self.assertEqual(var.name, names[i])
+            self.assertAlmostEqual(var.lowerbound, 0)
+            self.assertAlmostEqual(var.upperbound, 1)
+            self.assertEqual(var.vartype, VarType.BINARY)
+            self.assertTupleEqual(var.as_tuple(), d_3[i].as_tuple())
 
         with self.assertRaises(QiskitOptimizationError):
             q_p.binary_var_list(name='c', keys=range(3))
 
+        d_4 = q_p.binary_var_dict(1, 'x', '_')
+        names = ['x_']
+        self.assertSetEqual({var.name for var in q_p.variables},
+                            {'a_0', 'a_1', 'a_2', 'b3', 'b4', 'b5', 'b6', 'b7', 'x-8',
+                             'c0', 'c1', 'c2', 'x_'})
+        for i, var in enumerate(q_p.variables[-1:]):
+            self.assertEqual(var.name, names[i])
+            self.assertAlmostEqual(var.lowerbound, 0)
+            self.assertAlmostEqual(var.upperbound, 1)
+            self.assertEqual(var.vartype, VarType.BINARY)
+            self.assertTupleEqual(var.as_tuple(), d_4[var.name].as_tuple())
+
+        with self.assertRaises(QiskitOptimizationError):
+            q_p.binary_var_list(1, 'x', '_')
+
+        with self.assertRaises(QiskitOptimizationError):
+            q_p.binary_var('x_')
+
+        d_5 = q_p.integer_var_list(1, -1, 2, '', '')
+        names = ['']
+        self.assertSetEqual({var.name for var in q_p.variables},
+                            {'a_0', 'a_1', 'a_2', 'b3', 'b4', 'b5', 'b6', 'b7', 'x-8',
+                             'c0', 'c1', 'c2', 'x_', ''})
+        for i, var in enumerate(q_p.variables[-1:]):
+            self.assertEqual(var.name, names[i])
+            self.assertAlmostEqual(var.lowerbound, -1)
+            self.assertAlmostEqual(var.upperbound, 2)
+            self.assertEqual(var.vartype, VarType.INTEGER)
+            self.assertTupleEqual(var.as_tuple(), d_5[i].as_tuple())
+
+        with self.assertRaises(QiskitOptimizationError):
+            q_p.binary_var_list(1, '', '')
+
+        with self.assertRaises(QiskitOptimizationError):
+            q_p.integer_var(0, 1, '')
+
         with self.assertRaises(QiskitOptimizationError):
             q_p = QuadraticProgram()
-            q_p.binary_var_list(key_format='{}{}')
+            q_p.binary_var_list(keys=1, key_format='{}{}')
 
         with self.assertRaises(QiskitOptimizationError):
             q_p = QuadraticProgram()
@@ -197,12 +271,15 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
 
         with self.assertRaises(QiskitOptimizationError):
             q_p = QuadraticProgram()
-            q_p.binary_var_list(name='a')
-            q_p.binary_var_list(name='a')
+            q_p.binary_var_list(keys=1, key_format='_{{}}')
 
         with self.assertRaises(QiskitOptimizationError):
             q_p = QuadraticProgram()
-            q_p.binary_var_list(key_format='_{{}}')
+            q_p.binary_var_list(keys=2, key_format='')
+
+        with self.assertRaises(QiskitOptimizationError):
+            q_p = QuadraticProgram()
+            q_p.binary_var_list(keys=range(2), key_format='')
 
     def test_variables_handling(self):
         """ test add variables """
@@ -703,13 +780,13 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
         x = mod.binary_var()
         y = mod.continuous_var()
         z = mod.integer_var()
-        mod.minimize(x+y+z + x*y + y*z + x*z)
-        mod.add_constraint(x+y == z)  # linear EQ
-        mod.add_constraint(x+y >= z)  # linear GE
-        mod.add_constraint(x+y <= z)  # linear LE
-        mod.add_constraint(x*y == z)  # quadratic EQ
-        mod.add_constraint(x*y >= z)  # quadratic GE
-        mod.add_constraint(x*y <= z)  # quadratic LE
+        mod.minimize(x + y + z + x * y + y * z + x * z)
+        mod.add_constraint(x + y == z)  # linear EQ
+        mod.add_constraint(x + y >= z)  # linear GE
+        mod.add_constraint(x + y <= z)  # linear LE
+        mod.add_constraint(x * y == z)  # quadratic EQ
+        mod.add_constraint(x * y >= z)  # quadratic GE
+        mod.add_constraint(x * y <= z)  # quadratic LE
         q_p = QuadraticProgram()
         q_p.from_docplex(mod)
         var_names = [v.name for v in q_p.variables]
