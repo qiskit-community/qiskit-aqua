@@ -137,7 +137,7 @@ class QuantumGenerator(GenerativeNetwork):
                 self._grid_elements = deepcopy(temp)
         self._data_grid = np.array(self._data_grid)
 
-        self._seed = None
+        self._seed = 7
         self._shots = None
         self._discriminator = None
         self._ret = {}  # type: Dict[str, Any]
