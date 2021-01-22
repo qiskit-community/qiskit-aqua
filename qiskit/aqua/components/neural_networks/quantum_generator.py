@@ -26,6 +26,7 @@ from qiskit.aqua.components.optimizers import Optimizer
 from qiskit.aqua.components.uncertainty_models import UnivariateVariationalDistribution, \
     MultivariateVariationalDistribution
 from qiskit.aqua.components.neural_networks.generative_network import GenerativeNetwork
+from qiskit.aqua.components.neural_networks.discriminative_network import DiscriminativeNetwork
 
 # pylint: disable=invalid-name
 
@@ -142,14 +143,14 @@ class QuantumGenerator(GenerativeNetwork):
         self._ret = {}  # type: Dict[str, Any]
 
     @property
-    def seed(self):
+    def seed(self) -> int:
         """
         Get seed.
         """
         return self._seed
 
     @seed.setter
-    def seed(self, seed):
+    def seed(self, seed: int) -> None:
         """
         Set seed.
 
@@ -159,7 +160,7 @@ class QuantumGenerator(GenerativeNetwork):
         self._seed = seed
         aqua_globals.random_seed = seed
 
-    def set_seed(self, seed):
+    def set_seed(self, seed: int) -> None:
         """
         Set seed.
 
@@ -175,14 +176,14 @@ class QuantumGenerator(GenerativeNetwork):
         aqua_globals.random_seed = seed
 
     @property
-    def discriminator(self):
+    def discriminator(self) -> DiscriminativeNetwork:
         """
         Get discriminator.
         """
         return self._discriminator
 
     @discriminator.setter
-    def discriminator(self, discriminator):
+    def discriminator(self, discriminator: DiscriminativeNetwork) -> None:
         """
         Set discriminator.
 
@@ -192,7 +193,7 @@ class QuantumGenerator(GenerativeNetwork):
         """
         self._discriminator = discriminator
 
-    def set_discriminator(self, discriminator):
+    def set_discriminator(self, discriminator: DiscriminativeNetwork) -> None:
         """
         Set discriminator network.
 
@@ -209,14 +210,14 @@ class QuantumGenerator(GenerativeNetwork):
         self._discriminator = discriminator
 
     @property
-    def optimizer(self):
+    def optimizer(self) -> Optimizer:
         """
         Get optimizer.
         """
         return self._optimizer
 
     @optimizer.setter
-    def optimizer(self, optimizer):
+    def optimizer(self, optimizer: Optional[Optimizer] = None) -> None:
         """
         Set optimizer.
 
