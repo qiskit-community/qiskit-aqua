@@ -1,0 +1,9 @@
+---
+features:
+  - |
+    Added a new argument use_sigmoid_cross_entropy to the VQC algorithm init
+    call, which allows users to choose between regular and sigmoid versions
+upgrade:
+  - |
+    Change the vqc loss function name from _cost_function_wrapper to loss for
+    easier access.
