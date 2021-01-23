@@ -1,0 +1,7 @@
+---
+features:
+  - |
+    Add the batch variable generation for optimization, i.e.,
+    `QuadraticProgram.{continuous,integer,binary}_var_{dict,list}`.
+    These methods allow users to add multiple variables at once by specifying a number of variables
+    or a list of variable indices.

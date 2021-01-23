@@ -107,8 +107,18 @@ class TestGroundStateEigensolver(QiskitChemistryTestCase):
         self.assertIsInstance(add_aux_op_res[0], complex)
         self.assertAlmostEqual(add_aux_op_res[0].real, 2, places=6)
 
+    def test_eval_op_single_none(self):
+        """ Test evaluating a single `None` operator """
+        calc, res, _ = self._setup_evaluation_operators()
+        # we filter the list because in this test we test a single operator evaluation
+        add_aux_op = None
+
+        # now we have the ground state calculation evaluate it
+        add_aux_op_res = calc.evaluate_operators(res.raw_result.eigenstate, add_aux_op)
+        self.assertIsNone(add_aux_op_res)
+
     def test_eval_op_list(self):
-        """ Test evaluating a list of additional operator """
+        """ Test evaluating a list of additional operators """
         calc, res, aux_ops = self._setup_evaluation_operators()
         # we filter the list because of simplicity
         expected_results = {'number of particles': 2,
@@ -123,8 +133,25 @@ class TestGroundStateEigensolver(QiskitChemistryTestCase):
         for idx, expected in enumerate(expected_results.values()):
             self.assertAlmostEqual(add_aux_op_res[idx][0].real, expected, places=6)
 
+    def test_eval_op_list_none(self):
+        """ Test evaluating a list of additional operators incl. `None` """
+        calc, res, aux_ops = self._setup_evaluation_operators()
+        # we filter the list because of simplicity
+        expected_results = {'number of particles': 2,
+                            's^2': 0,
+                            'magnetization': 0}
+        add_aux_op = aux_ops[0:3] + [None]
+
+        # now we have the ground state calculation evaluate them
+        add_aux_op_res = calc.evaluate_operators(res.raw_result.eigenstate, add_aux_op)
+        self.assertIsInstance(add_aux_op_res, list)
+        # in this list we require that the order of the results remains unchanged
+        for idx, expected in enumerate(expected_results.values()):
+            self.assertAlmostEqual(add_aux_op_res[idx][0].real, expected, places=6)
+        self.assertIsNone(add_aux_op_res[-1])
+
     def test_eval_op_dict(self):
-        """ Test evaluating a dict of additional operator """
+        """ Test evaluating a dict of additional operators """
         calc, res, aux_ops = self._setup_evaluation_operators()
         # we filter the list because of simplicity
         expected_results = {'number of particles': 2,
@@ -139,6 +166,25 @@ class TestGroundStateEigensolver(QiskitChemistryTestCase):
         self.assertIsInstance(add_aux_op_res, dict)
         for name, expected in expected_results.items():
             self.assertAlmostEqual(add_aux_op_res[name][0].real, expected, places=6)
+
+    def test_eval_op_dict_none(self):
+        """ Test evaluating a dict of additional operators incl. `None` """
+        calc, res, aux_ops = self._setup_evaluation_operators()
+        # we filter the list because of simplicity
+        expected_results = {'number of particles': 2,
+                            's^2': 0,
+                            'magnetization': 0}
+        add_aux_op = aux_ops[0:3]
+        # now we convert it into a dictionary
+        add_aux_op = dict(zip(expected_results.keys(), add_aux_op))
+        add_aux_op['None'] = None
+
+        # now we have the ground state calculation evaluate them
+        add_aux_op_res = calc.evaluate_operators(res.raw_result.eigenstate, add_aux_op)
+        self.assertIsInstance(add_aux_op_res, dict)
+        for name, expected in expected_results.items():
+            self.assertAlmostEqual(add_aux_op_res[name][0].real, expected, places=6)
+        self.assertIsNone(add_aux_op_res['None'])
 
 
 if __name__ == '__main__':
