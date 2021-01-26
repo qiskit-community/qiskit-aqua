@@ -35,15 +35,6 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Pip cache
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-checks-${{ hashFiles('setup.py','requirements-dev.txt','constraints.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-checks-
-            ${{ runner.os }}-pip-
-            ${{ runner.os }}-
       - uses: ./.github/actions/install-libraries
       - uses: ./.github/actions/install-master-dependencies
         if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
@@ -53,8 +44,6 @@ jobs:
           sudo apt-get -y install python3-enchant
           sudo apt-get -y install hunspell-en-us
           pip install pyenchant
-          pip install cplex
-          pip install "cvxpy>1.0.0"
           pip install https://github.com/rpmuller/pyquante2/archive/master.zip
         shell: bash
       - run:  pip check
@@ -105,22 +94,12 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Pip cache
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-lint-${{ hashFiles('setup.py','requirements-dev.txt','constraints.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-lint-
-            ${{ runner.os }}-pip-
-            ${{ runner.os }}-
       - uses: ./.github/actions/install-libraries
       - uses: ./.github/actions/install-master-dependencies
         if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
       - uses: ./.github/actions/install-aqua
       - name: Install Dependencies
         run: |
-          pip install "cvxpy>1.0.0"
           pip install https://github.com/rpmuller/pyquante2/archive/master.zip
       - run: make lint
         if: ${{ !cancelled() }}
@@ -141,56 +120,30 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Pip cache
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-mypy-${{ hashFiles('setup.py','requirements-dev.txt','constraints.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-mypy-
-            ${{ runner.os }}-pip-
-            ${{ runner.os }}-
       - uses: ./.github/actions/install-libraries
       - uses: ./.github/actions/install-master-dependencies
         if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
       - uses: ./.github/actions/install-aqua
       - name: Mypy under Python ${{ matrix.python-version }}
-        run: |
-          pip install cplex
-          make mypy
+        run: make mypy
         shell: bash
   Aqua:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.7, 3.8]
+        python-version: [3.7, 3.8, 3.9]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Pip cache
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-${{ matrix.python-version }}-pip-aqua-${{ hashFiles('setup.py','requirements-dev.txt','constraints.txt') }}
-          restore-keys: |
-            ${{ runner.os }}${{ matrix.python-version }}-pip-aqua-
-            ${{ runner.os }}${{ matrix.python-version }}-pip-
-            ${{ runner.os }}${{ matrix.python-version }}-
       - uses: ./.github/actions/install-libraries
       - uses: ./.github/actions/install-master-dependencies
         if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
       - uses: ./.github/actions/install-aqua
       - name: Install Dependencies
         run: |
-          pip install "cvxpy>1.0.0"
-          pip install scikit-quant
           pip install jax jaxlib
-        shell: bash
-      - name: Install cplex
-        run: pip install cplex
-        if: ${{ matrix.python-version == 3.7 }}
         shell: bash
       - name: Aqua Unit Tests under Python ${{ matrix.python-version }}
         uses: ./.github/actions/run-tests
@@ -216,21 +169,12 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.7, 3.8]
+        python-version: [3.7, 3.8, 3.9]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Pip cache
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-${{ matrix.python-version }}-pip-chemistry-${{ hashFiles('setup.py','requirements-dev.txt','constraints.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ matrix.python-version }}-pip-chemistry-
-            ${{ runner.os }}-${{ matrix.python-version }}-pip-
-            ${{ runner.os }}-${{ matrix.python-version }}-
       - uses: ./.github/actions/install-psi4
         if: ${{ matrix.python-version == 3.7 }}
       - uses: ./.github/actions/install-libraries
@@ -244,16 +188,6 @@ jobs:
             conda activate
             pip install https://github.com/rpmuller/pyquante2/archive/master.zip
           fi
-          pip install pyscf
-        shell: bash
-      - name: Install cplex
-        run: |
-          if [ -f "$HOME/miniconda/etc/profile.d/conda.sh" ]; then
-            source "$HOME/miniconda/etc/profile.d/conda.sh"
-            conda activate
-          fi
-          pip install cplex
-        if: ${{ matrix.python-version == 3.7 }}
         shell: bash
       - name: Chemistry Unit Tests under Python ${{ matrix.python-version }}
         uses: ./.github/actions/run-tests
@@ -283,29 +217,16 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.7, 3.8]
+        python-version: [3.7, 3.8, 3.9]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Pip cache
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-${{ matrix.python-version }}-pip-finance-${{ hashFiles('setup.py','requirements-dev.txt','constraints.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ matrix.python-version }}-pip-finance-
-            ${{ runner.os }}-${{ matrix.python-version }}-pip-
-            ${{ runner.os }}-${{ matrix.python-version }}-
       - uses: ./.github/actions/install-libraries
       - uses: ./.github/actions/install-master-dependencies
         if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
       - uses: ./.github/actions/install-aqua
-      - name: Install cplex
-        run: pip install cplex
-        if: ${{ matrix.python-version == 3.7 }}
-        shell: bash
       - name: Finance Unit Tests under Python ${{ matrix.python-version }}
         uses: ./.github/actions/run-tests
         with:
@@ -330,29 +251,16 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.7, 3.8]
+        python-version: [3.7, 3.8, 3.9]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Pip cache
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-${{ matrix.python-version }}-pip-machinelearning-${{ hashFiles('setup.py','requirements-dev.txt','constraints.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ matrix.python-version }}-pip-machinelearning-
-            ${{ runner.os }}-${{ matrix.python-version }}-pip-
-            ${{ runner.os }}-${{ matrix.python-version }}-
       - uses: ./.github/actions/install-libraries
       - uses: ./.github/actions/install-master-dependencies
         if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
       - uses: ./.github/actions/install-aqua
-      - name: Install cplex
-        run: pip install cplex
-        if: ${{ matrix.python-version == 3.7 }}
-        shell: bash
       - name: Machine Learning Unit Tests under Python ${{ matrix.python-version }}
         uses: ./.github/actions/run-tests
         with:
@@ -377,29 +285,16 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.7, 3.8]
+        python-version: [3.7, 3.8, 3.9]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Pip cache
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-${{ matrix.python-version }}-pip-optimization-${{ hashFiles('setup.py','requirements-dev.txt','constraints.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ matrix.python-version }}-pip-optimization-
-            ${{ runner.os }}-${{ matrix.python-version }}-pip-
-            ${{ runner.os }}-${{ matrix.python-version }}-
       - uses: ./.github/actions/install-libraries
       - uses: ./.github/actions/install-master-dependencies
         if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
       - uses: ./.github/actions/install-aqua
-      - name: Install cplex
-        run: pip install cplex
-        if: ${{ matrix.python-version == 3.7 }}
-        shell: bash
       - name: Optimization Unit Tests under Python ${{ matrix.python-version }}
         uses: ./.github/actions/run-tests
         with:
@@ -430,29 +325,14 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Pip cache
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-${{ matrix.python-version }}-pip-tutorials-${{ hashFiles('setup.py','requirements-dev.txt','constraints.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ matrix.python-version }}-pip-tutorials-
-            ${{ runner.os }}-${{ matrix.python-version }}-pip-
-            ${{ runner.os }}-${{ matrix.python-version }}-
       - uses: ./.github/actions/install-libraries
       - uses: ./.github/actions/install-master-dependencies
         if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
       - uses: ./.github/actions/install-aqua
-      - name: Install cplex
-        run: pip install cplex
-        if: ${{ matrix.python-version == 3.6 }}
-        shell: bash
       - name: Install Dependencies
         run: |
           pip install https://github.com/rpmuller/pyquante2/archive/master.zip
-          pip install pyscf
-          pip install "cvxpy>1.0.0"
-          pip install -U jupyter sphinx nbsphinx sphinx_rtd_theme 'matplotlib<3.3.0' qiskit-terra[visualization] cvxpy
+          pip install -U jupyter sphinx nbsphinx sphinx_rtd_theme 'matplotlib<3.3.0' qiskit-terra[visualization]
           sudo apt-get install -y pandoc graphviz
         shell: bash
       - name: Run Aqua Tutorials
@@ -484,15 +364,6 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Pip cache
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-coverage-${{ hashFiles('setup.py','requirements-dev.txt','constraints.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-coverage-
-            ${{ runner.os }}-pip-
-            ${{ runner.os }}-
       - uses: actions/download-artifact@v2
         with:
           name: aqua3.7

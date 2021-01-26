@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -63,7 +63,7 @@ the `scikit-quant` package. The `scikit-quant` package is not installed by defau
 explicitly installed, if desired, by the user - the optimizers therein are provided under various
 licenses so it has been made an optional install for the end user to choose whether to do so or
 not. To install the `scikit-quant` dependent package you can use
-`pip install qiskit-aqua[skquant]`.
+`pip install 'qiskit-aqua[skquant]'`.
 
 .. autosummary::
    :toctree: ../stubs/
