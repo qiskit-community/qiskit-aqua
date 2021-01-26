@@ -1,0 +1,7 @@
+---
+fixes:
+  - |
+    Make ListOp.num_qubits check that all ops in list have the same num_qubits
+    Previously, the number of qubits in the first operator in the ListOp
+    was returned. With this change, an additional check is made that all
+    other operators also have the same number of qubits.

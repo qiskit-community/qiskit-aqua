@@ -1,0 +1,5 @@
+---
+fixes:
+  - |
+    Fix parameter binding in the ``OperatorStateFn``, which did not bind 
+    parameters of the underlying primitive but just the coefficients.

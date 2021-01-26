@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -15,12 +13,15 @@
 """
 Data Providers (:mod:`qiskit.finance.data_providers`)
 =====================================================
-Providers of financial data...
 
 .. currentmodule:: qiskit.finance.data_providers
 
-Data Providers Base Class
-=========================
+A selection of providers for financial data. These may be backed by
+an external service that sources the actual data; please refer to the
+specific provider class below, for more information in that regard.
+
+Data Provider Base Class
+========================
 
 .. autosummary::
    :toctree: ../stubs/
@@ -28,16 +29,14 @@ Data Providers Base Class
 
    BaseDataProvider
 
-Data Provider Utilities
-=======================
+Data Provider Types
+===================
 
 .. autosummary::
    :toctree: ../stubs/
    :nosignatures:
 
-    DataType
     StockMarket
-    QiskitFinanceError
 
 Data Providers
 ==============
@@ -49,17 +48,20 @@ Data Providers
    DataOnDemandProvider
    ExchangeDataProvider
    WikipediaDataProvider
+   YahooDataProvider
    RandomDataProvider
 
 """
 
-from ._base_data_provider import BaseDataProvider, DataType, StockMarket, QiskitFinanceError
+from ._base_data_provider import BaseDataProvider, StockMarket
 from .data_on_demand_provider import DataOnDemandProvider
 from .exchange_data_provider import ExchangeDataProvider
 from .wikipedia_data_provider import WikipediaDataProvider
+from .yahoo_data_provider import YahooDataProvider
 from .random_data_provider import RandomDataProvider
 
 __all__ = [
-    'BaseDataProvider', 'DataType', 'QiskitFinanceError', 'StockMarket', 'RandomDataProvider',
-    'DataOnDemandProvider', 'ExchangeDataProvider', 'WikipediaDataProvider'
+    'BaseDataProvider', 'StockMarket', 'RandomDataProvider',
+    'DataOnDemandProvider', 'ExchangeDataProvider', 'WikipediaDataProvider',
+    'YahooDataProvider'
 ]

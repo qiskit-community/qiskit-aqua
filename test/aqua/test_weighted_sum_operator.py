@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2019, 2020.
@@ -15,10 +13,11 @@
 """ Test Weighted Sum Operator """
 
 import unittest
+import warnings
 
 from test.aqua import QiskitAquaTestCase
 
-from parameterized import parameterized
+from ddt import ddt, idata, unpack
 
 import numpy as np
 
@@ -26,10 +25,20 @@ from qiskit import QuantumRegister, QuantumCircuit, BasicAer, execute
 from qiskit.aqua.circuits import WeightedSumOperator
 
 
+@ddt
 class TestWeightedSumOperator(QiskitAquaTestCase):
     """ weighted sum operator test """
 
-    @parameterized.expand([
+    def setUp(self):
+        super().setUp()
+        # ignore deprecation warnings from the change of the circuit factory to circuit library
+        warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+    def tearDown(self):
+        super().tearDown()
+        warnings.filterwarnings(action="always", category=DeprecationWarning)
+
+    @idata([
         # n, weights, x, sum
         [1, [1], [0], 0],
         [1, [1], [1], 1],
@@ -42,10 +51,13 @@ class TestWeightedSumOperator(QiskitAquaTestCase):
         [3, [1, 2, 3], [0, 1, 1], 5],
         [3, [1, 2, 3], [1, 1, 1], 6]
     ])
+    @unpack
     def test_weighted_sum_operator(self, num_state_qubits, weights, input_x, result):
         """ weighted sum operator test """
         # initialize weighted sum operator factory
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         sum_op = WeightedSumOperator(num_state_qubits, weights)
+        warnings.filterwarnings('always', category=DeprecationWarning)
 
         # initialize circuit
         q = QuantumRegister(num_state_qubits + sum_op.get_required_sum_qubits(weights))

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -13,10 +11,9 @@
 # that they have been altered from the originals.
 
 """
-the multiclass extension based on the error-correcting-code algorithm.
+The Error Correcting Code multiclass extension.
 """
 
-from typing import Optional, List, Callable
 import logging
 
 import numpy as np
@@ -25,7 +22,6 @@ from sklearn.multiclass import _ConstantPredictor
 
 from qiskit.aqua import aqua_globals
 from qiskit.aqua.utils.validation import validate_min
-from .estimator import Estimator
 from .multiclass_extension import MulticlassExtension
 
 logger = logging.getLogger(__name__)
@@ -34,18 +30,42 @@ logger = logging.getLogger(__name__)
 
 
 class ErrorCorrectingCode(MulticlassExtension):
-    """
-      the multiclass extension based on the error-correcting-code algorithm.
+    r"""
+    The Error Correcting Code multiclass extension.
+
+    Error Correcting Code (ECC) is an ensemble method designed for the multiclass classification
+    problem.  As for the other multiclass methods, the task is to decide one label from
+    :math:`k > 2` possible choices.
+
+    +-------+------------------------------------------------------------------------+
+    |       |                                Code Word                               |
+    + Class +-----------+------------+-----------+-----------+-----------+-----------+
+    |       |:math:`f_0`|:math:`f_1` |:math:`f_2`|:math:`f_3`|:math:`f_4`|:math:`f_5`|
+    +-------+-----------+------------+-----------+-----------+-----------+-----------+
+    |   1   |     0     |     1      |     0     |     1     |     0     |     1     |
+    +-------+-----------+------------+-----------+-----------+-----------+-----------+
+    |   2   |     1     |     0      |     0     |     1     |     0     |     0     |
+    +-------+-----------+------------+-----------+-----------+-----------+-----------+
+    |   3   |     1     |     1      |     1     |     0     |     0     |     0     |
+    +-------+-----------+------------+-----------+-----------+-----------+-----------+
+
+    The table above shows a 6-bit ECC for a 3-class problem. Each class is assigned a unique
+    binary string of length 6.  The string is also called  a **codeword**.  For example, class 2
+    has codeword ``100100``.  During training, one binary classifier is learned for each column.
+    For example, for the first column, ECC builds a binary classifier to separate :math:`\{2, 3\}`
+    from :math:`\{1\}`. Thus, 6 binary classifiers are trained in this way.  To classify a
+    new data point :math:`\mathbf{x}`, all 6 binary classifiers are evaluated to obtain a 6-bit
+    string. Finally, we choose the class whose bitstring is closest to :math:`\mathbf{x}`’s
+    output string as the predicted label. This implementation of ECC uses the Euclidean distance.
     """
 
-    def __init__(self,
-                 estimator_cls: Callable[[List], Estimator],
-                 params: Optional[List] = None,
-                 code_size: int = 4):
+    def __init__(self, code_size: int = 4):
+        """
+        Args:
+            code_size: Size of error correcting code
+        """
         validate_min('code_size', code_size, 1)
         super().__init__()
-        self.estimator_cls = estimator_cls
-        self.params = params if params is not None else []
         self.code_size = code_size
         self.rand = aqua_globals.random
         self.estimators = None
@@ -55,6 +75,7 @@ class ErrorCorrectingCode(MulticlassExtension):
     def train(self, x, y):
         """
         Training multiple estimators each for distinguishing a pair of classes.
+
         Args:
             x (numpy.ndarray): input points
             y (numpy.ndarray): input labels
@@ -63,7 +84,7 @@ class ErrorCorrectingCode(MulticlassExtension):
         self.classes = np.unique(y)
         n_classes = self.classes.shape[0]
         code_size = int(n_classes * self.code_size)
-        self.codebook = self.rand.random_sample((n_classes, code_size))
+        self.codebook = self.rand.random((n_classes, code_size))
         self.codebook[self.codebook > 0.5] = 1
         self.codebook[self.codebook != 1] = 0
         classes_index = dict((c, i) for i, c in enumerate(self.classes))
@@ -85,6 +106,7 @@ class ErrorCorrectingCode(MulticlassExtension):
     def test(self, x, y):
         """
         Testing multiple estimators each for distinguishing a pair of classes.
+
         Args:
             x (numpy.ndarray): input points
             y (numpy.ndarray): input labels
@@ -100,7 +122,8 @@ class ErrorCorrectingCode(MulticlassExtension):
 
     def predict(self, x):
         """
-        Applying multiple estimators for prediction
+        Applying multiple estimators for prediction.
+
         Args:
             x (numpy.ndarray): NxD array
         Returns:

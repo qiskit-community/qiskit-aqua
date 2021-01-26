@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -15,7 +13,8 @@
 """
 Eigenvalues (:mod:`qiskit.aqua.components.eigs`)
 ================================================
-Eigenvalue components - principally used by HHL
+These are components designed to find eigenvalues. They were initially designed for use by
+:class:`~qiskit.aqua.algorithms.HHL` which remains their currently principal usage.
 
 .. currentmodule:: qiskit.aqua.components.eigs
 

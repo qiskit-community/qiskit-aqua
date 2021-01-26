@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -17,7 +15,7 @@
 import copy
 import itertools
 
-import networkx
+import retworkx
 import numpy as np
 from qiskit.quantum_info import Pauli
 from qiskit.aqua.operators import WeightedPauliOperator
@@ -90,9 +88,9 @@ def _two_body(edge_list, p, q, r, s, h2_pqrs):  # pylint: disable=invalid-name
         a_pq = -a_pq if q < p else a_pq
         a_rs = -a_rs if s < r else a_rs
 
-        qubit_op = (a_pq * a_rs) * (-id_op - b_p * b_q + b_p * b_r +
-                                    b_p * b_s + b_q * b_r + b_q * b_s -
-                                    b_r * b_s - b_p * b_q * b_r * b_s)
+        qubit_op = (a_pq * a_rs) * (-id_op - b_p * b_q + b_p * b_r
+                                    + b_p * b_s + b_q * b_r + b_q * b_s
+                                    - b_r * b_s - b_p * b_q * b_r * b_s)
         final_coeff = 0.125
 
     # Handle case of three unique indices.
@@ -251,9 +249,9 @@ def stabilizers(fer_op):
     edge_list = bravyi_kitaev_fast_edge_list(fer_op)
     num_qubits = edge_list.shape[1]
 
-    graph = networkx.Graph()
-    graph.add_edges_from(tuple(edge_list.transpose()))
-    stabs = np.asarray(networkx.cycle_basis(graph))
+    graph = retworkx.PyGraph()
+    graph.extend_from_edge_list(list(map(tuple, edge_list.transpose())))
+    stabs = np.asarray(retworkx.cycle_basis(graph))
     stabilizer_ops = []
     for stab in stabs:
         a_op = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
@@ -375,9 +373,9 @@ def vacuum_operator(fer_op):
     num_qubits = edge_list.shape[1]
     vac_operator = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
 
-    graph = networkx.Graph()
-    graph.add_edges_from(tuple(edge_list.transpose()))
-    stabs = np.asarray(networkx.cycle_basis(graph))
+    graph = retworkx.PyGraph()
+    graph.extend_from_edge_list(list(map(tuple, edge_list.transpose())))
+    stabs = np.asarray(retworkx.cycle_basis(graph))
     for stab in stabs:
         a_op = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('I' * num_qubits)]])
         stab = np.asarray(stab)

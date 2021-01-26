@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -27,6 +25,10 @@ from .multivariate_distribution import MultivariateDistribution
 class MultivariateNormalDistribution(MultivariateDistribution):
     """
     The Multivariate Normal Distribution.
+
+    Provides a discretized and truncated normal distribution loaded into a quantum state.
+    Truncation bounds are given by lower and upper bound and discretization is specified by the
+    number of qubits per dimension.
     """
 
     def __init__(self,
@@ -36,14 +38,12 @@ class MultivariateNormalDistribution(MultivariateDistribution):
                  mu: Optional[Union[List[float], np.ndarray]] = None,
                  sigma: Optional[Union[List[float], np.ndarray]] = None) -> None:
         """
-        Circuit Factory to build a circuit that represents a multivariate normal distribution.
-
         Args:
-            num_qubits: representing number of qubits per dimension
-            low: representing lower bounds per dimension
-            high: representing upper bounds per dimension
-            mu: representing expected values
-            sigma: representing co-variance matrix
+            num_qubits: Number of qubits per dimension
+            low: Lower bounds per dimension
+            high: Upper bounds per dimension
+            mu: Expected values
+            sigma: Co-variance matrix
         """
         if not isinstance(sigma, np.ndarray):
             sigma = np.asarray(sigma)
@@ -64,6 +64,10 @@ class MultivariateNormalDistribution(MultivariateDistribution):
         probs = self._compute_probabilities([], num_qubits, low, high)
         probs = np.asarray(probs) / np.sum(probs)
         super().__init__(num_qubits, probs, low, high)
+
+    @staticmethod
+    def _replacement():
+        return 'qiskit.circuit.library.NormalDistribution'
 
     def _compute_probabilities(self, probs, num_qubits, low, high, x=None):
 

@@ -1,0 +1,9 @@
+---
+features:
+  - |
+    Added :class:`~qiskit.aqua.operators.PauliSumOp`, which is a new subclass of
+    :class:`~qiskit.aqua.operators.PrimitiveOp`. ``SummedOp[PauliOp]`` is replaced
+    with ``PauliSumOp`` when it is not nested and coefficients are not
+    ``ParameterExpression``. For example, ``X + Y`` becomes ``PauliSumOp``.
+    PauliSumOp improves the performance of basic arithmetic operations, reduce,
+    eqality check, to_matrix, etc.

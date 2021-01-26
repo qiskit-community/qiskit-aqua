@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -14,7 +12,9 @@
 
 """ Test Driver Methods Pyquante """
 
-from test.chemistry.test_driver_methods import TestDriverMethods
+import unittest
+
+from test.chemistry.test_driver_methods_gsc import TestDriverMethods
 from qiskit.chemistry import QiskitChemistryError
 from qiskit.chemistry.drivers import PyQuanteDriver, UnitsType, BasisType, HFMethodType
 
@@ -68,3 +68,7 @@ class TestDriverMethodsPyquante(TestDriverMethods):
                                 hf_method=HFMethodType.UHF)
         result = self._run_driver(driver)
         self._assert_energy(result, 'oh')
+
+
+if __name__ == '__main__':
+    unittest.main()

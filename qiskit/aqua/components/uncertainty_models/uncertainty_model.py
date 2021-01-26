@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -26,6 +24,8 @@ class UncertaintyModel(CircuitFactory, ABC):
     """
     The abstract Uncertainty Model
     """
+
+    __REPLACEMENT = 'a qiskit.QuantumCircuit'
 
     # pylint: disable=useless-super-delegation
     def __init__(self, num_target_qubits: int) -> None:

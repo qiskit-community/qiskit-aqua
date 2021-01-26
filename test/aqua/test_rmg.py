@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -17,25 +15,28 @@
 import unittest
 from test.aqua import QiskitAquaTestCase
 import numpy as np
-from parameterized import parameterized
+from ddt import ddt, idata, unpack
 from qiskit.aqua.utils.random_matrix_generator import random_unitary, random_hermitian
 
 
+@ddt
 class TestRandomMatrixGenerator(QiskitAquaTestCase):
     """Random matrix generator tests."""
 
-    @parameterized.expand([[2], [100], [1000]])
+    @idata([[2], [100], [1000]])
+    @unpack
     def test_random_unitary(self, m_v):
         """ random unitary test """
         r_a = random_unitary(m_v)
         distance = abs(np.sum(r_a.dot(r_a.T.conj()) - np.eye(m_v)))
         self.assertAlmostEqual(distance, 0, places=10)
 
-    @parameterized.expand([[2], [100], [1000]])
+    @idata([[2], [100], [1000]])
+    @unpack
     def test_random_hermitian(self, m_v):
         """ random hermitian test """
         r_a = random_hermitian(m_v)
-        distance = abs(np.sum(r_a-r_a.T.conj()))
+        distance = abs(np.sum(r_a - r_a.T.conj()))
         self.assertAlmostEqual(distance, 0, places=10)
 
 

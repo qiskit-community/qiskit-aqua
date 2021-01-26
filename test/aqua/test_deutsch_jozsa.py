@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -17,7 +15,7 @@
 import unittest
 import itertools
 from test.aqua import QiskitAquaTestCase
-from parameterized import parameterized
+from ddt import ddt, idata, unpack
 from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.components.oracles import TruthTableOracle
@@ -29,11 +27,11 @@ OPTIMIZATIONS = [True, False]
 SIMULATORS = ['statevector_simulator', 'qasm_simulator']
 
 
+@ddt
 class TestDeutschJozsa(QiskitAquaTestCase):
     """ Test Deutsch Jozsa """
-    @parameterized.expand(
-        itertools.product(BITMAPS, MCT_MODES, OPTIMIZATIONS, SIMULATORS)
-    )
+    @idata(itertools.product(BITMAPS, MCT_MODES, OPTIMIZATIONS, SIMULATORS))
+    @unpack
     def test_deutsch_jozsa(self, dj_input, mct_mode, optimization, simulator):
         """ Deutsch Jozsa test """
         backend = BasicAer.get_backend(simulator)

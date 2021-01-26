@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -12,21 +10,29 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Powell algorithm."""
+"""Powell optimizer."""
 
 from typing import Optional
 import logging
 
 from scipy.optimize import minimize
-from .optimizer import Optimizer
+from .optimizer import Optimizer, OptimizerSupportLevel
 
 logger = logging.getLogger(__name__)
 
 
 class POWELL(Optimizer):
-    """Powell algorithm.
+    """
+    Powell optimizer.
 
-    Uses scipy.optimize.minimize Powell
+    The Powell algorithm performs unconstrained optimization; it ignores bounds or
+    constraints. Powell is a *conjugate direction method*: it performs sequential one-dimensional
+    minimization along each directional vector, which is updated at
+    each iteration of the main minimization loop. The function being minimized need not be
+    differentiable, and no derivatives are taken.
+
+    Uses scipy.optimize.minimize Powell.
+    For further detail, please refer to
     See https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
     """
 
@@ -40,32 +46,27 @@ class POWELL(Optimizer):
                  xtol: float = 0.0001,
                  tol: Optional[float] = None) -> None:
         """
-        Constructor.
-
-        For details, please refer to
-        https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html.
-
         Args:
             maxiter: Maximum allowed number of iterations. If both maxiter and maxfev
-                           are set, minimization will stop at the first reached.
+                are set, minimization will stop at the first reached.
             maxfev: Maximum allowed number of function evaluations. If both maxiter and
-                          maxfev are set, minimization will stop at the first reached.
+                maxfev are set, minimization will stop at the first reached.
             disp: Set to True to print convergence messages.
             xtol: Relative error in solution xopt acceptable for convergence.
             tol: Tolerance for termination.
         """
         super().__init__()
-        for k, v in locals().items():
+        for k, v in list(locals().items()):
             if k in self._OPTIONS:
                 self._options[k] = v
         self._tol = tol
 
     def get_support_level(self):
-        """ return support level dictionary """
+        """ Return support level dictionary """
         return {
-            'gradient': Optimizer.SupportLevel.ignored,
-            'bounds': Optimizer.SupportLevel.ignored,
-            'initial_point': Optimizer.SupportLevel.required
+            'gradient': OptimizerSupportLevel.ignored,
+            'bounds': OptimizerSupportLevel.ignored,
+            'initial_point': OptimizerSupportLevel.required
         }
 
     def optimize(self, num_vars, objective_function, gradient_function=None,

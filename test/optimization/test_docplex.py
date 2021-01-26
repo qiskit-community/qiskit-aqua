@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2019, 2020.
@@ -14,119 +12,71 @@
 
 """ Test Docplex """
 
+import unittest
 from math import fsum, isclose
 from test.optimization import QiskitOptimizationTestCase
 
-import networkx as nx
+import retworkx as rx
 import numpy as np
 from docplex.mp.model import Model
-from qiskit.quantum_info import Pauli
 
 from qiskit.aqua import AquaError, aqua_globals
-from qiskit.aqua.algorithms import ExactEigensolver
-from qiskit.optimization.ising import docplex, tsp
-from qiskit.aqua.operators import WeightedPauliOperator
+from qiskit.aqua.algorithms import NumPyMinimumEigensolver
+from qiskit.optimization.applications.ising import docplex, tsp
+from qiskit.aqua.operators import I, Z
 
 # Reference operators and offsets for maxcut and tsp.
-QUBIT_OP_MAXCUT = WeightedPauliOperator(
-    paulis=[[0.5, Pauli(z=[True, True, False, False], x=[False, False, False, False])],
-            [0.5, Pauli(z=[True, False, True, False], x=[False, False, False, False])],
-            [0.5, Pauli(z=[False, True, True, False], x=[False, False, False, False])],
-            [0.5, Pauli(z=[True, False, False, True], x=[False, False, False, False])],
-            [0.5, Pauli(z=[False, False, True, True], x=[False, False, False, False])]])
+QUBIT_OP_MAXCUT = 0.5 * ((I ^ I ^ Z ^ Z) + (I ^ Z ^ I ^ Z) + (I ^ Z ^ Z ^ I) + (Z ^ I ^ I ^ Z)
+                         + (Z ^ Z ^ I ^ I))
 OFFSET_MAXCUT = -2.5
-QUBIT_OP_TSP = WeightedPauliOperator(
-    paulis=[[-100057.0, Pauli(z=[True, False, False, False, False, False, False, False, False],
-                              x=[False, False, False, False, False, False, False, False, False])],
-            [-100071.0, Pauli(z=[False, False, False, False, True, False, False, False, False],
-                              x=[False, False, False, False, False, False, False, False, False])],
-            [14.5, Pauli(z=[True, False, False, False, True, False, False, False, False],
-                         x=[False, False, False, False, False, False, False, False, False])],
-            [-100057.0, Pauli(z=[False, True, False, False, False, False, False, False, False],
-                              x=[False, False, False, False, False, False, False, False, False])],
-            [-100071.0, Pauli(z=[False, False, False, False, False, True, False, False, False],
-                              x=[False, False, False, False, False, False, False, False, False])],
-            [14.5, Pauli(z=[False, True, False, False, False, True, False, False, False],
-                         x=[False, False, False, False, False, False, False, False, False])],
-            [-100057.0, Pauli(z=[False, False, True, False, False, False, False, False, False],
-                              x=[False, False, False, False, False, False, False, False, False])],
-            [-100071.0, Pauli(z=[False, False, False, True, False, False, False, False, False],
-                              x=[False, False, False, False, False, False, False, False, False])],
-            [14.5, Pauli(z=[False, False, True, True, False, False, False, False, False],
-                         x=[False, False, False, False, False, False, False, False, False])],
-            [-100070.0, Pauli(z=[False, False, False, False, False, False, False, True, False],
-                              x=[False, False, False, False, False, False, False, False, False])],
-            [14.0, Pauli(z=[True, False, False, False, False, False, False, True, False],
-                         x=[False, False, False, False, False, False, False, False, False])],
-            [-100070.0, Pauli(z=[False, False, False, False, False, False, False, False, True],
-                              x=[False, False, False, False, False, False, False, False, False])],
-            [14.0, Pauli(z=[False, True, False, False, False, False, False, False, True],
-                         x=[False, False, False, False, False, False, False, False, False])],
-            [-100070.0, Pauli(z=[False, False, False, False, False, False, True, False, False],
-                              x=[False, False, False, False, False, False, False, False, False])],
-            [14.0, Pauli(z=[False, False, True, False, False, False, True, False, False],
-                         x=[False, False, False, False, False, False, False, False, False])],
-            [14.5, Pauli(z=[False, True, False, True, False, False, False, False, False],
-                         x=[False, False, False, False, False, False, False, False, False])],
-            [14.5, Pauli(z=[False, False, True, False, True, False, False, False, False],
-                         x=[False, False, False, False, False, False, False, False, False])],
-            [14.5, Pauli(z=[True, False, False, False, False, True, False, False, False],
-                         x=[False, False, False, False, False, False, False, False, False])],
-            [21.0, Pauli(z=[False, False, False, True, False, False, False, True, False],
-                         x=[False, False, False, False, False, False, False, False, False])],
-            [21.0, Pauli(z=[False, False, False, False, True, False, False, False, True],
-                         x=[False, False, False, False, False, False, False, False, False])],
-            [21.0, Pauli(z=[False, False, False, False, False, True, True, False, False],
-                         x=[False, False, False, False, False, False, False, False, False])],
-            [14.0, Pauli(z=[False, True, False, False, False, False, True, False, False],
-                         x=[False, False, False, False, False, False, False, False, False])],
-            [14.0, Pauli(z=[False, False, True, False, False, False, False, True, False],
-                         x=[False, False, False, False, False, False, False, False, False])],
-            [14.0, Pauli(z=[True, False, False, False, False, False, False, False, True],
-                         x=[False, False, False, False, False, False, False, False, False])],
-            [21.0, Pauli(z=[False, False, False, False, True, False, True, False, False],
-                         x=[False, False, False, False, False, False, False, False, False])],
-            [21.0, Pauli(z=[False, False, False, False, False, True, False, True, False],
-                         x=[False, False, False, False, False, False, False, False, False])],
-            [21.0, Pauli(z=[False, False, False, True, False, False, False, False, True],
-                         x=[False, False, False, False, False, False, False, False, False])],
-            [50000.0, Pauli(z=[True, False, False, True, False, False, False, False, False],
-                            x=[False, False, False, False, False, False, False, False, False])],
-            [50000.0, Pauli(z=[True, False, False, False, False, False, True, False, False],
-                            x=[False, False, False, False, False, False, False, False, False])],
-            [50000.0, Pauli(z=[False, False, False, True, False, False, True, False, False],
-                            x=[False, False, False, False, False, False, False, False, False])],
-            [50000.0, Pauli(z=[False, True, False, False, True, False, False, False, False],
-                            x=[False, False, False, False, False, False, False, False, False])],
-            [50000.0, Pauli(z=[False, True, False, False, False, False, False, True, False],
-                            x=[False, False, False, False, False, False, False, False, False])],
-            [50000.0, Pauli(z=[False, False, False, False, True, False, False, True, False],
-                            x=[False, False, False, False, False, False, False, False, False])],
-            [50000.0, Pauli(z=[False, False, True, False, False, True, False, False, False],
-                            x=[False, False, False, False, False, False, False, False, False])],
-            [50000.0, Pauli(z=[False, False, True, False, False, False, False, False, True],
-                            x=[False, False, False, False, False, False, False, False, False])],
-            [50000.0, Pauli(z=[False, False, False, False, False, True, False, False, True],
-                            x=[False, False, False, False, False, False, False, False, False])],
-            [50000.0, Pauli(z=[True, True, False, False, False, False, False, False, False],
-                            x=[False, False, False, False, False, False, False, False, False])],
-            [50000.0, Pauli(z=[True, False, True, False, False, False, False, False, False],
-                            x=[False, False, False, False, False, False, False, False, False])],
-            [50000.0, Pauli(z=[False, True, True, False, False, False, False, False, False],
-                            x=[False, False, False, False, False, False, False, False, False])],
-            [50000.0, Pauli(z=[False, False, False, True, True, False, False, False, False],
-                            x=[False, False, False, False, False, False, False, False, False])],
-            [50000.0, Pauli(z=[False, False, False, True, False, True, False, False, False],
-                            x=[False, False, False, False, False, False, False, False, False])],
-            [50000.0, Pauli(z=[False, False, False, False, True, True, False, False, False],
-                            x=[False, False, False, False, False, False, False, False, False])],
-            [50000.0, Pauli(z=[False, False, False, False, False, False, True, True, False],
-                            x=[False, False, False, False, False, False, False, False, False])],
-            [50000.0, Pauli(z=[False, False, False, False, False, False, True, False, True],
-                            x=[False, False, False, False, False, False, False, False, False])],
-            [50000.0, Pauli(z=[False, False, False, False, False, False, False, True, True],
-                            x=[False, False, False, False, False, False, False, False, False])]])
-OFFSET_TSP = 600297.0
+QUBIT_OP_TSP = (
+    -100057.0 * (I ^ I ^ I ^ I ^ I ^ I ^ I ^ I ^ Z) +
+    -100071.0 * (I ^ I ^ I ^ I ^ Z ^ I ^ I ^ I ^ I) +
+    14.5 * (I ^ I ^ I ^ I ^ Z ^ I ^ I ^ I ^ Z) +
+    -100057.0 * (I ^ I ^ I ^ I ^ I ^ I ^ I ^ Z ^ I) +
+    -100071.0 * (I ^ I ^ I ^ Z ^ I ^ I ^ I ^ I ^ I) +
+    14.5 * (I ^ I ^ I ^ Z ^ I ^ I ^ I ^ Z ^ I) +
+    -100057.0 * (I ^ I ^ I ^ I ^ I ^ I ^ Z ^ I ^ I) +
+    -100071.0 * (I ^ I ^ I ^ I ^ I ^ Z ^ I ^ I ^ I) +
+    14.5 * (I ^ I ^ I ^ I ^ I ^ Z ^ Z ^ I ^ I) +
+    -100070.0 * (I ^ Z ^ I ^ I ^ I ^ I ^ I ^ I ^ I) +
+    14.0 * (I ^ Z ^ I ^ I ^ I ^ I ^ I ^ I ^ Z) +
+    -100070.0 * (Z ^ I ^ I ^ I ^ I ^ I ^ I ^ I ^ I) +
+    14.0 * (Z ^ I ^ I ^ I ^ I ^ I ^ I ^ Z ^ I) +
+    -100070.0 * (I ^ I ^ Z ^ I ^ I ^ I ^ I ^ I ^ I) +
+    14.0 * (I ^ I ^ Z ^ I ^ I ^ I ^ Z ^ I ^ I) +
+    14.5 * (I ^ I ^ I ^ I ^ I ^ Z ^ I ^ Z ^ I) +
+    14.5 * (I ^ I ^ I ^ I ^ Z ^ I ^ Z ^ I ^ I) +
+    14.5 * (I ^ I ^ I ^ Z ^ I ^ I ^ I ^ I ^ Z) +
+    21.0 * (I ^ Z ^ I ^ I ^ I ^ Z ^ I ^ I ^ I) +
+    21.0 * (Z ^ I ^ I ^ I ^ Z ^ I ^ I ^ I ^ I) +
+    21.0 * (I ^ I ^ Z ^ Z ^ I ^ I ^ I ^ I ^ I) +
+    14.0 * (I ^ I ^ Z ^ I ^ I ^ I ^ I ^ Z ^ I) +
+    14.0 * (I ^ Z ^ I ^ I ^ I ^ I ^ Z ^ I ^ I) +
+    14.0 * (Z ^ I ^ I ^ I ^ I ^ I ^ I ^ I ^ Z) +
+    21.0 * (I ^ I ^ Z ^ I ^ Z ^ I ^ I ^ I ^ I) +
+    21.0 * (I ^ Z ^ I ^ Z ^ I ^ I ^ I ^ I ^ I) +
+    21.0 * (Z ^ I ^ I ^ I ^ I ^ Z ^ I ^ I ^ I) +
+    50000.0 * (I ^ I ^ I ^ I ^ I ^ Z ^ I ^ I ^ Z) +
+    50000.0 * (I ^ I ^ Z ^ I ^ I ^ I ^ I ^ I ^ Z) +
+    50000.0 * (I ^ I ^ Z ^ I ^ I ^ Z ^ I ^ I ^ I) +
+    50000.0 * (I ^ I ^ I ^ I ^ Z ^ I ^ I ^ Z ^ I) +
+    50000.0 * (I ^ Z ^ I ^ I ^ I ^ I ^ I ^ Z ^ I) +
+    50000.0 * (I ^ Z ^ I ^ I ^ Z ^ I ^ I ^ I ^ I) +
+    50000.0 * (I ^ I ^ I ^ Z ^ I ^ I ^ Z ^ I ^ I) +
+    50000.0 * (Z ^ I ^ I ^ I ^ I ^ I ^ Z ^ I ^ I) +
+    50000.0 * (Z ^ I ^ I ^ Z ^ I ^ I ^ I ^ I ^ I) +
+    50000.0 * (I ^ I ^ I ^ I ^ I ^ I ^ I ^ Z ^ Z) +
+    50000.0 * (I ^ I ^ I ^ I ^ I ^ I ^ Z ^ I ^ Z) +
+    50000.0 * (I ^ I ^ I ^ I ^ I ^ I ^ Z ^ Z ^ I) +
+    50000.0 * (I ^ I ^ I ^ I ^ Z ^ Z ^ I ^ I ^ I) +
+    50000.0 * (I ^ I ^ I ^ Z ^ I ^ Z ^ I ^ I ^ I) +
+    50000.0 * (I ^ I ^ I ^ Z ^ Z ^ I ^ I ^ I ^ I) +
+    50000.0 * (I ^ Z ^ Z ^ I ^ I ^ I ^ I ^ I ^ I) +
+    50000.0 * (Z ^ I ^ Z ^ I ^ I ^ I ^ I ^ I ^ I) +
+    50000.0 * (Z ^ Z ^ I ^ I ^ I ^ I ^ I ^ I ^ I)
+)
+OFFSET_TSP = 600279.0
 
 
 class TestDocplex(QiskitOptimizationTestCase):
@@ -163,7 +113,7 @@ class TestDocplex(QiskitOptimizationTestCase):
     def test_auto_define_penalty(self):
         """ Auto define Penalty test """
         # check _auto_define_penalty() for positive coefficients.
-        positive_coefficients = aqua_globals.random.rand(10, 10)
+        positive_coefficients = aqua_globals.random.random((10, 10))
         for i in range(10):
             mdl = Model(name='Positive_auto_define_penalty')
             x = {j: mdl.binary_var(name='x_{0}'.format(j)) for j in range(10)}
@@ -174,7 +124,7 @@ class TestDocplex(QiskitOptimizationTestCase):
             self.assertEqual(isclose(actual, expected), True)
 
         # check _auto_define_penalty() for negative coefficients
-        negative_coefficients = -1 * aqua_globals.random.rand(10, 10)
+        negative_coefficients = -1 * aqua_globals.random.random((10, 10))
         for i in range(10):
             mdl = Model(name='Negative_auto_define_penalty')
             x = {j: mdl.binary_var(name='x_{0}'.format(j)) for j in range(10)}
@@ -185,7 +135,7 @@ class TestDocplex(QiskitOptimizationTestCase):
             self.assertEqual(isclose(actual, expected), True)
 
         # check _auto_define_penalty() for mixed coefficients
-        mixed_coefficients = aqua_globals.random.randint(-100, 100, (10, 10))
+        mixed_coefficients = aqua_globals.random.integers(-100, 100, (10, 10))
         for i in range(10):
             mdl = Model(name='Mixed_auto_define_penalty')
             x = {j: mdl.binary_var(name='x_{0}'.format(j)) for j in range(10)}
@@ -210,17 +160,12 @@ class TestDocplex(QiskitOptimizationTestCase):
         """ Docplex maxcut test """
         # Generating a graph of 4 nodes
         n = 4
-        graph = nx.Graph()
-        graph.add_nodes_from(np.arange(0, n, 1))
+        graph = rx.PyGraph()
+        graph.add_nodes_from(np.arange(0, n, 1).tolist())
         elist = [(0, 1, 1.0), (0, 2, 1.0), (0, 3, 1.0), (1, 2, 1.0), (2, 3, 1.0)]
-        graph.add_weighted_edges_from(elist)
+        graph.add_edges_from(elist)
         # Computing the weight matrix from the random graph
-        w = np.zeros([n, n])
-        for i in range(n):
-            for j in range(n):
-                temp = graph.get_edge_data(i, j, default=0)
-                if temp != 0:
-                    w[i, j] = temp['weight']
+        w = rx.graph_adjacency_matrix(graph, lambda weight: weight)
 
         # Create an Ising Hamiltonian with docplex.
         mdl = Model(name='max_cut')
@@ -230,22 +175,23 @@ class TestDocplex(QiskitOptimizationTestCase):
         mdl.maximize(maxcut_func)
         qubit_op, offset = docplex.get_operator(mdl)
 
-        e_e = ExactEigensolver(qubit_op, k=1)
+        e_e = NumPyMinimumEigensolver(qubit_op)
         result = e_e.run()
 
-        ee_expected = ExactEigensolver(QUBIT_OP_MAXCUT, k=1)
+        ee_expected = NumPyMinimumEigensolver(QUBIT_OP_MAXCUT)
         expected_result = ee_expected.run()
 
         # Compare objective
-        self.assertEqual(result['energy'] + offset, expected_result['energy'] + OFFSET_MAXCUT)
+        self.assertAlmostEqual(result.eigenvalue.real + offset,
+                               expected_result.eigenvalue.real + OFFSET_MAXCUT)
 
     def test_docplex_tsp(self):
         """ Docplex tsp test """
         # Generating a graph of 3 nodes
         n = 3
         ins = tsp.random_tsp(n)
-        graph = nx.Graph()
-        graph.add_nodes_from(np.arange(0, n, 1))
+        graph = rx.PyGraph()
+        graph.add_nodes_from(np.arange(0, n, 1).tolist())
         num_node = ins.dim
 
         # Create an Ising Hamiltonian with docplex.
@@ -263,14 +209,15 @@ class TestDocplex(QiskitOptimizationTestCase):
             mdl.add_constraint(mdl.sum(x[(i, j)] for i in range(num_node)) == 1)
         qubit_op, offset = docplex.get_operator(mdl)
 
-        e_e = ExactEigensolver(qubit_op, k=1)
+        e_e = NumPyMinimumEigensolver(qubit_op)
         result = e_e.run()
 
-        ee_expected = ExactEigensolver(QUBIT_OP_TSP, k=1)
+        ee_expected = NumPyMinimumEigensolver(QUBIT_OP_TSP)
         expected_result = ee_expected.run()
 
         # Compare objective
-        self.assertEqual(result['energy'] + offset, expected_result['energy'] + OFFSET_TSP)
+        self.assertAlmostEqual(result.eigenvalue.real + offset,
+                               expected_result.eigenvalue.real + OFFSET_TSP)
 
     def test_docplex_integer_constraints(self):
         """ Docplex Integer Constraints test """
@@ -282,13 +229,13 @@ class TestDocplex(QiskitOptimizationTestCase):
         mdl.add_constraint(mdl.sum(i * x[i] for i in range(1, 5)) == 3)
         qubit_op, offset = docplex.get_operator(mdl)
 
-        e_e = ExactEigensolver(qubit_op, k=1)
+        e_e = NumPyMinimumEigensolver(qubit_op)
         result = e_e.run()
 
         expected_result = -2
 
         # Compare objective
-        self.assertEqual(result['energy'] + offset, expected_result)
+        self.assertAlmostEqual(result.eigenvalue.real + offset, expected_result)
 
     def test_docplex_constant_and_quadratic_terms_in_object_function(self):
         """ Docplex Constant and Quadratic terms in Object function test """
@@ -311,10 +258,32 @@ class TestDocplex(QiskitOptimizationTestCase):
         mdl.minimize(ising_func)
         qubit_op, offset = docplex.get_operator(mdl)
 
-        e_e = ExactEigensolver(qubit_op, k=1)
+        e_e = NumPyMinimumEigensolver(qubit_op)
         result = e_e.run()
 
         expected_result = -22
 
         # Compare objective
-        self.assertEqual(result['energy'] + offset, expected_result)
+        self.assertAlmostEqual(result.eigenvalue.real + offset, expected_result)
+
+    def test_constants_in_left_side_and_variables_in_right_side(self):
+        """ Test Constant values on the left-hand side of constraints and
+        variables on the right-hand side of constraints for the DOcplex translator"""
+        mdl = Model('left_constants_and_right_variables')
+        x = mdl.binary_var(name='x')
+        y = mdl.binary_var(name='y')
+        mdl.maximize(mdl.sum(x + y))
+        mdl.add_constraint(x == y)
+
+        qubit_op, offset = docplex.get_operator(mdl)
+        self.log.debug(qubit_op.print_details())
+        e_e = NumPyMinimumEigensolver(qubit_op)
+        result = e_e.run()
+
+        self.assertEqual(result['eigenvalue'] + offset, -2)
+        actual_sol = result['eigenstate'].to_matrix().tolist()
+        self.assertListEqual(actual_sol, [0, 0, 0, 1])
+
+
+if __name__ == '__main__':
+    unittest.main()

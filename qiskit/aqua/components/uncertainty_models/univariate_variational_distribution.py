@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2019, 2020.
@@ -12,33 +10,40 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""
-The Univariate Variational Distribution.
-"""
+"""The Univariate Variational Distribution."""
 
 from typing import Union, List
 import numpy as np
 
-from qiskit import ClassicalRegister
-from qiskit.aqua.components.variational_forms import VariationalForm
+from qiskit import ClassicalRegister, QuantumCircuit
 from qiskit.aqua.utils.validation import validate_min
 from .univariate_distribution import UnivariateDistribution
 
 
 class UnivariateVariationalDistribution(UnivariateDistribution):
-    """
-    The Univariate Variational Distribution.
-    """
+    """The Univariate Variational Distribution."""
 
     def __init__(self,
                  num_qubits: int,
-                 var_form: VariationalForm,
-                 params: [Union[List[float], np.ndarray]],
+                 var_form: QuantumCircuit,
+                 params: Union[List[float], np.ndarray],
                  low: float = 0,
                  high: float = 1) -> None:
+        """
+        Args:
+            num_qubits: Number of qubits
+            var_form: Variational form
+            params: Parameters for variational form
+            low: Lower bound
+            high: Upper bound
+        """
         validate_min('num_qubits', num_qubits, 1)
         self._num_qubits = num_qubits
         self._var_form = var_form
+
+        # fix the order of the parameters in the circuit
+        self._var_form_params = sorted(self._var_form.parameters, key=lambda p: p.name)
+
         self.params = params
         if isinstance(num_qubits, int):
             probabilities = np.zeros(2 ** num_qubits)
@@ -48,21 +53,24 @@ class UnivariateVariationalDistribution(UnivariateDistribution):
             probabilities = np.zeros(2 ** sum(num_qubits))
         super().__init__(num_qubits, probabilities, low, high)
 
+    @staticmethod
+    def _replacement():
+        return 'a parameterized qiskit.QuantumCircuit'
+
     def build(self, qc, q, q_ancillas=None, params=None):
-        circuit_var_form = self._var_form.construct_circuit(self.params)
+        param_dict = dict(zip(self._var_form_params, self.params))
+        circuit_var_form = self._var_form.assign_parameters(param_dict)
+
         qc.append(circuit_var_form.to_instruction(), q)
 
     def set_probabilities(self, quantum_instance):
-        """
-        Set Probabilities
+        """Set Probabilities
+
         Args:
             quantum_instance (QuantumInstance): Quantum instance
         """
-        qc_ = self._var_form.construct_circuit(self.params)
-
-        # q_ = QuantumRegister(self._num_qubits)
-        # qc_ = QuantumCircuit(q_)
-        # self.build(qc_, None)
+        param_dict = dict(zip(self._var_form_params, self.params))
+        qc_ = self._var_form.assign_parameters(param_dict)
 
         if quantum_instance.is_statevector:
             pass

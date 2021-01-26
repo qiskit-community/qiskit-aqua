@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -27,7 +25,12 @@ class TestReadmeSample(QiskitMLTestCase):
 
     def test_readme_sample(self):
         """ readme sample test """
-        # pylint: disable=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel,redefined-builtin
+
+        def print(*args):
+            """ overloads print to log values """
+            if args:
+                self.log.debug(args[0], *args[1:])
 
         # --- Exact copy of sample code ----------------------------------------
 
@@ -36,8 +39,8 @@ class TestReadmeSample(QiskitMLTestCase):
         from qiskit.aqua.algorithms import VQC
         from qiskit.aqua.components.optimizers import COBYLA
         from qiskit.aqua.components.feature_maps import RawFeatureVector
-        from qiskit.aqua.components.variational_forms import RYRZ
         from qiskit.ml.datasets import wine
+        from qiskit.circuit.library import TwoLocal
 
         seed = 1376
         aqua_globals.random_seed = seed
@@ -51,7 +54,7 @@ class TestReadmeSample(QiskitMLTestCase):
         feature_map = RawFeatureVector(feature_dimension=feature_dim)
         vqc = VQC(COBYLA(maxiter=100),
                   feature_map,
-                  RYRZ(feature_map.num_qubits, depth=3),
+                  TwoLocal(feature_map.num_qubits, ['ry', 'rz'], 'cz', reps=3),
                   training_input,
                   test_input)
         result = vqc.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),

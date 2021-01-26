@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -39,6 +37,7 @@ and simulator too).
    :nosignatures:
 
    AquaError
+   MissingOptionalLibraryError
 
 In addition to standard Python errors Aqua will raise this error if circumstances
 are that it cannot proceed to completion.
@@ -72,10 +71,13 @@ Submodules
 
 from .version import __version__
 from .aqua_error import AquaError
+from .missing_optional_library_error import MissingOptionalLibraryError
 from .aqua_globals import aqua_globals
 from .quantum_instance import QuantumInstance
 from .algorithms import QuantumAlgorithm
-from ._logging import (get_logging_level,
+from ._logging import (QiskitLogDomains,
+                       get_logging_level,
+                       set_logging_level,
                        build_logging_config,
                        set_logging_config,
                        get_qiskit_aqua_logging,
@@ -83,10 +85,13 @@ from ._logging import (get_logging_level,
 
 __all__ = ['__version__',
            'AquaError',
+           'MissingOptionalLibraryError',
            'QuantumAlgorithm',
            'QuantumInstance',
            'aqua_globals',
+           'QiskitLogDomains',
            'get_logging_level',
+           'set_logging_level',
            'build_logging_config',
            'set_logging_config',
            'get_qiskit_aqua_logging',

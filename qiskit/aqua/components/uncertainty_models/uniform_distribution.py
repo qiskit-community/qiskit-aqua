@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -23,6 +21,9 @@ from .univariate_distribution import UnivariateDistribution
 class UniformDistribution(UnivariateDistribution):
     """
     The Univariate Uniform Distribution.
+
+    Uniform distribution is defined by the number of qubits that should be used to represent the
+    distribution, as well as the lower bound and upper bound of the considered interval.
     """
 
     def __init__(self,
@@ -31,16 +32,19 @@ class UniformDistribution(UnivariateDistribution):
                  high: float = 1) -> None:
         r"""
         Args:
-            num_target_qubits: number of qubits it acts on,
-                        has a min. value of 1.
-            low: lower bound, i.e., the value corresponding
-                         to \|0...0> (assuming an equidistant grid)
-            high: upper bound, i.e., the value corresponding
-                          to \|1...1> (assuming an equidistant grid)
+            num_target_qubits: Number of qubits it acts on, has a minimum value of 1.
+            low: Lower bound, i.e., the value corresponding to \|0...0>
+                (assuming an equidistant grid)
+            high: Upper bound, i.e., the value corresponding to \|1...1>
+                (assuming an equidistant grid)
         """
         validate_min('num_target_qubits', num_target_qubits, 1)
-        probabilities = np.ones(2**num_target_qubits)/2**num_target_qubits
+        probabilities = np.ones(2 ** num_target_qubits) / 2 ** num_target_qubits
         super().__init__(num_target_qubits, probabilities, low, high)
+
+    @staticmethod
+    def _replacement():
+        return 'qiskit.circuit.library.UniformDistribution'
 
     def required_ancillas(self):
         return 0

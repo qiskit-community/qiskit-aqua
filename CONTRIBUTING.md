@@ -1,386 +1,307 @@
-Contributing
-============
+# Contributing
 
 **We appreciate all kinds of help, so thank you!**
 
-Contributing to the Project
----------------------------
+First please read the overall project contributing guidelines. These are
+included in the Qiskit documentation here:
 
-You can contribute in many ways to this project.
+https://qiskit.org/documentation/contributing_to_qiskit.html
 
-### Issue Reporting
+## Contributing to Qiskit Aqua
 
-This is a good point to start, when you find a problem please add it to
-the [issue tracker](https://github.com/Qiskit/qiskit-aqua/issues). The
-ideal report should include the steps to reproduce it.
+In addition to the general guidelines above there are specific details for
+contributing to Aqua, these are documented below.
 
-### Doubts Solving
+### Project Code Style.
 
-To help less advanced users is another wonderful way to start. You can
-help us close some opened issues. A ticket of this kind should be
-labeled as `question`.
+Code in Aqua should conform to PEP8 and style/lint checks are run to validate
+this.  Line length must be limited to no more than 100 characters. Docstrings
+should be written using the Google docstring format.
 
-### Improvement Proposal
-
-If you have an idea for a new feature, please open a ticket labeled as
-`enhancement`. If you could also add a piece of code with the idea or a
-partial implementation, that would be awesome.
-
-### Contributor License Agreement
-
-We\'d love to accept your code! Before we can, we have to get a few
-legal requirements sorted out. By signing a Contributor License
-Agreement (CLA), we ensure that the community is free to use your
-contributions.
-
-When you contribute to the Qiskit Aqua project with a new pull request,
-a bot will evaluate whether you have signed the CLA. If required, the
-bot will comment on the pull request, including a link to accept the
-agreement. The [individual
-CLA](https://qiskit.org/license/qiskit-cla.pdf) document is available
-for review as a PDF.
-
-::: {.note}
-::: {.admonition-title}
-Note
-:::
-
-If you work for a company that wants to allow you to contribute your
-work, then you\'ll need to sign a [corporate
-CLA](https://qiskit.org/license/qiskit-corporate-cla.pdf) and email it
-to us at <qiskit@us.ibm.com>.
-:::
-
-### Good First Contributions
-
-You are welcome to contribute wherever in the code you want to, of
-course, but we recommend taking a look at the \"Good First
-Contribution\" label into the issues and pick one. We would love to
-mentor you!
-
-### Doc
-
-Review the parts of the documentation regarding the new changes and
-update it if it\'s needed.
-
-### Pull Requests
-
-We use [GitHub pull
-requests](https://help.github.com/articles/about-pull-requests) to
-accept the contributions.
-
-A friendly reminder! We\'d love to have a previous discussion about the
-best way to implement the feature/bug you are contributing with. This is
-a good way to improve code quality in our beloved Qiskit Aqua! So
-remember to file a new issue before starting to code for a solution.
-
-After having discussed the best way to land your changes into the
-codebase, you are ready to start coding. We have two options here:
-
-1.  You think your implementation doesn\'t introduce a lot of code,
-    right?. Ok, no problem, you are all set to create the PR once you
-    have finished coding. We are waiting for it!
-2.  Your implementation does introduce many things in the codebase. That
-    sounds great! Thanks! In this case, you can start coding and create
-    a PR with the word: **\[WIP\]** as a prefix of the description. This
-    means \"Work In Progress\", and allows reviewers to make micro
-    reviews from time to time without waiting for the big and final
-    solution. Otherwise, it would make reviewing and coming changes
-    pretty difficult to accomplish. The reviewer will remove the
-    **\[WIP\]** prefix from the description once the PR is ready to
-    merge.
-
-#### Pull Request Checklist
+### Pull request checklist
 
 When submitting a pull request and you feel it is ready for review,
-please double check that:
+please ensure that:
 
--   The code follows the code style of the project. For convenience, you
-    can execute `make style` and `make lint` locally, which will print
-    potential style warnings and fixes.
--   The documentation has been updated accordingly. In particular, if a
-    function or class has been modified during the PR, please update the
-    docstring accordingly.
--   Your contribution passes the existing tests, and if developing a new
-    feature, that you have added new tests that cover those changes.
--   You add a new line to the `CHANGELOG.rst` file, in the `UNRELEASED`
-    section, with the title of your pull request and its identifier (for
-    example, \"`Replace OldComponent with FluxCapacitor (#123)`\".
+1. The code follows the _code style_ of this project and successfully
+   passes the _unit tests_. Aqua uses [Pylint](https://www.pylint.org) and
+   [PEP8](https://www.python.org/dev/peps/pep-0008) style guidelines.
+   
+   You can run
+   ```shell script
+   make lint
+   make style 
+   ```
+   from the root of the Aqua repository clone for lint and style conformance checks.
+   
+   For unit testing please see [Testing](#testing) section below.
+   
+2. The documentation has been updated accordingly. In particular, if a
+   function or class has been modified during the PR, please update the
+   *docstring* accordingly.
+   
+   The documentation will be built/tested using Sphinx and should be free
+   from errors and warnings.
+   
+   You can run
+   ```shell script
+    make html
+   ```
+   in the 'docs' folder. You might also like to check the html output
+   to see the changes formatted output is as expected. You will find an index.html
+   file in docs\_build\html and you can navigate from there.
+   
+   Please note that a spell check is run in CI, on the docstrings, since the text
+   becomes part of the online [API Documentation](https://qiskit.org/documentation/).
+   
+   You can run `make spell` locally to check spelling though you would need to
+   [install pyenchant](https://pyenchant.github.io/pyenchant/install.html) and be using
+   hunspell-en-us as is used by the CI. 
+   
+   For some words, such as names, technical terms, referring to parameters of the method etc., 
+   that are not in the en-us dictionary and get flagged as being misspelled, despite being correct,
+   there is a [.pylintdict](./.pylintdict) custom word list file, in the root of the Aqua repo,
+   where such words can be added, in alphabetic order, as needed.
+   
+3. If it makes sense for your change that you have added new tests that
+   cover the changes and any new function.
+   
+4. Ensure that if your change has an end user facing impact (new feature,
+   deprecation, removal etc) that you have added a reno release note for
+   that change and that the PR is tagged for the changelog.
 
-#### Commit Messages
+5. Ensure all code, including unit tests, has the copyright header. The copyright
+   date will be checked by CI build. The format of the date(s) is _year of creation,
+   last year changed_. So for example:
+   
+   > \# (C) Copyright IBM 2018, 2020.
 
-Please follow the next rules for any commit message:
+   If the _year of creation_ is the same as _last year changed_ then only
+   one date is needed, for example:
 
--   It should include a reference to the issue ID in the first line of
-    the commit, **and** a brief description of the issue, so everybody
-    knows what this ID actually refers to without wasting to much time
-    on following the link to the issue.
--   It should provide enough information for a reviewer to understand
-    the changes and their relation to the rest of the code.
+   > \# (C) Copyright IBM 2020.
+                                                                                                                                                                                                 
+   If code is changed in a file make sure the copyright includes the current year.
+   If there is just one date and it's a prior year then add the current year as the 2nd date, 
+   otherwise simply change the 2nd date to the current year. The _year of creation_ date is
+   never changed.
 
-A good example:
+### Changelog generation
 
-``` {.text}
-Issue #190: Short summary of the issue
-* One of the important changes
-* Another important change
+The changelog is automatically generated as part of the release process
+automation. This works through a combination of the git log and the pull
+request. When a release is tagged and pushed to github the release automation
+bot looks at all commit messages from the git log for the release. It takes the
+PR numbers from the git log (assuming a squash merge) and checks if that PR had
+a `Changelog:` label on it. If there is a label it will add the git commit
+message summary line from the git log for the release to the changelog.
+
+If there are multiple `Changelog:` tags on a PR the git commit message summary
+line from the git log will be used for each changelog category tagged.
+
+The current categories for each label are as follows:
+
+| PR Label               | Changelog Category |
+| -----------------------|--------------------|
+| Changelog: Deprecation | Deprecated         |
+| Changelog: New Feature | Added              |
+| Changelog: API Change  | Changed            |
+| Changelog: Removal     | Removed            |
+| Changelog: Bugfix      | Fixed              |
+
+### Release Notes
+
+When making any end user facing changes in a contribution we have to make sure
+we document that when we release a new version of qiskit-aqua. The expectation
+is that if your code contribution has user facing changes that you will write
+the release documentation for these changes. This documentation must explain
+what was changed, why it was changed, and how users can either use or adapt
+to the change. The idea behind release documentation is that when a naive
+user with limited internal knowledge of the project is upgrading from the
+previous release to the new one, they should be able to read the release notes,
+understand if they need to update their program which uses qiskit, and how they
+would go about doing that. It ideally should explain why they need to make
+this change too, to provide the necessary context.
+
+To make sure we don't forget a release note or if the details of user facing
+changes over a release cycle we require that all user facing changes include
+documentation at the same time as the code. To accomplish this we use the
+[reno](https://docs.openstack.org/reno/latest/) tool which enables a git based
+workflow for writing and compiling release notes.
+
+#### Adding a new release note
+
+Making a new release note is quite straightforward. Ensure that you have reno
+installed with::
+
+    pip install -U reno
+
+Once you have reno installed you can make a new release note by running in
+your local repository checkout's root::
+
+    reno new short-description-string
+
+where short-description-string is a brief string (with no spaces) that describes
+what's in the release note. This will become the prefix for the release note
+file. Once that is run it will create a new yaml file in releasenotes/notes.
+Then open that yaml file in a text editor and write the release note. The basic
+structure of a release note is restructured text in yaml lists under category
+keys. You add individual items under each category and they will be grouped
+automatically by release when the release notes are compiled. A single file
+can have as many entries in it as needed, but to avoid potential conflicts
+you'll want to create a new file for each pull request that has user facing
+changes. When you open the newly created file it will be a full template of
+the different categories with a description of a category as a single entry
+in each category. You'll want to delete all the sections you aren't using and
+update the contents for those you are. For example, the end result should
+look something like::
+
+```yaml
+features:
+  - |
+    Introduced a new feature foo, that adds support for doing something to
+    ``QuantumCircuit`` objects. It can be used by using the foo function,
+    for example::
+
+      from qiskit import foo
+      from qiskit import QuantumCircuit
+      foo(QuantumCircuit())
+
+  - |
+    The ``qiskit.QuantumCircuit`` module has a new method ``foo()``. This is
+    the equivalent of calling the ``qiskit.foo()`` to do something to your
+    QuantumCircuit. This is the equivalent of running ``qiskit.foo()`` on
+    your circuit, but provides the convenience of running it natively on
+    an object. For example::
+
+      from qiskit import QuantumCircuit
+
+      circ = QuantumCircuit()
+      circ.foo()
+
+deprecations:
+  - |
+    The ``qiskit.bar`` module has been deprecated and will be removed in a
+    future release. Its sole function, ``foobar()`` has been superseded by the
+    ``qiskit.foo()`` function which provides similar functionality but with
+    more accurate results and better performance. You should update your calls
+    ``qiskit.bar.foobar()`` calls to ``qiskit.foo()``.
 ```
 
-Code
-----
+You can also look at other release notes for other examples.
 
-This section include some tips that will help you to push source code.
+You can use any restructured text feature in them (code sections, tables,
+enumerated lists, bulleted list, etc) to express what is being changed as
+needed. In general you want the release notes to include as much detail as
+needed so that users will understand what has changed, why it changed, and how
+they'll have to update their code.
 
-::: {.note}
-::: {.admonition-title}
-Note
-:::
+After you've finished writing your release notes you'll want to add the note
+file to your commit with `git add` and commit them to your PR branch to make
+sure they're included with the code in your PR.
 
-We recommend using [Python virtual
-environments](https://docs.python.org/3/tutorial/venv.html) to cleanly
-separate Qiskit from other applications and improve your experience.
-:::
+#### Generating the release notes
 
-### Setup with an Environment
+After release notes have been added if you want to see what the full output of
+the release notes. In general the output from reno that we'll get is a rst
+(ReStructuredText) file that can be compiled by
+[sphinx](https://www.sphinx-doc.org/en/master/). To generate the rst file you
+use the ``reno report`` command. If you want to generate the full aqua release
+notes for all releases (since we started using reno during 0.9) you just run::
 
-The simplest way to use environments is by using Anaconda
+    reno report
 
-``` {.sh}
-conda create -y -n QiskitDevenv python=3
-source activate QiskitDevenv
-```
+but you can also use the ``--version`` argument to view a single release (after
+it has been tagged::
 
-In order to execute the Aqua code, after cloning the Aqua GitHub
-repository on your machine, you need to have some libraries, which can
-be installed in this way:
+    reno report --version 0.5.0
 
-``` {.sh}
-cd qiskit-aqua
-pip install -r requirements.txt
-pip install -r requirements-dev.txt
-```
+At release time ``reno report`` is used to generate the release notes for the
+release and the output will be submitted as a pull request to the documentation
+repository's [release notes file](
+https://github.com/Qiskit/qiskit/blob/master/docs/release_notes.rst)
 
-To better contribute to Qiskit Aqua, we recommend that you clone the
-Qiskit Aqua repository and then install Qiskit Aqua from source. This
-will give you the ability to inspect and extend the latest version of
-the Aqua code more efficiently. The version of Qiskit Aqua in the
-repository\'s `master` branch is typically ahead of the version in the
-Python Package Index (PyPI) repository, and we strive to always keep
-Aqua in sync with the development versions of the Qiskit elements, each
-available in the `master` branch of the corresponding repository.
-Therefore, all the Qiskit elements and relevant components should be
-installed from source. This can be correctly achieved by first
-uninstalling them from the Python environment in which you have Qiskit
-(if they were previously installed), using the `pip uninstall` command
-for each of them. Next, clone the [Qiskit
-Terra](https://github.com/Qiskit/qiskit-terra), [Qiskit
-Aer](https://github.com/Qiskit/qiskit-aer), [Qiskit IBMQ
-Provider](https://github.com/Qiskit/qiskit-ibmq-provider), [Qiskit
-Ignis](https://github.com/Qiskit/qiskit-ignis) and [Qiskit
-Aqua](https://github.com/Qiskit/qiskit-aqua) repositories and install
-them in this order from source in the same Python environment. Qiskit
-Terra, Qiskit IBMQ Provider and Qiskit Aqua can be installed by issuing
-the following commands in the root directories of the repositoriy
-clones:
+#### Building release notes locally
 
-``` {.sh}
-$ pip install -r requirements.txt
-$ pip install -r requirements-dev.txt
-$ pip install -e .
-```
+Building The release notes are part of the standard qiskit-aqua documentation
+builds. To check what the rendered html output of the release notes will look
+like for the current state of the repo you can run: `tox -edocs` which will
+build all the documentation into `docs/_build/html` and the release notes in
+particular will be located at `docs/_build/html/release_notes.html`
 
-To install Qiskit Aer use:
+## Installing Qiskit Aqua from source
 
-``` {.sh}
-$ pip install -r requirements-dev.txt
-$ python3 setup.py bdist_wheel
-$ cd dist
-$ pip install qiskit_aer-<...>.whl
-```
+Please see the [Installing Qiskit Aqua from
+Source](https://qiskit.org/documentation/contributing_to_qiskit.html#installing-aqua-from-source)
+section of the Qiskit documentation.
 
-See the [contribution guidelines of Qiskit
-Aer](https://github.com/Qiskit/qiskit-aer/blob/master/.github/CONTRIBUTING.md)
-for more precise instructions.
+Note: Aqua depends on Ignis and Terra, and has optional dependence on Aer and IBM Q Provider, so
+these should be installed too. The master branch of Aqua is kept working with those other element
+master branches so these should be installed from source too following the instructions at 
+the same location
 
-Make sure to respect the order specified above: Qiskit Terra, Qiskit
-Aer, Qiskit IBMQ Provider, and Qiskit Aqua. All the other dependencies
-will be installed automatically. This process may have to be repeated
-often as the `master` branch of Aqua is updated frequently.
+Aqua also has some other optional dependents see 
+[Aqua optional installs](https://github.com/Qiskit/qiskit-aqua#optional-installs) and
+[Chemistry optional installs](https://github.com/Qiskit/qiskit-aqua#optional-installs-1) for
+further information. Unit tests that require any of the optional dependents will check
+and skip the test if not installed.
 
-To run chemistry experiments using Qiskit Chemistry, it is recommended
-that you to install a classical computation chemistry software program
-interfaced by Qiskit Chemistry. Several such programs are supported, and
-while logic to interface these programs is supplied by Qiskit Chemistry
-via the above pip installation, the dependent programs themselves need
-to be installed separately becausea they are not part of the Qiskit
-Chemistry installation bundle. Qiskit Chemistry comes with prebuilt
-support to interface the following computational chemistry software
-programs:
+### Testing
 
-1.  \[Gaussian 16&trade;\](<http://gaussian.com/gaussian16/>), a
-    commercial chemistry program
-2.  \[PSI4\](<http://www.psicode.org/>), a chemistry program that
-    exposes a Python interface allowing for accessing internal objects
-3.  \[PySCF\](<https://github.com/sunqm/pyscf>), an open-source Python
-    chemistry program
-4.  \[PyQuante\](<https://github.com/rpmuller/pyquante2>), a pure
-    cross-platform open-source Python chemistry program
+Once you've made a code change, it is important to verify that your change
+does not break any existing tests and that any new tests that you've added
+also run successfully. Before you open a new pull request for your change,
+you'll want to run the test suite locally.
 
-Please refer to the \[Qiskit Chemistry drivers installation
-instructions\](<https://qiskit.org/documentation/aqua/aqua_chemistry_drivers.html>)
-for details on how to integrate these drivers into Qiskit Chemistry.
+The test suite can be run from a command line or via your IDE. You can run `make test` which will
+run all unit tests. Another way to run the test suite is to use
+[**tox**](https://tox.readthedocs.io/en/latest/#). For more information about using tox please
+refer to
+[Terra CONTRIBUTING](https://github.com/Qiskit/qiskit-terra/blob/master/CONTRIBUTING.md#test)
+Test section. However please note Aqua does not have any
+[online tests](https://github.com/Qiskit/qiskit-terra/blob/master/CONTRIBUTING.md#online-tests)
+nor does it have
+[test skip
+ options](https://github.com/Qiskit/qiskit-terra/blob/master/CONTRIBUTING.md#test-skip-options).    
 
-### Style guide
+### Development Cycle
 
-Please submit clean code and please make effort to follow existing
-conventions in order to keep it as readable as possible. We use the
-[Pylint](https://www.pylint.org) and [PEP
-8](https://www.python.org/dev/peps/pep-0008) style guide. To ensure your
-changes respect the style guidelines, run the next commands (all
-platforms):
+The development cycle for qiskit-aqua is informed by release plans in the 
+[Qiskit rfcs repository](https://github.com/Qiskit/rfcs)
+ 
+### Branches
 
-``` {.sh}
-$> cd out
-out$> make lint
-out$> make style
-```
+* `master`:
 
-Documentation
--------------
+The master branch is used for development of the next version of qiskit-aqua.
+It will be updated frequently and should not be considered stable. The API
+can and will change on master as we introduce and refine new features.
 
-The documentation source code for the project is located in the `docs`
-directory of the general [Qiskit
-repository](https://github.com/Qiskit/qiskit) and automatically rendered
-on the [Qiskit documentation Web
-site](https://qiskit.org/documentation/). The documentation for the
-Python SDK is auto-generated from Python docstrings using
-[Sphinx](http://www.sphinx-doc.org). Please follow [Google\'s Python
-Style
-Guide](https://google.github.io/styleguide/pyguide.html?showone=Comments#Comments)
-for docstrings. A good example of the style can also be found with
-[Sphinx\'s napolean converter
-documentation](http://sphinxcontrib-napoleon.readthedocs.io/en/latest/example_google.html).
-
-To generate the documentation, you need to invoke CMake first in order
-to generate all specific files for our current platform. See the
-[instructions](https://github.com/Qiskit/qiskit-terra/blob/master/.github/CONTRIBUTING.rst#dependencies)
-in the Terra repository for details on how to install and run CMake.
-
-Development Cycle
------------------
-
-Our development cycle is straightforward. Use the **Projects** board in
-Github for project management and use **Milestones** in the **Issues**
-board for releases. The features that we want to include in these
-releases will be tagged and discussed in the project boards. Whenever a
-new release is close to be launched, we\'ll announce it and detail what
-has changed since the latest version in our Release Notes and Changelog.
-The channels we\'ll use to announce new releases are still being
-discussed, but for now, you can [follow us](https://twitter.com/qiskit)
-on Twitter!
-
-### Branch Model
-
-There are two main branches in the repository:
-
--   `master`
-    -   This is the development branch.
-    -   Next release is going to be developed here. For example, if the
-        current latest release version is r1.0.3, the master branch
-        version will point to r1.1.0 (or r2.0.0).
-    -   You should expect this branch to be updated very frequently.
-    -   Even though we are always doing our best to not push code that
-        breaks things, is more likely to eventually push code that
-        breaks something\... we will fix it ASAP, promise :).
-    -   This should not be considered as a stable branch to use in
-        production environments.
-    -   The API of Qiskit could change without prior notice.
--   `stable`
-    -   This is our stable release branch.
-    -   It\'s always synchronized with the latest distributed package:
-        as for now, the package you can download from pip.
-    -   The code in this branch is well tested and should be free of
-        errors (unfortunately sometimes it\'s not).
-    -   This is a stable branch (as the name suggest), meaning that you
-        can expect stable software ready for production environments.
-    -   All the tags from the release versions are created from this
-        branch.
+* `stable/*`:
+The stable branches are used to maintain the most recent released versions of
+qiskit-aqua. It contains the versions of the code corresponding to the minor
+version release in the branch name release for The API on these branches are
+stable and the only changes merged to it are bugfixes.
 
 ### Release Cycle
 
-From time to time, we will release brand new versions of Qiskit Aqua.
-These are well-tested versions of the software.
+From time to time, we will release brand new versions of Qiskit Aqua. These
+are well-tested versions of the software.
 
 When the time for a new release has come, we will:
 
-1.  Merge the `master` branch with the `stable` branch.
-2.  Create a new tag with the version number in the `stable` branch.
-3.  Crate and distribute the pip package.
-4.  Change the `master` version to the next release version.
-5.  Announce the new version to the world!
+1.  Create a new tag with the version number and push it to github
+2.  Change the `master` version to the next release version.
 
-The `stable` branch should only receive changes in the form of bug
-fixes, so the third version number (the maintenance number:
-\[major\].\[minor\].\[maintenance\]) will increase on every new change.
+The release automation processes will be triggered by the new tag and perform
+the following steps:
 
-Stable-branch Policy
-====================
+1.  Create a stable branch for the new minor version from the release tag
+    on the `master` branch
+2.  Build and upload binary wheels to pypi
+3.  Create a github release page with a generated changelog
+4.  Generate a PR on the meta-repository to bump the terra version and
+    meta-package version.
 
-The stable branch is intended to be a safe source of fixes for
-high-impact bugs and security issues which have been fixed on master
-since a release. When reviewing a stable branch PR, we need to balance
-the risk of any given patch with the value that the patch will provide
-to users of the stable branch. Only a limited class of changes are
-appropriate for inclusion on the stable branch. A large, risky patch for
-a major issue might make sense, as might a trivial fix for a fairly
-obscure error handling case. A number of factors must be weighed when
-considering a change:
-
--   The risk of regression: even the tiniest changes carry some risk of
-    breaking something, and we really want to avoid regressions on the
-    stable branch.
--   The user visible benefit: are we fixing something that users might
-    actually notice and, if so, how important is it?
--   How self-contained the fix is: if it fixes a significant issue, but
-    also refactors a lot of code, it's probably worth thinking about
-    what a less risky fix might look like.
--   Whether the fix is already on master: a change must be a backport of
-    a change already merged onto master, unless the change simply does
-    not make sense on master.
-
-Backporting procedure:
-----------------------
-
-When backporting a patch from master to stable, we want to keep a
-reference to the change on master. When you create the branch for the
-stable PR, you can use:
-
-[\$ git cherry-pick -x \$master\_commit\_id]{.title-ref}
-
-However, this only works for small, self-contained patches from master.
-If you need to backport a subset of a larger commit (from a squashed PR
-for example) from master, this just need be done manually. This should
-be handled by adding:
-
-    Backported from: #master pr number
-
-in these cases, so we can track the source of the change subset even if
-a strict cherry pick doesn\'t make sense.
-
-If the patch you're proposing will not cherry-pick cleanly, you can help
-by resolving the conflicts yourself and proposing the resulting patch.
-Please keep Conflicts lines in the commit message to help review of the
-stable patch.
-
-Backport Tags
--------------
-
-Bugs or PRs tagged with [stable backport potential]{.title-ref} are bugs
-which apply to the stable release too and may be suitable for
-backporting once a fix lands in master. Once the backport has been
-proposed, the tag should be removed.
-
-The PR against the stable branch should include [\[stable\]]{.title-ref}
-in the title, as a sign that setting the target branch as stable was not
-a mistake. Also, reference to the PR number in master that you are
-porting.
+The `stable/*` branches should only receive changes in the form of bug
+fixes.

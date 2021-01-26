@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -12,21 +10,31 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Sequential Least SQuares Programming algorithm"""
+"""Sequential Least SQuares Programming optimizer"""
 
 from typing import Optional
 import logging
 
 from scipy.optimize import minimize
-from .optimizer import Optimizer
+from .optimizer import Optimizer, OptimizerSupportLevel
 
 logger = logging.getLogger(__name__)
 
 
 class SLSQP(Optimizer):
-    """Sequential Least SQuares Programming algorithm
+    """
+    Sequential Least SQuares Programming optimizer.
 
-    Uses scipy.optimize.minimize SLSQP
+    SLSQP minimizes a function of several variables with any combination of bounds, equality
+    and inequality constraints. The method wraps the SLSQP Optimization subroutine originally
+    implemented by Dieter Kraft.
+
+    SLSQP is ideal for mathematical problems for which the objective function and the constraints
+    are twice continuously differentiable. Note that the wrapper handles infinite values in bounds
+    by converting them into large floating values.
+
+    Uses scipy.optimize.minimize SLSQP.
+    For further detail, please refer to
     See https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
     """
 
@@ -40,11 +48,6 @@ class SLSQP(Optimizer):
                  tol: Optional[float] = None,
                  eps: float = 1.4901161193847656e-08) -> None:
         """
-        Constructor.
-
-        For details, please refer to
-        https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html.
-
         Args:
             maxiter: Maximum number of iterations.
             disp: Set to True to print convergence messages.
@@ -53,17 +56,17 @@ class SLSQP(Optimizer):
             eps: Step size used for numerical approximation of the Jacobian.
         """
         super().__init__()
-        for k, v in locals().items():
+        for k, v in list(locals().items()):
             if k in self._OPTIONS:
                 self._options[k] = v
         self._tol = tol
 
     def get_support_level(self):
-        """ return support level dictionary """
+        """ Return support level dictionary """
         return {
-            'gradient': Optimizer.SupportLevel.supported,
-            'bounds': Optimizer.SupportLevel.supported,
-            'initial_point': Optimizer.SupportLevel.required
+            'gradient': OptimizerSupportLevel.supported,
+            'bounds': OptimizerSupportLevel.supported,
+            'initial_point': OptimizerSupportLevel.required
         }
 
     def optimize(self, num_vars, objective_function, gradient_function=None,

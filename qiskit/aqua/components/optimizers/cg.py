@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -12,23 +10,30 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-"""Conjugate Gradient algorithm."""
+"""Conjugate Gradient optimizer."""
 
 from typing import Optional
 import logging
 
 from scipy.optimize import minimize
-from .optimizer import Optimizer
+from .optimizer import Optimizer, OptimizerSupportLevel
 
 
 logger = logging.getLogger(__name__)
 
 
 class CG(Optimizer):
-    """Conjugate Gradient algorithm.
+    """Conjugate Gradient optimizer.
 
-    Uses scipy.optimize.minimize CG
-    See https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
+    CG is an algorithm for the numerical solution of systems of linear equations whose matrices are
+    symmetric and positive-definite. It is an *iterative algorithm* in that it uses an initial
+    guess to generate a sequence of improving approximate solutions for a problem,
+    in which each approximation is derived from the previous ones.  It is often used to solve
+    unconstrained optimization problems, such as energy minimization.
+
+    Uses scipy.optimize.minimize CG.
+    For further detail, please refer to
+    https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html
     """
 
     _OPTIONS = ['maxiter', 'disp', 'gtol', 'eps']
@@ -41,11 +46,6 @@ class CG(Optimizer):
                  tol: Optional[float] = None,
                  eps: float = 1.4901161193847656e-08) -> None:
         """
-        Constructor.
-
-        For details, please refer to
-        https://docs.scipy.org/doc/scipy/reference/generated/scipy.optimize.minimize.html.
-
         Args:
             maxiter: Maximum number of iterations to perform.
             disp: Set to True to print convergence messages.
@@ -54,17 +54,17 @@ class CG(Optimizer):
             eps: If jac is approximated, use this value for the step size.
         """
         super().__init__()
-        for k, v in locals().items():
+        for k, v in list(locals().items()):
             if k in self._OPTIONS:
                 self._options[k] = v
         self._tol = tol
 
     def get_support_level(self):
-        """ return support level dictionary """
+        """ Return support level dictionary """
         return {
-            'gradient': Optimizer.SupportLevel.supported,
-            'bounds': Optimizer.SupportLevel.ignored,
-            'initial_point': Optimizer.SupportLevel.required
+            'gradient': OptimizerSupportLevel.supported,
+            'bounds': OptimizerSupportLevel.ignored,
+            'initial_point': OptimizerSupportLevel.required
         }
 
     def optimize(self, num_vars, objective_function, gradient_function=None,

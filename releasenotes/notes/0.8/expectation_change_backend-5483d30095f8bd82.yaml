@@ -1,0 +1,9 @@
+---
+fixes:
+  - |
+    Changing backends in VQE from statevector to qasm_simulator or real device
+    was causing an error due to CircuitSampler incompatible reuse. VQE was changed
+    to always create a new CircuitSampler and create a new  expectation in case not
+    entered by user.
+    Refer to
+    `#1153 <https://github.com/Qiskit/qiskit-aqua/issues/1153>` for more details.

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -47,6 +45,7 @@ Utilities
    CircuitFactory
    has_ibmq
    has_aer
+   name_args
 
 """
 
@@ -64,6 +63,7 @@ from .dataset_helper import (get_feature_dimension, get_num_classes,
 from .qp_solver import optimize_svm
 from .circuit_factory import CircuitFactory
 from .backend_utils import has_ibmq, has_aer
+from .name_unnamed_args import name_args
 
 __all__ = [
     'tensorproduct',
@@ -87,4 +87,5 @@ __all__ = [
     'CircuitFactory',
     'has_ibmq',
     'has_aer',
+    'name_args'
 ]

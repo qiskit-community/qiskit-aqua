@@ -1,0 +1,11 @@
+features:
+  - |
+    Introduced ``QuadraticProgramConverter`` which is an abstract class for converters.
+    Added ``convert``/``interpret`` methods for converters instead of ``encode``/``decode``.
+    Added ``to_ising`` and ``from_ising`` to ``QuadraticProgram`` class, and then
+    removed ``QuadraticProgramToIsing`` class and ``IsingToQuadraticProgram`` class.
+    Moved all parameters from ``convert`` to constructor except ``name``.
+    Created setter/getter for converter parameters.
+    Added ``auto_define_penalty`` and ``interpret`` for``LinearEqualityToPenalty``.
+    Now error messages of converters are more informative.
+

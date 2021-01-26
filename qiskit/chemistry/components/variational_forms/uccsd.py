@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -19,7 +17,7 @@ Also, for more information on the tapering see: https://arxiv.org/abs/1701.08213
 And for singlet q-UCCD (full) and pair q-UCCD see: https://arxiv.org/abs/1911.10864
 """
 
-from typing import Optional, Union, List
+from typing import Optional, Union, List, Tuple
 import logging
 import sys
 import collections
@@ -48,13 +46,13 @@ class UCCSD(VariationalForm):
     And for the singlet q-UCCD (full) and pair q-UCCD) see: https://arxiv.org/abs/1911.10864
     """
 
-    def __init__(self, num_qubits: int,
-                 depth: int,
+    def __init__(self,
                  num_orbitals: int,
-                 num_particles: Union[List[int], int],
+                 num_particles: Union[Tuple[int, int], List[int], int],
+                 reps: int = 1,
                  active_occupied: Optional[List[int]] = None,
                  active_unoccupied: Optional[List[int]] = None,
-                 initial_state: Optional[InitialState] = None,
+                 initial_state: Optional[Union[QuantumCircuit, InitialState]] = None,
                  qubit_mapping: str = 'parity',
                  two_qubit_reduction: bool = True,
                  num_time_slices: int = 1,
@@ -68,11 +66,10 @@ class UCCSD(VariationalForm):
         """Constructor.
 
         Args:
-            num_qubits: number of qubits, has a min. value of 1.
-            depth: number of replica of basic module, has a min. value of 1.
             num_orbitals: number of spin orbitals, has a min. value of 1.
             num_particles: number of particles, if it is a list,
                             the first number is alpha and the second number if beta.
+            reps: number of repetitions of basic module, has a min. value of 1.
             active_occupied: list of occupied orbitals to consider as active space.
             active_unoccupied: list of unoccupied orbitals to consider as active space.
             initial_state: An initial state object.
@@ -98,14 +95,13 @@ class UCCSD(VariationalForm):
 
 
          Raises:
-             ValueError: Computed qubits do not match actual value
+             ValueError: Num particles list is not 2 entries
         """
-        validate_min('num_qubits', num_qubits, 1)
-        validate_min('depth', depth, 1)
         validate_min('num_orbitals', num_orbitals, 1)
         if isinstance(num_particles, list) and len(num_particles) != 2:
             raise ValueError('Num particles value {}. Number of values allowed is 2'.format(
                 num_particles))
+        validate_min('reps', reps, 1)
         validate_in_set('qubit_mapping', qubit_mapping,
                         {'jordan_wigner', 'parity', 'bravyi_kitaev'})
         validate_min('num_time_slices', num_time_slices, 1)
@@ -120,12 +116,9 @@ class UCCSD(VariationalForm):
         self._num_qubits = num_orbitals if not two_qubit_reduction else num_orbitals - 2
         self._num_qubits = self._num_qubits if self._z2_symmetries.is_empty() \
             else self._num_qubits - len(self._z2_symmetries.sq_list)
-        if self._num_qubits != num_qubits:
-            raise ValueError('Computed num qubits {} does not match actual {}'
-                             .format(self._num_qubits, num_qubits))
-        self._depth = depth
+        self._reps = reps
         self._num_orbitals = num_orbitals
-        if isinstance(num_particles, list):
+        if isinstance(num_particles, (tuple, list)):
             self._num_alpha = num_particles[0]
             self._num_beta = num_particles[1]
         else:
@@ -160,7 +153,7 @@ class UCCSD(VariationalForm):
                                            excitation_type=self._excitation_type,)
 
         self._hopping_ops, self._num_parameters = self._build_hopping_operators()
-        self._excitation_pool = None
+        self._excitation_pool = None  # type: Optional[List[WeightedPauliOperator]]
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
         self._logging_construct_circuit = True
@@ -233,13 +226,14 @@ class UCCSD(VariationalForm):
         return self._double_excitations
 
     @property
-    def excitation_pool(self):
-        """
-        Getter of full list of available excitations (called the pool)
-        Returns:
-            list[WeightedPauliOperator]: excitation pool
-        """
+    def excitation_pool(self) -> List[WeightedPauliOperator]:
+        """Returns the full list of available excitations (called the pool)."""
         return self._excitation_pool
+
+    @excitation_pool.setter
+    def excitation_pool(self, excitation_pool: List[WeightedPauliOperator]) -> None:
+        """Sets the excitation pool."""
+        self._excitation_pool = excitation_pool.copy()
 
     def _build_hopping_operators(self):
         if logger.isEnabledFor(logging.DEBUG):
@@ -266,7 +260,7 @@ class UCCSD(VariationalForm):
         self._single_excitations = s_e_list
         self._double_excitations = d_e_list
 
-        num_parameters = len(hopping_ops) * self._depth
+        num_parameters = len(hopping_ops) * self._reps
         return hopping_ops, num_parameters
 
     @staticmethod
@@ -335,19 +329,20 @@ class UCCSD(VariationalForm):
         hopping operators in a so called "excitation pool" and clears the previous list to be empty.
         Furthermore, the depth is asserted to be 1 which is required by the Adaptive VQE algorithm.
         """
-        # store full list of excitations as pool
-        self._excitation_pool = self._hopping_ops.copy()
+        if self._excitation_pool is None:
+            # store full list of excitations as pool
+            self._excitation_pool = self._hopping_ops.copy()
 
         # check depth parameter
-        if self._depth != 1:
-            logger.warning('The depth of the variational form was not 1 but %i which does not work \
+        if self._reps != 1:
+            logger.warning('The reps of the variational form was not 1 but %i which does not work \
                     in the adaptive VQE algorithm. Thus, it has been reset to 1.')
-            self._depth = 1
+            self._reps = 1
 
         # reset internal excitation list to be empty
         self._hopping_ops = []
-        self._num_parameters = len(self._hopping_ops) * self._depth
-        self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
+        self._num_parameters = 0
+        self._bounds = []
 
     def push_hopping_operator(self, excitation):
         """
@@ -357,7 +352,7 @@ class UCCSD(VariationalForm):
             excitation (WeightedPauliOperator): the new hopping operator to be added
         """
         self._hopping_ops.append(excitation)
-        self._num_parameters = len(self._hopping_ops) * self._depth
+        self._num_parameters = len(self._hopping_ops) * self._reps
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
     def pop_hopping_operator(self):
@@ -365,7 +360,7 @@ class UCCSD(VariationalForm):
         Pops the hopping operator that was added last.
         """
         self._hopping_ops.pop()
-        self._num_parameters = len(self._hopping_ops) * self._depth
+        self._num_parameters = len(self._hopping_ops) * self._reps
         self._bounds = [(-np.pi, np.pi) for _ in range(self._num_parameters)]
 
     def construct_circuit(self, parameters, q=None):
@@ -387,7 +382,10 @@ class UCCSD(VariationalForm):
 
         if q is None:
             q = QuantumRegister(self._num_qubits, name='q')
-        if self._initial_state is not None:
+        if isinstance(self._initial_state, QuantumCircuit):
+            circuit = QuantumCircuit(q)
+            circuit.compose(self._initial_state, inplace=True)
+        elif isinstance(self._initial_state, InitialState):
             circuit = self._initial_state.construct_circuit('circuit', q)
         else:
             circuit = QuantumCircuit(q)
@@ -402,25 +400,37 @@ class UCCSD(VariationalForm):
         if not self.uccd_singlet:
             list_excitation_operators = [
                 (self._hopping_ops[index % num_excitations], parameters[index])
-                for index in range(self._depth * num_excitations)]
+                for index in range(self._reps * num_excitations)]
         else:
             list_excitation_operators = []
             counter = 0
-            for i in range(int(self._depth * self.num_groups)):
+            for i in range(int(self._reps * self.num_groups)):
                 for _ in range(len(self._double_excitations_grouped[i % self.num_groups])):
                     list_excitation_operators.append((self._hopping_ops[counter],
                                                       parameters[i]))
                     counter += 1
+
+        # TODO to uncomment to update for Operator flow:
+        # from functools import reduce
+        # ops = [(qubit_op.to_opflow().to_matrix_op() * param).exp_i()
+        #        for (qubit_op, param) in list_excitation_operators]
+        # circuit += reduce(lambda x, y: x @ y, reversed(ops)).to_circuit()
+        # return circuit
 
         results = parallel_map(UCCSD._construct_circuit_for_one_excited_operator,
                                list_excitation_operators,
                                task_args=(q, self._num_time_slices),
                                num_processes=aqua_globals.num_processes)
 
-        for qc in results:
-            if self._shallow_circuit_concat:
-                circuit.data += qc.data
-            else:
+        if self._shallow_circuit_concat:
+            for qc in results:
+                for _, qbits, _ in qc._data:
+                    for i, _ in enumerate(qbits):
+                        qbits[i] = circuit.qubits[qbits[i].index]
+            for qc in results:
+                circuit._data += qc._data
+        else:
+            for qc in results:
                 circuit += qc
 
         return circuit
@@ -442,11 +452,7 @@ class UCCSD(VariationalForm):
         if self._initial_state is None:
             return None
         else:
-            bitstr = self._initial_state.bitstr
-            if bitstr is not None:
-                return np.zeros(self._num_parameters, dtype=np.float)
-            else:
-                return None
+            return np.zeros(self._num_parameters, dtype=np.float)
 
     @staticmethod
     def compute_excitation_lists(num_particles, num_orbitals, active_occ_list=None,
@@ -484,7 +490,7 @@ class UCCSD(VariationalForm):
             ValueError: invalid setting of number of orbitals
         """
 
-        if isinstance(num_particles, list):
+        if isinstance(num_particles, (tuple, list)):
             num_alpha = num_particles[0]
             num_beta = num_particles[1]
         else:
@@ -520,7 +526,7 @@ class UCCSD(VariationalForm):
                     raise ValueError(
                         'Invalid index {} in active active_occ_list {}'.format(i, active_occ_list))
                 if i < num_beta:
-                    active_occ_list_beta.append(i)
+                    active_occ_list_beta.append(i + beta_idx)
                 else:
                     raise ValueError(
                         'Invalid index {} in active active_occ_list {}'.format(i, active_occ_list))
@@ -538,7 +544,7 @@ class UCCSD(VariationalForm):
                     raise ValueError('Invalid index {} in active active_unocc_list {}'
                                      .format(i, active_unocc_list))
                 if i >= num_beta:
-                    active_unocc_list_beta.append(i)
+                    active_unocc_list_beta.append(i + beta_idx)
                 else:
                     raise ValueError('Invalid index {} in active active_unocc_list {}'
                                      .format(i, active_unocc_list))

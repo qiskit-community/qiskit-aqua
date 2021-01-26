@@ -1,0 +1,9 @@
+---
+fixes:
+  - |
+    Changed in python version 3.8: On macOS, the spawn start method is now the
+    default. The fork start method should be considered unsafe as it can
+    lead to crashes in subprocesses.
+    However P_BFGS doesn't support spawn, so we revert to single process.
+    Refer to
+    `#1109 <https://github.com/Qiskit/qiskit-aqua/issues/1109>` for more details.

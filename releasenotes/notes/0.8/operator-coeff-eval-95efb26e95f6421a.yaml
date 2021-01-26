@@ -1,0 +1,9 @@
+---
+fixes:
+  - |
+    The evaluation of some operator expressions, such as of ``SummedOp``s 
+    and evaluations with the ``CircuitSampler`` did not treat coefficients 
+    correctly or ignored them completely. E.g. evaluating 
+    ``~StateFn(0 * (I + Z)) @ Plus`` did not yield 0 or the normalization
+    of ``~StateFn(I) @ ((Plus + Minus) / sqrt(2))`` missed a factor 
+    of ``sqrt(2)``. This has been fixed.

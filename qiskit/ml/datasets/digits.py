@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -21,11 +19,7 @@ from sklearn import datasets
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, MinMaxScaler
 from sklearn.decomposition import PCA
-try:
-    import matplotlib.pyplot as plt
-    HAS_MATPLOTLIB = True
-except ImportError:
-    HAS_MATPLOTLIB = False
+from qiskit.aqua import MissingOptionalLibraryError
 
 
 def digits(training_size, test_size, n, plot_data=False):
@@ -59,8 +53,13 @@ def digits(training_size, test_size, n, plot_data=False):
                   for k, key in enumerate(class_labels)}
 
     if plot_data:
-        if not HAS_MATPLOTLIB:
-            raise NameError('Matplotlib not installed. Plase install it before plotting')
+        try:
+            import matplotlib.pyplot as plt
+        except ImportError as ex:
+            raise MissingOptionalLibraryError(
+                libname='Matplotlib',
+                name='digits',
+                pip_install='pip install matplotlib') from ex
         for k in range(0, 9):
             plt.scatter(sample_train[label_train == k, 0][:training_size],
                         sample_train[label_train == k, 1][:training_size])

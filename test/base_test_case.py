@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -22,6 +20,7 @@ import logging
 import os
 import unittest
 import time
+from qiskit.aqua import set_logging_level, QiskitLogDomains
 
 
 # disable deprecation warnings that can cause log output overflow
@@ -32,14 +31,19 @@ def _noop(*args, **kargs):
     pass
 
 
-warnings.warn = _noop
+# disable warning messages
+# warnings.warn = _noop
 
 
 class QiskitBaseTestCase(unittest.TestCase, ABC):
     """Base Helper class that contains common functionality."""
 
+    moduleName = None
+    log = None
+
     @abstractmethod
     def setUp(self) -> None:
+        warnings.filterwarnings('default', category=DeprecationWarning)
         self._started_at = time.time()
         self._class_location = __file__
 
@@ -72,6 +76,8 @@ class QiskitBaseTestCase(unittest.TestCase, ABC):
             level = logging._nameToLevel.get(os.getenv('LOG_LEVEL'),
                                              logging.INFO)
             cls.log.setLevel(level)
+            # set all domains logging
+            set_logging_level(level, list(QiskitLogDomains), log_file_name)
 
     def get_resource_path(self,
                           filename: str,

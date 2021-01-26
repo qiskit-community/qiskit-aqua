@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2019, 2020.
@@ -75,7 +73,7 @@ class MultivariateProblem(UncertaintyProblem):
         num_condition_target_ancillas = 0
         num_aggregation_ancillas = self._aggregation_function.required_ancillas()
         if self._conditions is not None:
-            num_condition_target_ancillas = len(self._conditions) + 1*(len(self._conditions) > 1)
+            num_condition_target_ancillas = len(self._conditions) + 1 * (len(self._conditions) > 1)
             num_aggregation_ancillas = self._aggregation_function.required_ancillas_controlled()
         if self._conditions is not None:
             for _, condition in self._conditions:
@@ -115,7 +113,7 @@ class MultivariateProblem(UncertaintyProblem):
         # set condition target qubits
         if self._conditions:
             i_cond_start = num_agg_qubits
-            i_cond_end = i_cond_start + len(self._conditions) + 1*(len(self._conditions) > 1)
+            i_cond_end = i_cond_start + len(self._conditions) + 1 * (len(self._conditions) > 1)
             q_cond_target = [q_ancillas[i] for i in range(i_cond_start, i_cond_end)]
 
             # set remaining ancillas

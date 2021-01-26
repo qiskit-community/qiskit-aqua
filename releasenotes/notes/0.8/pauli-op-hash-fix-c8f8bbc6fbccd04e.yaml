@@ -1,0 +1,8 @@
+---
+fixes:
+  - |
+    The ``__hash__`` method of the ``PauliOp`` class used the ``id()`` method
+    which prevents set comparisons to work as expected since they rely on hash
+    tables and identical objects used to not have identical hashes. Now, the
+    implementation uses a hash of the string representation inline with the
+    implementation in the ``Pauli`` class.

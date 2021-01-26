@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2019, 2020.
@@ -12,8 +10,9 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Discriminative Quantum or Classical Neural Networks. """
+""" Discriminative Quantum or Classical Neural Networks."""
 
+from typing import List
 from abc import ABC, abstractmethod
 
 
@@ -29,7 +28,7 @@ class DiscriminativeNetwork(ABC):
         super().__init__()
         self._num_parameters = 0
         self._num_qubits = 0
-        self._bounds = list()
+        self._bounds = list()  # type: List[object]
 
     @abstractmethod
     def set_seed(self, seed):

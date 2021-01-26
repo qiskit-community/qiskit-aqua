@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -15,7 +13,11 @@
 """
 Uncertainty Models (:mod:`qiskit.aqua.components.uncertainty_models`)
 =====================================================================
-Uncertainty Models
+An uncertainty model is an implementation that provides a way to construct a
+quantum circuit to prepare a state which corresponds to a particular distribution.
+More precisely, the resulting state together with an affine map can be used to sample from the
+considered distribution. The qubits are measured and then mapped to the desired range using
+the affine map.
 
 .. currentmodule:: qiskit.aqua.components.uncertainty_models
 

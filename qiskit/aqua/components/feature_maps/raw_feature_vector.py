@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2019, 2020.
@@ -12,11 +10,11 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 """
-This module contains the definition of a base class for
-feature map. Several types of commonly used approaches.
+Raw Feature Vector feature map.
 """
 
 import logging
+import warnings
 
 import numpy as np
 from qiskit import QuantumCircuit  # pylint: disable=unused-import
@@ -31,17 +29,30 @@ logger = logging.getLogger(__name__)
 
 class RawFeatureVector(FeatureMap):
     """
-    Using raw feature vector as the initial state vector
+    Raw Feature Vector feature map.
+
+    The Raw Feature Vector can be directly used as a feature map, where the raw feature vectors
+    will be automatically padded with ending 0s as necessary, to make sure vector length
+    is a power of 2, and normalized such that it can be treated and used
+    as an initial quantum state vector.
     """
 
     def __init__(self, feature_dimension: int = 2) -> None:
-        """Constructor.
-
+        """
         Args:
-            feature_dimension: The feature dimension, has a min. value of 1.
+            feature_dimension: The feature dimension, has a minimum value of 1.
         """
         validate_min('feature_dimension', feature_dimension, 1)
-        super().__init__()
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            super().__init__()
+
+        warnings.warn('The RawFeatureVector class has moved to qiskit.ml.circuit.library and '
+                      'subclasses the QuantumCircuit. This class, in qiskit.aqua.components, is '
+                      'deprecated as of Qiskit Aqua 0.9.0 and will be removed no earlier than 3 '
+                      'months after the release date.',
+                      DeprecationWarning, stacklevel=2)
+
         self._feature_dimension = feature_dimension
         self._num_qubits = next_power_of_2_base(feature_dimension)
 

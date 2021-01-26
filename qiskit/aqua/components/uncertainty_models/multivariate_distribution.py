@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -36,13 +34,11 @@ class MultivariateDistribution(UncertaintyModel, ABC):
                  low: Optional[Union[List[float], np.ndarray]] = None,
                  high: Optional[Union[List[float], np.ndarray]] = None) -> None:
         """
-        Constructor.
-
         Args:
-            num_qubits: assigns qubits to dimensions
-            probabilities: map - maps index tuples to probabilities
-            low: lowest value per dimension
-            high: highest value per dimension
+            num_qubits: Assigns qubits to dimensions
+            probabilities: Map - maps index tuples to probabilities
+            low: Lowest value per dimension
+            high: Highest value per dimension
         """
 
         self._values = 0
@@ -86,6 +82,10 @@ class MultivariateDistribution(UncertaintyModel, ABC):
             self._high = np.zeros(self.dimension)
             for i in range(self.dimension):
                 self._high[i] = 2**num_qubits[i] - 1
+
+    @staticmethod
+    def _replacement():
+        return 'a qiskit.QuantumCircuit'
 
     @property
     def num_qubits(self):
