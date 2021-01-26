@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -40,6 +40,7 @@ requirements = [
     "quandl",
     "yfinance",
     "retworkx>=0.5.0",
+    "dataclasses; python_version < '3.7'"
 ]
 
 if not hasattr(setuptools, 'find_namespace_packages') or not inspect.ismethod(setuptools.find_namespace_packages):
@@ -73,6 +74,7 @@ setuptools.setup(
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
         "Topic :: Scientific/Engineering"
     ),
     keywords='qiskit sdk quantum aqua',
@@ -81,8 +83,8 @@ setuptools.setup(
     include_package_data=True,
     python_requires=">=3.6",
     extras_require={
-        'torch': ["torch; sys_platform == 'linux' or (python_version < '3.8' and sys_platform != 'win32')"],
-        'cplex': ["cplex; python_version >= '3.6' and python_version < '3.8'"],
+        'torch': ["torch"],
+        'cplex': ["cplex; python_version < '3.9'"],
         'cvx': ['cvxpy>1.0.0,!=1.1.0,!=1.1.1,!=1.1.2'],
         'pyscf': ["pyscf; sys_platform != 'win32'"],
         'skquant': ["scikit-quant"],

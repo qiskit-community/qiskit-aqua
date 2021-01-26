@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -56,7 +56,7 @@ class CplexOptimizer(OptimizationAlgorithm):
             raise MissingOptionalLibraryError(
                 libname='CPLEX',
                 name='CplexOptimizer',
-                pip_install='pip install qiskit-aqua[cplex]')
+                pip_install="pip install 'qiskit-aqua[cplex]'")
 
         self._disp = disp
 
