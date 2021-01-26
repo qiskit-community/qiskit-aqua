@@ -56,9 +56,6 @@ _**Note**: there some optional packages that can be installed such as IBM CPLEX 
 ab-initio chemistry libraries/programs. Refer to Optional Install information in the sections
 below._
 
-_**Note**: tutorials are undergoing revision and re-organization. Hence you may notice some content
-you will see referenced is under legacy_tutorials pending such re-work._
-
 ----------------------------------------------------------------------------------------------------
 
 ## Aqua
@@ -137,9 +134,13 @@ satisfies the given CNF.
 
 ### Further examples
 
+Learning path notebooks may be found in the
+[algorithms tutorials](https://qiskit.org/documentation/tutorials/algorithms/index.html) section
+of the documentation and are a great place to start
+
 Jupyter notebooks containing further examples, for Qiskit Aqua, may be found here in the following
 Qiskit GitHub repositories at
-[qiskit-tutorials/legacy_tutorials/aqua](https://github.com/Qiskit/qiskit-tutorials/tree/master/legacy_tutorials/aqua)
+[qiskit-tutorials/tutorials/algorithms](https://github.com/Qiskit/qiskit-tutorials/tree/master/tutorials/algorithms)
 and
 [qiskit-community-tutorials/aqua](https://github.com/Qiskit/qiskit-community-tutorials/tree/master/aqua).
 
@@ -266,9 +267,13 @@ of the circuits. By passing in a backend as is done above it is internally wrapp
 
 ### Further examples
 
+Learning path notebooks may be found in the
+[chemistry tutorials](https://qiskit.org/documentation/tutorials/chemistry/index.html) section
+of the documentation and are a great place to start
+
 Jupyter notebooks containing further chemistry examples may be found in the
 following Qiskit GitHub repositories at
-[qiskit-tutorials/legacy_tutorials/aqua/chemistry](https://github.com/Qiskit/qiskit-tutorials/tree/master/legacy_tutorials/aqua/chemistry)
+[qiskit-tutorials/tutorials/chemistry](https://github.com/Qiskit/qiskit-tutorials/tree/master/tutorials/chemistry)
 and
 [qiskit-community-tutorials/chemistry](https://github.com/Qiskit/qiskit-community-tutorials/tree/master/chemistry).
 
@@ -330,9 +335,13 @@ When running the above the estimated value result should be 2.46 and probability
 
 ### Further examples
 
+Learning path notebooks may be found in the
+[finance tutorials](https://qiskit.org/documentation/tutorials/finance/index.html) section
+of the documentation and are a great place to start
+
 Jupyter notebooks containing further finance examples may be found in the
 following Qiskit GitHub repositories at
-[qiskit-tutorials/legacy_tutorials/finance](https://github.com/Qiskit/qiskit-tutorials/tree/master/legacy_tutorials/aqua/finance)
+[qiskit-tutorials/tutorials/finance](https://github.com/Qiskit/qiskit-tutorials/tree/master/tutorials/finance)
 and
 [qiskit-community-tutorials/finance](https://github.com/Qiskit/qiskit-community-tutorials/tree/master/finance).
 
@@ -386,11 +395,13 @@ print('Testing accuracy: {:0.2f}'.format(result['testing_accuracy']))
 
 ### Further examples
 
+Learning path notebooks may be found in the
+[machine learning tutorials](https://qiskit.org/documentation/tutorials/machine_learning/index.html) section
+of the documentation and are a great place to start
+
 Jupyter notebooks containing further Machine Learning examples may be found in the
 following Qiskit GitHub repositories at
-[qiskit-tutorials/legacy_tutorials/aqua/machine_learning](https://github.com/Qiskit/qiskit-tutorials/tree/master/legacy_tutorials/aqua/machine_learning)
-and
-[qiskit-tutorials/tutorials/finance/10_qgan_option_pricing.ipynb](https://github.com/Qiskit/qiskit-tutorials/blob/master/tutorials/finance/10_qgan_option_pricing.ipynb)
+[qiskit-tutorials/tutorials/machine_learning](https://github.com/Qiskit/qiskit-tutorials/tree/master/tutorials/machine_learning)
 and
 [qiskit-community-tutorials/machine_learning](https://github.com/Qiskit/qiskit-community-tutorials/tree/master/machine_learning).
 
@@ -481,9 +492,7 @@ of the documentation and are a great place to start.
 
 Jupyter notebooks containing further examples, for the optimization module, may be found in the
 following Qiskit GitHub repositories at
-[qiskit-tutorials/legacy_tutorials/aqua/optimization](https://github.com/Qiskit/qiskit-tutorials/tree/master/legacy_tutorials/aqua/optimization)
-and
-[qiskit-tutorials/legacy_tutorials/aqua/finance/optimization](https://github.com/Qiskit/qiskit-iqx-tutorials/tree/master/legacy_tutorials/aqua/finance/optimization)
+[qiskit-tutorials/tutorials/optimization](https://github.com/Qiskit/qiskit-tutorials/tree/master/tutorials/optimization)
 and
 [qiskit-community-tutorials/optimization](https://github.com/Qiskit/qiskit-community-tutorials/tree/master/optimization).
 

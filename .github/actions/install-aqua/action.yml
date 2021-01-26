@@ -21,6 +21,6 @@ runs:
           source "$HOME/miniconda/etc/profile.d/conda.sh"
           conda activate
         fi
-        pip install -e .
+        pip install -e .[torch,cplex,cvx,pyscf,skquant]
         pip install -U -c constraints.txt -r requirements-dev.txt
       shell: bash
