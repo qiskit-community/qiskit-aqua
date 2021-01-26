@@ -1095,7 +1095,7 @@ class QuadraticProgram:
             raise MissingOptionalLibraryError(
                 libname='CPLEX',
                 name='QuadraticProgram.read_from_lp_file',
-                pip_install='pip install qiskit-aqua[cplex]') from ex
+                pip_install="pip install 'qiskit-aqua[cplex]'") from ex
 
         def _parse_problem_name(filename: str) -> str:
             # Because docplex model reader uses the base name as model name,
@@ -1191,7 +1191,7 @@ class QuadraticProgram:
         # initialize Hamiltonian.
         num_nodes = self.get_num_vars()
         pauli_list = []
-        offset = 0
+        offset = 0.
         zero = zeros(num_nodes, dtype=nbool)
 
         # set a sign corresponding to a maximized or minimized problem.
