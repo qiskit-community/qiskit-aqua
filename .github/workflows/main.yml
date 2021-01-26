@@ -39,11 +39,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-checks-${{ hashFiles('setup.py','requirements-dev.txt','constraints.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-checks-
-            ${{ runner.os }}-pip-
-            ${{ runner.os }}-
+          key: ${{ runner.os }}-pip-checks-v1-${{ hashFiles('setup.py','requirements-dev.txt','constraints.txt') }}
       - uses: ./.github/actions/install-libraries
       - uses: ./.github/actions/install-master-dependencies
         if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
@@ -109,11 +105,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-lint-${{ hashFiles('setup.py','requirements-dev.txt','constraints.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-lint-
-            ${{ runner.os }}-pip-
-            ${{ runner.os }}-
+          key: ${{ runner.os }}-pip-lint-v1-${{ hashFiles('setup.py','requirements-dev.txt','constraints.txt') }}
       - uses: ./.github/actions/install-libraries
       - uses: ./.github/actions/install-master-dependencies
         if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
@@ -145,11 +137,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-mypy-${{ hashFiles('setup.py','requirements-dev.txt','constraints.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-mypy-
-            ${{ runner.os }}-pip-
-            ${{ runner.os }}-
+          key: ${{ runner.os }}-pip-mypy-v1-${{ hashFiles('setup.py','requirements-dev.txt','constraints.txt') }}
       - uses: ./.github/actions/install-libraries
       - uses: ./.github/actions/install-master-dependencies
         if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
@@ -173,11 +161,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-${{ matrix.python-version }}-pip-aqua-${{ hashFiles('setup.py','requirements-dev.txt','constraints.txt') }}
-          restore-keys: |
-            ${{ runner.os }}${{ matrix.python-version }}-pip-aqua-
-            ${{ runner.os }}${{ matrix.python-version }}-pip-
-            ${{ runner.os }}${{ matrix.python-version }}-
+          key: ${{ runner.os }}-${{ matrix.python-version }}-pip-aqua-v1-${{ hashFiles('setup.py','requirements-dev.txt','constraints.txt') }}
       - uses: ./.github/actions/install-libraries
       - uses: ./.github/actions/install-master-dependencies
         if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
@@ -226,11 +210,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-${{ matrix.python-version }}-pip-chemistry-${{ hashFiles('setup.py','requirements-dev.txt','constraints.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ matrix.python-version }}-pip-chemistry-
-            ${{ runner.os }}-${{ matrix.python-version }}-pip-
-            ${{ runner.os }}-${{ matrix.python-version }}-
+          key: ${{ runner.os }}-${{ matrix.python-version }}-pip-chemistry-v1-${{ hashFiles('setup.py','requirements-dev.txt','constraints.txt') }}
       - uses: ./.github/actions/install-psi4
         if: ${{ matrix.python-version == 3.7 }}
       - uses: ./.github/actions/install-libraries
@@ -293,11 +273,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-${{ matrix.python-version }}-pip-finance-${{ hashFiles('setup.py','requirements-dev.txt','constraints.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ matrix.python-version }}-pip-finance-
-            ${{ runner.os }}-${{ matrix.python-version }}-pip-
-            ${{ runner.os }}-${{ matrix.python-version }}-
+          key: ${{ runner.os }}-${{ matrix.python-version }}-pip-finance-v1-${{ hashFiles('setup.py','requirements-dev.txt','constraints.txt') }}
       - uses: ./.github/actions/install-libraries
       - uses: ./.github/actions/install-master-dependencies
         if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
@@ -340,11 +316,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-${{ matrix.python-version }}-pip-machinelearning-${{ hashFiles('setup.py','requirements-dev.txt','constraints.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ matrix.python-version }}-pip-machinelearning-
-            ${{ runner.os }}-${{ matrix.python-version }}-pip-
-            ${{ runner.os }}-${{ matrix.python-version }}-
+          key: ${{ runner.os }}-${{ matrix.python-version }}-pip-machinelearning-v1-${{ hashFiles('setup.py','requirements-dev.txt','constraints.txt') }}
       - uses: ./.github/actions/install-libraries
       - uses: ./.github/actions/install-master-dependencies
         if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
@@ -387,11 +359,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-${{ matrix.python-version }}-pip-optimization-${{ hashFiles('setup.py','requirements-dev.txt','constraints.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ matrix.python-version }}-pip-optimization-
-            ${{ runner.os }}-${{ matrix.python-version }}-pip-
-            ${{ runner.os }}-${{ matrix.python-version }}-
+          key: ${{ runner.os }}-${{ matrix.python-version }}-pip-optimization-v1-${{ hashFiles('setup.py','requirements-dev.txt','constraints.txt') }}
       - uses: ./.github/actions/install-libraries
       - uses: ./.github/actions/install-master-dependencies
         if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
@@ -434,11 +402,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-${{ matrix.python-version }}-pip-tutorials-${{ hashFiles('setup.py','requirements-dev.txt','constraints.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-${{ matrix.python-version }}-pip-tutorials-
-            ${{ runner.os }}-${{ matrix.python-version }}-pip-
-            ${{ runner.os }}-${{ matrix.python-version }}-
+          key: ${{ runner.os }}-${{ matrix.python-version }}-pip-tutorials-v1-${{ hashFiles('setup.py','requirements-dev.txt','constraints.txt') }}
       - uses: ./.github/actions/install-libraries
       - uses: ./.github/actions/install-master-dependencies
         if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
@@ -488,11 +452,7 @@ jobs:
         uses: actions/cache@v2
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-coverage-${{ hashFiles('setup.py','requirements-dev.txt','constraints.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-coverage-
-            ${{ runner.os }}-pip-
-            ${{ runner.os }}-
+          key: ${{ runner.os }}-pip-coverage-v1-${{ hashFiles('setup.py','requirements-dev.txt','constraints.txt') }}
       - uses: actions/download-artifact@v2
         with:
           name: aqua3.7

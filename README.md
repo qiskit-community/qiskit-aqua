@@ -71,17 +71,17 @@ these on a quantum backend, whether a real device or simulator.
 ### Optional Installs
 
 _**Note:** while the packages below can be installed directly by pip install, e.g. `pip install cplex`
-by doing so via the Aqua extra_requires, in this case `pip install qiskit-aqua[cplex]` will ensure
+by doing so via the Aqua extra_requires, in this case `pip 'install qiskit-aqua[cplex]'` will ensure
 that a version compatible with Qiskit is installed._
 
 * **IBM CPLEX** may be [installed](https://qiskit.org/documentation/apidoc/qiskit.aqua.algorithms.minimum_eigen_solvers.cplex.html)
   to allow the use of the `CplexOptimizer` classical solver algorithm.
-  `pip install qiskit-aqua[cplex]` may be used to install the community version.
-* **PyTorch**, may be installed either using command `pip install qiskit-aqua[torch]` to install the
+  `pip 'install qiskit-aqua[cplex]'` may be used to install the community version.
+* **PyTorch**, may be installed either using command `pip install 'qiskit-aqua[torch]'` to install the
   package or refer to PyTorch [getting started](https://pytorch.org/get-started/locally/). PyTorch
   being installed will enable the neural networks `PyTorchDiscriminator` component to be used with
   the QGAN algorithm.
-* **CVXPY**, may be installed using command `pip install qiskit-aqua[cvpxy]` to enable use of the
+* **CVXPY**, may be installed using command `pip install 'qiskit-aqua[cvx]'` to enable use of the
   `QSVM` and the classical `SklearnSVM` algorithms.
 
 
@@ -420,7 +420,7 @@ validation, and benchmarking.
 
 ### Optional Installs
 
-* **IBM CPLEX** may be installed using `pip install qiskit-aqua[cplex]` to allow the use of the
+* **IBM CPLEX** may be installed using `pip install 'qiskit-aqua[cplex]'` to allow the use of the
  `CplexOptimzer` classical solver algorithm, as well as enabling the reading of `LP` files.
 
 ### Creating Your First Optimization Programming Experiment in Qiskit
