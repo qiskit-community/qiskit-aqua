@@ -35,15 +35,18 @@ endif
 # You can set this variable from the command line.
 SPHINXOPTS    =
 
-.PHONY: lint style test test_ci spell copyright html coverage coverage_erase
+.PHONY: lint mypy style test test_ci spell copyright html doctest coverage coverage_erase
 
-all_check: spell style lint copyright html
+all_check: spell style lint copyright mypy html doctest
 
 lint:
 	pylint -rn --ignore=gauopen qiskit/aqua qiskit/chemistry qiskit/finance qiskit/ml qiskit/optimization test tools
 
+mypy:
+	mypy qiskit test tools
+
 style:
-	pycodestyle --max-line-length=100 --exclude=gauopen qiskit/aqua qiskit/chemistry qiskit/finance qiskit/ml qiskit/optimization test tools
+	pycodestyle qiskit/aqua qiskit/chemistry qiskit/finance qiskit/ml qiskit/optimization test tools
 
 test:
 	python -m unittest discover -v test
@@ -56,10 +59,13 @@ spell:
 	pylint -rn --disable=all --enable=spelling --spelling-dict=en_US --spelling-private-dict-file=.pylintdict --ignore=gauopen qiskit/aqua qiskit/chemistry qiskit/finance qiskit/ml qiskit/optimization test tools
 
 copyright:
-	python tools/check_copyright_year.py
+	python tools/check_copyright.py
 
 html:
 	make -C docs html SPHINXOPTS=$(SPHINXOPTS)
+
+doctest:
+	make -C docs doctest SPHINXOPTS=$(SPHINXOPTS)
 	
 coverage:
 	coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* -m unittest discover -s test -q

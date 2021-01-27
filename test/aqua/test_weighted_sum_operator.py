@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2019, 2020.
@@ -15,6 +13,7 @@
 """ Test Weighted Sum Operator """
 
 import unittest
+import warnings
 
 from test.aqua import QiskitAquaTestCase
 
@@ -29,6 +28,15 @@ from qiskit.aqua.circuits import WeightedSumOperator
 @ddt
 class TestWeightedSumOperator(QiskitAquaTestCase):
     """ weighted sum operator test """
+
+    def setUp(self):
+        super().setUp()
+        # ignore deprecation warnings from the change of the circuit factory to circuit library
+        warnings.filterwarnings("ignore", category=DeprecationWarning)
+
+    def tearDown(self):
+        super().tearDown()
+        warnings.filterwarnings(action="always", category=DeprecationWarning)
 
     @idata([
         # n, weights, x, sum
@@ -47,7 +55,9 @@ class TestWeightedSumOperator(QiskitAquaTestCase):
     def test_weighted_sum_operator(self, num_state_qubits, weights, input_x, result):
         """ weighted sum operator test """
         # initialize weighted sum operator factory
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         sum_op = WeightedSumOperator(num_state_qubits, weights)
+        warnings.filterwarnings('always', category=DeprecationWarning)
 
         # initialize circuit
         q = QuantumRegister(num_state_qubits + sum_op.get_required_sum_qubits(weights))

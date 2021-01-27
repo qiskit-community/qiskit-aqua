@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -38,6 +36,10 @@ class Zero(InitialState):
         super().__init__()
         validate_min('num_qubits', num_qubits, 1)
         self._num_qubits = num_qubits
+
+    @staticmethod
+    def _replacement():
+        return 'Zero(num_qubits) is the same as a empty QuantumCircuit(num_qubits).'
 
     def construct_circuit(self, mode='circuit', register=None):
         if mode == 'vector':

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -34,7 +32,7 @@ class FixedIncomeExpectedValue(UncertaintyProblem):
     def __init__(self,
                  uncertainty_model: UncertaintyModel,
                  A: np.ndarray,
-                 b: int,
+                 b: List[int],
                  cash_flow: List[float],
                  c_approx: float,
                  i_state: Optional[Union[List[int], np.ndarray]] = None,
@@ -89,8 +87,8 @@ class FixedIncomeExpectedValue(UncertaintyProblem):
         self.h = 0
         self.g = np.zeros(self.K)
         for t in range(self.T):
-            self.h += cash_flow[t] / pow(1 + b[t], (t+1))
-            self.g += -1.0 * (t+1) * cash_flow[t] * A[t, :] / pow(1 + b[t], (t+2))
+            self.h += cash_flow[t] / pow(1 + b[t], (t + 1))
+            self.g += -1.0 * (t + 1) * cash_flow[t] * A[t, :] / pow(1 + b[t], (t + 2))
 
         # compute overall offset using lower bound for x (corresponding to x = min)
         self.offset = np.dot(uncertainty_model.low, self.g) + self.h
@@ -117,13 +115,13 @@ class FixedIncomeExpectedValue(UncertaintyProblem):
         self.slope /= (self.max_value - self.min_value)
 
         # apply approximation scaling
-        self.offset_angle = (self.offset - 1/2) * np.pi/2 * self.c_approx + np.pi/4
-        self.slope_angle = self.slope * np.pi/2 * self.c_approx
+        self.offset_angle = (self.offset - 1 / 2) * np.pi / 2 * self.c_approx + np.pi / 4
+        self.slope_angle = self.slope * np.pi / 2 * self.c_approx
 
     def value_to_estimation(self, value):
-        estimator = value - 1/2
+        estimator = value - 1 / 2
         estimator *= 2 / np.pi / self.c_approx
-        estimator += 1/2
+        estimator += 1 / 2
         estimator *= (self.max_value - self.min_value)
         estimator += self.min_value
         return estimator

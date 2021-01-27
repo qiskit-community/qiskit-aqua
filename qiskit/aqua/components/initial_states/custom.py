@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -14,7 +12,7 @@
 
 """The custom initial state."""
 
-from typing import Optional
+from typing import Optional, Union
 import logging
 import numpy as np
 
@@ -27,6 +25,7 @@ from qiskit.aqua.circuits import StateVectorCircuit
 from qiskit.aqua.utils.arithmetic import normalize_vector
 from qiskit.aqua.utils.circuit_utils import convert_to_basis_gates
 from qiskit.aqua.utils.validation import validate_in_set, validate_min
+from qiskit.aqua.operators import StateFn
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +59,7 @@ class Custom(InitialState):
     def __init__(self,
                  num_qubits: int,
                  state: str = 'zero',
-                 state_vector: Optional[np.ndarray] = None,
+                 state_vector: Optional[Union[np.ndarray, StateFn]] = None,
                  circuit: Optional[QuantumCircuit] = None) -> None:
         """
         Args:
@@ -82,6 +81,9 @@ class Custom(InitialState):
         self._state = state
         size = np.power(2, self._num_qubits)
         self._circuit = None
+        if isinstance(state_vector, StateFn):
+            state_vector = state_vector.to_matrix()
+        # pylint: disable=comparison-with-callable
         if circuit is not None:
             if circuit.width() != num_qubits:
                 logger.warning('The specified num_qubits and '
@@ -99,7 +101,7 @@ class Custom(InitialState):
                 elif self._state == 'uniform':
                     self._state_vector = np.array([1.0 / np.sqrt(size)] * size)
                 elif self._state == 'random':
-                    self._state_vector = normalize_vector(aqua_globals.random.rand(size))
+                    self._state_vector = normalize_vector(aqua_globals.random.random(size))
                 else:
                     raise AquaError('Unknown state {}'.format(self._state))
             else:
@@ -109,6 +111,11 @@ class Custom(InitialState):
                                         len(state_vector), self._num_qubits))
                 self._state_vector = normalize_vector(state_vector)
                 self._state = None
+
+    @staticmethod
+    def _replacement():
+        return 'Custom(state_vector=vector) is the same as a circuit where the ' \
+                + '``initialize(vector/np.linalg.norm(vector))`` method has been called.'
 
     def construct_circuit(self, mode='circuit', register=None):
         # pylint: disable=import-outside-toplevel
@@ -145,7 +152,7 @@ class Custom(InitialState):
                     svc.construct_circuit(circuit=circuit, register=register)
                 elif self._state == 'uniform':
                     for i in range(self._num_qubits):
-                        circuit.u2(0.0, np.pi, register[i])
+                        circuit.h(register[i])
                 elif self._state == 'zero':
                     pass
                 else:

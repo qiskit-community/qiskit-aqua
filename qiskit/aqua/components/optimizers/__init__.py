@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -36,6 +34,7 @@ Optimizer Base Class
    :toctree: ../stubs/
    :nosignatures:
 
+   OptimizerSupportLevel
    Optimizer
 
 Local Optimizers
@@ -50,12 +49,29 @@ Local Optimizers
    CG
    COBYLA
    L_BFGS_B
+   GSLS
    NELDER_MEAD
+   NFT
    P_BFGS
    POWELL
    SLSQP
    SPSA
    TNC
+
+Qiskit Aqua also provides the following optimizers, which are built-out using the optimizers from
+the `scikit-quant` package. The `scikit-quant` package is not installed by default but must be
+explicitly installed, if desired, by the user - the optimizers therein are provided under various
+licenses so it has been made an optional install for the end user to choose whether to do so or
+not. To install the `scikit-quant` dependent package you can use
+`pip install 'qiskit-aqua[skquant]'`.
+
+.. autosummary::
+   :toctree: ../stubs/
+   :nosignatures:
+
+   BOBYQA
+   IMFIL
+   SNOBFIT
 
 Global Optimizers
 =================
@@ -81,11 +97,12 @@ The global optimizers are as follows:
 
 """
 
-from .optimizer import Optimizer
+from .optimizer import OptimizerSupportLevel, Optimizer
 from .adam_amsgrad import ADAM
 from .cg import CG
 from .cobyla import COBYLA
 from .l_bfgs_b import L_BFGS_B
+from .gsls import GSLS
 from .nelder_mead import NELDER_MEAD
 from .p_bfgs import P_BFGS
 from .powell import POWELL
@@ -93,22 +110,30 @@ from .slsqp import SLSQP
 from .spsa import SPSA
 from .tnc import TNC
 from .aqgd import AQGD
+from .nft import NFT
 from .nlopts.crs import CRS
 from .nlopts.direct_l import DIRECT_L
 from .nlopts.direct_l_rand import DIRECT_L_RAND
 from .nlopts.esch import ESCH
 from .nlopts.isres import ISRES
+from .snobfit import SNOBFIT
+from .bobyqa import BOBYQA
+from .imfil import IMFIL
 
 __all__ = ['Optimizer',
+           'OptimizerSupportLevel',
            'ADAM',
            'AQGD',
            'CG',
            'COBYLA',
+           'GSLS',
            'L_BFGS_B',
            'NELDER_MEAD',
+           'NFT',
            'P_BFGS',
            'POWELL',
            'SLSQP',
            'SPSA',
            'TNC',
-           'CRS', 'DIRECT_L', 'DIRECT_L_RAND', 'ESCH', 'ISRES']
+           'CRS', 'DIRECT_L', 'DIRECT_L_RAND', 'ESCH', 'ISRES',
+           'SNOBFIT', 'BOBYQA', 'IMFIL']

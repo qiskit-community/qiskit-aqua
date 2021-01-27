@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -39,6 +37,7 @@ and simulator too).
    :nosignatures:
 
    AquaError
+   MissingOptionalLibraryError
 
 In addition to standard Python errors Aqua will raise this error if circumstances
 are that it cannot proceed to completion.
@@ -72,6 +71,7 @@ Submodules
 
 from .version import __version__
 from .aqua_error import AquaError
+from .missing_optional_library_error import MissingOptionalLibraryError
 from .aqua_globals import aqua_globals
 from .quantum_instance import QuantumInstance
 from .algorithms import QuantumAlgorithm
@@ -85,6 +85,7 @@ from ._logging import (QiskitLogDomains,
 
 __all__ = ['__version__',
            'AquaError',
+           'MissingOptionalLibraryError',
            'QuantumAlgorithm',
            'QuantumInstance',
            'aqua_globals',

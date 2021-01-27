@@ -1,0 +1,8 @@
+---
+fixes:
+  - |
+    The ``compose`` method of the ``CircuitOp`` used ``QuantumCircuit.combine`` which has been
+    changed to use ``QuantumCircuit.compose``. Using combine leads to the problem that composing
+    an operator with a ``CircuitOp`` based on a named register does not chain the operators but
+    stacks them. E.g. composing ``Z ^ 2`` with a circuit based on a 2-qubit named register yielded
+    a 4-qubit operator instead of a 2-qubit operator.

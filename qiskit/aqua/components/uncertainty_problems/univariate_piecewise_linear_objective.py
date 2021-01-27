@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2019, 2020.
@@ -12,30 +10,25 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-r"""
-Univariate Piecewise Linear Objective Function, applies controlled Y-rotation to target qubit.
-Control qubits represent integer value, and rotation approximates a piecewise
-linear function of the amplitude f:
-|
-|    \|x>\|0> --> \|x>( sqrt(1 - f(x))\|0> + sqrt(f(x))\|1> )
-"""
+"""Univariate Piecewise Linear Objective Function."""
 
 from typing import Optional, Union, List
 import numpy as np
-from qiskit.aqua.circuits.piecewise_linear_rotation import PiecewiseLinearRotation as PwlRot
+from qiskit.circuit.library import PiecewiseLinearPauliRotations
 from qiskit.aqua.utils import CircuitFactory
-
-# pylint: disable=invalid-name
 
 
 class UnivariatePiecewiseLinearObjective(CircuitFactory):
+    r"""Univariate Piecewise Linear Objective Function.
 
-    r"""
-    Univariate Piecewise Linear Objective Function, applies controlled Y-rotation to target qubit.
-    Control qubits represent integer value, and rotation approximates a piecewise
+    This objective function applies controlled Y-rotation to the target qubit, where the
+    control qubits represent integer value, and rotation approximates a piecewise
     linear function of the amplitude f:
-    |
-    |    \|x>\|0> --> \|x>( sqrt(1 - f(x))\|0> + sqrt(f(x))\|1> )
+
+    .. math::
+
+        |x\rangle |0\rangle \mapsto |x\rangle (\sqrt(1 - f(x))|0\rangle + sqrt(f(x))|1\rangle )
+
     """
 
     def __init__(self,
@@ -48,7 +41,7 @@ class UnivariatePiecewiseLinearObjective(CircuitFactory):
                  f_min: float,
                  f_max: float,
                  c_approx: float,
-                 i_state: Optional[int] = None,
+                 i_state: Optional[List[int]] = None,
                  i_objective: Optional[int] = None) -> None:
         r"""
         Args:
@@ -90,8 +83,8 @@ class UnivariatePiecewiseLinearObjective(CircuitFactory):
 
         # make sure the minimal value is included in the breakpoints
         min_value_included = False
-        for bp in breakpoints:
-            if np.isclose(bp, min_state_value):
+        for point in breakpoints:
+            if np.isclose(point, min_state_value):
                 min_value_included = True
                 break
         if not min_value_included:
@@ -121,20 +114,20 @@ class UnivariatePiecewiseLinearObjective(CircuitFactory):
             self.i_objective = num_state_qubits
 
         # map breakpoints, slopes, and offsets such that they fit {0, ..., 2^n-1}
-        lb = min_state_value
-        ub = max_state_value
+        lower = min_state_value
+        upper = max_state_value
         self._mapped_breakpoints = []
         self._mapped_slopes = []
         self._mapped_offsets = []
-        for i, _ in enumerate(breakpoints):
-            mapped_breakpoint = (breakpoints[i] - lb) / (ub - lb) * (2**num_state_qubits - 1)
+        for i, point in enumerate(breakpoints):
+            mapped_breakpoint = (point - lower) / (upper - lower) * (2**num_state_qubits - 1)
             if mapped_breakpoint <= 2**num_state_qubits - 1:
                 self._mapped_breakpoints += [mapped_breakpoint]
 
-                # factor (ub - lb) / (2^n - 1) is for the scaling of x to [l,u]
+                # factor (upper - lower) / (2^n - 1) is for the scaling of x to [l,u]
                 # note that the +l for mapping to [l,u] is already included in
                 # the offsets given as parameters
-                self._mapped_slopes += [slopes[i] * (ub - lb) / (2**num_state_qubits - 1)]
+                self._mapped_slopes += [slopes[i] * (upper - lower) / (2**num_state_qubits - 1)]
                 self._mapped_offsets += [offsets[i]]
         self._mapped_breakpoints = np.array(self._mapped_breakpoints)
         self._mapped_slopes = np.array(self._mapped_slopes)
@@ -155,13 +148,11 @@ class UnivariatePiecewiseLinearObjective(CircuitFactory):
             self._offset_angles = 2 * self._offset_angles
 
             # create piecewise linear Y rotation
-            self._pwl_ry = PwlRot(
+            self._pwl_ry = PiecewiseLinearPauliRotations(
+                num_state_qubits,
                 self._mapped_breakpoints,
                 self._slope_angles,
-                self._offset_angles,
-                num_state_qubits,
-                i_state=i_state,
-                i_target=i_objective
+                self._offset_angles
             )
 
         else:
@@ -170,6 +161,10 @@ class UnivariatePiecewiseLinearObjective(CircuitFactory):
 
             # create piecewise linear Y rotation
             self._pwl_ry = None
+
+    @staticmethod
+    def _replacement():
+        return 'qiskit.circuit.library.LinearAmplitudeFunction'
 
     def value_to_estimation(self, value):
         """ value to estimation """
@@ -185,7 +180,7 @@ class UnivariatePiecewiseLinearObjective(CircuitFactory):
 
     def required_ancillas(self):
         """ requires ancillas """
-        return self._pwl_ry.required_ancillas()
+        return self._pwl_ry.num_ancillas
 
     def build(self, qc, q, q_ancillas=None, params=None):
         """ build """
@@ -193,4 +188,8 @@ class UnivariatePiecewiseLinearObjective(CircuitFactory):
         q_objective = q[self.i_objective]
 
         # apply piecewise linear rotation
-        self._pwl_ry.build(qc, q_state + [q_objective], q_ancillas)
+        qubits = q_state[:] + [q_objective]
+        if q_ancillas:
+            qubits += q_ancillas[:self.required_ancillas()]
+
+        qc.append(self._pwl_ry.to_instruction(), qubits)

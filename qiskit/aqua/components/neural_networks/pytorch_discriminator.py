@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -16,22 +14,22 @@
 PyTorch Discriminator Neural Network
 """
 
+from typing import Dict, Any
 import os
 import logging
 import numpy as np
+from qiskit.aqua import MissingOptionalLibraryError
 from .discriminative_network import DiscriminativeNetwork
 
 logger = logging.getLogger(__name__)
 
-_HAS_TORCH = False
 try:
     import torch
     from torch import nn, optim
     from torch.autograd.variable import Variable
     _HAS_TORCH = True
 except ImportError:
-    logger.info('Pytorch is not installed. For installation instructions '
-                'see https://pytorch.org/get-started/locally/')
+    _HAS_TORCH = False
 
 
 class PyTorchDiscriminator(DiscriminativeNetwork):
@@ -46,12 +44,14 @@ class PyTorchDiscriminator(DiscriminativeNetwork):
             n_out: Dimension of the discriminator's output vector.
 
         Raises:
-            NameError: Pytorch not installed
+            MissingOptionalLibraryError: Pytorch not installed
         """
         super().__init__()
         if not _HAS_TORCH:
-            raise NameError('Pytorch is not installed. For installation instructions see '
-                            'https://pytorch.org/get-started/locally/')
+            raise MissingOptionalLibraryError(
+                libname='Pytorch',
+                name='PyTorchDiscriminator',
+                pip_install="pip install 'qiskit-aqua[torch]'")
 
         self._n_features = n_features
         self._n_out = n_out
@@ -63,7 +63,7 @@ class PyTorchDiscriminator(DiscriminativeNetwork):
         # discriminator network parameters.
         self._optimizer = optim.Adam(self._discriminator.parameters(), lr=1e-5, amsgrad=True)
 
-        self._ret = {}
+        self._ret = {}  # type: Dict[str, Any]
 
     def set_seed(self, seed: int):
         """
@@ -90,7 +90,7 @@ class PyTorchDiscriminator(DiscriminativeNetwork):
         Args:
             load_dir: file with stored pytorch discriminator model to be loaded
         """
-        torch.load(load_dir)
+        self._discriminator = torch.load(load_dir)
 
     @property
     def discriminator_net(self):
@@ -170,7 +170,7 @@ class PyTorchDiscriminator(DiscriminativeNetwork):
             x = Variable(x)
         # pylint: disable=no-member
         delta_ = torch.rand(x.size()) * c
-        z = Variable(x+delta_, requires_grad=True)
+        z = Variable(x + delta_, requires_grad=True)
         o_l = self.get_label(z)
         # pylint: disable=no-member
         d_g = torch.autograd.grad(o_l, z, grad_outputs=torch.ones(o_l.size()),
@@ -178,7 +178,8 @@ class PyTorchDiscriminator(DiscriminativeNetwork):
 
         return lambda_ * ((d_g.norm(p=2, dim=1) - k)**2).mean()
 
-    def train(self, data, weights, penalty=True, quantum_instance=None, shots=None):
+    def train(self, data, weights, penalty=True,
+              quantum_instance=None, shots=None) -> Dict[str, Any]:
         """
         Perform one training step w.r.t. to the discriminator's parameters
 

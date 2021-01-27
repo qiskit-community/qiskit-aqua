@@ -1,0 +1,23 @@
+---
+deprecations:
+  - |
+    The ising convert classes
+    :class:`qiskit.optimization.converters.QuadraticProgramToIsing` and
+    :class:`qiskit.optimization.converters.IsingToQuadraticProgram` have
+    been deprecated and will be removed in a future release. Instead the
+    :class:`qiskit.optimization.QuadraticProgram` methods
+    :meth:`~qiskit.optimization.QuadraticProgram.to_ising` and
+    :meth:`~qiskit.optimization.QuadraticPrgraom.from_ising` should be used
+    instead.
+  - |
+    The ``pprint_as_string`` method for
+    :class:`qiskit.optimization.QuadraticProgram` has been deprecated and will
+    be removed in a future release. Instead you should just run
+    ``.pprint_as_string()`` on the output from
+    :meth:`~qiskit.optimization.QuadraticProgram.to_docplex`
+  - |
+    The ``prettyprint`` method for
+    :class:`qiskit.optimization.QuadraticProgram` has been deprecated and will
+    be removed in a future release. Instead you should just run
+    ``.prettyprint()`` on the output from
+    :meth:`~qiskit.optimization.QuadraticProgram.to_docplex`

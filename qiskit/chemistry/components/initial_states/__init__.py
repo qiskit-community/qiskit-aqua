@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -16,8 +14,8 @@
 Initial States (:mod:`qiskit.chemistry.components.initial_states`)
 ==================================================================
 These are chemistry specific Aqua Initial States where they inherit from
-Aqua :class:`InitialState`. As they rely on chemistry specific knowledge
-and/or functions they live here rather than in Aqua.
+Aqua :class:`~qiskit.aqua.components.initial_states.InitialState`.
+As they rely on chemistry specific knowledge and/or functions they live here rather than in Aqua.
 
 .. currentmodule:: qiskit.chemistry.components.initial_states
 
@@ -29,9 +27,11 @@ Initial States
    :nosignatures:
 
    HartreeFock
+   VSCF
 
 """
 
 from .hartree_fock import HartreeFock
+from .vscf import VSCF
 
-__all__ = ['HartreeFock']
+__all__ = ['HartreeFock', 'VSCF']

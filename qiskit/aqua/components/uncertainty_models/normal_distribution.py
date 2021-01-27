@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -50,3 +48,7 @@ class NormalDistribution(UnivariateDistribution):
             pdf_to_probabilities(
                 lambda x: norm.pdf(x, mu, sigma), low, high, 2 ** num_target_qubits)
         super().__init__(num_target_qubits, probabilities, low, high)
+
+    @staticmethod
+    def _replacement():
+        return 'qiskit.circuit.library.NormalDistribution'

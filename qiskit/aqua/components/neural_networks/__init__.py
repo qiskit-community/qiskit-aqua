@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2019, 2020.
@@ -42,7 +40,7 @@ Neural Networks
    :toctree: ../stubs/
    :nosignatures:
 
-   NumpyDiscriminator
+   NumPyDiscriminator
    PyTorchDiscriminator
    QuantumGenerator
 
@@ -51,13 +49,13 @@ Neural Networks
 from .generative_network import GenerativeNetwork
 from .quantum_generator import QuantumGenerator
 from .discriminative_network import DiscriminativeNetwork
-from .numpy_discriminator import NumpyDiscriminator
+from .numpy_discriminator import NumPyDiscriminator
 from .pytorch_discriminator import PyTorchDiscriminator
 
 __all__ = [
     'DiscriminativeNetwork',
     'GenerativeNetwork',
     'QuantumGenerator',
-    'NumpyDiscriminator',
+    'NumPyDiscriminator',
     'PyTorchDiscriminator'
 ]

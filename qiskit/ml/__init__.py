@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2019, 2020.
@@ -13,12 +11,16 @@
 # that they have been altered from the originals.
 
 """
-==============================================================
-Machine Learning application stack for Aqua (:mod:`qiskit.ml`)
-==============================================================
-This is the machine learning domain logic....
+===================================================
+Qiskit's Machine Learning module (:mod:`qiskit.ml`)
+===================================================
 
 .. currentmodule:: qiskit.ml
+
+This is the Qiskit`s machine learning module. There is an initial set of function here that
+will be built out over time. At present it has sample sets that can be used with
+Aqua's :mod:`~qiskit.aqua.algorithms.classifiers` and circuits used in machine learning
+applications.
 
 Submodules
 ==========
@@ -26,6 +28,7 @@ Submodules
 .. autosummary::
    :toctree:
 
+   circuit.library
    datasets
 
 """

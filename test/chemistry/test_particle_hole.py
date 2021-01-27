@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -14,9 +12,11 @@
 
 """ Test Particle Hole """
 
+import unittest
+
 from test.chemistry import QiskitChemistryTestCase
 from ddt import ddt, idata, unpack
-from qiskit.aqua.algorithms import ExactEigensolver
+from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 from qiskit.chemistry import FermionicOperator, QiskitChemistryError
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType, HFMethodType
 
@@ -68,13 +68,18 @@ class TestParticleHole(QiskitChemistryTestCase):
 
         # ph_shift should be the electronic part of the hartree fock energy
         self.assertAlmostEqual(-ph_shift,
-                               molecule.hf_energy-molecule.nuclear_repulsion_energy, msg=config)
+                               molecule.hf_energy - molecule.nuclear_repulsion_energy, msg=config)
 
         # Energy in original fer_op should same as ph transformed one added with ph_shift
         jw_op = fer_op.mapping('jordan_wigner')
-        result = ExactEigensolver(jw_op).run()
+        result = NumPyMinimumEigensolver(jw_op).run()
 
         ph_jw_op = ph_fer_op.mapping('jordan_wigner')
-        ph_result = ExactEigensolver(ph_jw_op).run()
+        ph_result = NumPyMinimumEigensolver(ph_jw_op).run()
 
-        self.assertAlmostEqual(result['energy'], ph_result['energy']-ph_shift, msg=config)
+        self.assertAlmostEqual(result.eigenvalue.real,
+                               ph_result.eigenvalue.real - ph_shift, msg=config)
+
+
+if __name__ == '__main__':
+    unittest.main()

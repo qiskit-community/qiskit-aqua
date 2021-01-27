@@ -1,0 +1,9 @@
+---
+fixes:
+  - |
+    ``OptimizationResult.__init__`` did not check whether the sizes of ``x`` and
+    ``variables`` match or not (they should match). This fix added the check to
+    raise an error if they do not match and fixes bugs detected by the check.
+    This fix also adds missing unit tests related to ``OptimizationResult.variable_names``
+    and ``OptimizationResult.variables_dict`` in ``test_converters``.
+    `#1167 <https://github.com/Qiskit/qiskit-aqua/issues/1167>` for more details.

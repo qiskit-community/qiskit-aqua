@@ -1,0 +1,23 @@
+---
+removed:
+  - |
+    The following deprecated classes have been deleted, as they reached the
+    end of the 3 month deprecation period:
+    * :class:`~qiskit.aqua.components.variational_forms.RY`
+    * :class:`~qiskit.aqua.components.variational_forms.RYRZ`
+    * :class:`~qiskit.aqua.components.variational_forms.SwapRZ`
+    * :class:`~qiskit.aqua.components.feature_maps.PauliExpansion`
+    * :class:`~qiskit.aqua.components.feature_maps.PauliZExpansion`
+    * :class:`~qiskit.aqua.components.feature_maps.FirstOrderExpansion`
+    * :class:`~qiskit.aqua.components.feature_maps.SecondOrderExpansion`
+    * :class:`~qiskit.aqua.components.qfts.QFT`
+    * :class:`~qiskit.aqua.components.qfts.Standard`
+    * :class:`~qiskit.aqua.components.qfts.Approximate`
+    * :class:`~qiskit.aqua.components.iqfts.QFT`
+    * :class:`~qiskit.aqua.components.iqfts.Standard`
+    * :class:`~qiskit.aqua.components.iqfts.Approximate`
+    * :class:`~qiskit.aqua.circuits.FixedValueComparator`
+    * :class:`~qiskit.aqua.circuits.LinearRotation`
+    * :class:`~qiskit.aqua.circuits.PiecewiseLinearRotation`
+    * :class:`~qiskit.aqua.circuits.PolynomialRotation`
+    * :class:`~qiskit.aqua.circuits.FourierTransformCircuits`

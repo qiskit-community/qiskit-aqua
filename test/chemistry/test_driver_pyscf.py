@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -32,6 +30,18 @@ class TestDriverPySCF(QiskitChemistryTestCase, TestDriver):
                                  charge=0,
                                  spin=0,
                                  basis='sto3g')
+        except QiskitChemistryError:
+            self.skipTest('PYSCF driver does not appear to be installed')
+        self.qmolecule = driver.run()
+
+
+class TestDriverPySCFMolecule(QiskitChemistryTestCase, TestDriver):
+    """PYSCF Driver Molecule tests."""
+
+    def setUp(self):
+        super().setUp()
+        try:
+            driver = PySCFDriver(molecule=TestDriver.MOLECULE)
         except QiskitChemistryError:
             self.skipTest('PYSCF driver does not appear to be installed')
         self.qmolecule = driver.run()

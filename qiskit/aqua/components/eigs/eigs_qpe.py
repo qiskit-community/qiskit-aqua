@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -12,15 +10,15 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Quantum Phase Estimation for getting the eigenvalues of a matrix. """
+"""Quantum Phase Estimation for getting the eigenvalues of a matrix."""
 
 from typing import Optional, List
 import numpy as np
-from qiskit import QuantumRegister
+from qiskit import QuantumRegister, QuantumCircuit
 
 from qiskit.aqua.circuits import PhaseEstimationCircuit
-from qiskit.aqua.operators import op_converter, BaseOperator
-from qiskit.aqua.components.iqfts import IQFT
+from qiskit.aqua.operators import LegacyBaseOperator
+from qiskit.aqua.operators.legacy import op_converter
 from qiskit.aqua.utils.validation import validate_min, validate_in_set
 from .eigs import Eigenvalues
 
@@ -28,18 +26,16 @@ from .eigs import Eigenvalues
 
 
 class EigsQPE(Eigenvalues):
-    """
-    Eigenvalues using Quantum Phase Estimation
+    """Eigenvalues using Quantum Phase Estimation.
 
     Specifically, this class is based on PhaseEstimationCircuit with no measurements and
     has additional handling of negative eigenvalues, e.g. for :class:`~qiskit.aqua.algorithms.HHL`.
-    It depends on :mod:`QFT <qiskit.aqua.components.qfts>` and
-    :mod:`IQFT <qiskit.aqua.components.iqfts>` components.
+    It depends on the :class:`QFT <qiskit.circuit.library.QFT>` class.
     """
 
     def __init__(self,
-                 operator: BaseOperator,
-                 iqft: IQFT,
+                 operator: LegacyBaseOperator,
+                 iqft: QuantumCircuit,
                  num_time_slices: int = 1,
                  num_ancillae: int = 1,
                  expansion_mode: str = 'trotter',
@@ -50,7 +46,7 @@ class EigsQPE(Eigenvalues):
         """
         Args:
             operator: The Hamiltonian Operator object
-            iqft: The Inverse Quantum Fourier Transform component
+            iqft: The Inverse Quantum Fourier Transform circuit
             num_time_slices: The number of time slices, has a minimum value of 1.
             num_ancillae: The number of ancillary qubits to use for the measurement,
                 has a minimum value of 1.
@@ -60,7 +56,7 @@ class EigsQPE(Eigenvalues):
                 :math:`(0,1]` (or :math:`(-0.5,0.5]` for negative eigenvalues). Defaults to
                 ``None`` in which case a suitably estimated evolution time is internally computed.
             negative_evals: Set ``True`` to indicate negative eigenvalues need to be handled
-            ne_qfts: The QFT and IQFT components for handling negative eigenvalues
+            ne_qfts: The QFT and IQFT circuits for handling negative eigenvalues
         """
         super().__init__()
         ne_qfts = ne_qfts if ne_qfts is not None else [None, None]
@@ -69,6 +65,7 @@ class EigsQPE(Eigenvalues):
         validate_in_set('expansion_mode', expansion_mode, {'trotter', 'suzuki'})
         validate_min('expansion_order', expansion_order, 1)
         self._operator = op_converter.to_weighted_pauli_operator(operator)
+
         self._iqft = iqft
         self._num_ancillae = num_ancillae
         self._num_time_slices = num_time_slices
@@ -77,6 +74,7 @@ class EigsQPE(Eigenvalues):
         self._evo_time = evo_time
         self._negative_evals = negative_evals
         self._ne_qfts = ne_qfts
+
         self._circuit = None
         self._output_register = None
         self._input_register = None
@@ -87,9 +85,9 @@ class EigsQPE(Eigenvalues):
         if self._evo_time is None:
             lmax = sum([abs(p[0]) for p in self._operator.paulis])
             if not self._negative_evals:
-                self._evo_time = (1-2**-self._num_ancillae)*2*np.pi/lmax
+                self._evo_time = (1 - 2 ** -self._num_ancillae) * 2 * np.pi / lmax
             else:
-                self._evo_time = (1/2-2**-self._num_ancillae)*2*np.pi/lmax
+                self._evo_time = (1 / 2 - 2 ** -self._num_ancillae) * 2 * np.pi / lmax
 
         # check for identify paulis to get its coef for applying global
         # phase shift on ancillae later
@@ -108,7 +106,7 @@ class EigsQPE(Eigenvalues):
         return self._evo_time
 
     def construct_circuit(self, mode, register=None):
-        """ Construct the eigenvalues estimation using the PhaseEstimationCircuit
+        """Construct the eigenvalues estimation using the PhaseEstimationCircuit
 
         Args:
             mode (str): construction mode, 'matrix' not supported
@@ -147,9 +145,26 @@ class EigsQPE(Eigenvalues):
     def _handle_negative_evals(self, qc, q):
         sgn = q[0]
         qs = [q[i] for i in range(1, len(q))]
+
+        def apply_ne_qft(ne_qft):
+            if isinstance(ne_qft, QuantumCircuit):
+                # check if QFT has the right size
+                if ne_qft.num_qubits != len(qs):
+                    try:  # try resizing
+                        ne_qft.num_qubits = len(qs)
+                    except AttributeError as ex:
+                        raise ValueError('The IQFT cannot be resized and does not have the '
+                                         'required size of {}'.format(len(qs))) from ex
+
+                if hasattr(ne_qft, 'do_swaps'):
+                    ne_qft.do_swaps = False
+                qc.append(ne_qft.to_instruction(), qs)
+            else:
+                ne_qft.construct_circuit(mode='circuit', qubits=qs, circuit=qc, do_swaps=False)
+
         for qi in qs:
             qc.cx(sgn, qi)
-        self._ne_qfts[0].construct_circuit(mode='circuit', qubits=qs, circuit=qc, do_swaps=False)
+        apply_ne_qft(self._ne_qfts[0])
         for i, qi in enumerate(reversed(qs)):
-            qc.cu1(2*np.pi/2**(i+1), sgn, qi)
-        self._ne_qfts[1].construct_circuit(mode='circuit', qubits=qs, circuit=qc, do_swaps=False)
+            qc.cp(2 * np.pi / 2 ** (i + 1), sgn, qi)
+        apply_ne_qft(self._ne_qfts[1])

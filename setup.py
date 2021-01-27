@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -22,26 +20,27 @@ long_description = """<a href="https://qiskit.org/aqua" rel=nofollow>Qiskit Aqua
  Researchers can experiment with Aqua algorithms, on near-term quantum devices and simulators,
  and can also get involved by contributing new algorithms and algorithm-supporting objects,
  such as optimizers and variational forms.
- Qiskit Aqua also contains application domain support in the form of Qiskit Chemistry,
- Qiskit Finance, Qiskit Machine Learning and Qiskit Optimization to experiment with real-world applications to quantum computing."""
+ Qiskit Aqua also contains application domain support in the form of the chemistry, finance,
+ machine learning and optimization modules to experiment with real-world applications to quantum computing."""
 
 requirements = [
-    "qiskit-terra>=0.11.0",
-    "qiskit-ignis>=0.2.0",
-    "scipy>=1.0",
+    "qiskit-terra>=0.16.0",
+    "qiskit-ignis>=0.4.0",
+    "scipy>=1.4",
     "sympy>=1.3",
-    "numpy>=1.13",
+    "numpy>=1.17",
     "psutil>=5",
     "scikit-learn>=0.20.0",
-    "cvxopt; python_version < '3.8' or sys_platform != 'win32'",
     "dlx",
     "docplex",
     "fastdtw",
-    "quandl",
     "setuptools>=40.1.0",
     "h5py",
-    "networkx>=2.2",
-    "pyscf; sys_platform == 'linux' or (python_version < '3.8' and sys_platform != 'win32')",
+    "pandas",
+    "quandl",
+    "yfinance",
+    "retworkx>=0.5.0",
+    "dataclasses; python_version < '3.7'"
 ]
 
 if not hasattr(setuptools, 'find_namespace_packages') or not inspect.ismethod(setuptools.find_namespace_packages):
@@ -61,7 +60,7 @@ setuptools.setup(
     long_description_content_type="text/markdown",
     url='https://github.com/Qiskit/qiskit-aqua',
     author='Qiskit Aqua Development Team',
-    author_email='qiskit@us.ibm.com',
+    author_email='hello@qiskit.org',
     license='Apache-2.0',
     classifiers=(
         "Environment :: Console",
@@ -72,19 +71,23 @@ setuptools.setup(
         "Operating System :: MacOS",
         "Operating System :: POSIX :: Linux",
         "Programming Language :: Python :: 3 :: Only",
-        "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
         "Topic :: Scientific/Engineering"
     ),
     keywords='qiskit sdk quantum aqua',
-    packages=setuptools.find_namespace_packages(exclude=['test*']),
+    packages=setuptools.find_namespace_packages(include=['qiskit.*']),
     install_requires=requirements,
     include_package_data=True,
-    python_requires=">=3.5",
+    python_requires=">=3.6",
     extras_require={
-        'torch': ["torch; sys_platform == 'linux' or (python_version < '3.8' and sys_platform != 'win32')"],
+        'torch': ["torch"],
+        'cplex': ["cplex; python_version < '3.9'"],
+        'cvx': ['cvxpy>1.0.0,!=1.1.0,!=1.1.1,!=1.1.2'],
+        'pyscf': ["pyscf; sys_platform != 'win32'"],
+        'skquant': ["scikit-quant"],
     },
     zip_safe=False
 )

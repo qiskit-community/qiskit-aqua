@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -12,194 +10,210 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Test VQC """
+"""Test the VQC algorithm."""
 
 import os
 import unittest
+import warnings
 from test.aqua import QiskitAquaTestCase
+from ddt import ddt, data
 import numpy as np
 from qiskit import BasicAer
-from qiskit.aqua import QuantumInstance, aqua_globals
+from qiskit.circuit import QuantumCircuit, Parameter
+from qiskit.circuit.library import TwoLocal, ZZFeatureMap
+from qiskit.aqua import QuantumInstance, aqua_globals, AquaError
 from qiskit.aqua.algorithms import VQC
 from qiskit.aqua.components.optimizers import SPSA, COBYLA
-from qiskit.aqua.components.feature_maps import SecondOrderExpansion, RawFeatureVector
-from qiskit.aqua.components.variational_forms import RYRZ, RY
+from qiskit.ml.circuit.library import RawFeatureVector
+from qiskit.aqua.components.feature_maps import RawFeatureVector as LegacyRawFeatureVector
 from qiskit.aqua.components.optimizers import L_BFGS_B
-from qiskit.aqua.utils import get_feature_dimension
 from qiskit.ml.datasets import wine, ad_hoc_data
 
 
+@ddt
 class TestVQC(QiskitAquaTestCase):
-    """ Test VQC """
+    """Tests for the VQC algorithm."""
+
     def setUp(self):
         super().setUp()
-        self.seed = 1376
+        self.seed = 50
         aqua_globals.random_seed = self.seed
         self.training_data = {'A': np.asarray([[2.95309709, 2.51327412], [3.14159265, 4.08407045]]),
                               'B': np.asarray([[4.08407045, 2.26194671], [4.46106157, 2.38761042]])}
         self.testing_data = {'A': np.asarray([[3.83274304, 2.45044227]]),
                              'B': np.asarray([[3.89557489, 0.31415927]])}
 
-        self.ref_opt_params = np.array([10.03814083, -12.22048954, -7.58026833, -2.42392954,
-                                        12.91555293, 13.44064652, -2.89951454, -10.20639406,
-                                        0.81414546, -1.00551752, -4.7988307, 14.00831419,
-                                        8.26008064, -7.07543736, 11.43368677, -5.74857438])
-        self.ref_train_loss = 0.69366523
-        self.ref_prediction_a_probs = [[0.79882812, 0.20117188]]
+        self.ref_opt_params = np.array([0.47352206, -3.75934473, 1.72605939, -4.17669389,
+                                        1.28937435, -0.05841719, -0.29853266, -2.04139334,
+                                        1.00271775, -1.48133882, -1.18769138, 1.17885493,
+                                        7.58873883, -5.27078091, 2.5306601, -4.67393152])
+
+        self.ref_opt_params = np.array([4.40301812e-01, 2.10844304, -2.10118578, -5.25903194,
+                                        2.07617769, -9.25865371, -5.33834788, 8.59005180,
+                                        3.39886480, 6.33839643, 1.24425033, -1.39701513e+01,
+                                        -7.16008545e-03, 3.36206032, 4.38001391, -3.47098082])
+
+        self.ref_train_loss = 0.5869304
+        self.ref_prediction_a_probs = [[0.8984375, 0.1015625]]
         self.ref_prediction_a_label = [0]
 
-    def test_vqc(self):
-        """ vqc test """
-        aqua_globals.random_seed = self.seed
-        optimizer = SPSA(max_trials=10, save_steps=1,
-                         c0=4.0, c1=0.1, c2=0.602, c3=0.101, c4=0.0, skip_calibration=True)
-        feature_map = SecondOrderExpansion(
-            feature_dimension=get_feature_dimension(self.training_data), depth=2)
-        var_form = RYRZ(num_qubits=feature_map.num_qubits, depth=3)
-        vqc = VQC(optimizer, feature_map, var_form, self.training_data, self.testing_data)
-        quantum_instance = QuantumInstance(BasicAer.get_backend('qasm_simulator'),
-                                           shots=1024,
-                                           seed_simulator=aqua_globals.random_seed,
-                                           seed_transpiler=aqua_globals.random_seed)
-        result = vqc.run(quantum_instance)
+        self.ryrz_wavefunction = TwoLocal(2, ['ry', 'rz'], 'cz', reps=3, insert_barriers=True)
+        self.data_preparation = ZZFeatureMap(2, reps=2)
 
-        np.testing.assert_array_almost_equal(result['opt_params'],
-                                             self.ref_opt_params, decimal=8)
-        np.testing.assert_array_almost_equal(result['training_loss'],
-                                             self.ref_train_loss, decimal=8)
+        self.statevector_simulator = QuantumInstance(BasicAer.get_backend('statevector_simulator'),
+                                                     shots=1,
+                                                     seed_simulator=self.seed,
+                                                     seed_transpiler=self.seed)
+        self.qasm_simulator = QuantumInstance(BasicAer.get_backend('qasm_simulator'),
+                                              shots=1024,
+                                              seed_simulator=self.seed,
+                                              seed_transpiler=self.seed)
 
-        self.assertEqual(1.0, result['testing_accuracy'])
+        self.spsa = SPSA(maxiter=10, save_steps=1, c0=4.0, c1=0.1, c2=0.602, c3=0.101,
+                         c4=0.0, skip_calibration=True)
 
-    def test_vqc_with_max_evals_grouped(self):
-        """ vqc with max evals grouped test """
-        aqua_globals.random_seed = self.seed
-        optimizer = SPSA(max_trials=10, save_steps=1,
-                         c0=4.0, c1=0.1, c2=0.602, c3=0.101, c4=0.0, skip_calibration=True)
-        feature_map = SecondOrderExpansion(
-            feature_dimension=get_feature_dimension(self.training_data), depth=2)
-        var_form = RYRZ(num_qubits=feature_map.num_qubits, depth=3)
-        vqc = VQC(optimizer, feature_map, var_form, self.training_data, self.testing_data,
+    def assertSimpleClassificationIsCorrect(self, vqc, backend=None, ref_opt_params=None,
+                                            ref_train_loss=None, ref_test_accuracy=None):
+        """Assert running the VQC on the simple data in ``setUp`` works."""
+        if backend is None:
+            backend = self.qasm_simulator
+        if ref_opt_params is None:
+            ref_opt_params = self.ref_opt_params
+        if ref_train_loss is None:
+            ref_train_loss = self.ref_train_loss
+        if ref_test_accuracy is None:
+            ref_test_accuracy = 0.5
+
+        result = vqc.run(backend)
+
+        with self.subTest(msg='test optimal params'):
+            np.testing.assert_array_almost_equal(result['opt_params'], ref_opt_params, decimal=8)
+
+        with self.subTest(msg='test training loss'):
+            self.assertAlmostEqual(result['training_loss'], ref_train_loss)
+
+        with self.subTest(msg='check testing accuracy'):
+            self.assertEqual(result['testing_accuracy'], ref_test_accuracy)
+
+    def test_basic_aer_qasm(self):
+        """Run a basic test case on BasicAer's QASM simulator."""
+        data_preparation = self.data_preparation
+        wavefunction = self.ryrz_wavefunction
+        optimizer = self.spsa
+        vqc = VQC(optimizer, data_preparation, wavefunction, self.training_data, self.testing_data)
+
+        self.assertSimpleClassificationIsCorrect(vqc)
+
+    def test_plain_circuits(self):
+        """Test running the VQC on QuantumCircuit objects."""
+        data_preparation = QuantumCircuit(2).compose(self.data_preparation)
+        wavefunction = QuantumCircuit(2).compose(self.ryrz_wavefunction)
+        vqc = VQC(self.spsa, data_preparation, wavefunction, self.training_data, self.testing_data)
+
+        self.assertSimpleClassificationIsCorrect(vqc)
+
+    def test_max_evals_grouped(self):
+        """Test the VQC with the max_evals_grouped option."""
+        data_preparation = self.data_preparation
+        wavefunction = self.ryrz_wavefunction
+
+        vqc = VQC(self.spsa, data_preparation, wavefunction, self.training_data, self.testing_data,
                   max_evals_grouped=2)
-        quantum_instance = QuantumInstance(BasicAer.get_backend('qasm_simulator'),
-                                           shots=1024,
-                                           seed_simulator=aqua_globals.random_seed,
-                                           seed_transpiler=aqua_globals.random_seed)
-        result = vqc.run(quantum_instance)
-        np.testing.assert_array_almost_equal(result['opt_params'],
-                                             self.ref_opt_params, decimal=8)
-        np.testing.assert_array_almost_equal(result['training_loss'],
-                                             self.ref_train_loss, decimal=8)
 
-        self.assertEqual(1.0, result['testing_accuracy'])
+        self.assertSimpleClassificationIsCorrect(vqc)
 
-    def test_vqc_statevector(self):
-        """ vqc statevector test """
-        aqua_globals.random_seed = 10598
-        optimizer = COBYLA()
-        feature_map = SecondOrderExpansion(
-            feature_dimension=get_feature_dimension(self.training_data), depth=2)
-        var_form = RYRZ(num_qubits=feature_map.num_qubits, depth=3)
-        vqc = VQC(optimizer, feature_map, var_form, self.training_data, self.testing_data)
-        quantum_instance = QuantumInstance(BasicAer.get_backend('statevector_simulator'),
-                                           seed_simulator=aqua_globals.random_seed,
-                                           seed_transpiler=aqua_globals.random_seed)
-        result = vqc.run(quantum_instance)
-        ref_train_loss = 0.1059404
-        np.testing.assert_array_almost_equal(result['training_loss'], ref_train_loss, decimal=4)
+    def test_statevector(self):
+        """Test running the VQC on BasicAer's Statevector simulator."""
+        optimizer = L_BFGS_B(maxfun=200)
+        data_preparation = self.data_preparation
+        wavefunction = self.ryrz_wavefunction
 
-        self.assertEqual(result['testing_accuracy'], 0.5)
+        vqc = VQC(optimizer, data_preparation, wavefunction, self.training_data, self.testing_data)
+        result = vqc.run(self.statevector_simulator)
 
-    # we use the ad_hoc dataset (see the end of this file) to test the accuracy.
-    def test_vqc_minibatching_no_gradient_support(self):
-        """ vqc minibatching with no gradient support test """
+        with self.subTest(msg='check training loss'):
+            self.assertLess(result['training_loss'], 0.12)
+
+        with self.subTest(msg='check testing accuracy'):
+            self.assertEqual(result['testing_accuracy'], 0.5)
+
+    def test_minibatching_gradient_free(self):
+        """Test the minibatching option with a gradient-free optimizer."""
         n_dim = 2  # dimension of each data point
-        seed = 1024
-        aqua_globals.random_seed = seed
         _, training_input, test_input, _ = ad_hoc_data(training_size=6,
                                                        test_size=3,
                                                        n=n_dim,
                                                        gap=0.3,
                                                        plot_data=False)
-        backend = BasicAer.get_backend('statevector_simulator')
-        num_qubits = n_dim
         optimizer = COBYLA(maxiter=40)
-        feature_map = SecondOrderExpansion(feature_dimension=num_qubits, depth=2)
-        var_form = RYRZ(num_qubits=num_qubits, depth=3)
-        vqc = VQC(optimizer, feature_map, var_form, training_input, test_input, minibatch_size=2)
-        quantum_instance = QuantumInstance(backend, seed_simulator=seed, seed_transpiler=seed,
-                                           optimization_level=0)
-        result = vqc.run(quantum_instance)
-        self.log.debug(result['testing_accuracy'])
-        self.assertGreaterEqual(result['testing_accuracy'], 0.5)
+        data_preparation = self.data_preparation
+        wavefunction = self.ryrz_wavefunction
 
-    def test_vqc_minibatching_with_gradient_support(self):
-        """ vqc minibatching with gradient support test """
+        vqc = VQC(optimizer, data_preparation, wavefunction, training_input, test_input,
+                  minibatch_size=2)
+        result = vqc.run(self.qasm_simulator)
+
+        self.log.debug(result['testing_accuracy'])
+        self.assertAlmostEqual(result['testing_accuracy'], 0.3333333333333333)
+
+    def test_minibatching_gradient_based(self):
+        """Test the minibatching option with a gradient-based optimizer."""
         n_dim = 2  # dimension of each data point
-        seed = 1024
-        aqua_globals.random_seed = seed
         _, training_input, test_input, _ = ad_hoc_data(training_size=4,
                                                        test_size=2,
                                                        n=n_dim,
                                                        gap=0.3,
                                                        plot_data=False)
-        backend = BasicAer.get_backend('statevector_simulator')
-        num_qubits = n_dim
         optimizer = L_BFGS_B(maxfun=30)
-        feature_map = SecondOrderExpansion(feature_dimension=num_qubits, depth=2)
-        var_form = RYRZ(num_qubits=num_qubits, depth=1)
-        vqc = VQC(optimizer, feature_map, var_form, training_input, test_input, minibatch_size=2)
-        quantum_instance = QuantumInstance(backend, seed_simulator=seed, seed_transpiler=seed)
-        result = vqc.run(quantum_instance)
-        vqc_accuracy = 0.5
+        data_preparation = self.data_preparation
+        wavefunction = TwoLocal(2, ['ry', 'rz'], 'cz', reps=1, insert_barriers=True)
+
+        vqc = VQC(optimizer, data_preparation, wavefunction, training_input, test_input,
+                  minibatch_size=2)
+        result = vqc.run(self.statevector_simulator)
+
         self.log.debug(result['testing_accuracy'])
-        self.assertAlmostEqual(result['testing_accuracy'], vqc_accuracy, places=3)
+        self.assertAlmostEqual(result['testing_accuracy'], 0.75, places=3)
 
     def test_save_and_load_model(self):
-        """ save and load model test """
-        aqua_globals.random_seed = self.seed
-        backend = BasicAer.get_backend('qasm_simulator')
+        """Test saving and loading a model with the VQC."""
+        data_preparation = self.data_preparation
+        wavefunction = self.ryrz_wavefunction
 
-        num_qubits = 2
-        optimizer = SPSA(max_trials=10, save_steps=1, c0=4.0, skip_calibration=True)
-        feature_map = SecondOrderExpansion(feature_dimension=num_qubits, depth=2)
-        var_form = RYRZ(num_qubits=num_qubits, depth=3)
+        vqc = VQC(self.spsa, data_preparation, wavefunction, self.training_data, self.testing_data)
+        result = vqc.run(self.qasm_simulator)
 
-        vqc = VQC(optimizer, feature_map, var_form, self.training_data, self.testing_data)
-        quantum_instance = QuantumInstance(backend,
-                                           shots=1024,
-                                           seed_simulator=self.seed,
-                                           seed_transpiler=self.seed)
-        result = vqc.run(quantum_instance)
-
-        np.testing.assert_array_almost_equal(result['opt_params'],
-                                             self.ref_opt_params, decimal=4)
-        np.testing.assert_array_almost_equal(result['training_loss'],
-                                             self.ref_train_loss, decimal=8)
-
-        self.assertEqual(1.0, result['testing_accuracy'])
+        with self.subTest(msg='check optimal params, training loss and testing accuracy'):
+            np.testing.assert_array_almost_equal(result['opt_params'], self.ref_opt_params,
+                                                 decimal=4)
+            np.testing.assert_array_almost_equal(result['training_loss'], self.ref_train_loss,
+                                                 decimal=8)
+            self.assertEqual(0.5, result['testing_accuracy'])
 
         file_path = self.get_resource_path('vqc_test.npz')
         vqc.save_model(file_path)
 
-        self.assertTrue(os.path.exists(file_path))
+        with self.subTest(msg='assert saved file exists'):
+            self.assertTrue(os.path.exists(file_path))
 
-        loaded_vqc = VQC(optimizer, feature_map, var_form, self.training_data, None)
+        loaded_vqc = VQC(self.spsa, data_preparation, wavefunction, self.training_data, None)
         loaded_vqc.load_model(file_path)
-
-        np.testing.assert_array_almost_equal(
-            loaded_vqc.ret['opt_params'], self.ref_opt_params, decimal=4)
-
         loaded_test_acc = loaded_vqc.test(vqc.test_dataset[0],
                                           vqc.test_dataset[1],
-                                          quantum_instance)
-        self.assertEqual(result['testing_accuracy'], loaded_test_acc)
+                                          self.qasm_simulator)
+
+        with self.subTest(msg='check optimal parameters and testing accuracy of loaded model'):
+            np.testing.assert_array_almost_equal(loaded_vqc.ret['opt_params'], self.ref_opt_params,
+                                                 decimal=4)
+            self.assertEqual(result['testing_accuracy'], loaded_test_acc)
 
         predicted_probs, predicted_labels = loaded_vqc.predict(self.testing_data['A'],
-                                                               quantum_instance)
-        np.testing.assert_array_almost_equal(predicted_probs,
-                                             self.ref_prediction_a_probs,
-                                             decimal=8)
-        np.testing.assert_array_equal(predicted_labels, self.ref_prediction_a_label)
+                                                               self.qasm_simulator)
+
+        with self.subTest(msg='check probs and labels of predicted labels'):
+            np.testing.assert_array_almost_equal(predicted_probs, self.ref_prediction_a_probs,
+                                                 decimal=8)
+            np.testing.assert_array_equal(predicted_labels, self.ref_prediction_a_label)
 
         if os.path.exists(file_path):
             try:
@@ -207,59 +221,61 @@ class TestVQC(QiskitAquaTestCase):
             except Exception:  # pylint: disable=broad-except
                 pass
 
-    def test_vqc_callback(self):
-        """ vqc callback test """
-        tmp_filename = 'qvqc_callback_test.csv'
-        is_file_exist = os.path.exists(self.get_resource_path(tmp_filename))
-        if is_file_exist:
-            os.remove(self.get_resource_path(tmp_filename))
+    def test_callback(self):
+        """Test the callback function of the VQC."""
+        history = {'eval_count': [], 'parameters': [], 'cost': [], 'batch_index': []}
 
         def store_intermediate_result(eval_count, parameters, cost, batch_index):
-            with open(self.get_resource_path(tmp_filename), 'a') as file:
-                content = "{},{},{:.5f},{}".format(eval_count, parameters, cost, batch_index)
-                print(content, file=file, flush=True)
+            history['eval_count'].append(eval_count)
+            history['parameters'].append(parameters)
+            history['cost'].append(cost)
+            history['batch_index'].append(batch_index)
 
-        aqua_globals.random_seed = self.seed
-        backend = BasicAer.get_backend('qasm_simulator')
-
-        num_qubits = 2
         optimizer = COBYLA(maxiter=3)
-        feature_map = SecondOrderExpansion(feature_dimension=num_qubits, depth=2)
-        var_form = RY(num_qubits=num_qubits, depth=1)
+        data_preparation = self.data_preparation
+        wavefunction = self.ryrz_wavefunction
 
-        vqc = VQC(optimizer, feature_map, var_form, self.training_data,
-                  self.testing_data, callback=store_intermediate_result)
-        quantum_instance = QuantumInstance(backend,
-                                           shots=1024,
-                                           seed_simulator=self.seed,
-                                           seed_transpiler=self.seed)
-        vqc.run(quantum_instance)
+        # set up algorithm
+        vqc = VQC(optimizer, data_preparation, wavefunction, self.training_data, self.testing_data,
+                  callback=store_intermediate_result)
 
-        is_file_exist = os.path.exists(self.get_resource_path(tmp_filename))
-        self.assertTrue(is_file_exist, "Does not store content successfully.")
+        vqc.run(self.qasm_simulator)
 
-        # check the content
-        ref_content = [
-            ['0', '[-0.58205563 -2.97987177 -0.73153057  1.06577518]', '0.46841', '0'],
-            ['1', '[ 0.41794437 -2.97987177 -0.73153057  1.06577518]', '0.31861', '1'],
-            ['2', '[ 0.41794437 -1.97987177 -0.73153057  1.06577518]', '0.45975', '2'],
-        ]
-        try:
-            with open(self.get_resource_path(tmp_filename)) as file:
-                idx = 0
-                for record in file.readlines():
-                    eval_count, parameters, cost, batch_index = record.split(",")
-                    self.assertEqual(eval_count.strip(), ref_content[idx][0])
-                    self.assertEqual(parameters, ref_content[idx][1])
-                    self.assertEqual(cost.strip(), ref_content[idx][2])
-                    self.assertEqual(batch_index.strip(), ref_content[idx][3])
-                    idx += 1
-        finally:
-            if is_file_exist:
-                os.remove(self.get_resource_path(tmp_filename))
+        with self.subTest('eval count'):
+            self.assertTrue(all(isinstance(count, int) for count in history['eval_count']))
+        with self.subTest('cost'):
+            self.assertTrue(all(isinstance(cost, float) for cost in history['cost']))
+        with self.subTest('batch index'):
+            self.assertTrue(all(isinstance(index, int) for index in history['batch_index']))
+        for params in history['parameters']:
+            with self.subTest('params'):
+                self.assertTrue(all(isinstance(param, float) for param in params))
 
-    def test_vqc_on_wine(self):
-        """ vqc on wine test """
+    def test_same_parameter_names_raises(self):
+        """Test that the varform and feature map can have parameters with the same name."""
+        aqua_globals.random_seed = self.seed
+        var_form = QuantumCircuit(1)
+        var_form.ry(Parameter('a'), 0)
+        feature_map = QuantumCircuit(1)
+        feature_map.rz(Parameter('a'), 0)
+        optimizer = SPSA()
+        vqc = VQC(optimizer, feature_map, var_form, self.training_data, self.testing_data)
+
+        with self.assertRaises(AquaError):
+            _ = vqc.run(BasicAer.get_backend('statevector_simulator'))
+
+    def test_feature_map_without_parameters_warns(self):
+        """Test that specifying a feature map with 0 parameters raises a warning."""
+        aqua_globals.random_seed = self.seed
+        var_form = QuantumCircuit(1)
+        var_form.ry(Parameter('a'), 0)
+        feature_map = QuantumCircuit(1)
+        optimizer = SPSA()
+        with self.assertWarns(UserWarning):
+            _ = VQC(optimizer, feature_map, var_form, self.training_data, self.testing_data)
+
+    def test_wine(self):
+        """Test VQE on the wine dataset."""
         feature_dim = 4  # dimension of each data point
         training_dataset_size = 6
         testing_dataset_size = 3
@@ -269,22 +285,18 @@ class TestVQC(QiskitAquaTestCase):
                                                 n=feature_dim,
                                                 plot_data=False)
         aqua_globals.random_seed = self.seed
-        feature_map = SecondOrderExpansion(feature_dimension=feature_dim)
-        vqc = VQC(COBYLA(maxiter=100),
-                  feature_map,
-                  RYRZ(feature_map.num_qubits, depth=1),
-                  training_input,
-                  test_input)
-        result = vqc.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),
-                                         shots=1024,
-                                         seed_simulator=aqua_globals.random_seed,
-                                         seed_transpiler=aqua_globals.random_seed))
+        data_preparation = ZZFeatureMap(feature_dim)
+        wavefunction = TwoLocal(feature_dim, ['ry', 'rz'], 'cz', reps=2)
+
+        vqc = VQC(COBYLA(maxiter=100), data_preparation, wavefunction, training_input, test_input)
+        result = vqc.run(self.statevector_simulator)
+
         self.log.debug(result['testing_accuracy'])
+        self.assertGreater(result['testing_accuracy'], 0.3)
 
-        self.assertLess(result['testing_accuracy'], 0.6)
-
-    def test_vqc_with_raw_feature_vector_on_wine(self):
-        """ vqc with raw features vector on wine test """
+    @data('circuit', 'component')
+    def test_raw_feature_vector_on_wine(self, mode):
+        """Test VQE on the wine dataset using the ``RawFeatureVector`` as data preparation."""
         feature_dim = 4  # dimension of each data point
         training_dataset_size = 8
         testing_dataset_size = 4
@@ -293,20 +305,23 @@ class TestVQC(QiskitAquaTestCase):
                                                 test_size=testing_dataset_size,
                                                 n=feature_dim,
                                                 plot_data=False)
-        aqua_globals.random_seed = self.seed
-        feature_map = RawFeatureVector(feature_dimension=feature_dim)
+        if mode == 'component':
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            feature_map = LegacyRawFeatureVector(feature_dimension=feature_dim)
+        else:
+            feature_map = RawFeatureVector(feature_dimension=feature_dim)
+
         vqc = VQC(COBYLA(maxiter=100),
                   feature_map,
-                  RYRZ(feature_map.num_qubits, depth=3),
+                  TwoLocal(feature_map.num_qubits, ['ry', 'rz'], 'cz', reps=3),
                   training_input,
                   test_input)
-        result = vqc.run(QuantumInstance(BasicAer.get_backend('statevector_simulator'),
-                                         shots=1024,
-                                         seed_simulator=aqua_globals.random_seed,
-                                         seed_transpiler=aqua_globals.random_seed))
-        self.log.debug(result['testing_accuracy'])
+        result = vqc.run(self.statevector_simulator)
+        if mode == 'component':
+            warnings.filterwarnings('always', category=DeprecationWarning)
 
-        self.assertGreater(result['testing_accuracy'], 0.8)
+        self.log.debug(result['testing_accuracy'])
+        self.assertGreater(result['testing_accuracy'], 0.7)
 
 
 if __name__ == '__main__':

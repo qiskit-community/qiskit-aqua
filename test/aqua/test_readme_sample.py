@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -37,7 +35,12 @@ class TestReadmeSample(QiskitAquaTestCase):
 
     def test_readme_sample(self):
         """ readme sample test """
-        # pylint: disable=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel,redefined-builtin
+
+        def print(*args):
+            """ overloads print to log values """
+            if args:
+                self.log.debug(args[0], *args[1:])
 
         # --- Exact copy of sample code ----------------------------------------
 
@@ -59,14 +62,14 @@ class TestReadmeSample(QiskitAquaTestCase):
         oracle = LogicalExpressionOracle(sat_cnf)
         algorithm = Grover(oracle)
         result = algorithm.run(backend)
-        print(result["result"])
+        print(result.assignment)
 
         # ----------------------------------------------------------------------
 
         valid_set = [[-1, -2, -3], [1, -2, 3], [1, 2, -3]]
-        found = result['result'] in valid_set
+        found = result.assignment in valid_set
         self.assertTrue(found, "Result {} is not in valid set {}".
-                        format(result['result'], valid_set))
+                        format(result.assignment, valid_set))
 
 
 if __name__ == '__main__':

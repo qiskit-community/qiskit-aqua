@@ -1,0 +1,10 @@
+---
+features:
+  - |
+    A feasibility check of the obtained solution has been added to all optimizers in the
+    optimization stack. This has been implemented by adding two new methods to ``QuadraticProgram``:
+    * ``get_feasibility_info(self, x: Union[List[float], np.ndarray])`` accepts an array and returns
+    whether this solution is feasible and a list of violated variables(violated bounds) and
+    a list of violated constraints.
+    * ``is_feasible(self, x: Union[List[float], np.ndarray])`` accepts an array and returns whether
+    this solution is feasible or not.

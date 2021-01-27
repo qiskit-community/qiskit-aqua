@@ -1,0 +1,9 @@
+---
+fixes:
+  - |
+    Previously, SummedOp.to_matrix_op built a list MatrixOp's (with numpy
+    matrices) and then summed them, returning a single MatrixOp. Some
+    algorithms (for example vqe) require summing thousands of matrices, which
+    exhausts memory when building the list of matrices. With this change,
+    no list is constructed. Rather, each operand in the sum is converted to
+    a matrix, added to an accumulator, and discarded.

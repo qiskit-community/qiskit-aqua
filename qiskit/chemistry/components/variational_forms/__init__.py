@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -16,8 +14,8 @@
 Variational Forms (:mod:`qiskit.chemistry.components.variational_forms`)
 ========================================================================
 These are chemistry specific Aqua Variational Forms where they inherit from
-Aqua :class:`VariationalForm`. As they rely on chemistry specific knowledge
-and/or functions they live here rather than in Aqua.
+Aqua :class:`~qiskit.aqua.components.variational_forms.VariationalForm`.
+As they rely on chemistry specific knowledge and/or functions they live here rather than in Aqua.
 
 .. currentmodule:: qiskit.chemistry.components.variational_forms
 
@@ -29,8 +27,12 @@ Variational Forms
    :nosignatures:
 
    UCCSD
+   UVCC
+   CHC
 
 """
 from .uccsd import UCCSD
+from .uvcc import UVCC
+from .chc import CHC
 
-__all__ = ['UCCSD']
+__all__ = ['UCCSD', 'UVCC', 'CHC']

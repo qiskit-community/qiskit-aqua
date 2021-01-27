@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -55,36 +53,13 @@ Feature Maps
    :toctree: ../stubs/
    :nosignatures:
 
-   PauliExpansion
-   PauliZExpansion
-   FirstOrderExpansion
-   SecondOrderExpansion
    RawFeatureVector
-
-Feature Map Utility
-===================
-
-.. autosummary::
-   :toctree: ../stubs/
-   :nosignatures:
-
-   self_product
 
 """
 
 from .feature_map import FeatureMap
-from .data_mapping import self_product
-from .pauli_expansion import PauliExpansion
-from .pauli_z_expansion import PauliZExpansion
-from .first_order_expansion import FirstOrderExpansion
-from .second_order_expansion import SecondOrderExpansion
 from .raw_feature_vector import RawFeatureVector
 
 __all__ = ['FeatureMap',
-           'self_product',
-           'PauliExpansion',
-           'PauliZExpansion',
-           'FirstOrderExpansion',
-           'SecondOrderExpansion',
            'RawFeatureVector'
            ]

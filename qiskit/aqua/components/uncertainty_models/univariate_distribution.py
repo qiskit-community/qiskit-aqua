@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -59,6 +57,10 @@ class UnivariateDistribution(UncertaintyModel, ABC):
         if probabilities is not None:
             if self.num_values != len(probabilities):
                 raise AquaError('num qubits and length of probabilities vector do not match!')
+
+    @staticmethod
+    def _replacement():
+        return 'a qiskit.QuantumCircuit'
 
     @property
     def low(self):

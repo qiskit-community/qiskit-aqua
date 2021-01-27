@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -97,7 +95,7 @@ def split_dataset_to_data_and_labels(dataset, class_names=None):
                 labels.append(class_to_label[class_name])
             except Exception as ex:  # pylint: disable=broad-except
                 raise KeyError('The dataset has different class names to '
-                               'the training data. error message: {}'.format(ex))
+                               'the training data. error message: {}'.format(ex)) from ex
     data = np.asarray(data)
     labels = np.asarray(labels)
     if class_names is None:
@@ -193,8 +191,9 @@ def discretize_and_truncate(data, bounds, num_qubits, return_data_grid_elements=
         # prepare element grid for dim j
         elements_current_dim = np.linspace(bounds[j, 0], bounds[j, 1], (2 ** prec))
         # find index for data sample in grid
-        index_grid = np.searchsorted(elements_current_dim,
-                                     data_row-(elements_current_dim[1]-elements_current_dim[0])*0.5)
+        index_grid = np.searchsorted(
+            elements_current_dim,
+            data_row - (elements_current_dim[1] - elements_current_dim[0]) * 0.5)
         for k, index in enumerate(index_grid):
             data[k, j] = elements_current_dim[index]
         if j == 0:

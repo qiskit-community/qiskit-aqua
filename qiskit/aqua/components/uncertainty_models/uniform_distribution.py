@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -41,8 +39,12 @@ class UniformDistribution(UnivariateDistribution):
                 (assuming an equidistant grid)
         """
         validate_min('num_target_qubits', num_target_qubits, 1)
-        probabilities = np.ones(2**num_target_qubits)/2**num_target_qubits
+        probabilities = np.ones(2 ** num_target_qubits) / 2 ** num_target_qubits
         super().__init__(num_target_qubits, probabilities, low, high)
+
+    @staticmethod
+    def _replacement():
+        return 'qiskit.circuit.library.UniformDistribution'
 
     def required_ancillas(self):
         return 0

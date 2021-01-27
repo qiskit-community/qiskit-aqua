@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -17,14 +15,13 @@ This module contains the definition of a base class for
 feature map. Several types of commonly used approaches.
 """
 
+import warnings
 from abc import ABC, abstractmethod
 from qiskit.aqua.utils import get_entangler_map, validate_entangler_map
 
 
 class FeatureMap(ABC):
-
-    """
-    Base class for FeatureMap.
+    """Base class for FeatureMap.
 
     This method should initialize the module and
     use an exception if a component of the module is not
@@ -33,6 +30,11 @@ class FeatureMap(ABC):
 
     @abstractmethod
     def __init__(self) -> None:
+        warnings.warn('The FeatureMap class is deprecated as of Qiskit Aqua 0.9.0 and will be '
+                      'removed no earlier than 3 months after the release date. You should use '
+                      'plain QuantumCircuits instead, or data preparation circuits from '
+                      'qiskit.circuit.library or qiskit.ml.circuit.library.',
+                      DeprecationWarning, stacklevel=2)
         self._num_qubits = 0
         self._feature_dimension = 0
         self._support_parameterized_circuit = False

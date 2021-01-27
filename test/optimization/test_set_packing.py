@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -14,16 +12,17 @@
 
 """ Test Set Packing """
 
+import unittest
 import json
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 
-from qiskit.optimization.ising import set_packing
-from qiskit.optimization.ising.common import sample_most_likely
+from qiskit.circuit.library import TwoLocal
+from qiskit.optimization.applications.ising import set_packing
+from qiskit.optimization.applications.ising.common import sample_most_likely
 from qiskit.aqua import QuantumInstance, aqua_globals
-from qiskit.aqua.algorithms import ExactEigensolver, VQE
+from qiskit.aqua.algorithms import NumPyMinimumEigensolver, VQE
 from qiskit.aqua.components.optimizers import SPSA
-from qiskit.aqua.components.variational_forms import RY
 
 
 class TestSetPacking(QiskitOptimizationTestCase):
@@ -31,6 +30,7 @@ class TestSetPacking(QiskitOptimizationTestCase):
 
     def setUp(self):
         super().setUp()
+        aqua_globals.random_seed = 2752
         input_file = self.get_resource_path('sample.setpacking')
         with open(input_file) as file:
             self.list_of_subsets = json.load(file)
@@ -43,7 +43,7 @@ class TestSetPacking(QiskitOptimizationTestCase):
             return [int(digit) for digit in result]  # [2:] to chop off the "0b" part
 
         subsets = len(self.list_of_subsets)
-        maximum = 2**subsets
+        maximum = 2 ** subsets
         max_v = -np.inf
         for i in range(maximum):
             cur = bitfield(i, subsets)
@@ -55,9 +55,9 @@ class TestSetPacking(QiskitOptimizationTestCase):
 
     def test_set_packing(self):
         """ set packing test """
-        algo = ExactEigensolver(self.qubit_op, k=1, aux_operators=[])
+        algo = NumPyMinimumEigensolver(self.qubit_op, aux_operators=[])
         result = algo.run()
-        x = sample_most_likely(result['eigvecs'][0])
+        x = sample_most_likely(result.eigenstate)
         ising_sol = set_packing.get_solution(x)
         np.testing.assert_array_equal(ising_sol, [0, 1, 1])
         oracle = self._brute_force()
@@ -72,15 +72,20 @@ class TestSetPacking(QiskitOptimizationTestCase):
             self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(ex)))
             return
 
-        aqua_globals.random_seed = 50
+        wavefunction = TwoLocal(rotation_blocks='ry', entanglement_blocks='cz',
+                                reps=3, entanglement='linear')
         result = VQE(self.qubit_op,
-                     RY(self.qubit_op.num_qubits, depth=5, entanglement='linear'),
-                     SPSA(max_trials=200),
+                     wavefunction,
+                     SPSA(maxiter=200),
                      max_evals_grouped=2).run(
                          QuantumInstance(Aer.get_backend('qasm_simulator'),
                                          seed_simulator=aqua_globals.random_seed,
                                          seed_transpiler=aqua_globals.random_seed))
-        x = sample_most_likely(result['eigvecs'][0])
+        x = sample_most_likely(result.eigenstate)
         ising_sol = set_packing.get_solution(x)
         oracle = self._brute_force()
         self.assertEqual(np.count_nonzero(ising_sol), oracle)
+
+
+if __name__ == '__main__':
+    unittest.main()

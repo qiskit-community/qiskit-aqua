@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -46,7 +44,12 @@ class TestReadmeSample(QiskitChemistryTestCase):
 
     def test_readme_sample(self):
         """ readme sample test """
-        # pylint: disable=import-outside-toplevel
+        # pylint: disable=import-outside-toplevel,redefined-builtin
+
+        def print(*args):
+            """ overloads print to log values """
+            if args:
+                self.log.debug(args[0], *args[1:])
 
         # --- Exact copy of sample code ----------------------------------------
 
@@ -76,12 +79,15 @@ class TestReadmeSample(QiskitChemistryTestCase):
         optimizer = L_BFGS_B()
 
         # setup the initial state for the variational form
-        from qiskit.chemistry.components.initial_states import HartreeFock
-        init_state = HartreeFock(num_qubits, num_spin_orbitals, num_particles)
+        from qiskit.chemistry.circuit.library import HartreeFock
+        init_state = HartreeFock(num_spin_orbitals, num_particles)
 
         # setup the variational form for VQE
-        from qiskit.aqua.components.variational_forms import RYRZ
-        var_form = RYRZ(num_qubits, initial_state=init_state)
+        from qiskit.circuit.library import TwoLocal
+        var_form = TwoLocal(num_qubits, ['ry', 'rz'], 'cz')
+
+        # add the initial state
+        var_form.compose(init_state, front=True)
 
         # setup and run VQE
         from qiskit.aqua.algorithms import VQE
@@ -92,11 +98,11 @@ class TestReadmeSample(QiskitChemistryTestCase):
         backend = Aer.get_backend('statevector_simulator')
 
         result = algorithm.run(backend)
-        print(result['energy'])
+        print(result.eigenvalue.real)
 
         # ----------------------------------------------------------------------
 
-        self.assertAlmostEqual(result['energy'], -1.8572750301938803, places=6)
+        self.assertAlmostEqual(result.eigenvalue.real, -1.8572750301938803, places=6)
 
 
 if __name__ == '__main__':

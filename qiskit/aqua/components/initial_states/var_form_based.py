@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -14,15 +12,17 @@
 
 """The variational form based initial state"""
 
-from typing import Union, List
+from typing import Union, List, Dict
+import warnings
 import numpy as np
+from qiskit import QuantumCircuit
+from qiskit.circuit import Parameter
 from qiskit.aqua import AquaError
 from qiskit.aqua.components.variational_forms import VariationalForm
 
 
 class VarFormBased:
-    """
-    The variational form based initial state.
+    """The variational form based initial state.
 
     This can been useful, say for example, if you have been doing experiments using a
     :class:`~qiskit.aqua.components.variational_forms.VariationalForm` and have parameters for
@@ -37,8 +37,8 @@ class VarFormBased:
     """
 
     def __init__(self,
-                 var_form: VariationalForm,
-                 params: Union[List[float], np.ndarray]) -> None:
+                 var_form: Union[VariationalForm, QuantumCircuit],
+                 params: Union[List[float], np.ndarray, Dict[Parameter, float]]) -> None:
         """
         Args:
             var_form: The variational form.
@@ -51,6 +51,13 @@ class VarFormBased:
             raise ValueError('Incompatible parameters provided.')
         self._var_form = var_form
         self._var_form_params = params
+
+        warnings.warn('The {} class is deprecated as of Aqua 0.9 and will be removed no earlier '
+                      'than 3 months after the release date. Instead, all algorithms and circuits '
+                      'accept a plain QuantumCircuit.'.format(
+                          self.__class__.__name__
+                      ),
+                      category=DeprecationWarning, stacklevel=2)
 
     def construct_circuit(self, mode='circuit', register=None):
         """
@@ -73,6 +80,9 @@ class VarFormBased:
             raise RuntimeError('Initial state based on variational '
                                'form does not support vector mode.')
         if mode == 'circuit':
-            return self._var_form.construct_circuit(self._var_form_params, q=register)
+            if isinstance(self._var_form, VariationalForm):
+                return self._var_form.construct_circuit(self._var_form_params, q=register)
+            return self._var_form.assign_parameters(self._var_form_params)
+
         else:
             raise AquaError('Mode should be either "vector" or "circuit"')

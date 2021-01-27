@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -21,8 +19,7 @@ from qiskit.aqua import (QiskitLogDomains,
 
 
 def get_qiskit_finance_logging() -> int:
-    """
-    Returns the current Qiskit Finance logging level
+    """Returns the current Qiskit finance logging level.
 
     Returns:
         int: logging level
@@ -31,8 +28,7 @@ def get_qiskit_finance_logging() -> int:
 
 
 def set_qiskit_finance_logging(level: int, filepath: Optional[str] = None) -> None:
-    """
-    Updates the Qiskit Finance logging with the appropriate logging level
+    """Updates the Qiskit finance logging with the appropriate logging level.
 
     Args:
         level: minimum severity of the messages that are displayed.

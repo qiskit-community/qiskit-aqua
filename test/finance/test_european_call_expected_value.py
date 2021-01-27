@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2020.
@@ -14,18 +12,18 @@
 
 """ Test European Call Expected Value uncertainty problem """
 
+import unittest
 from test.finance import QiskitFinanceTestCase
 
 import numpy as np
 
-from qiskit import BasicAer
+from qiskit import Aer
+from qiskit.circuit.library import TwoLocal, NormalDistribution
 from qiskit.aqua import aqua_globals, QuantumInstance
-from qiskit.aqua.algorithms import AmplitudeEstimation
-from qiskit.aqua.components.initial_states import Custom
-from qiskit.aqua.components.uncertainty_models import (UnivariateVariationalDistribution,
-                                                       NormalDistribution)
-from qiskit.aqua.components.variational_forms import RY
-from qiskit.finance.components.uncertainty_problems import EuropeanCallExpectedValue
+from qiskit.aqua.algorithms import IterativeAmplitudeEstimation
+from qiskit.circuit.library import LinearAmplitudeFunction
+from qiskit.finance.applications import EuropeanCallExpectedValue
+from qiskit.quantum_info import Operator
 
 
 class TestEuropeanCallExpectedValue(QiskitFinanceTestCase):
@@ -36,38 +34,65 @@ class TestEuropeanCallExpectedValue(QiskitFinanceTestCase):
         self.seed = 457
         aqua_globals.random_seed = self.seed
 
-    def test_ecev(self):
-        """ European Call Expected Value test """
+    def test_ecev_circuit(self):
+        """Test the expected circuit.
+
+        If it equals the correct ``LinearAmplitudeFunction`` we know the circuit is correct.
+        """
+        num_qubits = 3
+        rescaling_factor = 0.1
+        strike_price = 0.5
+        bounds = (0, 2)
+        ecev = EuropeanCallExpectedValue(num_qubits, strike_price, rescaling_factor, bounds)
+
+        breakpoints = [0, strike_price]
+        slopes = [0, 1]
+        offsets = [0, 0]
+        image = (0, 2 - strike_price)
+        domain = (0, 2)
+        linear_function = LinearAmplitudeFunction(
+            num_qubits,
+            slopes,
+            offsets,
+            domain=domain,
+            image=image,
+            breakpoints=breakpoints,
+            rescaling_factor=rescaling_factor)
+
+        self.assertTrue(Operator(ecev).equiv(linear_function))
+
+    def test_application(self):
+        """Test an end-to-end application."""
         bounds = np.array([0., 7.])
-        num_qubits = [3]
-        entangler_map = []
-        for i in range(sum(num_qubits)):
-            entangler_map.append([i, int(np.mod(i + 1, sum(num_qubits)))])
+        num_qubits = 3
 
-        g_params = [0.29399714, 0.38853322, 0.9557694, 0.07245791, 6.02626428, 0.13537225]
-        # Set an initial state for the generator circuit
-        init_dist = NormalDistribution(int(sum(num_qubits)), mu=1., sigma=1.,
-                                       low=bounds[0], high=bounds[1])
-        init_distribution = np.sqrt(init_dist.probabilities)
-        init_distribution = Custom(num_qubits=sum(num_qubits),
-                                   state_vector=init_distribution)
-        var_form = RY(int(np.sum(num_qubits)), depth=1,
-                      initial_state=init_distribution,
-                      entangler_map=entangler_map, entanglement_gate='cz')
-        uncertainty_model = UnivariateVariationalDistribution(
-            int(sum(num_qubits)), var_form, g_params,
-            low=bounds[0], high=bounds[1])
+        # the distribution circuit is a normal distribution plus a QGAN-trained ansatz circuit
+        dist = NormalDistribution(num_qubits, mu=1, sigma=1, bounds=bounds)
 
+        ansatz = TwoLocal(num_qubits, 'ry', 'cz', reps=1, entanglement='circular')
+        trained_params = [0.29399714, 0.38853322, 0.9557694, 0.07245791, 6.02626428, 0.13537225]
+        ansatz.assign_parameters(trained_params, inplace=True)
+
+        dist.compose(ansatz, inplace=True)
+
+        # create the European call expected value
         strike_price = 2
-        c_approx = 0.25
-        european_call = EuropeanCallExpectedValue(uncertainty_model,
-                                                  strike_price=strike_price,
-                                                  c_approx=c_approx)
+        rescaling_factor = 0.25
+        european_call = EuropeanCallExpectedValue(num_qubits, strike_price, rescaling_factor,
+                                                  bounds)
 
-        uncertainty_model.set_probabilities(
-            QuantumInstance(BasicAer.get_backend('statevector_simulator')))
+        # create the state preparation circuit
+        state_preparation = european_call.compose(dist, front=True)
 
-        algo = AmplitudeEstimation(5, european_call)
-        result = algo.run(quantum_instance=BasicAer.get_backend('statevector_simulator'))
-        self.assertAlmostEqual(result['estimation'], 1.2580, places=4)
-        self.assertAlmostEqual(result['max_probability'], 0.8785, places=4)
+        iae = IterativeAmplitudeEstimation(0.01, 0.05, state_preparation=state_preparation,
+                                           objective_qubits=[num_qubits],
+                                           post_processing=european_call.post_processing)
+
+        backend = QuantumInstance(Aer.get_backend('qasm_simulator'),
+                                  seed_simulator=125, seed_transpiler=80)
+        result = iae.run(backend)
+        self.assertAlmostEqual(result.estimation, 1.0127253837345427)
+
+
+if __name__ == '__main__':
+    unittest.main()

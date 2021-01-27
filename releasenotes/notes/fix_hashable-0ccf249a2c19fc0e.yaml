@@ -1,0 +1,13 @@
+issues:
+  - |
+    PrimitiveOp had a `__hash__`, implementation but failed to always
+    follow the Python hashable rule such that two equivalent objects
+    had different hash values.
+    See #1399 for details.
+fixes:
+  - |
+    Since the underlying primitives are not hashable it is problematic to achieve
+    and maintain the correct hashable behavior for the PrimitiveOps so
+    `PrimitiveOp.__hash__` has been removed.
+    `SummedOp.equals` was changed since it used the hash, via the set
+    comparison mechanism, to now do a naive all-pair comparison.

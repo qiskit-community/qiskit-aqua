@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -16,7 +14,7 @@
 Multi-class Extensions (:mod:`qiskit.aqua.components.multiclass_extensions`)
 ============================================================================
 A multiclass extension allows Aqua's binary classifier algorithms, such as
-:class:`~qiskit.aqua.algorithms.QSVM` and :class:`~qiskit.aqua.algorithms.SVM_Classical`
+:class:`~qiskit.aqua.algorithms.QSVM` and :class:`~qiskit.aqua.algorithms.SklearnSVM`
 to handle more than two classes and do
 `multiclass classification <https://en.wikipedia.org/wiki/Multiclass_classification>`_.
 

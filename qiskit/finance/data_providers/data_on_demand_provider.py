@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,7 +10,7 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" data on demand provider """
+""" NASDAQ Data on demand data provider. """
 
 from typing import Optional, Union, List
 import datetime
@@ -22,32 +20,30 @@ import json
 import certifi
 import urllib3
 
-from qiskit.finance.data_providers import (BaseDataProvider,
-                                           StockMarket, QiskitFinanceError)
+from ._base_data_provider import BaseDataProvider
+from ..exceptions import QiskitFinanceError
 
 logger = logging.getLogger(__name__)
 
 
 class DataOnDemandProvider(BaseDataProvider):
-    """
-    Python implementation of an NASDAQ Data on Demand data provider.
+    """NASDAQ Data on Demand data provider.
+
     Please see:
-    https://github.com/Qiskit/qiskit-tutorials/qiskit/finance/data_providers/time_series.ipynb
+    https://github.com/Qiskit/qiskit-tutorials/blob/master/tutorials/finance/11_time_series.ipynb
     for instructions on use, which involve obtaining a NASDAQ DOD access token.
     """
 
     def __init__(self,
                  token: str,
                  tickers: Union[str, List[str]],
-                 stockmarket: StockMarket = StockMarket.NASDAQ,
-                 start: datetime = datetime.datetime(2016, 1, 1),
-                 end: datetime = datetime.datetime(2016, 1, 30),
+                 start: datetime.datetime = datetime.datetime(2016, 1, 1),
+                 end: datetime.datetime = datetime.datetime(2016, 1, 30),
                  verify: Optional[Union[str, bool]] = None) -> None:
         """
         Args:
-            token: quandl access token
+            token: data on demand access token
             tickers: tickers
-            stockmarket: NYSE or NASDAQ
             start: first data point
             end: last data point precedes this date
             verify: if verify is None, certify certificates
@@ -57,13 +53,7 @@ class DataOnDemandProvider(BaseDataProvider):
                 to a certificate for the HTTPS connection to NASDAQ (dataondemand.nasdaq.com),
                 either in the
                 form of a CA_BUNDLE file or a directory wherein to look.
-
-        Raises:
-            QiskitFinanceError: invalid data
         """
-        # if not isinstance(atoms, list) and not isinstance(atoms, str):
-        #    raise QiskitFinanceError("Invalid atom input for DOD Driver '{}'".format(atoms))
-
         super().__init__()
 
         if isinstance(tickers, list):
@@ -72,21 +62,12 @@ class DataOnDemandProvider(BaseDataProvider):
             self._tickers = tickers.replace('\n', ';').split(";")
         self._n = len(self._tickers)
 
-        if stockmarket not in [StockMarket.NASDAQ, StockMarket.NYSE]:
-            msg = "NASDAQ Data on Demand does not support "
-            msg += stockmarket.value
-            msg += " as a stock market."
-            raise QiskitFinanceError(msg)
-
-        # This is to aid serialization; string is ok to serialize
-        self._stockmarket = str(stockmarket.value)
-
         self._token = token
         self._start = start
         self._end = end
         self._verify = verify
 
-    def run(self):
+    def run(self) -> None:
         """
         Loads data, thus enabling get_similarity_matrix and get_covariance_matrix
         methods in the base class.

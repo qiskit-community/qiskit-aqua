@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -27,7 +25,7 @@ from qiskit.quantum_info import (state_fidelity, Statevector)
 class TestLookupRotation(QiskitAquaTestCase):
     """Lookup Rotation tests."""
 
-    @idata([[3, 1/2], [5, 1/4], [7, 1/8], [9, 1/16], [11, 1/32]])
+    @idata([[3, 1 / 2], [5, 1 / 4], [7, 1 / 8], [9, 1 / 16], [11, 1 / 32]])
     @unpack
     def test_lookup_rotation(self, reg_size, ref_rot):
         """ lookup rotation test """
@@ -37,9 +35,9 @@ class TestLookupRotation(QiskitAquaTestCase):
         ref_size = reg_size + 3  # add work, msq and anc qubits
         ref_dim = 2**ref_size
         ref_sv = np.zeros(ref_dim, dtype=complex)
-        ref_sv[int(ref_dim/2)+1] = ref_sv_ampl+0j
-        ref_sv[1] = np.sqrt(1-ref_sv_ampl**2)+0j
-        state = Statevector.from_label('0'*(reg_size-1) + '1').data
+        ref_sv[int(ref_dim / 2) + 1] = ref_sv_ampl + 0j
+        ref_sv[1] = np.sqrt(1 - ref_sv_ampl ** 2) + 0j
+        state = Statevector.from_label('0' * (reg_size - 1) + '1').data
         q_a = QuantumRegister(reg_size, name='a')
         init_circuit = QuantumCircuit(q_a)
         init_circuit.initialize(state, q_a)
@@ -52,7 +50,7 @@ class TestLookupRotation(QiskitAquaTestCase):
         self.log.debug('Lookup rotation register size: %s', reg_size)
         self.log.debug('Lookup rotation fidelity:      %s', fidelity)
 
-    @idata([[3, 0], [5, 1/4], [7, 1/8], [9, 1/16], [11, 1/32]])
+    @idata([[3, 0], [5, 1 / 4], [7, 1 / 8], [9, 1 / 16], [11, 1 / 32]])
     @unpack
     def test_lookup_rotation_neg(self, reg_size, ref_rot):
         """ lookup rotation neg test """
@@ -63,9 +61,9 @@ class TestLookupRotation(QiskitAquaTestCase):
         ref_size = reg_size + 3  # add work, msq and anc qubits
         ref_dim = 2**ref_size
         ref_sv = np.zeros(ref_dim, dtype=complex)
-        ref_sv[int(ref_dim/2)+1] = -ref_sv_ampl+0j
-        ref_sv[1] = -np.sqrt(1-ref_sv_ampl**2)+0j
-        state = Statevector.from_label('0'*(reg_size-1) + '1').data
+        ref_sv[int(ref_dim / 2) + 1] = -ref_sv_ampl + 0j
+        ref_sv[1] = -np.sqrt(1 - ref_sv_ampl ** 2) + 0j
+        state = Statevector.from_label('0' * (reg_size - 1) + '1').data
         q_a = QuantumRegister(reg_size, name='a')
         init_circuit = QuantumCircuit(q_a)
         init_circuit.initialize(state, q_a)

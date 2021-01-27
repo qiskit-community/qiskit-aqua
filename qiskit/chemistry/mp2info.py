@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -30,7 +28,7 @@ class MP2Info:
 
     All the computations are done using the molecule orbitals but the indexes used
     in the excitation information passed in and out are in the block spin orbital
-    numbering as normally used by the chemistry stack.
+    numbering as normally used by the chemistry module.
     """
 
     def __init__(self, qmolecule, threshold=1e-12):
@@ -116,7 +114,7 @@ class MP2Info:
         ret_terms = {}
         for k, v in self._terms.items():
             orbs = _str_to_list(k)
-            if set(orbs) < set(full_spin_orbs):
+            if set(orbs) <= set(full_spin_orbs):
                 new_idxs = [remain_spin_orbs[elem] for elem in orbs]
                 coeff, e_delta = v
                 ret_terms[_list_to_str(new_idxs)] = (coeff, e_delta)

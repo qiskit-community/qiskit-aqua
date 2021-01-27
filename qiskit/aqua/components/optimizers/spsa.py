@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -14,13 +12,15 @@
 
 """Simultaneous Perturbation Stochastic Approximation optimizer."""
 
+import warnings
+from typing import Optional, List, Callable
 import logging
 
 import numpy as np
 
 from qiskit.aqua import aqua_globals
 from qiskit.aqua.utils.validation import validate_min
-from .optimizer import Optimizer
+from .optimizer import Optimizer, OptimizerSupportLevel
 
 logger = logging.getLogger(__name__)
 
@@ -57,12 +57,12 @@ class SPSA(Optimizer):
     (Supplementary information Section IV.)
     """
 
-    _C0 = 2*np.pi*0.1
+    _C0 = 2 * np.pi * 0.1
     _OPTIONS = ['save_steps', 'last_avg']
 
     # pylint: disable=unused-argument
     def __init__(self,
-                 max_trials: int = 1000,
+                 maxiter: int = 1000,
                  save_steps: int = 1,
                  last_avg: int = 1,
                  c0: float = _C0,
@@ -70,10 +70,11 @@ class SPSA(Optimizer):
                  c2: float = 0.602,
                  c3: float = 0.101,
                  c4: float = 0,
-                 skip_calibration: float = False) -> None:
+                 skip_calibration: bool = False,
+                 max_trials: Optional[int] = None) -> None:
         """
         Args:
-            max_trials: Maximum number of iterations to perform.
+            maxiter: Maximum number of iterations to perform.
             save_steps: Save intermediate info every save_steps step. It has a min. value of 1.
             last_avg: Averaged parameters over the last_avg iterations.
                 If last_avg = 1, only the last iteration is considered. It has a min. value of 1.
@@ -83,23 +84,30 @@ class SPSA(Optimizer):
             c3: The gamma in the paper, and it is used to adjust c (c1) at each iteration.
             c4: The parameter used to control a as well.
             skip_calibration: Skip calibration and use provided c(s) as is.
+            max_trials: Deprecated, use maxiter.
         """
         validate_min('save_steps', save_steps, 1)
         validate_min('last_avg', last_avg, 1)
         super().__init__()
-        for k, v in locals().items():
+        if max_trials is not None:
+            warnings.warn('The max_trials parameter is deprecated as of '
+                          '0.8.0 and will be removed no sooner than 3 months after the release. '
+                          'You should use maxiter instead.',
+                          DeprecationWarning)
+            maxiter = max_trials
+        for k, v in list(locals().items()):
             if k in self._OPTIONS:
                 self._options[k] = v
-        self._max_trials = max_trials
+        self._maxiter = maxiter
         self._parameters = np.array([c0, c1, c2, c3, c4])
         self._skip_calibration = skip_calibration
 
     def get_support_level(self):
         """ return support level dictionary """
         return {
-            'gradient': Optimizer.SupportLevel.ignored,
-            'bounds': Optimizer.SupportLevel.ignored,
-            'initial_point': Optimizer.SupportLevel.required
+            'gradient': OptimizerSupportLevel.ignored,
+            'bounds': OptimizerSupportLevel.ignored,
+            'initial_point': OptimizerSupportLevel.required
         }
 
     def optimize(self, num_vars, objective_function, gradient_function=None,
@@ -113,33 +121,37 @@ class SPSA(Optimizer):
         logger.debug('Parameters: %s', self._parameters)
         if not self._skip_calibration:
             # at least one calibration, at most 25 calibrations
-            num_steps_calibration = min(25, max(1, self._max_trials // 5))
+            num_steps_calibration = min(25, max(1, self._maxiter // 5))
             self._calibration(objective_function, initial_point, num_steps_calibration)
         else:
             logger.debug('Skipping calibration, parameters used as provided.')
 
         opt, sol, _, _, _, _ = self._optimization(objective_function,
                                                   initial_point,
-                                                  max_trials=self._max_trials,
+                                                  maxiter=self._maxiter,
                                                   **self._options)
         return sol, opt, None
 
-    def _optimization(self, obj_fun, initial_theta, max_trials, save_steps=1, last_avg=1):
+    def _optimization(self,
+                      obj_fun: Callable,
+                      initial_theta: np.ndarray,
+                      maxiter: int,
+                      save_steps: int = 1,
+                      last_avg: int = 1) -> List:
         """Minimizes obj_fun(theta) with a simultaneous perturbation stochastic
         approximation algorithm.
 
         Args:
-            obj_fun (callable): the function to minimize
-            initial_theta (numpy.array): initial value for the variables of
-                obj_fun
-            max_trials (int) : the maximum number of trial steps ( = function
+            obj_fun: the function to minimize
+            initial_theta: initial value for the variables of obj_fun
+            maxiter: the maximum number of trial steps ( = function
                 calls/2) in the optimization
-            save_steps (int) : stores optimization outcomes each 'save_steps'
+            save_steps: stores optimization outcomes each 'save_steps'
                 trial steps
-            last_avg (int) : number of last updates of the variables to average
+            last_avg: number of last updates of the variables to average
                 on for the final obj_fun
         Returns:
-            list: a list with the following elements:
+            a list with the following elements:
                 cost_final : final optimized value for obj_fun
                 theta_best : final values of the variables corresponding to
                     cost_final
@@ -159,12 +171,12 @@ class SPSA(Optimizer):
         cost_minus_save = []
         theta = initial_theta
         theta_best = np.zeros(initial_theta.shape)
-        for k in range(max_trials):
+        for k in range(maxiter):
             # SPSA Parameters
             a_spsa = float(self._parameters[0]) / np.power(k + 1 + self._parameters[4],
                                                            self._parameters[2])
             c_spsa = float(self._parameters[1]) / np.power(k + 1, self._parameters[3])
-            delta = 2 * aqua_globals.random.randint(2, size=np.shape(initial_theta)[0]) - 1
+            delta = 2 * aqua_globals.random.integers(2, size=np.shape(initial_theta)[0]) - 1
             # plus and minus directions
             theta_plus = theta + c_spsa * delta
             theta_minus = theta - c_spsa * delta
@@ -187,7 +199,7 @@ class SPSA(Optimizer):
                 cost_plus_save.append(cost_plus)
                 cost_minus_save.append(cost_minus)
 
-            if k >= max_trials - last_avg:
+            if k >= maxiter - last_avg:
                 theta_best += theta / last_avg
         # final cost update
         cost_final = obj_fun(theta_best)
@@ -196,7 +208,10 @@ class SPSA(Optimizer):
         return [cost_final, theta_best, cost_plus_save, cost_minus_save,
                 theta_plus_save, theta_minus_save]
 
-    def _calibration(self, obj_fun, initial_theta, stat):
+    def _calibration(self,
+                     obj_fun: Callable,
+                     initial_theta: np.ndarray,
+                     stat: int):
         """Calibrates and stores the SPSA parameters back.
 
         SPSA parameters are c0 through c5 stored in parameters array
@@ -207,11 +222,9 @@ class SPSA(Optimizer):
         c1 is initial_c and is first perturbation of initial_theta.
 
         Args:
-            obj_fun (callable): the function to minimize.
-            initial_theta (numpy.array): initial value for the variables of
-                obj_fun.
-            stat (int) : number of random gradient directions to average on in
-                the calibration.
+            obj_fun: the function to minimize.
+            initial_theta: initial value for the variables of obj_fun.
+            stat: number of random gradient directions to average on in the calibration.
         """
 
         target_update = self._parameters[0]
@@ -221,7 +234,7 @@ class SPSA(Optimizer):
         for i in range(stat):
             if i % 5 == 0:
                 logger.debug('calibration step # %s of %s', str(i), str(stat))
-            delta = 2 * aqua_globals.random.randint(2, size=np.shape(initial_theta)[0]) - 1
+            delta = 2 * aqua_globals.random.integers(2, size=np.shape(initial_theta)[0]) - 1
             theta_plus = initial_theta + initial_c * delta
             theta_minus = initial_theta - initial_c * delta
             if self._max_evals_grouped > 1:
@@ -231,7 +244,10 @@ class SPSA(Optimizer):
                 obj_minus = obj_fun(theta_minus)
             delta_obj += np.absolute(obj_plus - obj_minus) / stat
 
-        self._parameters[0] = target_update * 2 / delta_obj \
-            * self._parameters[1] * (self._parameters[4] + 1)
+        # only calibrate if delta_obj is larger than 0
+        if delta_obj > 0:
+            self._parameters[0] = target_update * 2 / delta_obj \
+                * self._parameters[1] * (self._parameters[4] + 1)
+            logger.debug('delta_obj is 0, not calibrating (since this would set c0 to inf)')
 
         logger.debug('Calibrated SPSA parameter c0 is %.7f', self._parameters[0])

@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -59,6 +57,10 @@ class MultivariateLogNormalDistribution(MultivariateDistribution):
         probs = np.asarray(probs) / np.sum(probs)
         super().__init__(num_qubits, probs, low, high)
         self._values = values
+
+    @staticmethod
+    def _replacement():
+        return 'qiskit.circuit.library.LogNormalDistribution'
 
     def _compute_probabilities(self, probs, values, num_qubits, low, high, x=None):
 

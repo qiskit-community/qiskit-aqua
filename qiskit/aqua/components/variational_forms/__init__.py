@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -39,27 +37,10 @@ Variational Form Base Class
 
    VariationalForm
 
-Variational Forms
-=================
-
-.. autosummary::
-   :toctree: ../stubs/
-   :nosignatures:
-
-   RY
-   RYRZ
-   SwapRZ
-
 """
 
 from .variational_form import VariationalForm
-from .ry import RY
-from .ryrz import RYRZ
-from .swaprz import SwapRZ
 from .tasp import TASP
 
 __all__ = ['VariationalForm',
-           'RY',
-           'RYRZ',
-           'SwapRZ',
            'TASP']

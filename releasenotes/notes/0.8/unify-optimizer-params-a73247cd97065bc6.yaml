@@ -1,0 +1,7 @@
+---
+deprecations:
+  - |
+    GSLS optimizer class deprecated ``__init__`` parameter ``max_iter`` in favor of ``maxiter``.
+    SPSA optimizer class deprecated ``__init__`` parameter ``max_trials`` in favor of ``maxiter``.
+    optimize_svm function deprecated ``max_iters`` parameter in favor of ``maxiter``.
+    ADMMParameters class deprecated ``__init__`` parameter ``max_iter`` in favor of ``maxiter``.

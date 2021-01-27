@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -15,6 +13,7 @@
 """ Test Amplitude Estimation """
 
 import unittest
+import warnings
 from test.finance import QiskitFinanceTestCase
 import numpy as np
 from ddt import ddt, idata, unpack
@@ -22,8 +21,8 @@ from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance
 from qiskit.aqua.components.uncertainty_models import (LogNormalDistribution,
                                                        MultivariateNormalDistribution)
-from qiskit.finance.components.uncertainty_problems import \
-    (EuropeanCallDelta, FixedIncomeExpectedValue)
+from qiskit.finance.components.uncertainty_problems import (EuropeanCallDelta,
+                                                            FixedIncomeExpectedValue)
 from qiskit.aqua.components.uncertainty_problems import \
     UnivariatePiecewiseLinearObjective as PwlObjective
 from qiskit.aqua.components.uncertainty_problems import UnivariateProblem
@@ -59,6 +58,7 @@ class TestEuropeanCallOption(QiskitFinanceTestCase):
         high = mean + 3 * stddev
 
         # construct circuit factory for uncertainty model
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
         uncertainty_model = LogNormalDistribution(num_uncertainty_qubits,
                                                   mu=m_u, sigma=sigma, low=low, high=high)
 
@@ -97,6 +97,7 @@ class TestEuropeanCallOption(QiskitFinanceTestCase):
             uncertainty_model,
             strike_price=strike_price,
         )
+        warnings.filterwarnings('always', category=DeprecationWarning)
 
         self._statevector = QuantumInstance(backend=BasicAer.get_backend('statevector_simulator'),
                                             seed_simulator=2,
@@ -118,14 +119,16 @@ class TestEuropeanCallOption(QiskitFinanceTestCase):
     def test_expected_value(self, simulator, a_e, expect):
         """ expected value test """
         # set A factory for amplitude estimation
-        a_e.a_factory = self.european_call
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            a_e.a_factory = self.european_call
 
         # run simulation
         result = a_e.run(self._qasm if simulator == 'qasm' else self._statevector)
 
         # compare to precomputed solution
         for key, value in expect.items():
-            self.assertAlmostEqual(result[key], value, places=4,
+            self.assertAlmostEqual(getattr(result, key), value, places=4,
                                    msg="estimate `{}` failed".format(key))
 
     @idata([
@@ -142,14 +145,16 @@ class TestEuropeanCallOption(QiskitFinanceTestCase):
     def test_delta(self, simulator, a_e, expect):
         """ delta test """
         # set A factory for amplitude estimation
-        a_e.a_factory = self.european_call_delta
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            a_e.a_factory = self.european_call_delta
 
         # run simulation
         result = a_e.run(self._qasm if simulator == 'qasm' else self._statevector)
 
         # compare to precomputed solution
         for key, value in expect.items():
-            self.assertAlmostEqual(result[key], value, places=4,
+            self.assertAlmostEqual(getattr(result, key), value, places=4,
                                    msg="estimate `{}` failed".format(key))
 
 
@@ -159,6 +164,7 @@ class TestFixedIncomeAssets(QiskitFinanceTestCase):
 
     def setUp(self):
         super().setUp()
+        warnings.filterwarnings('ignore', category=DeprecationWarning)
 
         self._statevector = QuantumInstance(backend=BasicAer.get_backend('statevector_simulator'),
                                             seed_simulator=2,
@@ -167,6 +173,10 @@ class TestFixedIncomeAssets(QiskitFinanceTestCase):
                                      shots=100,
                                      seed_simulator=2,
                                      seed_transpiler=2)
+
+    def tearDown(self):
+        super().tearDown()
+        warnings.filterwarnings('always', category=DeprecationWarning)
 
     @idata([
         ['statevector', AmplitudeEstimation(5),
@@ -206,15 +216,17 @@ class TestFixedIncomeAssets(QiskitFinanceTestCase):
         c_approx = 0.125
 
         # get fixed income circuit appfactory
-        fixed_income = FixedIncomeExpectedValue(mund, a_n, b, c_f, c_approx)
-        a_e.a_factory = fixed_income
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            fixed_income = FixedIncomeExpectedValue(mund, a_n, b, c_f, c_approx)
+            a_e.a_factory = fixed_income
 
         # run simulation
         result = a_e.run(self._qasm if simulator == 'qasm' else self._statevector)
 
         # compare to precomputed solution
         for key, value in expect.items():
-            self.assertAlmostEqual(result[key], value, places=4,
+            self.assertAlmostEqual(getattr(result, key), value, places=4,
                                    msg="estimate `{}` failed".format(key))
 
 

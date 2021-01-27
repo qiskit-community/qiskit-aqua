@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -20,6 +18,7 @@ from test.aqua import QiskitAquaTestCase
 from ddt import ddt, idata, unpack
 from scipy.optimize import rosen
 import numpy as np
+from qiskit.aqua import MissingOptionalLibraryError
 from qiskit.aqua.components.optimizers import CRS, DIRECT_L, DIRECT_L_RAND
 
 # pylint: disable=unused-import,import-outside-toplevel
@@ -29,28 +28,31 @@ from qiskit.aqua.components.optimizers import CRS, DIRECT_L, DIRECT_L_RAND
 class TestNLOptOptimizers(QiskitAquaTestCase):
     """ Test NLOpt Optimizers """
 
-    def _optimize(self, optimizer):
+    def _optimize(self, optimizer, use_bound):
         x_0 = [1.3, 0.7, 0.8, 1.9, 1.2]
-        bounds = [(-6, 6)]*len(x_0)
+        bounds = [(-6, 6)] * len(x_0) if use_bound else None
         res = optimizer.optimize(len(x_0), rosen, initial_point=x_0, variable_bounds=bounds)
-        np.testing.assert_array_almost_equal(res[0], [1.0]*len(x_0), decimal=2)
+        np.testing.assert_array_almost_equal(res[0], [1.0] * len(x_0), decimal=2)
         return res
 
     # ESCH and ISRES do not do well with rosen
     @idata([
-        [CRS],
-        [DIRECT_L],
-        [DIRECT_L_RAND],
+        [CRS, True],
+        [DIRECT_L, True],
+        [DIRECT_L_RAND, True],
+        [CRS, False],
+        [DIRECT_L, False],
+        [DIRECT_L_RAND, False],
     ])
     @unpack
-    def test_nlopt(self, optimizer_cls):
+    def test_nlopt(self, optimizer_cls, use_bound):
         """ NLopt test """
         try:
             optimizer = optimizer_cls()
             optimizer.set_options(**{'max_evals': 50000})
-            res = self._optimize(optimizer)
+            res = self._optimize(optimizer, use_bound)
             self.assertLessEqual(res[2], 50000)
-        except NameError as ex:
+        except MissingOptionalLibraryError as ex:
             self.skipTest(str(ex))
 
 

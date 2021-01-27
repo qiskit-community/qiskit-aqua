@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -12,17 +10,18 @@
 # copyright notice, and modified files need to carry a notice indicating
 # that they have been altered from the originals.
 
-""" Text Vertex Cover """
+""" Test Vertex Cover """
 
+import unittest
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
 from qiskit import BasicAer
+from qiskit.circuit.library import EfficientSU2
 
 from qiskit.aqua import aqua_globals, QuantumInstance
-from qiskit.optimization.ising import vertex_cover
-from qiskit.optimization.ising.common import random_graph, sample_most_likely
-from qiskit.aqua.algorithms import ExactEigensolver, VQE
-from qiskit.aqua.components.variational_forms import RYRZ
+from qiskit.optimization.applications.ising import vertex_cover
+from qiskit.optimization.applications.ising.common import random_graph, sample_most_likely
+from qiskit.aqua.algorithms import NumPyMinimumEigensolver, VQE
 from qiskit.aqua.components.optimizers import SPSA
 
 
@@ -44,7 +43,7 @@ class TestVertexCover(QiskitOptimizationTestCase):
             return [int(digit) for digit in result]  # [2:] to chop off the "0b" part
 
         nodes = self.num_nodes
-        maximum = 2**nodes
+        maximum = 2 ** nodes
         minimal_v = np.inf
         for i in range(maximum):
             cur = bitfield(i, nodes)
@@ -59,11 +58,11 @@ class TestVertexCover(QiskitOptimizationTestCase):
 
     def test_vertex_cover(self):
         """ Vertex Cover test """
-        algo = ExactEigensolver(self.qubit_op, k=1, aux_operators=[])
+        algo = NumPyMinimumEigensolver(self.qubit_op, aux_operators=[])
         result = algo.run()
-        x = sample_most_likely(result['eigvecs'][0])
+        x = sample_most_likely(result.eigenstate)
         sol = vertex_cover.get_graph_solution(x)
-        np.testing.assert_array_equal(sol, [0, 1, 1])
+        np.testing.assert_array_equal(sol, [0, 0, 1])
         oracle = self._brute_force()
         self.assertEqual(np.count_nonzero(sol), oracle)
 
@@ -72,14 +71,18 @@ class TestVertexCover(QiskitOptimizationTestCase):
         aqua_globals.random_seed = self.seed
 
         result = VQE(self.qubit_op,
-                     RYRZ(self.qubit_op.num_qubits, depth=3),
-                     SPSA(max_trials=200),
+                     EfficientSU2(reps=3),
+                     SPSA(maxiter=200),
                      max_evals_grouped=2).run(
                          QuantumInstance(BasicAer.get_backend('qasm_simulator'),
                                          seed_simulator=aqua_globals.random_seed,
                                          seed_transpiler=aqua_globals.random_seed))
 
-        x = sample_most_likely(result['eigvecs'][0])
+        x = sample_most_likely(result.eigenstate)
         sol = vertex_cover.get_graph_solution(x)
         oracle = self._brute_force()
         self.assertEqual(np.count_nonzero(sol), oracle)
+
+
+if __name__ == '__main__':
+    unittest.main()

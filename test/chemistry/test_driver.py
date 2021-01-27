@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -17,9 +15,15 @@
 from abc import ABC, abstractmethod
 import numpy as np
 
+from qiskit.chemistry.drivers import Molecule
+
 
 class TestDriver(ABC):
     """Common driver tests. For H2 @ 0.735, sto3g"""
+
+    MOLECULE = Molecule(geometry=[('H', [.0, .0, .0]), ('H', [.0, .0, 0.735])],
+                        multiplicity=1,
+                        charge=0)
 
     def __init__(self):
         self.log = None
@@ -27,7 +31,7 @@ class TestDriver(ABC):
 
     @abstractmethod
     def assertAlmostEqual(self, first, second, places=None, msg=None, delta=None):
-        """ asset Almost Equal """
+        """ assert Almost Equal """
         raise Exception('Abstract method')
 
     @abstractmethod
@@ -48,7 +52,7 @@ class TestDriver(ABC):
     def test_driver_nuclear_repulsion_energy(self):
         """ driver nuclear repulsion energy test """
         self.log.debug('QMolecule Nuclear repulsion energy: {}'.format(
-                        self.qmolecule.nuclear_repulsion_energy))
+            self.qmolecule.nuclear_repulsion_energy))
         self.assertAlmostEqual(self.qmolecule.nuclear_repulsion_energy, 0.72, places=2)
 
     def test_driver_num_orbitals(self):
@@ -106,7 +110,7 @@ class TestDriver(ABC):
                                              [-0.5806, 0.6763], decimal=4)
 
     def test_driver_mo_onee_ints(self):
-        """ driver mo oneee ints test """
+        """ driver mo onee ints test """
         self.log.debug('QMolecule MO one electron integrals {}'.format(self.qmolecule.mo_onee_ints))
         self.assertEqual(self.qmolecule.mo_onee_ints.shape, (2, 2))
         np.testing.assert_array_almost_equal(np.absolute(self.qmolecule.mo_onee_ints),
@@ -125,7 +129,7 @@ class TestDriver(ABC):
     def test_driver_dipole_integrals(self):
         """ driver dipole integrals test """
         self.log.debug('QMolecule has dipole integrals {}'.format(
-                        self.qmolecule.has_dipole_integrals()))
+            self.qmolecule.has_dipole_integrals()))
         if self.qmolecule.has_dipole_integrals():
             self.assertEqual(self.qmolecule.x_dip_mo_ints.shape, (2, 2))
             self.assertEqual(self.qmolecule.y_dip_mo_ints.shape, (2, 2))

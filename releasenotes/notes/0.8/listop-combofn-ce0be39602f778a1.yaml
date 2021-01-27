@@ -1,0 +1,6 @@
+---
+fixes:
+  - |
+    The ``ListOp.combo_fn`` property has been lost in several transformations,
+    such as converting to another operator type, traversing, reducing or 
+    multiplication. Now this attribute is propagated to the resulting operator.

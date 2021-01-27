@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019.
+# (C) Copyright IBM 2019, 2020
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -16,8 +14,9 @@
 Uncertainty Problems (:mod:`qiskit.finance.components.uncertainty_problems`)
 ============================================================================
 These are finance specific Aqua Uncertainty Problems where they inherit from
-Aqua :class:`UncertaintyProblem`. As they rely on finance specific knowledge
-and/or functions they live here rather than in Aqua.
+Aqua :class:`~qiskit.aqua.components.uncertainty_problems.UncertaintyProblem`.
+Because they rely on finance specific knowledge and/or functions they are
+located here rather than in Aqua.
 
 .. currentmodule:: qiskit.finance.components.uncertainty_problems
 

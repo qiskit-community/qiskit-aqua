@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -38,7 +36,7 @@ class TestRandomMatrixGenerator(QiskitAquaTestCase):
     def test_random_hermitian(self, m_v):
         """ random hermitian test """
         r_a = random_hermitian(m_v)
-        distance = abs(np.sum(r_a-r_a.T.conj()))
+        distance = abs(np.sum(r_a - r_a.T.conj()))
         self.assertAlmostEqual(distance, 0, places=10)
 
 

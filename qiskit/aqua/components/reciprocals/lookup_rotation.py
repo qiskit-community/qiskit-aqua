@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -21,7 +19,6 @@ import numpy as np
 
 from qiskit import QuantumRegister, QuantumCircuit
 from qiskit.aqua.components.reciprocals import Reciprocal
-from qiskit.aqua.circuits.gates import mct  # pylint: disable=unused-import
 from qiskit.aqua.utils.validation import validate_range
 
 logger = logging.getLogger(__name__)
@@ -124,7 +121,7 @@ class LookupRotation(Reciprocal):
             if fo - n > 0:
                 remainder = sum([2 ** -i for i in range(k - (fo - n - 1),
                                                         k + 1)])
-                return bin_to_num(pattern)+remainder/2
+                return bin_to_num(pattern) + remainder / 2
             return bin_to_num(pattern)
         # pylint: disable=import-outside-toplevel
         from collections import OrderedDict
@@ -155,7 +152,7 @@ class LookupRotation(Reciprocal):
                     app_pattern_array.append(list(reversed(appendpat)))
 
                 # rewrite first-one to correct index in QuantumRegister
-                fo_pos = k-fo-1
+                fo_pos = k - fo - 1
                 if fo_pos in list(output.keys()):
                     prev_res = output[fo_pos]
                 else:
@@ -185,7 +182,7 @@ class LookupRotation(Reciprocal):
                 fo_array.append(last_fo - 1)
                 app_pattern_array.append(list(reversed(appendpat)))
 
-            fo_pos = k-last_fo
+            fo_pos = k - last_fo
             if fo_pos in list(output.keys()):
                 prev_res = output[fo_pos]
             else:
@@ -263,7 +260,7 @@ class LookupRotation(Reciprocal):
                 qc.x(self._ev[int(c + offset)])
         if len(pattern) > 2:
             temp_reg = [self._ev[i]
-                        for i in range(offset, offset+len(pattern))]
+                        for i in range(offset, offset + len(pattern))]
             qc.mct(temp_reg, tgt, None, mode='noancilla')
         elif len(pattern) == 2:
             qc.ccx(self._ev[offset], self._ev[offset + 1], tgt)
@@ -274,7 +271,6 @@ class LookupRotation(Reciprocal):
                 qc.x(self._ev[int(c + offset)])
 
     def construct_circuit(self, mode, inreg):  # pylint: disable=arguments-differ
-
         """Construct the Lookup Rotation circuit.
 
         Args:
@@ -291,7 +287,7 @@ class LookupRotation(Reciprocal):
         if mode == 'matrix':
             raise NotImplementedError('The matrix mode is not supported.')
         if self._lambda_min:
-            self._scale = self._lambda_min/2/np.pi*self._evo_time
+            self._scale = self._lambda_min / 2 / np.pi * self._evo_time
         if self._scale == 0:
             self._scale = 2**-len(inreg)
         self._ev = inreg
@@ -304,14 +300,14 @@ class LookupRotation(Reciprocal):
         if self._pat_length is None:
             if self._reg_size <= 6:
                 self._pat_length = self._reg_size - \
-                                   (2 if self._negative_evals else 1)
+                    (2 if self._negative_evals else 1)
             else:
                 self._pat_length = 5
         if self._reg_size <= self._pat_length:
             self._pat_length = self._reg_size - \
-                               (2 if self._negative_evals else 1)
+                (2 if self._negative_evals else 1)
         if self._subpat_length is None:
-            self._subpat_length = int(np.ceil(self._pat_length/2))
+            self._subpat_length = int(np.ceil(self._pat_length / 2))
         m = self._subpat_length
         n = self._pat_length
         k = self._reg_size
@@ -363,7 +359,7 @@ class LookupRotation(Reciprocal):
                 for subpattern, lambda_ in zip(subpat, lambda_ar):
 
                     # calculate rotation angle
-                    theta = 2*np.arcsin(min(1, self._scale / lambda_))
+                    theta = 2 * np.arcsin(min(1, self._scale / lambda_))
                     # offset for ncx gate checking subpattern
                     offset = fo + 1 if fo < k - n else fo
 
@@ -392,6 +388,6 @@ class LookupRotation(Reciprocal):
 
         # rotate by pi to fix sign for negative evals
         if self._negative_evals:
-            qc.cu3(2*np.pi, 0, 0, self._ev[0], self._anc[0])
+            qc.cry(2 * np.pi, self._ev[0], self._anc[0])
         self._circuit = qc
         return self._circuit

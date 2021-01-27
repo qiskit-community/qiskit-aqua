@@ -1,0 +1,6 @@
+---
+deprecations:
+  - |
+    ``Optimizer.SupportLevel`` nested enum is replaced by ``OptimizerSupportLevel``
+    and ``Optimizer.SupportLevel`` was removed. Use, for example,
+    ``OptimizerSupportLevel.required`` instead of ``Optimizer.SupportLevel.required``.

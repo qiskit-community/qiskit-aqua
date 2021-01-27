@@ -1,8 +1,6 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2019.
+# (C) Copyright IBM 2018, 2020.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -38,7 +36,7 @@ class FermionicOperator:
 
     References:
 
-    - *E. Wigner and P. Jordan., Über das Paulische Äguivalenzverbot,
+    - *E. Wigner and P. Jordan., Über das Paulische Äquivalenzverbot,
       Z. Phys., 47:631 (1928).*
     - *S. Bravyi and A. Kitaev. Fermionic quantum computation,
       Ann. of Phys., 298(1):210–226 (2002).*
@@ -54,13 +52,25 @@ class FermionicOperator:
 
     def __init__(self, h1, h2=None, ph_trans_shift=None):
         """
-        | This class requires the integrals stored in the '*chemist*' notation
-        |    h2(i,j,k,l) --> adag_i adag_k a_l a_j
-        | There is another popular notation is the '*physicist*' notation
-        |    h2(i,j,k,l) --> adag_i adag_j a_k a_l
+        This class requires the integrals stored in the '*chemist*' notation
+
+             h2(i,j,k,l) --> adag_i adag_k a_l a_j
+
+        and the integral values are used for the coefficients of the second-quantized
+        Hamiltonian that is built. The integrals input here should be in block spin
+        format and also have indexes reordered as follows 'ijkl->ljik'
+
+        There is another popular notation, the '*physicist*' notation
+
+             h2(i,j,k,l) --> adag_i adag_j a_k a_l
 
         If you are using the '*physicist*' notation, you need to convert it to
-        the '*chemist*' notation first. E.g., h2 = numpy.einsum('ikmj->ijkm', h2)
+        the '*chemist*' notation. E.g. h2=numpy.einsum('ikmj->ijkm', h2)
+
+        The :class:`~qiskit.chemistry.QMolecule` class has
+        :attr:`~qiskit.chemistry.QMolecule.one_body_integrals` and
+        :attr:`~qiskit.chemistry.QMolecule.two_body_integrals` properties that can be
+        directly supplied to the `h1` and `h2` parameters here respectively.
 
         Args:
             h1 (numpy.ndarray): second-quantized fermionic one-body operator, a 2-D (NxN) tensor
@@ -569,8 +579,8 @@ class FermionicOperator:
                 h2_ijlk = self._h2[__i, __j, __l, __k]
                 if h2_ijlk == 0.0:
                     continue
-                if (__i in mode_set_diff and __j in mode_set_diff and
-                        __l in mode_set_diff and __k in mode_set_diff):
+                if __i in mode_set_diff and __j in mode_set_diff \
+                        and __l in mode_set_diff and __k in mode_set_diff:
                     h2_new[__i - np.where(fermion_mode_array < __i)[0].size,
                            __j - np.where(fermion_mode_array < __j)[0].size,
                            __l - np.where(fermion_mode_array < __l)[0].size,

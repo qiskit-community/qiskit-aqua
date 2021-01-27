@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # This code is part of Qiskit.
 #
 # (C) Copyright IBM 2018, 2020.
@@ -42,6 +40,19 @@ class TestDriverPSI4(QiskitChemistryTestCase, TestDriver):
                 '  scf_type pk',
                 '}'])
         except QiskitChemistryError:
+            self.skipTest('PSI4 driver does not appear to be installed')
+        self.qmolecule = driver.run()
+
+
+class TestDriverPSI4Molecule(QiskitChemistryTestCase, TestDriver):
+    """PSI4 Driver molecule tests."""
+
+    def setUp(self):
+        super().setUp()
+        try:
+            driver = PSI4Driver(molecule=TestDriver.MOLECULE)
+        except QiskitChemistryError as ex:
+            print(ex)
             self.skipTest('PSI4 driver does not appear to be installed')
         self.qmolecule = driver.run()
 
