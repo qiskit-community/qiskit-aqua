@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -116,7 +116,7 @@ def get_operator(mdl: Model, auto_penalty: bool = True,
     num_nodes = len(q_d)
     pauli_list = []
     shift = 0.
-    zero = np.zeros(num_nodes, dtype=np.bool)
+    zero = np.zeros(num_nodes, dtype=bool)
 
     # convert a constant part of the object function into Hamiltonian.
     shift += mdl.get_objective_expr().get_constant() * sign
@@ -124,7 +124,7 @@ def get_operator(mdl: Model, auto_penalty: bool = True,
     # convert linear parts of the object function into Hamiltonian.
     l_itr = mdl.get_objective_expr().iter_terms()
     for j in l_itr:
-        z_p = np.zeros(num_nodes, dtype=np.bool)
+        z_p = np.zeros(num_nodes, dtype=bool)
         index = q_d[j[0]]
         weight = j[1] * sign / 2
         z_p[index] = True
@@ -142,16 +142,16 @@ def get_operator(mdl: Model, auto_penalty: bool = True,
         if index1 == index2:
             shift += weight
         else:
-            z_p = np.zeros(num_nodes, dtype=np.bool)
+            z_p = np.zeros(num_nodes, dtype=bool)
             z_p[index1] = True
             z_p[index2] = True
             pauli_list.append([weight, Pauli(z_p, zero)])
 
-        z_p = np.zeros(num_nodes, dtype=np.bool)
+        z_p = np.zeros(num_nodes, dtype=bool)
         z_p[index1] = True
         pauli_list.append([-weight, Pauli(z_p, zero)])
 
-        z_p = np.zeros(num_nodes, dtype=np.bool)
+        z_p = np.zeros(num_nodes, dtype=bool)
         z_p[index2] = True
         pauli_list.append([-weight, Pauli(z_p, zero)])
 
@@ -168,7 +168,7 @@ def get_operator(mdl: Model, auto_penalty: bool = True,
 
         # linear parts of penalty*(Constant-func)**2: penalty*(-2*Constant*func)
         for __l in _iter_net_linear_coeffs(constraint):
-            z_p = np.zeros(num_nodes, dtype=np.bool)
+            z_p = np.zeros(num_nodes, dtype=bool)
             index = q_d[__l[0]]
             weight = __l[1]
             z_p[index] = True
@@ -188,16 +188,16 @@ def get_operator(mdl: Model, auto_penalty: bool = True,
                 if index1 == index2:
                     shift += penalty_weight1_weight2
                 else:
-                    z_p = np.zeros(num_nodes, dtype=np.bool)
+                    z_p = np.zeros(num_nodes, dtype=bool)
                     z_p[index1] = True
                     z_p[index2] = True
                     pauli_list.append([penalty_weight1_weight2, Pauli(z_p, zero)])
 
-                z_p = np.zeros(num_nodes, dtype=np.bool)
+                z_p = np.zeros(num_nodes, dtype=bool)
                 z_p[index1] = True
                 pauli_list.append([-penalty_weight1_weight2, Pauli(z_p, zero)])
 
-                z_p = np.zeros(num_nodes, dtype=np.bool)
+                z_p = np.zeros(num_nodes, dtype=bool)
                 z_p[index2] = True
                 pauli_list.append([-penalty_weight1_weight2, Pauli(z_p, zero)])
 
