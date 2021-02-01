@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -72,7 +72,7 @@ def measure_pauli_z(data, pauli):
     num_shots = sum(data.values())
     p_z_or_x = np.logical_or(pauli.z, pauli.x)
     for key, value in data.items():
-        bitstr = np.asarray(list(key))[::-1].astype(np.int).astype(np.bool)
+        bitstr = np.asarray(list(key))[::-1].astype(int).astype(bool)
         # pylint: disable=no-member
         sign = -1.0 if np.logical_xor.reduce(np.logical_and(bitstr, p_z_or_x)) else 1.0
         observable += sign * value
@@ -105,7 +105,7 @@ def covariance(data, pauli_1, pauli_2, avg_1, avg_2):
     p1_z_or_x = np.logical_or(pauli_1.z, pauli_1.x)
     p2_z_or_x = np.logical_or(pauli_2.z, pauli_2.x)
     for key, value in data.items():
-        bitstr = np.asarray(list(key))[::-1].astype(np.int).astype(np.bool)
+        bitstr = np.asarray(list(key))[::-1].astype(int).astype(bool)
         # pylint: disable=no-member
         sign_1 = -1.0 if np.logical_xor.reduce(np.logical_and(bitstr, p1_z_or_x)) else 1.0
         sign_2 = -1.0 if np.logical_xor.reduce(np.logical_and(bitstr, p2_z_or_x)) else 1.0
@@ -255,7 +255,7 @@ def evolution_instruction(pauli_list, evo_time, num_time_slices,
         ValueError: Unrecognized pauli
     """
 
-    if not isinstance(power, (int, np.int)) or power < 1:
+    if not isinstance(power, int) or power < 1:
         raise AquaError("power must be an integer and greater or equal to 1.")
 
     state_registers = QuantumRegister(pauli_list[0][1].num_qubits)

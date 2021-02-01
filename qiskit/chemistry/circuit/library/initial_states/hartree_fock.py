@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -99,7 +99,7 @@ def hartree_fock_bitstring(num_orbitals: int,
         raise ValueError('# of particles must be less than or equal to # of orbitals.')
 
     half_orbitals = num_orbitals // 2
-    bitstr = np.zeros(num_orbitals, np.bool)
+    bitstr = np.zeros(num_orbitals, bool)
     bitstr[-num_alpha:] = True
     bitstr[-(half_orbitals + num_beta):-half_orbitals] = True
 
@@ -107,7 +107,7 @@ def hartree_fock_bitstring(num_orbitals: int,
         new_bitstr = bitstr.copy()
 
         t_r = np.triu(np.ones((num_orbitals, num_orbitals)))
-        new_bitstr = t_r.dot(new_bitstr.astype(np.int)) % 2  # pylint: disable=no-member
+        new_bitstr = t_r.dot(new_bitstr.astype(int)) % 2  # pylint: disable=no-member
 
         bitstr = np.append(new_bitstr[1:half_orbitals], new_bitstr[half_orbitals + 1:]) \
             if two_qubit_reduction else new_bitstr
@@ -122,10 +122,10 @@ def hartree_fock_bitstring(num_orbitals: int,
         start_idx = beta.shape[0] - num_orbitals
         beta = beta[start_idx:, start_idx:]
         new_bitstr = beta.dot(bitstr.astype(int)) % 2
-        bitstr = new_bitstr.astype(np.bool)
+        bitstr = new_bitstr.astype(bool)
 
     if sq_list is not None:
         sq_list = [len(bitstr) - 1 - position for position in sq_list]
         bitstr = np.delete(bitstr, sq_list)
 
-    return bitstr.astype(np.bool)
+    return bitstr.astype(bool)

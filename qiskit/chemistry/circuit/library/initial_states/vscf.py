@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -60,7 +60,7 @@ def vscf_bitstring(basis: List[int]) -> np.ndarray:
         The bitstring representing the state of the VSCF state as array of bools.
     """
     num_qubits = sum(basis)
-    bitstr = np.zeros(num_qubits, np.bool)
+    bitstr = np.zeros(num_qubits, bool)
     count = 0
     for modal in basis:
         bitstr[num_qubits - count - 1] = True
