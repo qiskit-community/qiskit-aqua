@@ -213,7 +213,7 @@ def discretize_and_truncate(data, bounds, num_qubits, return_data_grid_elements=
             temp = []
             for grid_element in grid_elements:
                 for element_current in elements_current_dim:
-                    temp.append(deepcopy(grid_element).append(element_current))
+                    temp.append(grid_element+[element_current])
             grid_elements = deepcopy(temp)
             data_grid.append(elements_current_dim)
     data_grid = np.array(data_grid)
