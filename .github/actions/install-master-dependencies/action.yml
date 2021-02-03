@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -28,7 +28,6 @@ runs:
         sudo apt-get -y install libopenblas-dev
         git clone https://github.com/Qiskit/qiskit-aer.git /tmp/qiskit-aer
         cd /tmp/qiskit-aer
-        pip install -U -c /tmp/qiskit-aer/constraints.txt -r /tmp/qiskit-aer/requirements-dev.txt
         python /tmp/qiskit-aer/setup.py bdist_wheel -- -DCMAKE_CXX_COMPILER=g++-7 -DAER_THRUST_BACKEND=OMP -- -j4
         pip install /tmp/qiskit-aer/dist/qiskit_aer*whl
       shell: bash
