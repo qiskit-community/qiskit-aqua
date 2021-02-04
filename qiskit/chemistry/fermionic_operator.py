@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -182,10 +182,10 @@ class FermionicOperator:
         """
         a_list = []
         for i in range(n):
-            a_z = np.asarray([1] * i + [0] + [0] * (n - i - 1), dtype=np.bool)
-            a_x = np.asarray([0] * i + [1] + [0] * (n - i - 1), dtype=np.bool)
-            b_z = np.asarray([1] * i + [1] + [0] * (n - i - 1), dtype=np.bool)
-            b_x = np.asarray([0] * i + [1] + [0] * (n - i - 1), dtype=np.bool)
+            a_z = np.asarray([1] * i + [0] + [0] * (n - i - 1), dtype=bool)
+            a_x = np.asarray([0] * i + [1] + [0] * (n - i - 1), dtype=bool)
+            b_z = np.asarray([1] * i + [1] + [0] * (n - i - 1), dtype=bool)
+            b_x = np.asarray([0] * i + [1] + [0] * (n - i - 1), dtype=bool)
             a_list.append((Pauli(a_z, a_x), Pauli(b_z, b_x)))
         return a_list
 
@@ -205,10 +205,10 @@ class FermionicOperator:
             a_x = [0] * (i - 1) + [0] if i > 0 else []
             b_z = [0] * (i - 1) + [0] if i > 0 else []
             b_x = [0] * (i - 1) + [0] if i > 0 else []
-            a_z = np.asarray(a_z + [0] + [0] * (n - i - 1), dtype=np.bool)
-            a_x = np.asarray(a_x + [1] + [1] * (n - i - 1), dtype=np.bool)
-            b_z = np.asarray(b_z + [1] + [0] * (n - i - 1), dtype=np.bool)
-            b_x = np.asarray(b_x + [1] + [1] * (n - i - 1), dtype=np.bool)
+            a_z = np.asarray(a_z + [0] + [0] * (n - i - 1), dtype=bool)
+            a_x = np.asarray(a_x + [1] + [1] * (n - i - 1), dtype=bool)
+            b_z = np.asarray(b_z + [1] + [0] * (n - i - 1), dtype=bool)
+            b_x = np.asarray(b_x + [1] + [1] * (n - i - 1), dtype=bool)
             a_list.append((Pauli(a_z, a_x), Pauli(b_z, b_x)))
         return a_list
 
@@ -319,9 +319,9 @@ class FermionicOperator:
 
             remainder_sets.append(np.setdiff1d(parity_sets[j], flip_sets[j]))
 
-            update_pauli.append(Pauli(np.zeros(n, dtype=np.bool), np.zeros(n, dtype=np.bool)))
-            parity_pauli.append(Pauli(np.zeros(n, dtype=np.bool), np.zeros(n, dtype=np.bool)))
-            remainder_pauli.append(Pauli(np.zeros(n, dtype=np.bool), np.zeros(n, dtype=np.bool)))
+            update_pauli.append(Pauli(np.zeros(n, dtype=bool), np.zeros(n, dtype=bool)))
+            parity_pauli.append(Pauli(np.zeros(n, dtype=bool), np.zeros(n, dtype=bool)))
+            remainder_pauli.append(Pauli(np.zeros(n, dtype=bool), np.zeros(n, dtype=bool)))
             for k in range(n):
                 if np.in1d(k, update_sets[j]):
                     update_pauli[j].update_x(True, k)
@@ -330,9 +330,9 @@ class FermionicOperator:
                 if np.in1d(k, remainder_sets[j]):
                     remainder_pauli[j].update_z(True, k)
 
-            x_j = Pauli(np.zeros(n, dtype=np.bool), np.zeros(n, dtype=np.bool))
+            x_j = Pauli(np.zeros(n, dtype=bool), np.zeros(n, dtype=bool))
             x_j.update_x(True, j)
-            y_j = Pauli(np.zeros(n, dtype=np.bool), np.zeros(n, dtype=np.bool))
+            y_j = Pauli(np.zeros(n, dtype=bool), np.zeros(n, dtype=bool))
             y_j.update_z(True, j)
             y_j.update_x(True, j)
             a_list.append((update_pauli[j] * x_j * parity_pauli[j],
@@ -619,7 +619,7 @@ class FermionicOperator:
             FermionicOperator: Fermionic Hamiltonian
         """
         modes = self._modes
-        h_1 = np.eye(modes, dtype=np.complex)
+        h_1 = np.eye(modes, dtype=complex)
         h_2 = np.zeros((modes, modes, modes, modes))
         return FermionicOperator(h_1, h_2)
 
@@ -632,7 +632,7 @@ class FermionicOperator:
             FermionicOperator: Fermionic Hamiltonian
         """
         modes = self._modes
-        h_1 = np.eye(modes, dtype=np.complex) * 0.5
+        h_1 = np.eye(modes, dtype=complex) * 0.5
         h_1[modes // 2:, modes // 2:] *= -1.0
         h_2 = np.zeros((modes, modes, modes, modes))
         return FermionicOperator(h_1, h_2)

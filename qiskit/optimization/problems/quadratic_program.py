@@ -24,12 +24,12 @@ import numpy as np
 from docplex.mp.constr import (LinearConstraint as DocplexLinearConstraint,
                                QuadraticConstraint as DocplexQuadraticConstraint,
                                NotEqualConstraint)
-from docplex.mp.linear import Var
+from docplex.mp.dvar import Var
 from docplex.mp.model import Model
 from docplex.mp.model_reader import ModelReader
 from docplex.mp.quad import QuadExpr
 from docplex.mp.vartype import ContinuousVarType, BinaryVarType, IntegerVarType
-from numpy import (ndarray, zeros, bool as nbool)
+from numpy import ndarray, zeros
 from scipy.sparse import spmatrix
 
 from qiskit.aqua import MissingOptionalLibraryError
@@ -1192,7 +1192,7 @@ class QuadraticProgram:
         num_nodes = self.get_num_vars()
         pauli_list = []
         offset = 0.
-        zero = zeros(num_nodes, dtype=nbool)
+        zero = zeros(num_nodes, dtype=bool)
 
         # set a sign corresponding to a maximized or minimized problem.
         # sign == 1 is for minimized problem. sign == -1 is for maximized problem.
@@ -1203,7 +1203,7 @@ class QuadraticProgram:
 
         # convert linear parts of the object function into Hamiltonian.
         for idx, coef in self.objective.linear.to_dict().items():
-            z_p = zeros(num_nodes, dtype=nbool)
+            z_p = zeros(num_nodes, dtype=bool)
             weight = coef * sense / 2
             z_p[idx] = True
 
@@ -1227,16 +1227,16 @@ class QuadraticProgram:
             if i == j:
                 offset += weight
             else:
-                z_p = zeros(num_nodes, dtype=nbool)
+                z_p = zeros(num_nodes, dtype=bool)
                 z_p[i] = True
                 z_p[j] = True
                 pauli_list.append([weight, Pauli(z_p, zero)])
 
-            z_p = zeros(num_nodes, dtype=nbool)
+            z_p = zeros(num_nodes, dtype=bool)
             z_p[i] = True
             pauli_list.append([-weight, Pauli(z_p, zero)])
 
-            z_p = zeros(num_nodes, dtype=nbool)
+            z_p = zeros(num_nodes, dtype=bool)
             z_p[j] = True
             pauli_list.append([-weight, Pauli(z_p, zero)])
 

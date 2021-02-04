@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -54,7 +54,7 @@ class MultiStartOptimizer(OptimizationAlgorithm, ABC):
         self._trials = trials
         self._clip = clip
 
-    def multi_start_solve(self, minimize: Callable[[np.array], Tuple[np.array, Any]],
+    def multi_start_solve(self, minimize: Callable[[np.ndarray], Tuple[np.ndarray, Any]],
                           problem: QuadraticProgram) -> OptimizationResult:
         """Applies a multi start method given a local optimizer.
 
@@ -66,7 +66,7 @@ class MultiStartOptimizer(OptimizationAlgorithm, ABC):
             The result of the multi start algorithm applied to the problem.
         """
         fval_sol = INFINITY
-        x_sol = None        # type: Optional[np.array]
+        x_sol = None        # type: Optional[np.ndarray]
         rest_sol = None     # type: Optional[Tuple]
 
         # Implementation of multi-start optimizer
