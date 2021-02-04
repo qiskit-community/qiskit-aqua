@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -158,7 +158,7 @@ class IsingInstance:
             for i, e in enumerate(label):
                 if e == 'Z':
                     ones.append(i)
-            ones = np.array(ones)
+            ones = np.array(ones)  # type: ignore
             size = len(ones)
             if size == 0:
                 if not isinstance(self._const, int):

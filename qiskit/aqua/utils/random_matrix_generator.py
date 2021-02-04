@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -29,7 +29,7 @@ def random_h1_body(N):  # pylint: disable=invalid-name
         N (int): the number of spin orbitals.
 
     Returns:
-        np.ndarray: a 2-D matrix with np.complex data type.
+        np.ndarray: a 2-D matrix with complex data type.
 
     Raises:
         ValueError: invalid number of spin orbitals
@@ -53,7 +53,7 @@ def random_unitary(N):  # pylint: disable=invalid-name
         N (int): the dimension of unitary matrix
 
     Returns:
-        np.ndarray: a 2-D matrix with np.complex data type.
+        np.ndarray: a 2-D matrix with complex data type.
     """
     x = (aqua_globals.random.random(size=(N, N)) * N + 1j
          * aqua_globals.random.random(size=(N, N)) * N) / np.sqrt(2)
@@ -72,7 +72,7 @@ def random_h2_body(N, M):  # pylint: disable=invalid-name
         M (int) : number of non-zero entries
 
     Returns:
-        np.ndarray: a numpy 4-D tensor with np.complex data type.
+        np.ndarray: a numpy 4-D tensor with complex data type.
 
     Raises:
         ValueError: invalid spin orbitals

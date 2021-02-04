@@ -62,7 +62,7 @@ class TestAdaptVQE(QiskitChemistryTestCase):
         calc = AdaptVQE(self.transformation, solver)
 
         modes = 4
-        h_1 = np.eye(modes, dtype=np.complex)
+        h_1 = np.eye(modes, dtype=complex)
         h_2 = np.zeros((modes, modes, modes, modes))
         aux_ops = [FermionicOperator(h_1, h_2)]
         aux_ops_copy = copy.deepcopy(aux_ops)

@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -215,8 +215,8 @@ def knapsack_value_weight(solution, values, weights):
 
 
 def _get_pauli_op(num_values, indexes):
-    pauli_x = np.zeros(num_values, dtype=np.bool)
-    pauli_z = np.zeros(num_values, dtype=np.bool)
+    pauli_x = np.zeros(num_values, dtype=bool)
+    pauli_z = np.zeros(num_values, dtype=bool)
     for i in indexes:
         pauli_z[i] = not pauli_z[i]
 
