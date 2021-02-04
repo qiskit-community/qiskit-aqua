@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -74,7 +74,8 @@ class TensoredOp(ListOp):
     def eval(self,
              front: Union[str, dict, np.ndarray,
                           OperatorBase] = None) -> Union[OperatorBase, float, complex]:
-        return cast(Union[OperatorBase, float, complex], self.to_matrix_op().eval(front=front))
+        return cast(Union[OperatorBase, float, complex],
+                    self.to_matrix_op().eval(front=front))  # type: ignore
 
     # Try collapsing list or trees of tensor products.
     # TODO do this smarter
