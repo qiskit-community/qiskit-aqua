@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -16,7 +16,7 @@ and provides some related routines (extracting a solution,
 checking its objective function value).
 """
 
-from typing import Tuple
+from typing import Tuple, List
 import numpy as np
 from qiskit.quantum_info import Pauli
 
@@ -157,7 +157,7 @@ def get_operator(instance: np.ndarray, n: int, K: int) -> WeightedPauliOperator:
 def get_vehiclerouting_solution(instance: np.ndarray,
                                 n: int,
                                 K: int,
-                                result: MinimumEigensolverResult) -> np.ndarray:
+                                result: MinimumEigensolverResult) -> List[int]:
     """Tries to obtain a feasible solution (in vector form) of an instance
         of vehicle routing from the results dictionary.
 

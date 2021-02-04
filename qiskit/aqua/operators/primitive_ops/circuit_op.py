@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -193,7 +193,8 @@ class CircuitOp(PrimitiveOp):
         if isinstance(front, (PauliOp, CircuitOp, MatrixOp, CircuitStateFn)):
             return self.compose(front)
 
-        return cast(Union[OperatorBase, float, complex], self.to_matrix_op().eval(front=front))
+        return cast(Union[OperatorBase, float, complex],
+                    self.to_matrix_op().eval(front=front))  # type: ignore
 
     def to_circuit(self) -> QuantumCircuit:
         return self.primitive

@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -238,7 +238,7 @@ class NaturalGradient(GradientBase):
                 _, lambda3 = get_lambda2_lambda3(lambda_[0], lambda_[3])
                 lambda_[2] = lambda3
                 x_lambda[2] = reg_method(a, c, lambda_[2])
-        return lambda_mc, x_mc
+        return lambda_mc, x_mc  # type: ignore
 
     @staticmethod
     def _ridge(a: np.ndarray,

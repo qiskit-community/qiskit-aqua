@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -515,7 +515,7 @@ class TestSineIntegral(QiskitAquaTestCase):
         result = qae.run(self._qasm(shots))
         for method, expected_confint in expect.items():
             confint = qae.confidence_interval(alpha, method)
-            self.assertEqual(confint, expected_confint)
+            np.testing.assert_almost_equal(confint, expected_confint, decimal=10)
             self.assertTrue(confint[0] <= result[key] <= confint[1])
 
     def test_iqae_confidence_intervals(self):
