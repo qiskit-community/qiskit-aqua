@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -71,11 +71,11 @@ class BosonicOperator:
         paulis = []
 
         for i in range(n):
-            a_z = np.asarray([0] * i + [0] + [0] * (n - i - 1), dtype=np.bool)
-            a_x = np.asarray([0] * i + [1] + [0] * (n - i - 1), dtype=np.bool)
+            a_z = np.asarray([0] * i + [0] + [0] * (n - i - 1), dtype=bool)
+            a_x = np.asarray([0] * i + [1] + [0] * (n - i - 1), dtype=bool)
 
-            b_z = np.asarray([0] * i + [1] + [0] * (n - i - 1), dtype=np.bool)
-            b_x = np.asarray([0] * i + [1] + [0] * (n - i - 1), dtype=np.bool)
+            b_z = np.asarray([0] * i + [1] + [0] * (n - i - 1), dtype=bool)
+            b_x = np.asarray([0] * i + [1] + [0] * (n - i - 1), dtype=bool)
 
             paulis.append((Pauli(a_z, a_x), Pauli(b_z, b_x)))
 
@@ -141,16 +141,16 @@ class BosonicOperator:
         if m in modes:
             pauli_list = paulis[m]
         else:
-            a_z = np.asarray([0] * self._basis[m], dtype=np.bool)
-            a_x = np.asarray([0] * self._basis[m], dtype=np.bool)
+            a_z = np.asarray([0] * self._basis[m], dtype=bool)
+            a_x = np.asarray([0] * self._basis[m], dtype=bool)
             pauli_list = [(1, Pauli(a_z, a_x))]
 
         for m in range(1, self._num_modes):
             if m in modes:
                 new_list = paulis[m]
             else:
-                a_z = np.asarray([0] * self._basis[m], dtype=np.bool)
-                a_x = np.asarray([0] * self._basis[m], dtype=np.bool)
+                a_z = np.asarray([0] * self._basis[m], dtype=bool)
+                a_x = np.asarray([0] * self._basis[m], dtype=bool)
                 new_list = [(1, Pauli(a_z, a_x))]
             pauli_list = self._extend(pauli_list, new_list)
 

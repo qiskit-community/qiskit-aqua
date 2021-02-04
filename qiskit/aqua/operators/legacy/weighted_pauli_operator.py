@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -262,7 +262,7 @@ class WeightedPauliOperator(LegacyBaseOperator):
         Raises:
             ValueError: the scaling factor is not a valid type.
         """
-        if not isinstance(scaling_factor, (int, float, complex, np.int, np.float, np.complex)):
+        if not isinstance(scaling_factor, (int, float, complex)):
             raise ValueError(
                 "Type of scaling factor is a valid type. {} if given.".format(
                     scaling_factor.__class__))
@@ -292,14 +292,14 @@ class WeightedPauliOperator(LegacyBaseOperator):
 
     def __rmul__(self, other):
         """ Overload other * self """
-        if isinstance(other, (int, float, complex, np.int, np.float, np.complex)):
+        if isinstance(other, (int, float, complex)):
             return self._scaling_weight(other, copy=True)
         else:
             return other.multiply(self)
 
     def __mul__(self, other):
         """ Overload self * other """
-        if isinstance(other, (int, float, complex, np.int, np.float, np.complex)):
+        if isinstance(other, (int, float, complex)):
             return self._scaling_weight(other, copy=True)
         else:
             return self.multiply(other)
@@ -1100,7 +1100,7 @@ class Z2Symmetries:
             return cls([], [], [], None)
 
         for pauli in operator.paulis:
-            stacked_paulis.append(np.concatenate((pauli[1].x, pauli[1].z), axis=0).astype(np.int))
+            stacked_paulis.append(np.concatenate((pauli[1].x, pauli[1].z), axis=0).astype(int))
 
         stacked_matrix = np.array(np.stack(stacked_paulis))
         symmetries = kernel_F2(stacked_matrix)

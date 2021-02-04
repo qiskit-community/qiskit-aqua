@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -129,9 +129,9 @@ class UnivariatePiecewiseLinearObjective(CircuitFactory):
                 # the offsets given as parameters
                 self._mapped_slopes += [slopes[i] * (upper - lower) / (2**num_state_qubits - 1)]
                 self._mapped_offsets += [offsets[i]]
-        self._mapped_breakpoints = np.array(self._mapped_breakpoints)
-        self._mapped_slopes = np.array(self._mapped_slopes)
-        self._mapped_offsets = np.array(self._mapped_offsets)
+        self._mapped_breakpoints = np.array(self._mapped_breakpoints)  # type: ignore
+        self._mapped_slopes = np.array(self._mapped_slopes)  # type: ignore
+        self._mapped_offsets = np.array(self._mapped_offsets)  # type: ignore
 
         # approximate linear behavior by scaling and contracting around pi/4
         if len(self._mapped_breakpoints):  # pylint: disable=len-as-condition
