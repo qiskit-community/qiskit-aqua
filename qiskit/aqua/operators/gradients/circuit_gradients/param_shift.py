@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -289,13 +289,14 @@ class ParamShift(CircuitGradient):
             # evaluate the sampling probabilities which are then subtracted according to the
             # parameter shift rule.
             if is_statefn:
-                return shift_constant * np.subtract(np.multiply(items[0], np.conj(items[0])),
+                return shift_constant * np.subtract(np.multiply(items[0],  # type: ignore
+                                                                np.conj(items[0])),
                                                     np.multiply(items[1], np.conj(items[1])))
             # If x was not given as a StateFn the state amplitudes were already converted into
             # sampling probabilities which are then only subtracted according to the
             # parameter shift rule.
             else:
-                return shift_constant * np.subtract(items[0], items[1])
+                return shift_constant * np.subtract(items[0], items[1])  # type: ignore
         raise TypeError(
             'Probability gradients can only be evaluated from VectorStateFs or DictStateFns.')
 

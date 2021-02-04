@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -74,16 +74,16 @@ def get_operator(weight_matrix, K):  # pylint: disable=invalid-name
     for i in range(num_nodes):
         for j in range(num_nodes):
             if i != j:
-                xp = np.zeros(num_nodes, dtype=np.bool)
-                zp = np.zeros(num_nodes, dtype=np.bool)
+                xp = np.zeros(num_nodes, dtype=bool)
+                zp = np.zeros(num_nodes, dtype=bool)
                 zp[i] = True
                 zp[j] = True
                 pauli_list.append([A * 0.25, Pauli(zp, xp)])
             else:
                 shift += A * 0.25
     for i in range(num_nodes):
-        xp = np.zeros(num_nodes, dtype=np.bool)
-        zp = np.zeros(num_nodes, dtype=np.bool)
+        xp = np.zeros(num_nodes, dtype=bool)
+        zp = np.zeros(num_nodes, dtype=bool)
         zp[i] = True
         pauli_list.append([-A * Y, Pauli(zp, xp)])
 
@@ -92,17 +92,17 @@ def get_operator(weight_matrix, K):  # pylint: disable=invalid-name
     for i in range(num_nodes):
         for j in range(i):
             if weight_matrix[i, j] != 0:
-                xp = np.zeros(num_nodes, dtype=np.bool)
-                zp = np.zeros(num_nodes, dtype=np.bool)
+                xp = np.zeros(num_nodes, dtype=bool)
+                zp = np.zeros(num_nodes, dtype=bool)
                 zp[i] = True
                 zp[j] = True
                 pauli_list.append([-0.25, Pauli(zp, xp)])
 
-                zp2 = np.zeros(num_nodes, dtype=np.bool)
+                zp2 = np.zeros(num_nodes, dtype=bool)
                 zp2[i] = True
                 pauli_list.append([-0.25, Pauli(zp2, xp)])
 
-                zp3 = np.zeros(num_nodes, dtype=np.bool)
+                zp3 = np.zeros(num_nodes, dtype=bool)
                 zp3[j] = True
                 pauli_list.append([-0.25, Pauli(zp3, xp)])
 

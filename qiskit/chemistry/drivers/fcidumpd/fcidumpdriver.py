@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -101,6 +101,6 @@ class FCIDumpDriver(FermionicDriver):
         """
         dump(outpath,
              q_mol.num_orbitals, q_mol.num_alpha + q_mol.num_beta,
-             (q_mol.mo_onee_ints, q_mol.mo_onee_ints_b),
-             (q_mol.mo_eri_ints, q_mol.mo_eri_ints_ba, q_mol.mo_eri_ints_bb),
+             (q_mol.mo_onee_ints, q_mol.mo_onee_ints_b),  # type: ignore
+             (q_mol.mo_eri_ints, q_mol.mo_eri_ints_ba, q_mol.mo_eri_ints_bb),  # type: ignore
              q_mol.nuclear_repulsion_energy, ms2=q_mol.multiplicity - 1, orbsym=orbsym, isym=isym)

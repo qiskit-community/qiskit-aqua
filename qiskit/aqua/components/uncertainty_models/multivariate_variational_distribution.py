@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -50,7 +50,7 @@ class MultivariateVariationalDistribution(MultivariateDistribution):
 
         self.params = params
         probabilities = np.zeros(2 ** sum(num_qubits))
-        super().__init__(num_qubits, probabilities, low, high)
+        super().__init__(num_qubits, probabilities, low, high)  # type: ignore
         self._var_form = var_form
         self.params = params
 

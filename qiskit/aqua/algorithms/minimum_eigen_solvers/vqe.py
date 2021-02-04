@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -451,7 +451,7 @@ class VQE(VQAlgorithm, MinimumEigensolver):
         result = VQEResult()
         result.combine(vqresult)
         result.eigenvalue = vqresult.optimal_value + 0j
-        result.eigenstate = self.get_optimal_vector()
+        result.eigenstate = self.get_optimal_vector()  # type: ignore
 
         self._ret['energy'] = self.get_optimal_cost()
         self._ret['eigvals'] = np.asarray([self._ret['energy']])
