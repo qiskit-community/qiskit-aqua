@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -179,7 +179,7 @@ class BOPESSampler:
                     # find min 'distance' from point to previous points
                     min_index = np.argmin(np.linalg.norm(distances, axis=1))
                     # update initial point
-                    self._gss.solver.initial_point = prev_params[min_index]
+                    self._gss.solver.initial_point = prev_params[min_index]  # type: ignore
                 else:  # extrapolate using saved parameters
                     opt_params = self._points_optparams
                     param_sets = self._extrapolator.extrapolate(points=[point],

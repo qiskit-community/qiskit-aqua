@@ -1,7 +1,7 @@
 
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -475,7 +475,7 @@ class IterativeAmplitudeEstimation(AmplitudeEstimationAlgorithm):
         value = np.mean(a_confidence_interval)
 
         # transform to estimate
-        estimation = self.post_processing(value)
+        estimation = self.post_processing(value)  # type: ignore
         confidence_interval = [self.post_processing(x) for x in a_confidence_interval]
 
         # add result items to the results dictionary

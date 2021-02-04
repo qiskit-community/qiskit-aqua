@@ -149,13 +149,13 @@ class Hamiltonian(ChemistryOperator):
         # with freeze first, we have to re-base
         # the indexes for elimination according to how many orbitals were removed when freezing.
         #
-        orbitals_list = list(set(core_list + reduce_list))
+        orb_list = list(set(core_list + reduce_list))
         num_alpha = qmolecule.num_alpha
         num_beta = qmolecule.num_beta
         new_num_alpha = num_alpha
         new_num_beta = num_beta
-        if orbitals_list:
-            orbitals_list = np.array(orbitals_list)
+        if orb_list:
+            orbitals_list = np.array(orb_list)
             orbitals_list = \
                 orbitals_list[(cast(np.ndarray, orbitals_list) >= 0) &
                               (orbitals_list < qmolecule.num_orbitals)]

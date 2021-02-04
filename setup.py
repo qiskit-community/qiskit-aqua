@@ -85,7 +85,7 @@ setuptools.setup(
     extras_require={
         'torch': ["torch"],
         'cplex': ["cplex; python_version < '3.9'"],
-        'cvx': ['cvxpy>1.0.0,!=1.1.0,!=1.1.1,!=1.1.2'],
+        'cvx': ['cvxpy>1.0.0,!=1.1.0,!=1.1.1,!=1.1.2,!=1.1.8'],
         'pyscf': ["pyscf; sys_platform != 'win32'"],
         'skquant': ["scikit-quant"],
     },
