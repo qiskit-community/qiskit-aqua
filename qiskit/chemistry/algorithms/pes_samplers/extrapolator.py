@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -13,7 +13,7 @@
 """An implementation to extrapolate variational parameters."""
 
 from abc import ABC, abstractmethod
-from typing import Optional, List, Dict, Union
+from typing import Optional, List, Dict, Union, cast
 
 import numpy as np
 from sklearn import linear_model
@@ -211,7 +211,7 @@ class DifferentialExtrapolator(Extrapolator):
         self._model.fit(features[:-1], response)
         next_params = np.asarray(self._model.predict([features[-1]])[0].tolist())
         ret_params = {point: next_params for point in points}
-        return ret_params
+        return cast(Dict[float, List[float]], ret_params)
 
 
 class WindowExtrapolator(Extrapolator):
@@ -438,9 +438,11 @@ class SieveExtrapolator(Extrapolator):
             output_params = self._extrapolator.extrapolate(points, param_dict=param_dict)
 
         if self._filter_after:
-            ret_params = {point: np.asarray(list(map(lambda x:
-                                                     x if np.abs(x) > sieve_cutoff else 0, param)))
-                          for (point, param) in output_params.items()}
+            ret_params = \
+                cast(Dict[float, List[float]],
+                     {point: np.asarray(list(map(lambda x: x
+                                                 if np.abs(x) > sieve_cutoff else 0, param)))
+                      for (point, param) in output_params.items()})
         else:
-            ret_params = np.asarray(output_params)
+            ret_params = cast(Dict[float, List[float]], np.asarray(output_params))
         return ret_params

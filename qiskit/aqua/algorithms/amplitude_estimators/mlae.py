@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -248,12 +248,12 @@ class MaximumLikelihoodAmplitudeEstimation(AmplitudeEstimationAlgorithm):
             AquaError: If self.run() has not been called yet.
         """
         one_hits = []  # h_k: how often 1 has been measured, for a power Q^(m_k)
-        all_hits = []  # shots_k: how often has been measured at a power Q^(m_k)
+        all_hits: List = []  # shots_k: how often has been measured at a power Q^(m_k)
         try:
             if self.quantum_instance.is_statevector:
                 probabilities = self._evaluate_statevectors(self._ret['statevectors'])
                 one_hits = probabilities
-                all_hits = np.ones_like(one_hits)
+                all_hits = np.ones_like(one_hits)  # type: ignore
             else:
                 for c in self._ret['counts']:
                     one_hits += [c.get('1', 0)]  # return 0 if no key '1' found

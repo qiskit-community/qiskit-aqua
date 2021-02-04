@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020
+# (C) Copyright IBM 2019, 2021
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,6 +12,7 @@
 
 """ portfolio diversification """
 
+from typing import cast
 import numpy as np
 from qiskit.quantum_info import Pauli
 
@@ -164,7 +165,7 @@ def get_portfoliodiversification_solution(rho: np.ndarray,
 
     x_state = np.flip(x_state, axis=0)
 
-    return x_state
+    return cast(np.ndarray, x_state)
 
 
 def get_portfoliodiversification_value(rho: np.ndarray,

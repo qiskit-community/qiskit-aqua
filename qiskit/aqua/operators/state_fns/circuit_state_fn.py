@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -290,7 +290,8 @@ class CircuitStateFn(StateFn):
             new_front = self.compose(front)
             return cast(Union[OperatorBase, float, complex], new_front.eval())
 
-        return cast(Union[OperatorBase, float, complex], self.to_matrix_op().eval(front))
+        return cast(Union[OperatorBase, float, complex],
+                    self.to_matrix_op().eval(front))  # type: ignore
 
     def to_circuit(self, meas: bool = False) -> QuantumCircuit:
         """ Return QuantumCircuit representing StateFn """
