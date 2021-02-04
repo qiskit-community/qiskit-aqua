@@ -49,7 +49,7 @@ class VSCF(QuantumCircuit):
                 self.x(i)
 
 
-def vscf_bitstring(basis: List[int]) -> np.ndarray:
+def vscf_bitstring(basis: List[int]) -> List[bool]:
     """Compute the bitstring representing the VSCF initial state based on the modals per mode.
 
     Args:
@@ -66,4 +66,4 @@ def vscf_bitstring(basis: List[int]) -> np.ndarray:
         bitstr[num_qubits - count - 1] = True
         count += modal
 
-    return bitstr
+    return bitstr.tolist()

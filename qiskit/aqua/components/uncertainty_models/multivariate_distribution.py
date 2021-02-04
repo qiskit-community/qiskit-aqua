@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -61,11 +61,12 @@ class MultivariateDistribution(UncertaintyModel, ABC):
         if probabilities is not None:
 
             # normalize probabilities
-            probabilities = np.asarray(probabilities)
-            probabilities = probabilities / np.sum(probabilities)
+            probabilities = np.asarray(probabilities)  # type: ignore
+            probabilities = probabilities / np.sum(probabilities)  # type: ignore
 
             self._probabilities = probabilities
-            self._probabilities_vector = np.reshape(probabilities, 2**num_target_qubits)
+            self._probabilities_vector = np.reshape(probabilities,  # type: ignore
+                                                    2**num_target_qubits)
             self._probabilities_vector = np.asarray(self._probabilities_vector)
         else:
             self._probabilities = None
