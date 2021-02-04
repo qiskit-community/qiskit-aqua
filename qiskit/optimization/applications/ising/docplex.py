@@ -64,7 +64,7 @@ from math import fsum
 import numpy as np
 from docplex.mp.constants import ComparisonType
 from docplex.mp.constr import LinearConstraint, QuadraticConstraint
-from docplex.mp.linear import Var
+from docplex.mp.dvar import Var
 from docplex.mp.model import Model
 from qiskit.quantum_info import Pauli
 
