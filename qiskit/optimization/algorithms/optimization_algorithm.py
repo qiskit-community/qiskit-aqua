@@ -15,7 +15,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Union, Any, Optional, Dict, Type
+from typing import List, Union, Any, Optional, Dict, Type, cast
 from warnings import warn
 
 import numpy as np
@@ -137,7 +137,7 @@ class OptimizationResult:
             self._samples = samples
         else:
             self._samples = [
-                SolutionSample(x=x, fval=fval, status=status, probability=1.0)]
+                SolutionSample(x=cast(np.ndarray, x), fval=fval, status=status, probability=1.0)]
 
     def __repr__(self) -> str:
         return 'optimal function value: {}\n' \

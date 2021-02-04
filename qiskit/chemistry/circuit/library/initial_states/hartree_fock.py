@@ -59,7 +59,7 @@ def hartree_fock_bitstring(num_orbitals: int,
                            num_particles: Union[Tuple[int, int], int],
                            qubit_mapping: str = 'parity',
                            two_qubit_reduction: bool = True,
-                           sq_list: Optional[List[int]] = None) -> np.ndarray:
+                           sq_list: Optional[List[int]] = None) -> List[bool]:
     """Compute the bitstring representing the Hartree-Fock state for the specified system.
 
     Args:
@@ -121,11 +121,11 @@ def hartree_fock_bitstring(num_orbitals: int,
             beta[0, :] = 1
         start_idx = beta.shape[0] - num_orbitals
         beta = beta[start_idx:, start_idx:]
-        new_bitstr = beta.dot(bitstr.astype(int)) % 2
+        new_bitstr = beta.dot(bitstr.astype(int)) % 2  # type: ignore
         bitstr = new_bitstr.astype(bool)
 
     if sq_list is not None:
         sq_list = [len(bitstr) - 1 - position for position in sq_list]
         bitstr = np.delete(bitstr, sq_list)
 
-    return bitstr.astype(bool)
+    return bitstr.astype(bool).tolist()

@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -150,7 +150,7 @@ class CobylaOptimizer(MultiStartOptimizer):
                 raise QiskitOptimizationError('Unsupported constraint type!')
 
         # actual minimization function to be called by multi_start_solve
-        def _minimize(x_0: np.array) -> Tuple[np.array, Any]:
+        def _minimize(x_0: np.ndarray) -> Tuple[np.ndarray, Any]:
             x = fmin_cobyla(objective, x_0, constraints, rhobeg=self._rhobeg,
                             rhoend=self._rhoend, maxfun=self._maxfun, disp=self._disp,
                             catol=self._catol)
