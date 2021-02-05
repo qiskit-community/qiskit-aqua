@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -165,9 +165,7 @@ class TestBernoulli(QiskitAquaTestCase):
                     circuit.cry(2 * 2 ** power * angle, qr_eval[power], qr_objective[0])
             else:
                 oracle = QuantumCircuit(1)
-                oracle.x(0)
                 oracle.z(0)
-                oracle.x(0)
 
                 state_preparation = QuantumCircuit(1)
                 state_preparation.ry(angle, 0)
@@ -210,9 +208,7 @@ class TestBernoulli(QiskitAquaTestCase):
 
             else:
                 oracle = QuantumCircuit(1)
-                oracle.x(0)
                 oracle.z(0)
-                oracle.x(0)
                 state_preparation = QuantumCircuit(1)
                 state_preparation.ry(angle, 0)
                 grover_op = GroverOperator(oracle, state_preparation)
