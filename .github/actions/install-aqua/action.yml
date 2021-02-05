@@ -20,8 +20,10 @@ runs:
         if [ -f "$HOME/miniconda/etc/profile.d/conda.sh" ]; then
           source "$HOME/miniconda/etc/profile.d/conda.sh"
           conda activate
+          pip install https://github.com/Qiskit/qiskit-terra/archive/stable/0.16.zip
           pip install -e .[torch,cplex,cvx,pyscf]
         else
+          pip install https://github.com/Qiskit/qiskit-terra/archive/stable/0.16.zip
           pip install -e .[torch,cplex,cvx,pyscf,skquant]
         fi
         pip install -U -c constraints.txt -r requirements-dev.txt
