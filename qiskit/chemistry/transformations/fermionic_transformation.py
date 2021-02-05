@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -86,7 +86,7 @@ class FermionicTransformation(Transformation):
         Raises:
             QiskitChemistryError: Invalid symmetry reduction
         """
-        transformation = transformation.value
+        transformation = transformation.value  # type: ignore
         orbital_reduction = orbital_reduction if orbital_reduction is not None else []
         super().__init__()
         self._transformation = transformation

@@ -561,11 +561,11 @@ class QuadraticProgram:
         # keep track of names separately, since docplex allows to have None names.
         var_names = {}
         for x in model.iter_variables():
-            if isinstance(x.get_vartype(), ContinuousVarType):
+            if isinstance(x.vartype, ContinuousVarType):
                 x_new = self.continuous_var(x.lb, x.ub, x.name)
-            elif isinstance(x.get_vartype(), BinaryVarType):
+            elif isinstance(x.vartype, BinaryVarType):
                 x_new = self.binary_var(x.name)
-            elif isinstance(x.get_vartype(), IntegerVarType):
+            elif isinstance(x.vartype, IntegerVarType):
                 x_new = self.integer_var(x.lb, x.ub, x.name)
             else:
                 raise QiskitOptimizationError(
@@ -923,7 +923,7 @@ class QuadraticProgram:
         sense = self.objective.sense.value
 
         # convert a constant part of the object function into Hamiltonian.
-        offset += self.objective.constant * sense
+        offset += self.objective.constant * sense  # type: ignore
 
         # convert linear parts of the object function into Hamiltonian.
         for idx, coef in self.objective.linear.to_dict().items():
@@ -932,7 +932,7 @@ class QuadraticProgram:
             z_p[idx] = True
 
             pauli_list.append([-weight, Pauli(z_p, zero)])
-            offset += weight
+            offset += weight  # type: ignore
 
         # convert quadratic parts of the object function into Hamiltonian.
         # first merge coefficients (i, j) and (j, i)
@@ -949,7 +949,7 @@ class QuadraticProgram:
             weight = coeff * sense / 4
 
             if i == j:
-                offset += weight
+                offset += weight  # type: ignore
             else:
                 z_p = zeros(num_nodes, dtype=nbool)
                 z_p[i] = True
@@ -964,7 +964,7 @@ class QuadraticProgram:
             z_p[j] = True
             pauli_list.append([-weight, Pauli(z_p, zero)])
 
-            offset += weight
+            offset += weight  # type: ignore
 
         # Remove paulis whose coefficients are zeros.
         qubit_op = sum(PauliOp(pauli, coeff=coeff) for coeff, pauli in pauli_list)
