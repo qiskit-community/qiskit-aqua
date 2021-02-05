@@ -32,7 +32,7 @@ requirements = [
     "psutil>=5",
     "scikit-learn>=0.20.0",
     "dlx",
-    "docplex",
+    "docplex==2.15.194",
     "fastdtw",
     "setuptools>=40.1.0",
     "h5py",
