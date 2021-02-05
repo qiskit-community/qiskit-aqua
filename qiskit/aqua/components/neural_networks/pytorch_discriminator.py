@@ -206,7 +206,8 @@ class PyTorchDiscriminator(DiscriminativeNetwork):
         generated_batch = data[1]
         generated_prob = weights[1]
 
-        real_batch = np.reshape(real_batch, (len(real_batch), 1))
+        if real_batch.ndim == 1:
+            real_batch = np.reshape(real_batch, (len(real_batch), 1))
         real_batch = torch.tensor(real_batch, dtype=torch.float32)
         real_batch = Variable(real_batch)
         real_prob = np.reshape(real_prob, (len(real_prob), 1))
