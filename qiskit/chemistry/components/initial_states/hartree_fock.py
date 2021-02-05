@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -86,7 +86,7 @@ class HartreeFock(InitialState):
     def _build_bitstr(self):
 
         half_orbitals = self._num_orbitals // 2
-        bitstr = np.zeros(self._num_orbitals, np.bool)
+        bitstr = np.zeros(self._num_orbitals, bool)
         bitstr[-self._num_alpha:] = True
         bitstr[-(half_orbitals + self._num_beta):-half_orbitals] = True
 
@@ -94,7 +94,7 @@ class HartreeFock(InitialState):
             new_bitstr = bitstr.copy()
 
             t_r = np.triu(np.ones((self._num_orbitals, self._num_orbitals)))
-            new_bitstr = t_r.dot(new_bitstr.astype(np.int)) % 2  # pylint: disable=no-member
+            new_bitstr = t_r.dot(new_bitstr.astype(int)) % 2  # pylint: disable=no-member
 
             bitstr = np.append(new_bitstr[1:half_orbitals], new_bitstr[half_orbitals + 1:]) \
                 if self._two_qubit_reduction else new_bitstr
@@ -109,13 +109,13 @@ class HartreeFock(InitialState):
             start_idx = beta.shape[0] - self._num_orbitals
             beta = beta[start_idx:, start_idx:]
             new_bitstr = beta.dot(bitstr.astype(int)) % 2
-            bitstr = new_bitstr.astype(np.bool)
+            bitstr = new_bitstr.astype(bool)
 
         if self._qubit_tapering:
             sq_list = (len(bitstr) - 1) - np.asarray(self._sq_list)
             bitstr = np.delete(bitstr, sq_list)
 
-        self._bitstr = bitstr.astype(np.bool)
+        self._bitstr = bitstr.astype(bool)
 
     def construct_circuit(self, mode='circuit', register=None):
         """

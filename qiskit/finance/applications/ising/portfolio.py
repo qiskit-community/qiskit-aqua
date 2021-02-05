@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -66,16 +66,16 @@ def get_operator(mu, sigma, q, budget, penalty):  # pylint: disable=invalid-name
         i_ = i
         # i_ = n - i - 1
         if np.abs(mu_z[i_]) > 1e-6:
-            xp = np.zeros(n, dtype=np.bool)
-            zp = np.zeros(n, dtype=np.bool)
+            xp = np.zeros(n, dtype=bool)
+            zp = np.zeros(n, dtype=bool)
             zp[i_] = True
             pauli_list.append([mu_z[i_], Pauli(zp, xp)])
         for j in range(i):
             j_ = j
             # j_ = n-j-1
             if np.abs(sigma_z[i_, j_]) > 1e-6:
-                xp = np.zeros(n, dtype=np.bool)
-                zp = np.zeros(n, dtype=np.bool)
+                xp = np.zeros(n, dtype=bool)
+                zp = np.zeros(n, dtype=bool)
                 zp[i_] = True
                 zp[j_] = True
                 pauli_list.append([2 * sigma_z[i_, j_], Pauli(zp, xp)])
