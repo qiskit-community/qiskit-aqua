@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -46,7 +46,7 @@ class VSCF(InitialState):
 
     def _build_bitstr(self) -> np.ndarray:
 
-        bitstr = np.zeros(self._num_qubits, np.bool)
+        bitstr = np.zeros(self._num_qubits, bool)
         count = 0
         for i in range(len(self._basis)):
             bitstr[self._num_qubits-count-1] = True

@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -74,11 +74,15 @@ def _dump_1e_ints(hij: List[float],
     hij_elements = set()
     for i, j in itertools.product(mos, repeat=2):
         if i == j:
-            _write_to_outfile(outfile, hij[i][j], (i+idx_offset, j+idx_offset, 0, 0))
+            _write_to_outfile(outfile,
+                              hij[i][j],  # type: ignore
+                              (i+idx_offset, j+idx_offset, 0, 0))
             continue
-        if (j, i) in hij_elements and np.isclose(hij[i][j], hij[j][i]):
+        if (j, i) in hij_elements and np.isclose(hij[i][j], hij[j][i]):  # type: ignore
             continue
-        _write_to_outfile(outfile, hij[i][j], (i+idx_offset, j+idx_offset, 0, 0))
+        _write_to_outfile(outfile,
+                          hij[i][j],   # type: ignore
+                          (i+idx_offset, j+idx_offset, 0, 0))
         hij_elements.add((i, j))
 
 

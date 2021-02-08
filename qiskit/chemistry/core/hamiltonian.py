@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -85,8 +85,8 @@ class Hamiltonian(ChemistryOperator):
         warnings.warn('The Hamiltonian class is deprecated as of Qiskit Aqua 0.8.0 and will be '
                       'removed no earlier than 3 months after the release date. Instead, the '
                       'FermionicTransformation can be used.', DeprecationWarning, stacklevel=2)
-        transformation = transformation.value
-        qubit_mapping = qubit_mapping.value
+        transformation = transformation.value  # type: ignore
+        qubit_mapping = qubit_mapping.value  # type: ignore
         orbital_reduction = orbital_reduction if orbital_reduction is not None else []
         super().__init__()
         self._transformation = transformation

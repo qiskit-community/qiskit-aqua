@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -19,13 +19,18 @@ from enum import Enum
 from math import fsum, isclose
 import warnings
 import numpy as np
-from numpy import (ndarray, zeros, bool as nbool)
+from numpy import (ndarray, zeros)
 from scipy.sparse import spmatrix
 
 from docplex.mp.constr import (LinearConstraint as DocplexLinearConstraint,
                                QuadraticConstraint as DocplexQuadraticConstraint,
                                NotEqualConstraint)
-from docplex.mp.linear import Var
+try:
+    # new location for 2.16.196 (Nov 2020) or newer
+    from docplex.mp.dvar import Var
+except ImportError:
+    # old location for 2.15.194 (Jul 2020) or before
+    from docplex.mp.linear import Var
 from docplex.mp.model import Model
 from docplex.mp.model_reader import ModelReader
 from docplex.mp.quad import QuadExpr
@@ -561,11 +566,11 @@ class QuadraticProgram:
         # keep track of names separately, since docplex allows to have None names.
         var_names = {}
         for x in model.iter_variables():
-            if isinstance(x.get_vartype(), ContinuousVarType):
+            if isinstance(x.vartype, ContinuousVarType):
                 x_new = self.continuous_var(x.lb, x.ub, x.name)
-            elif isinstance(x.get_vartype(), BinaryVarType):
+            elif isinstance(x.vartype, BinaryVarType):
                 x_new = self.binary_var(x.name)
-            elif isinstance(x.get_vartype(), IntegerVarType):
+            elif isinstance(x.vartype, IntegerVarType):
                 x_new = self.integer_var(x.lb, x.ub, x.name)
             else:
                 raise QiskitOptimizationError(
@@ -591,7 +596,7 @@ class QuadraticProgram:
         # get quadratic part of objective
         quadratic = {}
         if isinstance(model.objective_expr, QuadExpr):
-            for quad_triplet in model.objective_expr.generate_quad_triplets():
+            for quad_triplet in model.objective_expr.iter_quad_triplets():
                 i = var_names[quad_triplet[0]]
                 j = var_names[quad_triplet[1]]
                 v = quad_triplet[2]
@@ -618,15 +623,22 @@ class QuadraticProgram:
             name = constraint.name
             sense = constraint.sense
 
-            rhs = 0
-            if not isinstance(constraint.lhs, Var):
-                rhs -= constraint.lhs.constant
-            if not isinstance(constraint.rhs, Var):
-                rhs += constraint.rhs.constant
+            left_expr = constraint.get_left_expr()
+            right_expr = constraint.get_right_expr()
+            # for linear constraints we may get an instance of Var instead of expression,
+            # e.g. x + y = z
+            if isinstance(left_expr, Var):
+                left_expr = left_expr + 0
+            if isinstance(right_expr, Var):
+                right_expr = right_expr + 0
+
+            rhs = right_expr.constant - left_expr.constant
 
             lhs = {}
-            for x in constraint.iter_net_linear_coefs():
-                lhs[var_names[x[0]]] = x[1]
+            for x in left_expr.iter_variables():
+                lhs[var_names[x]] = left_expr.get_coef(x)
+            for x in right_expr.iter_variables():
+                lhs[var_names[x]] = lhs.get(var_names[x], 0.0) - right_expr.get_coef(x)
 
             if sense == sense.EQ:
                 self.linear_constraint(lhs, '==', rhs, name)
@@ -916,23 +928,23 @@ class QuadraticProgram:
         num_nodes = self.get_num_vars()
         pauli_list = []
         offset = 0
-        zero = zeros(num_nodes, dtype=nbool)
+        zero = zeros(num_nodes, dtype=bool)
 
         # set a sign corresponding to a maximized or minimized problem.
         # sign == 1 is for minimized problem. sign == -1 is for maximized problem.
         sense = self.objective.sense.value
 
         # convert a constant part of the object function into Hamiltonian.
-        offset += self.objective.constant * sense
+        offset += self.objective.constant * sense  # type: ignore
 
         # convert linear parts of the object function into Hamiltonian.
         for idx, coef in self.objective.linear.to_dict().items():
-            z_p = zeros(num_nodes, dtype=nbool)
+            z_p = zeros(num_nodes, dtype=bool)
             weight = coef * sense / 2
             z_p[idx] = True
 
             pauli_list.append([-weight, Pauli(z_p, zero)])
-            offset += weight
+            offset += weight  # type: ignore
 
         # convert quadratic parts of the object function into Hamiltonian.
         # first merge coefficients (i, j) and (j, i)
@@ -949,22 +961,22 @@ class QuadraticProgram:
             weight = coeff * sense / 4
 
             if i == j:
-                offset += weight
+                offset += weight  # type: ignore
             else:
-                z_p = zeros(num_nodes, dtype=nbool)
+                z_p = zeros(num_nodes, dtype=bool)
                 z_p[i] = True
                 z_p[j] = True
                 pauli_list.append([weight, Pauli(z_p, zero)])
 
-            z_p = zeros(num_nodes, dtype=nbool)
+            z_p = zeros(num_nodes, dtype=bool)
             z_p[i] = True
             pauli_list.append([-weight, Pauli(z_p, zero)])
 
-            z_p = zeros(num_nodes, dtype=nbool)
+            z_p = zeros(num_nodes, dtype=bool)
             z_p[j] = True
             pauli_list.append([-weight, Pauli(z_p, zero)])
 
-            offset += weight
+            offset += weight  # type: ignore
 
         # Remove paulis whose coefficients are zeros.
         qubit_op = sum(PauliOp(pauli, coeff=coeff) for coeff, pauli in pauli_list)
