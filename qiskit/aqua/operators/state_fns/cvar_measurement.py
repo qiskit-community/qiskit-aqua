@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -228,7 +228,7 @@ class CVaRMeasurement(OperatorStateFn):
         from .circuit_state_fn import CircuitStateFn
 
         if isinstance(front, CircuitStateFn):
-            front = front.eval()
+            front = front.eval()  # type: ignore
 
         # Standardize the inputs to a dict
         if isinstance(front, DictStateFn):
@@ -385,7 +385,7 @@ def _check_is_diagonal(operator: OperatorBase) -> bool:
             return True
 
     if isinstance(operator, ListOp):
-        return np.all(operator.traverse(_check_is_diagonal))
+        return np.all(operator.traverse(_check_is_diagonal))  # type: ignore
 
     # cannot efficiently check if a operator is diagonal, converting to matrix
     matrix = operator.to_matrix()

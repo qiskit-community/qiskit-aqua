@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -27,7 +27,7 @@ def h2_transform_slow(h2_, unitary_matrix):
     Transform h2 based on unitary matrix, and overwrite original property.
     #MARK: A naive implementation based on MATLAB implementation.
     Args:
-        unitary_matrix (numpy 2-D array, np.float or np.complex):
+        unitary_matrix (numpy 2-D array, float or complex):
                     Unitary matrix for h2 transformation.
     Returns:
         temp_ret: matrix

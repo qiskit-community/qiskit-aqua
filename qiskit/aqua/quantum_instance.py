@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -323,7 +323,7 @@ class QuantumInstance:
                             meas_error_mitigation_fitter, timestamp = \
                                 self._meas_error_mitigation_fitters.get(key, (None, 0.))
                             meas_error_mitigation_fitter = \
-                                meas_error_mitigation_fitter.subset_fitter(
+                                meas_error_mitigation_fitter.subset_fitter(  # type: ignore
                                     qubit_sublist=qubit_index)
                             logger.info("The qubits used in the current job is the subset of "
                                         "previous jobs, "
@@ -394,8 +394,10 @@ class QuantumInstance:
                     if curr_qubit_index == qubit_index:
                         tmp_fitter = meas_error_mitigation_fitter
                     else:
-                        tmp_fitter = meas_error_mitigation_fitter.subset_fitter(curr_qubit_index)
-                    tmp_result = tmp_fitter.filter.apply(
+                        tmp_fitter = \
+                            meas_error_mitigation_fitter.subset_fitter(  # type: ignore
+                                curr_qubit_index)
+                    tmp_result = tmp_fitter.filter.apply(  # type: ignore
                         tmp_result, self._meas_error_mitigation_method
                     )
                     for i, n in enumerate(c_idx):
@@ -601,8 +603,8 @@ class QuantumInstance:
             qubit_index_str = '_'.join([str(x) for x in qubit_index]) + "_{}".format(shots)
             fitter, timestamp = self._meas_error_mitigation_fitters.get(qubit_index_str, None)
             if fitter is not None:
-                return fitter.cal_matrix, timestamp
+                return fitter.cal_matrix, timestamp  # type: ignore
         else:
-            return {k: (v.cal_matrix, t) for k, (v, t)
+            return {k: (v.cal_matrix, t) for k, (v, t)  # type: ignore
                     in self._meas_error_mitigation_fitters.items()}
         return None

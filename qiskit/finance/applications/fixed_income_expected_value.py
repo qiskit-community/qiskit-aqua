@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -117,7 +117,7 @@ class FixedIncomeExpectedValue(QuantumCircuit):
 
         # apply approximation scaling
         offset_angle = (offset - 1 / 2) * np.pi / 2 * rescaling_factor + np.pi / 4
-        slope_angles = slopes * np.pi / 2 * rescaling_factor
+        slope_angles = slopes * np.pi / 2 * rescaling_factor  # type: ignore
 
         # apply approximate payoff function
         self.ry(2 * offset_angle, self.num_qubits - 1)

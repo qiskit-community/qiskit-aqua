@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -204,7 +204,7 @@ class SlsqpOptimizer(MultiStartOptimizer):
                 raise QiskitOptimizationError('Unsupported constraint type!')
 
         # actual minimization function to be called by multi_start_solve
-        def _minimize(x_0: np.array) -> Tuple[np.array, Any]:
+        def _minimize(x_0: np.ndarray) -> Tuple[np.ndarray, Any]:
             output = fmin_slsqp(_objective, x_0, eqcons=slsqp_eq_constraints,
                                 ieqcons=slsqp_ineq_constraints, bounds=slsqp_bounds,
                                 fprime=_objective_gradient, iter=self._iter, acc=self._acc,

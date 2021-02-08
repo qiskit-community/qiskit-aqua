@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -216,8 +216,8 @@ class TestDataProviders(QiskitFinanceTestCase):
                 [8.44268222e-05, 1.00000000e+00]
             ])
             covariance = np.array(
-                [[7.035e+00, -1.653e-04],
-                 [-1.653e-04, 1.199e-06]])
+                [[7.174e+00, -1.671e-04],
+                 [-1.671e-04, 1.199e-06]])
             with self.subTest('test YahooDataProvider get_covariance_matrix'):
                 np.testing.assert_array_almost_equal(yahoo.get_covariance_matrix(),
                                                      covariance, decimal=3)

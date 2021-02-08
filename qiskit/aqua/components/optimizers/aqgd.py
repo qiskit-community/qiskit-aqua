@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -121,7 +121,7 @@ class AQGD(Optimizer):
         }
 
     def _compute_objective_fn_and_gradient(self, params: List[float],
-                                           obj: Callable) -> Tuple[float, np.array]:
+                                           obj: Callable) -> Tuple[float, np.ndarray]:
         """
         Obtains the objective function value for params and the analytical quantum derivatives of
         the objective function with respect to each parameter. Requires
@@ -154,8 +154,8 @@ class AQGD(Optimizer):
         gradient = 0.5 * (values[1:num_params + 1] - values[1 + num_params:])
         return obj_value, gradient
 
-    def _update(self, params: np.array, gradient: np.array, mprev: np.array,
-                step_size: float, momentum_coeff: float) -> Tuple[List[float], List[float]]:
+    def _update(self, params: np.ndarray, gradient: np.ndarray, mprev: np.ndarray,
+                step_size: float, momentum_coeff: float) -> Tuple[np.ndarray, List[float]]:
         """
         Updates full parameter array based on a step that is a convex
         combination of the gradient and previous momentum
@@ -203,7 +203,7 @@ class AQGD(Optimizer):
         # and current windowed average of objective values
         prev_avg = np.mean(self._prev_loss[:window_size])
         curr_avg = np.mean(self._prev_loss[1:window_size + 1])
-        self._avg_objval = curr_avg
+        self._avg_objval = curr_avg  # type: ignore
 
         # Update window of objective values
         # (Remove earliest value)
@@ -309,13 +309,14 @@ class AQGD(Optimizer):
                 iter_count += 1
 
                 # Check for parameter convergence before potentially costly function evaluation
-                converged = self._converged_parameter(params, self._param_tol)
+                converged = self._converged_parameter(params, self._param_tol)  # type: ignore
                 if converged:
                     break
 
                 # Calculate objective function and estimate of analytical gradient
                 objval, gradient = \
-                    self._compute_objective_fn_and_gradient(params, objective_function)
+                    self._compute_objective_fn_and_gradient(params,  # type: ignore
+                                                            objective_function)
 
                 logger.info(" Iter: %4d | Obj: %11.6f | Grad Norm: %f",
                             iter_count, objval, np.linalg.norm(gradient, ord=np.inf))
@@ -329,7 +330,8 @@ class AQGD(Optimizer):
                     break
 
                 # Update parameters and momentum
-                params, momentum = self._update(params, gradient, momentum, eta, mom_coeff)
+                params, momentum = self._update(params,  # type: ignore
+                                                gradient, momentum, eta, mom_coeff)
             # end inner iteration
             # if converged, end iterating over epochs
             if converged:

@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -158,14 +158,12 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
                 - self.state_preparation.num_ancillas
 
             oracle = QuantumCircuit(num_state_qubits)
-            oracle.x(self.objective_qubits)
             oracle.h(self.objective_qubits[-1])
             if len(self.objective_qubits) == 1:
                 oracle.x(self.objective_qubits[0])
             else:
                 oracle.mcx(self.objective_qubits[:-1], self.objective_qubits[-1])
             oracle.h(self.objective_qubits[-1])
-            oracle.x(self.objective_qubits)
 
             # construct the grover operator
             return GroverOperator(oracle, self.state_preparation)
