@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -91,10 +91,10 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         try:
             # pylint: disable=import-outside-toplevel
             from qiskit import Aer
-        except Exception as ex:  # pylint: disable=broad-except
+            backend = Aer.get_backend('statevector_simulator')
+        except ImportError as ex:  # pylint: disable=broad-except
             self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(ex)))
             return
-        backend = Aer.get_backend('statevector_simulator')
         solver = VQE(var_form=self.var_form, optimizer=self.optimizer,
                      quantum_instance=QuantumInstance(backend=backend))
 
@@ -108,10 +108,10 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         try:
             # pylint: disable=import-outside-toplevel
             from qiskit import Aer
-        except Exception as ex:  # pylint: disable=broad-except
+            backend = Aer.get_backend('qasm_simulator')
+        except ImportError as ex:  # pylint: disable=broad-except
             self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(ex)))
             return
-        backend = Aer.get_backend('qasm_simulator')
         optimizer = SPSA(maxiter=200, last_avg=5)
         solver = VQE(var_form=self.var_form, optimizer=optimizer,
                      expectation=PauliExpectation(),
@@ -129,10 +129,10 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         try:
             # pylint: disable=import-outside-toplevel
             from qiskit import Aer
-        except Exception as ex:  # pylint: disable=broad-except
+            backend = Aer.get_backend('qasm_simulator')
+        except ImportError as ex:  # pylint: disable=broad-except
             self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(ex)))
             return
-        backend = Aer.get_backend('qasm_simulator')
         optimizer = SPSA(maxiter=200, last_avg=5)
         solver = VQE(var_form=self.var_form, optimizer=optimizer,
                      expectation=AerPauliExpectation(),
