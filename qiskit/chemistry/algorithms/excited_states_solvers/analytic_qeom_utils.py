@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -27,7 +27,7 @@ def delta(p, r):
     return 0
 
 
-def commutator_adj_nor(n: int, Emu: List, Enu: List) -> Tuple[FermionicOperatorNBody, List]:
+def commutator_adj_nor(n: int, Emu: List, Enu: List) -> Tuple[FermionicOperatorNBody, np.ndarray]:
     """
     Args:
       n [int]:    number of orbitals
@@ -41,8 +41,8 @@ def commutator_adj_nor(n: int, Emu: List, Enu: List) -> Tuple[FermionicOperatorN
         Tuple FermionicOperatorNBody and list
     """
 
-    hs = np.array([None]*4)
-    idx = np.array([None]*4)
+    hs = np.asarray([None]*4)
+    idx = np.asarray([None]*4)
     if len(Emu) == 2 and len(Enu) == 2:
         a, i = Emu
         b, j = Enu
@@ -103,7 +103,7 @@ def commutator_adj_nor(n: int, Emu: List, Enu: List) -> Tuple[FermionicOperatorN
 
 
 # pylint: disable=unused-argument
-def commutator_adj_adj(n: int, Emu: List, Enu: List) -> Tuple[FermionicOperatorNBody, List]:
+def commutator_adj_adj(n: int, Emu: List, Enu: List) -> Tuple[FermionicOperatorNBody, np.ndarray]:
     """
     Args:
       n: number of orbitals
@@ -116,8 +116,8 @@ def commutator_adj_adj(n: int, Emu: List, Enu: List) -> Tuple[FermionicOperatorN
     Returns:
           Tuple FermionicOperatorNBody and list
     """
-    hs = np.array([None] * 4)
-    idx = np.array([None] * 4)
+    hs = np.asarray([None] * 4)
+    idx = np.asarray([None] * 4)
     # if len(Emu) == 2 and len(Enu) == 2:
     #   a, i = Emu
     #   b, j = Enu
@@ -134,7 +134,7 @@ def commutator_adj_adj(n: int, Emu: List, Enu: List) -> Tuple[FermionicOperatorN
 
 
 def triple_commutator_adj_onebody_nor(n: int, Emu: List, Enu: List, H: np.ndarray) \
-        -> Tuple[FermionicOperatorNBody, List]:
+        -> Tuple[FermionicOperatorNBody, np.ndarray]:
     """
     Args:
       n: number of orbitals
@@ -147,8 +147,8 @@ def triple_commutator_adj_onebody_nor(n: int, Emu: List, Enu: List, H: np.ndarra
     Returns:
           Tuple FermionicOperatorNBody and list
     """
-    hs = np.array([None] * 4)
-    idx = np.array([None]*4)
+    hs = np.asarray([None] * 4)
+    idx = np.asarray([None]*4)
     if len(Emu) == 2 and len(Enu) == 2:
         a, i = Emu
         b, j = Enu
@@ -384,7 +384,7 @@ def triple_commutator_adj_onebody_nor(n: int, Emu: List, Enu: List, H: np.ndarra
     return FermionicOperatorNBody(hs), idx
 
 
-def triple_commutator_adj_onebody_adj(n, Emu, Enu, H) -> Tuple[FermionicOperatorNBody, List]:
+def triple_commutator_adj_onebody_adj(n, Emu, Enu, H) -> Tuple[FermionicOperatorNBody, np.ndarray]:
     """
     Args:
       n [int]:          number of orbitals
@@ -397,8 +397,8 @@ def triple_commutator_adj_onebody_adj(n, Emu, Enu, H) -> Tuple[FermionicOperator
     Returns:
         Tuple FermionicOperatorNBody and list
     """
-    hs = np.array([None] * 4)
-    idx = np.array([None]*4)
+    hs = np.asarray([None] * 4)
+    idx = np.asarray([None]*4)
     if len(Emu) == 2 and len(Enu) == 2:
         a, i = Emu
         b, j = Enu
@@ -448,7 +448,7 @@ def triple_commutator_adj_onebody_adj(n, Emu, Enu, H) -> Tuple[FermionicOperator
     return FermionicOperatorNBody(hs), idx
 
 
-def triple_commutator_adj_twobody_nor(n, Emu, Enu, H) -> Tuple[FermionicOperatorNBody, List]:
+def triple_commutator_adj_twobody_nor(n, Emu, Enu, H) -> Tuple[FermionicOperatorNBody, np.ndarray]:
     """
     Args:
       n [int]:          number of orbitals
@@ -462,8 +462,8 @@ def triple_commutator_adj_twobody_nor(n, Emu, Enu, H) -> Tuple[FermionicOperator
     Returns:
         Tuple FermionicOperatorNBody and list
     """
-    hs = np.array([None] * 4)
-    idx = np.array([None]*4)
+    hs = np.asarray([None] * 4)
+    idx = np.asarray([None]*4)
     if len(Emu) == 2 and len(Enu) == 2:
         a, i = Emu
         b, j = Enu
@@ -1411,7 +1411,7 @@ def triple_commutator_adj_twobody_nor(n, Emu, Enu, H) -> Tuple[FermionicOperator
     return FermionicOperatorNBody(hs), idx
 
 
-def triple_commutator_adj_twobody_adj(n, Emu, Enu, H) -> Tuple[FermionicOperatorNBody, List]:
+def triple_commutator_adj_twobody_adj(n, Emu, Enu, H) -> Tuple[FermionicOperatorNBody, np.ndarray]:
     """
     Args:
       n [int]:          number of orbitals
@@ -1425,8 +1425,8 @@ def triple_commutator_adj_twobody_adj(n, Emu, Enu, H) -> Tuple[FermionicOperator
     Returns:
         Tuple FermionicOperatorNBody and list
     """
-    hs = np.array([None] * 4)
-    idx = np.array([None]*4)
+    hs = np.asarray([None] * 4)
+    idx = np.asarray([None]*4)
     if len(Emu) == 2 and len(Enu) == 2:
         a, i = Emu
         b, j = Enu

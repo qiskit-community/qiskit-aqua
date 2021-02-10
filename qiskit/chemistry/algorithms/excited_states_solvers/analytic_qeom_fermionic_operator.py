@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -155,7 +155,7 @@ class FermionicOperatorNBody:
             Returns:
                 numpy.ndarray: Array of mode indexes
             """
-            indexes = np.array([])
+            indexes = np.asarray([])
             if n % 2 != 0:
                 return indexes
 
@@ -176,7 +176,7 @@ class FermionicOperatorNBody:
             Returns:
                 numpy.ndarray: Array of mode indexes
             """
-            indexes = np.array([])
+            indexes = np.asarray([])
             if n % 2 != 0:
                 return indexes
             if j < n / 2:
@@ -196,7 +196,7 @@ class FermionicOperatorNBody:
             Returns:
                 numpy.ndarray: Array of mode indexes
             """
-            indexes = np.array([])
+            indexes = np.asarray([])
             if n % 2 != 0:
                 return indexes
             if j < n / 2:
