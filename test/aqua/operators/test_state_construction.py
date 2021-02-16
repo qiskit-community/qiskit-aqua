@@ -69,7 +69,7 @@ class TestStateConstruction(QiskitAquaTestCase):
         qc.h(0)
         sv_res = execute(qc, BasicAer.get_backend('statevector_simulator')).result()
         sv_vector = sv_res.get_statevector()
-        qc_op = PrimitiveOp(qc) @ Zero
+        qc_op = PrimitiveOp(qc) @ Zero  # type: CircuitStateFn
 
         qasm_res = execute(qc_op.to_circuit(meas=True),
                            BasicAer.get_backend('qasm_simulator')).result()

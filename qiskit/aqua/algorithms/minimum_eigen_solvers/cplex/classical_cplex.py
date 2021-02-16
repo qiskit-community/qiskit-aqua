@@ -98,6 +98,7 @@ def new_cplex(timelimit=600, thread=1, display=2):
     # pylint: disable=import-outside-toplevel
     from .simple_cplex import SimpleCPLEX
     cplex = SimpleCPLEX()
+    # pylint: disable=no-member
     cplex.parameters.timelimit.set(timelimit)
     cplex.parameters.threads.set(thread)
     cplex.parameters.mip.display.set(display)

@@ -195,6 +195,8 @@ class QMolecule:
                         _data = None
                     return _data
 
+                # pylint: disable=no-member
+
                 # A version field was added to save format from version 2 so if
                 # there is no version then we have original (version 1) format
                 version = 1
@@ -582,6 +584,7 @@ class QMolecule:
                                 self.atom_xyz[n][0] * QMolecule.BOHR,
                                 self.atom_xyz[n][1] * QMolecule.BOHR,
                                 self.atom_xyz[n][2] * QMolecule.BOHR)
+            # pylint: disable=no-member
             if self.mo_coeff is not None:
                 logger.info("MO coefficients A: %s", self.mo_coeff.shape)
                 logger.debug("\n%s", self.mo_coeff)
