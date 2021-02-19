@@ -180,7 +180,7 @@ class TestQGAN(QiskitAquaTestCase):
             num_epochs = 5
 
             # Reshape data in a multi-variate fashion
-            # (two iid variables, each represented by half the generated samples)
+            # (two iid variables, each represented by half of the generated samples)
             real_data = self._real_data.reshape((-1,2))
             bounds = [self._bounds, self._bounds]
 
@@ -241,7 +241,7 @@ class TestQGAN(QiskitAquaTestCase):
         num_epochs = 5
 
         # Reshape data in a multi-variate fashion
-        # (two iid variables, each represented by half the generated samples)
+        # (two iid variables, each represented by half of the generated samples)
         real_data = self._real_data.reshape((-1,2))
         bounds = [self._bounds, self._bounds]
 
