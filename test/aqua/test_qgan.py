@@ -168,7 +168,7 @@ class TestQGAN(QiskitAquaTestCase):
                                    trained_statevector['rel_entr'], delta=0.1)
         except MissingOptionalLibraryError:
             self.skipTest('pytorch not installed, skipping test')
-            
+
     def test_qgan_training_run_algo_torch_multivariate(self):
         """Test QGAN training using a PyTorch discriminator, for multivariate distributions."""
         try:
@@ -180,8 +180,9 @@ class TestQGAN(QiskitAquaTestCase):
             num_epochs = 5
 
             # Reshape data in a multi-variate fashion
-            # (two iid variables, each represented by half of the generated samples)
-            real_data = self._real_data.reshape((-1,2))
+            # (two independent identically distributed variables,
+            # each represented by half of the generated samples)
+            real_data = self._real_data.reshape((-1, 2))
             bounds = [self._bounds, self._bounds]
 
             _qgan = QGAN(real_data,
@@ -204,7 +205,7 @@ class TestQGAN(QiskitAquaTestCase):
                                    trained_statevector['rel_entr'], delta=0.1)
         except MissingOptionalLibraryError:
             self.skipTest('pytorch not installed, skipping test')
-            
+
     def test_qgan_training_run_algo_numpy(self):
         """Test QGAN training using a NumPy discriminator."""
         # Set number of qubits per data dimension as list of k qubit values[#q_0,...,#q_k-1]
@@ -230,7 +231,7 @@ class TestQGAN(QiskitAquaTestCase):
                                                  seed_simulator=aqua_globals.random_seed,
                                                  seed_transpiler=aqua_globals.random_seed))
         self.assertAlmostEqual(trained_qasm['rel_entr'], trained_statevector['rel_entr'], delta=0.1)
-        
+
     def test_qgan_training_run_algo_numpy_multivariate(self):
         """Test QGAN training using a NumPy discriminator."""
         # Set number of qubits per data dimension as list of k qubit values[#q_0,...,#q_k-1]
@@ -241,8 +242,9 @@ class TestQGAN(QiskitAquaTestCase):
         num_epochs = 5
 
         # Reshape data in a multi-variate fashion
-        # (two iid variables, each represented by half of the generated samples)
-        real_data = self._real_data.reshape((-1,2))
+        # (two independent identically distributed variables,
+        # each represented by half of the generated samples)
+        real_data = self._real_data.reshape((-1, 2))
         bounds = [self._bounds, self._bounds]
 
         _qgan = QGAN(real_data,
@@ -263,6 +265,6 @@ class TestQGAN(QiskitAquaTestCase):
                                                  seed_transpiler=aqua_globals.random_seed))
         self.assertAlmostEqual(trained_qasm['rel_entr'], trained_statevector['rel_entr'], delta=0.1)
 
-        
+
 if __name__ == '__main__':
     unittest.main()
