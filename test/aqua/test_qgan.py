@@ -233,7 +233,7 @@ class TestQGAN(QiskitAquaTestCase):
         self.assertAlmostEqual(trained_qasm['rel_entr'], trained_statevector['rel_entr'], delta=0.1)
 
     def test_qgan_training_run_algo_numpy_multivariate(self):
-        """Test QGAN training using a NumPy discriminator."""
+        """Test QGAN training using a NumPy discriminator, for multivariate distributions."""
         # Set number of qubits per data dimension as list of k qubit values[#q_0,...,#q_k-1]
         num_qubits = [1, 2]
         # Batch size
