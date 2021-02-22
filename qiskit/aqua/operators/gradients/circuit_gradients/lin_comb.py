@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -361,7 +361,7 @@ class LinComb(CircuitGradient):
             tuples_list = deepcopy(target_params)
             target_params = []
             for tuples in tuples_list:
-                if all([param in state_qc._parameter_table.get_keys() for param in tuples]):
+                if all(param in state_qc._parameter_table.get_keys() for param in tuples):
                     for param in tuples:
                         if param not in target_params:
                             target_params.append(param)
@@ -369,7 +369,7 @@ class LinComb(CircuitGradient):
             tuples_list = deepcopy([target_params])
             target_params = []
             for tuples in tuples_list:
-                if all([param in state_qc._parameter_table.get_keys() for param in tuples]):
+                if all(param in state_qc._parameter_table.get_keys() for param in tuples):
                     for param in tuples:
                         if param not in target_params:
                             target_params.append(param)
