@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -38,7 +38,8 @@ class TestReadmeSample(QiskitChemistryTestCase):
             # pylint: disable=import-outside-toplevel
             # pylint: disable=unused-import
             from qiskit import Aer
-        except Exception as ex:  # pylint: disable=broad-except
+            _ = Aer.get_backend('statevector_simulator')
+        except ImportError as ex:  # pylint: disable=broad-except
             self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(ex)))
             return
 

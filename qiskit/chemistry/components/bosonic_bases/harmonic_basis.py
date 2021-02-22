@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -150,7 +150,7 @@ class HarmonicBasis(BosonicBasis):
 
             # Note: these negative indices as detected below are explicitly generated in
             # _compute_modes for other potential uses. They are not wanted by this logic.
-            if any([index < 0 for index in indices]):
+            if any(index < 0 for index in indices):
                 kinetic_term = True
                 indices = np.absolute(indices)
             indexes = {}  # type: Dict[int, int]
