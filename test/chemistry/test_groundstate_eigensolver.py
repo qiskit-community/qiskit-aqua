@@ -83,7 +83,7 @@ class TestGroundStateEigensolver(QiskitChemistryTestCase):
         aux_ops_copy = copy.deepcopy(aux_ops)
 
         _ = calc.solve(self.driver, aux_ops)
-        assert all([a == b for a, b in zip(aux_ops, aux_ops_copy)])
+        assert all(a == b for a, b in zip(aux_ops, aux_ops_copy))
 
     def _setup_evaluation_operators(self):
         # first we run a ground state calculation
