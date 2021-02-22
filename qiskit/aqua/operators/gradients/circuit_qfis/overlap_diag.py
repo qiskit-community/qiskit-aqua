@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -186,7 +186,7 @@ def _partition_circuit(circuit):
                 # If the next_node can be moved back a layer without
                 # without becoming the descendant of a parameterized gate,
                 # then do it.
-                if not any([ledger[x] for x in indices]):
+                if not any(ledger[x] for x in indices):
 
                     apply_node_op(next_node, layer)
                     next_layer.remove_op_node(next_node)

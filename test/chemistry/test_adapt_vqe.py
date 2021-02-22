@@ -68,7 +68,7 @@ class TestAdaptVQE(QiskitChemistryTestCase):
         aux_ops_copy = copy.deepcopy(aux_ops)
 
         _ = calc.solve(self.driver, aux_ops)
-        assert all([a == b for a, b in zip(aux_ops, aux_ops_copy)])
+        assert all(a == b for a, b in zip(aux_ops, aux_ops_copy))
 
     def test_custom_minimum_eigensolver(self):
         """ Test custom MES """
