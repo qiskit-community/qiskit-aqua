@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -364,6 +364,6 @@ class GaussianDriver(FermionicDriver):
         m_x = mel.matlist.get(name)
         if m_x is None:
             return None
-        dims = tuple([abs(i) for i in m_x.dimens])
+        dims = tuple(abs(i) for i in m_x.dimens)
         mat = np.reshape(m_x.expand(), dims, order='F')
         return mat
