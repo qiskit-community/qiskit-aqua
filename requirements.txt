@@ -6,7 +6,8 @@ numpy>=1.17
 psutil>=5
 scikit-learn>=0.20.0
 dlx
-docplex
+docplex; sys_platform != 'darwin'
+docplex==2.15.194; sys_platform == 'darwin'
 fastdtw
 setuptools>=40.1.0
 h5py
