@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -30,6 +30,7 @@ class TestQuadraticObjective(QiskitOptimizationTestCase):
         for _ in range(5):
             quadratic_program.continuous_var()
 
+        # pylint: disable=no-member
         self.assertEqual(quadratic_program.objective.constant, 0.0)
         self.assertEqual(len(quadratic_program.objective.linear.to_dict()), 0)
         self.assertEqual(len(quadratic_program.objective.quadratic.to_dict()), 0)
@@ -84,6 +85,7 @@ class TestQuadraticObjective(QiskitOptimizationTestCase):
         quadratic_program.objective.linear = linear_coeffs
         quadratic_program.objective.quadratic = quadratic_coeffs
 
+        # pylint: disable=no-member
         self.assertEqual(quadratic_program.objective.constant, constant)
         self.assertTrue((quadratic_program.objective.linear.to_array() == linear_coeffs).all())
         self.assertTrue(
