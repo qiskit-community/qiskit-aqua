@@ -58,6 +58,20 @@ class DiscriminativeNetwork(ABC):
         raise NotImplementedError()
 
     @abstractmethod
+    def save_model(self, dir):
+        """
+        Save discriminator model
+
+        Args:
+            dir: Directory to save the model
+
+        Raises:
+            NotImplementedError: not implemented
+
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
     def loss(self, x, y, weights=None):
         """
         Loss function used for optimization
@@ -81,8 +95,8 @@ class DiscriminativeNetwork(ABC):
         Perform one training step w.r.t to the discriminator's parameters
 
         Args:
-            data (numpy.ndarray): Data batch.
-            weights (numpy.ndarray): Data sample weights.
+            data (numpy.ndarray, list): Data batch.
+            weights (numpy.ndarray, list): Data sample weights.
             penalty (bool): Indicate whether or not penalty function
                is applied to the loss function. Ignored if no penalty function defined.
             quantum_instance (QuantumInstance): used to run Quantum network.

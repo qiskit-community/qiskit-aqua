@@ -44,7 +44,7 @@ class QuantumGenerator(GenerativeNetwork):
 
     def __init__(self,
                  bounds: np.ndarray,
-                 num_qubits: List[int],
+                 num_qubits: Union[List[int], np.ndarray],
                  generator_circuit: Optional[Union[UnivariateVariationalDistribution,
                                                    MultivariateVariationalDistribution,
                                                    QuantumCircuit]] = None,
@@ -143,6 +143,24 @@ class QuantumGenerator(GenerativeNetwork):
         self._shots = None
         self._discriminator = None
         self._ret = {}  # type: Dict[str, Any]
+
+    @property
+    def parameter_values(self):
+        """
+        Get parameter values from the quantum generator
+        Returns:
+            Current parameter values
+        """
+        return self._bound_parameters
+
+    @parameter_values.setter
+    def parameter_values(self, p_values):
+        """
+        Set parameter values for the quantum generator
+        Args:
+            p_values: Parameter values
+        """
+        self._bound_parameters = p_values
 
     def set_seed(self, seed):
         """
@@ -340,7 +358,6 @@ class QuantumGenerator(GenerativeNetwork):
                 warnings.warn('Please ensure the optimizer max iterations are set to 1 '
                               'to ensure that the generator '
                               'and discriminator are updated in an alternating fashion.')
-
         objective = self._get_objective_function(quantum_instance, self._discriminator)
         self._bound_parameters, loss, _ = self._optimizer.optimize(
             num_vars=len(self._bound_parameters),

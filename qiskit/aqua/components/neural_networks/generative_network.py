@@ -29,6 +29,17 @@ class GenerativeNetwork(ABC):
         self._num_qubits = 0
         self._bounds = list()
 
+    @property
+    @abstractmethod
+    def parameter_values(self):
+        """
+        Get parameter values from the generator
+
+        Raises:
+            NotImplementedError: not implemented
+        """
+        raise NotImplementedError()
+
     @abstractmethod
     def set_seed(self, seed):
         """
@@ -37,6 +48,18 @@ class GenerativeNetwork(ABC):
         Args:
             seed (int): seed
 
+        Raises:
+            NotImplementedError: not implemented
+        """
+        raise NotImplementedError()
+
+    @abstractmethod
+    def set_discriminator(self, discriminator):
+        """
+        Set discriminator network.
+
+        Args:
+            discriminator (Discriminator): Discriminator used to compute the loss function.
         Raises:
             NotImplementedError: not implemented
         """
