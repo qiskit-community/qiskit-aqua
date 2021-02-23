@@ -276,6 +276,6 @@ class TestQGAN(QiskitAquaTestCase):
         self.assertAlmostEqual(numeric_results['rel_entr'],
                                analytic_results['rel_entr'], delta=0.1)
 
-        
+
 if __name__ == '__main__':
     unittest.main()
