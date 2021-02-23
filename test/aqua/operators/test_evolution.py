@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -86,11 +86,12 @@ class TestEvolution(QiskitAquaTestCase):
         # wf = (Pl^Pl) + (Ze^Ze)
         wf = (op).exp_i() @ CX @ (H ^ I) @ Zero
         mean = evolution.convert(wf)
-        circuit_params = mean.to_circuit().parameters
-        # Check that the non-identity parameters are in the circuit
-        for p in thetas[1:]:
-            self.assertIn(p, circuit_params)
-        self.assertNotIn(thetas[0], circuit_params)
+        circuit = mean.to_circuit()
+        # Check that all parameters are in the circuit
+        for p in thetas:
+            self.assertIn(p, circuit.parameters)
+        # Check that the identity-parameters only exist as global phase
+        self.assertNotIn(thetas[0], circuit._parameter_table.get_keys())
 
     def test_bind_parameters(self):
         """ bind parameters test """
