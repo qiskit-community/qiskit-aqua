@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -11,14 +11,22 @@
 # that they have been altered from the originals.
 
 name: 'Install PSI4'
-description: 'Installs Anaconda with PSI4'
-
+description: 'Installs Miniconda with PSI4'
+inputs:
+  python-version:
+    description: 'Python version'
+    required: true
 runs:
   using: "composite"
-  steps: 
+  steps:
     - run : |
-        wget http://vergil.chemistry.gatech.edu/psicode-download/Psi4conda-1.3.2-py37-Linux-x86_64.sh --tries=3 -O miniconda.sh || echo "Psi4 download failed"
+        wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh --tries=3 -O miniconda.sh || echo "Miniconda download failed"
         if [ -f "miniconda.sh" ]; then
             bash miniconda.sh -b -p $HOME/miniconda
+            rm -rf miniconda.sh
+            source "$HOME/miniconda/etc/profile.d/conda.sh"
+            conda activate
+            conda install -y psi4 python=${{ inputs.python-version }} -c psi4
+            pip install -U numpy
         fi
       shell: bash

@@ -152,7 +152,9 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - uses: ./.github/actions/install-psi4
-        if: ${{ matrix.python-version == 3.7 }}
+        with:
+          python-version: ${{ matrix.python-version }}
+        if: ${{ matrix.python-version < 3.8 }}
       - uses: ./.github/actions/install-libraries
       - uses: ./.github/actions/install-master-dependencies
         if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
@@ -162,8 +164,10 @@ jobs:
           if [ -f "$HOME/miniconda/etc/profile.d/conda.sh" ]; then
             source "$HOME/miniconda/etc/profile.d/conda.sh"
             conda activate
-            pip install https://github.com/rpmuller/pyquante2/archive/master.zip
           fi
+          pip install -U Cython
+          pip install https://github.com/rpmuller/pyquante2/archive/master.zip
+        if: ${{ matrix.python-version < 3.9 }}
         shell: bash
       - name: Chemistry Unit Tests under Python ${{ matrix.python-version }}
         uses: ./.github/actions/run-tests
