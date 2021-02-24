@@ -78,7 +78,7 @@ class OperatorStateFn(StateFn):
 
     def adjoint(self) -> OperatorBase:
         return OperatorStateFn(self.primitive.adjoint(),
-                               coeff=self.coeff.conjugate(),
+                               coeff=np.conj(self.coeff),
                                is_measurement=(not self.is_measurement))
 
     def _expand_dim(self, num_qubits: int) -> 'OperatorStateFn':

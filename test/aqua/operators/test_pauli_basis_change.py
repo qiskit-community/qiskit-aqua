@@ -77,22 +77,28 @@ class TestPauliCoB(QiskitAquaTestCase):
         # Helpful prints for debugging commented out below.
         multis = [(X ^ Y) + (I ^ Z) + (Z ^ Z), (Y ^ X ^ I ^ I) + (I ^ Z ^ Y ^ X)]
         dests = [Y ^ Y, I ^ I ^ I ^ Z]
-        for paulis, dest in zip(multis, dests):
+        for pauli, dest in zip(multis, dests):
+            # print(pauli)
+            # print(dest)
             converter = PauliBasisChange(destination_basis=dest, traverse=True)
 
-            cob = converter.convert(paulis)
+            cob = converter.convert(pauli)
             self.assertIsInstance(cob, SummedOp)
-            inst = [None] * len(paulis)
-            ret_dest = [None] * len(paulis)
-            cob_mat = [None] * len(paulis)
-            for i, pauli in enumerate(paulis):
-                inst[i], ret_dest[i] = converter.get_cob_circuit(pauli.to_pauli_op().primitive)
+            inst = [None] * len(pauli.oplist)
+            ret_dest = [None] * len(pauli.oplist)
+            cob_mat = [None] * len(pauli.oplist)
+            for i in range(len(pauli.oplist)):
+                inst[i], ret_dest[i] = converter.get_cob_circuit(pauli.oplist[i].primitive)
                 self.assertEqual(dest, ret_dest[i])
+
+                # print(inst[i])
+                # print(pauli.oplist[i].to_matrix())
+                # print(np.round(inst[i].adjoint().to_matrix() @ cob.oplist[i].to_matrix()))
 
                 self.assertIsInstance(cob.oplist[i], ComposedOp)
                 cob_mat[i] = cob.oplist[i].to_matrix()
-                np.testing.assert_array_almost_equal(pauli.to_matrix(), cob_mat[i])
-            np.testing.assert_array_almost_equal(paulis.to_matrix(), sum(cob_mat))
+                np.testing.assert_array_almost_equal(pauli.oplist[i].to_matrix(), cob_mat[i])
+            np.testing.assert_array_almost_equal(pauli.to_matrix(), sum(cob_mat))
 
 
 if __name__ == '__main__':
