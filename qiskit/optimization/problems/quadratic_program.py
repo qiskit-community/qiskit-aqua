@@ -1260,7 +1260,7 @@ class QuadraticProgram:
         return qubit_op, offset
 
     def from_ising(self,
-                   qubit_op: Union[OperatorBase, WeightedPauliOperator, PauliSumOp],
+                   qubit_op: Union[OperatorBase, WeightedPauliOperator],
                    offset: float = 0.0, linear: bool = False) -> None:
         r"""Create a quadratic program from a qubit operator and a shift value.
 

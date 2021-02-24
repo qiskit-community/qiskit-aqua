@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -18,6 +18,7 @@ from qiskit.quantum_info import Pauli
 from qiskit.circuit.library import CXGate, SGate, TGate, HGate, SwapGate, CZGate
 
 from .primitive_ops.primitive_op import PrimitiveOp
+from .primitive_ops.pauli_op import PauliOp
 from .state_fns.state_fn import StateFn
 
 # pylint: disable=invalid-name
