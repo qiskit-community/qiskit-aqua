@@ -1,0 +1,8 @@
+---
+features:
+  - |
+    Added getters and setters for the seed, optimizer, and discriminator
+    properties of the `QuantumGenerator` class. Prior to this, we needed
+    to either change the generator, or access a protected member 
+    (QuantumGenerator._optimizer) of the QuantumGenerator class in order
+    to change the generator optimizer.
