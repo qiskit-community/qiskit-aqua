@@ -1,0 +1,7 @@
+---
+features:
+  - |
+    Add support for analytic gradients to the :class:`~qiskit.aqua.algorithms.QGAN`
+    algorithm. The default optimizer still remains ADAM + numeric estimates, but
+    if a :class:`~qiskit.aqua.operators.gradients.Gradient` object / callback is provided, the optimizer will use analytic
+    gradients.
