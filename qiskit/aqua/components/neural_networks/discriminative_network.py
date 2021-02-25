@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -14,6 +14,8 @@
 
 from typing import List, Iterable, Optional, Dict
 from abc import ABC, abstractmethod
+
+import numpy as np
 
 from qiskit.aqua import QuantumInstance
 
@@ -77,14 +79,14 @@ class DiscriminativeNetwork(ABC):
     def loss(self,
              x: Iterable,
              y: Iterable,
-             weights=None):
+             weights:Optional[np.ndarray] = None):
         """
         Loss function used for optimization
 
         Args:
-            x (Discriminator): output.
-            y (Label): the data point
-            weights (numpy.ndarray): Data weights.
+            x: output.
+            y: the data point
+            weights: Data weights.
 
         Returns:
             Loss w.r.t to the generated data points.
@@ -105,17 +107,17 @@ class DiscriminativeNetwork(ABC):
         Perform one training step w.r.t to the discriminator's parameters
 
         Args:
-            data (numpy.ndarray, list): Data batch.
-            weights (numpy.ndarray, list): Data sample weights.
-            penalty (bool): Indicate whether or not penalty function
+            data: Data batch.
+            weights: Data sample weights.
+            penalty: Indicate whether or not penalty function
                is applied to the loss function. Ignored if no penalty function defined.
             quantum_instance (QuantumInstance): used to run Quantum network.
                Ignored for a classical network.
-            shots (int): Number of shots for hardware or qasm execution.
+            shots: Number of shots for hardware or qasm execution.
                 Ignored for classical network
 
         Returns:
-            dict: with Discriminator loss and updated parameters.
+            dict: with discriminator loss and updated parameters.
 
         Raises:
             NotImplementedError: not implemented
