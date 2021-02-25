@@ -12,8 +12,10 @@
 
 """ Discriminative Quantum or Classical Neural Networks."""
 
-from typing import List
+from typing import List, Iterable, Optional, Dict
 from abc import ABC, abstractmethod
+
+from qiskit.aqua import QuantumInstance
 
 
 class DiscriminativeNetwork(ABC):
@@ -44,7 +46,7 @@ class DiscriminativeNetwork(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def get_label(self, x):
+    def get_label(self, x: Iterable):
         """
         Apply quantum/classical neural network to the given input sample and compute
         the respective data label
@@ -58,12 +60,12 @@ class DiscriminativeNetwork(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def save_model(self, dir):
+    def save_model(self, snapshot_dir: str):
         """
         Save discriminator model
 
         Args:
-            dir: Directory to save the model
+            snapshot_dir: Directory to save the model
 
         Raises:
             NotImplementedError: not implemented
@@ -72,7 +74,10 @@ class DiscriminativeNetwork(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def loss(self, x, y, weights=None):
+    def loss(self,
+             x: Iterable,
+             y: Iterable,
+             weights=None):
         """
         Loss function used for optimization
 
@@ -90,7 +95,12 @@ class DiscriminativeNetwork(ABC):
         raise NotImplementedError()
 
     @abstractmethod
-    def train(self, data, weights, penalty=False, quantum_instance=None, shots=None):
+    def train(self,
+              data: Iterable,
+              weights: Iterable,
+              penalty: bool = False,
+              quantum_instance: Optional[QuantumInstance] = None,
+              shots: Optional[int] = None) -> Dict:
         """
         Perform one training step w.r.t to the discriminator's parameters
 

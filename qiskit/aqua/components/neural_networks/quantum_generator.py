@@ -151,18 +151,21 @@ class QuantumGenerator(GenerativeNetwork):
         self._ret = {}  # type: Dict[str, Any]
 
     @property
-    def parameter_values(self):
+    def parameter_values(self) -> Union[List, np.ndarray]:
         """
         Get parameter values from the quantum generator
+
         Returns:
             Current parameter values
         """
         return self._bound_parameters
 
     @parameter_values.setter
-    def parameter_values(self, p_values):
+    def parameter_values(self, p_values: Union[List, np.ndarray]
+                         ) -> None:
         """
         Set parameter values for the quantum generator
+
         Args:
             p_values: Parameter values
         """
