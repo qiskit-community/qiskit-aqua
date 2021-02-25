@@ -14,7 +14,7 @@
 PyTorch Discriminator Neural Network
 """
 
-from typing import Dict, Any, Iterable, Optional
+from typing import Dict, Any, Iterable, Optional, Sequence, cast
 import os
 import logging
 import numpy as np
@@ -206,10 +206,10 @@ class PyTorchDiscriminator(DiscriminativeNetwork):
         # pylint: disable=E1102
         # Reset gradients
         self._optimizer.zero_grad()
-        real_batch = data[0]
-        real_prob = weights[0]
-        generated_batch = data[1]
-        generated_prob = weights[1]
+        real_batch = cast(Sequence, data)[0]
+        real_prob = cast(Sequence, weights)[0]
+        generated_batch = cast(Sequence, data)[1]
+        generated_prob = cast(Sequence, weights)[1]
 
         real_batch = np.reshape(real_batch, (len(real_batch), self._n_features))
         real_batch = torch.tensor(real_batch, dtype=torch.float32)

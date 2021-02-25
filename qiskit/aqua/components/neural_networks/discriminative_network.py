@@ -79,7 +79,7 @@ class DiscriminativeNetwork(ABC):
     def loss(self,
              x: Iterable,
              y: Iterable,
-             weights:Optional[np.ndarray] = None):
+             weights: Optional[np.ndarray] = None):
         """
         Loss function used for optimization
 
