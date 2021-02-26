@@ -40,7 +40,7 @@ requirements = [
     "pandas",
     "quandl",
     "yfinance",
-    "retworkx>=0.5.0",
+    "retworkx>=0.7.0",
     "dataclasses; python_version < '3.7'"
 ]
 
