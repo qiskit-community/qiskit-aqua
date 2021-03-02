@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -165,13 +165,13 @@ class RawFeatureVector(BlueprintCircuit):
         """
         return list(param for param in self._parameters if isinstance(param, ParameterExpression))
 
-    def bind_parameters(self, value_dict):
+    def bind_parameters(self, value_dict):  # pylint: disable=arguments-differ
         """Bind parameters."""
         if not isinstance(value_dict, dict):
             value_dict = dict(zip(self.ordered_parameters, value_dict))
         return super().bind_parameters(value_dict)
 
-    def assign_parameters(self, param_dict, inplace=False):
+    def assign_parameters(self, param_dict, inplace=False):  # pylint: disable=arguments-differ
         """Call the initialize instruction."""
         if not isinstance(param_dict, dict):
             param_dict = dict(zip(self.ordered_parameters, param_dict))
