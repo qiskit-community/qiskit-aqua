@@ -233,7 +233,7 @@ class TestBernoulli(QiskitAquaTestCase):
 
             warnings.filterwarnings('always', category=DeprecationWarning)
             # fourier transform
-            iqft = QFT(m, do_swaps=False).inverse()
+            iqft = QFT(m, do_swaps=False).inverse().reverse_bits()
             circuit.append(iqft.to_instruction(), q_ancilla)
 
             expected_unitary = self._unitary.execute(circuit).get_unitary()

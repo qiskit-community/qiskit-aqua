@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -80,7 +80,7 @@ class PhaseEstimationCircuit:
         self._state_in_circuit_factory = state_in_circuit_factory
 
         if iqft is None:
-            iqft = QFT(num_ancillae, do_swaps=False, inverse=True)
+            iqft = QFT(num_ancillae, do_swaps=False, inverse=True).reverse_bits()
         self._iqft = iqft
 
         self._num_time_slices = num_time_slices
