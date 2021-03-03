@@ -247,7 +247,7 @@ class Shor(QuantumAlgorithm):
             )
 
         # Apply inverse QFT
-        iqft = QFT(len(self._up_qreg)).inverse().to_instruction()
+        iqft = QFT(len(self._up_qreg)).inverse().reverse_bits().to_instruction()
         circuit.append(iqft, self._up_qreg)
 
         if measurement:
