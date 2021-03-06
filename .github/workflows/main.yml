@@ -21,6 +21,9 @@ on:
     branches:
       - master
       - 'stable/**'
+  schedule:
+    # run every day at 1AM
+    - cron: '0 1 * * *'
 
 jobs:
   Checks:
@@ -125,6 +128,7 @@ jobs:
         uses: ./.github/actions/run-tests
         with:
           domain: aqua
+          event-name: ${{ github.event_name }}
           python-version: ${{ matrix.python-version }}
       - name: Deprecation Messages
         run: |
@@ -173,6 +177,7 @@ jobs:
         uses: ./.github/actions/run-tests
         with:
           domain: chemistry
+          event-name: ${{ github.event_name }}
           python-version: ${{ matrix.python-version }}
       - name: Deprecation Messages
         run: |
@@ -211,6 +216,7 @@ jobs:
         uses: ./.github/actions/run-tests
         with:
           domain: finance
+          event-name: ${{ github.event_name }}
           python-version: ${{ matrix.python-version }}
       - name: Deprecation Messages
         run: |
@@ -245,6 +251,7 @@ jobs:
         uses: ./.github/actions/run-tests
         with:
           domain: ml
+          event-name: ${{ github.event_name }}
           python-version: ${{ matrix.python-version }}
       - name: Deprecation Messages
         run: |
@@ -279,6 +286,7 @@ jobs:
         uses: ./.github/actions/run-tests
         with:
           domain: optimization
+          event-name: ${{ github.event_name }}
           python-version: ${{ matrix.python-version }}
       - name: Deprecation Messages
         run: |

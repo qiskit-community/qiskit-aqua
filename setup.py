@@ -66,11 +66,11 @@ setuptools.setup(
     include_package_data=True,
     python_requires=">=3.6",
     extras_require={
-        'torch': ["torch"],
-        'cplex': ["cplex; python_version < '3.9'"],
-        'cvx': ['cvxpy>1.0.0,!=1.1.0,!=1.1.1,!=1.1.2,!=1.1.8'],
-        'pyscf': ["pyscf; sys_platform != 'win32'"],
-        'skquant': ["scikit-quant"],
+        'torch': ["torch<=1.8.0"],
+        'cplex': ["cplex<=20.1.0.1; python_version < '3.9'"],
+        'cvx': ['cvxpy>1.0.0,<=1.1.11,!=1.1.0,!=1.1.1,!=1.1.2,!=1.1.8'],
+        'pyscf': ["pyscf<=1.7.5.2; sys_platform != 'win32'"],
+        'skquant': ["scikit-quant<=0.8.0"],
     },
     zip_safe=False
 )

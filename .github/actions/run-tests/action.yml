@@ -16,6 +16,9 @@ inputs:
   domain:
     description: 'Domain to test'
     required: true
+  event-name:
+    description: 'Actions event'
+    required: true
   python-version:
     description: 'Python version'
     required: true
@@ -26,6 +29,10 @@ runs:
         if [ -f "$HOME/miniconda/etc/profile.d/conda.sh" ]; then
           source "$HOME/miniconda/etc/profile.d/conda.sh"
           conda activate
+        fi
+        # run slow tests only on scheduled event
+        if [ "${{ inputs.event-name }}" == "schedule" ]; then
+          export QISKIT_TESTS="run_slow"
         fi
         if [ "${{ inputs.python-version }}" == "3.7" ]; then
           export PYTHON="coverage3 run --source qiskit/aqua,qiskit/chemistry,qiskit/finance,qiskit/ml,qiskit/optimization --omit */gauopen/* --parallel-mode"
