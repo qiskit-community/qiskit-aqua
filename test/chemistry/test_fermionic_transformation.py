@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -56,7 +56,7 @@ class TestFermionicTransformation(QiskitChemistryTestCase):
         self.assertTrue(isinstance(qubit_op, OperatorBase))
         self.assertIsNotNone(qubit_op)
         self.assertEqual(qubit_op.num_qubits, num_qubits)
-        self.assertEqual(len(qubit_op), num_paulis)
+        self.assertEqual(len(qubit_op.oplist), num_paulis)
 
     def test_output(self):
         """ output test """

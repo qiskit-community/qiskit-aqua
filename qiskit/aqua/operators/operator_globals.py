@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -17,8 +17,8 @@ Operator Globals
 from qiskit.quantum_info import Pauli
 from qiskit.circuit.library import CXGate, SGate, TGate, HGate, SwapGate, CZGate
 
+from .primitive_ops.primitive_op import PrimitiveOp
 from .primitive_ops.pauli_op import PauliOp
-from .primitive_ops.circuit_op import CircuitOp
 from .state_fns.state_fn import StateFn
 
 # pylint: disable=invalid-name
@@ -52,12 +52,12 @@ Z = make_immutable(PauliOp(Pauli('Z')))
 I = make_immutable(PauliOp(Pauli('I')))
 
 # Clifford+T, and some other common non-parameterized gates
-CX = make_immutable(CircuitOp(CXGate()))
-S = make_immutable(CircuitOp(SGate()))
-H = make_immutable(CircuitOp(HGate()))
-T = make_immutable(CircuitOp(TGate()))
-Swap = make_immutable(CircuitOp(SwapGate()))
-CZ = make_immutable(CircuitOp(CZGate()))
+CX = make_immutable(PrimitiveOp(CXGate()))
+S = make_immutable(PrimitiveOp(SGate()))
+H = make_immutable(PrimitiveOp(HGate()))
+T = make_immutable(PrimitiveOp(TGate()))
+Swap = make_immutable(PrimitiveOp(SwapGate()))
+CZ = make_immutable(PrimitiveOp(CZGate()))
 
 # 1-Qubit Paulis
 Zero = make_immutable(StateFn('0'))

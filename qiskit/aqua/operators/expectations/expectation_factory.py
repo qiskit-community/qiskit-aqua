@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -66,7 +66,7 @@ class ExpectationFactory:
 
         # pylint: disable=cyclic-import,import-outside-toplevel
         primitives = operator.primitive_strings()
-        if primitives in ({'Pauli'}, {'SparsePauliOp'}):
+        if primitives == {'Pauli'}:
 
             if backend_to_check is None:
                 # If user has Aer but didn't specify a backend, use the Aer fast expectation

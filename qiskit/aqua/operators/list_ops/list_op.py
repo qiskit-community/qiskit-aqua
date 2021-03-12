@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -170,9 +170,9 @@ class ListOp(OperatorBase):
         #  always come in pairs, so an AdjointOp holding a reference could save copying.
         if self.__class__ == ListOp:
             return ListOp([op.adjoint() for op in self.oplist],  # type: ignore
-                          **self._state(coeff=self.coeff.conjugate()))  # coeff is conjugated
+                          **self._state(coeff=np.conj(self.coeff)))  # coeff is conjugated
         return self.__class__([op.adjoint() for op in self.oplist],  # type: ignore
-                              coeff=self.coeff.conjugate(), abelian=self.abelian)
+                              coeff=np.conj(self.coeff), abelian=self.abelian)
 
     def traverse(self,
                  convert_fn: Callable,

@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -78,7 +78,7 @@ class OperatorStateFn(StateFn):
 
     def adjoint(self) -> OperatorBase:
         return OperatorStateFn(self.primitive.adjoint(),
-                               coeff=self.coeff.conjugate(),
+                               coeff=np.conj(self.coeff),
                                is_measurement=(not self.is_measurement))
 
     def _expand_dim(self, num_qubits: int) -> 'OperatorStateFn':

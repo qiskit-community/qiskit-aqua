@@ -20,9 +20,7 @@ runs:
         if [ -f "$HOME/miniconda/etc/profile.d/conda.sh" ]; then
           source "$HOME/miniconda/etc/profile.d/conda.sh"
           conda activate
-          pip install -e .[torch,cplex,cvx,pyscf]
-        else
-          pip install -e .[torch,cplex,cvx,pyscf,skquant]
         fi
+        pip install -e .[torch,cplex,cvx,pyscf,skquant]
         pip install -U -c constraints.txt -r requirements-dev.txt
       shell: bash
