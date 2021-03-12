@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -46,9 +46,10 @@ class TestHHL(QiskitAquaTestCase):
         ne_qfts = [None, None]
         if negative_evals:
             num_ancillae += 1
-            ne_qfts = [QFT(num_ancillae - 1), QFT(num_ancillae - 1).inverse()]
+            ne_qfts = [QFT(num_ancillae - 1, do_swaps=False),
+                       QFT(num_ancillae - 1, do_swaps=False).inverse().reverse_bits()]
 
-        iqft = QFT(num_ancillae).inverse()
+        iqft = QFT(num_ancillae, do_swaps=False).inverse().reverse_bits()
 
         eigs_qpe = EigsQPE(MatrixOperator(matrix=matrix),
                            iqft,
@@ -337,7 +338,7 @@ class TestHHL(QiskitAquaTestCase):
 
         # compare results
         fidelity = state_fidelity(ref_normed, hhl_normed)
-        np.testing.assert_approx_equal(fidelity, 1, significant=3)
+        np.testing.assert_approx_equal(fidelity, 1, significant=2)
 
         self.log.debug('HHL solution vector:       %s', hhl_solution)
         self.log.debug('algebraic solution vector: %s', ref_normed)
