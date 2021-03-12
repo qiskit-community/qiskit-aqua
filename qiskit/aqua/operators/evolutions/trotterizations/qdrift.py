@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -23,7 +23,6 @@ from .trotterization_base import TrotterizationBase
 from ...operator_base import OperatorBase
 from ...list_ops.summed_op import SummedOp
 from ...list_ops.composed_op import ComposedOp
-from ...primitive_ops.pauli_sum_op import PauliSumOp
 
 
 # pylint: disable=invalid-name
@@ -42,10 +41,6 @@ class QDrift(TrotterizationBase):
         super().__init__(reps=reps)
 
     def convert(self, operator: OperatorBase) -> OperatorBase:
-        # TODO: implement direct way
-        if isinstance(operator, PauliSumOp):
-            operator = operator.to_pauli_op()
-
         if not isinstance(operator, SummedOp):
             raise TypeError('Trotterization converters can only convert SummedOps.')
 

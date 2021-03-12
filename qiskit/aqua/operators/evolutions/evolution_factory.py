@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -44,11 +44,11 @@ class EvolutionFactory:
                 method.
 
         """
-        primitive_strings = operator.primitive_strings()
-        if 'Matrix' in primitive_strings:
+        primitives = operator.primitive_strings()
+        if 'Matrix' in primitives:
             return MatrixEvolution()
 
-        elif 'Pauli' in primitive_strings or 'SparsePauliOp' in primitive_strings:
+        elif 'Pauli' in primitives:
             # TODO figure out what to do based on qubits and hamming weight.
             return PauliTrotterEvolution()
 

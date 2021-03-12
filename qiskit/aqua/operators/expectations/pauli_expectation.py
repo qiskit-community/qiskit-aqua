@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -24,7 +24,6 @@ from ..state_fns.state_fn import StateFn
 from ..state_fns.operator_state_fn import OperatorStateFn
 from ..converters.pauli_basis_change import PauliBasisChange
 from ..converters.abelian_grouper import AbelianGrouper
-from ..primitive_ops.pauli_sum_op import PauliSumOp
 
 logger = logging.getLogger(__name__)
 
@@ -59,13 +58,6 @@ class PauliExpectation(ExpectationBase):
         Returns:
             The converted operator.
         """
-        # TODO: implement direct way
-        if (
-                isinstance(operator, OperatorStateFn)
-                and isinstance(operator.primitive, PauliSumOp)
-                and operator.is_measurement
-        ):
-            operator = ~OperatorStateFn(operator.primitive.to_pauli_op(), operator.coeff)
 
         if isinstance(operator, OperatorStateFn) and operator.is_measurement:
             # Change to Pauli representation if necessary

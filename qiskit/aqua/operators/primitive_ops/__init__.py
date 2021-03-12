@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -42,7 +42,6 @@ Primitive Operators
    CircuitOp
    MatrixOp
    PauliOp
-   PauliSumOp
 
 """
 
@@ -50,10 +49,8 @@ from .primitive_op import PrimitiveOp
 from .pauli_op import PauliOp
 from .matrix_op import MatrixOp
 from .circuit_op import CircuitOp
-from .pauli_sum_op import PauliSumOp
 
 __all__ = ['PrimitiveOp',
            'PauliOp',
            'MatrixOp',
-           'CircuitOp',
-           'PauliSumOp']
+           'CircuitOp']
