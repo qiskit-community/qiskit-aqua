@@ -39,8 +39,7 @@ from numpy import ndarray, zeros
 from scipy.sparse import spmatrix
 
 from qiskit.aqua import MissingOptionalLibraryError
-from qiskit.aqua.operators import (I, ListOp, OperatorBase, PauliOp, SummedOp,
-                                   PauliSumOp, WeightedPauliOperator)
+from qiskit.aqua.operators import I, OperatorBase, PauliOp, WeightedPauliOperator, SummedOp, ListOp
 from qiskit.quantum_info import Pauli
 from .constraint import Constraint, ConstraintSense
 from .linear_constraint import LinearConstraint
@@ -1261,7 +1260,7 @@ class QuadraticProgram:
         return qubit_op, offset
 
     def from_ising(self,
-                   qubit_op: Union[OperatorBase, WeightedPauliOperator, PauliSumOp],
+                   qubit_op: Union[OperatorBase, WeightedPauliOperator],
                    offset: float = 0.0, linear: bool = False) -> None:
         r"""Create a quadratic program from a qubit operator and a shift value.
 
@@ -1280,8 +1279,6 @@ class QuadraticProgram:
         """
         if isinstance(qubit_op, WeightedPauliOperator):
             qubit_op = qubit_op.to_opflow()
-        if isinstance(qubit_op, PauliSumOp):
-            qubit_op = qubit_op.to_pauli_op()
 
         # No support for ListOp yet, this can be added in future
         # pylint: disable=unidiomatic-typecheck
@@ -1302,12 +1299,11 @@ class QuadraticProgram:
         qubo_matrix = zeros((qubit_op.num_qubits, qubit_op.num_qubits))
 
         if not isinstance(qubit_op, SummedOp):
-            pauli_list = [qubit_op.to_pauli_op()]
+            oplist = [qubit_op.to_pauli_op()]
         else:
-            pauli_list = qubit_op.to_pauli_op()
+            oplist = qubit_op.to_pauli_op().oplist
 
-        for pauli_op in pauli_list:
-            pauli_op = pauli_op.to_pauli_op()
+        for pauli_op in oplist:
             pauli = pauli_op.primitive
             coeff = pauli_op.coeff
             # Count the number of Pauli Zs in a Pauli term

@@ -21,6 +21,9 @@ on:
     branches:
       - master
       - 'stable/**'
+  schedule:
+    # run every day at 1AM
+    - cron: '0 1 * * *'
 
 jobs:
   Checks:
@@ -78,7 +81,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.6, 3.7, 3.8]
+        python-version: [3.6, 3.7, 3.8, 3.9]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -104,7 +107,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9]
+        python-version: [3.6, 3.7, 3.8, 3.9]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -125,6 +128,7 @@ jobs:
         uses: ./.github/actions/run-tests
         with:
           domain: aqua
+          event-name: ${{ github.event_name }}
           python-version: ${{ matrix.python-version }}
       - name: Deprecation Messages
         run: |
@@ -145,7 +149,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9]
+        python-version: [3.6, 3.7, 3.8, 3.9]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -173,6 +177,7 @@ jobs:
         uses: ./.github/actions/run-tests
         with:
           domain: chemistry
+          event-name: ${{ github.event_name }}
           python-version: ${{ matrix.python-version }}
       - name: Deprecation Messages
         run: |
@@ -197,7 +202,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9]
+        python-version: [3.6, 3.7, 3.8, 3.9]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -211,6 +216,7 @@ jobs:
         uses: ./.github/actions/run-tests
         with:
           domain: finance
+          event-name: ${{ github.event_name }}
           python-version: ${{ matrix.python-version }}
       - name: Deprecation Messages
         run: |
@@ -231,7 +237,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9]
+        python-version: [3.6, 3.7, 3.8, 3.9]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -245,6 +251,7 @@ jobs:
         uses: ./.github/actions/run-tests
         with:
           domain: ml
+          event-name: ${{ github.event_name }}
           python-version: ${{ matrix.python-version }}
       - name: Deprecation Messages
         run: |
@@ -265,7 +272,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.7, 3.8, 3.9]
+        python-version: [3.6, 3.7, 3.8, 3.9]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -279,6 +286,7 @@ jobs:
         uses: ./.github/actions/run-tests
         with:
           domain: optimization
+          event-name: ${{ github.event_name }}
           python-version: ${{ matrix.python-version }}
       - name: Deprecation Messages
         run: |
@@ -299,7 +307,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: [3.6, 3.8]
+        python-version: [3.6, 3.7, 3.8, 3.9]
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -347,12 +355,24 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - uses: actions/download-artifact@v2
         with:
+          name: aqua3.6
+          path: /tmp/a36
+      - uses: actions/download-artifact@v2
+        with:
           name: aqua3.7
           path: /tmp/a37
       - uses: actions/download-artifact@v2
         with:
           name: aqua3.8
           path: /tmp/a38
+      - uses: actions/download-artifact@v2
+        with:
+          name: aqua3.9
+          path: /tmp/a39
+      - uses: actions/download-artifact@v2
+        with:
+          name: chemistry3.6
+          path: /tmp/c36
       - uses: actions/download-artifact@v2
         with:
           name: chemistry3.7
@@ -363,12 +383,28 @@ jobs:
           path: /tmp/c38
       - uses: actions/download-artifact@v2
         with:
+          name: chemistry3.9
+          path: /tmp/c39
+      - uses: actions/download-artifact@v2
+        with:
+          name: finance3.6
+          path: /tmp/f36
+      - uses: actions/download-artifact@v2
+        with:
           name: finance3.7
           path: /tmp/f37
       - uses: actions/download-artifact@v2
         with:
           name: finance3.8
           path: /tmp/f38
+      - uses: actions/download-artifact@v2
+        with:
+          name: finance3.9
+          path: /tmp/f39
+      - uses: actions/download-artifact@v2
+        with:
+          name: ml3.6
+          path: /tmp/m36
       - uses: actions/download-artifact@v2
         with:
           name: ml3.7
@@ -379,18 +415,35 @@ jobs:
           path: /tmp/m38
       - uses: actions/download-artifact@v2
         with:
+          name: ml3.9
+          path: /tmp/m39
+      - uses: actions/download-artifact@v2
+        with:
+          name: optimization3.6
+          path: /tmp/o36
+      - uses: actions/download-artifact@v2
+        with:
           name: optimization3.7
           path: /tmp/o37
       - uses: actions/download-artifact@v2
         with:
           name: optimization3.8
           path: /tmp/o38
+      - uses: actions/download-artifact@v2
+        with:
+          name: optimization3.9
+          path: /tmp/o39
       - name: Install Dependencies
         run: pip install -U coverage coveralls diff-cover
         shell: bash
       - name: Combined Deprecation Messages
         run: |
-          sort -f -u /tmp/a37/aqua.dep /tmp/a38/aqua.dep /tmp/c37/chem.dep /tmp/c38/chem.dep /tmp/f37/fin.dep /tmp/f38/fin.dep /tmp/m37/ml.dep /tmp/m38/ml.dep /tmp/o37/opt.dep /tmp/o38/opt.dep || true
+          sort -f -u \
+          /tmp/a36/aqua.dep /tmp/a37/aqua.dep /tmp/a38/aqua.dep /tmp/a39/aqua.dep \
+          /tmp/c36/chem.dep /tmp/c37/chem.dep /tmp/c38/chem.dep /tmp/c39/chem.dep \
+          /tmp/f36/fin.dep  /tmp/f37/fin.dep  /tmp/f38/fin.dep  /tmp/f39/fin.dep \
+          /tmp/m36/ml.dep   /tmp/m37/ml.dep   /tmp/m38/ml.dep   /tmp/m39/ml.dep \
+          /tmp/o36/opt.dep  /tmp/o37/opt.dep  /tmp/o38/opt.dep  /tmp/o39/opt.dep || true
         shell: bash
       - name: Coverage combine
         run: coverage3 combine /tmp/a37/aqua.dat /tmp/c37/chem.dat /tmp/f37/fin.dat /tmp/m37/ml.dat /tmp/o37/opt.dat

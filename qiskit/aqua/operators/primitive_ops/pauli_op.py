@@ -19,12 +19,11 @@ from scipy.sparse import spmatrix
 
 from qiskit import QuantumCircuit
 from qiskit.circuit import ParameterExpression, Instruction
-from qiskit.quantum_info import Pauli, SparsePauliOp
+from qiskit.quantum_info import Pauli
 from qiskit.circuit.library import RZGate, RYGate, RXGate, XGate, YGate, ZGate, IGate
 
 from ..operator_base import OperatorBase
 from .primitive_op import PrimitiveOp
-from .pauli_sum_op import PauliSumOp
 from ..list_ops.summed_op import SummedOp
 from ..list_ops.tensored_op import TensoredOp
 from ..legacy.weighted_pauli_operator import WeightedPauliOperator
@@ -71,23 +70,10 @@ class PauliOp(PrimitiveOp):
         if isinstance(other, PauliOp) and self.primitive == other.primitive:
             return PauliOp(self.primitive, coeff=self.coeff + other.coeff)
 
-        if (
-                isinstance(other, PauliOp)
-                and isinstance(self.coeff, (int, float, complex))
-                and isinstance(other.coeff, (int, float, complex))
-        ):
-            return PauliSumOp(
-                SparsePauliOp(self.primitive, coeffs=[self.coeff])
-                + SparsePauliOp(other.primitive, coeffs=[other.coeff])
-            )
-
-        if isinstance(other, PauliSumOp) and isinstance(self.coeff, (int, float, complex)):
-            return PauliSumOp(SparsePauliOp(self.primitive, coeffs=[self.coeff])) + other
-
         return SummedOp([self, other])
 
     def adjoint(self) -> OperatorBase:
-        return PauliOp(self.primitive, coeff=self.coeff.conjugate())
+        return PauliOp(self.primitive, coeff=np.conj(self.coeff))
 
     def equals(self, other: OperatorBase) -> bool:
         if not isinstance(other, PauliOp) or not self.coeff == other.coeff:

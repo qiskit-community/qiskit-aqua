@@ -127,7 +127,7 @@ class CircuitStateFn(StateFn):
 
     def adjoint(self) -> OperatorBase:
         return CircuitStateFn(self.primitive.inverse(),
-                              coeff=self.coeff.conjugate(),
+                              coeff=np.conj(self.coeff),
                               is_measurement=(not self.is_measurement))
 
     def compose(self, other: OperatorBase,
