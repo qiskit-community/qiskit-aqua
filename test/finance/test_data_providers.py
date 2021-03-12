@@ -220,10 +220,10 @@ class TestDataProviders(QiskitFinanceTestCase):
                  [-1.671e-04, 1.199e-06]])
             with self.subTest('test YahooDataProvider get_covariance_matrix'):
                 np.testing.assert_array_almost_equal(yahoo.get_covariance_matrix(),
-                                                     covariance, decimal=3)
+                                                     covariance, decimal=1)
             with self.subTest('test YahooDataProvider get_similarity_matrix'):
                 np.testing.assert_array_almost_equal(yahoo.get_similarity_matrix(),
-                                                     similarity, decimal=3)
+                                                     similarity, decimal=1)
         except MissingOptionalLibraryError as ex:
             self.skipTest(str(ex))
         except QiskitFinanceError as ex:
