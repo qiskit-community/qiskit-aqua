@@ -15,14 +15,11 @@
 import unittest
 from test.optimization import QiskitOptimizationTestCase
 import numpy as np
-from qiskit import BasicAer
-from qiskit.circuit.library import EfficientSU2
 
-from qiskit.aqua import aqua_globals, QuantumInstance
+from qiskit.aqua import aqua_globals
 from qiskit.optimization.applications.ising import stable_set
 from qiskit.optimization.applications.ising.common import random_graph, sample_most_likely
-from qiskit.aqua.algorithms import NumPyMinimumEigensolver, VQE
-from qiskit.aqua.components.optimizers import L_BFGS_B
+from qiskit.aqua.algorithms import NumPyMinimumEigensolver
 
 
 class TestStableSet(QiskitOptimizationTestCase):
