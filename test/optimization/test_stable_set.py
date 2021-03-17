@@ -41,26 +41,11 @@ class TestStableSet(QiskitOptimizationTestCase):
         algo = NumPyMinimumEigensolver(self.qubit_op, aux_operators=[])
         result = algo.run()
         x = sample_most_likely(result.eigenstate)
-        self.assertAlmostEqual(result.eigenvalue.real, -39.5)
-        self.assertAlmostEqual(result.eigenvalue.real + self.offset, -38.0)
+        self.assertAlmostEqual(result.eigenvalue.real, -2.5)
+        self.assertAlmostEqual(result.eigenvalue.real + self.offset, -3)
         ising_sol = stable_set.get_graph_solution(x)
-        np.testing.assert_array_equal(ising_sol, [1, 1, 0, 1, 1])
-        self.assertEqual(stable_set.stable_set_value(x, self.w), (4, False))
-
-    def test_stable_set_vqe(self):
-        """ VQE Stable set  test """
-        result = VQE(self.qubit_op,
-                     EfficientSU2(reps=3, entanglement='linear'),
-                     L_BFGS_B(maxfun=6000)).run(
-                         QuantumInstance(BasicAer.get_backend('statevector_simulator'),
-                                         seed_simulator=aqua_globals.random_seed,
-                                         seed_transpiler=aqua_globals.random_seed))
-        x = sample_most_likely(result.eigenstate)
-        self.assertAlmostEqual(result.eigenvalue, -39.5)
-        self.assertAlmostEqual(result.eigenvalue + self.offset, -38.0)
-        ising_sol = stable_set.get_graph_solution(x)
-        np.testing.assert_array_equal(ising_sol, [1, 1, 0, 1, 1])
-        self.assertEqual(stable_set.stable_set_value(x, self.w), (4.0, False))
+        np.testing.assert_array_equal(ising_sol, [1, 0, 1, 0, 1])
+        self.assertEqual(stable_set.stable_set_value(x, self.w), (3, True))
 
 
 if __name__ == '__main__':
