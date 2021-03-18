@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -22,7 +22,7 @@ from qiskit.aqua.operators.legacy.op_converter import to_weighted_pauli_operator
 from qiskit.aqua.operators.legacy.weighted_pauli_operator import Z2Symmetries
 from qiskit.chemistry import FermionicOperator
 from qiskit.chemistry.algorithms import VQEAdapt
-from qiskit.chemistry.components.initial_states import HartreeFock
+from qiskit.chemistry.circuit.library import HartreeFock
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.drivers import PySCFDriver, UnitsType
 from qiskit.chemistry import QiskitChemistryError
@@ -71,13 +71,13 @@ class TestVQEAdaptUCCSD(QiskitChemistryTestCase):
         try:
             # pylint: disable=import-outside-toplevel
             from qiskit import Aer
-        except Exception as ex:  # pylint: disable=broad-except
+            backend = Aer.get_backend('statevector_simulator')
+        except ImportError as ex:  # pylint: disable=broad-except
             self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(ex)))
             return
 
         self.var_form_base = UCCSD(self.num_spin_orbitals,
                                    self.num_particles, initial_state=self.init_state)
-        backend = Aer.get_backend('statevector_simulator')
         optimizer = L_BFGS_B()
 
         warnings.filterwarnings('ignore', category=DeprecationWarning)

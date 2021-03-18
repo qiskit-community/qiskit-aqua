@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -91,7 +91,7 @@ class HHL(QuantumAlgorithm):
             truncate_powerdim: bool = False,
             truncate_hermitian: bool = False,
             eigs: Optional[Eigenvalues] = None,
-            init_state: Optional[InitialState] = None,
+            init_state: Optional[Union[QuantumCircuit, InitialState]] = None,
             reciprocal: Optional[Reciprocal] = None,
             num_q: int = 0,
             num_a: int = 0,
@@ -206,7 +206,10 @@ class HHL(QuantumAlgorithm):
         qc = QuantumCircuit(q)
 
         # InitialState
-        qc += self._init_state.construct_circuit("circuit", q)
+        if isinstance(self._init_state, QuantumCircuit):
+            qc.compose(self._init_state, inplace=True)
+        elif self._init_state is not None:
+            qc += self._init_state.construct_circuit("circuit", q)
 
         # EigenvalueEstimation (QPE)
         qc += self._eigs.construct_circuit("circuit", q)
@@ -351,7 +354,7 @@ class HHL(QuantumAlgorithm):
                 else:
                     f += v
             probs.append(s / (f + s))
-        probs = self._resize_vector(probs)
+        probs = self._resize_vector(probs)  # type: ignore
         self._ret["probability_result"] = np.real(probs)
 
         # Filtering the tomo data for valid results with ancillary measured

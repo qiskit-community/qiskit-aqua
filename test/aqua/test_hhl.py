@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -18,7 +18,7 @@ from test.aqua import QiskitAquaTestCase
 
 import numpy as np
 from ddt import ddt, idata, data, unpack
-from qiskit import BasicAer
+from qiskit import BasicAer, QuantumCircuit
 from qiskit.quantum_info import state_fidelity
 
 from qiskit.circuit.library import QFT
@@ -46,9 +46,10 @@ class TestHHL(QiskitAquaTestCase):
         ne_qfts = [None, None]
         if negative_evals:
             num_ancillae += 1
-            ne_qfts = [QFT(num_ancillae - 1), QFT(num_ancillae - 1).inverse()]
+            ne_qfts = [QFT(num_ancillae - 1, do_swaps=False),
+                       QFT(num_ancillae - 1, do_swaps=False).inverse().reverse_bits()]
 
-        iqft = QFT(num_ancillae).inverse()
+        iqft = QFT(num_ancillae, do_swaps=False).inverse().reverse_bits()
 
         eigs_qpe = EigsQPE(MatrixOperator(matrix=matrix),
                            iqft,
@@ -83,7 +84,9 @@ class TestHHL(QiskitAquaTestCase):
         num_q, num_a = eigs.get_register_sizes()
 
         # Initialize initial state module
-        init_state = Custom(num_q, state_vector=vector)
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            init_state = Custom(num_q, state_vector=vector)
 
         # Initialize reciprocal rotation module
         reci = LookupRotation(negative_evals=eigs._negative_evals, evo_time=eigs._evo_time)
@@ -127,7 +130,8 @@ class TestHHL(QiskitAquaTestCase):
         num_q, num_a = eigs.get_register_sizes()
 
         # Initialize initial state module
-        init_state = Custom(num_q, state_vector=vector)
+        init_state = QuantumCircuit(num_q)
+        init_state.initialize(vector / np.linalg.norm(vector), range(num_q))
 
         # Initialize reciprocal rotation module
         reci = LookupRotation(negative_evals=eigs._negative_evals, evo_time=eigs._evo_time)
@@ -172,7 +176,9 @@ class TestHHL(QiskitAquaTestCase):
         num_q, num_a = eigs.get_register_sizes()
 
         # Initialize initial state module
-        init_state = Custom(num_q, state_vector=vector)
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            init_state = Custom(num_q, state_vector=vector)
 
         # Initialize reciprocal
         reci = LongDivision(scale=1.0, negative_evals=eigs._negative_evals, evo_time=eigs._evo_time)
@@ -217,7 +223,8 @@ class TestHHL(QiskitAquaTestCase):
         num_q, num_a = eigs.get_register_sizes()
 
         # Initialize initial state module
-        init_state = Custom(num_q, state_vector=vector)
+        init_state = QuantumCircuit(num_q)
+        init_state.initialize(vector / np.linalg.norm(vector), range(num_q))
 
         # Initialize reciprocal rotation module
         reci = LookupRotation(negative_evals=eigs._negative_evals,
@@ -263,7 +270,9 @@ class TestHHL(QiskitAquaTestCase):
         num_q, num_a = eigs.get_register_sizes()
 
         # Initialize initial state module
-        init_state = Custom(num_q, state_vector=vector)
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            init_state = Custom(num_q, state_vector=vector)
 
         # Initialize reciprocal rotation module
         reci = LookupRotation(negative_evals=eigs._negative_evals, evo_time=eigs._evo_time)
@@ -312,7 +321,8 @@ class TestHHL(QiskitAquaTestCase):
         num_q, num_a = eigs.get_register_sizes()
 
         # Initialize initial state module
-        init_state = Custom(num_q, state_vector=vector)
+        init_state = QuantumCircuit(num_q)
+        init_state.initialize(vector / np.linalg.norm(vector), range(num_q))
 
         # Initialize reciprocal rotation module
         reci = LookupRotation(negative_evals=eigs._negative_evals, evo_time=eigs._evo_time)
@@ -328,7 +338,7 @@ class TestHHL(QiskitAquaTestCase):
 
         # compare results
         fidelity = state_fidelity(ref_normed, hhl_normed)
-        np.testing.assert_approx_equal(fidelity, 1, significant=3)
+        np.testing.assert_approx_equal(fidelity, 1, significant=2)
 
         self.log.debug('HHL solution vector:       %s', hhl_solution)
         self.log.debug('algebraic solution vector: %s', ref_normed)
@@ -357,7 +367,9 @@ class TestHHL(QiskitAquaTestCase):
         num_q, num_a = eigs.get_register_sizes()
 
         # Initialize initial state module
-        init_state = Custom(num_q, state_vector=vector)
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', category=DeprecationWarning)
+            init_state = Custom(num_q, state_vector=vector)
 
         # Initialize reciprocal rotation module
         reci = LookupRotation(negative_evals=eigs._negative_evals, evo_time=eigs._evo_time)
@@ -398,7 +410,8 @@ class TestHHL(QiskitAquaTestCase):
         num_q, num_a = eigs.get_register_sizes()
 
         # Initialize initial state module
-        init_state = Custom(num_q, state_vector=vector)
+        init_state = QuantumCircuit(num_q)
+        init_state.initialize(vector / np.linalg.norm(vector), range(num_q))
 
         # Initialize reciprocal rotation module
         reci = LookupRotation(negative_evals=eigs._negative_evals, evo_time=eigs._evo_time)

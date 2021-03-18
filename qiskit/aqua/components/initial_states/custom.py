@@ -112,6 +112,11 @@ class Custom(InitialState):
                 self._state_vector = normalize_vector(state_vector)
                 self._state = None
 
+    @staticmethod
+    def _replacement():
+        return 'Custom(state_vector=vector) is the same as a circuit where the ' \
+                + '``initialize(vector/np.linalg.norm(vector))`` method has been called.'
+
     def construct_circuit(self, mode='circuit', register=None):
         # pylint: disable=import-outside-toplevel
         from qiskit import BasicAer

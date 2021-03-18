@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -45,18 +45,18 @@ def get_operator(w):
     for i in range(num_nodes):
         for j in range(i + 1, num_nodes):
             if w[i, j] != 0:
-                x_p = np.zeros(num_nodes, dtype=np.bool)
-                z_p = np.zeros(num_nodes, dtype=np.bool)
+                x_p = np.zeros(num_nodes, dtype=bool)
+                z_p = np.zeros(num_nodes, dtype=bool)
                 z_p[i] = True
                 z_p[j] = True
-                pauli_list.append([1.0, Pauli(z_p, x_p)])
-                shift += 1
+                pauli_list.append([1/2, Pauli(z_p, x_p)])
+                shift += 1/2
     for i in range(num_nodes):
-        degree = np.sum(w[i, :])
-        x_p = np.zeros(num_nodes, dtype=np.bool)
-        z_p = np.zeros(num_nodes, dtype=np.bool)
+        degree = np.count_nonzero(w[i, :] != 0)
+        x_p = np.zeros(num_nodes, dtype=bool)
+        z_p = np.zeros(num_nodes, dtype=bool)
         z_p[i] = True
-        pauli_list.append([degree - 1 / 2, Pauli(z_p, x_p)])
+        pauli_list.append([1/2 - degree/2, Pauli(z_p, x_p)])
     return WeightedPauliOperator(paulis=pauli_list), shift - num_nodes / 2
 
 
@@ -77,10 +77,10 @@ def stable_set_value(x, w):
     num_nodes = w.shape[0]
     for i in range(num_nodes):
         for j in range(i + 1, num_nodes):
-            if w[i, j] != 0 and x[i] == 0 and x[j] == 0:
+            if w[i, j] != 0 and x[i] == 1 and x[j] == 1:
                 feasible = False
                 break
-    return len(x) - np.sum(x), feasible
+    return np.sum(x), feasible
 
 
 def get_graph_solution(x):
@@ -92,4 +92,4 @@ def get_graph_solution(x):
     Returns:
         numpy.ndarray: graph solution as binary numpy array.
     """
-    return 1 - x
+    return x

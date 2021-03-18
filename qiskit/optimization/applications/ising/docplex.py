@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -57,12 +57,20 @@ The following is an example of use.
 
 """
 
-from typing import Tuple
+from typing import Tuple, Union, List
 import logging
 from math import fsum
 
 import numpy as np
 from docplex.mp.constants import ComparisonType
+from docplex.mp.constr import LinearConstraint, QuadraticConstraint
+
+try:
+    # new location since docplex 2.16.196
+    from docplex.mp.dvar import Var
+except ImportError:
+    # old location until docplex 2.15.194
+    from docplex.mp.linear import Var
 from docplex.mp.model import Model
 from qiskit.quantum_info import Pauli
 
@@ -113,8 +121,8 @@ def get_operator(mdl: Model, auto_penalty: bool = True,
     # initialize Hamiltonian.
     num_nodes = len(q_d)
     pauli_list = []
-    shift = 0
-    zero = np.zeros(num_nodes, dtype=np.bool)
+    shift = 0.
+    zero = np.zeros(num_nodes, dtype=bool)
 
     # convert a constant part of the object function into Hamiltonian.
     shift += mdl.get_objective_expr().get_constant() * sign
@@ -122,7 +130,7 @@ def get_operator(mdl: Model, auto_penalty: bool = True,
     # convert linear parts of the object function into Hamiltonian.
     l_itr = mdl.get_objective_expr().iter_terms()
     for j in l_itr:
-        z_p = np.zeros(num_nodes, dtype=np.bool)
+        z_p = np.zeros(num_nodes, dtype=bool)
         index = q_d[j[0]]
         weight = j[1] * sign / 2
         z_p[index] = True
@@ -140,16 +148,16 @@ def get_operator(mdl: Model, auto_penalty: bool = True,
         if index1 == index2:
             shift += weight
         else:
-            z_p = np.zeros(num_nodes, dtype=np.bool)
+            z_p = np.zeros(num_nodes, dtype=bool)
             z_p[index1] = True
             z_p[index2] = True
             pauli_list.append([weight, Pauli(z_p, zero)])
 
-        z_p = np.zeros(num_nodes, dtype=np.bool)
+        z_p = np.zeros(num_nodes, dtype=bool)
         z_p[index1] = True
         pauli_list.append([-weight, Pauli(z_p, zero)])
 
-        z_p = np.zeros(num_nodes, dtype=np.bool)
+        z_p = np.zeros(num_nodes, dtype=bool)
         z_p[index2] = True
         pauli_list.append([-weight, Pauli(z_p, zero)])
 
@@ -157,14 +165,16 @@ def get_operator(mdl: Model, auto_penalty: bool = True,
 
     # convert constraints into penalty terms.
     for constraint in mdl.iter_constraints():
-        constant = constraint.cplex_num_rhs()
+        right_cst = constraint.get_right_expr().get_constant()
+        left_cst = constraint.get_left_expr().get_constant()
+        constant = float(right_cst - left_cst)
 
         # constant parts of penalty*(Constant-func)**2: penalty*(Constant**2)
         shift += penalty * constant ** 2
 
         # linear parts of penalty*(Constant-func)**2: penalty*(-2*Constant*func)
-        for __l in constraint.iter_net_linear_coefs():
-            z_p = np.zeros(num_nodes, dtype=np.bool)
+        for __l in _iter_net_linear_coeffs(constraint):
+            z_p = np.zeros(num_nodes, dtype=bool)
             index = q_d[__l[0]]
             weight = __l[1]
             z_p[index] = True
@@ -173,8 +183,8 @@ def get_operator(mdl: Model, auto_penalty: bool = True,
             shift += -penalty * constant * weight
 
         # quadratic parts of penalty*(Constant-func)**2: penalty*(func**2)
-        for __l in constraint.iter_net_linear_coefs():
-            for l_2 in constraint.iter_net_linear_coefs():
+        for __l in _iter_net_linear_coeffs(constraint):
+            for l_2 in _iter_net_linear_coeffs(constraint):
                 index1 = q_d[__l[0]]
                 index2 = q_d[l_2[0]]
                 weight1 = __l[1]
@@ -184,16 +194,16 @@ def get_operator(mdl: Model, auto_penalty: bool = True,
                 if index1 == index2:
                     shift += penalty_weight1_weight2
                 else:
-                    z_p = np.zeros(num_nodes, dtype=np.bool)
+                    z_p = np.zeros(num_nodes, dtype=bool)
                     z_p[index1] = True
                     z_p[index2] = True
                     pauli_list.append([penalty_weight1_weight2, Pauli(z_p, zero)])
 
-                z_p = np.zeros(num_nodes, dtype=np.bool)
+                z_p = np.zeros(num_nodes, dtype=bool)
                 z_p[index1] = True
                 pauli_list.append([-penalty_weight1_weight2, Pauli(z_p, zero)])
 
-                z_p = np.zeros(num_nodes, dtype=np.bool)
+                z_p = np.zeros(num_nodes, dtype=bool)
                 z_p[index2] = True
                 pauli_list.append([-penalty_weight1_weight2, Pauli(z_p, zero)])
 
@@ -203,6 +213,35 @@ def get_operator(mdl: Model, auto_penalty: bool = True,
     qubit_op = WeightedPauliOperator(paulis=pauli_list)
 
     return qubit_op, shift
+
+
+def _iter_net_linear_coeffs(constraint: Union[LinearConstraint, QuadraticConstraint]) \
+        -> List[Tuple[Var, float]]:
+    """
+    Builds a list of tuples, where each tuple contains a decision variable and a
+    corresponding coefficient of this variable in the constraint.
+
+    Args:
+        constraint: A constraint to analyze.
+
+    Returns:
+        A list of tuples of variables and coefficients.
+    """
+    left_expr = constraint.get_left_expr()
+    right_expr = constraint.get_right_expr()
+    # for linear constraints we may get an instance of Var instead of expression,
+    # e.g. x + y = z
+    if isinstance(left_expr, Var):
+        left_expr = left_expr + 0
+    if isinstance(right_expr, Var):
+        right_expr = right_expr + 0
+
+    variables = {}
+    for var in left_expr.iter_variables():
+        variables[var] = left_expr.get_coef(var)
+    for var in right_expr.iter_variables():
+        variables[var] = variables.get(var, 0.0) - right_expr.get_coef(var)
+    return list(variables.items())
 
 
 def _validate_input_model(mdl: Model) -> None:

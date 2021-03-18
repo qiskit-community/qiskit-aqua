@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -33,8 +33,9 @@ from qiskit.circuit.library import CZGate, ZGate
 from qiskit.aqua.operators import (
     X, Y, Z, I, CX, T, H, Minus, PrimitiveOp, PauliOp, CircuitOp, MatrixOp, EvolvedOp, StateFn,
     CircuitStateFn, VectorStateFn, DictStateFn, OperatorStateFn, ListOp, ComposedOp, TensoredOp,
-    SummedOp
+    SummedOp, OperatorBase, Zero
 )
+from qiskit.aqua.operators import MatrixOperator
 
 
 # pylint: disable=invalid-name
@@ -202,6 +203,22 @@ class TestOpConstruction(QiskitAquaTestCase):
         op6 = op5 + PrimitiveOp(Operator.from_label('+r').data)
         np.testing.assert_array_almost_equal(
             op6.to_matrix(), op5.to_matrix() + Operator.from_label('+r').data)
+
+        param = Parameter("α")
+        m = np.array([[0, -1j], [1j, 0]])
+        op7 = MatrixOp(m, param)
+        np.testing.assert_array_equal(op7.to_matrix(), m * param)
+
+        param = Parameter("β")
+        op8 = PauliOp(primitive=Pauli(label="Y"), coeff=param)
+        np.testing.assert_array_equal(op8.to_matrix(), m * param)
+
+        param = Parameter("γ")
+        qc = QuantumCircuit(1)
+        qc.h(0)
+        op9 = CircuitOp(qc, coeff=param)
+        m = np.array([[1, 1], [1, -1]]) / np.sqrt(2)
+        np.testing.assert_array_equal(op9.to_matrix(), m * param)
 
     def test_circuit_op_to_matrix(self):
         """ test CircuitOp.to_matrix """
@@ -704,26 +721,6 @@ class TestOpConstruction(QiskitAquaTestCase):
                 # QiskitError: multiplication of Operator with ParameterExpression isn't implemented
                 self.assertRaises(QiskitError, getattr(matrix_op, method))
 
-    def test_primitive_op_to_matrix(self):
-        """Test to reveal TypeError: multiplication of 'complex' and 'Parameter' is not
-        implemented, which is raised on PrimitiveOps with parameter, when to_matrix is called. """
-        # MatrixOp
-        m = np.array([[0, 0, 1, 0], [0, 0, 0, -1], [1, 0, 0, 0], [0, -1, 0, 0]])
-        matrix_op = MatrixOp(m, Parameter('beta'))
-
-        # PauliOp
-        pauli_op = PauliOp(primitive=Pauli(label='XYZ'), coeff=Parameter('beta'))
-        self.assertRaises(TypeError, pauli_op.to_matrix)
-
-        # CircuitOp
-        qc = QuantumCircuit(2)
-        qc.cx(0, 1)
-        circuit_op = CircuitOp(qc, coeff=Parameter('alpha'))
-
-        for operator in [matrix_op, pauli_op, circuit_op]:
-            with self.subTest(operator):
-                self.assertRaises(TypeError, operator.to_matrix)
-
     def test_list_op_to_circuit(self):
         """Test if unitary ListOps transpile to circuit. """
 
@@ -805,15 +802,6 @@ class TestOpConstruction(QiskitAquaTestCase):
         """Test if permute raises error if ListOp contains operators with different num_qubits."""
         list_op = ListOp([X, X ^ X])
         self.assertRaises(AquaError, list_op.permute, [0, 1])
-
-    @data(Z, CircuitOp(ZGate()), MatrixOp([[1, 0], [0, -1]]))
-    def test_op_hashing(self, op):
-        """Regression test against faulty set comparison.
-
-        Set comparisons rely on a hash table which requires identical objects to have identical
-        hashes. Thus, the PrimitiveOp.__hash__ should support this requirement.
-        """
-        self.assertEqual(set([2 * op]), set([2 * op]))
 
     @data(Z, CircuitOp(ZGate()), MatrixOp([[1, 0], [0, -1]]))
     def test_op_indent(self, op):
@@ -909,6 +897,47 @@ class TestOpConstruction(QiskitAquaTestCase):
                 sfn.to_circuit_op().eval().primitive.data, vector
             )
 
+    def test_invalid_primitive(self):
+        """Test invalid MatrixOp construction"""
+        msg = "MatrixOp can only be instantiated with " \
+              "['list', 'ndarray', 'spmatrix', 'Operator'], not "
+
+        with self.assertRaises(TypeError) as cm:
+            _ = MatrixOp('invalid')
+
+        self.assertEqual(str(cm.exception), msg + "'str'")
+
+        with self.assertRaises(TypeError) as cm:
+            _ = MatrixOp(MatrixOperator(np.eye(2)))
+
+        self.assertEqual(str(cm.exception), msg + "'MatrixOperator'")
+
+        with self.assertRaises(TypeError) as cm:
+            _ = MatrixOp(None)
+
+        self.assertEqual(str(cm.exception), msg + "'NoneType'")
+
+        with self.assertRaises(TypeError) as cm:
+            _ = MatrixOp(2.0)
+
+        self.assertEqual(str(cm.exception), msg + "'float'")
+
+    def test_summedop_equals(self):
+        """Test SummedOp.equals """
+        ops = [Z, CircuitOp(ZGate()), MatrixOp([[1, 0], [0, -1]]), Zero, Minus]
+        sum_op = sum(ops + [ListOp(ops)])
+        self.assertEqual(sum_op, sum_op)
+        self.assertEqual(sum_op + sum_op, 2 * sum_op)
+        self.assertEqual(sum_op + sum_op + sum_op, 3 * sum_op)
+        ops2 = [Z, CircuitOp(ZGate()), MatrixOp([[1, 0], [0, 1]]), Zero, Minus]
+        sum_op2 = sum(ops2 + [ListOp(ops)])
+        self.assertNotEqual(sum_op, sum_op2)
+        self.assertEqual(sum_op2, sum_op2)
+        sum_op3 = sum(ops)
+        self.assertNotEqual(sum_op, sum_op3)
+        self.assertNotEqual(sum_op2, sum_op3)
+        self.assertEqual(sum_op3, sum_op3)
+
 
 class TestOpMethods(QiskitAquaTestCase):
     """Basic method tests."""
@@ -926,6 +955,35 @@ class TestOpMethods(QiskitAquaTestCase):
 
             with self.assertRaises(ValueError):
                 X @ op  # pylint: disable=pointless-statement
+
+
+@ddt
+class TestListOpMethods(QiskitAquaTestCase):
+    """Test ListOp accessing methods"""
+
+    @data(ListOp, SummedOp, ComposedOp, TensoredOp)
+    def test_indexing(self, list_op_type):
+        """Test indexing and slicing"""
+        coeff = 3 + .2j
+        states_op = list_op_type([X, Y, Z, I], coeff=coeff)
+
+        single_op = states_op[1]
+        self.assertIsInstance(single_op, OperatorBase)
+        self.assertNotIsInstance(single_op, ListOp)
+
+        list_one_element = states_op[1:2]
+        self.assertIsInstance(list_one_element, list_op_type)
+        self.assertEqual(len(list_one_element), 1)
+        self.assertEqual(list_one_element[0], Y)
+
+        list_two_elements = states_op[::2]
+        self.assertIsInstance(list_two_elements, list_op_type)
+        self.assertEqual(len(list_two_elements), 2)
+        self.assertEqual(list_two_elements[0], X)
+        self.assertEqual(list_two_elements[1], Z)
+
+        self.assertEqual(list_one_element.coeff, coeff)
+        self.assertEqual(list_two_elements.coeff, coeff)
 
 
 class TestListOpComboFn(QiskitAquaTestCase):

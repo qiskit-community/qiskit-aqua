@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -22,10 +22,10 @@ import qiskit
 from qiskit.circuit import ParameterVector, Parameter
 
 from qiskit.aqua.operators import (X, Y, Z, I, CX, H, ListOp, CircuitOp, Zero, EvolutionFactory,
-                                   EvolvedOp, PauliTrotterEvolution, QDrift)
-
+                                   EvolvedOp, PauliTrotterEvolution, QDrift, Trotter, Suzuki)
 
 # pylint: disable=invalid-name
+
 
 class TestEvolution(QiskitAquaTestCase):
     """Evolution tests."""
@@ -86,11 +86,12 @@ class TestEvolution(QiskitAquaTestCase):
         # wf = (Pl^Pl) + (Ze^Ze)
         wf = (op).exp_i() @ CX @ (H ^ I) @ Zero
         mean = evolution.convert(wf)
-        circuit_params = mean.to_circuit().parameters
-        # Check that the non-identity parameters are in the circuit
-        for p in thetas[1:]:
-            self.assertIn(p, circuit_params)
-        self.assertNotIn(thetas[0], circuit_params)
+        circuit = mean.to_circuit()
+        # Check that all parameters are in the circuit
+        for p in thetas:
+            self.assertIn(p, circuit.parameters)
+        # Check that the identity-parameters only exist as global phase
+        self.assertNotIn(thetas[0], circuit._parameter_table.get_keys())
 
     def test_bind_parameters(self):
         """ bind parameters test """
@@ -254,6 +255,20 @@ class TestEvolution(QiskitAquaTestCase):
         # Check that the no parameters are in the circuit
         for p in thetas[1:]:
             self.assertNotIn(p, circuit_params)
+
+    def test_reps(self):
+        """Test reps and order params in Trotterization"""
+        reps = 7
+        trotter = Trotter(reps=reps)
+        self.assertEqual(trotter.reps, reps)
+
+        order = 5
+        suzuki = Suzuki(reps=reps, order=order)
+        self.assertEqual(suzuki.reps, reps)
+        self.assertEqual(suzuki.order, order)
+
+        qdrift = QDrift(reps=reps)
+        self.assertEqual(qdrift.reps, reps)
 
 
 if __name__ == '__main__':

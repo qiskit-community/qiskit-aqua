@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -153,7 +153,8 @@ class AmplitudeEstimation(AmplitudeEstimationAlgorithm):
             q_factory = self.q_factory
             warnings.filterwarnings('always', category=DeprecationWarning)
 
-            iqft = QFT(self._m, do_swaps=False, inverse=True) if self._iqft is None else self._iqft
+            iqft = QFT(self._m, do_swaps=False, inverse=True).reverse_bits() \
+                if self._iqft is None else self._iqft
             pec = PhaseEstimationCircuit(
                 iqft=iqft, num_ancillae=self._m,
                 state_in_circuit_factory=self._a_factory,

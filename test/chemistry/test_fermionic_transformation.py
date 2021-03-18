@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -44,7 +44,7 @@ class TestFermionicTransformation(QiskitChemistryTestCase):
 
     def _validate_info(self, fermionic_transformation, num_particles=None,
                        num_orbitals=4, actual_two_qubit_reduction=False):
-        num_particles = num_particles if num_particles is not None else [1, 1]
+        num_particles = num_particles if num_particles is not None else (1, 1)
         z2symmetries = fermionic_transformation.molecule_info.pop('z2_symmetries')
         self.assertEqual(z2symmetries.is_empty(), True)
         self.assertEqual(fermionic_transformation.molecule_info,

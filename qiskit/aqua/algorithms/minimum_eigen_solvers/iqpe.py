@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -45,7 +45,7 @@ class IQPE(QuantumAlgorithm, MinimumEigensolver):
     """The Iterative Quantum Phase Estimation algorithm.
 
     IQPE, as its name suggests, iteratively computes the phase so as to require fewer qubits.
-    It takes has the same set of parameters as :class:`QPE`, except for the number of
+    It has the same set of parameters as :class:`QPE`, except for the number of
     ancillary qubits *num_ancillae*, being replaced by *num_iterations* and that
     an Inverse Quantum Fourier Transform (IQFT) is not used for IQPE.
 
@@ -57,7 +57,7 @@ class IQPE(QuantumAlgorithm, MinimumEigensolver):
 
     def __init__(self,
                  operator: Optional[Union[OperatorBase, LegacyBaseOperator]] = None,
-                 state_in: Optional[InitialState] = None,
+                 state_in: Optional[Union[QuantumCircuit, InitialState]] = None,
                  num_time_slices: int = 1,
                  num_iterations: int = 1,
                  expansion_mode: str = 'suzuki',
@@ -192,7 +192,10 @@ class IQPE(QuantumAlgorithm, MinimumEigensolver):
         self._ancillary_register = a
         self._state_register = q
         qc = QuantumCircuit(q)
-        qc += self._state_in.construct_circuit('circuit', q)
+        if isinstance(self._state_in, QuantumCircuit):
+            qc.append(self._state_in, q)
+        else:
+            qc += self._state_in.construct_circuit('circuit', q)
         # hadamard on a[0]
         qc.add_register(a)
         qc.h(a[0])

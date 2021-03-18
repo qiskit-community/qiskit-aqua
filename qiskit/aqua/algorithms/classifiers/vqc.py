@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -29,7 +29,7 @@ from qiskit.aqua.utils import map_label_to_class_name
 from qiskit.aqua.utils import split_dataset_to_data_and_labels
 from qiskit.aqua.algorithms import VQAlgorithm
 from qiskit.aqua.components.optimizers import Optimizer
-from qiskit.aqua.components.feature_maps import FeatureMap, RawFeatureVector
+from qiskit.aqua.components.feature_maps import FeatureMap
 from qiskit.aqua.components.variational_forms import VariationalForm
 
 logger = logging.getLogger(__name__)
@@ -65,6 +65,7 @@ class VQC(VQAlgorithm):
             max_evals_grouped: int = 1,
             minibatch_size: int = -1,
             callback: Optional[Callable[[int, np.ndarray, float, int], None]] = None,
+            use_sigmoid_cross_entropy: bool = False,
             quantum_instance: Optional[
                 Union[QuantumInstance, BaseBackend, Backend]] = None) -> None:
         """
@@ -82,10 +83,11 @@ class VQC(VQAlgorithm):
                 Four parameter values are passed to the callback as follows during each evaluation.
                 These are: the evaluation count, parameters of the variational form,
                 the evaluated value, the index of data batch.
+            use_sigmoid_cross_entropy: whether to use sigmoid cross entropy or not.
             quantum_instance: Quantum Instance or Backend
 
         Note:
-            We use `label` to denotes numeric results and `class` the class names (str).
+            We use `label` to denote numeric results and `class` the class names (str).
 
         Raises:
             AquaError: Missing feature map or missing training dataset.
@@ -104,7 +106,7 @@ class VQC(VQAlgorithm):
         super().__init__(
             var_form=var_form,
             optimizer=optimizer,
-            cost_fn=self._cost_function_wrapper,
+            cost_fn=self._loss,
             quantum_instance=quantum_instance
         )
         self._batches = None
@@ -115,6 +117,11 @@ class VQC(VQAlgorithm):
         self._optimizer.set_max_evals_grouped(max_evals_grouped)
 
         self._callback = callback
+
+        if use_sigmoid_cross_entropy:
+            self.cost_function = cost_estimate_sigmoid
+        else:
+            self.cost_function = cost_estimate
 
         if feature_map is None:
             raise AquaError('Missing feature map.')
@@ -200,6 +207,7 @@ class VQC(VQAlgorithm):
             Union(numpy.ndarray or [numpy.ndarray], numpy.ndarray or [numpy.ndarray]):
                 list of NxK array, list of Nx1 array
         """
+        from qiskit.ml.circuit.library import RawFeatureVector
         circuits = []
 
         num_theta_sets = len(theta) // self._var_form.num_parameters
@@ -210,6 +218,10 @@ class VQC(VQAlgorithm):
                 or self._var_form.support_parameterized_circuit
             feat_map_support = isinstance(self._feature_map, QuantumCircuit) \
                 or self._feature_map.support_parameterized_circuit
+
+            # cannot transpile the RawFeatureVector
+            if isinstance(self._feature_map, RawFeatureVector):
+                feat_map_support = False
 
             if var_form_support and feat_map_support and self._parameterized_circuits is None:
                 parameterized_circuits = self.construct_circuit(
@@ -318,7 +330,7 @@ class VQC(VQAlgorithm):
 
         result = self.find_minimum(initial_point=self.initial_point,
                                    var_form=self.var_form,
-                                   cost_fn=self._cost_function_wrapper,
+                                   cost_fn=self._loss,
                                    optimizer=self.optimizer,
                                    gradient_fn=grad_fn)
 
@@ -354,25 +366,35 @@ class VQC(VQAlgorithm):
             numpy.ndarray: 1-d array with the same shape as theta. The  gradient computed
         """
         epsilon = 1e-8
-        f_orig = self._cost_function_wrapper(theta)
+        f_orig = self._loss(theta)
         grad = np.zeros((len(theta),), float)
         for k, _ in enumerate(theta):
             theta[k] += epsilon
-            f_new = self._cost_function_wrapper(theta)
+            f_new = self._loss(theta)
             grad[k] = (f_new - f_orig) / epsilon
             theta[k] -= epsilon  # recover to the center state
         if self.is_gradient_really_supported():
             self._batch_index += 1  # increment the batch after gradient callback
         return grad
 
-    def _cost_function_wrapper(self, theta):
+    def _loss(self, theta):
+        """Compute the loss over the current batch given a set of parameter
+        values.
+
+        Args:
+            theta (numpy.ndarray): array of parameter values.
+
+        Returns:
+            list: list of loss values.
+        """
         batch_index = self._batch_index % len(self._batches)
         predicted_probs, _ = self._get_prediction(self._batches[batch_index], theta)
         total_cost = []
         if not isinstance(predicted_probs, list):
             predicted_probs = [predicted_probs]
         for i, _ in enumerate(predicted_probs):
-            curr_cost = cost_estimate(predicted_probs[i], self._label_batches[batch_index])
+            curr_cost = self.cost_function(predicted_probs[i],
+                                           self._label_batches[batch_index])
             total_cost.append(curr_cost)
             if self._callback is not None:
                 self._callback(
@@ -417,7 +439,7 @@ class VQC(VQAlgorithm):
             self._quantum_instance if quantum_instance is None else quantum_instance
         for batch, label_batch in zip(batches, label_batches):
             predicted_probs, _ = self._get_prediction(batch, params)
-            total_cost += cost_estimate(predicted_probs, label_batch)
+            total_cost += self.cost_function(predicted_probs, label_batch)
             total_correct += np.sum((np.argmax(predicted_probs, axis=1) == label_batch))
             total_samples += label_batch.shape[0]
             int_accuracy = \
@@ -541,14 +563,11 @@ class VQC(VQAlgorithm):
             self._feature_map_params = sorted(feature_map.parameters, key=lambda p: p.name)
             self._feature_map = feature_map
         elif isinstance(feature_map, FeatureMap):
-            # raw feature vector is not yet replaced
-            if not isinstance(feature_map, RawFeatureVector):
-                warnings.warn('The qiskit.aqua.components.feature_maps.FeatureMap object is '
-                              'deprecated as of 0.7.0 and will be removed no earlier than 3 months '
-                              'after the release. You should pass a QuantumCircuit object instead. '
-                              'See also qiskit.circuit.library.data_preparation for a collection '
-                              'of suitable circuits.',
-                              DeprecationWarning, stacklevel=2)
+            warnings.warn('The qiskit.aqua.components.feature_maps.RawFeatureVector object is '
+                          'deprecated as of 0.9.0 and will be removed no earlier than 3 months '
+                          'after the release. You can use the RawFeatureVector from '
+                          'qiskit.ml.circuit.library instead.',
+                          DeprecationWarning, stacklevel=2)
 
             self._num_qubits = feature_map.num_qubits
             self._feature_map_params = ParameterVector('x', length=feature_map.feature_dimension)
@@ -690,7 +709,7 @@ def cost_estimate(probs, gt_labels, shots=None):  # pylint: disable=unused-argum
     return x
 
 
-def cost_estimate_sigmoid(shots, probs, gt_labels):
+def cost_estimate_sigmoid(probs, gt_labels, shots=None):
     """Calculate sigmoid cross entropy
 
     Args:

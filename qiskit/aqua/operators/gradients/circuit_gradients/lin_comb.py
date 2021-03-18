@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -361,7 +361,7 @@ class LinComb(CircuitGradient):
             tuples_list = deepcopy(target_params)
             target_params = []
             for tuples in tuples_list:
-                if all([param in state_qc._parameter_table.get_keys() for param in tuples]):
+                if all(param in state_qc._parameter_table.get_keys() for param in tuples):
                     for param in tuples:
                         if param not in target_params:
                             target_params.append(param)
@@ -369,7 +369,7 @@ class LinComb(CircuitGradient):
             tuples_list = deepcopy([target_params])
             target_params = []
             for tuples in tuples_list:
-                if all([param in state_qc._parameter_table.get_keys() for param in tuples]):
+                if all(param in state_qc._parameter_table.get_keys() for param in tuples):
                     for param in tuples:
                         if param not in target_params:
                             target_params.append(param)
@@ -589,10 +589,11 @@ class LinComb(CircuitGradient):
                 return prob_dict
             elif isinstance(item, Iterable):
                 # Generate the operator which computes the linear combination
-                lin_comb_op = 2 * (I ^ state_op.num_qubits) ^ Z
+                lin_comb_op = 2 * Z ^ (I ^ state_op.num_qubits)
                 lin_comb_op = lin_comb_op.to_matrix()
                 return list(np.diag(
-                    partial_trace(lin_comb_op.dot(np.outer(item, np.conj(item))), [0]).data))
+                    partial_trace(lin_comb_op.dot(np.outer(item, np.conj(item))),
+                                  [state_op.num_qubits]).data))
             else:
                 raise TypeError(
                     'The state result should be either a DictStateFn or a VectorStateFn.')

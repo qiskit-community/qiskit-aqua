@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -39,7 +39,7 @@ class PauliOp(PrimitiveOp):
     """
 
     def __init__(self,
-                 primitive: Union[Pauli] = None,
+                 primitive: Union[Pauli],
                  coeff: Union[int, float, complex, ParameterExpression] = 1.0) -> None:
         """
             Args:
@@ -207,7 +207,7 @@ class PauliOp(PrimitiveOp):
                 corrected_z_bits = self.primitive.z[::-1]  # type: ignore
 
                 for bstr, v in front.primitive.items():
-                    bitstr = np.asarray(list(bstr)).astype(np.int).astype(np.bool)
+                    bitstr = np.asarray(list(bstr)).astype(int).astype(bool)
                     new_b_str = np.logical_xor(bitstr, corrected_x_bits)
                     new_str = ''.join(map(str, 1 * new_b_str))
                     z_factor = np.product(1 - 2 * np.logical_and(bitstr, corrected_z_bits))
@@ -255,6 +255,7 @@ class PauliOp(PrimitiveOp):
             elif corrected_x[sig_qubit_index]:
                 rot_op = PrimitiveOp(RXGate(2 * coeff))
 
+            # pylint: disable=cyclic-import
             from ..operator_globals import I
             left_pad = I.tensorpower(sig_qubit_index)
             right_pad = I.tensorpower(self.num_qubits - sig_qubit_index - 1)

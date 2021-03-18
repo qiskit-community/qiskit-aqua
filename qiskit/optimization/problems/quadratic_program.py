@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,23 +12,31 @@
 
 """Quadratic Program."""
 
-from typing import cast, List, Union, Dict, Optional, Tuple
 import logging
+import warnings
 from collections import defaultdict
+from collections.abc import Sequence
 from enum import Enum
 from math import fsum, isclose
-import warnings
-import numpy as np
-from numpy import (ndarray, zeros, bool as nbool)
-from scipy.sparse import spmatrix
+from typing import cast, List, Union, Dict, Optional, Tuple
 
+import numpy as np
 from docplex.mp.constr import (LinearConstraint as DocplexLinearConstraint,
                                QuadraticConstraint as DocplexQuadraticConstraint,
                                NotEqualConstraint)
-from docplex.mp.linear import Var
+
+try:
+    # new location since docplex 2.16.196
+    from docplex.mp.dvar import Var
+except ImportError:
+    # old location until docplex 2.15.194
+    from docplex.mp.linear import Var
 from docplex.mp.model import Model
 from docplex.mp.model_reader import ModelReader
 from docplex.mp.quad import QuadExpr
+from docplex.mp.vartype import ContinuousVarType, BinaryVarType, IntegerVarType
+from numpy import ndarray, zeros
+from scipy.sparse import spmatrix
 
 from qiskit.aqua import MissingOptionalLibraryError
 from qiskit.aqua.operators import I, OperatorBase, PauliOp, WeightedPauliOperator, SummedOp, ListOp
@@ -147,40 +155,138 @@ class QuadraticProgram:
         return self._variables_index
 
     def _add_variable(self,
-                      lowerbound: Union[float, int] = 0,
-                      upperbound: Union[float, int] = INFINITY,
-                      vartype: VarType = VarType.CONTINUOUS,
-                      name: Optional[str] = None) -> Variable:
-        """Checks whether a variable name is already taken and adds the variable to list and index
-        if not.
+                      lowerbound: Union[float, int],
+                      upperbound: Union[float, int],
+                      vartype: VarType,
+                      name: Optional[str]) -> Variable:
+        if name is None:
+            name = 'x'
+            key_format = '{}'
+        else:
+            key_format = ''
+        return self._add_variables(1, lowerbound, upperbound, vartype, name, key_format)[1][0]
+
+    def _add_variables(self,
+                       keys: Union[int, Sequence],
+                       lowerbound: Union[float, int],
+                       upperbound: Union[float, int],
+                       vartype: VarType,
+                       name: Optional[str],
+                       key_format: str) -> Tuple[List[str], List[Variable]]:
+        if isinstance(keys, int) and keys < 1:
+            raise QiskitOptimizationError(
+                "Cannot create non-positive number of variables: {}".format(keys))
+        if name is None:
+            name = 'x'
+        if '{{}}' in key_format:
+            raise QiskitOptimizationError(
+                "Formatter cannot contain nested substitutions: {}".format(key_format))
+        if key_format.count('{}') > 1:
+            raise QiskitOptimizationError(
+                "Formatter cannot contain more than one substitution: {}".format(key_format))
+
+        def _find_name(name, key_format, k):
+            prev = None
+            while True:
+                new_name = name + key_format.format(k)
+                if new_name == prev:
+                    raise QiskitOptimizationError(
+                        "Variable name already exists: {}".format(new_name))
+                if new_name in self._variables_index:
+                    k += 1
+                    prev = new_name
+                else:
+                    break
+            return new_name, k + 1
+
+        names = []
+        variables = []
+        k = self.get_num_vars()
+        lst = keys if isinstance(keys, Sequence) else range(keys)
+        for key in lst:
+            if isinstance(keys, Sequence):
+                indexed_name = name + key_format.format(key)
+            else:
+                indexed_name, k = _find_name(name, key_format, k)
+            if indexed_name in self._variables_index:
+                raise QiskitOptimizationError(
+                    "Variable name already exists: {}".format(indexed_name))
+            names.append(indexed_name)
+            self._variables_index[indexed_name] = self.get_num_vars()
+            variable = Variable(self, indexed_name, lowerbound, upperbound, vartype)
+            self._variables.append(variable)
+            variables.append(variable)
+        return names, variables
+
+    def _var_dict(self,
+                  keys: Union[int, Sequence],
+                  lowerbound: Union[float, int],
+                  upperbound: Union[float, int],
+                  vartype: VarType,
+                  name: Optional[str],
+                  key_format: str) -> Dict[str, Variable]:
+        """
+        Adds a positive number of variables to the variable list and index and returns a
+        dictionary mapping the variable names to their instances. If 'key_format' is present,
+        the next 'var_count' available indices are substituted into 'key_format' and appended
+        to 'name'.
 
         Args:
-            lowerbound: The lowerbound of the variable.
-            upperbound: The upperbound of the variable.
-            vartype: The type of the variable.
-            name: The name of the variable.
+            lowerbound: The lower bound of the variable(s).
+            upperbound: The upper bound of the variable(s).
+            vartype: The type of the variable(s).
+            name: The name(s) of the variable(s).
+            key_format: The format used to name/index the variable(s).
+            keys: If keys: int, it is interpreted as the number of variables to construct.
+                  Otherwise, the elements of the sequence are converted to strings via 'str' and
+                  substituted into `key_format`.
 
         Returns:
-            The added variable.
+            A dictionary mapping the variable names to variable instances.
 
         Raises:
             QiskitOptimizationError: if the variable name is already taken.
-
+            QiskitOptimizationError: if less than one variable instantiation is attempted.
+            QiskitOptimizationError: if `key_format` has more than one substitution or a
+                                     nested substitution.
         """
-        if name:
-            if name in self._variables_index:
-                raise QiskitOptimizationError("Variable name already exists: {}".format(name))
-        else:
-            k = self.get_num_vars()
-            while 'x{}'.format(k) in self._variables_index:
-                k += 1
-            name = 'x{}'.format(k)
-        self.variables_index[name] = len(self.variables)
-        variable = Variable(self, name, lowerbound, upperbound, vartype)
-        self.variables.append(variable)
-        return variable
+        return dict(
+            zip(*self._add_variables(keys, lowerbound, upperbound, vartype, name, key_format)))
 
-    def continuous_var(self, lowerbound: Union[float, int] = 0,
+    def _var_list(self,
+                  keys: Union[int, Sequence],
+                  lowerbound: Union[float, int],
+                  upperbound: Union[float, int],
+                  vartype: VarType,
+                  name: Optional[str],
+                  key_format: str) -> List[Variable]:
+        """
+        Adds a positive number of variables to the variable list and index and returns a
+        list of variable instances.
+
+        Args:
+            lowerbound: The lower bound of the variable(s).
+            upperbound: The upper bound of the variable(s).
+            vartype: The type of the variable(s).
+            name: The name(s) of the variable(s).
+            key_format: The format used to name/index the variable(s).
+            keys: If keys: int, it is interpreted as the number of variables to construct.
+                  Otherwise, the elements of the sequence are converted to strings via 'str' and
+                  substituted into `key_format`.
+
+        Returns:
+            A dictionary mapping the variable names to variable instances.
+
+        Raises:
+            QiskitOptimizationError: if the variable name is already taken.
+            QiskitOptimizationError: if less than one variable instantiation is attempted.
+            QiskitOptimizationError: if `key_format` has more than one substitution or a
+                                     nested substitution.
+        """
+        return self._add_variables(keys, lowerbound, upperbound, vartype, name, key_format)[1]
+
+    def continuous_var(self,
+                       lowerbound: Union[float, int] = 0,
                        upperbound: Union[float, int] = INFINITY,
                        name: Optional[str] = None) -> Variable:
         """Adds a continuous variable to the quadratic program.
@@ -198,6 +304,66 @@ class QuadraticProgram:
         """
         return self._add_variable(lowerbound, upperbound, Variable.Type.CONTINUOUS, name)
 
+    def continuous_var_dict(self,
+                            keys: Union[int, Sequence],
+                            lowerbound: Union[float, int] = 0,
+                            upperbound: Union[float, int] = INFINITY,
+                            name: Optional[str] = None,
+                            key_format: str = '{}') -> Dict[str, Variable]:
+        """
+        Uses 'var_dict' to construct a dictionary of continuous variables
+
+        Args:
+            lowerbound: The lower bound of the variable(s).
+            upperbound: The upper bound of the variable(s).
+            name: The name(s) of the variable(s).
+            key_format: The format used to name/index the variable(s).
+            keys: If keys: int, it is interpreted as the number of variables to construct.
+                  Otherwise, the elements of the sequence are converted to strings via 'str' and
+                  substituted into `key_format`.
+
+        Returns:
+            A dictionary mapping the variable names to variable instances.
+
+        Raises:
+            QiskitOptimizationError: if the variable name is already taken.
+            QiskitOptimizationError: if less than one variable instantiation is attempted.
+            QiskitOptimizationError: if `key_format` has more than one substitution or a
+                                     nested substitution.
+        """
+        return self._var_dict(keys, lowerbound, upperbound, Variable.Type.CONTINUOUS, name,
+                              key_format)
+
+    def continuous_var_list(self,
+                            keys: Union[int, Sequence],
+                            lowerbound: Union[float, int] = 0,
+                            upperbound: Union[float, int] = INFINITY,
+                            name: Optional[str] = None,
+                            key_format: str = '{}') -> List[Variable]:
+        """
+        Uses 'var_list' to construct a list of continuous variables
+
+        Args:
+            lowerbound: The lower bound of the variable(s).
+            upperbound: The upper bound of the variable(s).
+            name: The name(s) of the variable(s).
+            key_format: The format used to name/index the variable(s).
+            keys: If keys: int, it is interpreted as the number of variables to construct.
+                  Otherwise, the elements of the sequence are converted to strings via 'str' and
+                  substituted into `key_format`.
+
+        Returns:
+            A list of variable instances.
+
+        Raises:
+            QiskitOptimizationError: if the variable name is already taken.
+            QiskitOptimizationError: if less than one variable instantiation is attempted.
+            QiskitOptimizationError: if `key_format` has more than one substitution or a
+                                     nested substitution.
+        """
+        return self._var_list(keys, lowerbound, upperbound, Variable.Type.CONTINUOUS,
+                              name, key_format)
+
     def binary_var(self, name: Optional[str] = None) -> Variable:
         """Adds a binary variable to the quadratic program.
 
@@ -212,7 +378,58 @@ class QuadraticProgram:
         """
         return self._add_variable(0, 1, Variable.Type.BINARY, name)
 
-    def integer_var(self, lowerbound: Union[float, int] = 0,
+    def binary_var_dict(self,
+                        keys: Union[int, Sequence],
+                        name: Optional[str] = None,
+                        key_format: str = '{}') -> Dict[str, Variable]:
+        """
+        Uses 'var_dict' to construct a dictionary of binary variables
+
+        Args:
+            name: The name(s) of the variable(s).
+            key_format: The format used to name/index the variable(s).
+            keys: If keys: int, it is interpreted as the number of variables to construct.
+                  Otherwise, the elements of the sequence are converted to strings via 'str' and
+                  substituted into `key_format`.
+
+        Returns:
+            A dictionary mapping the variable names to variable instances.
+
+        Raises:
+            QiskitOptimizationError: if the variable name is already taken.
+            QiskitOptimizationError: if less than one variable instantiation is attempted.
+            QiskitOptimizationError: if `key_format` has more than one substitution or a
+                                     nested substitution.
+        """
+        return self._var_dict(keys, 0, 1, Variable.Type.BINARY, name, key_format)
+
+    def binary_var_list(self,
+                        keys: Union[int, Sequence],
+                        name: Optional[str] = None,
+                        key_format: str = '{}') -> List[Variable]:
+        """
+        Uses 'var_list' to construct a list of binary variables
+
+        Args:
+            name: The name(s) of the variable(s).
+            key_format: The format used to name/index the variable(s).
+            keys: If keys: int, it is interpreted as the number of variables to construct.
+                  Otherwise, the elements of the sequence are converted to strings via 'str' and
+                  substituted into `key_format`.
+
+        Returns:
+            A list of variable instances.
+
+        Raises:
+            QiskitOptimizationError: if the variable name is already taken.
+            QiskitOptimizationError: if less than one variable instantiation is attempted.
+            QiskitOptimizationError: if `key_format` has more than one substitution or a
+                                     nested substitution.
+        """
+        return self._var_list(keys, 0, 1, Variable.Type.BINARY, name, key_format)
+
+    def integer_var(self,
+                    lowerbound: Union[float, int] = 0,
                     upperbound: Union[float, int] = INFINITY,
                     name: Optional[str] = None) -> Variable:
         """Adds an integer variable to the quadratic program.
@@ -229,6 +446,64 @@ class QuadraticProgram:
             QiskitOptimizationError: if the variable name is already occupied.
         """
         return self._add_variable(lowerbound, upperbound, Variable.Type.INTEGER, name)
+
+    def integer_var_dict(self,
+                         keys: Union[int, Sequence],
+                         lowerbound: Union[float, int] = 0,
+                         upperbound: Union[float, int] = INFINITY,
+                         name: Optional[str] = None,
+                         key_format: str = '{}') -> Dict[str, Variable]:
+        """
+        Uses 'var_dict' to construct a dictionary of integer variables
+
+        Args:
+            lowerbound: The lower bound of the variable(s).
+            upperbound: The upper bound of the variable(s).
+            name: The name(s) of the variable(s).
+            key_format: The format used to name/index the variable(s).
+            keys: If keys: int, it is interpreted as the number of variables to construct.
+                  Otherwise, the elements of the sequence are converted to strings via 'str' and
+                  substituted into `key_format`.
+
+        Returns:
+            A dictionary mapping the variable names to variable instances.
+
+        Raises:
+            QiskitOptimizationError: if the variable name is already taken.
+            QiskitOptimizationError: if less than one variable instantiation is attempted.
+            QiskitOptimizationError: if `key_format` has more than one substitution or a
+                                     nested substitution.
+        """
+        return self._var_dict(keys, lowerbound, upperbound, Variable.Type.INTEGER, name, key_format)
+
+    def integer_var_list(self,
+                         keys: Union[int, Sequence],
+                         lowerbound: Union[float, int] = 0,
+                         upperbound: Union[float, int] = INFINITY,
+                         name: Optional[str] = None,
+                         key_format: str = '{}') -> List[Variable]:
+        """
+        Uses 'var_list' to construct a dictionary of integer variables
+
+        Args:
+            lowerbound: The lower bound of the variable(s).
+            upperbound: The upper bound of the variable(s).
+            name: The name(s) of the variable(s).
+            key_format: The format used to name/index the variable(s).
+            keys: If keys: int, it is interpreted as the number of variables to construct.
+                  Otherwise, the elements of the sequence are converted to strings via 'str' and
+                  substituted into `key_format`.
+
+        Returns:
+            A list of variable instances.
+
+        Raises:
+            QiskitOptimizationError: if the variable name is already taken.
+            QiskitOptimizationError: if less than one variable instantiation is attempted.
+            QiskitOptimizationError: if `key_format` has more than one substitution or a
+                                     nested substitution.
+        """
+        return self._var_list(keys, lowerbound, upperbound, Variable.Type.INTEGER, name, key_format)
 
     def get_variable(self, i: Union[int, str]) -> Variable:
         """Returns a variable for a given name or index.
@@ -560,11 +835,11 @@ class QuadraticProgram:
         # keep track of names separately, since docplex allows to have None names.
         var_names = {}
         for x in model.iter_variables():
-            if x.get_vartype().one_letter_symbol() == 'C':
+            if isinstance(x.vartype, ContinuousVarType):
                 x_new = self.continuous_var(x.lb, x.ub, x.name)
-            elif x.get_vartype().one_letter_symbol() == 'B':
+            elif isinstance(x.vartype, BinaryVarType):
                 x_new = self.binary_var(x.name)
-            elif x.get_vartype().one_letter_symbol() == 'I':
+            elif isinstance(x.vartype, IntegerVarType):
                 x_new = self.integer_var(x.lb, x.ub, x.name)
             else:
                 raise QiskitOptimizationError(
@@ -590,7 +865,7 @@ class QuadraticProgram:
         # get quadratic part of objective
         quadratic = {}
         if isinstance(model.objective_expr, QuadExpr):
-            for quad_triplet in model.objective_expr.generate_quad_triplets():
+            for quad_triplet in model.objective_expr.iter_quad_triplets():
                 i = var_names[quad_triplet[0]]
                 j = var_names[quad_triplet[1]]
                 v = quad_triplet[2]
@@ -617,15 +892,22 @@ class QuadraticProgram:
             name = constraint.name
             sense = constraint.sense
 
-            rhs = 0
-            if not isinstance(constraint.lhs, Var):
-                rhs -= constraint.lhs.constant
-            if not isinstance(constraint.rhs, Var):
-                rhs += constraint.rhs.constant
+            left_expr = constraint.get_left_expr()
+            right_expr = constraint.get_right_expr()
+            # for linear constraints we may get an instance of Var instead of expression,
+            # e.g. x + y = z
+            if isinstance(left_expr, Var):
+                left_expr = left_expr + 0
+            if isinstance(right_expr, Var):
+                right_expr = right_expr + 0
+
+            rhs = right_expr.constant - left_expr.constant
 
             lhs = {}
-            for x in constraint.iter_net_linear_coefs():
-                lhs[var_names[x[0]]] = x[1]
+            for x in left_expr.iter_variables():
+                lhs[var_names[x]] = left_expr.get_coef(x)
+            for x in right_expr.iter_variables():
+                lhs[var_names[x]] = lhs.get(var_names[x], 0.0) - right_expr.get_coef(x)
 
             if sense == sense.EQ:
                 self.linear_constraint(lhs, '==', rhs, name)
@@ -664,7 +946,7 @@ class QuadraticProgram:
             if right_expr.is_quad_expr():
                 for x in right_expr.linear_part.iter_variables():
                     linear[var_names[x]] = linear.get(var_names[x], 0.0) - \
-                        right_expr.linear_part.get_coef(x)
+                                           right_expr.linear_part.get_coef(x)
                 for quad_triplet in right_expr.iter_quad_triplets():
                     i = var_names[quad_triplet[0]]
                     j = var_names[quad_triplet[1]]
@@ -818,7 +1100,7 @@ class QuadraticProgram:
             raise MissingOptionalLibraryError(
                 libname='CPLEX',
                 name='QuadraticProgram.read_from_lp_file',
-                pip_install='pip install qiskit-aqua[cplex]') from ex
+                pip_install="pip install 'qiskit-aqua[cplex]'") from ex
 
         def _parse_problem_name(filename: str) -> str:
             # Because docplex model reader uses the base name as model name,
@@ -914,8 +1196,8 @@ class QuadraticProgram:
         # initialize Hamiltonian.
         num_nodes = self.get_num_vars()
         pauli_list = []
-        offset = 0
-        zero = zeros(num_nodes, dtype=nbool)
+        offset = 0.
+        zero = zeros(num_nodes, dtype=bool)
 
         # set a sign corresponding to a maximized or minimized problem.
         # sign == 1 is for minimized problem. sign == -1 is for maximized problem.
@@ -926,7 +1208,7 @@ class QuadraticProgram:
 
         # convert linear parts of the object function into Hamiltonian.
         for idx, coef in self.objective.linear.to_dict().items():
-            z_p = zeros(num_nodes, dtype=nbool)
+            z_p = zeros(num_nodes, dtype=bool)
             weight = coef * sense / 2
             z_p[idx] = True
 
@@ -950,16 +1232,16 @@ class QuadraticProgram:
             if i == j:
                 offset += weight
             else:
-                z_p = zeros(num_nodes, dtype=nbool)
+                z_p = zeros(num_nodes, dtype=bool)
                 z_p[i] = True
                 z_p[j] = True
                 pauli_list.append([weight, Pauli(z_p, zero)])
 
-            z_p = zeros(num_nodes, dtype=nbool)
+            z_p = zeros(num_nodes, dtype=bool)
             z_p[i] = True
             pauli_list.append([-weight, Pauli(z_p, zero)])
 
-            z_p = zeros(num_nodes, dtype=nbool)
+            z_p = zeros(num_nodes, dtype=bool)
             z_p[j] = True
             pauli_list.append([-weight, Pauli(z_p, zero)])
 
@@ -1107,19 +1389,18 @@ class QuadraticProgram:
         # if input `x` is not the same len as the total vars, raise an error
         if len(x) != self.get_num_vars():
             raise QiskitOptimizationError(
-                'The size of solution `x`: {}, does not match the number of problem variables: {}'
-                .format(len(x), self.get_num_vars())
-            )
+                'The size of solution `x`: {}, does not match the number of problem variables: '
+                '{}'.format(len(x), self.get_num_vars()))
 
         # check whether the input satisfy the bounds of the problem
-        violated_variables = []     # type: List[Variable]
+        violated_variables = []  # type: List[Variable]
         for i, val in enumerate(x):
             variable = self.get_variable(i)
             if val < variable.lowerbound or variable.upperbound < val:
                 violated_variables.append(variable)
 
         # check whether the input satisfy the constraints of the problem
-        violated_constraints = []       # type: List[Constraint]
+        violated_constraints = []  # type: List[Constraint]
         for constraint in cast(List[Constraint], self._linear_constraints) + \
                 cast(List[Constraint], self._quadratic_constraints):
             lhs = constraint.evaluate(x)

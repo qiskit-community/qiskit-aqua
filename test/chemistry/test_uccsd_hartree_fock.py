@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -19,7 +19,8 @@ from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms import VQE
 from qiskit.aqua.components.optimizers import SLSQP, SPSA
 from qiskit.aqua.operators import AerPauliExpectation, PauliExpectation
-from qiskit.chemistry.components.initial_states import HartreeFock
+
+from qiskit.chemistry.circuit.library import HartreeFock
 from qiskit.chemistry.components.variational_forms import UCCSD
 from qiskit.chemistry.core import QubitMappingType
 from qiskit.chemistry.drivers import HDF5Driver
@@ -90,10 +91,10 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         try:
             # pylint: disable=import-outside-toplevel
             from qiskit import Aer
-        except Exception as ex:  # pylint: disable=broad-except
+            backend = Aer.get_backend('statevector_simulator')
+        except ImportError as ex:  # pylint: disable=broad-except
             self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(ex)))
             return
-        backend = Aer.get_backend('statevector_simulator')
         solver = VQE(var_form=self.var_form, optimizer=self.optimizer,
                      quantum_instance=QuantumInstance(backend=backend))
 
@@ -107,10 +108,10 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         try:
             # pylint: disable=import-outside-toplevel
             from qiskit import Aer
-        except Exception as ex:  # pylint: disable=broad-except
+            backend = Aer.get_backend('qasm_simulator')
+        except ImportError as ex:  # pylint: disable=broad-except
             self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(ex)))
             return
-        backend = Aer.get_backend('qasm_simulator')
         optimizer = SPSA(maxiter=200, last_avg=5)
         solver = VQE(var_form=self.var_form, optimizer=optimizer,
                      expectation=PauliExpectation(),
@@ -128,10 +129,10 @@ class TestUCCSDHartreeFock(QiskitChemistryTestCase):
         try:
             # pylint: disable=import-outside-toplevel
             from qiskit import Aer
-        except Exception as ex:  # pylint: disable=broad-except
+            backend = Aer.get_backend('qasm_simulator')
+        except ImportError as ex:  # pylint: disable=broad-except
             self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(ex)))
             return
-        backend = Aer.get_backend('qasm_simulator')
         optimizer = SPSA(maxiter=200, last_avg=5)
         solver = VQE(var_form=self.var_form, optimizer=optimizer,
                      expectation=AerPauliExpectation(),

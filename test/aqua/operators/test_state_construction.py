@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -71,6 +71,7 @@ class TestStateConstruction(QiskitAquaTestCase):
         sv_vector = sv_res.get_statevector()
         qc_op = PrimitiveOp(qc) @ Zero
 
+        # pylint: disable=unexpected-keyword-arg
         qasm_res = execute(qc_op.to_circuit(meas=True),
                            BasicAer.get_backend('qasm_simulator')).result()
 
@@ -146,10 +147,10 @@ class TestStateConstruction(QiskitAquaTestCase):
 
     def test_sampling(self):
         """ state fn circuit from dict initialize test """
-        statedict = {'101': .5,
-                     '100': .1,
-                     '000': .2,
-                     '111': .5}
+        statedict = {'101': .5 + 1.j,
+                     '100': .1 + 2.j,
+                     '000': .2 + 0.j,
+                     '111': .5 + 1.j}
         sfc = CircuitStateFn.from_dict(statedict)
         circ_samples = sfc.sample()
         dict_samples = StateFn(statedict).sample()

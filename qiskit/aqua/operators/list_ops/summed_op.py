@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -241,4 +241,4 @@ class SummedOp(ListOp):
                 [op * other_reduced.coeff for op in other_reduced.oplist])  # type: ignore
 
         # compare independent of order
-        return set(self_reduced) == set(other_reduced)
+        return all(any(i == j for j in other_reduced) for i in self_reduced)

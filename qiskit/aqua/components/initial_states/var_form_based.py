@@ -13,6 +13,7 @@
 """The variational form based initial state"""
 
 from typing import Union, List, Dict
+import warnings
 import numpy as np
 from qiskit import QuantumCircuit
 from qiskit.circuit import Parameter
@@ -50,6 +51,13 @@ class VarFormBased:
             raise ValueError('Incompatible parameters provided.')
         self._var_form = var_form
         self._var_form_params = params
+
+        warnings.warn('The {} class is deprecated as of Aqua 0.9 and will be removed no earlier '
+                      'than 3 months after the release date. Instead, all algorithms and circuits '
+                      'accept a plain QuantumCircuit.'.format(
+                          self.__class__.__name__
+                      ),
+                      category=DeprecationWarning, stacklevel=2)
 
     def construct_circuit(self, mode='circuit', register=None):
         """

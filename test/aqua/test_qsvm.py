@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -79,7 +79,7 @@ class TestQSVM(QiskitAquaTestCase):
         else:
             data_preparation = self.data_preparation
 
-        svm = QSVM(data_preparation, self.training_data, self.testing_data, None)
+        svm = QSVM(data_preparation, self.training_data, self.testing_data, None, lambda2=0)
 
         try:
             result = svm.run(self.qasm_simulator)
@@ -104,7 +104,7 @@ class TestQSVM(QiskitAquaTestCase):
 
         Also tests saving and loading models."""
         data_preparation = self.data_preparation
-        svm = QSVM(data_preparation, self.training_data, self.testing_data, None)
+        svm = QSVM(data_preparation, self.training_data, self.testing_data, None, lambda2=0)
 
         file_path = self.get_resource_path('qsvm_test.npz')
         try:
@@ -213,7 +213,7 @@ class TestQSVM(QiskitAquaTestCase):
         data_preparation = self.data_preparation
         try:
             svm = QSVM(data_preparation, train_input, test_input, total_array,
-                       multiclass_extension=method[multiclass_extension])
+                       multiclass_extension=method[multiclass_extension], lambda2=0)
             result = svm.run(self.qasm_simulator)
             self.assertAlmostEqual(result['testing_accuracy'], accuracy[multiclass_extension],
                                    places=4)
@@ -240,19 +240,23 @@ class TestQSVM(QiskitAquaTestCase):
         training_data = training_input[0]
         training_labels = training_input[1]
         labels = training_labels * 2 - 1  # map label from 0 --> -1 and 1 --> 1
-        labels = labels.astype(np.float)
+        labels = labels.astype(float)
 
         feature_map = ZZFeatureMap(feature_dimension=feature_dim, reps=2, entanglement='linear')
 
-        with self.assertRaises(DQCPError):
-            # Sampling noise means that the kernel matrix will not quite be positive
-            # semi-definite which will cause the optimize svm to fail
-            backend = BasicAer.get_backend('qasm_simulator')
-            quantum_instance = QuantumInstance(backend, shots=1024, seed_simulator=seed,
-                                               seed_transpiler=seed)
-            kernel_matrix = QSVM.get_kernel_matrix(quantum_instance, feature_map=feature_map,
-                                                   x1_vec=training_data, enforce_psd=False)
-            _ = optimize_svm(kernel_matrix, labels)
+        try:
+            with self.assertRaises(DQCPError):
+                # Sampling noise means that the kernel matrix will not quite be positive
+                # semi-definite which will cause the optimize svm to fail
+                backend = BasicAer.get_backend('qasm_simulator')
+                quantum_instance = QuantumInstance(backend, shots=1024, seed_simulator=seed,
+                                                   seed_transpiler=seed)
+                kernel_matrix = QSVM.get_kernel_matrix(quantum_instance, feature_map=feature_map,
+                                                       x1_vec=training_data, enforce_psd=False)
+                _ = optimize_svm(kernel_matrix, labels, lambda2=0)
+        except MissingOptionalLibraryError as ex:
+            self.skipTest(str(ex))
+            return
 
         # This time we enforce that the matrix be positive semi-definite which runs logic to
         # make it so.
@@ -261,7 +265,7 @@ class TestQSVM(QiskitAquaTestCase):
                                            seed_transpiler=seed)
         kernel_matrix = QSVM.get_kernel_matrix(quantum_instance, feature_map=feature_map,
                                                x1_vec=training_data, enforce_psd=True)
-        alpha, b, support = optimize_svm(kernel_matrix, labels)
+        alpha, b, support = optimize_svm(kernel_matrix, labels, lambda2=0)
 
         expected_alpha = [0.855861781, 2.59807482, 0, 0.962959215,
                           1.08141696, 0.217172547, 0, 0,

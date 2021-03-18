@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -165,19 +165,20 @@ class OrbitalOptimizationVQE(GroundStateEigensolver):
             AquaError: Instantiate OrbitalRotation class and provide it to the
                        orbital_rotation keyword argument
         """
-        self._bounds = []
+        bounds = []
         bounds_var_form = [bounds_var_form_val for _ in range(self._vqe.var_form.num_parameters)]
         self._bound_oo = \
             [bounds_oo_val for _ in range(self._orbital_rotation.num_parameters)]
-        self._bounds = bounds_var_form + self._bound_oo
-        self._bounds = np.array(self._bounds)
+        bounds = bounds_var_form + self._bound_oo
+        self._bounds = np.array(bounds)
 
     def _set_initial_point(self, initial_pt_scalar: float = 1e-1) -> None:
         """ Initializes the initial point for the algorithm if the user does not provide his own.
         Args:
             initial_pt_scalar: value of the initial parameters for wavefunction and orbital rotation
         """
-        self.initial_point = [initial_pt_scalar for _ in range(self._num_parameters_oovqe)]
+        self.initial_point = np.asarray(
+            [initial_pt_scalar for _ in range(self._num_parameters_oovqe)])
 
     def _initialize_additional_parameters(self, driver: BaseDriver):
         """ Initializes additional parameters of the OOVQE algorithm. """
@@ -349,7 +350,7 @@ class OrbitalOptimizationVQE(GroundStateEigensolver):
         else:
             result.optimal_point_ansatz = vqresult.optimal_point[:self.var_form_num_parameters]
             result.optimal_point_orbitals = vqresult.optimal_point[self.var_form_num_parameters:]
-        result.eigenenergies = [vqresult.optimal_value + 0j]
+        result.eigenenergies = np.asarray([vqresult.optimal_value + 0j])
 
         #  copy parameters bypass the error checks that are not tailored to OOVQE
         _ret_temp_params = copy.copy(vqresult.optimal_point)
@@ -570,7 +571,7 @@ class OrbitalRotation:
         """ Creates 2 matrices K_alpha, K_beta that rotate the orbitals through MO coefficient
         C_alpha = C_RHF * U_alpha where U = e^(K_alpha), similarly for beta orbitals. """
 
-        self._parameters = parameters
+        self._parameters = parameters  # type: ignore
         k_matrix_alpha = np.zeros((self._dim_kappa_matrix, self._dim_kappa_matrix))
         k_matrix_beta = np.zeros((self._dim_kappa_matrix, self._dim_kappa_matrix))
 

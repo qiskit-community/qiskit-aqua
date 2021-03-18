@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -38,7 +38,8 @@ class TestReadmeSample(QiskitChemistryTestCase):
             # pylint: disable=import-outside-toplevel
             # pylint: disable=unused-import
             from qiskit import Aer
-        except Exception as ex:  # pylint: disable=broad-except
+            _ = Aer.get_backend('statevector_simulator')
+        except ImportError as ex:  # pylint: disable=broad-except
             self.skipTest("Aer doesn't appear to be installed. Error: '{}'".format(str(ex)))
             return
 
@@ -79,12 +80,15 @@ class TestReadmeSample(QiskitChemistryTestCase):
         optimizer = L_BFGS_B()
 
         # setup the initial state for the variational form
-        from qiskit.chemistry.components.initial_states import HartreeFock
+        from qiskit.chemistry.circuit.library import HartreeFock
         init_state = HartreeFock(num_spin_orbitals, num_particles)
 
         # setup the variational form for VQE
         from qiskit.circuit.library import TwoLocal
-        var_form = TwoLocal(num_qubits, ['ry', 'rz'], 'cz', initial_state=init_state)
+        var_form = TwoLocal(num_qubits, ['ry', 'rz'], 'cz')
+
+        # add the initial state
+        var_form.compose(init_state, front=True)
 
         # setup and run VQE
         from qiskit.aqua.algorithms import VQE

@@ -19,7 +19,7 @@ from qiskit import BasicAer
 from qiskit.aqua import QuantumInstance, aqua_globals
 from qiskit.aqua.algorithms import VQE
 from qiskit.aqua.components.optimizers import SLSQP
-from qiskit.chemistry.components.initial_states import HartreeFock
+from qiskit.chemistry.circuit.library import HartreeFock
 from qiskit.chemistry.core import QubitMappingType
 from qiskit.chemistry.drivers import HDF5Driver
 from qiskit.chemistry.algorithms.ground_state_solvers import GroundStateEigensolver
@@ -57,7 +57,8 @@ class TestExcitationPreserving(QiskitChemistryTestCase):
             qubit_mapping=fermionic_transformation._qubit_mapping,
             two_qubit_reduction=fermionic_transformation._two_qubit_reduction)
 
-        wavefunction = ExcitationPreserving(qubit_op.num_qubits, initial_state=initial_state)
+        wavefunction = ExcitationPreserving(qubit_op.num_qubits)
+        wavefunction.compose(initial_state, front=True, inplace=True)
 
         solver = VQE(var_form=wavefunction, optimizer=optimizer,
                      quantum_instance=QuantumInstance(BasicAer.get_backend('statevector_simulator'),

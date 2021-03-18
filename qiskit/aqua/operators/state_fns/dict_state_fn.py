@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -252,7 +252,7 @@ class DictStateFn(StateFn):
                shots: int = 1024,
                massive: bool = False,
                reverse_endianness: bool = False) -> dict:
-        probs = np.array(list(self.primitive.values()))**2
+        probs = np.square(np.abs(np.array(list(self.primitive.values()))))
         unique, counts = np.unique(aqua_globals.random.choice(list(self.primitive.keys()),
                                                               size=shots,
                                                               p=(probs / sum(probs))),

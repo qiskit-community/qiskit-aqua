@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -247,7 +247,7 @@ class Shor(QuantumAlgorithm):
             )
 
         # Apply inverse QFT
-        iqft = QFT(len(self._up_qreg)).inverse().to_instruction()
+        iqft = QFT(len(self._up_qreg)).inverse().reverse_bits().to_instruction()
         circuit.append(iqft, self._up_qreg)
 
         if measurement:
@@ -338,7 +338,7 @@ class Shor(QuantumAlgorithm):
                 other_factor = math.gcd(putting_minus, self._N)
 
                 # Check if the factors found are trivial factors or are the desired factors
-                if any([factor in {1, self._N} for factor in (one_factor, other_factor)]):
+                if any(factor in {1, self._N} for factor in (one_factor, other_factor)):
                     logger.debug('Found just trivial factors, not good enough.')
                     # Check if the number has already been found,
                     # (use i - 1 because i was already incremented)

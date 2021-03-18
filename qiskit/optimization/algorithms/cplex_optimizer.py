@@ -1,7 +1,6 @@
-
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -14,7 +13,6 @@
 """The CPLEX optimizer wrapped to be used within Qiskit's optimization module."""
 
 import logging
-from typing import Optional
 
 from qiskit.aqua import MissingOptionalLibraryError
 from .optimization_algorithm import OptimizationAlgorithm, OptimizationResult
@@ -45,7 +43,7 @@ class CplexOptimizer(OptimizationAlgorithm):
         >>> if optimizer: result = optimizer.solve(problem)
     """
 
-    def __init__(self, disp: Optional[bool] = False) -> None:
+    def __init__(self, disp: bool = False) -> None:
         """Initializes the CplexOptimizer.
 
         Args:
@@ -58,7 +56,7 @@ class CplexOptimizer(OptimizationAlgorithm):
             raise MissingOptionalLibraryError(
                 libname='CPLEX',
                 name='CplexOptimizer',
-                pip_install='pip install qiskit-aqua[cplex]')
+                pip_install="pip install 'qiskit-aqua[cplex]'")
 
         self._disp = disp
 

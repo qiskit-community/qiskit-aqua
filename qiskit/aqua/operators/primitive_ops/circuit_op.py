@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -35,9 +35,8 @@ class CircuitOp(PrimitiveOp):
     """
 
     def __init__(self,
-                 primitive: Union[Instruction, QuantumCircuit] = None,
-                 coeff: Optional[Union[int, float, complex,
-                                       ParameterExpression]] = 1.0) -> None:
+                 primitive: Union[Instruction, QuantumCircuit],
+                 coeff: Union[int, float, complex, ParameterExpression] = 1.0) -> None:
         """
         Args:
             primitive: The QuantumCircuit which defines the
@@ -143,9 +142,7 @@ class CircuitOp(PrimitiveOp):
     def to_matrix(self, massive: bool = False) -> np.ndarray:
         OperatorBase._check_massive('to_matrix', True, self.num_qubits, massive)
         unitary = qiskit.quantum_info.Operator(self.to_circuit()).data
-        # pylint: disable=cyclic-import
-        from ..operator_globals import EVAL_SIG_DIGITS
-        return np.round(unitary * self.coeff, decimals=EVAL_SIG_DIGITS)
+        return unitary * self.coeff
 
     def __str__(self) -> str:
         qc = self.to_circuit()  # type: ignore
@@ -196,7 +193,8 @@ class CircuitOp(PrimitiveOp):
         if isinstance(front, (PauliOp, CircuitOp, MatrixOp, CircuitStateFn)):
             return self.compose(front)
 
-        return cast(Union[OperatorBase, float, complex], self.to_matrix_op().eval(front=front))
+        return cast(Union[OperatorBase, float, complex],
+                    self.to_matrix_op().eval(front=front))  # type: ignore
 
     def to_circuit(self) -> QuantumCircuit:
         return self.primitive

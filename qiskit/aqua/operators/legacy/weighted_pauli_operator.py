@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -101,9 +101,19 @@ class WeightedPauliOperator(LegacyBaseOperator):
         pauli_ops = []
         for [w, p] in self.paulis:
             pauli = Pauli.from_label(str(p)[::-1]) if reverse_endianness else p
-            # Adding the imaginary is necessary to handle the imaginary coefficients in UCCSD.
-            # TODO fix these or add support for them in Terra.
-            pauli_ops += [PrimitiveOp(pauli, coeff=np.real(w) + np.imag(w))]
+            # This weighted pauli operator has the coeff stored as a complex type
+            # irrespective of whether the value has any imaginary part or not.
+            # For many operators the coeff will be real. Hence below the coeff is made real,
+            # when creating the PrimitiveOp, since it can be stored then as a float, if its
+            # value is real, i.e. has no imaginary part. This avoids any potential issues around
+            # complex - but if there are complex coeffs then maybe that using the opflow
+            # later will fail if it happens to be used where complex is not supported.
+            # Now there are imaginary coefficients in UCCSD that would need to be handled
+            # when this is converted to opflow (evolution of hopping operators) where currently
+            # Terra does not handle complex.
+            # TODO fix these or add support for them in Terra
+            coeff = np.real(w) if np.isreal(w) else w
+            pauli_ops += [PrimitiveOp(pauli, coeff=coeff)]
         return sum(pauli_ops)
 
     @property
@@ -252,7 +262,7 @@ class WeightedPauliOperator(LegacyBaseOperator):
         Raises:
             ValueError: the scaling factor is not a valid type.
         """
-        if not isinstance(scaling_factor, (int, float, complex, np.int, np.float, np.complex)):
+        if not isinstance(scaling_factor, (int, float, complex)):
             raise ValueError(
                 "Type of scaling factor is a valid type. {} if given.".format(
                     scaling_factor.__class__))
@@ -282,14 +292,14 @@ class WeightedPauliOperator(LegacyBaseOperator):
 
     def __rmul__(self, other):
         """ Overload other * self """
-        if isinstance(other, (int, float, complex, np.int, np.float, np.complex)):
+        if isinstance(other, (int, float, complex)):
             return self._scaling_weight(other, copy=True)
         else:
             return other.multiply(self)
 
     def __mul__(self, other):
         """ Overload self * other """
-        if isinstance(other, (int, float, complex, np.int, np.float, np.complex)):
+        if isinstance(other, (int, float, complex)):
             return self._scaling_weight(other, copy=True)
         else:
             return self.multiply(other)
@@ -1090,7 +1100,7 @@ class Z2Symmetries:
             return cls([], [], [], None)
 
         for pauli in operator.paulis:
-            stacked_paulis.append(np.concatenate((pauli[1].x, pauli[1].z), axis=0).astype(np.int))
+            stacked_paulis.append(np.concatenate((pauli[1].x, pauli[1].z), axis=0).astype(int))
 
         stacked_matrix = np.array(np.stack(stacked_paulis))
         symmetries = kernel_F2(stacked_matrix)
@@ -1250,7 +1260,7 @@ class Z2Symmetries:
                         "Return the empty operator back.")
             return operator
 
-        if isinstance(num_particles, list):
+        if isinstance(num_particles, (tuple, list)):
             num_alpha = num_particles[0]
             num_beta = num_particles[1]
         else:
