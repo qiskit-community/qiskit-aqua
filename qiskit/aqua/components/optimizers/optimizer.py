@@ -16,6 +16,7 @@ from enum import IntEnum
 import logging
 from abc import ABC, abstractmethod
 import numpy as np
+from ...deprecation import warn_package
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +46,8 @@ class Optimizer(ABC):
         self._initial_point_support_level = self.get_support_level()['initial_point']
         self._options = {}
         self._max_evals_grouped = 1
+        warn_package('aqua.components.optimizers',
+                     'qiskit.algorithms.optimizers', 'qiskit-terra')
 
     @abstractmethod
     def get_support_level(self):

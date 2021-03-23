@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -25,6 +25,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 from qiskit import QuantumRegister
 from qiskit.aqua.utils import get_entangler_map, validate_entangler_map
+from ...deprecation import warn_package
 
 
 class VariationalForm(ABC):
@@ -44,7 +45,9 @@ class VariationalForm(ABC):
         self._bounds = list()  # type: List[object]
         self._preferred_init_points = None
         self._support_parameterized_circuit = False
-        pass
+        warn_package('aqua.components.variational_forms',
+                     'qiskit.algorithms.variational_forms',
+                     'qiskit-terra')
 
     @abstractmethod
     def construct_circuit(self,

@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -49,6 +49,7 @@ class NumPyMinimumEigensolver(ClassicalAlgorithm, MinimumEigensolver):
                 whether to consider this value or not. If there is no
                 feasible element, the result can even be empty.
         """
+        super().__init__()
         self._ces = NumPyEigensolver(operator=operator, k=1, aux_operators=aux_operators,
                                      filter_criterion=filter_criterion)
         # TODO remove

@@ -131,6 +131,10 @@ class QuantumInstance:
             AquaError: set noise model but the backend does not support that
             AquaError: set backend_options but the backend does not support that
         """
+        from .deprecation import warn_class
+        warn_class('aqua.QuantumInstance',
+                   'qiskit.utils.QuantumInstance',
+                   'qiskit-terra')
         self._backend = backend
         self._pass_manager = pass_manager
 

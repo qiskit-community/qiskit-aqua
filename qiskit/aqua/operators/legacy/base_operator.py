@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -13,6 +13,7 @@
 """ Base Operator """
 
 from abc import ABC, abstractmethod
+from ...deprecation import warn_package
 
 
 class LegacyBaseOperator(ABC):
@@ -24,6 +25,7 @@ class LegacyBaseOperator(ABC):
         self._basis = basis
         self._z2_symmetries = z2_symmetries
         self._name = name if name is not None else ''
+        warn_package('aqua.operators', 'qiskit.opflow', 'qiskit-terra', 4)
 
     @property
     def name(self):
