@@ -78,14 +78,14 @@ def get_operator(weight_matrix, K):  # pylint: disable=invalid-name
                 zp = np.zeros(num_nodes, dtype=bool)
                 zp[i] = True
                 zp[j] = True
-                pauli_list.append([A * 0.25, Pauli(zp, xp)])
+                pauli_list.append([A * 0.25, Pauli((zp, xp))])
             else:
                 shift += A * 0.25
     for i in range(num_nodes):
         xp = np.zeros(num_nodes, dtype=bool)
         zp = np.zeros(num_nodes, dtype=bool)
         zp[i] = True
-        pauli_list.append([-A * Y, Pauli(zp, xp)])
+        pauli_list.append([-A * Y, Pauli((zp, xp))])
 
     shift += 0.5 * K * (K - 1)
 
@@ -96,15 +96,15 @@ def get_operator(weight_matrix, K):  # pylint: disable=invalid-name
                 zp = np.zeros(num_nodes, dtype=bool)
                 zp[i] = True
                 zp[j] = True
-                pauli_list.append([-0.25, Pauli(zp, xp)])
+                pauli_list.append([-0.25, Pauli((zp, xp))])
 
                 zp2 = np.zeros(num_nodes, dtype=bool)
                 zp2[i] = True
-                pauli_list.append([-0.25, Pauli(zp2, xp)])
+                pauli_list.append([-0.25, Pauli((zp2, xp))])
 
                 zp3 = np.zeros(num_nodes, dtype=bool)
                 zp3[j] = True
-                pauli_list.append([-0.25, Pauli(zp3, xp)])
+                pauli_list.append([-0.25, Pauli((zp3, xp))])
 
                 shift += -0.25
 

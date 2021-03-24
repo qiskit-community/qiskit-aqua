@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -293,11 +293,12 @@ class MatrixOperator(LegacyBaseOperator):
         if expansion_order == 1:
             left = reduce(
                 lambda x, y: x @ y,
-                [scila.expm(lam / 2 * c * p.to_spmatrix().tocsc()) for c, p in pauli_list]
+                [scila.expm(lam / 2 * c * p.to_matrix(sparse=True).tocsc()) for c, p in pauli_list]
             )
             right = reduce(
                 lambda x, y: x @ y,
-                [scila.expm(lam / 2 * c * p.to_spmatrix().tocsc()) for c, p in reversed(pauli_list)]
+                [scila.expm(lam / 2 * c * p.to_matrix(sparse=True).tocsc())
+                 for c, p in reversed(pauli_list)]
             )
             return left @ right
         else:
@@ -368,7 +369,7 @@ class MatrixOperator(LegacyBaseOperator):
                         lambda x, y: x @ y,
                         [
                             scila.expm(-1.j * evo_time
-                                       / num_time_slices * c * p.to_spmatrix().tocsc())
+                                       / num_time_slices * c * p.to_matrix(sparse=True).tocsc())
                             for c, p in pauli_list
                         ]
                     )

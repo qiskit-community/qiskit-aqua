@@ -49,14 +49,14 @@ def get_operator(w):
                 z_p = np.zeros(num_nodes, dtype=bool)
                 z_p[i] = True
                 z_p[j] = True
-                pauli_list.append([1/2, Pauli(z_p, x_p)])
+                pauli_list.append([1/2, Pauli((z_p, x_p))])
                 shift += 1/2
     for i in range(num_nodes):
         degree = np.count_nonzero(w[i, :] != 0)
         x_p = np.zeros(num_nodes, dtype=bool)
         z_p = np.zeros(num_nodes, dtype=bool)
         z_p[i] = True
-        pauli_list.append([1/2 - degree/2, Pauli(z_p, x_p)])
+        pauli_list.append([1/2 - degree/2, Pauli((z_p, x_p))])
     return WeightedPauliOperator(paulis=pauli_list), shift - num_nodes / 2
 
 

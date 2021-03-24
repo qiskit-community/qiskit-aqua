@@ -120,8 +120,8 @@ class IQPE(QuantumAlgorithm, MinimumEigensolver):
                 [
                     self._ret['translation'],
                     Pauli(
-                        np.zeros(self._operator.num_qubits),
-                        np.zeros(self._operator.num_qubits)
+                        (np.zeros(self._operator.num_qubits),
+                         np.zeros(self._operator.num_qubits))
                     )
                 ]
             ])

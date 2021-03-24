@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -42,9 +42,9 @@ class TestVehicleRouting(QiskitOptimizationTestCase):
     def test_simple1(self):
         """ simple1 test """
         # Compares the output in terms of Paulis.
-        paulis = [(79.6, Pauli(z=[True, False], x=[False, False])),
-                  (79.6, Pauli(z=[False, True], x=[False, False])),
-                  (160.8, Pauli(z=[False, False], x=[False, False]))]
+        paulis = [(79.6, Pauli(([True, False], [False, False]))),
+                  (79.6, Pauli(([False, True], [False, False]))),
+                  (160.8, Pauli(([False, False], [False, False])))]
         # Could also consider op = Operator(paulis) and then __eq__, but
         # that would not use assert_approx_equal
         for pauli_a, pauli_b in zip(self.qubit_op._paulis, paulis):

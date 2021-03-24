@@ -277,6 +277,6 @@ class PrimitiveOp(OperatorBase):
             from ..operator_globals import I
             return (I ^ self.num_qubits) * 0.0
 
-        return sum([PrimitiveOp(Pauli.from_label(label),  # type: ignore
+        return sum([PrimitiveOp(Pauli(label),  # type: ignore
                                 coeff.real if coeff == coeff.real else coeff)
                     for (label, coeff) in sparse_pauli.to_list()]) * self.coeff

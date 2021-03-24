@@ -186,7 +186,7 @@ class FermionicOperator:
             a_x = np.asarray([0] * i + [1] + [0] * (n - i - 1), dtype=bool)
             b_z = np.asarray([1] * i + [1] + [0] * (n - i - 1), dtype=bool)
             b_x = np.asarray([0] * i + [1] + [0] * (n - i - 1), dtype=bool)
-            a_list.append((Pauli(a_z, a_x), Pauli(b_z, b_x)))
+            a_list.append((Pauli((a_z, a_x)), Pauli((b_z, b_x))))
         return a_list
 
     def _parity_mode(self, n):
@@ -209,7 +209,7 @@ class FermionicOperator:
             a_x = np.asarray(a_x + [1] + [1] * (n - i - 1), dtype=bool)
             b_z = np.asarray(b_z + [1] + [0] * (n - i - 1), dtype=bool)
             b_x = np.asarray(b_x + [1] + [1] * (n - i - 1), dtype=bool)
-            a_list.append((Pauli(a_z, a_x), Pauli(b_z, b_x)))
+            a_list.append((Pauli((a_z, a_x)), Pauli((b_z, b_x))))
         return a_list
 
     def _bravyi_kitaev_mode(self, n):
@@ -319,21 +319,21 @@ class FermionicOperator:
 
             remainder_sets.append(np.setdiff1d(parity_sets[j], flip_sets[j]))
 
-            update_pauli.append(Pauli(np.zeros(n, dtype=bool), np.zeros(n, dtype=bool)))
-            parity_pauli.append(Pauli(np.zeros(n, dtype=bool), np.zeros(n, dtype=bool)))
-            remainder_pauli.append(Pauli(np.zeros(n, dtype=bool), np.zeros(n, dtype=bool)))
+            update_pauli.append(Pauli((np.zeros(n, dtype=bool), np.zeros(n, dtype=bool))))
+            parity_pauli.append(Pauli((np.zeros(n, dtype=bool), np.zeros(n, dtype=bool))))
+            remainder_pauli.append(Pauli((np.zeros(n, dtype=bool), np.zeros(n, dtype=bool))))
             for k in range(n):
                 if np.in1d(k, update_sets[j]):
-                    update_pauli[j].update_x(True, k)
+                    update_pauli[j].x[k] = True
                 if np.in1d(k, parity_sets[j]):
-                    parity_pauli[j].update_z(True, k)
+                    parity_pauli[j].z[k] = True
                 if np.in1d(k, remainder_sets[j]):
-                    remainder_pauli[j].update_z(True, k)
+                    remainder_pauli[j].z[k] = True
 
-            x_j = Pauli(np.zeros(n, dtype=bool), np.zeros(n, dtype=bool))
-            x_j.update_x(True, j)
-            y_j = Pauli(np.zeros(n, dtype=bool), np.zeros(n, dtype=bool))
-            y_j.update_z(True, j)
+            x_j = Pauli((np.zeros(n, dtype=bool), np.zeros(n, dtype=bool)))
+            x_j.x[j] = True
+            y_j = Pauli((np.zeros(n, dtype=bool), np.zeros(n, dtype=bool)))
+            y_j.z[j] = True
             y_j.update_x(True, j)
             a_list.append((update_pauli[j] * x_j * parity_pauli[j],
                            update_pauli[j] * y_j * remainder_pauli[j]))
@@ -428,7 +428,8 @@ class FermionicOperator:
         pauli_list = []
         for alpha in range(2):
             for beta in range(2):
-                pauli_prod = Pauli.sgn_prod(a_i[alpha], a_j[beta])
+                p_a = a_i[alpha].dot(a_j[beta])
+                pauli_prod = p_a[:], (-1j) ** p_a.phase
                 coeff = h1_ij / 4 * pauli_prod[1] * np.power(-1j, alpha) * np.power(1j, beta)
                 pauli_term = [coeff, pauli_prod[0]]
                 if np.absolute(pauli_term[0]) > threshold:
@@ -456,9 +457,12 @@ class FermionicOperator:
             for beta in range(2):
                 for gamma in range(2):
                     for delta in range(2):
-                        pauli_prod_1 = Pauli.sgn_prod(a_i[alpha], a_k[beta])
-                        pauli_prod_2 = Pauli.sgn_prod(pauli_prod_1[0], a_m[gamma])
-                        pauli_prod_3 = Pauli.sgn_prod(pauli_prod_2[0], a_j[delta])
+                        p_a = a_i[alpha].dot(a_k[beta])
+                        pauli_prod_1 = p_a[:], (-1j) ** p_a.phase
+                        p_a = pauli_prod_1[0].dot(a_m[gamma])
+                        pauli_prod_2 = p_a[:], (-1j) ** p_a.phase
+                        p_a = pauli_prod_2[0].dot(a_j[delta])
+                        pauli_prod_3 = p_a[:], (-1j) ** p_a.phase
 
                         phase1 = pauli_prod_1[1] * pauli_prod_2[1] * pauli_prod_3[1]
                         phase2 = np.power(-1j, alpha + beta) * np.power(1j, gamma + delta)

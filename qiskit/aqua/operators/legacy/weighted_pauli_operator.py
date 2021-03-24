@@ -100,7 +100,7 @@ class WeightedPauliOperator(LegacyBaseOperator):
 
         pauli_ops = []
         for [w, p] in self.paulis:
-            pauli = Pauli.from_label(str(p)[::-1]) if reverse_endianness else p
+            pauli = Pauli(str(p)[::-1]) if reverse_endianness else p
             # This weighted pauli operator has the coeff stored as a complex type
             # irrespective of whether the value has any imaginary part or not.
             # For many operators the coeff will be real. Hence below the coeff is made real,
@@ -284,7 +284,8 @@ class WeightedPauliOperator(LegacyBaseOperator):
         ret_op = WeightedPauliOperator(paulis=[])
         for existed_weight, existed_pauli in self.paulis:
             for weight, pauli in other.paulis:
-                new_pauli, sign = Pauli.sgn_prod(existed_pauli, pauli)
+                p = existed_pauli.dot(pauli)
+                new_pauli, sign = p[:], (-1j)**p.phase
                 new_weight = existed_weight * weight * sign
                 pauli_term = [new_weight, new_pauli]
                 ret_op += WeightedPauliOperator(paulis=[pauli_term])
@@ -576,7 +577,7 @@ class WeightedPauliOperator(LegacyBaseOperator):
                 coeff = complex(pauli_coeff['real'], pauli_coeff['imag'])
 
             pauli_label = pauli_label[::-1] if before_04 else pauli_label
-            paulis.append([coeff, Pauli.from_label(pauli_label)])
+            paulis.append([coeff, Pauli(pauli_label)])
 
         return cls(paulis=paulis)
 
@@ -1114,8 +1115,8 @@ class Z2Symmetries:
 
         for row in range(symm_shape[0]):
 
-            pauli_symmetries.append(Pauli(stacked_symmetries[row, : symm_shape[1] // 2],
-                                          stacked_symmetries[row, symm_shape[1] // 2:]))
+            pauli_symmetries.append(Pauli((stacked_symmetries[row, : symm_shape[1] // 2],
+                                           stacked_symmetries[row, symm_shape[1] // 2:])))
 
             stacked_symm_del = np.delete(stacked_symmetries, row, axis=0)
             for col in range(symm_shape[1] // 2):
@@ -1130,8 +1131,8 @@ class Z2Symmetries:
                          and stacked_symmetries[row, col + symm_shape[1] // 2] == 0)
                             or (stacked_symmetries[row, col] == 1
                                 and stacked_symmetries[row, col + symm_shape[1] // 2] == 1)):
-                        sq_paulis.append(Pauli(np.zeros(symm_shape[1] // 2),
-                                               np.zeros(symm_shape[1] // 2)))
+                        sq_paulis.append(Pauli((np.zeros(symm_shape[1] // 2),
+                                                np.zeros(symm_shape[1] // 2))))
                         sq_paulis[row].z[col] = False
                         sq_paulis[row].x[col] = True
                         sq_list.append(col)
@@ -1148,8 +1149,8 @@ class Z2Symmetries:
                          and stacked_symmetries[row, col + symm_shape[1] // 2] == 1)
                             or (stacked_symmetries[row, col] == 1
                                 and stacked_symmetries[row, col + symm_shape[1] // 2] == 1)):
-                        sq_paulis.append(Pauli(np.zeros(symm_shape[1] // 2),
-                                               np.zeros(symm_shape[1] // 2)))
+                        sq_paulis.append(Pauli((np.zeros(symm_shape[1] // 2),
+                                                np.zeros(symm_shape[1] // 2))))
                         sq_paulis[row].z[col] = True
                         sq_paulis[row].x[col] = False
                         sq_list.append(col)
@@ -1168,8 +1169,8 @@ class Z2Symmetries:
                          and stacked_symmetries[row, col + symm_shape[1] // 2] == 1)
                             or (stacked_symmetries[row, col] == 1
                                 and stacked_symmetries[row, col + symm_shape[1] // 2] == 0)):
-                        sq_paulis.append(Pauli(np.zeros(symm_shape[1] // 2),
-                                               np.zeros(symm_shape[1] // 2)))
+                        sq_paulis.append(Pauli((np.zeros(symm_shape[1] // 2),
+                                                np.zeros(symm_shape[1] // 2))))
                         sq_paulis[row].z[col] = True
                         sq_paulis[row].x[col] = True
                         sq_list.append(col)
@@ -1220,7 +1221,8 @@ class Z2Symmetries:
                         coeff_out = curr_tapering_values[idx] * coeff_out
                 z_temp = np.delete(pauli_term[1].z.copy(), np.asarray(self._sq_list))
                 x_temp = np.delete(pauli_term[1].x.copy(), np.asarray(self._sq_list))
-                pauli_term_out = WeightedPauliOperator(paulis=[[coeff_out, Pauli(z_temp, x_temp)]])
+                pauli_term_out = WeightedPauliOperator(
+                    paulis=[[coeff_out, Pauli((z_temp, x_temp))]])
                 operator_out += pauli_term_out
             operator_out.chop(0.0)
             return operator_out
@@ -1282,11 +1284,11 @@ class Z2Symmetries:
             pauli_str = ['I'] * num_qubits
 
             pauli_str[idx] = 'Z'
-            z_sym = Pauli.from_label(''.join(pauli_str)[::-1])
+            z_sym = Pauli(''.join(pauli_str)[::-1])
             symmetries.append(z_sym)
 
             pauli_str[idx] = 'X'
-            sq_pauli = Pauli.from_label(''.join(pauli_str)[::-1])
+            sq_pauli = Pauli(''.join(pauli_str)[::-1])
             sq_paulis.append(sq_pauli)
 
         z2_symmetries = Z2Symmetries(symmetries, sq_paulis, sq_list, tapering_values)
