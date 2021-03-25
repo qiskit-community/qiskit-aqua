@@ -13,6 +13,7 @@
 """Contains the Deprecation msg methods."""
 
 import warnings
+from typing import Optional
 
 
 class AquaObjects:
@@ -50,16 +51,23 @@ class AquaObjects:
 _AQUA_OBJECTS = AquaObjects()
 
 
-def warn_package(aqua_package: str, package: str, library: str,
+def warn_package(aqua_package: str,
+                 package: Optional[str],
+                 library: Optional[str],
                  stacklevel: int = 2) -> None:
     """ emit package deprecation warning """
     if _AQUA_OBJECTS.package_exists(aqua_package):
         return
 
     _AQUA_OBJECTS.add_package(aqua_package)
-    msg = f'The package qiskit.{aqua_package} is deprecated and it was moved/refactored to ' \
-          f'{package} (pip install {library}). For more information see ' \
-          f'<https://github.com/Qiskit/qiskit-aqua/blob/master/README.md#migration-guide>'
+    msg = f'The package qiskit.{aqua_package} is deprecated.'
+    if package:
+        msg += f' It was moved/refactored to {package}'
+    if library:
+        msg += f' (pip install {library}).'
+
+    msg += ' For more information see ' \
+           '<https://github.com/Qiskit/qiskit-aqua/blob/master/README.md#migration-guide>'
 
     warnings.warn(msg, DeprecationWarning, stacklevel=stacklevel)
 
@@ -71,7 +79,7 @@ def warn_class(fullname: str, new_fullname: str, library: str,
         return
 
     _AQUA_OBJECTS.add_class(fullname)
-    msg = f'The class qiskit.{fullname} is deprecated and it was moved/refactored to ' \
+    msg = f'The class qiskit.{fullname} is deprecated. It was moved/refactored to ' \
           f'{new_fullname} (pip install {library}). For more information see ' \
           f'<https://github.com/Qiskit/qiskit-aqua/blob/master/README.md#migration-guide>'
 
@@ -85,7 +93,7 @@ def warn_variable(fullname: str, new_fullname: str, library: str,
         return
 
     _AQUA_OBJECTS.add_variable(fullname)
-    msg = f'The variable qiskit.{fullname} is deprecated and it was moved/refactored to ' \
+    msg = f'The variable qiskit.{fullname} is deprecated. It was moved/refactored to ' \
           f'{new_fullname} (pip install {library}). For more information see ' \
           f'<https://github.com/Qiskit/qiskit-aqua/blob/master/README.md#migration-guide>'
 

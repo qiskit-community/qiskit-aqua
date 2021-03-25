@@ -46,8 +46,7 @@ class VariationalForm(ABC):
         self._preferred_init_points = None
         self._support_parameterized_circuit = False
         warn_package('aqua.components.variational_forms',
-                     'qiskit.algorithms.variational_forms',
-                     'qiskit-terra')
+                     None, None)
 
     @abstractmethod
     def construct_circuit(self,
