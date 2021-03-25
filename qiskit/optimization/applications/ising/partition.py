@@ -49,7 +49,7 @@ def get_operator(values):
             z_p = np.zeros(n, dtype=bool)
             z_p[i] = True
             z_p[j] = True
-            pauli_list.append([2. * values[i] * values[j], Pauli(z_p, x_p)])
+            pauli_list.append([2. * values[i] * values[j], Pauli((z_p, x_p))])
     return WeightedPauliOperator(paulis=pauli_list), sum(values * values)
 
 

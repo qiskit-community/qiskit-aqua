@@ -49,7 +49,7 @@ def get_operator(weight_matrix):
                 z_p = np.zeros(num_nodes, dtype=bool)
                 z_p[i] = True
                 z_p[j] = True
-                pauli_list.append([0.5 * weight_matrix[i, j], Pauli(z_p, x_p)])
+                pauli_list.append([0.5 * weight_matrix[i, j], Pauli((z_p, x_p))])
                 shift -= 0.5 * weight_matrix[i, j]
     return WeightedPauliOperator(paulis=pauli_list), shift
 

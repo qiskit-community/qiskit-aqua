@@ -36,6 +36,7 @@ from qiskit.aqua.components.uncertainty_models import MultivariateVariationalDis
 from qiskit.aqua.operators.gradients import Gradient
 from qiskit.aqua.utils.dataset_helper import discretize_and_truncate
 from qiskit.aqua.utils.validation import validate_min
+from ...deprecation import warn_package
 
 logger = logging.getLogger(__name__)
 
@@ -99,6 +100,9 @@ class QGAN(QuantumAlgorithm):
         Raises:
             AquaError: invalid input
         """
+        warn_package('aqua.algorithms.distribution_learners',
+                     'qiskit_machine_learning.algorithms.distribution_learners',
+                     'qiskit-machine-learning')
         validate_min('batch_size', batch_size, 1)
         super().__init__(quantum_instance)
         if data is None:

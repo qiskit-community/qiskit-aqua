@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -25,6 +25,7 @@ from qiskit.aqua.components.multiclass_extensions import MulticlassExtension
 from ._sklearn_svm_binary import _SklearnSVMBinary
 from ._sklearn_svm_multiclass import _SklearnSVMMulticlass
 from ._rbf_svc_estimator import _RBF_SVC_Estimator
+from ....deprecation import warn_package
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +68,9 @@ class SklearnSVM(ClassicalAlgorithm):
             AquaError: Multiclass extension not supplied when number of classes > 2
         """
         super().__init__()
+        warn_package('aqua.algorithms.classifiers',
+                     'qiskit_machine_learning.algorithms.classifiers',
+                     'qiskit-machine-learning')
         if training_dataset is None:
             raise AquaError('Training dataset must be provided.')
 

@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -108,6 +108,7 @@ class StateFn(OperatorBase):
             coeff: A coefficient by which the state function is multiplied.
             is_measurement: Whether the StateFn is a measurement operator
         """
+        super().__init__()
         self._primitive = primitive
         self._is_measurement = is_measurement
         self._coeff = coeff

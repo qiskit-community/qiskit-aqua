@@ -88,9 +88,9 @@ class PauliOp(PrimitiveOp):
         # Both Paulis
         if isinstance(other, PauliOp):
             # Copying here because Terra's Pauli kron is in-place.
-            op_copy = Pauli(x=other.primitive.x, z=other.primitive.z)  # type: ignore
+            op_copy = Pauli((other.primitive.z, other.primitive.x))  # type: ignore
             # NOTE!!! REVERSING QISKIT ENDIANNESS HERE
-            return PauliOp(op_copy.kron(self.primitive), coeff=self.coeff * other.coeff)
+            return PauliOp(op_copy.expand(self.primitive), coeff=self.coeff * other.coeff)
 
         # pylint: disable=cyclic-import,import-outside-toplevel
         from .circuit_op import CircuitOp
@@ -136,7 +136,8 @@ class PauliOp(PrimitiveOp):
 
         # Both Paulis
         if isinstance(other, PauliOp):
-            product, phase = Pauli.sgn_prod(new_self.primitive, other.primitive)
+            p_a = new_self.primitive.dot(other.primitive)  # type: ignore
+            product, phase = p_a[:], (-1j) ** p_a.phase  # type: ignore
             return PrimitiveOp(product, coeff=new_self.coeff * other.coeff * phase)
 
         # pylint: disable=cyclic-import,import-outside-toplevel
@@ -160,7 +161,7 @@ class PauliOp(PrimitiveOp):
         Raises:
             ValueError: invalid parameters.
         """
-        return self.primitive.to_spmatrix() * self.coeff  # type: ignore
+        return self.primitive.to_matrix(sparse=True) * self.coeff  # type: ignore
 
     def __str__(self) -> str:
         prim_str = str(self.primitive)

@@ -25,6 +25,7 @@ from qiskit.aqua import QuantumInstance
 from qiskit.aqua.algorithms import QuantumAlgorithm, AlgorithmResult
 from qiskit.aqua.utils import CircuitFactory
 from .q_factory import QFactory
+from ...deprecation import warn_package
 
 logger = logging.getLogger(__name__)
 
@@ -87,6 +88,8 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
             i_objective: Deprecated use ``objective_qubits``.
                 Index of the objective qubit, that marks the 'good/bad' states
         """
+        warn_package('aqua.algorithms.amplitude_estimators',
+                     'qiskit.algorithms.amplitude_amplifiers', 'qiskit-terra')
         if isinstance(state_preparation, CircuitFactory) or a_factory is not None:
             warnings.warn('Passing a CircuitFactory as A operator is deprecated as of 0.8.0, '
                           'this feature will be removed no earlier than 3 months after the '

@@ -29,6 +29,7 @@ from qiskit.aqua.algorithms import AlgorithmResult, QuantumAlgorithm
 from qiskit.aqua.utils import get_subsystem_density_matrix, summarize_circuits
 from qiskit.aqua.utils.arithmetic import is_power
 from qiskit.aqua.utils.validation import validate_min
+from ...deprecation import warn_package
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +66,9 @@ class Shor(QuantumAlgorithm):
          Raises:
             ValueError: Invalid input
         """
+        warn_package('aqua.algorithms.factorizers',
+                     'qiskit.algorithms.factorizers',
+                     'qiskit-terra')
         validate_min('N', N, 3)
         validate_min('a', a, 2)
         super().__init__(quantum_instance)

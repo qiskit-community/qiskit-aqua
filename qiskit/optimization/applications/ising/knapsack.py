@@ -220,4 +220,4 @@ def _get_pauli_op(num_values, indexes):
     for i in indexes:
         pauli_z[i] = not pauli_z[i]
 
-    return Pauli(pauli_z, pauli_x)
+    return Pauli((pauli_z, pauli_x))
