@@ -334,7 +334,9 @@ class FermionicOperator:
             x_j.x[j] = True
             y_j = Pauli((np.zeros(n, dtype=bool), np.zeros(n, dtype=bool)))
             y_j.z[j] = True
-            y_j.update_x(True, j)
+            phase = y_j.phase
+            y_j.x[j] = True
+            y_j.phase = phase
             a_list.append((update_pauli[j] * x_j * parity_pauli[j],
                            update_pauli[j] * y_j * remainder_pauli[j]))
         return a_list
