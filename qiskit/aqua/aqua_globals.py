@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -20,7 +20,7 @@ from qiskit.util import local_hardware_info
 import qiskit
 
 from .aqua_error import AquaError
-
+from .deprecation import warn_variable
 
 logger = logging.getLogger(__name__)
 
@@ -39,17 +39,26 @@ class QiskitAquaGlobals:
     @property
     def random_seed(self) -> Optional[int]:
         """Return random seed."""
+        warn_variable('aqua.aqua_globals',
+                      'qiskit.utils.aqua_globals',
+                      'qiskit-terra', 3)
         return self._random_seed
 
     @random_seed.setter
     def random_seed(self, seed: Optional[int]) -> None:
         """Set random seed."""
+        warn_variable('aqua.aqua_globals',
+                      'qiskit.utils.aqua_globals',
+                      'qiskit-terra', 3)
         self._random_seed = seed
         self._random = None
 
     @property
     def num_processes(self) -> int:
         """Return num processes."""
+        warn_variable('aqua.aqua_globals',
+                      'qiskit.utils.aqua_globals',
+                      'qiskit-terra', 3)
         return self._num_processes
 
     @num_processes.setter
@@ -57,6 +66,9 @@ class QiskitAquaGlobals:
         """Set num processes.
            If 'None' is passed, it resets to QiskitAquaGlobals.CPU_COUNT
         """
+        warn_variable('aqua.aqua_globals',
+                      'qiskit.utils.aqua_globals',
+                      'qiskit-terra', 3)
         if num_processes is None:
             num_processes = QiskitAquaGlobals.CPU_COUNT
         elif num_processes < 1:
@@ -76,6 +88,9 @@ class QiskitAquaGlobals:
     @property
     def random(self) -> np.random.Generator:
         """Return a numpy np.random.Generator (default_rng)."""
+        warn_variable('aqua.aqua_globals',
+                      'qiskit.utils.aqua_globals',
+                      'qiskit-terra', 3)
         if self._random is None:
             self._random = np.random.default_rng(self._random_seed)
         return self._random
@@ -83,11 +98,17 @@ class QiskitAquaGlobals:
     @property
     def massive(self) -> bool:
         """Return massive to allow processing of large matrices or vectors."""
+        warn_variable('aqua.aqua_globals',
+                      'qiskit.utils.aqua_globals',
+                      'qiskit-terra', 3)
         return self._massive
 
     @massive.setter
     def massive(self, massive: bool) -> None:
         """Set massive to allow processing of large matrices or  vectors."""
+        warn_variable('aqua.aqua_globals',
+                      'qiskit.utils.aqua_globals',
+                      'qiskit-terra', 3)
         self._massive = massive
 
 

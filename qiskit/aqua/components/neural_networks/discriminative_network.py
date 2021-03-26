@@ -18,6 +18,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 
 from qiskit.aqua import QuantumInstance
+from ...deprecation import warn_package
 
 
 class DiscriminativeNetwork(ABC):
@@ -33,6 +34,9 @@ class DiscriminativeNetwork(ABC):
         self._num_parameters = 0
         self._num_qubits = 0
         self._bounds = list()  # type: List[object]
+        warn_package('aqua.components.neural_networks',
+                     'qiskit_machine_learning.neural_networks',
+                     'qiskit-machine-learning')
 
     @abstractmethod
     def set_seed(self, seed):

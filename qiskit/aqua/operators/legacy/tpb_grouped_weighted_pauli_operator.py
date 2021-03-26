@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -149,8 +149,8 @@ class TPBGroupedWeightedPauliOperator(WeightedPauliOperator):
 
                             # update master, if p_2 is not identity
                             if p_2[1].z[__i] or p_2[1].x[__i]:
-                                paulis_temp[0][1].update_z(p_2[1].z[__i], __i)
-                                paulis_temp[0][1].update_x(p_2[1].x[__i], __i)
+                                paulis_temp[0][1].z[__i] = p_2[1].z[__i]
+                                paulis_temp[0][1].x[__i] = p_2[1].x[__i]
                             j += 1
                         if j == n:
                             paulis_temp.append(p_2)

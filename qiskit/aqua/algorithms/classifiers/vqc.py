@@ -31,6 +31,7 @@ from qiskit.aqua.algorithms import VQAlgorithm
 from qiskit.aqua.components.optimizers import Optimizer
 from qiskit.aqua.components.feature_maps import FeatureMap
 from qiskit.aqua.components.variational_forms import VariationalForm
+from ...deprecation import warn_package
 
 logger = logging.getLogger(__name__)
 
@@ -92,6 +93,9 @@ class VQC(VQAlgorithm):
         Raises:
             AquaError: Missing feature map or missing training dataset.
         """
+        warn_package('aqua.algorithms.classifiers',
+                     'qiskit_machine_learning.algorithms.classifiers',
+                     'qiskit-machine-learning')
         # VariationalForm is not deprecated on level of the VQAlgorithm yet as UCCSD still
         # derives from there, therefore we're adding a warning here
         if isinstance(var_form, VariationalForm):

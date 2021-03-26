@@ -82,7 +82,7 @@ class IQPE(QuantumAlgorithm, MinimumEigensolver):
         validate_min('num_iterations', num_iterations, 1)
         validate_in_set('expansion_mode', expansion_mode, {'trotter', 'suzuki'})
         validate_min('expansion_order', expansion_order, 1)
-        super().__init__(quantum_instance)
+        super().__init__(quantum_instance)  # type: ignore
         self._state_in = state_in
         self._num_time_slices = num_time_slices
         self._num_iterations = num_iterations
@@ -120,8 +120,8 @@ class IQPE(QuantumAlgorithm, MinimumEigensolver):
                 [
                     self._ret['translation'],
                     Pauli(
-                        np.zeros(self._operator.num_qubits),
-                        np.zeros(self._operator.num_qubits)
+                        (np.zeros(self._operator.num_qubits),
+                         np.zeros(self._operator.num_qubits))
                     )
                 ]
             ])

@@ -34,6 +34,7 @@ from qiskit.aqua.components.multiclass_extensions import MulticlassExtension
 from ._qsvm_estimator import _QSVM_Estimator
 from ._qsvm_binary import _QSVM_Binary
 from ._qsvm_multiclass import _QSVM_Multiclass
+from ....deprecation import warn_package
 
 logger = logging.getLogger(__name__)
 
@@ -98,6 +99,9 @@ class QSVM(QuantumAlgorithm):
             AquaError: Multiclass extension not supplied when number of classes > 2
         """
         super().__init__(quantum_instance)
+        warn_package('aqua.algorithms.classifiers',
+                     'qiskit_machine_learning.algorithms.classifiers',
+                     'qiskit-machine-learning')
         # check the validity of provided arguments if possible
         if training_dataset is not None:
             is_multiclass = get_num_classes(training_dataset) > 2

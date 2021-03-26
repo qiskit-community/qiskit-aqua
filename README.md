@@ -35,6 +35,10 @@ to the NumPyEigensolver. This may be useful for near-term quantum experiments, f
 that can still be solved classically, as their outcome can be easily compared against a classical
 equivalent since the same input data can be used._
 
+## Migration Guide
+
+Aqua has been deprecated. TBD - Link to Migration guide or more details here.
+
 ## Installation
 
 We encourage installing Qiskit via the pip tool (a python package manager), which installs all

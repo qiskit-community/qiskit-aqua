@@ -20,6 +20,7 @@ from qiskit.circuit.library import CXGate, SGate, TGate, HGate, SwapGate, CZGate
 from .primitive_ops.primitive_op import PrimitiveOp
 from .primitive_ops.pauli_op import PauliOp
 from .state_fns.state_fn import StateFn
+from .operator_base import OperatorBase
 
 # pylint: disable=invalid-name
 
@@ -45,6 +46,8 @@ def make_immutable(obj):
     return obj
 
 
+OperatorBase.ENABLE_DEPRECATION = False
+
 # 1-Qubit Paulis
 X = make_immutable(PauliOp(Pauli('X')))
 Y = make_immutable(PauliOp(Pauli('Y')))
@@ -64,3 +67,5 @@ Zero = make_immutable(StateFn('0'))
 One = make_immutable(StateFn('1'))
 Plus = make_immutable(H.compose(Zero))
 Minus = make_immutable(H.compose(X).compose(Zero))
+
+OperatorBase.ENABLE_DEPRECATION = True

@@ -112,7 +112,7 @@ def get_operator(rho: np.ndarray, n: int, q: int) -> WeightedPauliOperator:
             wp = np.zeros(N)
             vp = np.zeros(N)
             vp[i] = 1
-            pauli_list.append((gz[i], Pauli(vp, wp)))
+            pauli_list.append((gz[i], Pauli((vp, wp))))
     for i in range(N):
         for j in range(i):
             if Qz[i, j] != 0:
@@ -120,9 +120,9 @@ def get_operator(rho: np.ndarray, n: int, q: int) -> WeightedPauliOperator:
                 vp = np.zeros(N)
                 vp[i] = 1
                 vp[j] = 1
-                pauli_list.append((2 * Qz[i, j], Pauli(vp, wp)))
+                pauli_list.append((2 * Qz[i, j], Pauli((vp, wp))))
 
-    pauli_list.append((cz, Pauli(np.zeros(N), np.zeros(N))))
+    pauli_list.append((cz, Pauli((np.zeros(N), np.zeros(N)))))
     return WeightedPauliOperator(paulis=pauli_list)
 
 

@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -86,7 +86,7 @@ class QPE(QuantumAlgorithm, MinimumEigensolver):
         validate_min('num_ancillae', num_ancillae, 1)
         validate_in_set('expansion_mode', expansion_mode, {'trotter', 'suzuki'})
         validate_min('expansion_order', expansion_order, 1)
-        super().__init__(quantum_instance)
+        super().__init__(quantum_instance)  # type: ignore
 
         self._state_in = state_in
         self._iqft = iqft
@@ -122,8 +122,8 @@ class QPE(QuantumAlgorithm, MinimumEigensolver):
                 [
                     self._ret['translation'],
                     Pauli(
-                        np.zeros(self._operator.num_qubits),
-                        np.zeros(self._operator.num_qubits)
+                        (np.zeros(self._operator.num_qubits),
+                         np.zeros(self._operator.num_qubits))
                     )
                 ]
             ])

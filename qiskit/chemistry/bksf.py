@@ -47,7 +47,7 @@ def _one_body(edge_list, p, q, h1_pq):  # pylint: disable=invalid-name
         b_p = edge_operator_bi(edge_list, p)
         v = np.zeros(edge_list.shape[1])
         w = np.zeros(edge_list.shape[1])
-        id_pauli = Pauli(v, w)
+        id_pauli = Pauli((v, w))
 
         id_op = WeightedPauliOperator(paulis=[[1.0, id_pauli]])
         qubit_op = id_op - b_p
@@ -75,7 +75,7 @@ def _two_body(edge_list, p, q, r, s, h2_pqrs):  # pylint: disable=invalid-name
     """
     # Handle case of four unique indices.
     v = np.zeros(edge_list.shape[1])
-    id_op = WeightedPauliOperator(paulis=[[1, Pauli(v, v)]])
+    id_op = WeightedPauliOperator(paulis=[[1, Pauli((v, v))]])
     final_coeff = 1.0
 
     if len(set([p, q, r, s])) == 4:
@@ -240,7 +240,7 @@ def edge_operator_aij(edge_list, i, j):
         if edge_list[i_i][j_j] < i:
             v[j_j] = 1
 
-    qubit_op = WeightedPauliOperator(paulis=[[1.0, Pauli(v, w)]])
+    qubit_op = WeightedPauliOperator(paulis=[[1.0, Pauli((v, w))]])
     return qubit_op
 
 
@@ -281,7 +281,7 @@ def edge_operator_bi(edge_list, i):
     v = np.zeros(edge_list.shape[1])
     w = np.zeros(edge_list.shape[1])
     v[qubit_position] = 1
-    qubit_op = WeightedPauliOperator(paulis=[[1.0, Pauli(v, w)]])
+    qubit_op = WeightedPauliOperator(paulis=[[1.0, Pauli((v, w))]])
     return qubit_op
 
 
