@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -82,11 +82,14 @@ Submodules
 
 """
 
+from qiskit.aqua.deprecation import warn_package
 from .infinity import INFINITY  # must be at the top of the file
 from .exceptions import QiskitOptimizationError
 from .problems.quadratic_program import QuadraticProgram
 from ._logging import (get_qiskit_optimization_logging,
                        set_qiskit_optimization_logging)
+
+warn_package('optimization', 'qiskit_optimization', 'qiskit-optimization')
 
 __all__ = ['QuadraticProgram',
            'QiskitOptimizationError',

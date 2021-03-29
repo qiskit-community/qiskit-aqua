@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -32,10 +32,10 @@ class TestBKSFMapping(QiskitChemistryTestCase):
         qterm_b2 = edge_operator_bi(edge_list, 2)
         qterm_b3 = edge_operator_bi(edge_list, 3)
 
-        ref_qterm_b0 = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('IIIZZZ')]])
-        ref_qterm_b1 = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('IZZIIZ')]])
-        ref_qterm_b2 = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('ZIZIZI')]])
-        ref_qterm_b3 = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('ZZIZII')]])
+        ref_qterm_b0 = WeightedPauliOperator(paulis=[[1.0, Pauli('IIIZZZ')]])
+        ref_qterm_b1 = WeightedPauliOperator(paulis=[[1.0, Pauli('IZZIIZ')]])
+        ref_qterm_b2 = WeightedPauliOperator(paulis=[[1.0, Pauli('ZIZIZI')]])
+        ref_qterm_b3 = WeightedPauliOperator(paulis=[[1.0, Pauli('ZZIZII')]])
 
         self.assertEqual(qterm_b0, ref_qterm_b0, "\n{} vs \n{}".format(
             qterm_b0.print_details(), ref_qterm_b0.print_details()))
@@ -57,12 +57,12 @@ class TestBKSFMapping(QiskitChemistryTestCase):
         qterm_a13 = edge_operator_aij(edge_list, 1, 3)
         qterm_a23 = edge_operator_aij(edge_list, 2, 3)
 
-        ref_qterm_a01 = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('IIIIIX')]])
-        ref_qterm_a02 = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('IIIIXZ')]])
-        ref_qterm_a03 = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('IIIXZZ')]])
-        ref_qterm_a12 = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('IIXIZZ')]])
-        ref_qterm_a13 = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('IXZZIZ')]])
-        ref_qterm_a23 = WeightedPauliOperator(paulis=[[1.0, Pauli.from_label('XZZZZI')]])
+        ref_qterm_a01 = WeightedPauliOperator(paulis=[[1.0, Pauli('IIIIIX')]])
+        ref_qterm_a02 = WeightedPauliOperator(paulis=[[1.0, Pauli('IIIIXZ')]])
+        ref_qterm_a03 = WeightedPauliOperator(paulis=[[1.0, Pauli('IIIXZZ')]])
+        ref_qterm_a12 = WeightedPauliOperator(paulis=[[1.0, Pauli('IIXIZZ')]])
+        ref_qterm_a13 = WeightedPauliOperator(paulis=[[1.0, Pauli('IXZZIZ')]])
+        ref_qterm_a23 = WeightedPauliOperator(paulis=[[1.0, Pauli('XZZZZI')]])
 
         self.assertEqual(qterm_a01, ref_qterm_a01, "\n{} vs \n{}".format(
             qterm_a01.print_details(), ref_qterm_a01.print_details()))

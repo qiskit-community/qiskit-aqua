@@ -69,7 +69,7 @@ def get_operator(mu, sigma, q, budget, penalty):  # pylint: disable=invalid-name
             xp = np.zeros(n, dtype=bool)
             zp = np.zeros(n, dtype=bool)
             zp[i_] = True
-            pauli_list.append([mu_z[i_], Pauli(zp, xp)])
+            pauli_list.append([mu_z[i_], Pauli((zp, xp))])
         for j in range(i):
             j_ = j
             # j_ = n-j-1
@@ -78,7 +78,7 @@ def get_operator(mu, sigma, q, budget, penalty):  # pylint: disable=invalid-name
                 zp = np.zeros(n, dtype=bool)
                 zp[i_] = True
                 zp[j_] = True
-                pauli_list.append([2 * sigma_z[i_, j_], Pauli(zp, xp)])
+                pauli_list.append([2 * sigma_z[i_, j_], Pauli((zp, xp))])
         offset += sigma_z[i_, i_]
 
     return WeightedPauliOperator(paulis=pauli_list), offset

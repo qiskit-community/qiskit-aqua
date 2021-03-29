@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -32,6 +32,7 @@ from qiskit.aqua.utils.validation import validate_min, validate_in_set
 from qiskit.aqua.algorithms import QuantumAlgorithm, AlgorithmResult
 from qiskit.aqua.components.initial_states import InitialState
 from qiskit.aqua.components.oracles import Oracle
+from ...deprecation import warn_package
 
 
 logger = logging.getLogger(__name__)
@@ -211,6 +212,8 @@ class Grover(QuantumAlgorithm):
                  `<https://arxiv.org/abs/quant-ph/9605034>`_
         """
         super().__init__(quantum_instance)
+        warn_package('aqua.algorithms.amplitude_amplifiers',
+                     'qiskit.algorithms.amplitude_amplifiers', 'qiskit-terra')
         _check_deprecated_args(init_state, mct_mode, rotation_counts, lam, num_iterations)
         if init_state is not None:
             state_preparation = init_state

@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -157,6 +157,7 @@ Submodules
 
 """
 
+from qiskit.aqua.deprecation import warn_package
 from .qiskit_chemistry_error import QiskitChemistryError
 from .qmolecule import QMolecule
 from .watson_hamiltonian import WatsonHamiltonian
@@ -165,6 +166,8 @@ from .fermionic_operator import FermionicOperator
 from .mp2info import MP2Info
 from ._logging import (get_qiskit_chemistry_logging,
                        set_qiskit_chemistry_logging)
+
+warn_package('chemistry', 'qiskit_nature', 'qiskit-nature')
 
 __all__ = ['QiskitChemistryError',
            'QMolecule',

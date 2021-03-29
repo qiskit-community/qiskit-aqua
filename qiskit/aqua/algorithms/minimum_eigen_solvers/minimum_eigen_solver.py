@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -19,6 +19,7 @@ from typing import List, Optional, Union, Dict
 import numpy as np
 from qiskit.aqua.algorithms import AlgorithmResult
 from qiskit.aqua.operators import OperatorBase, LegacyBaseOperator
+from ...deprecation import warn_package
 
 
 class MinimumEigensolver(ABC):
@@ -28,6 +29,13 @@ class MinimumEigensolver(ABC):
     may implement this interface to allow different algorithms to be
     used interchangeably.
     """
+
+    @abstractmethod
+    def __init__(self) -> None:
+        super().__init__()
+        warn_package('aqua.algorithms.minimum_eigen_solvers',
+                     'qiskit.algorithms.minimum_eigen_solvers',
+                     'qiskit-terra')
 
     @abstractmethod
     def compute_minimum_eigenvalue(

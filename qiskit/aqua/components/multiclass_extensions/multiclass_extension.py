@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -15,6 +15,7 @@
 from typing import Optional, List, Callable
 from abc import ABC, abstractmethod
 from .estimator import Estimator
+from ...deprecation import warn_package
 
 
 class MulticlassExtension(ABC):
@@ -30,6 +31,7 @@ class MulticlassExtension(ABC):
         super().__init__()
         self.estimator_cls = None  # type: Optional[Callable[[List], Estimator]]
         self.params = []  # type: List
+        warn_package('aqua.components.multiclass_extensions')
 
     def set_estimator(self,
                       estimator_cls: Callable[[List], Estimator],

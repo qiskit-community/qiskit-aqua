@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -33,8 +33,8 @@ logger = logging.getLogger(__name__)
 
 
 def _conversion(basis, matrix):
-    pauli = Pauli.from_label(''.join(basis))
-    trace_value = np.sum(matrix.dot(pauli.to_spmatrix()).diagonal())
+    pauli = Pauli(''.join(basis))
+    trace_value = np.sum(matrix.dot(pauli.to_matrix(sparse=True)).diagonal())
     return trace_value, pauli
 
 
@@ -119,7 +119,7 @@ def to_matrix_operator(
             return MatrixOperator(None)
         hamiltonian = 0
         for weight, pauli in op_w.paulis:
-            hamiltonian += weight * pauli.to_spmatrix()
+            hamiltonian += weight * pauli.to_matrix(sparse=True)
         return MatrixOperator(matrix=hamiltonian, z2_symmetries=op_w.z2_symmetries,
                               name=op_w.name)
     elif operator.__class__ == TPBGroupedWeightedPauliOperator:

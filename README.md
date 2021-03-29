@@ -35,6 +35,32 @@ to the NumPyEigensolver. This may be useful for near-term quantum experiments, f
 that can still be solved classically, as their outcome can be easily compared against a classical
 equivalent since the same input data can be used._
 
+## Migration Guide
+
+Aqua has been deprecated:
+
+| Old | New | Library |
+| :---: | :---: | :---: |
+| qiskit.aqua.algorithms.amplitude_amplifiers | qiskit.algorithms.amplitude_amplifiers | qiskit-terra |
+| qiskit.aqua.algorithms.amplitude_estimators | qiskit.algorithms.amplitude_estimators | qiskit-terra |
+| qiskit.aqua.algorithms.classifiers | qiskit_machine_learning.algorithms.classifiers | qiskit-machine-learning |
+| qiskit.aqua.algorithms.distribution_learners | qiskit_machine_learning.algorithms.distribution_learners | qiskit-machine-learning |
+| qiskit.aqua.algorithms.eigen_solvers | qiskit.algorithms.eigen_solvers | qiskit-terra |
+| qiskit.aqua.algorithms.factorizers | qiskit.algorithms.factorizers | qiskit-terra |
+| qiskit.aqua.algorithms.minimum_eigen_solvers | qiskit.algorithms.minimum_eigen_solvers | qiskit-terra|
+| qiskit.aqua.algorithms.VQAlgorithm | qiskit.algorithms.VariationalAlgorithm | qiskit-terra |
+| qiskit.aqua.aqua_globals | qiskit.utils.aqua_globals | qiskit-terra|
+| qiskit.aqua.components.multiclass_extensions | | |
+| qiskit.aqua.components.neural_networks | qiskit_machine_learning.algorithms.distribution_learners.qgan | qiskit-machine-learning |
+| qiskit.aqua.components.optimizers | qiskit.algorithms.optimizers | qiskit-terra |
+| qiskit.aqua.components.variational_forms | |
+| qiskit.aqua.operators | qiskit.opflow | qiskit-terra|
+| qiskit.aqua.QuantumInstance | qiskit.utils.QuantumInstance | qiskit-terra |
+| qiskit.chemistry | qiskit_nature | qiskit-nature|
+| qiskit.finance | qiskit_finance | qiskit-finance|
+| qiskit.ml | qiskit_machine_learning | qiskit-machine-learning |
+| qiskit.optimization | qiskit_optimization | qiskit-optimization |
+
 ## Installation
 
 We encourage installing Qiskit via the pip tool (a python package manager), which installs all

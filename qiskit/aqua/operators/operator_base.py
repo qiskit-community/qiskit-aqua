@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -20,6 +20,7 @@ import numpy as np
 from qiskit.aqua import AquaError, aqua_globals
 from qiskit.circuit import ParameterExpression, ParameterVector
 from .legacy.base_operator import LegacyBaseOperator
+from ..deprecation import warn_package
 
 
 class OperatorBase(ABC):
@@ -35,6 +36,14 @@ class OperatorBase(ABC):
     # Indentation used in string representation of list operators
     # Can be changed to use another indentation than two whitespaces
     INDENTATION = '  '
+
+    ENABLE_DEPRECATION = True
+
+    @abstractmethod
+    def __init__(self) -> None:
+        super().__init__()
+        if OperatorBase.ENABLE_DEPRECATION:
+            warn_package('aqua.operators', 'qiskit.opflow', 'qiskit-terra')
 
     @property
     @abstractmethod
