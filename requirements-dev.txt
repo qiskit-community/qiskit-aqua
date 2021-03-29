@@ -17,3 +17,5 @@ qiskit-aer>=0.8.0,<0.9.0
 mypy>=0.780
 mypy-extensions>=0.4.3
 networkx>=2.2
+ipython<7.22.0
+ipykernel<5.5.2

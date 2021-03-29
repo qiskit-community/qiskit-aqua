@@ -52,8 +52,8 @@ _AQUA_OBJECTS = AquaObjects()
 
 
 def warn_package(aqua_package: str,
-                 package: Optional[str],
-                 library: Optional[str],
+                 package: Optional[str] = None,
+                 library: Optional[str] = None,
                  stacklevel: int = 2) -> None:
     """ emit package deprecation warning """
     if _AQUA_OBJECTS.package_exists(aqua_package):
