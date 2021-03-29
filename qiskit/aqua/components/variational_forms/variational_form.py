@@ -45,8 +45,7 @@ class VariationalForm(ABC):
         self._bounds = list()  # type: List[object]
         self._preferred_init_points = None
         self._support_parameterized_circuit = False
-        warn_package('aqua.components.variational_forms',
-                     None, None)
+        warn_package('aqua.components.variational_forms')
 
     @abstractmethod
     def construct_circuit(self,

@@ -31,8 +31,7 @@ class MulticlassExtension(ABC):
         super().__init__()
         self.estimator_cls = None  # type: Optional[Callable[[List], Estimator]]
         self.params = []  # type: List
-        warn_package('aqua.components.multiclass_extensions',
-                     'qiskit_machine_learning', 'qiskit-machine-learning')
+        warn_package('aqua.components.multiclass_extensions')
 
     def set_estimator(self,
                       estimator_cls: Callable[[List], Estimator],

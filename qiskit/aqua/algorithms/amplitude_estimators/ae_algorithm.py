@@ -89,7 +89,7 @@ class AmplitudeEstimationAlgorithm(QuantumAlgorithm):
                 Index of the objective qubit, that marks the 'good/bad' states
         """
         warn_package('aqua.algorithms.amplitude_estimators',
-                     'qiskit.algorithms.amplitude_amplifiers', 'qiskit-terra')
+                     'qiskit.algorithms.amplitude_estimators', 'qiskit-terra')
         if isinstance(state_preparation, CircuitFactory) or a_factory is not None:
             warnings.warn('Passing a CircuitFactory as A operator is deprecated as of 0.8.0, '
                           'this feature will be removed no earlier than 3 months after the '
