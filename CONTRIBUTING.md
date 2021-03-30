@@ -258,11 +258,7 @@ run all unit tests. Another way to run the test suite is to use
 [**tox**](https://tox.readthedocs.io/en/latest/#). For more information about using tox please
 refer to
 [Terra CONTRIBUTING](https://github.com/Qiskit/qiskit-terra/blob/master/CONTRIBUTING.md#test)
-Test section. However please note Aqua does not have any
-[online tests](https://github.com/Qiskit/qiskit-terra/blob/master/CONTRIBUTING.md#online-tests)
-nor does it have
-[test skip
- options](https://github.com/Qiskit/qiskit-terra/blob/master/CONTRIBUTING.md#test-skip-options).    
+Test section.
 
 ### Development Cycle
 

@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -165,9 +165,7 @@ class TestBernoulli(QiskitAquaTestCase):
                     circuit.cry(2 * 2 ** power * angle, qr_eval[power], qr_objective[0])
             else:
                 oracle = QuantumCircuit(1)
-                oracle.x(0)
                 oracle.z(0)
-                oracle.x(0)
 
                 state_preparation = QuantumCircuit(1)
                 state_preparation.ry(angle, 0)
@@ -178,7 +176,7 @@ class TestBernoulli(QiskitAquaTestCase):
                                     inplace=True)
 
             # fourier transform
-            iqft = QFT(m, do_swaps=False).inverse()
+            iqft = QFT(m, do_swaps=False).inverse().reverse_bits()
             circuit.append(iqft.to_instruction(), qr_eval)
 
             actual_circuit = qae.construct_circuit(measurement=False)
@@ -210,9 +208,7 @@ class TestBernoulli(QiskitAquaTestCase):
 
             else:
                 oracle = QuantumCircuit(1)
-                oracle.x(0)
                 oracle.z(0)
-                oracle.x(0)
                 state_preparation = QuantumCircuit(1)
                 state_preparation.ry(angle, 0)
                 grover_op = GroverOperator(oracle, state_preparation)
@@ -419,7 +415,7 @@ class TestSineIntegral(QiskitAquaTestCase):
         result = qae.run(self._qasm(shots))
         for method, expected_confint in expect.items():
             confint = qae.confidence_interval(alpha, method)
-            self.assertEqual(confint, expected_confint)
+            np.testing.assert_almost_equal(confint, expected_confint, decimal=10)
             self.assertTrue(confint[0] <= getattr(result, key) <= confint[1])
 
     def test_iqae_confidence_intervals(self):

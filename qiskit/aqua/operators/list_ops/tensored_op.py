@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -20,7 +20,6 @@ from qiskit.circuit import QuantumCircuit, ParameterExpression
 
 from ..state_fns.circuit_state_fn import CircuitStateFn
 from ..operator_base import OperatorBase
-from ..primitive_ops.primitive_op import PrimitiveOp
 from .list_op import ListOp
 from ... import AquaError
 
@@ -74,7 +73,8 @@ class TensoredOp(ListOp):
     def eval(self,
              front: Union[str, dict, np.ndarray,
                           OperatorBase] = None) -> Union[OperatorBase, float, complex]:
-        return cast(Union[OperatorBase, float, complex], self.to_matrix_op().eval(front=front))
+        return cast(Union[OperatorBase, float, complex],
+                    self.to_matrix_op().eval(front=front))  # type: ignore
 
     # Try collapsing list or trees of tensor products.
     # TODO do this smarter
@@ -96,6 +96,7 @@ class TensoredOp(ListOp):
             AquaError: for operators where a single underlying circuit can not be produced.
         """
         circuit_op = self.to_circuit_op()
+        from ..primitive_ops.primitive_op import PrimitiveOp
         if isinstance(circuit_op, (PrimitiveOp, CircuitStateFn)):
             return circuit_op.to_circuit()
         raise AquaError('Conversion to_circuit supported only for operators, where a single '

@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -58,15 +58,15 @@ def get_operator(list_of_subsets):
                 vp = np.zeros(n)
                 vp[i] = 1
                 vp[j] = 1
-                pauli_list.append([A * 0.25, Pauli(vp, wp)])
+                pauli_list.append([A * 0.25, Pauli((vp, wp))])
 
                 vp2 = np.zeros(n)
                 vp2[i] = 1
-                pauli_list.append([A * 0.25, Pauli(vp2, wp)])
+                pauli_list.append([A * 0.25, Pauli((vp2, wp))])
 
                 vp3 = np.zeros(n)
                 vp3[j] = 1
-                pauli_list.append([A * 0.25, Pauli(vp3, wp)])
+                pauli_list.append([A * 0.25, Pauli((vp3, wp))])
 
                 shift += A * 0.25
 
@@ -74,7 +74,7 @@ def get_operator(list_of_subsets):
         wp = np.zeros(n)
         vp = np.zeros(n)
         vp[i] = 1
-        pauli_list.append([-0.5, Pauli(vp, wp)])
+        pauli_list.append([-0.5, Pauli((vp, wp))])
         shift += -0.5
 
     return WeightedPauliOperator(paulis=pauli_list), shift

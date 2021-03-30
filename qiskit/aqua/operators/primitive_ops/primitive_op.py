@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -95,6 +95,7 @@ class PrimitiveOp(OperatorBase):
                 primitive: The operator primitive being wrapped.
                 coeff: A coefficient multiplying the primitive.
         """
+        super().__init__()
         self._primitive = primitive
         self._coeff = coeff
 
@@ -276,6 +277,6 @@ class PrimitiveOp(OperatorBase):
             from ..operator_globals import I
             return (I ^ self.num_qubits) * 0.0
 
-        return sum([PrimitiveOp(Pauli.from_label(label),  # type: ignore
+        return sum([PrimitiveOp(Pauli(label),  # type: ignore
                                 coeff.real if coeff == coeff.real else coeff)
                     for (label, coeff) in sparse_pauli.to_list()]) * self.coeff

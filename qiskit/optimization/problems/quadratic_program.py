@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,25 +12,31 @@
 
 """Quadratic Program."""
 
-from typing import cast, List, Union, Dict, Optional, Tuple
 import logging
+import warnings
 from collections import defaultdict
 from collections.abc import Sequence
 from enum import Enum
 from math import fsum, isclose
-import warnings
-import numpy as np
-from numpy import (ndarray, zeros, bool as nbool)
-from scipy.sparse import spmatrix
+from typing import cast, List, Union, Dict, Optional, Tuple
 
+import numpy as np
 from docplex.mp.constr import (LinearConstraint as DocplexLinearConstraint,
                                QuadraticConstraint as DocplexQuadraticConstraint,
                                NotEqualConstraint)
-from docplex.mp.linear import Var
+
+try:
+    # new location since docplex 2.16.196
+    from docplex.mp.dvar import Var
+except ImportError:
+    # old location until docplex 2.15.194
+    from docplex.mp.linear import Var
 from docplex.mp.model import Model
 from docplex.mp.model_reader import ModelReader
 from docplex.mp.quad import QuadExpr
 from docplex.mp.vartype import ContinuousVarType, BinaryVarType, IntegerVarType
+from numpy import ndarray, zeros
+from scipy.sparse import spmatrix
 
 from qiskit.aqua import MissingOptionalLibraryError
 from qiskit.aqua.operators import I, OperatorBase, PauliOp, WeightedPauliOperator, SummedOp, ListOp
@@ -149,81 +155,76 @@ class QuadraticProgram:
         return self._variables_index
 
     def _add_variable(self,
-                      lowerbound: Union[float, int] = 0,
-                      upperbound: Union[float, int] = INFINITY,
-                      vartype: VarType = VarType.CONTINUOUS,
-                      name: Optional[str] = None) -> Variable:
-        return self._add_variables(lowerbound, upperbound, vartype, name)[1][0]
+                      lowerbound: Union[float, int],
+                      upperbound: Union[float, int],
+                      vartype: VarType,
+                      name: Optional[str]) -> Variable:
+        if name is None:
+            name = 'x'
+            key_format = '{}'
+        else:
+            key_format = ''
+        return self._add_variables(1, lowerbound, upperbound, vartype, name, key_format)[1][0]
 
     def _add_variables(self,
-                       lowerbound: Union[float, int] = 0,
-                       upperbound: Union[float, int] = INFINITY,
-                       vartype: VarType = VarType.CONTINUOUS,
-                       name: Optional[str] = None,
-                       key_format: Optional[str] = None,
-                       keys: Union[int, Sequence] = 1) -> Tuple[List[str], List[Variable]]:
+                       keys: Union[int, Sequence],
+                       lowerbound: Union[float, int],
+                       upperbound: Union[float, int],
+                       vartype: VarType,
+                       name: Optional[str],
+                       key_format: str) -> Tuple[List[str], List[Variable]]:
         if isinstance(keys, int) and keys < 1:
             raise QiskitOptimizationError(
                 "Cannot create non-positive number of variables: {}".format(keys))
-        if not name and key_format:
+        if name is None:
             name = 'x'
-        if name and not key_format:
-            if isinstance(keys, int) and keys > 1 or isinstance(keys, Sequence) and len(keys) > 0:
-                key_format = '{}'
-            else:
-                key_format = ''
-                if name in self._variables_index:
-                    raise QiskitOptimizationError("Variable name already exists: {}".format(name))
-        if not name and not key_format:
-            name = 'x'
-            key_format = '{}'
         if '{{}}' in key_format:
             raise QiskitOptimizationError(
                 "Formatter cannot contain nested substitutions: {}".format(key_format))
-        substitution_count = key_format.count('{}')
-        if substitution_count > 1:
+        if key_format.count('{}') > 1:
             raise QiskitOptimizationError(
                 "Formatter cannot contain more than one substitution: {}".format(key_format))
 
+        def _find_name(name, key_format, k):
+            prev = None
+            while True:
+                new_name = name + key_format.format(k)
+                if new_name == prev:
+                    raise QiskitOptimizationError(
+                        "Variable name already exists: {}".format(new_name))
+                if new_name in self._variables_index:
+                    k += 1
+                    prev = new_name
+                else:
+                    break
+            return new_name, k + 1
+
         names = []
         variables = []
-        if isinstance(keys, Sequence):
-            for key in keys:
-                indexed_name = name + key_format.format(str(key))
-                if indexed_name in self._variables_index:
-                    raise QiskitOptimizationError(
-                        "Variable name already exists: {}".format(indexed_name))
-                names.append(indexed_name)
-                variables.append(
-                    self._create_var_update_index(lowerbound, upperbound, vartype, indexed_name))
-        else:
-            k = self.get_num_vars()
-            for _ in range(keys):
-                while name + key_format.format(k) in self._variables_index:
-                    k += 1
-                indexed_name = name + key_format.format(k)
-                names.append(indexed_name)
-                variables.append(
-                    self._create_var_update_index(lowerbound, upperbound, vartype, indexed_name))
+        k = self.get_num_vars()
+        lst = keys if isinstance(keys, Sequence) else range(keys)
+        for key in lst:
+            if isinstance(keys, Sequence):
+                indexed_name = name + key_format.format(key)
+            else:
+                indexed_name, k = _find_name(name, key_format, k)
+            if indexed_name in self._variables_index:
+                raise QiskitOptimizationError(
+                    "Variable name already exists: {}".format(indexed_name))
+            names.append(indexed_name)
+            self._variables_index[indexed_name] = self.get_num_vars()
+            variable = Variable(self, indexed_name, lowerbound, upperbound, vartype)
+            self._variables.append(variable)
+            variables.append(variable)
         return names, variables
 
-    def _create_var_update_index(self,
-                                 lowerbound: Union[float, int],
-                                 upperbound: Union[float, int],
-                                 vartype: VarType,
-                                 name: str) -> Variable:
-        self.variables_index[name] = len(self.variables)
-        variable = Variable(self, name, lowerbound, upperbound, vartype)
-        self.variables.append(variable)
-        return variable
-
     def _var_dict(self,
-                  lowerbound: Union[float, int] = 0,
-                  upperbound: Union[float, int] = INFINITY,
-                  vartype: VarType = VarType.CONTINUOUS,
-                  name: Optional[str] = None,
-                  key_format: Optional[str] = None,
-                  keys: Union[int, Sequence] = 1) -> Dict[str, Variable]:
+                  keys: Union[int, Sequence],
+                  lowerbound: Union[float, int],
+                  upperbound: Union[float, int],
+                  vartype: VarType,
+                  name: Optional[str],
+                  key_format: str) -> Dict[str, Variable]:
         """
         Adds a positive number of variables to the variable list and index and returns a
         dictionary mapping the variable names to their instances. If 'key_format' is present,
@@ -250,15 +251,15 @@ class QuadraticProgram:
                                      nested substitution.
         """
         return dict(
-            zip(*self._add_variables(lowerbound, upperbound, vartype, name, key_format, keys)))
+            zip(*self._add_variables(keys, lowerbound, upperbound, vartype, name, key_format)))
 
     def _var_list(self,
-                  lowerbound: Union[float, int] = 0,
-                  upperbound: Union[float, int] = INFINITY,
-                  vartype: VarType = VarType.CONTINUOUS,
-                  name: Optional[str] = None,
-                  key_format: Optional[str] = None,
-                  keys: Union[int, Sequence] = 1) -> List[Variable]:
+                  keys: Union[int, Sequence],
+                  lowerbound: Union[float, int],
+                  upperbound: Union[float, int],
+                  vartype: VarType,
+                  name: Optional[str],
+                  key_format: str) -> List[Variable]:
         """
         Adds a positive number of variables to the variable list and index and returns a
         list of variable instances.
@@ -282,7 +283,7 @@ class QuadraticProgram:
             QiskitOptimizationError: if `key_format` has more than one substitution or a
                                      nested substitution.
         """
-        return self._add_variables(lowerbound, upperbound, vartype, name, key_format, keys)[1]
+        return self._add_variables(keys, lowerbound, upperbound, vartype, name, key_format)[1]
 
     def continuous_var(self,
                        lowerbound: Union[float, int] = 0,
@@ -304,11 +305,11 @@ class QuadraticProgram:
         return self._add_variable(lowerbound, upperbound, Variable.Type.CONTINUOUS, name)
 
     def continuous_var_dict(self,
+                            keys: Union[int, Sequence],
                             lowerbound: Union[float, int] = 0,
                             upperbound: Union[float, int] = INFINITY,
                             name: Optional[str] = None,
-                            key_format: Optional[str] = None,
-                            keys: Union[int, Sequence] = 1) -> Dict[str, Variable]:
+                            key_format: str = '{}') -> Dict[str, Variable]:
         """
         Uses 'var_dict' to construct a dictionary of continuous variables
 
@@ -330,15 +331,15 @@ class QuadraticProgram:
             QiskitOptimizationError: if `key_format` has more than one substitution or a
                                      nested substitution.
         """
-        return self._var_dict(lowerbound, upperbound, Variable.Type.CONTINUOUS, name, key_format,
-                              keys)
+        return self._var_dict(keys, lowerbound, upperbound, Variable.Type.CONTINUOUS, name,
+                              key_format)
 
     def continuous_var_list(self,
+                            keys: Union[int, Sequence],
                             lowerbound: Union[float, int] = 0,
                             upperbound: Union[float, int] = INFINITY,
                             name: Optional[str] = None,
-                            key_format: Optional[str] = None,
-                            keys: Union[int, Sequence] = 1) -> List[Variable]:
+                            key_format: str = '{}') -> List[Variable]:
         """
         Uses 'var_list' to construct a list of continuous variables
 
@@ -360,8 +361,8 @@ class QuadraticProgram:
             QiskitOptimizationError: if `key_format` has more than one substitution or a
                                      nested substitution.
         """
-        return self._var_list(lowerbound, upperbound, Variable.Type.CONTINUOUS,
-                              name, key_format, keys)
+        return self._var_list(keys, lowerbound, upperbound, Variable.Type.CONTINUOUS,
+                              name, key_format)
 
     def binary_var(self, name: Optional[str] = None) -> Variable:
         """Adds a binary variable to the quadratic program.
@@ -378,9 +379,9 @@ class QuadraticProgram:
         return self._add_variable(0, 1, Variable.Type.BINARY, name)
 
     def binary_var_dict(self,
+                        keys: Union[int, Sequence],
                         name: Optional[str] = None,
-                        key_format: Optional[str] = None,
-                        keys: Union[int, Sequence] = 1) -> Dict[str, Variable]:
+                        key_format: str = '{}') -> Dict[str, Variable]:
         """
         Uses 'var_dict' to construct a dictionary of binary variables
 
@@ -400,12 +401,12 @@ class QuadraticProgram:
             QiskitOptimizationError: if `key_format` has more than one substitution or a
                                      nested substitution.
         """
-        return self._var_dict(0, 1, Variable.Type.BINARY, name, key_format, keys)
+        return self._var_dict(keys, 0, 1, Variable.Type.BINARY, name, key_format)
 
     def binary_var_list(self,
+                        keys: Union[int, Sequence],
                         name: Optional[str] = None,
-                        key_format: Optional[str] = None,
-                        keys: Union[int, Sequence] = 1) -> List[Variable]:
+                        key_format: str = '{}') -> List[Variable]:
         """
         Uses 'var_list' to construct a list of binary variables
 
@@ -425,7 +426,7 @@ class QuadraticProgram:
             QiskitOptimizationError: if `key_format` has more than one substitution or a
                                      nested substitution.
         """
-        return self._var_list(0, 1, Variable.Type.BINARY, name, key_format, keys)
+        return self._var_list(keys, 0, 1, Variable.Type.BINARY, name, key_format)
 
     def integer_var(self,
                     lowerbound: Union[float, int] = 0,
@@ -447,11 +448,11 @@ class QuadraticProgram:
         return self._add_variable(lowerbound, upperbound, Variable.Type.INTEGER, name)
 
     def integer_var_dict(self,
+                         keys: Union[int, Sequence],
                          lowerbound: Union[float, int] = 0,
                          upperbound: Union[float, int] = INFINITY,
                          name: Optional[str] = None,
-                         key_format: Optional[str] = None,
-                         keys: Union[int, Sequence] = 1) -> Dict[str, Variable]:
+                         key_format: str = '{}') -> Dict[str, Variable]:
         """
         Uses 'var_dict' to construct a dictionary of integer variables
 
@@ -473,14 +474,14 @@ class QuadraticProgram:
             QiskitOptimizationError: if `key_format` has more than one substitution or a
                                      nested substitution.
         """
-        return self._var_dict(lowerbound, upperbound, Variable.Type.INTEGER, name, key_format, keys)
+        return self._var_dict(keys, lowerbound, upperbound, Variable.Type.INTEGER, name, key_format)
 
     def integer_var_list(self,
+                         keys: Union[int, Sequence],
                          lowerbound: Union[float, int] = 0,
                          upperbound: Union[float, int] = INFINITY,
                          name: Optional[str] = None,
-                         key_format: Optional[str] = None,
-                         keys: Union[int, Sequence] = 1) -> List[Variable]:
+                         key_format: str = '{}') -> List[Variable]:
         """
         Uses 'var_list' to construct a dictionary of integer variables
 
@@ -502,7 +503,7 @@ class QuadraticProgram:
             QiskitOptimizationError: if `key_format` has more than one substitution or a
                                      nested substitution.
         """
-        return self._var_list(lowerbound, upperbound, Variable.Type.INTEGER, name, key_format, keys)
+        return self._var_list(keys, lowerbound, upperbound, Variable.Type.INTEGER, name, key_format)
 
     def get_variable(self, i: Union[int, str]) -> Variable:
         """Returns a variable for a given name or index.
@@ -1099,7 +1100,7 @@ class QuadraticProgram:
             raise MissingOptionalLibraryError(
                 libname='CPLEX',
                 name='QuadraticProgram.read_from_lp_file',
-                pip_install='pip install qiskit-aqua[cplex]') from ex
+                pip_install="pip install 'qiskit-aqua[cplex]'") from ex
 
         def _parse_problem_name(filename: str) -> str:
             # Because docplex model reader uses the base name as model name,
@@ -1195,8 +1196,8 @@ class QuadraticProgram:
         # initialize Hamiltonian.
         num_nodes = self.get_num_vars()
         pauli_list = []
-        offset = 0
-        zero = zeros(num_nodes, dtype=nbool)
+        offset = 0.
+        zero = zeros(num_nodes, dtype=bool)
 
         # set a sign corresponding to a maximized or minimized problem.
         # sign == 1 is for minimized problem. sign == -1 is for maximized problem.
@@ -1207,11 +1208,11 @@ class QuadraticProgram:
 
         # convert linear parts of the object function into Hamiltonian.
         for idx, coef in self.objective.linear.to_dict().items():
-            z_p = zeros(num_nodes, dtype=nbool)
+            z_p = zeros(num_nodes, dtype=bool)
             weight = coef * sense / 2
             z_p[idx] = True
 
-            pauli_list.append([-weight, Pauli(z_p, zero)])
+            pauli_list.append([-weight, Pauli((z_p, zero))])
             offset += weight
 
         # convert quadratic parts of the object function into Hamiltonian.
@@ -1231,18 +1232,18 @@ class QuadraticProgram:
             if i == j:
                 offset += weight
             else:
-                z_p = zeros(num_nodes, dtype=nbool)
+                z_p = zeros(num_nodes, dtype=bool)
                 z_p[i] = True
                 z_p[j] = True
-                pauli_list.append([weight, Pauli(z_p, zero)])
+                pauli_list.append([weight, Pauli((z_p, zero))])
 
-            z_p = zeros(num_nodes, dtype=nbool)
+            z_p = zeros(num_nodes, dtype=bool)
             z_p[i] = True
-            pauli_list.append([-weight, Pauli(z_p, zero)])
+            pauli_list.append([-weight, Pauli((z_p, zero))])
 
-            z_p = zeros(num_nodes, dtype=nbool)
+            z_p = zeros(num_nodes, dtype=bool)
             z_p[j] = True
-            pauli_list.append([-weight, Pauli(z_p, zero)])
+            pauli_list.append([-weight, Pauli((z_p, zero))])
 
             offset += weight
 
@@ -1388,8 +1389,8 @@ class QuadraticProgram:
         # if input `x` is not the same len as the total vars, raise an error
         if len(x) != self.get_num_vars():
             raise QiskitOptimizationError(
-                'The size of solution `x`: {}, does not match the number of problem variables: {}'
-                .format(len(x), self.get_num_vars()))
+                'The size of solution `x`: {}, does not match the number of problem variables: '
+                '{}'.format(len(x), self.get_num_vars()))
 
         # check whether the input satisfy the bounds of the problem
         violated_variables = []  # type: List[Variable]

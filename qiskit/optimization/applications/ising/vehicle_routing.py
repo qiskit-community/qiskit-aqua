@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -16,7 +16,7 @@ and provides some related routines (extracting a solution,
 checking its objective function value).
 """
 
-from typing import Tuple
+from typing import Tuple, List
 import numpy as np
 from qiskit.quantum_info import Pauli
 
@@ -140,7 +140,7 @@ def get_operator(instance: np.ndarray, n: int, K: int) -> WeightedPauliOperator:
             w_p = np.zeros(N)
             v_p = np.zeros(N)
             v_p[i] = 1
-            pauli_list.append((g_z[i], Pauli(v_p, w_p)))
+            pauli_list.append((g_z[i], Pauli((v_p, w_p))))
     for i in range(N):
         for j in range(i):
             if q_z[i, j] != 0:
@@ -148,16 +148,16 @@ def get_operator(instance: np.ndarray, n: int, K: int) -> WeightedPauliOperator:
                 v_p = np.zeros(N)
                 v_p[i] = 1
                 v_p[j] = 1
-                pauli_list.append((2 * q_z[i, j], Pauli(v_p, w_p)))
+                pauli_list.append((2 * q_z[i, j], Pauli((v_p, w_p))))
 
-    pauli_list.append((c_z, Pauli(np.zeros(N), np.zeros(N))))
+    pauli_list.append((c_z, Pauli((np.zeros(N), np.zeros(N)))))
     return WeightedPauliOperator(paulis=pauli_list)
 
 
 def get_vehiclerouting_solution(instance: np.ndarray,
                                 n: int,
                                 K: int,
-                                result: MinimumEigensolverResult) -> np.ndarray:
+                                result: MinimumEigensolverResult) -> List[int]:
     """Tries to obtain a feasible solution (in vector form) of an instance
         of vehicle routing from the results dictionary.
 

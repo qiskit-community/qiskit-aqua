@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -29,6 +29,7 @@ from qiskit.aqua.algorithms import AlgorithmResult, QuantumAlgorithm
 from qiskit.aqua.utils import get_subsystem_density_matrix, summarize_circuits
 from qiskit.aqua.utils.arithmetic import is_power
 from qiskit.aqua.utils.validation import validate_min
+from ...deprecation import warn_package
 
 logger = logging.getLogger(__name__)
 
@@ -65,6 +66,9 @@ class Shor(QuantumAlgorithm):
          Raises:
             ValueError: Invalid input
         """
+        warn_package('aqua.algorithms.factorizers',
+                     'qiskit.algorithms.factorizers',
+                     'qiskit-terra')
         validate_min('N', N, 3)
         validate_min('a', a, 2)
         super().__init__(quantum_instance)
@@ -247,7 +251,7 @@ class Shor(QuantumAlgorithm):
             )
 
         # Apply inverse QFT
-        iqft = QFT(len(self._up_qreg)).inverse().to_instruction()
+        iqft = QFT(len(self._up_qreg)).inverse().reverse_bits().to_instruction()
         circuit.append(iqft, self._up_qreg)
 
         if measurement:
@@ -338,7 +342,7 @@ class Shor(QuantumAlgorithm):
                 other_factor = math.gcd(putting_minus, self._N)
 
                 # Check if the factors found are trivial factors or are the desired factors
-                if any([factor in {1, self._N} for factor in (one_factor, other_factor)]):
+                if any(factor in {1, self._N} for factor in (one_factor, other_factor)):
                     logger.debug('Found just trivial factors, not good enough.')
                     # Check if the number has already been found,
                     # (use i - 1 because i was already incremented)

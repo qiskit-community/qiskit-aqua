@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -71,13 +71,13 @@ class BosonicOperator:
         paulis = []
 
         for i in range(n):
-            a_z = np.asarray([0] * i + [0] + [0] * (n - i - 1), dtype=np.bool)
-            a_x = np.asarray([0] * i + [1] + [0] * (n - i - 1), dtype=np.bool)
+            a_z = np.asarray([0] * i + [0] + [0] * (n - i - 1), dtype=bool)
+            a_x = np.asarray([0] * i + [1] + [0] * (n - i - 1), dtype=bool)
 
-            b_z = np.asarray([0] * i + [1] + [0] * (n - i - 1), dtype=np.bool)
-            b_x = np.asarray([0] * i + [1] + [0] * (n - i - 1), dtype=np.bool)
+            b_z = np.asarray([0] * i + [1] + [0] * (n - i - 1), dtype=bool)
+            b_x = np.asarray([0] * i + [1] + [0] * (n - i - 1), dtype=bool)
 
-            paulis.append((Pauli(a_z, a_x), Pauli(b_z, b_x)))
+            paulis.append((Pauli((a_z, a_x)), Pauli((b_z, b_x))))
 
         return paulis
 
@@ -94,7 +94,8 @@ class BosonicOperator:
         pauli_list = []
         for alpha in range(2):
             for beta in range(2):
-                pauli_prod = Pauli.sgn_prod(a_i[alpha], a_j[beta])
+                p_a = a_i[alpha].dot(a_j[beta])
+                pauli_prod = p_a[:], (-1j) ** p_a.phase
                 coeff = h1_ij / 4 * pauli_prod[1] * np.power(-1j, alpha) * np.power(1j, beta)
                 pauli_term = [coeff, pauli_prod[0]]
                 pauli_list.append(pauli_term)
@@ -141,17 +142,17 @@ class BosonicOperator:
         if m in modes:
             pauli_list = paulis[m]
         else:
-            a_z = np.asarray([0] * self._basis[m], dtype=np.bool)
-            a_x = np.asarray([0] * self._basis[m], dtype=np.bool)
-            pauli_list = [(1, Pauli(a_z, a_x))]
+            a_z = np.asarray([0] * self._basis[m], dtype=bool)
+            a_x = np.asarray([0] * self._basis[m], dtype=bool)
+            pauli_list = [(1, Pauli((a_z, a_x)))]
 
         for m in range(1, self._num_modes):
             if m in modes:
                 new_list = paulis[m]
             else:
-                a_z = np.asarray([0] * self._basis[m], dtype=np.bool)
-                a_x = np.asarray([0] * self._basis[m], dtype=np.bool)
-                new_list = [(1, Pauli(a_z, a_x))]
+                a_z = np.asarray([0] * self._basis[m], dtype=bool)
+                a_x = np.asarray([0] * self._basis[m], dtype=bool)
+                new_list = [(1, Pauli((a_z, a_x)))]
             pauli_list = self._extend(pauli_list, new_list)
 
         new_pauli_list = []

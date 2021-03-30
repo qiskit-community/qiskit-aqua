@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -16,8 +16,11 @@ from enum import IntEnum
 import logging
 from abc import ABC, abstractmethod
 import numpy as np
+from ...deprecation import warn_package
 
 logger = logging.getLogger(__name__)
+
+# pylint: disable=invalid-name
 
 
 class OptimizerSupportLevel(IntEnum):
@@ -43,6 +46,8 @@ class Optimizer(ABC):
         self._initial_point_support_level = self.get_support_level()['initial_point']
         self._options = {}
         self._max_evals_grouped = 1
+        warn_package('aqua.components.optimizers',
+                     'qiskit.algorithms.optimizers', 'qiskit-terra')
 
     @abstractmethod
     def get_support_level(self):

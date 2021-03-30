@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -12,7 +12,8 @@
 
 """Quantum Generative Adversarial Network."""
 
-from typing import Optional, Union, List, Dict, Any
+from typing import Optional, Union, List, Dict, Any, Callable
+from types import FunctionType
 import csv
 import os
 import logging
@@ -32,8 +33,10 @@ from qiskit.aqua.components.neural_networks.numpy_discriminator import NumPyDisc
 from qiskit.aqua.components.optimizers import Optimizer
 from qiskit.aqua.components.uncertainty_models import UnivariateVariationalDistribution
 from qiskit.aqua.components.uncertainty_models import MultivariateVariationalDistribution
+from qiskit.aqua.operators.gradients import Gradient
 from qiskit.aqua.utils.dataset_helper import discretize_and_truncate
 from qiskit.aqua.utils.validation import validate_min
+from ...deprecation import warn_package
 
 logger = logging.getLogger(__name__)
 
@@ -64,12 +67,15 @@ class QGAN(QuantumAlgorithm):
         <https://www.nature.com/articles/s41534-019-0223-2>`_
     """
 
-    def __init__(self, data: np.ndarray, bounds: Optional[np.ndarray] = None,
-                 num_qubits: Optional[np.ndarray] = None, batch_size: int = 500,
+    def __init__(self, data: Union[np.ndarray, List],
+                 bounds: Optional[Union[np.ndarray, List]] = None,
+                 num_qubits: Optional[Union[np.ndarray, List]] = None,
+                 batch_size: int = 500,
                  num_epochs: int = 3000, seed: int = 7,
                  discriminator: Optional[DiscriminativeNetwork] = None,
                  generator: Optional[GenerativeNetwork] = None,
-                 tol_rel_ent: Optional[float] = None, snapshot_dir: Optional[str] = None,
+                 tol_rel_ent: Optional[float] = None,
+                 snapshot_dir: Optional[str] = None,
                  quantum_instance: Optional[
                      Union[QuantumInstance, BaseBackend, Backend]] = None) -> None:
         """
@@ -94,6 +100,9 @@ class QGAN(QuantumAlgorithm):
         Raises:
             AquaError: invalid input
         """
+        warn_package('aqua.algorithms.distribution_learners',
+                     'qiskit_machine_learning.algorithms.distribution_learners',
+                     'qiskit-machine-learning')
         validate_min('batch_size', batch_size, 1)
         super().__init__(quantum_instance)
         if data is None:
@@ -102,9 +111,9 @@ class QGAN(QuantumAlgorithm):
         if bounds is None:
             bounds_min = np.percentile(self._data, 5, axis=0)
             bounds_max = np.percentile(self._data, 95, axis=0)
-            bounds = []
+            bounds = []  # type: ignore
             for i, _ in enumerate(bounds_min):
-                bounds.append([bounds_min[i], bounds_max[i]])
+                bounds.append([bounds_min[i], bounds_max[i]])  # type: ignore
         if np.ndim(data) > 1:
             if len(bounds) != (len(num_qubits) or len(data[0])):
                 raise AquaError('Dimensions of the data, the length of the data bounds '
@@ -120,7 +129,7 @@ class QGAN(QuantumAlgorithm):
         # pylint: disable=unsubscriptable-object
         if np.ndim(data) > 1:
             if self._num_qubits is None:
-                self._num_qubits = np.ones[len(data[0])] * 3
+                self._num_qubits = np.ones[len(data[0])] * 3  # type: ignore
         else:
             if self._num_qubits is None:
                 self._num_qubits = np.array([3])
@@ -197,7 +206,8 @@ class QGAN(QuantumAlgorithm):
                                                               MultivariateVariationalDistribution]
                                                         ] = None,
                       generator_init_params: Optional[np.ndarray] = None,
-                      generator_optimizer: Optional[Optimizer] = None):
+                      generator_optimizer: Optional[Optimizer] = None,
+                      generator_gradient: Optional[Union[Callable, Gradient]] = None):
         """Initialize generator.
 
         Args:
@@ -205,10 +215,20 @@ class QGAN(QuantumAlgorithm):
                 the structure of the quantum generator
             generator_init_params: initial parameters for the generator circuit
             generator_optimizer: optimizer to be used for the training of the generator
+            generator_gradient: A Gradient object, or a function returning partial
+                derivatives of the loss function w.r.t. the generator variational
+                params.
+        Raises:
+            AquaError: invalid input
         """
+        if generator_gradient:
+            if not isinstance(generator_gradient, (Gradient, FunctionType)):
+                raise AquaError('Please pass either a Gradient object or a function as '
+                                'the generator_gradient argument.')
         self._generator = QuantumGenerator(self._bounds, self._num_qubits,
                                            generator_circuit, generator_init_params,
                                            generator_optimizer,
+                                           generator_gradient,
                                            self._snapshot_dir)
 
     @property
@@ -265,7 +285,7 @@ class QGAN(QuantumAlgorithm):
             writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
             writer.writerow({'epoch': e, 'loss_discriminator': np.average(d_loss),
                              'loss_generator': np.average(g_loss), 'params_generator':
-                                 self._generator.generator_circuit.params, 'rel_entropy': rel_entr})
+                                 self._generator.parameter_values, 'rel_entropy': rel_entr})
         self._discriminator.save_model(self._snapshot_dir)  # Store discriminator model
 
     def train(self):
@@ -303,7 +323,7 @@ class QGAN(QuantumAlgorithm):
                 d_loss_min = ret_d['loss']
 
                 # 2. Train Generator
-                self._generator.set_discriminator(self._discriminator)
+                self._generator.discriminator = self._discriminator
                 ret_g = self._generator.train(self._quantum_instance, shots=self._batch_size)
                 g_loss_min = ret_g['loss']
 

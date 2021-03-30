@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -84,12 +84,10 @@ class Hamiltonian(ChemistryOperator):
         warnings.warn('The Hamiltonian class is deprecated as of Qiskit Aqua 0.8.0 and will be '
                       'removed no earlier than 3 months after the release date. Instead, the '
                       'FermionicTransformation can be used.', DeprecationWarning, stacklevel=2)
-        transformation = transformation.value
-        qubit_mapping = qubit_mapping.value
         orbital_reduction = orbital_reduction if orbital_reduction is not None else []
         super().__init__()
-        self._transformation = transformation
-        self._qubit_mapping = qubit_mapping
+        self._transformation = transformation.value
+        self._qubit_mapping = qubit_mapping.value
         self._two_qubit_reduction = two_qubit_reduction
         self._freeze_core = freeze_core
         self._orbital_reduction = orbital_reduction
@@ -151,13 +149,13 @@ class Hamiltonian(ChemistryOperator):
         # with freeze first, we have to re-base
         # the indexes for elimination according to how many orbitals were removed when freezing.
         #
-        orbitals_list = list(set(core_list + reduce_list))
+        orb_list = list(set(core_list + reduce_list))
         num_alpha = qmolecule.num_alpha
         num_beta = qmolecule.num_beta
         new_num_alpha = num_alpha
         new_num_beta = num_beta
-        if orbitals_list:
-            orbitals_list = np.array(orbitals_list)
+        if orb_list:
+            orbitals_list = np.array(orb_list)
             orbitals_list = \
                 orbitals_list[(cast(np.ndarray, orbitals_list) >= 0) &
                               (orbitals_list < qmolecule.num_orbitals)]

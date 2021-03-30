@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -357,7 +357,7 @@ class HHL(QuantumAlgorithm):
                 else:
                     f += v
             probs.append(s / (f + s))
-        probs = self._resize_vector(probs)
+        probs = self._resize_vector(probs)  # type: ignore
         self._ret["probability_result"] = np.real(probs)
 
         # Filtering the tomo data for valid results with ancillary measured

@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -45,7 +45,7 @@ class IQPE(QuantumAlgorithm, MinimumEigensolver):
     """The Iterative Quantum Phase Estimation algorithm.
 
     IQPE, as its name suggests, iteratively computes the phase so as to require fewer qubits.
-    It takes has the same set of parameters as :class:`QPE`, except for the number of
+    It has the same set of parameters as :class:`QPE`, except for the number of
     ancillary qubits *num_ancillae*, being replaced by *num_iterations* and that
     an Inverse Quantum Fourier Transform (IQFT) is not used for IQPE.
 
@@ -82,7 +82,7 @@ class IQPE(QuantumAlgorithm, MinimumEigensolver):
         validate_min('num_iterations', num_iterations, 1)
         validate_in_set('expansion_mode', expansion_mode, {'trotter', 'suzuki'})
         validate_min('expansion_order', expansion_order, 1)
-        super().__init__(quantum_instance)
+        super().__init__(quantum_instance)  # type: ignore
         self._state_in = state_in
         self._num_time_slices = num_time_slices
         self._num_iterations = num_iterations
@@ -120,8 +120,8 @@ class IQPE(QuantumAlgorithm, MinimumEigensolver):
                 [
                     self._ret['translation'],
                     Pauli(
-                        np.zeros(self._operator.num_qubits),
-                        np.zeros(self._operator.num_qubits)
+                        (np.zeros(self._operator.num_qubits),
+                         np.zeros(self._operator.num_qubits))
                     )
                 ]
             ])
@@ -196,6 +196,7 @@ class IQPE(QuantumAlgorithm, MinimumEigensolver):
             qc.append(self._state_in, q)
         else:
             qc.append(self._state_in.construct_circuit('circuit', q), q)
+
         # hadamard on a[0]
         qc.add_register(a)
         qc.h(a[0])

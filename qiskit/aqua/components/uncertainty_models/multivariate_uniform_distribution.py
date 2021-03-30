@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -39,13 +39,13 @@ class MultivariateUniformDistribution(MultivariateDistribution):
             high: List with the upper bounds per dimension, set to 1 for each dimension if None
         """
         if low is None:
-            low = np.zeros(num_qubits)
+            low = np.zeros(num_qubits)  # type: ignore
         if high is None:
-            high = np.ones(num_qubits)
+            high = np.ones(num_qubits)  # type: ignore
 
         num_values = np.prod([2**n for n in num_qubits])
-        probabilities = np.ones(num_values)
-        super().__init__(num_qubits, probabilities, low, high)
+        probabilities = np.ones(num_values)  # type: ignore
+        super().__init__(num_qubits, probabilities, low, high)  # type: ignore
 
     @staticmethod
     def _replacement():

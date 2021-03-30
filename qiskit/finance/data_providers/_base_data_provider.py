@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -13,7 +13,7 @@
 """This module implements the abstract base class for data_provider modules the finance module."""
 
 from abc import ABC, abstractmethod
-from typing import Tuple, Optional, List
+from typing import Tuple, Optional, List, cast
 import logging
 from enum import Enum
 
@@ -40,7 +40,7 @@ class BaseDataProvider(ABC):
     Doing so requires that the required driver interface is implemented.
 
     To use the subclasses, please see
-    https://github.com/Qiskit/qiskit-tutorials/blob/master/legacy_tutorials/aqua/finance/data_providers/time_series.ipynb
+    https://github.com/Qiskit/qiskit-tutorials/blob/master/tutorials/finance/11_time_series.ipynb
 
     """
 
@@ -48,11 +48,11 @@ class BaseDataProvider(ABC):
     def __init__(self) -> None:
         self._data = None  # type: Optional[List]
         self._n = 0  # pylint: disable=invalid-name
-        self.period_return_mean = None
+        self.period_return_mean: Optional[np.ndarray] = None
         self.cov = None
         self.period_return_cov = None
-        self.rho = None  # type: Optional[np.ndarray]
-        self.mean = None
+        self.rho: Optional[np.ndarray] = None
+        self.mean: Optional[np.ndarray] = None
 
     @abstractmethod
     def run(self) -> None:
@@ -77,7 +77,7 @@ class BaseDataProvider(ABC):
             raise QiskitFinanceError(
                 'No data loaded, yet. Please run the method run() first to load the data.'
             ) from ex
-        self.mean = np.mean(self._data, axis=1)
+        self.mean = cast(np.ndarray, np.mean(self._data, axis=1))
         return self.mean
 
     @staticmethod
@@ -110,7 +110,7 @@ class BaseDataProvider(ABC):
             ) from ex
         _div_func = np.vectorize(BaseDataProvider._divide)
         period_returns = _div_func(np.array(self._data)[:, 1:], np.array(self._data)[:, :-1]) - 1
-        self.period_return_mean = np.mean(period_returns, axis=1)
+        self.period_return_mean = cast(np.ndarray, np.mean(period_returns, axis=1))
         return self.period_return_mean
 
     # it does not have to be overridden in non-abstract derived classes.
@@ -190,7 +190,7 @@ class BaseDataProvider(ABC):
 
     # gets coordinates suitable for plotting
     # it does not have to be overridden in non-abstract derived classes.
-    def get_coordinates(self) -> Tuple[float, float]:
+    def get_coordinates(self) -> Tuple[np.ndarray, np.ndarray]:
         """ Returns random coordinates for visualisation purposes. """
         # Coordinates for visualisation purposes
         x_c = np.zeros([self._n, 1])

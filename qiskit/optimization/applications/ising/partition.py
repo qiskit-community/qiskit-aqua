@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -45,11 +45,11 @@ def get_operator(values):
     pauli_list = []
     for i in range(n):
         for j in range(i):
-            x_p = np.zeros(n, dtype=np.bool)
-            z_p = np.zeros(n, dtype=np.bool)
+            x_p = np.zeros(n, dtype=bool)
+            z_p = np.zeros(n, dtype=bool)
             z_p[i] = True
             z_p[j] = True
-            pauli_list.append([2. * values[i] * values[j], Pauli(z_p, x_p)])
+            pauli_list.append([2. * values[i] * values[j], Pauli((z_p, x_p))])
     return WeightedPauliOperator(paulis=pauli_list), sum(values * values)
 
 
