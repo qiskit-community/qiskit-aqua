@@ -120,7 +120,8 @@ class BosonicOperator:
             for pauli2 in list2:
                 p1c = copy.deepcopy(pauli1[1])
                 p2c = copy.deepcopy(pauli2[1])
-                p1c.insert_paulis(paulis=p2c)
+                if len(p2c) > 0:
+                    p1c = p1c.insert(p1c.num_qubits, p2c)
                 coeff = pauli1[0]*pauli2[0]
                 final_list.append((coeff, p1c))
 
