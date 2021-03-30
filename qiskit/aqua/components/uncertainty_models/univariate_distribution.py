@@ -89,8 +89,7 @@ class UnivariateDistribution(UncertaintyModel, ABC):
 
     def build(self, qc, q, q_ancillas=None, params=None):
         """ build """
-        custom_state = Custom(self.num_target_qubits, state_vector=np.sqrt(self.probabilities))
-        qc.compose(custom_state.construct_circuit('circuit', q), qubits=q[:], inplace=True)
+        qc.isometry(np.sqrt(self.probabilities).real, q, None)
 
     @staticmethod
     def pdf_to_probabilities(pdf, low, high, num_values):
