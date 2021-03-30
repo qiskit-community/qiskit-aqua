@@ -91,7 +91,7 @@ class BernsteinVazirani(QuantumAlgorithm):
         )
         qc_postoracle.h(self._oracle.variable_register)
 
-        self._circuit = qc_preoracle + qc_oracle + qc_postoracle
+        self._circuit = qc_oracle.compose(qc_preoracle, front=True).compose(qc_postoracle)
 
         # measurement circuit
         if measurement:
