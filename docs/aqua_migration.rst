@@ -1,3 +1,5 @@
+.. _aqua-migration:
+
 #####################
 Qiskit Aqua Migration
 #####################
