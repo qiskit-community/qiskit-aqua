@@ -73,25 +73,17 @@ class Simon(QuantumAlgorithm):
         if self._circuit is not None:
             return self._circuit
 
-        qc_preoracle = QuantumCircuit(
-            self._oracle.variable_register,
-            self._oracle.output_register,
-        )
-        qc_preoracle.h(self._oracle.variable_register)
-        qc_preoracle.barrier()
+        oracle = self._oracle.construct_circuit()
+        self._circuit = QuantumCircuit(*oracle.qregs)
 
-        # oracle circuit
-        qc_oracle = self._oracle.circuit
-        qc_oracle.barrier()
+        # preoracle hadamard gates
+        self._circuit.h(self._oracle.variable_register)
 
-        # postoracle circuit
-        qc_postoracle = QuantumCircuit(
-            self._oracle.variable_register,
-            self._oracle.output_register,
-        )
-        qc_postoracle.h(self._oracle.variable_register)
+        # apply oracle
+        self._circuit.compose(oracle, inplace=True)
 
-        self._circuit = qc_preoracle + qc_oracle + qc_postoracle
+        # postoracle hadamard gates
+        self._circuit.h(self._oracle.variable_register)
 
         # measurement circuit
         if measurement:

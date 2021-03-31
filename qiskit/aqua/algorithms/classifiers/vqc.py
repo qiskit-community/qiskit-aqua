@@ -186,7 +186,7 @@ class VQC(VQAlgorithm):
             circuit = self._feature_map.assign_parameters(param_dict, inplace=False)
             qc.append(circuit.to_instruction(), qr)
         else:
-            qc += self._feature_map.construct_circuit(x, qr)
+            qc.append(self._feature_map.construct_circuit(x, qr).to_instruction(), qr)
 
         if isinstance(self.var_form, QuantumCircuit):
             param_dict = dict(zip(self._var_form_params, theta))

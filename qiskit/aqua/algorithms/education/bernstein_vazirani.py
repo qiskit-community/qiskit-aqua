@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -91,7 +91,7 @@ class BernsteinVazirani(QuantumAlgorithm):
         )
         qc_postoracle.h(self._oracle.variable_register)
 
-        self._circuit = qc_preoracle + qc_oracle + qc_postoracle
+        self._circuit = qc_oracle.compose(qc_preoracle, front=True).compose(qc_postoracle)
 
         # measurement circuit
         if measurement:

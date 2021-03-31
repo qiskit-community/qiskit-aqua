@@ -201,34 +201,31 @@ class TruthTableOracle(Oracle):
         """ construct circuit """
         if self._circuit is not None:
             return self._circuit
-        self._circuit = QuantumCircuit()
         self._output_register = QuantumRegister(self._num_outputs, name='o')
+        self._variable_register = QuantumRegister(self._nbits, name='v')
+        self._circuit = QuantumCircuit(self._variable_register, self._output_register)
+
         if self._esops:
             num_ancillae, self._ancillary_register = 0, None
             for i, e in enumerate(self._esops):
                 num_ancillae = max(num_ancillae, e.compute_num_ancillae(self._mct_mode))
             if num_ancillae > 0:
                 self._ancillary_register = QuantumRegister(num_ancillae, name='a')
+                self._circuit.add_register(self._ancillary_register)
 
             for i, e in enumerate(self._esops):
                 if e is not None:
-                    ci = e.construct_circuit(
+                    e.construct_circuit(
+                        circuit=self._circuit,
+                        variable_register=self._variable_register,
                         output_register=self._output_register,
                         output_idx=i,
                         ancillary_register=self._ancillary_register,
                         mct_mode=self._mct_mode
                     )
-                    self._circuit += ci
-            self._variable_register = self._ancillary_register = None
-            for qreg in self._circuit.qregs:
-                if qreg.name == 'v':
-                    self._variable_register = qreg
-                elif qreg.name == 'a':
-                    self._ancillary_register = qreg
+
         else:
-            self._variable_register = QuantumRegister(self._nbits, name='v')
             self._ancillary_register = None
-            self._circuit.add_register(self._variable_register, self._output_register)
         return self._circuit
 
     def evaluate_classically(self, measurement):

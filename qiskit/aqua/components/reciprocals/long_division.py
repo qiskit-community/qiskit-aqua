@@ -97,9 +97,7 @@ class LongDivision(Reciprocal):
 
     def _ld_circuit(self):
 
-        def subtract(a, b, b0, c, z, r, rj, n):
-            qc = QuantumCircuit(a, b0, b, c, z, r)
-            qc2 = QuantumCircuit(a, b0, b, c, z, r)
+        def subtract(qc, a, b, b0, c, z, r, rj, n):
 
             def subtract_in(qc, a, b, b0, c, z, r, n):  # pylint: disable=unused-argument
                 """subtraction realized with ripple carry adder"""
@@ -146,32 +144,32 @@ class LongDivision(Reciprocal):
                 p.ccx(c, r, a)
                 p.ccx(a, r, b)
 
-            def unsubtract(qc2, a, b, b0, c, z, r, n):
+            def unsubtract(qc, a, b, b0, c, z, r, n):
                 """controlled inverse subtraction to uncompute the registers(when
                 the result of the subtraction is negative)"""
 
                 for i in range(n):
-                    qc2.cx(r, a[i])
-                u_maj(qc2, c[0], a[0], b[n - 2], r)
+                    qc.cx(r, a[i])
+                u_maj(qc, c[0], a[0], b[n - 2], r)
 
                 for i in range(n - 2):
-                    u_maj(qc2, b[n - 2 - i + self._neg_offset],
+                    u_maj(qc, b[n - 2 - i + self._neg_offset],
                           a[i + 1], b[n - 3 - i + self._neg_offset], r)
 
-                u_maj(qc2, b[self._neg_offset + 0], a[n - 1], b0[0], r)
-                qc2.ccx(a[n - 1], r, z[0])
-                u_uma(qc2, b[self._neg_offset + 0], a[n - 1], b0[0], r)
+                u_maj(qc, b[self._neg_offset + 0], a[n - 1], b0[0], r)
+                qc.ccx(a[n - 1], r, z[0])
+                u_uma(qc, b[self._neg_offset + 0], a[n - 1], b0[0], r)
 
                 for i in range(2, n):
-                    u_uma(qc2, b[self._neg_offset + i - 1],
+                    u_uma(qc, b[self._neg_offset + i - 1],
                           a[n - i], b[self._neg_offset + i - 2], r)
 
-                u_uma(qc2, c[0], a[0], b[n - 2 + self._neg_offset], r)
+                u_uma(qc, c[0], a[0], b[n - 2 + self._neg_offset], r)
 
                 for i in range(n):
-                    qc2.cx(r, a[i])
+                    qc.cx(r, a[i])
 
-                un_qc = qc2.reverse_ops()
+                un_qc = qc.reverse_ops()
                 un_qc.cx(r, z[0])
                 return un_qc
 
@@ -182,7 +180,7 @@ class LongDivision(Reciprocal):
             qc.x(a[n - 1])
 
             qc.x(r[rj])
-            qc += unsubtract(qc2, a, b, b0, c, z, r[rj], n)
+            unsubtract(qc, a, b, b0, c, z, r[rj], n)
             qc.x(r[rj])
 
             return qc
@@ -229,8 +227,8 @@ class LongDivision(Reciprocal):
         shift_to_one(self._circuit, self._ev, self._anc1, self._n)
 
         for rj in range(self._precision):  # iterated subtraction and shifting
-            self._circuit += subtract(self._a, self._ev, self._b0, self._c,
-                                      self._z, self._rec, rj, self._n)
+            subtract(self._circuit, self._a, self._ev, self._b0, self._c,
+                     self._z, self._rec, rj, self._n)
             shift_one_left(self._circuit, self._a, self._n)
 
         for ish in range(self._n - 2):  # unshifting due to initial alignment

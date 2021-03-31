@@ -203,24 +203,27 @@ class HHL(QuantumAlgorithm):
         """
 
         q = QuantumRegister(self._num_q, name="io")
+
         qc = QuantumCircuit(q)
 
         # InitialState
         if isinstance(self._init_state, QuantumCircuit):
             qc.compose(self._init_state, inplace=True)
         elif self._init_state is not None:
-            qc += self._init_state.construct_circuit("circuit", q)
+            _append_by_qreg(qc, self._init_state.construct_circuit("circuit", q))
 
         # EigenvalueEstimation (QPE)
-        qc += self._eigs.construct_circuit("circuit", q)
+        eigs = self._eigs.construct_circuit("circuit", q)
         a = self._eigs._output_register
+        _append_by_qreg(qc, eigs)
 
         # Reciprocal calculation with rotation
-        qc += self._reciprocal.construct_circuit("circuit", a)
+        rec = self._reciprocal.construct_circuit("circuit", a)
         s = self._reciprocal._anc
+        _append_by_qreg(qc, rec)
 
         # Inverse EigenvalueEstimation
-        qc += self._eigs.construct_inverse("circuit", self._eigs._circuit)
+        _append_by_qreg(qc, self._eigs.construct_inverse("circuit", self._eigs._circuit))
 
         # Measurement of the ancilla qubit
         if measurement:
@@ -235,7 +238,7 @@ class HHL(QuantumAlgorithm):
         self._circuit = qc
         return qc
 
-    @staticmethod
+    @ staticmethod
     def expand_to_powerdim(matrix: np.ndarray, vector: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """ Expand a matrix to the next-larger 2**n dimensional matrix with
         ones on the diagonal and zeros on the off-diagonal and expand the
@@ -259,7 +262,7 @@ class HHL(QuantumAlgorithm):
         vector = new_vector.reshape(np.shape(new_vector)[1])
         return matrix, vector
 
-    @staticmethod
+    @ staticmethod
     def expand_to_hermitian(matrix: np.ndarray,
                             vector: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """ Expand a non-hermitian matrix A to a hermitian matrix by
@@ -303,9 +306,8 @@ class HHL(QuantumAlgorithm):
             new_matrix[:, :] = matrix[0:half_dim, half_dim:full_dim]
             matrix = new_matrix
         if self._truncate_powerdim:
-            new_matrix = \
-                np.ndarray(shape=(self._original_dimension, self._original_dimension),
-                           dtype=complex)
+            new_matrix = np.ndarray(shape=(self._original_dimension, self._original_dimension),
+                                    dtype=complex)
             new_matrix[:, :] = matrix[:self._original_dimension, :self._original_dimension]
             matrix = new_matrix
         return matrix
@@ -485,3 +487,27 @@ class HHLResult(LinearsolverResult):
     def from_dict(a_dict: Dict) -> 'HHLResult':
         """ create new object from a dictionary """
         return HHLResult(a_dict)
+
+
+def _append_by_qreg(target, other):
+    """Workaround to use deprecated ``extend`` method until HHL is refactored."""
+    # Add new registers
+    for element in other.qregs:
+        if element not in target.qregs:
+            target.qregs.append(element)
+            target._qubits += element[:]
+            target._qubit_set.update(element[:])
+    for element in other.cregs:
+        if element not in target.cregs:
+            target.cregs.append(element)
+            target._clbits += element[:]
+            target._clbit_set.update(element[:])
+
+    # Copy the circuit data if other and target are the same, otherwise the data of other is
+    # appended to both target and other resulting in an infinite loop
+    data = other.data.copy() if other is target else other.data
+
+    # Add new gates
+    for instruction_context in data:
+        target._append(*instruction_context)
+    target.global_phase += other.global_phase
