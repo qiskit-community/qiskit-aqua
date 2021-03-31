@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -89,8 +89,10 @@ class UnivariateDistribution(UncertaintyModel, ABC):
 
     def build(self, qc, q, q_ancillas=None, params=None):
         """ build """
-        custom_state = Custom(self.num_target_qubits, state_vector=np.sqrt(self.probabilities))
-        qc.extend(custom_state.construct_circuit('circuit', q))
+        custom = Custom(self.num_target_qubits, state_vector=np.sqrt(self.probabilities))
+        circuit = custom.construct_circuit('circuit')
+        q = q[:self.num_target_qubits]
+        qc.compose(circuit, q, inplace=True)
 
     @staticmethod
     def pdf_to_probabilities(pdf, low, high, num_values):

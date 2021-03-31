@@ -172,7 +172,7 @@ class QSVM(QuantumAlgorithm):
 
         # write input state from sample distribution
         if isinstance(feature_map, FeatureMap):
-            qc += feature_map.construct_circuit(x1, q)
+            qc.append(feature_map.construct_circuit(x1, q).to_instruction(), qc.qubits)
         else:
             psi_x1 = _assign_parameters(feature_map, x1)
             qc.append(psi_x1.to_instruction(), qc.qubits)
@@ -180,7 +180,8 @@ class QSVM(QuantumAlgorithm):
         if not is_statevector_sim:
             # write input state from sample distribution
             if isinstance(feature_map, FeatureMap):
-                qc += feature_map.construct_circuit(x2, q).inverse()
+                qc.append(feature_map.construct_circuit(x2, q).inverse().to_instruction(),
+                          qc.qubits)
             else:
                 psi_x2_dag = _assign_parameters(feature_map, x2)
                 qc.append(psi_x2_dag.to_instruction().inverse(), qc.qubits)

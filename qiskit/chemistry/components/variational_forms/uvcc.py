@@ -206,7 +206,7 @@ class UVCC(VariationalForm):
             if self._shallow_circuit_concat:
                 circuit.data += qc.data
             else:
-                circuit += qc
+                circuit.append(qc, circuit.qubits)
 
         return circuit
 

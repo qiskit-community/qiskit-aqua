@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -97,5 +97,5 @@ class StateVectorCircuit:
         temp = convert_to_basis_gates(temp)
         # remove the reset gates terra's unroller added
         temp.data = [g for g in temp.data if not g[0].name == 'reset']
-        circuit += temp
+        circuit.compose(temp, inplace=True)
         return circuit
