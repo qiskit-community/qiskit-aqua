@@ -1,8 +1,8 @@
 .. _aqua-migration:
 
-#####################
-Qiskit Aqua Migration
-#####################
+###########################
+Qiskit Aqua Migration Guide
+###########################
 
 .. toctree::
   :maxdepth: 2
