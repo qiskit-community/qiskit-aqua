@@ -91,23 +91,6 @@ nbsphinx_thumbnails = {
     '_static/5_ADMM.png',
 }
 
-nbsphinx_prolog = """
-{% set docname = env.doc2path(env.docname, base=None) %}
-
-.. only:: html
-
-    .. role:: raw-html(raw)
-        :format: html
-
-    .. note::
-        This page was generated from `{{ docname }}`__.
-
-        Run interactively in the `IBM Quantum lab <https://quantum-computing.ibm.com/jupyter/tutorial/{{ env.doc2path(env.docname, base=None)|replace("tutorials/", "") }}>`_.
-
-    __ https://github.com/Qiskit/qiskit-optimization/blob/master/docs/{{ docname }}
-
-"""
-
 # -----------------------------------------------------------------------------
 # Autosummary
 # -----------------------------------------------------------------------------
