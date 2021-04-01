@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -106,8 +106,8 @@ def get_controlled_circuit(circuit, ctl_qubit, tgt_circuit=None, use_basis_gates
     ops = dag_to_circuit(unroller.run(circuit_to_dag(circuit))).data
 
     # process all basis gates to add control
-    if not qc.has_register(ctl_qubit.register):
-        qc.add_register(ctl_qubit.register)
+    if not qc.has_register(ctl_qubit._register):
+        qc.add_register(ctl_qubit._register)
     for op in ops:
         if op[0].name == 'id':
             apply_cu(qc, 0, 0, 0, ctl_qubit, op[1][0], use_basis_gates=use_basis_gates)
