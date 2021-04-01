@@ -6,6 +6,7 @@ Qiskit Aqua documentation
   :maxdepth: 2
 
   API References <apidocs/aqua>
+  Aqua Migration <aqua_migration>
   Release Notes <release_notes>
 
 .. Hiding - Indices and tables
