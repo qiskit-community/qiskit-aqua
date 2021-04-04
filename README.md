@@ -49,7 +49,7 @@ Aqua has been deprecated:
 | qiskit.aqua.algorithms.factorizers | qiskit.algorithms.factorizers | qiskit-terra |
 | qiskit.aqua.algorithms.minimum_eigen_solvers | qiskit.algorithms.minimum_eigen_solvers | qiskit-terra|
 | qiskit.aqua.algorithms.VQAlgorithm | qiskit.algorithms.VariationalAlgorithm | qiskit-terra |
-| qiskit.aqua.aqua_globals | qiskit.utils.aqua_globals | qiskit-terra|
+| qiskit.aqua.aqua_globals | qiskit.utils.algorithm_globals | qiskit-terra|
 | qiskit.aqua.components.multiclass_extensions | | |
 | qiskit.aqua.components.neural_networks | qiskit_machine_learning.algorithms.distribution_learners.qgan | qiskit-machine-learning |
 | qiskit.aqua.components.optimizers | qiskit.algorithms.optimizers | qiskit-terra |
