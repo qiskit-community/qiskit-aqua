@@ -40,7 +40,7 @@ class QiskitAquaGlobals:
     def random_seed(self) -> Optional[int]:
         """Return random seed."""
         warn_variable('aqua.aqua_globals',
-                      'qiskit.utils.aqua_globals',
+                      'qiskit.utils.algorithm_globals',
                       'qiskit-terra', 3)
         return self._random_seed
 
@@ -48,7 +48,7 @@ class QiskitAquaGlobals:
     def random_seed(self, seed: Optional[int]) -> None:
         """Set random seed."""
         warn_variable('aqua.aqua_globals',
-                      'qiskit.utils.aqua_globals',
+                      'qiskit.utils.algorithm_globals',
                       'qiskit-terra', 3)
         self._random_seed = seed
         self._random = None
@@ -57,7 +57,7 @@ class QiskitAquaGlobals:
     def num_processes(self) -> int:
         """Return num processes."""
         warn_variable('aqua.aqua_globals',
-                      'qiskit.utils.aqua_globals',
+                      'qiskit.utils.algorithm_globals',
                       'qiskit-terra', 3)
         return self._num_processes
 
@@ -67,7 +67,7 @@ class QiskitAquaGlobals:
            If 'None' is passed, it resets to QiskitAquaGlobals.CPU_COUNT
         """
         warn_variable('aqua.aqua_globals',
-                      'qiskit.utils.aqua_globals',
+                      'qiskit.utils.algorithm_globals',
                       'qiskit-terra', 3)
         if num_processes is None:
             num_processes = QiskitAquaGlobals.CPU_COUNT
@@ -89,7 +89,7 @@ class QiskitAquaGlobals:
     def random(self) -> np.random.Generator:
         """Return a numpy np.random.Generator (default_rng)."""
         warn_variable('aqua.aqua_globals',
-                      'qiskit.utils.aqua_globals',
+                      'qiskit.utils.algorithm_globals',
                       'qiskit-terra', 3)
         if self._random is None:
             self._random = np.random.default_rng(self._random_seed)
@@ -99,7 +99,7 @@ class QiskitAquaGlobals:
     def massive(self) -> bool:
         """Return massive to allow processing of large matrices or vectors."""
         warn_variable('aqua.aqua_globals',
-                      'qiskit.utils.aqua_globals',
+                      'qiskit.utils.algorithm_globals',
                       'qiskit-terra', 3)
         return self._massive
 
@@ -107,7 +107,7 @@ class QiskitAquaGlobals:
     def massive(self, massive: bool) -> None:
         """Set massive to allow processing of large matrices or  vectors."""
         warn_variable('aqua.aqua_globals',
-                      'qiskit.utils.aqua_globals',
+                      'qiskit.utils.algorithm_globals',
                       'qiskit-terra', 3)
         self._massive = massive
 
