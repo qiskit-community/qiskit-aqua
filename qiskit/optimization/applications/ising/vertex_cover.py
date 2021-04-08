@@ -41,7 +41,7 @@ def get_operator(weight_matrix):
     Hamiltonian:
     H = A * H_A + H_B
     H_A = sum\_{(i,j)\in E}{(1-Xi)(1-Xj)}
-    H_B = sum_{i}{Zi}
+    H_B = sum_{i}{Xi}
 
     H_A is to achieve goal 1 while H_b is to achieve goal 2.
     H_A is hard constraint so we place a huge penality on it. A=5.
