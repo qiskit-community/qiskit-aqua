@@ -15,13 +15,19 @@ description: 'Installs Python dependencies from Master'
 
 runs:
   using: "composite"
-  steps: 
-    - run : |
+  steps:
+    - name: Install Dependencies from Master
+      env:
+        DISABLE_CONAN: 1
+      run: |
         if [ -f "$HOME/miniconda/etc/profile.d/conda.sh" ]; then
           source "$HOME/miniconda/etc/profile.d/conda.sh"
           conda activate
         fi
         pip install https://github.com/Qiskit/qiskit-terra/archive/master.zip
         pip install https://github.com/Qiskit/qiskit-ignis/archive/master.zip
+        sudo apt-get -y install nlohmann-json3-dev
+        sudo apt-get -y install libspdlog-dev
+        sudo apt-get -y install libmuparserx-dev
         pip install https://github.com/Qiskit/qiskit-aer/archive/master.zip
       shell: bash
