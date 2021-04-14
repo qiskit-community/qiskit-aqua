@@ -38,9 +38,10 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+      - uses: hmarr/debug-action@v2
       - uses: ./.github/actions/install-libraries
       - uses: ./.github/actions/install-master-dependencies
-        if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
+        if: ${{ !startsWith(github.ref, 'refs/heads/stable') && !startsWith(github.base_ref, 'refs/heads/stable') }}
       - uses: ./.github/actions/install-aqua
       - name: Install Dependencies
         run: |
@@ -91,7 +92,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - uses: ./.github/actions/install-libraries
       - uses: ./.github/actions/install-master-dependencies
-        if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
+        if: ${{ !startsWith(github.ref, 'refs/heads/stable') && !startsWith(github.base_ref, 'refs/heads/stable') }}
       - uses: ./.github/actions/install-aqua
       - run: make lint
         if: ${{ !cancelled() }}
@@ -117,7 +118,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - uses: ./.github/actions/install-libraries
       - uses: ./.github/actions/install-master-dependencies
-        if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
+        if: ${{ !startsWith(github.ref, 'refs/heads/stable') && !startsWith(github.base_ref, 'refs/heads/stable') }}
       - uses: ./.github/actions/install-aqua
       - name: Install Dependencies
         run: |
@@ -163,7 +164,7 @@ jobs:
         if: ${{ matrix.python-version < 3.8 }}
       - uses: ./.github/actions/install-libraries
       - uses: ./.github/actions/install-master-dependencies
-        if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
+        if: ${{ !startsWith(github.ref, 'refs/heads/stable') && !startsWith(github.base_ref, 'refs/heads/stable') }}
       - uses: ./.github/actions/install-aqua
       - name: Install Dependencies
         run: |
@@ -212,7 +213,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - uses: ./.github/actions/install-libraries
       - uses: ./.github/actions/install-master-dependencies
-        if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
+        if: ${{ !startsWith(github.ref, 'refs/heads/stable') && !startsWith(github.base_ref, 'refs/heads/stable') }}
       - uses: ./.github/actions/install-aqua
       - name: Finance Unit Tests under Python ${{ matrix.python-version }}
         uses: ./.github/actions/run-tests
@@ -247,7 +248,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - uses: ./.github/actions/install-libraries
       - uses: ./.github/actions/install-master-dependencies
-        if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
+        if: ${{ !startsWith(github.ref, 'refs/heads/stable') && !startsWith(github.base_ref, 'refs/heads/stable') }}
       - uses: ./.github/actions/install-aqua
       - name: Machine Learning Unit Tests under Python ${{ matrix.python-version }}
         uses: ./.github/actions/run-tests
@@ -282,7 +283,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - uses: ./.github/actions/install-libraries
       - uses: ./.github/actions/install-master-dependencies
-        if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
+        if: ${{ !startsWith(github.ref, 'refs/heads/stable') && !startsWith(github.base_ref, 'refs/heads/stable') }}
       - uses: ./.github/actions/install-aqua
       - name: Optimization Unit Tests under Python ${{ matrix.python-version }}
         uses: ./.github/actions/run-tests
@@ -319,7 +320,7 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - uses: ./.github/actions/install-libraries
       - uses: ./.github/actions/install-master-dependencies
-        if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
+        if: ${{ !startsWith(github.ref, 'refs/heads/stable') && !startsWith(github.base_ref, 'refs/heads/stable') }}
       - uses: ./.github/actions/install-aqua
       - name: Install Dependencies
         run: |
@@ -328,7 +329,7 @@ jobs:
           pip install qiskit-terra[classical-function-compiler]
         shell: bash
       - name: Install Migration Dependencies from master
-        if: ${{ !startsWith(github.ref, 'refs/heads/stable') }}
+        if: ${{ !startsWith(github.ref, 'refs/heads/stable') && !startsWith(github.base_ref, 'refs/heads/stable') }}
         run: |
           pip install https://github.com/Qiskit/qiskit-optimization/archive/master.zip
           pip install https://github.com/Qiskit/qiskit-machine-learning/archive/master.zip
@@ -336,9 +337,9 @@ jobs:
           pip install https://github.com/Qiskit/qiskit-nature/archive/master.zip
         shell: bash
       - name: Install Migration Dependencies from pypi
-        if: ${{ startsWith(github.ref, 'refs/heads/stable') }}
+        if: ${{ startsWith(github.ref, 'refs/heads/stable') || startsWith(github.base_ref, 'refs/heads/stable') }}
         run: |
-          pint install qiskit-optimization qiskit-machine-learning qiskit-finance qiskit-nature
+          pip install qiskit-optimization qiskit-machine-learning qiskit-finance qiskit-nature
         shell: bash
       - name: Run Qiskit Migration Tutorials
         env:
