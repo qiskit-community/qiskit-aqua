@@ -89,7 +89,7 @@ function of Qiskit, and now exist as part of
 
 #### Migration by package/class
 
-The following table gives a more detailed breakdown tha relates the function, 
+The following table gives a more detailed breakdown that relates the function, 
 as it existed in Aqua, to where it now lives after this move.
 
 | Old | New | Library |
