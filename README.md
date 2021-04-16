@@ -3,12 +3,14 @@
 [![License](https://img.shields.io/github/license/Qiskit/qiskit-aqua.svg?style=popout-square)](https://opensource.org/licenses/Apache-2.0)[![Build Status](https://github.com/Qiskit/qiskit-aqua/workflows/Aqua%20Unit%20Tests/badge.svg?branch=master)](https://github.com/Qiskit/qiskit-aqua/actions?query=workflow%3A"Aqua%20Unit%20Tests"+branch%3Amaster+event%3Apush)[![](https://img.shields.io/github/release/Qiskit/qiskit-aqua.svg?style=popout-square)](https://github.com/Qiskit/qiskit-aqua/releases)[![](https://img.shields.io/pypi/dm/qiskit-aqua.svg?style=popout-square)](https://pypi.org/project/qiskit-aqua/)[![Coverage Status](https://coveralls.io/repos/github/Qiskit/qiskit-aqua/badge.svg?branch=master)](https://coveralls.io/github/Qiskit/qiskit-aqua?branch=master)
 
 ---
+
 **_PLEASE NOTE:_** _As of version 0.9.0, released on 2nd April 2021, Qiskit Aqua has been deprecated
 with its support ending and eventual archival being no sooner than 3 months from that date. The
 function provided by Qiskit Aqua is not going away rather it has being split out to separate
 application repositories with core algorithm and operator function moving to qiskit-terra.
 Please see the [Migration Guide](#migration-guide) below for more detail. We encourage you to
 migrate over to using the newly located function at your earliest convenience._
+
 ---
 
 **Qiskit** is an open-source framework for working with noisy quantum computers at the level of
