@@ -1,6 +1,15 @@
-# Qiskit Aqua
+# Qiskit Aqua (_NOW DEPRECATED_)
 
 [![License](https://img.shields.io/github/license/Qiskit/qiskit-aqua.svg?style=popout-square)](https://opensource.org/licenses/Apache-2.0)[![Build Status](https://github.com/Qiskit/qiskit-aqua/workflows/Aqua%20Unit%20Tests/badge.svg?branch=master)](https://github.com/Qiskit/qiskit-aqua/actions?query=workflow%3A"Aqua%20Unit%20Tests"+branch%3Amaster+event%3Apush)[![](https://img.shields.io/github/release/Qiskit/qiskit-aqua.svg?style=popout-square)](https://github.com/Qiskit/qiskit-aqua/releases)[![](https://img.shields.io/pypi/dm/qiskit-aqua.svg?style=popout-square)](https://pypi.org/project/qiskit-aqua/)[![Coverage Status](https://coveralls.io/repos/github/Qiskit/qiskit-aqua/badge.svg?branch=master)](https://coveralls.io/github/Qiskit/qiskit-aqua?branch=master)
+
+---
+**_PLEASE NOTE:_** _As of version 0.9.0, released on 2nd April 2021, Qiskit Aqua has been deprecated
+with its support ending and eventual archival being no sooner than 3 months from that date. The
+function provided by Qiskit Aqua is not going away rather it has being split out to separate
+application repositories with core algorithm and operator function moving to qiskit-terra.
+Please see the [Migration Guide](#migration-guide) below for more detail. We encourage you to
+migrate over to using the newly located function at your earliest convenience._
+---
 
 **Qiskit** is an open-source framework for working with noisy quantum computers at the level of
 pulses, circuits, and algorithms.
@@ -37,7 +46,49 @@ equivalent since the same input data can be used._
 
 ## Migration Guide
 
-Aqua has been deprecated:
+As of version 0.9.0, released on 2nd April 2021, Qiskit Aqua has been deprecated
+with its support ending and eventual archival being no sooner than 3 months from that date.
+
+All the functionality that qiskit-aqua provides has been migrated to either new packages or to
+other qiskit packages. The application modules that are provided by qiskit-aqua have been split
+into several new packages: 
+
+* [qiskit-finance](https://github.com/Qiskit/qiskit-finance/)
+  
+  Aqua's `qiskit.finance` package was moved here
+
+* [qiskit-machine-learning](https://github.com/Qiskit/qiskit-machine-learning/)
+
+  Aqua's `qiskit.ml` package was moved here
+
+* [qiskit-nature](https://github.com/Qiskit/qiskit-nature/)
+
+  Aqua's `qiskit.chemistry` package was moved here, where this new repository for natural science
+  applications, will have a broader scope than chemistry. 
+  
+* [qiskit-optimization](https://github.com/Qiskit/qiskit-optimization/)
+
+  Aqua's `qiskit.optimization` package was moved here
+
+These new packages can be installed by themselves (via the standard pip install command,
+e.g. ``pip install qiskit-nature``) or with the rest of the Qiskit metapackage as
+optional extras (e.g. ``pip install 'qiskit[finance,optimization]'`` or
+``pip install 'qiskit[all]'``.
+
+The core building blocks for algorithms and of the operator flow have been moved, to become core
+function of Qiskit, and now exist as part of
+
+* [qiskit-terra](https://github.com/Qiskit/qiskit-terra/)
+  
+  See the `qiskit.algorithms` and `qiskit.opflow` packages respectively. A
+  [Qiskit Algorithms Migration Guide](https://qiskit.org/documentation/aqua_tutorials/Qiskit%20Algorithms%20Migration%20Guide.html)
+  has been created to inform and assist the migration, from using the algorithms as they are
+  in Aqua, to their newly refactored equivalents as they exist now in their new location.
+
+#### Migration by package/class
+
+The following table gives a more detailed breakdown tha relates the function, 
+as it existed in Aqua, to where it now lives after this move.
 
 | Old | New | Library |
 | :---: | :---: | :---: |
