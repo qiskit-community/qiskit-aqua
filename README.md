@@ -7,9 +7,9 @@
 **_PLEASE NOTE:_** _As of version 0.9.0, released on 2nd April 2021, Qiskit Aqua has been deprecated
 with its support ending and eventual archival being no sooner than 3 months from that date. The
 function provided by Qiskit Aqua is not going away rather it has being split out to separate
-application repositories with core algorithm and operator function moving to qiskit-terra.
-Please see the [Migration Guide](#migration-guide) below for more detail. We encourage you to
-migrate over to using the newly located function at your earliest convenience._
+application repositories, with core algorithm and operator function moving to qiskit-terra.
+Please see the [Migration Guide](#migration-guide) section below for more detail. We encourage you
+to migrate over at your earliest convenience._
 
 ---
 
