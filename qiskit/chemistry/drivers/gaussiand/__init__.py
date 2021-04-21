@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -36,7 +36,7 @@ Gaussian™ 16 Interfacing Code
 In the :mod:`gauopen` folder the Python part of the above interfacing code,
 as needed by Qiskit's chemistry modules, has been made available. It is licensed under a
 `Gaussian Open-Source Public License
-<https://github.com/Qiskit/qiskit-aqua/blob/master/qiskit/chemistry/drivers/gaussiand/gauopen/LICENSE.txt>`_.
+<https://github.com/Qiskit/qiskit-aqua/blob/main/qiskit/chemistry/drivers/gaussiand/gauopen/LICENSE.txt>`_.
 
 Part of this interfacing code --- specifically, the Fortran file `qcmatrixio.F` --- requires
 compilation to a Python native extension. However, Qiskit comes with pre-built binaries
