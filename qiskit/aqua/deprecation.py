@@ -67,7 +67,7 @@ def warn_package(aqua_package: str,
         msg += f' (pip install {library}).'
 
     msg += ' For more information see ' \
-           '<https://github.com/Qiskit/qiskit-aqua/blob/master/README.md#migration-guide>'
+           '<https://github.com/Qiskit/qiskit-aqua/blob/main/README.md#migration-guide>'
 
     warnings.warn(msg, DeprecationWarning, stacklevel=stacklevel)
 
@@ -81,7 +81,7 @@ def warn_class(fullname: str, new_fullname: str, library: str,
     _AQUA_OBJECTS.add_class(fullname)
     msg = f'The class qiskit.{fullname} is deprecated. It was moved/refactored to ' \
           f'{new_fullname} (pip install {library}). For more information see ' \
-          f'<https://github.com/Qiskit/qiskit-aqua/blob/master/README.md#migration-guide>'
+          f'<https://github.com/Qiskit/qiskit-aqua/blob/main/README.md#migration-guide>'
 
     warnings.warn(msg, DeprecationWarning, stacklevel=stacklevel)
 
@@ -95,6 +95,6 @@ def warn_variable(fullname: str, new_fullname: str, library: str,
     _AQUA_OBJECTS.add_variable(fullname)
     msg = f'The variable qiskit.{fullname} is deprecated. It was moved/refactored to ' \
           f'{new_fullname} (pip install {library}). For more information see ' \
-          f'<https://github.com/Qiskit/qiskit-aqua/blob/master/README.md#migration-guide>'
+          f'<https://github.com/Qiskit/qiskit-aqua/blob/main/README.md#migration-guide>'
 
     warnings.warn(msg, DeprecationWarning, stacklevel=stacklevel)
