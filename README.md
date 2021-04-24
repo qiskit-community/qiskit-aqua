@@ -1,6 +1,6 @@
 # Qiskit Aqua
 
-[![License](https://img.shields.io/github/license/Qiskit/qiskit-aqua.svg?style=popout-square)](https://opensource.org/licenses/Apache-2.0)[![Build Status](https://github.com/Qiskit/qiskit-aqua/workflows/Aqua%20Unit%20Tests/badge.svg?branch=master)](https://github.com/Qiskit/qiskit-aqua/actions?query=workflow%3A"Aqua%20Unit%20Tests"+branch%3Amaster+event%3Apush)[![](https://img.shields.io/github/release/Qiskit/qiskit-aqua.svg?style=popout-square)](https://github.com/Qiskit/qiskit-aqua/releases)[![](https://img.shields.io/pypi/dm/qiskit-aqua.svg?style=popout-square)](https://pypi.org/project/qiskit-aqua/)[![Coverage Status](https://coveralls.io/repos/github/Qiskit/qiskit-aqua/badge.svg?branch=master)](https://coveralls.io/github/Qiskit/qiskit-aqua?branch=master)
+[![License](https://img.shields.io/github/license/Qiskit/qiskit-aqua.svg?style=popout-square)](https://opensource.org/licenses/Apache-2.0)[![Build Status](https://github.com/Qiskit/qiskit-aqua/workflows/Aqua%20Unit%20Tests/badge.svg?branch=main)](https://github.com/Qiskit/qiskit-aqua/actions?query=workflow%3A"Aqua%20Unit%20Tests"+branch%3Amain+event%3Apush)[![](https://img.shields.io/github/release/Qiskit/qiskit-aqua.svg?style=popout-square)](https://github.com/Qiskit/qiskit-aqua/releases)[![](https://img.shields.io/pypi/dm/qiskit-aqua.svg?style=popout-square)](https://pypi.org/project/qiskit-aqua/)[![Coverage Status](https://coveralls.io/repos/github/Qiskit/qiskit-aqua/badge.svg?branch=main)](https://coveralls.io/github/Qiskit/qiskit-aqua?branch=main)
 
 **Qiskit** is an open-source framework for working with noisy quantum computers at the level of
 pulses, circuits, and algorithms.
@@ -530,7 +530,7 @@ You can also use Qiskit to execute your code on a **real quantum chip**.
 In order to do so, you need to configure Qiskit to use the credentials in
 your [IBM Quantum Experience](https://quantum-computing.ibm.com) account.
 For more detailed information refer to the relevant instructions in the
-[Qiskit Terra GitHub repository](https://github.com/Qiskit/qiskit-terra/blob/master/README.md#executing-your-code-on-a-real-quantum-chip)
+[Qiskit Terra GitHub repository](https://github.com/Qiskit/qiskit-terra/blob/main/README.md#executing-your-code-on-a-real-quantum-chip)
 .
 
 ## Contribution Guidelines
@@ -560,10 +560,10 @@ Aqua continues to grow with the help and work of
 [many people](https://github.com/Qiskit/qiskit-aqua/graphs/contributors), who contribute
 to the project at different levels.
 If you use Qiskit, please cite as per the provided
-[BibTeX file](https://github.com/Qiskit/qiskit/blob/master/Qiskit.bib).
+[BibTeX file](https://github.com/Qiskit/qiskit/blob/main/Qiskit.bib).
 
 Please note that if you do not like the way your name is cited in the BibTex file then consult
-the information found in the [.mailmap](https://github.com/Qiskit/qiskit-aqua/blob/master/.mailmap)
+the information found in the [.mailmap](https://github.com/Qiskit/qiskit-aqua/blob/main/.mailmap)
 file.
 
 ## License

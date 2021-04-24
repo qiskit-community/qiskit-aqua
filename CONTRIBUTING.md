@@ -219,7 +219,7 @@ it has been tagged::
 At release time ``reno report`` is used to generate the release notes for the
 release and the output will be submitted as a pull request to the documentation
 repository's [release notes file](
-https://github.com/Qiskit/qiskit/blob/master/docs/release_notes.rst)
+https://github.com/Qiskit/qiskit/blob/main/docs/release_notes.rst)
 
 #### Building release notes locally
 
@@ -236,8 +236,8 @@ Source](https://qiskit.org/documentation/contributing_to_qiskit.html#installing-
 section of the Qiskit documentation.
 
 Note: Aqua depends on Ignis and Terra, and has optional dependence on Aer and IBM Q Provider, so
-these should be installed too. The master branch of Aqua is kept working with those other element
-master branches so these should be installed from source too following the instructions at 
+these should be installed too. The main branch of Aqua is kept working with those other element
+main branches so these should be installed from source too following the instructions at 
 the same location
 
 Aqua also has some other optional dependents see 
@@ -257,7 +257,7 @@ The test suite can be run from a command line or via your IDE. You can run `make
 run all unit tests. Another way to run the test suite is to use
 [**tox**](https://tox.readthedocs.io/en/latest/#). For more information about using tox please
 refer to
-[Terra CONTRIBUTING](https://github.com/Qiskit/qiskit-terra/blob/master/CONTRIBUTING.md#test)
+[Terra CONTRIBUTING](https://github.com/Qiskit/qiskit-terra/blob/main/CONTRIBUTING.md#test)
 Test section.
 
 ### Development Cycle
@@ -267,11 +267,11 @@ The development cycle for qiskit-aqua is informed by release plans in the
  
 ### Branches
 
-* `master`:
+* `main`:
 
-The master branch is used for development of the next version of qiskit-aqua.
+The main branch is used for development of the next version of qiskit-aqua.
 It will be updated frequently and should not be considered stable. The API
-can and will change on master as we introduce and refine new features.
+can and will change on main as we introduce and refine new features.
 
 * `stable/*`:
 The stable branches are used to maintain the most recent released versions of
@@ -287,13 +287,13 @@ are well-tested versions of the software.
 When the time for a new release has come, we will:
 
 1.  Create a new tag with the version number and push it to github
-2.  Change the `master` version to the next release version.
+2.  Change the `main` version to the next release version.
 
 The release automation processes will be triggered by the new tag and perform
 the following steps:
 
 1.  Create a stable branch for the new minor version from the release tag
-    on the `master` branch
+    on the `main` branch
 2.  Build and upload binary wheels to pypi
 3.  Create a github release page with a generated changelog
 4.  Generate a PR on the meta-repository to bump the terra version and
