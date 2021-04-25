@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -165,10 +165,10 @@ class PSI4Driver(FermionicDriver):
         # Run psi4.
         process = None
         try:
-            process = subprocess.Popen([PSI4, input_file, output_file],
-                                       stdout=subprocess.PIPE, universal_newlines=True)
-            stdout, _ = process.communicate()
-            process.wait()
+            with subprocess.Popen([PSI4, input_file, output_file],
+                                  stdout=subprocess.PIPE, universal_newlines=True) as process:
+                stdout, _ = process.communicate()
+                process.wait()
         except Exception as ex:
             if process is not None:
                 process.kill()
