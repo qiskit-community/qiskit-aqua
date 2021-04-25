@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -115,14 +115,11 @@ class TestDriverFCIDumpDumpH2(QiskitChemistryTestCase, BaseTestDriverFCIDumpDump
                                  basis='sto3g')
             qmolecule = driver.run()
 
-            dump = tempfile.NamedTemporaryFile()
-            FCIDumpDriver.dump(qmolecule, dump.name)
-
-            # pylint: disable=import-outside-toplevel
-            from pyscf.tools import fcidump as pyscf_fcidump
-            self.dumped = pyscf_fcidump.read(dump.name)
-
-            dump.close()
+            with tempfile.NamedTemporaryFile() as dump:
+                FCIDumpDriver.dump(qmolecule, dump.name)
+                # pylint: disable=import-outside-toplevel
+                from pyscf.tools import fcidump as pyscf_fcidump
+                self.dumped = pyscf_fcidump.read(dump.name)
         except QiskitChemistryError:
             self.skipTest('PYSCF driver does not appear to be installed.')
         except ImportError:
