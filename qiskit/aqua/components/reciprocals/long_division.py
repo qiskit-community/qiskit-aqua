@@ -279,11 +279,9 @@ class LongDivision(Reciprocal):
             self._neg_offset = 1
 
         self._num_ancillae = len(self._ev) - self._neg_offset
-        if self._num_ancillae < 3:
-            self._num_ancillae = 3
+        self._num_ancillae = max(self._num_ancillae, 3)
         if self._negative_evals is True:
-            if self._num_ancillae < 4:
-                self._num_ancillae = 4
+            self._num_ancillae = max(self._num_ancillae, 4)
 
         self._n = self._num_ancillae + 1
 
