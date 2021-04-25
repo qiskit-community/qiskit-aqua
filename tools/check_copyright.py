@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -62,15 +62,15 @@ class CopyrightChecker:
         env['LANGUAGE'] = 'C'
         env['LANG'] = 'C'
         env['LC_ALL'] = 'C'
-        popen = subprocess.Popen(['git', 'log', '-1', '--format=%aI', relative_path],
-                                 cwd=self._root_dir,
-                                 env=env,
-                                 stdin=subprocess.DEVNULL,
-                                 stdout=subprocess.PIPE,
-                                 stderr=subprocess.PIPE)
-        out, err = popen.communicate()
-        popen.wait()
-        return CopyrightChecker._format_output(out, err)
+        with subprocess.Popen(['git', 'log', '-1', '--format=%aI', relative_path],
+                              cwd=self._root_dir,
+                              env=env,
+                              stdin=subprocess.DEVNULL,
+                              stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE) as popen:
+            out, err = popen.communicate()
+            popen.wait()
+            return CopyrightChecker._format_output(out, err)
 
     def _get_file_last_year(self, relative_path: str) -> int:
         last_year = None

@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -50,9 +50,9 @@ def run_g16(cfg: str) -> str:
     """
     process = None
     try:
-        process = Popen(_GAUSSIAN_16, stdin=PIPE, stdout=PIPE, universal_newlines=True)
-        stdout, _ = process.communicate(cfg)
-        process.wait()
+        with Popen(_GAUSSIAN_16, stdin=PIPE, stdout=PIPE, universal_newlines=True) as process:
+            stdout, _ = process.communicate(cfg)
+            process.wait()
     except Exception as ex:
         if process is not None:
             process.kill()
