@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -148,7 +148,6 @@ class DerivativeBase(ConverterBase):
             for key in keys:
                 expr_grad += symengine.Derivative(expr, key)
         else:
-            import sympy as sy
             expr_grad = sy.N(0)
             for key in keys:
                 expr_grad += sy.Derivative(expr, key).doit()
