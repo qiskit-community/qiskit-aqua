@@ -209,9 +209,18 @@ def knapsack_value_weight(solution, values, weights):
     Returns:
         tuple: the total value and weight of the items in the knapsack
     """
-    value = np.sum(solution * values)
-    weight = np.sum(solution * weights)
+    value=0
+    weight=0
+    for i in range(len(solution)):
+        if(solution[i]==1):            
+            value = value + values[i]
+            weight = weight + weights[i]
+        else:
+            value = value + 0
+            weight = weight + 0 
+        
     return value, weight
+
 
 
 def _get_pauli_op(num_values, indexes):
