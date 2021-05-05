@@ -32,9 +32,10 @@ from ..state_fns import StateFn, OperatorStateFn
 
 OperatorType = Union[StateFn, PrimitiveOp, ListOp]
 
+# pylint: disable=ungrouped-imports
 try:
     import symengine
-    HAS_SYMENGINE = True
+    from qiskit.circuit.parameterexpression import HAS_SYMENGINE
 except ImportError:
     HAS_SYMENGINE = False
 
