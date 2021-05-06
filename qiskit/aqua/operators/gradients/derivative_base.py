@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -31,6 +31,13 @@ from ..primitive_ops.primitive_op import PrimitiveOp
 from ..state_fns import StateFn, OperatorStateFn
 
 OperatorType = Union[StateFn, PrimitiveOp, ListOp]
+
+# pylint: disable=ungrouped-imports
+try:
+    import symengine
+    from qiskit.circuit.parameterexpression import HAS_SYMENGINE
+except ImportError:
+    HAS_SYMENGINE = False
 
 logger = logging.getLogger(__name__)
 
@@ -137,8 +144,14 @@ class DerivativeBase(ConverterBase):
         expr_grad = sy.N(0)
         if not isinstance(keys, IterableAbc):
             keys = [keys]
-        for key in keys:
-            expr_grad += sy.Derivative(expr, key).doit()
+        if HAS_SYMENGINE:
+            expr_grad = 0
+            for key in keys:
+                expr_grad += symengine.Derivative(expr, key)
+        else:
+            expr_grad = sy.N(0)
+            for key in keys:
+                expr_grad += sy.Derivative(expr, key).doit()
 
         # generate the new dictionary of symbols
         # this needs to be done since in the derivative some symbols might disappear (e.g.
