@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -165,7 +165,10 @@ class TestAerPauliExpectation(QiskitAquaTestCase):
         def validate_sampler(ideal, sut, param_bindings):
             expect_sampled = ideal.convert(expect_op, params=param_bindings).eval()
             actual_sampled = sut.convert(expect_op, params=param_bindings).eval()
-            self.assertAlmostEqual(actual_sampled, expect_sampled, delta=.1)
+            self.assertTrue(
+                np.allclose(actual_sampled, expect_sampled),
+                "%s != %s" % (actual_sampled, expect_sampled),
+            )
 
         def get_circuit_templates(sampler):
             return sampler._transpiled_circ_templates
