@@ -1,0 +1,4 @@
+---
+features:
+  - |
+    The `max_cut_value` method can now handle weighted graphs as well.
