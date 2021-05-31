@@ -59,14 +59,14 @@ def max_cut_value(x, w):
 
     Args:
         x (numpy.ndarray): binary string as numpy array.
-        w (numpy.ndarray): adjacency matrix.
+        w (numpy.ndarray): Weighted adjacency matrix.
 
     Returns:
         float: value of the cut.
     """
     # pylint: disable=invalid-name
     X = np.outer(x, (1 - x))
-    return np.sum(w * X)
+    return np.sum(np.multiply(w, X))
 
 
 def get_graph_solution(x):
