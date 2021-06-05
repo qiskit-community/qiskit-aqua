@@ -1,6 +1,6 @@
-=========================
-Qiskit Aqua API Reference
-=========================
+======================================
+Qiskit Aqua API Reference (Deprecated)
+======================================
 
 .. toctree::
     :maxdepth: 2
