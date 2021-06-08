@@ -1,4 +1,5 @@
 <!--
+⚠️ Qiskit Aqua has been deprecated. Only critical fixes are being accepted.
 ⚠️ If you do not respect this template, your pull request will be closed.
 ⚠️ Your pull request title should be short detailed and understandable for all.
 ⚠️ Also, please add it in the CHANGELOG file under Unreleased section.
