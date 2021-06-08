@@ -361,6 +361,7 @@ jobs:
         run: |
           git clone https://github.com/Qiskit/qiskit-tutorials
           cd qiskit-tutorials
+          git checkout stable/0.25.x
           rm -r tutorials/circuits/
           rm -r tutorials/circuits_advanced/
           rm -r tutorials/noise/
