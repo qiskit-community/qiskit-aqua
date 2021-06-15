@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -68,7 +68,7 @@ Submodules
 
 """
 
-
+from .deprecation import warn_package
 from .version import __version__
 from .aqua_error import AquaError
 from .missing_optional_library_error import MissingOptionalLibraryError
@@ -82,6 +82,8 @@ from ._logging import (QiskitLogDomains,
                        set_logging_config,
                        get_qiskit_aqua_logging,
                        set_qiskit_aqua_logging)
+
+warn_package('aqua', 'qiskit-terra')
 
 __all__ = ['__version__',
            'AquaError',

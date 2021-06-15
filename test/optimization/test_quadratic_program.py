@@ -23,6 +23,8 @@ from qiskit.aqua import MissingOptionalLibraryError
 from qiskit.optimization import INFINITY, QiskitOptimizationError, QuadraticProgram
 from qiskit.optimization.problems import Constraint, QuadraticObjective, Variable, VarType
 
+# pylint: disable=no-member
+
 
 class TestQuadraticProgram(QiskitOptimizationTestCase):
     """Test QuadraticProgram without the members that have separate test classes
