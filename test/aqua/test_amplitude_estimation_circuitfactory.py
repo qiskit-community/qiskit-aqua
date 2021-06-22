@@ -537,7 +537,7 @@ class TestSineIntegral(QiskitAquaTestCase):
         shots = 100
         result = qae.run(self._qasm(shots))
         confint = result['confidence_interval']
-        self.assertEqual(confint, expected_confint)
+        np.testing.assert_almost_equal(confint, expected_confint, decimal=7)
         self.assertTrue(confint[0] <= result['estimation'] <= confint[1])
 
 

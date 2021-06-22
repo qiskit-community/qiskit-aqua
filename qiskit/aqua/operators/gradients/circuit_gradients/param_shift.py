@@ -289,9 +289,10 @@ class ParamShift(CircuitGradient):
             # evaluate the sampling probabilities which are then subtracted according to the
             # parameter shift rule.
             if is_statefn:
-                return shift_constant * np.subtract(np.multiply(items[0],  # type: ignore
-                                                                np.conj(items[0])),
-                                                    np.multiply(items[1], np.conj(items[1])))
+                return shift_constant *\
+                       np.subtract(np.multiply(items[0],  # type: ignore
+                                               np.conj(items[0])),  # type: ignore
+                                   np.multiply(items[1], np.conj(items[1])))  # type: ignore
             # If x was not given as a StateFn the state amplitudes were already converted into
             # sampling probabilities which are then only subtracted according to the
             # parameter shift rule.

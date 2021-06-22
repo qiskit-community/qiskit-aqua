@@ -231,7 +231,7 @@ def _permute_2e_ints(hijkl: np.ndarray,
             # ( ij | kl ) gives { ( ij | kl ), ( ij | lk ), ( ji | kl ), ( ji | lk ) }
             # AND { ( kl | ij ), ( kl | ji ), ( lk | ij ), ( lk | ji ) }
             # BUT NOT ( ik | jl ) etc.
-            permutations = itertools.chain(
+            permutations = itertools.chain(  # type: ignore
                 itertools.product(bra_perms, ket_perms),
                 itertools.product(ket_perms, bra_perms)
             )

@@ -106,7 +106,7 @@ def _dump_2e_ints(hijkl: np.ndarray,
         if beta == 1:
             permutations = itertools.product(bra_perms, ket_perms)
         else:
-            permutations = itertools.chain(
+            permutations = itertools.chain(  # type: ignore
                 itertools.product(bra_perms, ket_perms),
                 itertools.product(ket_perms, bra_perms)
             )

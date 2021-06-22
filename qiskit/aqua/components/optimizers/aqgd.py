@@ -175,7 +175,7 @@ class AQGD(Optimizer):
         # Convex combination of previous momentum and current gradient estimate
         mnew = (1 - momentum_coeff) * gradient + momentum_coeff * mprev
         params -= step_size * mnew
-        return params, mnew
+        return params, mnew  # type: ignore
 
     def _converged_objective(self, objval: float, tol: float, window_size: int) -> bool:
         """
