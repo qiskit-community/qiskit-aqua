@@ -242,7 +242,7 @@ class HarmonicPotential(PotentialBase):
         sort_ind = np.argsort(xdata)
         ydata_s = ydata[sort_ind]  # type: ignore
         xdata_s = xdata[sort_ind]  # type: ignore
-        min_y = min(ydata_s)
+        min_y = min(ydata_s)  # type: ignore
 
         # array of indices for X for which Y is min
         x_min = np.where(ydata_s == min_y)[0]
@@ -252,19 +252,19 @@ class HarmonicPotential(PotentialBase):
         all_of_min = np.array([], dtype=int)
         for i in x_min:
             all_of_min = np.concatenate(
-                (all_of_min, np.where(xdata_s == xdata_s[i])[0]))
+                (all_of_min, np.where(xdata_s == xdata_s[i])[0]))  # type: ignore
         # array of indices where X is equal to the next smaller value
         left_of_min = []
         if min(all_of_min) > 0:
             left_of_min = np.where(
-                xdata_s == xdata_s[min(all_of_min) - 1])[0]
+                xdata_s == xdata_s[min(all_of_min) - 1])[0]  # type: ignore
         # array of indices where X is equal to the next bigger value
         right_of_min = []
-        if max(all_of_min) < (xdata_s.size - 1):
+        if max(all_of_min) < (xdata_s.size - 1):  # type: ignore
             right_of_min = np.where(
-                xdata_s == xdata_s[max(all_of_min) + 1])[0]
+                xdata_s == xdata_s[max(all_of_min) + 1])[0]  # type: ignore
         # all those indices together are used for fitting a harmonic
         # potential (around the min)
         inds = np.concatenate((left_of_min, all_of_min, right_of_min))
 
-        return xdata_s[inds], ydata_s[inds]
+        return xdata_s[inds], ydata_s[inds]  # type: ignore

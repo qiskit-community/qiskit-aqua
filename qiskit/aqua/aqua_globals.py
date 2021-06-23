@@ -92,7 +92,7 @@ class QiskitAquaGlobals:
                       'qiskit.utils.algorithm_globals',
                       'qiskit-terra', 3)
         if self._random is None:
-            self._random = np.random.default_rng(self._random_seed)
+            self._random = np.random.default_rng(self._random_seed)  # type: ignore
         return self._random
 
     @property
