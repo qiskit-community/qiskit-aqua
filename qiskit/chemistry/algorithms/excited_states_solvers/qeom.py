@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -385,8 +385,8 @@ class QEOM(ExcitedStatesSolver):
             2-D array storing the X and Y expansion coefficients
         """
         logger.debug('Diagonalizing qeom matrices for excited states...')
-        a_mat = np.bmat([[m_mat, q_mat], [q_mat.T.conj(), m_mat.T.conj()]])
-        b_mat = np.bmat([[v_mat, w_mat], [-w_mat.T.conj(), -v_mat.T.conj()]])
+        a_mat = np.bmat([[m_mat, q_mat], [q_mat.T.conj(), m_mat.T.conj()]])  # type: ignore
+        b_mat = np.bmat([[v_mat, w_mat], [-w_mat.T.conj(), -v_mat.T.conj()]])  # type: ignore
         # pylint: disable=too-many-function-args
         res = linalg.eig(a_mat, b_mat)
         # convert nan value into 0

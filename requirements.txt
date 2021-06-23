@@ -10,7 +10,7 @@ docplex<=2.20.204; sys_platform != 'darwin'
 docplex==2.15.194; sys_platform == 'darwin'
 fastdtw<=0.3.4
 setuptools>=40.1.0
-h5py
+h5py<3.3.0
 pandas
 quandl
 yfinance

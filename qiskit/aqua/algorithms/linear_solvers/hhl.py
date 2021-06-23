@@ -302,7 +302,7 @@ class HHL(QuantumAlgorithm):
         if self._truncate_hermitian:
             full_dim = matrix.shape[0]
             half_dim = int(full_dim / 2)
-            new_matrix = np.ndarray(shape=(half_dim, half_dim), dtype=complex)
+            new_matrix = np.ndarray(shape=(half_dim, half_dim), dtype=complex)  # type: ignore
             new_matrix[:, :] = matrix[0:half_dim, half_dim:full_dim]
             matrix = new_matrix
         if self._truncate_powerdim:
