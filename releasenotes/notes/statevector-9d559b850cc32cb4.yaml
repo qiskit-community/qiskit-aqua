@@ -1,0 +1,5 @@
+---
+fixes:
+  - |
+    Fixes `QuantumInstance` Aer statevector test to include the name
+    `aer_simulator_statevector`.
