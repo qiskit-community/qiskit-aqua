@@ -87,7 +87,7 @@ class TestPauliCoB(QiskitAquaTestCase):
             inst = [None] * len(pauli.oplist)
             ret_dest = [None] * len(pauli.oplist)
             cob_mat = [None] * len(pauli.oplist)
-            for i in range(len(pauli.oplist)):
+            for i, _ in enumerate(pauli.oplist):
                 inst[i], ret_dest[i] = converter.get_cob_circuit(pauli.oplist[i].primitive)
                 self.assertEqual(dest, ret_dest[i])
 

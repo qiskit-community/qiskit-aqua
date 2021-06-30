@@ -190,7 +190,7 @@ class UCCSD(VariationalForm):
 
             # this will order the hopping operators
             self.labeled_double_excitations = []
-            for i in range(len(self._double_excitations)):
+            for i, _ in enumerate(self._double_excitations):
                 self.labeled_double_excitations.append((self._double_excitations[i], i))
 
             order_hopping_op = UCCSD.order_labels_for_hopping_ops(self._double_excitations,

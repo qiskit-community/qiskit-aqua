@@ -17,7 +17,7 @@ from ..fermionic_driver import FermionicDriver
 from ...qiskit_chemistry_error import QiskitChemistryError
 from ...qmolecule import QMolecule
 from .dumper import dump
-from .parser import parse
+from .parser import parse  # pylint: disable=deprecated-module
 
 
 class FCIDumpDriver(FermionicDriver):
