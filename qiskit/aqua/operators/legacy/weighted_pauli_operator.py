@@ -267,7 +267,7 @@ class WeightedPauliOperator(LegacyBaseOperator):
                 "Type of scaling factor is a valid type. {} if given.".format(
                     scaling_factor.__class__))
         ret = self.copy() if copy else self
-        for idx in range(len(ret._paulis)):
+        for idx, _ in enumerate(ret._paulis):
             ret._paulis[idx] = [ret._paulis[idx][0] * scaling_factor, ret._paulis[idx][1]]
         return ret
 
