@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -62,7 +62,7 @@ class TestNumericalQEOMESCCalculation(QiskitChemistryTestCase):
         esc = QEOM(gsc, 'sd')
         results = esc.solve(self.driver)
 
-        for idx in range(len(self.reference_energies)):
+        for idx, _ in enumerate(self.reference_energies):
             self.assertAlmostEqual(results.computed_energies[idx], self.reference_energies[idx],
                                    places=4)
 
@@ -73,7 +73,7 @@ class TestNumericalQEOMESCCalculation(QiskitChemistryTestCase):
         esc = QEOM(gsc, 'sd')
         results = esc.solve(self.driver)
 
-        for idx in range(len(self.reference_energies)):
+        for idx, _ in enumerate(self.reference_energies):
             self.assertAlmostEqual(results.computed_energies[idx], self.reference_energies[idx],
                                    places=4)
 
@@ -94,7 +94,7 @@ class TestNumericalQEOMESCCalculation(QiskitChemistryTestCase):
             if not np.isclose(comp_energy, computed_energies[-1]):
                 computed_energies.append(comp_energy)
 
-        for idx in range(len(self.reference_energies)):
+        for idx, _ in enumerate(self.reference_energies):
             self.assertAlmostEqual(computed_energies[idx], self.reference_energies[idx],
                                    places=4)
 

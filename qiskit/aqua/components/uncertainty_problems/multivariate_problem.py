@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -190,7 +190,7 @@ class MultivariateProblem(UncertaintyProblem):
 
             else:
 
-                for j in range(len(self._conditions)):
+                for j, _ in enumerate(self._conditions):
 
                     dimension = self._conditions[j][0]
                     condition = self._conditions[j][1]
@@ -233,7 +233,7 @@ class MultivariateProblem(UncertaintyProblem):
                 qc.mct(q_cond_target[:-1], q_cond_target[-1], q_rem_ancillas)
 
                 # uncompute condition
-                for j in range(len(self._conditions)):
+                for j, _ in enumerate(self._conditions):
 
                     dimension = self._conditions[j][0]
                     condition = self._conditions[j][1]

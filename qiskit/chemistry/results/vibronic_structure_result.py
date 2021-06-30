@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -73,7 +73,7 @@ class VibronicStructureResult(EigenstateResult):
                      format(np.round(self.computed_vibronic_energies[0], 12)))
         if len(self.num_occupied_modals_per_mode) > 0:
             lines.append('The number of occupied modals is')
-        for i in range(len(self.num_occupied_modals_per_mode)):
+        for i, _ in enumerate(self.num_occupied_modals_per_mode):
             lines.append('- Mode {}: {}'.format(i, self.num_occupied_modals_per_mode[i]))
 
         return lines
