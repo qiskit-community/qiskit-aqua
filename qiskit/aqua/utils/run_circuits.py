@@ -106,7 +106,7 @@ def _maybe_split_qobj_by_gates(qobjs: List[QasmQobj], qobj: QasmQobj) -> List[Qa
     if MAX_GATES_PER_JOB is not None:
         max_gates_per_job = int(MAX_GATES_PER_JOB)
         total_num_gates = 0
-        for j in range(len(qobj.experiments)):
+        for j, _ in enumerate(qobj.experiments):
             total_num_gates += len(qobj.experiments[j].instructions)
         # split by gates if total number of gates in a qobj exceed MAX_GATES_PER_JOB
         if total_num_gates > max_gates_per_job:
@@ -116,7 +116,7 @@ def _maybe_split_qobj_by_gates(qobjs: List[QasmQobj], qobj: QasmQobj) -> List[Qa
             temp_qobj.qobj_id = str(uuid.uuid4())
             temp_qobj.experiments = []
             num_gates = 0
-            for i in range(len(qobj.experiments)):
+            for i, _ in enumerate(qobj.experiments):
                 num_gates += len(qobj.experiments[i].instructions)
                 if num_gates <= max_gates_per_job:
                     temp_qobj.experiments.append(qobj.experiments[i])

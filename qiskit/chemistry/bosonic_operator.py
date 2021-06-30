@@ -227,7 +227,7 @@ class BosonicOperator:
                                   dtype='S1').astype(int)
             count = 0
             nqi = 0
-            for m in range(len(self._basis)):
+            for m, _ in enumerate(self._basis):
                 sub_bin = bin_i[nqi:nqi + self._basis[m]]
                 occ_i = 0
                 for idx_i in sub_bin:
