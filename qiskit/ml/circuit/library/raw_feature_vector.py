@@ -166,14 +166,15 @@ class RawFeatureVector(BlueprintCircuit):
         return list(param for param in self._ordered_parameters
                     if isinstance(param, ParameterExpression))
 
-    def bind_parameters(self, value_dict):  # pylint: disable=arguments-differ
+    def bind_parameters(self, values):
         """Bind parameters."""
-        if not isinstance(value_dict, dict):
-            value_dict = dict(zip(self.ordered_parameters, value_dict))
-        return super().bind_parameters(value_dict)
+        if not isinstance(values, dict):
+            values = dict(zip(self.ordered_parameters, values))
+        return super().bind_parameters(values)
 
-    def assign_parameters(self, param_dict, inplace=False):  # pylint: disable=arguments-differ
+    def assign_parameters(self, parameters, inplace=False):
         """Call the initialize instruction."""
+        param_dict = parameters
         if not isinstance(param_dict, dict):
             param_dict = dict(zip(self.ordered_parameters, param_dict))
 
