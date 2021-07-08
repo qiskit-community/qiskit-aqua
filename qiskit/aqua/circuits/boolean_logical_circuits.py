@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -312,7 +312,7 @@ class CNF(BooleanLogicNormalForm):
                                   flags=flags, mcx_mode=mct_mode)
                 qubits = self._variable_register[:] + [self._output_register[0]]
                 if self._ancillary_register:
-                    qubits += self._ancillary_register[:and_circuit.num_ancilla_qubits]
+                    qubits += self._ancillary_register[:and_circuit.num_ancillas]
 
                 circuit.compose(and_circuit, qubits, inplace=True)
         else:  # self._depth == 2:
@@ -335,7 +335,7 @@ class CNF(BooleanLogicNormalForm):
                                     flags=flags, mcx_mode=mct_mode)
                     qubits = self._variable_register[:] + [self._clause_register[clause_index]]
                     if self._ancillary_register:
-                        qubits += self._ancillary_register[:or_circuit.num_ancilla_qubits]
+                        qubits += self._ancillary_register[:or_circuit.num_ancillas]
 
                     circuit.compose(or_circuit, qubits, inplace=True)
 
@@ -359,7 +359,7 @@ class CNF(BooleanLogicNormalForm):
                                     flags=flags, mcx_mode=mct_mode)
                     qubits = self._variable_register[:] + [self._clause_register[clause_index]]
                     if self._ancillary_register:
-                        qubits += self._ancillary_register[:or_circuit.num_ancilla_qubits]
+                        qubits += self._ancillary_register[:or_circuit.num_ancillas]
 
                     circuit.compose(or_circuit, qubits, inplace=True)
 
@@ -418,7 +418,7 @@ class DNF(BooleanLogicNormalForm):
                                 flags=flags, mcx_mode=mct_mode)
                 qubits = self._variable_register[:] + [self._output_register[0]]
                 if self._ancillary_register:
-                    qubits += self._ancillary_register[:or_circuit.num_ancilla_qubits]
+                    qubits += self._ancillary_register[:or_circuit.num_ancillas]
 
                 circuit.compose(or_circuit, qubits, inplace=True)
             else:
@@ -441,7 +441,7 @@ class DNF(BooleanLogicNormalForm):
                                       flags=flags, mcx_mode=mct_mode)
                     qubits = self._variable_register[:] + [self._clause_register[clause_index]]
                     if self._ancillary_register:
-                        qubits += self._ancillary_register[:and_circuit.num_ancilla_qubits]
+                        qubits += self._ancillary_register[:and_circuit.num_ancillas]
 
                     circuit.compose(and_circuit, qubits, inplace=True)
                 else:
@@ -472,7 +472,7 @@ class DNF(BooleanLogicNormalForm):
                                       flags=flags, mcx_mode=mct_mode)
                     qubits = self._variable_register[:] + [self._clause_register[clause_index]]
                     if self._ancillary_register:
-                        qubits += self._ancillary_register[:and_circuit.num_ancilla_qubits]
+                        qubits += self._ancillary_register[:and_circuit.num_ancillas]
 
                     circuit.compose(and_circuit, qubits, inplace=True)
                 else:
@@ -535,7 +535,7 @@ class ESOP(BooleanLogicNormalForm):
                               flags=flags, mcx_mode=mct_mode)
             qubits = self._variable_register[:] + [self._output_register[self._output_idx]]
             if self._ancillary_register:
-                qubits += self._ancillary_register[:and_circuit.num_ancilla_qubits]
+                qubits += self._ancillary_register[:and_circuit.num_ancillas]
 
             circuit.compose(and_circuit, qubits, inplace=True)
 
