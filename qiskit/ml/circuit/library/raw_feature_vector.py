@@ -166,6 +166,7 @@ class RawFeatureVector(BlueprintCircuit):
         return list(param for param in self._ordered_parameters
                     if isinstance(param, ParameterExpression))
 
+    # pylint: disable=arguments-differ
     def bind_parameters(self, values):
         """Bind parameters."""
         if not isinstance(values, dict):
