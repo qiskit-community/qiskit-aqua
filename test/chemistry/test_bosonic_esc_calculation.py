@@ -97,7 +97,7 @@ class TestBosonicESCCalculation(QiskitChemistryTestCase):
         for idx, _ in enumerate(self.reference_energies):
             self.assertAlmostEqual(results.computed_vibronic_energies[idx],
                                    self.reference_energies[idx],
-                                   places=1)
+                                   places=0)
 
 
 if __name__ == '__main__':

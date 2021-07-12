@@ -1,4 +1,4 @@
-qiskit-terra>=0.17.0
+qiskit-terra>=0.18.0
 qiskit-ignis>=0.6.0
 scipy>=1.4
 sympy>=1.3
@@ -13,6 +13,6 @@ setuptools>=40.1.0
 h5py<3.3.0
 pandas
 quandl
-yfinance
+yfinance<0.1.63
 retworkx>=0.8.0
 dataclasses; python_version < '3.7'
