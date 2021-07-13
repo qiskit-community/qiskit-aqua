@@ -6,13 +6,12 @@ numpy>=1.17
 psutil>=5
 scikit-learn>=0.20.0
 dlx<=1.0.4
-docplex<=2.20.204; sys_platform != 'darwin'
-docplex==2.15.194; sys_platform == 'darwin'
+docplex>=2.21.207
 fastdtw<=0.3.4
 setuptools>=40.1.0
 h5py<3.3.0
 pandas
 quandl
-yfinance
+yfinance<0.1.63
 retworkx>=0.8.0
 dataclasses; python_version < '3.7'
