@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -31,7 +31,7 @@ class TestExactCover(QiskitOptimizationTestCase):
     def setUp(self):
         super().setUp()
         input_file = self.get_resource_path('sample.exactcover')
-        with open(input_file) as file:
+        with open(input_file, encoding="utf8") as file:
             self.list_of_subsets = json.load(file)
             self.qubit_op, _ = exact_cover.get_operator(self.list_of_subsets)
 

@@ -34,7 +34,7 @@ def parse(fcidump: str) -> Dict[str, Any]:
         A dictionary storing the parsed data.
     """
     try:
-        with open(fcidump, 'r') as file:
+        with open(fcidump, 'r', encoding="utf8") as file:
             fcidump_str = file.read()
     except OSError as ex:
         raise QiskitChemistryError("Input file '{}' cannot be read!".format(fcidump)) from ex

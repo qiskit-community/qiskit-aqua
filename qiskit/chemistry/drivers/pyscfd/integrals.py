@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -273,7 +273,7 @@ def _calculate_integrals(mol, hf_method='rhf', conv_tol=1e-9, max_cycle=50, init
 
 
 def _process_pyscf_log(logfile):
-    with open(logfile) as file:
+    with open(logfile, encoding="utf8") as file:
         content = file.readlines()
 
     for i, _ in enumerate(content):
