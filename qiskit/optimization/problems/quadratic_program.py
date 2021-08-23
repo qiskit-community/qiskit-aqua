@@ -1108,7 +1108,7 @@ class QuadraticProgram:
             # https://ibmdecisionoptimization.github.io/docplex-doc/mp/docplex.mp.model_reader.html
             prefix = '\\Problem name:'
             model_name = ''
-            with open(filename) as file:
+            with open(filename, encoding="utf8") as file:
                 for line in file:
                     if line.startswith(prefix):
                         model_name = line[len(prefix):].strip()

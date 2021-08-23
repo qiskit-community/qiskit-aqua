@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2018, 2020.
+# (C) Copyright IBM 2018, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -51,7 +51,7 @@ def random_graph(n, weight_range=10, edge_prob=0.3, negative_weight=True,
                 m += 1
     w += w.T
     if savefile:
-        with open(savefile, 'w') as outfile:
+        with open(savefile, 'w', encoding="utf8") as outfile:
             outfile.write('{} {}\n'.format(n, m))
             for i in range(n):
                 for j in range(i + 1, n):
@@ -77,7 +77,7 @@ def random_number_list(n, weight_range=100, savefile=None, seed=None):
 
     number_list = aqua_globals.random.integers(low=1, high=(weight_range + 1), size=n)
     if savefile:
-        with open(savefile, 'w') as outfile:
+        with open(savefile, 'w', encoding="utf8") as outfile:
             for i in range(n):
                 outfile.write('{}\n'.format(number_list[i]))
     return number_list
@@ -93,7 +93,7 @@ def read_numbers_from_file(filename):
         numpy.ndarray: list of numbers as a numpy.ndarray.
     """
     numbers = []
-    with open(filename) as infile:
+    with open(filename, encoding="utf8") as infile:
         for line in infile:
             assert int(round(float(line))) == float(line)
             numbers.append(int(round(float(line))))
@@ -110,7 +110,7 @@ def parse_gset_format(filename):
         numpy.ndarray: adjacency matrix as a 2D numpy array.
     """
     n = -1
-    with open(filename) as infile:
+    with open(filename, encoding="utf8") as infile:
         header = True
         m = -1
         count = 0

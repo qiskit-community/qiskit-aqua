@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -223,7 +223,7 @@ class LogicalExpressionOracle(Oracle):
         """ evaluate classically """
         assignment = [(var + 1) * (int(tf) * 2 - 1) for tf, var in zip(measurement[::-1],
                                                                        range(len(measurement)))]
-        assignment_dict = dict()
+        assignment_dict = {}
         for v in assignment:
             assignment_dict[self._lit_to_var[abs(v)]] = bool(v > 0)
         return self._expr.subs(assignment_dict), assignment

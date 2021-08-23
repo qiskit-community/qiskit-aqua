@@ -28,7 +28,7 @@ class GenerativeNetwork(ABC):
         super().__init__()
         self._num_parameters = 0
         self._num_qubits = 0
-        self._bounds = list()
+        self._bounds = []
         warn_package('aqua.components.neural_networks',
                      'qiskit_machine_learning.algorithms.distribution_learners.qgan',
                      'qiskit-machine-learning')

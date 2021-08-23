@@ -116,12 +116,12 @@ class PSI4Driver(FermionicDriver):
         input_text += 'from qmolecule import QMolecule\n'
         input_text += '_q_molecule = QMolecule("{0}")\n'.format(molecule.filename)
 
-        with open(template_file, 'r') as file:
+        with open(template_file, 'r', encoding="utf8") as file:
             input_text += file.read()
 
         file_fd, input_file = tempfile.mkstemp(suffix='.inp')
         os.close(file_fd)
-        with open(input_file, 'w') as stream:
+        with open(input_file, 'w', encoding="utf8") as stream:
             stream.write(input_text)
 
         file_fd, output_file = tempfile.mkstemp(suffix='.out')
@@ -129,7 +129,7 @@ class PSI4Driver(FermionicDriver):
         try:
             PSI4Driver._run_psi4(input_file, output_file)
             if logger.isEnabledFor(logging.DEBUG):
-                with open(output_file, 'r') as file:
+                with open(output_file, 'r', encoding="utf8") as file:
                     logger.debug('PSI4 output file:\n%s', file.read())
         finally:
             run_directory = os.getcwd()

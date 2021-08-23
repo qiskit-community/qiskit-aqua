@@ -394,7 +394,7 @@ class Shor(QuantumAlgorithm):
                 )
                 up_qreg_density_mat_diag = np.diag(up_qreg_density_mat)
 
-                counts = dict()
+                counts = {}
                 for i, v in enumerate(up_qreg_density_mat_diag):
                     if not v == 0:
                         counts[bin(int(i))[2:].zfill(2 * self._n)] = v ** 2

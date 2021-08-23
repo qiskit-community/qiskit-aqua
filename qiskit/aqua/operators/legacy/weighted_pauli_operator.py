@@ -512,7 +512,7 @@ class WeightedPauliOperator(LegacyBaseOperator):
         Returns:
             WeightedPauliOperator: the loaded operator.
         """
-        with open(file_name, 'r') as file:
+        with open(file_name, 'r', encoding="utf8") as file:
             return cls.from_dict(json.load(file), before_04=before_04)
 
     def to_file(self, file_name):
@@ -523,7 +523,7 @@ class WeightedPauliOperator(LegacyBaseOperator):
             file_name (str): path to the file
 
         """
-        with open(file_name, 'w') as file:
+        with open(file_name, 'w', encoding="utf8") as file:
             json.dump(self.to_dict(), file)
 
     @classmethod

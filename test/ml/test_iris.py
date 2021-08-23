@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -25,15 +25,15 @@ class TestIris(QiskitMLTestCase):
         """Iris test."""
 
         input_file = self.get_resource_path('sample_train.iris')
-        with open(input_file) as file:
+        with open(input_file, encoding="utf8") as file:
             sample_train_ref = json.load(file)
 
         input_file = self.get_resource_path('training_input.iris')
-        with open(input_file) as file:
+        with open(input_file, encoding="utf8") as file:
             training_input_ref = json.load(file)
 
         input_file = self.get_resource_path('test_input.iris')
-        with open(input_file) as file:
+        with open(input_file, encoding="utf8") as file:
             test_input_ref = json.load(file)
 
         sample_train, training_input, test_input, class_labels = iris(training_size=20,
