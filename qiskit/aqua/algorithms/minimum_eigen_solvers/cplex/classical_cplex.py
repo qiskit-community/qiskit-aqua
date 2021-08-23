@@ -288,7 +288,7 @@ class IsingSolution:
 
     def dump(self, filename):
         """ dump """
-        with open(filename, 'w') as outfile:
+        with open(filename, 'w', encoding="utf8") as outfile:
             outfile.write('# objective {}\n'.format(self.objective))
             outfile.write('# elapsed time {}\n'.format(self._elapsed))
             writer = csv.writer(outfile, delimiter=self.delimiter)

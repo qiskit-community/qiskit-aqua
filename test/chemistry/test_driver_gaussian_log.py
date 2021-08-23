@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -59,7 +59,7 @@ class TestDriverGaussianLog(QiskitChemistryTestCase):
     def test_gaussian_log_result_file(self):
         """ Test result from file """
         result = GaussianLogResult(self.logfile)
-        with open(self.logfile) as file:
+        with open(self.logfile, encoding="utf8") as file:
             lines = file.read().split('\n')
 
         with self.subTest('Check list of lines'):
@@ -71,14 +71,14 @@ class TestDriverGaussianLog(QiskitChemistryTestCase):
 
     def test_gaussian_log_result_list(self):
         """ Test result from list of strings """
-        with open(self.logfile) as file:
+        with open(self.logfile, encoding="utf8") as file:
             lines = file.read().split('\n')
         result = GaussianLogResult(lines)
         self.assertListEqual(result.log, lines)
 
     def test_gaussian_log_result_string(self):
         """ Test result from string """
-        with open(self.logfile) as file:
+        with open(self.logfile, encoding="utf8") as file:
             line = file.read()
         result = GaussianLogResult(line)
         self.assertListEqual(result.log, line.split('\n'))

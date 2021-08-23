@@ -279,7 +279,8 @@ class QGAN(QuantumAlgorithm):
         return rel_entr
 
     def _store_params(self, e, d_loss, g_loss, rel_entr):
-        with open(os.path.join(self._snapshot_dir, 'output.csv'), mode='a') as csv_file:
+        with open(os.path.join(self._snapshot_dir, 'output.csv'),
+                  mode='a', encoding="utf8") as csv_file:
             fieldnames = ['epoch', 'loss_discriminator',
                           'loss_generator', 'params_generator', 'rel_entropy']
             writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
@@ -296,7 +297,8 @@ class QGAN(QuantumAlgorithm):
             AquaError: Batch size bigger than the number of items in the truncated data set
         """
         if self._snapshot_dir is not None:
-            with open(os.path.join(self._snapshot_dir, 'output.csv'), mode='w') as csv_file:
+            with open(os.path.join(self._snapshot_dir, 'output.csv'),
+                      mode='w', encoding="utf8") as csv_file:
                 fieldnames = ['epoch', 'loss_discriminator', 'loss_generator', 'params_generator',
                               'rel_entropy']
                 writer = csv.DictWriter(csv_file, fieldnames=fieldnames)

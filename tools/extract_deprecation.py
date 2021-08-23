@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -57,7 +57,7 @@ class DeprecationExtractor:
         if self._output_filename:
             # create file even if it is empty
             if self._messages or force_create:
-                with open(self._output_filename, 'w') as file:
+                with open(self._output_filename, 'w', encoding="utf8") as file:
                     if self._messages:
                         file.write('\n'.join(self._messages))
                         return True

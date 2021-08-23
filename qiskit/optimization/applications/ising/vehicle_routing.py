@@ -183,7 +183,7 @@ def get_vehiclerouting_solution(instance: np.ndarray,
     while len(string_value) < N:
         string_value = '0' + string_value
 
-    x_sol = list()
+    x_sol = []
     for elements in string_value:
         if elements == '0':
             x_sol.append(0)
