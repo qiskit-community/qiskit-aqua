@@ -12,6 +12,6 @@ setuptools>=40.1.0
 h5py<3.3.0
 pandas
 quandl
-yfinance<0.1.63
+yfinance>=0.1.62
 retworkx>=0.8.0
 dataclasses; python_version < '3.7'
