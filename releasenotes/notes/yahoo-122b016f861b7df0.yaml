@@ -1,0 +1,6 @@
+---
+fixes:
+  - |
+    Fixed a handling error in the Yahoo provider when only one ticker is entered.
+    Added exception error if no ticker is entered.
+    Limit yfinance to >=0.1.62 as previous versions have a JSON decoder error.
