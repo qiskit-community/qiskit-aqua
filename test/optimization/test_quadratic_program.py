@@ -701,15 +701,15 @@ class TestQuadraticProgram(QiskitOptimizationTestCase):
                                                                'test_quadratic_program.lp'))
         with tempfile.NamedTemporaryFile(mode='w+t', suffix='.lp') as temp_output_file:
             q_p.write_to_lp_file(temp_output_file.name)
-            with open(reference_file_name) as reference:
+            with open(reference_file_name, encoding="utf8") as reference:
                 lines1 = temp_output_file.readlines()
                 lines2 = reference.readlines()
                 self.assertListEqual(lines1, lines2)
 
         with tempfile.TemporaryDirectory() as temp_problem_dir:
             q_p.write_to_lp_file(temp_problem_dir)
-            with open(path.join(temp_problem_dir, 'my_problem.lp')) as file1, open(
-                    reference_file_name) as file2:
+            with open(path.join(temp_problem_dir, 'my_problem.lp'), encoding="utf8") as file1, open(
+                    reference_file_name, encoding="utf8") as file2:
                 lines1 = file1.readlines()
                 lines2 = file2.readlines()
                 self.assertListEqual(lines1, lines2)

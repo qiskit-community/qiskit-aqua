@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -47,7 +47,7 @@ class GaussianLogResult:
             lines = log.split('\n')
 
             if len(lines) == 1:
-                with open(lines[0]) as file:
+                with open(lines[0], encoding="utf8") as file:
                     self._log = file.read().split('\n')
             else:
                 self._log = lines

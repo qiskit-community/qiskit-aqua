@@ -1,7 +1,6 @@
-
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2019, 2020.
+# (C) Copyright IBM 2019, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -99,7 +98,8 @@ class ADAM(Optimizer):
 
         if self._snapshot_dir:
 
-            with open(os.path.join(self._snapshot_dir, 'adam_params.csv'), mode='w') as csv_file:
+            with open(os.path.join(self._snapshot_dir, 'adam_params.csv'),
+                      mode='w', encoding="utf8") as csv_file:
                 if self._amsgrad:
                     fieldnames = ['v', 'v_eff', 'm', 't']
                 else:
@@ -127,13 +127,15 @@ class ADAM(Optimizer):
             snapshot_dir: The directory to store the file in.
         """
         if self._amsgrad:
-            with open(os.path.join(snapshot_dir, 'adam_params.csv'), mode='a') as csv_file:
+            with open(os.path.join(snapshot_dir, 'adam_params.csv'),
+                      mode='a', encoding="utf8") as csv_file:
                 fieldnames = ['v', 'v_eff', 'm', 't']
                 writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
                 writer.writerow({'v': self._v, 'v_eff': self._v_eff,
                                  'm': self._m, 't': self._t})
         else:
-            with open(os.path.join(snapshot_dir, 'adam_params.csv'), mode='a') as csv_file:
+            with open(os.path.join(snapshot_dir, 'adam_params.csv'),
+                      mode='a', encoding="utf8") as csv_file:
                 fieldnames = ['v', 'm', 't']
                 writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
                 writer.writerow({'v': self._v, 'm': self._m, 't': self._t})
@@ -144,7 +146,8 @@ class ADAM(Optimizer):
         Args:
             load_dir: The directory containing ``adam_params.csv``.
         """
-        with open(os.path.join(load_dir, 'adam_params.csv'), mode='r') as csv_file:
+        with open(os.path.join(load_dir, 'adam_params.csv'),
+                  mode='r', encoding="utf8") as csv_file:
             if self._amsgrad:
                 fieldnames = ['v', 'v_eff', 'm', 't']
             else:

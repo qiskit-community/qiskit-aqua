@@ -42,7 +42,7 @@ def dump(outpath: str, norb: int, nelec: int, hijs: np.ndarray, hijkls: np.ndarr
         or all(h is not None for h in [hij_b, hijkl_ba, hijkl_bb])
     assert norb == hij.shape[0] == hijkl.shape[0]
     mos = range(norb)
-    with open(outpath, 'w') as outfile:
+    with open(outpath, 'w', encoding="utf8") as outfile:
         # print header
         outfile.write('&FCI NORB={:4d},NELEC={:4d},MS2={:4d}\n'.format(norb, nelec, ms2))
         if orbsym is None:

@@ -130,13 +130,6 @@ jobs:
       - uses: ./.github/actions/install-main-dependencies
         if: ${{ !startsWith(github.ref, 'refs/heads/stable') && !startsWith(github.base_ref, 'stable/') }}
       - uses: ./.github/actions/install-aqua
-      - name: Install Dependencies
-        run: |
-          # pin jax and jaxlib as the latest jaxlib 0.1.60 forces
-          # numpy 1.19.5 to be installed which causes cvxpy failure to load
-          # with 'numpy.core.multiarray failed to import.' error.
-          pip install -U jax==0.2.9 jaxlib==0.1.59
-        shell: bash
       - name: Aqua Unit Tests under Python ${{ matrix.python-version }}
         uses: ./.github/actions/run-tests
         with:

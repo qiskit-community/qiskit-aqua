@@ -156,7 +156,7 @@ def get_portfoliodiversification_solution(rho: np.ndarray,
     while len(string_value) < N:
         string_value = '0' + string_value
 
-    x_state = list()
+    x_state = []
     for elements in string_value:
         if elements == '0':
             x_state.append(0)

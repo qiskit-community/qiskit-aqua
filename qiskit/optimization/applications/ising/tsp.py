@@ -69,7 +69,7 @@ def random_tsp(n, low=0, high=100, savefile=None, seed=None, name='tmp'):
     coord = aqua_globals.random.uniform(low, high, (n, 2))
     ins = calc_distance(coord, name)
     if savefile:
-        with open(savefile, 'w') as outfile:
+        with open(savefile, 'w', encoding="utf8") as outfile:
             outfile.write('NAME : {}\n'.format(ins.name))
             outfile.write('COMMENT : random data\n')
             outfile.write('TYPE : TSP\n')
@@ -94,7 +94,7 @@ def parse_tsplib_format(filename):
     """
     name = ''
     coord = []
-    with open(filename) as infile:
+    with open(filename, encoding="utf8") as infile:
         coord_section = False
         for line in infile:
             if line.startswith('NAME'):

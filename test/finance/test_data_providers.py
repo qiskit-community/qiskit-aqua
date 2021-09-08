@@ -17,6 +17,7 @@ import os
 import datetime
 from test.finance import QiskitFinanceTestCase
 import warnings
+from ddt import ddt, data, unpack
 import numpy as np
 from qiskit.aqua import MissingOptionalLibraryError
 from qiskit.finance import QiskitFinanceError
@@ -30,6 +31,7 @@ from qiskit.finance.data_providers import (RandomDataProvider,
 
 # This can be run as python -m unittest test.test_data_providers.TestDataProviders
 
+@ddt
 class TestDataProviders(QiskitFinanceTestCase):
     """Tests data providers for the Portfolio Optimization and Diversification."""
 
@@ -108,16 +110,18 @@ class TestDataProviders(QiskitFinanceTestCase):
             seed = 8888
             num_assets = 4
             stocks = [("TICKER%s" % i) for i in range(num_assets)]
-            data = RandomDataProvider(tickers=stocks,
-                                      start=datetime.datetime(2016, 1, 1),
-                                      end=datetime.datetime(2016, 1, 30),
-                                      seed=seed)
-            data.run()
-            mu_value = data.get_period_return_mean_vector()
-            sigma_value = data.get_period_return_covariance_matrix()
-            with self.subTest('test get_period_return_mean_vector is numpy array'):
+            random_data = RandomDataProvider(
+                tickers=stocks,
+                start=datetime.datetime(2016, 1, 1),
+                end=datetime.datetime(2016, 1, 30),
+                seed=seed,
+            )
+            random_data.run()
+            mu_value = random_data.get_period_return_mean_vector()
+            sigma_value = random_data.get_period_return_covariance_matrix()
+            with self.subTest("test get_period_return_mean_vector is numpy array"):
                 self.assertIsInstance(mu_value, np.ndarray)
-            with self.subTest('test get_period_return_covariance_matrix is numpy array'):
+            with self.subTest("test get_period_return_covariance_matrix is numpy array"):
                 self.assertIsInstance(sigma_value, np.ndarray)
         except MissingOptionalLibraryError as ex:
             self.skipTest(str(ex))
@@ -202,28 +206,28 @@ class TestDataProviders(QiskitFinanceTestCase):
         except QiskitFinanceError as ex:
             self.skipTest("Test of ExchangeDataProvider skipped {}".format(str(ex)))
 
-    def test_yahoo(self):
+    @data(
+        [["AEO", "AEP"], [[7.0, 1.6], [1.6, 15.4]], [[1.0e00, 9.2e-05], [9.2e-05, 1.0e00]]],
+        ["AEO", 7.0, [[1.0]]],
+    )
+    @unpack
+    def test_yahoo(self, tickers, covariance, similarity):
         """ Yahoo data test """
         try:
             yahoo = YahooDataProvider(
-                tickers=["AEO", "ABBY"],
+                tickers=tickers,
                 start=datetime.datetime(2018, 1, 1),
-                end=datetime.datetime(2018, 12, 31)
+                end=datetime.datetime(2018, 12, 31),
             )
             yahoo.run()
-            similarity = np.array([
-                [1.00000000e+00, 8.44268222e-05],
-                [8.44268222e-05, 1.00000000e+00]
-            ])
-            covariance = np.array(
-                [[7.174e+00, -1.671e-04],
-                 [-1.671e-04, 1.199e-06]])
-            with self.subTest('test YahooDataProvider get_covariance_matrix'):
-                np.testing.assert_array_almost_equal(yahoo.get_covariance_matrix(),
-                                                     covariance, decimal=1)
-            with self.subTest('test YahooDataProvider get_similarity_matrix'):
-                np.testing.assert_array_almost_equal(yahoo.get_similarity_matrix(),
-                                                     similarity, decimal=1)
+            with self.subTest("test YahooDataProvider get_covariance_matrix"):
+                np.testing.assert_array_almost_equal(
+                    yahoo.get_covariance_matrix(), np.array(covariance), decimal=1
+                )
+            with self.subTest("test YahooDataProvider get_similarity_matrix"):
+                np.testing.assert_array_almost_equal(
+                    yahoo.get_similarity_matrix(), np.array(similarity), decimal=1
+                )
         except MissingOptionalLibraryError as ex:
             self.skipTest(str(ex))
         except QiskitFinanceError as ex:

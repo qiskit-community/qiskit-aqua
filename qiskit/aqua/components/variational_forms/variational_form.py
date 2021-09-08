@@ -42,7 +42,7 @@ class VariationalForm(ABC):
         super().__init__()
         self._num_parameters = 0
         self._num_qubits = 0
-        self._bounds = list()  # type: List[object]
+        self._bounds = []  # type: List[object]
         self._preferred_init_points = None
         self._support_parameterized_circuit = False
         warn_package('aqua.components.variational_forms')
