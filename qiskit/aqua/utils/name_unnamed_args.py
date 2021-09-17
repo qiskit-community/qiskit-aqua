@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -49,7 +49,7 @@ def name_args(mapping, skip=0):
             for arg, replacement in zip(args[skip:], mapping):
                 default_name = replacement[0]
                 if len(replacement) == 1:  # just renaming, no special cases
-                    if default_name in kwargs.keys():
+                    if default_name in kwargs:
                         raise ValueError('Name collapse on {}'.format(default_name))
                     kwargs[default_name] = arg
                 else:
@@ -62,7 +62,7 @@ def name_args(mapping, skip=0):
                     if name is None:
                         name = default_name
 
-                    if name in kwargs.keys():
+                    if name in kwargs:
                         raise ValueError('Name collapse on {}'.format(default_name))
                     kwargs[name] = arg
 

@@ -1,6 +1,6 @@
 # This code is part of Qiskit.
 #
-# (C) Copyright IBM 2020.
+# (C) Copyright IBM 2020, 2021.
 #
 # This code is licensed under the Apache License, Version 2.0. You may
 # obtain a copy of this license in the LICENSE.txt file in the root directory
@@ -109,8 +109,7 @@ class InequalityToEquality(QuadraticProgramConverter):
                     linear, l_constraint.sense, l_constraint.rhs, l_constraint.name
                 )
             elif (
-                    l_constraint.sense == Constraint.Sense.LE
-                    or l_constraint.sense == Constraint.Sense.GE
+                    l_constraint.sense in (Constraint.Sense.LE, Constraint.Sense.GE)
             ):
                 if mode == 'integer':
                     self._add_integer_slack_var_linear_constraint(
@@ -142,8 +141,7 @@ class InequalityToEquality(QuadraticProgramConverter):
                     linear, quadratic, q_constraint.sense, q_constraint.rhs, q_constraint.name
                 )
             elif (
-                    q_constraint.sense == Constraint.Sense.LE
-                    or q_constraint.sense == Constraint.Sense.GE
+                    q_constraint.sense in (Constraint.Sense.LE, Constraint.Sense.GE)
             ):
                 if mode == 'integer':
                     self._add_integer_slack_var_quadratic_constraint(
