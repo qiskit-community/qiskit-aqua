@@ -494,14 +494,10 @@ def _append_by_qreg(target, other):
     # Add new registers
     for element in other.qregs:
         if element not in target.qregs:
-            target.qregs.append(element)
-            target._qubits += element[:]
-            target._qubit_set.update(element[:])
+            target.add_register(element)
     for element in other.cregs:
         if element not in target.cregs:
-            target.cregs.append(element)
-            target._clbits += element[:]
-            target._clbit_set.update(element[:])
+            target.add_register(element)
 
     # Copy the circuit data if other and target are the same, otherwise the data of other is
     # appended to both target and other resulting in an infinite loop
