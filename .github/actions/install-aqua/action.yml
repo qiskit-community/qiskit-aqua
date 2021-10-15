@@ -12,14 +12,17 @@
 
 name: 'Install Qiskit Aqua'
 description: 'Installs Qiskit Aqua on developer mode'
-
+inputs:
+  domain:
+    description: 'Domain'
+    required: false
 runs:
   using: "composite"
   steps: 
     - run : |
-        if [ -f "$HOME/miniconda/etc/profile.d/conda.sh" ]; then
-          source "$HOME/miniconda/etc/profile.d/conda.sh"
-          conda activate
+        if [ "${{ inputs.domain }}" == "chemistry" ]; then
+          source "$CONDA/etc/profile.d/conda.sh"
+          conda activate psi4env
         fi
         pip install -e .[torch,cplex,cvx,pyscf,skquant]
         pip install -U -c constraints.txt -r requirements-dev.txt

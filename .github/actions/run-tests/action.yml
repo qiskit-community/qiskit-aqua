@@ -14,7 +14,7 @@ name: 'Run Unit Tests'
 description: 'Run Unit Tests'
 inputs:
   domain:
-    description: 'Domain to test'
+    description: 'Domain'
     required: true
   event-name:
     description: 'Actions event'
@@ -26,9 +26,9 @@ runs:
   using: "composite"
   steps: 
     - run: |
-        if [ -f "$HOME/miniconda/etc/profile.d/conda.sh" ]; then
-          source "$HOME/miniconda/etc/profile.d/conda.sh"
-          conda activate
+        if [ "${{ inputs.domain }}" == "chemistry" ]; then
+          source "$CONDA/etc/profile.d/conda.sh"
+          conda activate psi4env
         fi
         # run slow tests only on scheduled event
         if [ "${{ inputs.event-name }}" == "schedule" ]; then

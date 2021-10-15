@@ -12,7 +12,10 @@
 
 name: 'Install Qiskit Aqua Main Dependencies'
 description: 'Installs Python dependencies from Main'
-
+inputs:
+  domain:
+    description: 'Domain'
+    required: false
 runs:
   using: "composite"
   steps:
@@ -20,9 +23,9 @@ runs:
       env:
         DISABLE_CONAN: 1
       run: |
-        if [ -f "$HOME/miniconda/etc/profile.d/conda.sh" ]; then
-          source "$HOME/miniconda/etc/profile.d/conda.sh"
-          conda activate
+        if [ "${{ inputs.domain }}" == "chemistry" ]; then
+          source "$CONDA/etc/profile.d/conda.sh"
+          conda activate psi4env
         fi
         pip install git+https://github.com/Qiskit/qiskit-terra
         pip install git+https://github.com/Qiskit/qiskit-ignis
