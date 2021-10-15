@@ -49,7 +49,6 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - uses: ./.github/actions/install-libraries
       - uses: ./.github/actions/install-main-dependencies
         if: ${{ !startsWith(github.ref, 'refs/heads/stable') && !startsWith(github.base_ref, 'stable/') }}
       - uses: ./.github/actions/install-aqua
@@ -100,7 +99,6 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - uses: ./.github/actions/install-libraries
       - uses: ./.github/actions/install-main-dependencies
         if: ${{ !startsWith(github.ref, 'refs/heads/stable') && !startsWith(github.base_ref, 'stable/') }}
       - uses: ./.github/actions/install-aqua
@@ -126,7 +124,6 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - uses: ./.github/actions/install-libraries
       - uses: ./.github/actions/install-main-dependencies
         if: ${{ !startsWith(github.ref, 'refs/heads/stable') && !startsWith(github.base_ref, 'stable/') }}
       - uses: ./.github/actions/install-aqua
@@ -154,6 +151,7 @@ jobs:
   Chemistry:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: [3.6, 3.7, 3.8, 3.9]
     steps:
@@ -161,20 +159,25 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
+      - name: Create conda environment
+        run: |
+          source "$CONDA/etc/profile.d/conda.sh"
+          conda create -n psi4env python=${{ matrix.python-version }}
+        shell: bash
       - uses: ./.github/actions/install-psi4
         with:
           python-version: ${{ matrix.python-version }}
-        if: ${{ matrix.python-version < 3.8 }}
-      - uses: ./.github/actions/install-libraries
       - uses: ./.github/actions/install-main-dependencies
+        with:
+          domain: chemistry
         if: ${{ !startsWith(github.ref, 'refs/heads/stable') && !startsWith(github.base_ref, 'stable/') }}
       - uses: ./.github/actions/install-aqua
+        with:
+          domain: chemistry
       - name: Install Dependencies
         run: |
-          if [ -f "$HOME/miniconda/etc/profile.d/conda.sh" ]; then
-            source "$HOME/miniconda/etc/profile.d/conda.sh"
-            conda activate
-          fi
+          source "$CONDA/etc/profile.d/conda.sh"
+          conda activate psi4env
           pip install -U Cython
           pip install git+https://github.com/rpmuller/pyquante2
         if: ${{ matrix.python-version < 3.9 }}
@@ -187,15 +190,15 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Deprecation Messages
         run: |
+          source "$CONDA/etc/profile.d/conda.sh"
+          conda activate psi4env
           mkdir ./c${{ matrix.python-version }}
           python tools/extract_deprecation.py -file out.txt -output ./c${{ matrix.python-version }}/chem.dep
         shell: bash
       - name: Coverage combine
         run: |
-          if [ -f "$HOME/miniconda/etc/profile.d/conda.sh" ]; then
-            source "$HOME/miniconda/etc/profile.d/conda.sh"
-            conda activate
-          fi
+          source "$CONDA/etc/profile.d/conda.sh"
+          conda activate psi4env
           coverage3 combine
           mv .coverage ./c${{ matrix.python-version }}/chem.dat
         if: ${{ matrix.python-version == 3.7 }}
@@ -214,7 +217,6 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - uses: ./.github/actions/install-libraries
       - uses: ./.github/actions/install-main-dependencies
         if: ${{ !startsWith(github.ref, 'refs/heads/stable') && !startsWith(github.base_ref, 'stable/') }}
       - uses: ./.github/actions/install-aqua
@@ -249,7 +251,6 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - uses: ./.github/actions/install-libraries
       - uses: ./.github/actions/install-main-dependencies
         if: ${{ !startsWith(github.ref, 'refs/heads/stable') && !startsWith(github.base_ref, 'stable/') }}
       - uses: ./.github/actions/install-aqua
@@ -284,7 +285,6 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - uses: ./.github/actions/install-libraries
       - uses: ./.github/actions/install-main-dependencies
         if: ${{ !startsWith(github.ref, 'refs/heads/stable') && !startsWith(github.base_ref, 'stable/') }}
       - uses: ./.github/actions/install-aqua
@@ -321,7 +321,6 @@ jobs:
       - uses: actions/setup-python@v2
         with:
           python-version: ${{ matrix.python-version }}
-      - uses: ./.github/actions/install-libraries
       - uses: ./.github/actions/install-main-dependencies
         if: ${{ !startsWith(github.ref, 'refs/heads/stable') && !startsWith(github.base_ref, 'stable/') }}
       - uses: ./.github/actions/install-aqua
