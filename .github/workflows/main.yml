@@ -362,6 +362,7 @@ jobs:
         env:
           QISKIT_PARALLEL: False
         run: |
+          pip install 'matplotlib<3.3.0'
           git clone https://github.com/Qiskit/qiskit-tutorials
           cd qiskit-tutorials
           git checkout stable/0.25.x
