@@ -92,6 +92,7 @@ jobs:
   Lint:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: [3.6, 3.7, 3.8, 3.9]
     steps:
@@ -117,6 +118,7 @@ jobs:
   Aqua:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: [3.6, 3.7, 3.8, 3.9]
     steps:
@@ -210,6 +212,7 @@ jobs:
   Finance:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: [3.6, 3.7, 3.8, 3.9]
     steps:
@@ -244,6 +247,7 @@ jobs:
   MachineLearning:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: [3.6, 3.7, 3.8, 3.9]
     steps:
@@ -278,6 +282,7 @@ jobs:
   Optimization:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: [3.6, 3.7, 3.8, 3.9]
     steps:
@@ -312,6 +317,7 @@ jobs:
   Tutorials:
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         python-version: [3.7, 3.8]
     steps:
