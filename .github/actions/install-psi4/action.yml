@@ -22,6 +22,6 @@ runs:
     - run : |
         source "$CONDA/etc/profile.d/conda.sh"
         conda activate psi4env
-        conda install -y psi4=1.4rc3 python=${{ inputs.python-version }} -c psi4/label/dev
+        conda install -y psi4 python=${{ inputs.python-version }} -c psi4
         pip install -U numpy
       shell: bash
