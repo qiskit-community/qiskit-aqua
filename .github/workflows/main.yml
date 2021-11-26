@@ -109,12 +109,6 @@ jobs:
       - run: make mypy
         if: ${{ !cancelled() }}
         shell: bash
-      - name: Run make lint latest version
-        run: |
-          pip install -U pylint
-          make lint
-        if: ${{ !cancelled() }}
-        shell: bash
   Aqua:
     runs-on: ubuntu-latest
     strategy:
