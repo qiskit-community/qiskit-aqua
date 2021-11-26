@@ -337,8 +337,8 @@ class FermionicOperator:
             phase = y_j.phase
             y_j.x[j] = True
             y_j.phase = phase
-            a_list.append((update_pauli[j] * x_j * parity_pauli[j],
-                           update_pauli[j] * y_j * remainder_pauli[j]))
+            a_list.append((update_pauli[j].dot(x_j).dot(parity_pauli[j]),
+                           update_pauli[j].dot(y_j).dot(remainder_pauli[j])))
         return a_list
 
     def mapping(self, map_type, threshold=0.00000001):
